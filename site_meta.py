@@ -8,13 +8,14 @@ from site_assets import LINKEDIN, MEDIUM, EMAIL
 SOCIAL_IMAGE = "https://avatars.githubusercontent.com/u/97567343?v=4"
 
 DESCRIPTIONS = {
-    "home": "Enterprise AI & Data leadership focused on strategy, operating models, governance, adoption and business value.",
+    "home": "Enterprise AI & Data leadership focused on turning AI strategy into operating capability, adoption and measurable business value.",
     "impact": "Leadership evidence from Jair Ribeiro across enterprise AI and data: operating models, portfolio choices, adoption, governance, data readiness and decisions required to scale responsibly.",
     "thinking": "Selected writing by Jair Ribeiro on enterprise AI strategy, value, operating models, governance, data readiness, adoption and leadership judgment.",
-    "about": "About Jair Ribeiro, a Senior AI & Data Leader based in Gothenburg with international experience across enterprise technology, data, analytics, AI adoption and governance.",
+    "about": "About Jair Ribeiro, an Enterprise AI & Data Leader based in Gothenburg with international experience across enterprise technology, data, analytics, AI adoption and governance.",
     "contact": "Contact Jair Ribeiro to discuss senior AI, Data and Analytics leadership mandates in Sweden and international environments.",
-    "enterprise": "Enterprise AI & Data leadership profile for Jair Ribeiro: strategy, portfolio management, operating models, data foundations, governance, adoption and scale.",
-    "transformation": "AI transformation and capability profile for Jair Ribeiro: prioritization, adoption, governance, operating models, data readiness and moving from pilots to scale.",
+    "enterprise": "Data & AI leadership profile for Jair Ribeiro: strategy, portfolio management, operating models, data foundations, governance, adoption and scale.",
+    "transformation": "AI transformation and adoption profile for Jair Ribeiro: prioritization, capability building, governance, operating models, data readiness and moving from pilots to scale.",
+    "governance": "AI governance and operating model profile for Jair Ribeiro: decision rights, lifecycle ownership, responsible AI, data trust, evidence and scale-readiness.",
     "consulting": "Business-driven AI and consulting leadership profile for Jair Ribeiro, connecting executive priorities with technology choices, governance, adoption and delivery reality.",
 }
 
@@ -26,7 +27,7 @@ def inject_metadata(page: str, title: str) -> None:
         "@context": "https://schema.org",
         "@type": "Person",
         "name": "Jair Ribeiro",
-        "jobTitle": "Senior AI & Data Leader",
+        "jobTitle": "Enterprise AI & Data Leader",
         "description": DESCRIPTIONS["home"],
         "email": f"mailto:{EMAIL}",
         "address": {

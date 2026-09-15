@@ -30,8 +30,7 @@ TITLES = {
     "consulting": "Business-Driven AI & Consulting | Jair Ribeiro",
 }
 
-# Keep page configuration independent from content photography. A damaged image
-# asset must never prevent the application itself from starting.
+# Page configuration is deliberately independent from content photography.
 st.set_page_config(
     page_title=TITLES[PAGE],
     page_icon="🧭",

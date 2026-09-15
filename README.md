@@ -1,6 +1,6 @@
 # Jair Ribeiro — Senior AI & Data Leadership Site
 
-A Streamlit career site designed as a senior-leadership hiring conversion asset rather than an online CV or consulting sales funnel.
+Enterprise AI & Data leadership focused on strategy, operating models, governance, adoption and business value.
 
 ## Strategic purpose
 

@@ -28,13 +28,30 @@ def _is_valid_image(blob: bytes) -> bool:
 
 
 @lru_cache(maxsize=1)
-def _legacy_media() -> dict[str, bytes]:
-    """Load last-known-valid repository media as an availability fallback.
+def _site_photo_bundle() -> dict[str, bytes]:
+    """Load curated high-resolution photography stored persistently in the repo."""
+    media: dict[str, bytes] = {}
+    parts = sorted((IMAGE_DIR / "site_photos_bundle").glob("part_*.b64"))
+    if not parts:
+        return media
+    try:
+        encoded = "".join(p.read_text(encoding="ascii") for p in parts)
+        raw = base64.b64decode(encoded)
+        with zipfile.ZipFile(io.BytesIO(raw)) as bundle:
+            for name in bundle.namelist():
+                if name.endswith("/"):
+                    continue
+                data = bundle.read(name)
+                if _is_valid_image(data):
+                    media[Path(name).name] = data
+    except (ValueError, zipfile.BadZipFile, OSError):
+        pass
+    return media
 
-    Public pages prefer /images. This fallback exists only so a damaged image
-    asset can never take the whole Streamlit application offline. Image-quality
-    enforcement belongs in CI, not in module import side effects.
-    """
+
+@lru_cache(maxsize=1)
+def _legacy_media() -> dict[str, bytes]:
+    """Load older repository media only as a final availability fallback."""
     media: dict[str, bytes] = {}
 
     parts = sorted((ROOT / "payload_parts").glob("part_*.b64"))
@@ -80,9 +97,15 @@ def image_bytes(name: str, *fallback_names: str) -> bytes:
     except OSError:
         pass
 
+    bundled = _site_photo_bundle()
+    for candidate in (name, *fallback_names):
+        data = bundled.get(Path(candidate).name, b"")
+        if _is_valid_image(data):
+            return data
+
     media = _legacy_media()
     for fallback in fallback_names:
-        data = media.get(fallback, b"")
+        data = media.get(Path(fallback).name, b"")
         if _is_valid_image(data):
             return data
     return b""
@@ -197,19 +220,23 @@ def build_cv_pdf() -> bytes:
     return bytes(pdf.output())
 
 
-HERO_BYTES = image_bytes("jair-hero-executive.webp", "panel.webp", "impact19-header.png")
-PANEL_DIALOGUE_BYTES = image_bytes("jair-panel-dialogue.webp", "panel.webp", "impact19-header.png")
-THINKING_PANEL_BYTES = image_bytes("jair-thinking-panel.webp", "panel.webp", "impact19-header.png")
-AI_PANEL_BYTES = image_bytes("jair-ai-panel.webp", "panel.webp", "impact19-header.png")
-ABOUT_BW_BYTES = image_bytes("jair-about-bw.webp", "site-icon.png", "panel.webp")
+HERO_BYTES = image_bytes("jair-hero-executive.avif", "hero.avif", "panel.webp", "impact19-header.png")
+PANEL_DIALOGUE_BYTES = image_bytes("jair-panel-dialogue.avif", "ai-panel.avif", "panel.webp", "impact19-header.png")
+IMPACT_KEYNOTE_BYTES = image_bytes("jair-impact-keynote.avif", "keynote.avif", "panel.webp", "impact19-header.png")
+AI_PANEL_BYTES = image_bytes("jair-ai-panel.avif", "ai-panel.avif", "panel.webp", "impact19-header.png")
+THINKING_PANEL_BYTES = image_bytes("jair-thinking-panel.avif", "thinking.avif", "panel.webp", "impact19-header.png")
+ABOUT_BW_BYTES = image_bytes("jair-about-bw.avif", "portrait.avif", "site-icon.png", "panel.webp")
+CONTACT_BYTES = image_bytes("jair-contact-executive.avif", "portrait.avif", "site-icon.png", "panel.webp")
 
 HERO_URI = data_uri(HERO_BYTES)
 PANEL_DIALOGUE_URI = data_uri(PANEL_DIALOGUE_BYTES)
-THINKING_PANEL_URI = data_uri(THINKING_PANEL_BYTES)
+IMPACT_KEYNOTE_URI = data_uri(IMPACT_KEYNOTE_BYTES)
 AI_PANEL_URI = data_uri(AI_PANEL_BYTES)
+THINKING_PANEL_URI = data_uri(THINKING_PANEL_BYTES)
 ABOUT_BW_URI = data_uri(ABOUT_BW_BYTES)
+CONTACT_URI = data_uri(CONTACT_BYTES)
 
-# Backward-compatible aliases for shared components while public pages migrate.
+# Backward-compatible aliases for shared components.
 PROFILE_URI = HERO_URI
 SPEAKING_URI = PANEL_DIALOGUE_URI
 WORKSHOP_URI = AI_PANEL_URI

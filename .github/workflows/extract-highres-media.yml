@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - '.github/workflows/extract-highres-media.yml'
-      - 'hq_media.zip'
       - 'payload_parts/**'
       - 'asset_parts/**'
   workflow_dispatch:
@@ -25,7 +24,7 @@ jobs:
           python-version: '3.12'
       - name: Install Pillow
         run: pip install pillow
-      - name: Extract only high-resolution source photography
+      - name: Recover and inventory source photography
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -35,63 +34,54 @@ jobs:
           root = Path('.')
           out = root / 'images'
           out.mkdir(exist_ok=True)
-
-          # Keep README but remove previously auto-extracted image files so the source stays deterministic.
-          for p in out.iterdir():
-              if p.is_file() and p.name.lower() != 'readme.md':
-                  p.unlink()
-
           candidates = {}
 
-          hq = root / 'hq_media.zip'
-          if hq.exists():
-              with zipfile.ZipFile(hq) as z:
-                  for name in z.namelist():
-                      if not name.endswith('/'):
-                          candidates[Path(name).name] = z.read(name)
-
+          # The text-safe payload is the valid legacy source bundle. Recover image assets only;
+          # application code from the payload is never executed.
           parts = sorted((root / 'payload_parts').glob('part_*.b64'))
           if parts:
-              try:
-                  encoded = ''.join(p.read_text(encoding='ascii') for p in parts)
-                  with zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded))) as z:
-                      for name in z.namelist():
-                          if name.startswith('assets/') and not name.endswith('/'):
-                              candidates.setdefault(Path(name).name, z.read(name))
-              except Exception:
-                  pass
+              encoded = ''.join(p.read_text(encoding='ascii') for p in parts)
+              with zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded))) as z:
+                  for name in z.namelist():
+                      if name.startswith('assets/') and not name.endswith('/'):
+                          candidates[Path(name).name] = z.read(name)
 
+          # The dedicated speaking image is also stored as text-safe base64 source.
           panel_parts = sorted((root / 'asset_parts').glob('panel.webp.part*.b64'))
           if panel_parts:
               try:
                   candidates['panel.webp'] = base64.b64decode(''.join(p.read_text(encoding='ascii') for p in panel_parts))
-              except Exception:
-                  pass
+              except Exception as exc:
+                  print('Panel source could not be decoded:', exc)
 
-          written = []
+          print('Source image inventory:')
+          qualifying = []
           for name, blob in candidates.items():
               try:
                   im = Image.open(io.BytesIO(blob))
                   width, height = im.size
-                  # Executive-site photography should remain useful on retina/large displays.
-                  if max(width, height) < 1200 or width * height < 1_000_000:
-                      continue
-                  ext = (im.format or Path(name).suffix.lstrip('.') or 'jpg').lower()
-                  ext = {'jpeg':'jpg'}.get(ext, ext)
-                  stem = re.sub(r'[^a-z0-9]+', '-', Path(name).stem.lower()).strip('-') or 'photo'
-                  dest = out / f'{stem}.{ext}'
-                  dest.write_bytes(blob)
-                  written.append((dest.name, width, height, len(blob)))
-              except Exception:
-                  continue
+                  print(f'  {name}: {width}x{height}, {len(blob)} bytes, {im.format}')
+                  # High-resolution policy: enough source pixels for a large desktop/retina slot.
+                  if max(width, height) >= 1200 and width * height >= 1_000_000:
+                      qualifying.append((name, blob, im.format, width, height))
+              except Exception as exc:
+                  print(f'  {name}: skipped ({exc})')
 
-          print('High-resolution media written:')
-          for item in written:
-              print(item)
+          print('Qualifying high-resolution assets:')
+          written = []
+          for name, blob, fmt, width, height in qualifying:
+              ext = (fmt or Path(name).suffix.lstrip('.') or 'jpg').lower()
+              ext = {'jpeg':'jpg'}.get(ext, ext)
+              stem = re.sub(r'[^a-z0-9]+', '-', Path(name).stem.lower()).strip('-') or 'photo'
+              dest = out / f'{stem}.{ext}'
+              dest.write_bytes(blob)
+              written.append((dest.name, width, height, len(blob)))
+              print(' ', written[-1])
+
           if not written:
-              raise SystemExit('No qualifying high-resolution images were extracted')
+              raise SystemExit('No source image meets the high-resolution policy')
           PY
-      - name: Commit extracted images
+      - name: Commit recovered image files
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

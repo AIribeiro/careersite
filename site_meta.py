@@ -8,7 +8,7 @@ from site_assets import LINKEDIN, MEDIUM, EMAIL
 SOCIAL_IMAGE = "https://avatars.githubusercontent.com/u/97567343?v=4"
 
 DESCRIPTIONS = {
-    "home": "Jair Ribeiro is a Senior AI & Data Leader based in Gothenburg, Sweden, focused on enterprise AI strategy, operating models, governance, adoption, analytics and measurable business value.",
+    "home": "Enterprise AI & Data leadership focused on strategy, operating models, governance, adoption and business value.",
     "impact": "Leadership evidence from Jair Ribeiro across enterprise AI and data: operating models, portfolio choices, adoption, governance, data readiness and decisions required to scale responsibly.",
     "thinking": "Selected writing by Jair Ribeiro on enterprise AI strategy, value, operating models, governance, data readiness, adoption and leadership judgment.",
     "about": "About Jair Ribeiro, a Senior AI & Data Leader based in Gothenburg with international experience across enterprise technology, data, analytics, AI adoption and governance.",

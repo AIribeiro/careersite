@@ -13,13 +13,22 @@ with zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded))) as bundle:
 # Blog section without repacking the embedded site bundle.
 _blog_anchor = '''              <div class="beliefs">\n                <article class="belief"><span class="num">01</span><p>“A portfolio with twenty pilots and no stopping rules is not an AI strategy.”</p></article>'''
 _series_block = '''              <section style="margin:44px 0 58px;">
-                <div style="display:flex;justify-content:space-between;gap:24px;align-items:end;flex-wrap:wrap;margin-bottom:24px;">
-                  <div style="max-width:760px;">
+                <div style="display:flex;justify-content:space-between;gap:28px;align-items:end;flex-wrap:wrap;margin-bottom:28px;">
+                  <div style="max-width:820px;">
                     <p class="kicker" style="margin-bottom:10px;">Leading in the AI Enterprise</p>
-                    <h3 style="font-family:Georgia,serif;font-size:clamp(30px,4vw,48px);font-weight:500;line-height:1.08;margin:0 0 12px;">18 essays on what enterprise AI leadership looks like in practice.</h3>
-                    <p style="font-size:17px;line-height:1.65;color:#505653;margin:0;">A chronological series on strategy, value, operating models, governance, workforce, risk and the practical choices that determine whether AI becomes real capability or remains a collection of experiments.</p>
+                    <h3 style="font-family:Georgia,serif;font-size:clamp(30px,4vw,48px);font-weight:500;line-height:1.08;margin:0 0 20px;">The leadership questions behind the series.</h3>
+                    <p style="font-size:17px;line-height:1.7;color:#505653;margin:0 0 18px;">Over the last few months, I have noticed something interesting: whether the conversation happens inside companies, industry forums, executive roundtables, or broader European discussions about competitiveness and digital transformation, the same questions keep surfacing.</p>
+                    <div style="border-left:2px solid rgba(16,19,26,.24);padding:4px 0 4px 22px;margin:22px 0 24px;font-family:Georgia,serif;font-size:20px;line-height:1.55;color:#272b29;">
+                      <div>How do we move from AI experimentation to measurable business value?</div>
+                      <div style="margin-top:10px;">How do we build trust without slowing innovation?</div>
+                      <div style="margin-top:10px;">How do we prepare leaders and employees for a workplace increasingly shaped by AI?</div>
+                      <div style="margin-top:10px;">How do we create the data foundations needed to scale responsibly?</div>
+                    </div>
+                    <p style="font-size:17px;line-height:1.7;color:#505653;margin:0 0 18px;">The technology is evolving rapidly.<br>The leadership challenges are becoming clearer.</p>
+                    <p style="font-size:17px;line-height:1.7;color:#505653;margin:0 0 18px;">Over the next weeks, I will share a series of 20 articles that I've been preparing to reflect on and explore what I believe are the most important AI topics senior leaders should be discussing in 2026.</p>
+                    <p style="font-size:17px;line-height:1.7;color:#505653;margin:0;">Not from the perspective of algorithms or tools, but from the perspective of strategy, governance, operating models, data, workforce transformation, and organizational readiness.</p>
                   </div>
-                  <div style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:#6c716e;white-space:nowrap;">Series · 18 articles</div>
+                  <div style="font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:#6c716e;white-space:nowrap;">18 published · 20 in series</div>
                 </div>
 
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;">

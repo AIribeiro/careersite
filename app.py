@@ -33,7 +33,7 @@ VALID = {"home", "impact", "thinking", "about", "contact", "enterprise", "transf
 PAGE = PAGE if PAGE in VALID else "home"
 
 TITLES = {
-    "home": "Jair Ribeiro | Senior AI & Data Leader",
+    "home": "Jair Ribeiro | Enterprise AI & Data Leadership",
     "impact": "Leadership Impact | Jair Ribeiro",
     "thinking": "Selected Thinking | Jair Ribeiro",
     "about": "About | Jair Ribeiro",

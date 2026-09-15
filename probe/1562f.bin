@@ -1,0 +1,1 @@
+High-resolution media bundle for the Streamlit career site. Contains the full-size site photographs, the Learn AI site/page icon, and the Impact19 editorial image. Loaded by app.py at runtime to replace the legacy compressed embedded media.

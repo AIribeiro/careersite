@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 from io import BytesIO
+from pathlib import Path
 import base64
 import zipfile
 
@@ -11,24 +11,25 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "images"
 OUT.mkdir(exist_ok=True)
 
-# Build purpose-specific crops only from preserved source assets that meet the
-# native-resolution floor. Never upscale a small source to satisfy the website.
+# These are the exact original photographs selected for the public site.
+# They already exist in the repository's preserved source-media bundles.
+# Public derivatives keep the source pixel dimensions; CSS handles display crops.
 SPECS = {
-    "hero-executive.webp": {"needles": ["hero.webp", "portrait-casual.webp"], "ratio": (4, 3), "max_width": 1800, "quality": 88},
-    "home-panel.webp": {"needles": ["panel-live.webp", "hero.webp"], "ratio": (16, 10), "max_width": 1800, "quality": 86},
-    "impact-keynote.webp": {"needles": ["panel-live.webp", "hero.webp"], "ratio": (16, 10), "max_width": 1800, "quality": 86},
-    "impact-ai-panel.webp": {"needles": ["panel-live.webp", "hero.webp"], "ratio": (16, 10), "max_width": 1800, "quality": 86},
-    "thinking-panel.webp": {"needles": ["portrait-casual.webp", "hero.webp"], "ratio": (4, 5), "max_width": 1200, "quality": 88},
-    "about-human.webp": {"needles": ["portrait-casual.webp", "hero.webp"], "ratio": (1, 1), "max_width": 1400, "quality": 88},
-    "about-editorial.webp": {"needles": ["hero.webp", "portrait-casual.webp"], "ratio": (4, 5), "max_width": 1200, "quality": 88},
-    "contact-executive.webp": {"needles": ["hero.webp", "portrait-casual.webp"], "ratio": (1, 1), "max_width": 900, "quality": 90},
-    "consulting-panel.webp": {"needles": ["panel-live.webp", "hero.webp"], "ratio": (16, 10), "max_width": 1800, "quality": 86},
-    "enterprise-stage.webp": {"needles": ["panel-live.webp", "hero.webp"], "ratio": (16, 10), "max_width": 1800, "quality": 86},
+    "jair-hero-executive.webp": "1700157848740",
+    "jair-ai-panel.webp": "1700157848740",
+    "jair-leadership-workshop.webp": "54907620908",
+    "jair-panel-dialogue.webp": "54907620908",
+    "jair-thinking-panel.webp": "profile_red_bg",
+    "jair-about-bw.webp": "IMG_8281",
 }
+
+QUALITY = 92
 
 
 def collect_sources() -> dict[str, bytes]:
     sources: dict[str, bytes] = {}
+
+    # Unpacked original photography, when present.
     for ext in ("*.jpg", "*.jpeg", "*.png", "*.webp"):
         for path in ROOT.rglob(ext):
             if path.parent == OUT:
@@ -38,6 +39,7 @@ def collect_sources() -> dict[str, bytes]:
             except OSError:
                 pass
 
+    # Preserved high-resolution media from the earlier site.
     hq = ROOT / "hq_media.zip"
     if hq.exists():
         try:
@@ -48,6 +50,7 @@ def collect_sources() -> dict[str, bytes]:
         except zipfile.BadZipFile:
             pass
 
+    # Original embedded project payload.
     parts = sorted((ROOT / "payload_parts").glob("part_*.b64"))
     if parts:
         try:
@@ -58,70 +61,52 @@ def collect_sources() -> dict[str, bytes]:
                         sources[Path(name).name] = zf.read(name)
         except (ValueError, zipfile.BadZipFile, OSError):
             pass
+
     return sources
 
 
-def image_info(data: bytes) -> tuple[int, int] | None:
-    try:
-        with Image.open(BytesIO(data)) as image:
-            image.verify()
-        with Image.open(BytesIO(data)) as image:
-            return image.size
-    except Exception:
-        return None
+def find_source(sources: dict[str, bytes], needle: str) -> tuple[str, bytes]:
+    needle_l = needle.lower()
+    matches: list[tuple[int, str, bytes]] = []
+    for name, data in sources.items():
+        if needle_l not in name.lower():
+            continue
+        try:
+            with Image.open(BytesIO(data)) as image:
+                image.verify()
+            with Image.open(BytesIO(data)) as image:
+                pixels = image.width * image.height
+            matches.append((pixels, name, data))
+        except Exception:
+            continue
 
+    if not matches:
+        raise RuntimeError(f"Could not find valid original photography matching {needle!r}")
 
-def find_source(sources: dict[str, bytes], needles: list[str]) -> tuple[str, bytes]:
-    # Honor semantic priority, but skip any source that is too small to display
-    # crisply. This keeps resolution policy in the build rather than runtime.
-    for needle in needles:
-        needle_l = needle.lower()
-        matches = []
-        for name, data in sources.items():
-            if name.lower() == needle_l or needle_l in name.lower():
-                size = image_info(data)
-                if size:
-                    matches.append((size[0] * size[1], name, data, size))
-        if matches:
-            matches.sort(reverse=True, key=lambda x: x[0])
-            pixels, name, data, size = matches[0]
-            print(f"Source candidate {name}: {size[0]}x{size[1]}")
-            if pixels >= 500_000:
-                return name, data
-    raise RuntimeError(f"No native high-resolution source found for {needles}")
-
-
-def crop_to_ratio(image: Image.Image, ratio: tuple[int, int]) -> Image.Image:
-    target = ratio[0] / ratio[1]
-    current = image.width / image.height
-    if abs(current - target) < 0.002:
-        return image
-    if current > target:
-        width = int(image.height * target)
-        left = max(0, (image.width - width) // 2)
-        return image.crop((left, 0, left + width, image.height))
-    height = int(image.width / target)
-    top = max(0, int((image.height - height) * 0.32))
-    return image.crop((0, top, image.width, top + height))
+    matches.sort(reverse=True, key=lambda item: item[0])
+    _, name, data = matches[0]
+    return name, data
 
 
 def build() -> None:
     sources = collect_sources()
     if not sources:
         raise RuntimeError("No project source photography was found.")
-    for output_name, spec in SPECS.items():
-        source_name, raw = find_source(sources, spec["needles"])
+
+    for output_name, needle in SPECS.items():
+        source_name, raw = find_source(sources, needle)
         with Image.open(BytesIO(raw)) as source:
-            image = crop_to_ratio(source.convert("RGB"), spec["ratio"])
-            if image.width > spec["max_width"]:
-                height = round(image.height * spec["max_width"] / image.width)
-                image = image.resize((spec["max_width"], height), Image.Resampling.LANCZOS)
+            # Preserve the original pixel dimensions. No upscaling, resizing or
+            # destructive baked-in crop; page CSS controls framing responsively.
+            image = source.convert("RGB")
             output = OUT / output_name
-            image.save(output, "WEBP", quality=spec["quality"], method=6)
-            pixels = image.width * image.height
-            if pixels < 500_000:
-                raise RuntimeError(f"{output_name} is below the website resolution floor: {image.size}")
-            print(f"{output_name}: {image.width}x{image.height} <- {source_name}")
+            image.save(output, "WEBP", quality=QUALITY, method=6)
+            width, height = image.size
+            if width * height < 1_000_000:
+                raise RuntimeError(
+                    f"{output_name} is below the leadership-photo resolution floor: {width}x{height}"
+                )
+            print(f"{output_name}: {width}x{height} <- {source_name}")
 
 
 if __name__ == "__main__":

@@ -29,32 +29,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Compile entry point
-        run: python -m py_compile app.py
+      - name: Compile application
+        run: python -m py_compile app.py site_*.py page_*.py
 
-      - name: Validate embedded site bundle
+      - name: Validate generated CV
         shell: python
         run: |
-          from pathlib import Path
-          import base64
-          import io
-          import zipfile
-
-          root = Path('.')
-          parts = sorted((root / 'payload_parts').glob('part_*.b64'))
-          if not parts:
-              raise SystemExit('No payload parts found')
-          encoded = ''.join(p.read_text(encoding='ascii') for p in parts)
-          with zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded))) as bundle:
-              names = set(bundle.namelist())
-              if 'site.py' not in names:
-                  raise SystemExit('site.py missing from embedded bundle')
-              source = bundle.read('site.py').decode('utf-8')
-              compile(source, 'site.py', 'exec')
-              assets = [name for name in names if name.startswith('assets/')]
-              if not assets:
-                  raise SystemExit('No embedded assets found')
-          print(f'Validated {len(parts)} payload parts and {len(assets)} assets')
+          from site_assets import CV_BYTES
+          if not CV_BYTES.startswith(b'%PDF'):
+              raise SystemExit('Generated CV is not a PDF')
+          if len(CV_BYTES) < 5000:
+              raise SystemExit('Generated CV is unexpectedly small')
+          print(f'Validated generated CV ({len(CV_BYTES)} bytes)')
 
       - name: Start Streamlit
         run: |

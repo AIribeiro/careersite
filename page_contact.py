@@ -1,0 +1,8 @@
+from __future__ import annotations
+
+from site_assets import CV_URI, EMAIL, LINKEDIN
+from site_components import nav, footer
+
+def contact() -> str:
+    cv = f'<a href="{CV_URI}" download="Jair_Ribeiro_Master_CV_2026.pdf">Download CV ↓</a>' if CV_URI else ""
+    return f'''{nav("contact")}<main><section class="pagehero"><div class="container"><p class="eyebrow">Contact</p><h1>Discuss a leadership opportunity.</h1><p>If you are building or reshaping an AI, data or analytics capability and see a potential fit with my experience, I’m always interested in a good conversation.</p></div></section><section class="section paper"><div class="container contactgrid"><div><p class="eyebrow">Where the fit is strongest</p><h2>Senior mandates where AI and data have to move beyond experimentation.</h2><p>My focus is on leadership situations that combine enterprise AI or data strategy with operating capability, portfolio choices, governance, adoption and business value.</p><div class="focus"><div>Senior AI, Data &amp; Analytics leadership</div><div>AI transformation, adoption and capability</div><div>AI / Data operating models and Centers of Excellence</div><div>Responsible AI and governance with enterprise scope</div><div>Business-driven AI and selected management-consulting leadership</div></div><p>Based in Gothenburg, Sweden. Working across Sweden and international environments.</p></div><aside class="contactcard"><span>Direct contact</span><a href="mailto:{EMAIL}">{EMAIL}</a><a href="{LINKEDIN}" target="_blank">LinkedIn ↗</a>{cv}<p>No sales funnel, booking sequence or service package. If there is a serious leadership context to discuss, email or LinkedIn is the fastest route.</p></aside></div></section></main>{footer()}'''

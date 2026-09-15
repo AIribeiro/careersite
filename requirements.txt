@@ -1,1 +1,2 @@
 streamlit==1.53.0
+fpdf2==2.8.8

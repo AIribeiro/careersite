@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import io
 import streamlit as st
 
-from site_assets import PROFILE_BYTES
 from site_styles import CSS
 from site_image_styles import IMAGE_CSS
 from site_meta import inject_metadata
@@ -32,9 +30,11 @@ TITLES = {
     "consulting": "Business-Driven AI & Consulting | Jair Ribeiro",
 }
 
+# Keep page configuration independent from content photography. A damaged image
+# asset must never prevent the application itself from starting.
 st.set_page_config(
     page_title=TITLES[PAGE],
-    page_icon=io.BytesIO(PROFILE_BYTES) if PROFILE_BYTES else "JR",
+    page_icon="🧭",
     layout="wide",
     initial_sidebar_state="collapsed",
 )

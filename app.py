@@ -23,13 +23,13 @@ from page_impact import impact
 from page_thinking import thinking
 from page_about import about
 from page_contact import contact
-from site_lenses import enterprise, transformation, consulting
+from site_lenses import enterprise, transformation, governance, consulting
 
 PAGE = st.query_params.get("page", "home")
 if isinstance(PAGE, list):
     PAGE = PAGE[0] if PAGE else "home"
 PAGE = str(PAGE).lower().strip()
-VALID = {"home", "impact", "thinking", "about", "contact", "enterprise", "transformation", "consulting"}
+VALID = {"home", "impact", "thinking", "about", "contact", "enterprise", "transformation", "governance", "consulting"}
 PAGE = PAGE if PAGE in VALID else "home"
 
 TITLES = {
@@ -38,8 +38,9 @@ TITLES = {
     "thinking": "Selected Thinking | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
     "contact": "Discuss a Leadership Opportunity | Jair Ribeiro",
-    "enterprise": "Enterprise AI & Data Leadership | Jair Ribeiro",
-    "transformation": "AI Transformation & Capability | Jair Ribeiro",
+    "enterprise": "Data & AI Leadership | Jair Ribeiro",
+    "transformation": "AI Transformation & Adoption | Jair Ribeiro",
+    "governance": "AI Governance & Operating Model | Jair Ribeiro",
     "consulting": "Business-Driven AI & Consulting | Jair Ribeiro",
 }
 
@@ -61,6 +62,7 @@ RENDER = {
     "contact": contact,
     "enterprise": enterprise,
     "transformation": transformation,
+    "governance": governance,
     "consulting": consulting,
 }
 

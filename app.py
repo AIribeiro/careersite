@@ -14,6 +14,10 @@ import site_photo_patch  # noqa: F401
 # canonical version before page modules import CV_URI from site_assets.
 import site_cv_patch  # noqa: F401
 
+# Final public-delivery overrides: verified high-resolution photography and a
+# direct repository-backed PDF URL, applied before page modules import assets.
+import site_delivery_patch  # noqa: F401
+
 from page_home import home
 from page_impact import impact
 from page_thinking import thinking

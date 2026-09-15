@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import html
 
-from site_assets import CV_URI, AI_PANEL_URI, HERO_URI, PANEL_DIALOGUE_URI
+from site_assets import CV_URI, AI_PANEL_URI, IMPACT_KEYNOTE_URI, PANEL_DIALOGUE_URI
 from site_components import nav, footer, opportunity
 
 
@@ -43,8 +43,8 @@ def transformation() -> str:
             ("Adoption","Training is not adoption","Capability building has to connect to real workflows, decisions, ownership and confidence. Literacy improves the quality of demand and use, but adoption only becomes visible when behavior and operating routines change.",["Practical GenAI literacy and responsible-use programs","Cross-functional use-case discovery and business translation","Connecting AI adoption with governance and data foundations"]),
             ("Scale","Governance should help good work move faster","I prefer governance mechanisms that clarify ownership, evidence and risk so teams know how to move. The useful question is not how many approvals exist, but whether the organization can distinguish low-risk experimentation from work that needs stronger evidence before it reaches customers, employees or critical processes.",["Lifecycle stage-gates and scale-readiness criteria","Risk-aware portfolio choices","Responsible AI positioned as an enabler of trusted adoption"]),
         ],
-        HERO_URI,
-        "Jair Ribeiro speaking during an executive AI panel",
+        IMPACT_KEYNOTE_URI,
+        "Jair Ribeiro speaking to a large enterprise audience",
     )
 
 

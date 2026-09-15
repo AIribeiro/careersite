@@ -6,6 +6,7 @@ import base64
 import io
 import zipfile
 
+from PIL import Image, UnidentifiedImageError
 from fpdf import FPDF
 
 ROOT = Path(__file__).resolve().parent
@@ -13,6 +14,18 @@ IMAGE_DIR = ROOT / "images"
 LINKEDIN = "https://www.linkedin.com/in/jairribeiro"
 MEDIUM = "https://jairribeiro.medium.com"
 EMAIL = "jair.ribeiro@outlook.it"
+
+
+def _is_decodable_image(data: bytes) -> bool:
+    """Return True only when Pillow can fully identify and verify the image bytes."""
+    if not data:
+        return False
+    try:
+        with Image.open(io.BytesIO(data)) as image:
+            image.verify()
+        return True
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError):
+        return False
 
 
 @lru_cache(maxsize=1)
@@ -32,7 +45,9 @@ def _legacy_media() -> dict[str, bytes]:
             with zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded))) as bundle:
                 for name in bundle.namelist():
                     if name.startswith("assets/") and not name.endswith("/"):
-                        media[Path(name).name] = bundle.read(name)
+                        data = bundle.read(name)
+                        if _is_decodable_image(data):
+                            media[Path(name).name] = data
         except (ValueError, zipfile.BadZipFile, OSError):
             pass
 
@@ -42,7 +57,9 @@ def _legacy_media() -> dict[str, bytes]:
             with zipfile.ZipFile(hq) as bundle:
                 for name in bundle.namelist():
                     if not name.endswith("/"):
-                        media[Path(name).name] = bundle.read(name)
+                        data = bundle.read(name)
+                        if _is_decodable_image(data):
+                            media[Path(name).name] = data
         except (zipfile.BadZipFile, OSError):
             pass
 
@@ -50,7 +67,9 @@ def _legacy_media() -> dict[str, bytes]:
     if panel_parts:
         try:
             encoded = "".join(p.read_text(encoding="ascii") for p in panel_parts)
-            media["panel.webp"] = base64.b64decode(encoded)
+            data = base64.b64decode(encoded)
+            if _is_decodable_image(data):
+                media["panel.webp"] = data
         except (ValueError, OSError):
             pass
 
@@ -60,15 +79,17 @@ def _legacy_media() -> dict[str, bytes]:
 def image_bytes(name: str, *fallback_names: str) -> bytes:
     """Load selected photography without making image problems fatal at runtime.
 
-    /images remains the canonical source. If a deployment contains a missing,
-    truncated or corrupt image, the app uses last-known-valid repository media
-    until CI-backed replacement files are committed.
+    /images remains the canonical source. A file is accepted only if it is large
+    enough to be intentional and Pillow can decode it. If it is missing,
+    truncated, malformed or otherwise unreadable, a verified repository fallback
+    is used. If no verified image exists, an empty byte string is returned and
+    the application continues to run.
     """
     path = IMAGE_DIR / name
     try:
         if path.exists():
             data = path.read_bytes()
-            if len(data) >= 20_000:
+            if len(data) >= 20_000 and _is_decodable_image(data):
                 return data
     except OSError:
         pass
@@ -76,7 +97,7 @@ def image_bytes(name: str, *fallback_names: str) -> bytes:
     media = _legacy_media()
     for fallback in fallback_names:
         data = media.get(fallback, b"")
-        if data:
+        if _is_decodable_image(data):
             return data
     return b""
 
@@ -86,7 +107,7 @@ def mime_for(blob: bytes) -> str:
         return "image/jpeg"
     if blob.startswith(b"\x89PNG\r\n\x1a\n"):
         return "image/png"
-    if blob.startswith(b"RIFF") and blob[8:12] == b"WEBP":
+    if blob.startswith(b"RIFF") and len(blob) >= 12 and blob[8:12] == b"WEBP":
         return "image/webp"
     if len(blob) > 12 and blob[4:12] in (b"ftypavif", b"ftypavis"):
         return "image/avif"
@@ -94,7 +115,7 @@ def mime_for(blob: bytes) -> str:
 
 
 def data_uri(blob: bytes, mime: str | None = None) -> str:
-    if not blob:
+    if not blob or not _is_decodable_image(blob):
         return ""
     mime = mime or mime_for(blob)
     return f"data:{mime};base64,{base64.b64encode(blob).decode('ascii')}"
@@ -190,8 +211,8 @@ def build_cv_pdf() -> bytes:
     return bytes(pdf.output())
 
 
-PROFILE_BYTES = image_bytes("jair-conference-stage.webp", "site-icon.png", "panel.webp")
-SPEAKING_BYTES = image_bytes("jair-panel-conversation.webp", "panel.webp", "impact19-header.png")
+PROFILE_BYTES = image_bytes("jair-executive-portrait.webp", "site-icon.png", "panel.webp")
+SPEAKING_BYTES = image_bytes("jair-conference-stage.webp", "panel.webp", "impact19-header.png")
 WORKSHOP_BYTES = image_bytes("jair-leadership-workshop.webp", "impact19-header.png", "panel.webp")
 
 PROFILE_URI = data_uri(PROFILE_BYTES)
@@ -199,4 +220,4 @@ SPEAKING_URI = data_uri(SPEAKING_BYTES)
 WORKSHOP_URI = data_uri(WORKSHOP_BYTES)
 
 CV_BYTES = build_cv_pdf()
-CV_URI = data_uri(CV_BYTES, "application/pdf")
+CV_URI = f"data:application/pdf;base64,{base64.b64encode(CV_BYTES).decode('ascii')}"

@@ -1,0 +1,1 @@
+The active website photography is installed directly on main using Git data objects. No image-publishing Action is used.

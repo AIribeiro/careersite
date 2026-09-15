@@ -4,29 +4,30 @@ import html
 
 from site_assets import PROFILE_URI, CV_URI, LINKEDIN, MEDIUM, EMAIL
 
+
 def nav(active: str) -> str:
     def link(page: str, label: str) -> str:
         cls = "link on" if page == active else "link"
         return f'<a class="{cls}" href="?page={page}" target="_self">{html.escape(label)}</a>'
-    return f'''<nav class="nav"><div class="navin"><a class="brand" href="?page=home" target="_self"><img src="{PROFILE_URI}" alt="Jair Ribeiro"><div><strong>Jair Ribeiro</strong><span>Senior AI &amp; Data Leader</span></div></a><div class="links">{link("home","Home")}{link("impact","Leadership Impact")}{link("thinking","Thinking")}{link("about","About")}<a class="link contactlink{' on' if active=='contact' else ''}" href="?page=contact" target="_self">Contact</a></div></div></nav>'''
+    return f'''<nav class="nav"><div class="navin"><a class="brand" href="?page=home" target="_self"><img src="{PROFILE_URI}" alt="Jair Ribeiro"><div><strong>Jair Ribeiro</strong><span>Senior AI &amp; Data Leader</span></div></a><div class="links">{link("home","Home")}{link("impact","Leadership Impact")}{link("thinking","Thinking")}{link("about","About")}<a class="link contactlink{' on' if active=='contact' else ''}" href="?page=contact" target="_self" data-hq-event="contact_nav">Contact</a></div></div></nav>'''
 
 
 def footer() -> str:
-    cv = f'<a href="{CV_URI}" download="Jair_Ribeiro_Master_CV_2026.pdf">Download CV ↓</a>' if CV_URI else ""
-    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI and Data leadership focused on strategy, operating models, governance, adoption and measurable business value. Based in Gothenburg, Sweden.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank">Medium ↗</a><a href="mailto:{EMAIL}">Email</a>{cv}</div></div><div class="rolelinks"><span>Role lenses</span><a href="?page=enterprise" target="_self">Enterprise AI &amp; Data Leadership</a><a href="?page=transformation" target="_self">AI Transformation &amp; Capability</a><a href="?page=consulting" target="_self">Business-Driven AI &amp; Consulting</a></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
+    cv = f'<a href="{CV_URI}" download="Jair_Ribeiro_Master_CV_2026.pdf" data-hq-event="cv_download_footer">Download CV ↓</a>' if CV_URI else ""
+    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI and Data leadership focused on strategy, operating models, governance, adoption and measurable business value. Based in Gothenburg, Sweden.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_footer">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_footer">Medium ↗</a><a href="mailto:{EMAIL}" data-hq-event="email_footer">Email</a>{cv}</div></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
 
 
 def opportunity() -> str:
-    return '''<section class="cta"><div class="container ctain"><div><h2>When AI and data need to become an operating capability — not another experiment.</h2><p>I’m particularly interested in senior leadership mandates where strategy, data, governance, adoption and operating-model design have to work together. If that sounds close to the problem you are solving, I’m always interested in a good conversation.</p></div><a class="btn ghost" href="?page=contact" target="_self">Discuss a leadership opportunity →</a></div></section>'''
+    return '''<section class="cta"><div class="container ctain"><div><h2>Senior AI and data mandates where the operating model matters as much as the technology.</h2><p>I’m particularly interested in situations where strategy, data, governance, adoption and ownership have to work together. These are usually the points where promising AI activity either becomes a repeatable business capability or stays a collection of isolated experiments.</p></div><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_opportunity">Discuss a leadership opportunity →</a></div></section>'''
 
 
 VALUES = [
-    ("01","AI Strategy & Portfolio","Connect enterprise priorities with realistic AI opportunities, investment choices, ownership and portfolio discipline."),
-    ("02","Operating Models & CoEs","Create the roles, decision rights, lifecycle and collaboration model needed to move beyond disconnected experiments."),
-    ("03","Adoption & Capability","Translate AI into practical work, build literacy close to the business and help people use new capabilities with confidence."),
-    ("04","Governance & Responsible Scale","Build governance as an operating mechanism for ownership, evidence, escalation and trust — not simply another approval layer."),
-    ("05","Data & Analytics Foundations","Connect AI ambition with data quality, stewardship, analytics, architecture and the enterprise realities that determine scalability."),
-    ("06","Business Value & Execution","Move conversations from possibility to prioritization, practical delivery and evidence that the business can defend."),
+    ("01","AI Strategy & Portfolio","Connect enterprise priorities with realistic AI opportunities, investment choices, ownership and portfolio discipline. The important work is deciding what deserves attention, what evidence is still missing and what should not progress yet."),
+    ("02","Operating Models & CoEs","Create the roles, decision rights, lifecycle and collaboration model needed to move beyond disconnected experiments. A useful operating model makes ownership clearer without creating a central team that becomes a bottleneck."),
+    ("03","Adoption & Capability","Translate AI into practical work, build literacy close to the business and help people use new capabilities with confidence. Adoption is visible when workflows and decisions change — not when training attendance is high."),
+    ("04","Governance & Responsible Scale","Build governance as an operating mechanism for ownership, evidence, escalation and trust. The objective is not more gates; it is helping teams understand what they need to prove before higher-risk or higher-scale use is justified."),
+    ("05","Data & Analytics Foundations","Connect AI ambition with data quality, stewardship, analytics, architecture and the enterprise realities that determine scalability. Many AI problems that appear to be model problems are actually ownership, semantics or data-trust problems."),
+    ("06","Business Value & Execution","Move conversations from possibility to prioritization, practical delivery and evidence that the business can defend. Value needs a credible link between the use case, the changed decision or workflow, adoption and the outcome being measured."),
 ]
 
 THOUGHTS = [
@@ -49,5 +50,5 @@ def thought_grid(items: list[tuple[str,str,str,str]], cls: str = "thoughts") -> 
     cards = []
     for topic,title,desc,url in items:
         card_cls = "thought" if cls == "thoughts" else "article"
-        cards.append(f'<a class="{card_cls}" href="{url}" target="_blank" rel="noopener"><span class="topic">{html.escape(topic)}</span><h3>{html.escape(title)}</h3><p>{html.escape(desc)}</p><span class="read">Read article ↗</span></a>')
+        cards.append(f'<a class="{card_cls}" href="{url}" target="_blank" rel="noopener" data-hq-event="article_open"><span class="topic">{html.escape(topic)}</span><h3>{html.escape(title)}</h3><p>{html.escape(desc)}</p><span class="read">Read article ↗</span></a>')
     return f'<div class="{cls}">' + "".join(cards) + "</div>"

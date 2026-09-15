@@ -82,7 +82,7 @@ def build_cv_pdf() -> bytes:
     pdf.cell(0, 9, "JAIR RIBEIRO", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_text_color(184, 97, 52)
-    pdf.cell(0, 6, "AI, Data & Analytics Director | Governance, Adoption & Business Value", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 6, "Senior AI & Data Leader | Strategy, Governance, Adoption & Business Value", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 8.5)
     pdf.set_text_color(70, 76, 84)
     pdf.multi_cell(0, 4.5, "Gothenburg, Sweden | jair.ribeiro@outlook.it | +46 76 761 2158 | linkedin.com/in/jairribeiro", new_x="LMARGIN", new_y="NEXT")
@@ -131,8 +131,6 @@ def build_cv_pdf() -> bytes:
 
     heading("Education & Credentials")
     bullet("MSc, Artificial Intelligence - research focus: Responsible AI adoption in global enterprises.")
-    bullet("MIT MicroMasters coursework - Statistics and Data Science.")
-    bullet("MIT - Minds and Machines: Philosophy and Ethics.")
 
     heading("Languages")
     body("Portuguese and Italian - native/bilingual | English - full professional | Spanish - professional | Polish - limited working | Swedish - elementary", size=8.5)

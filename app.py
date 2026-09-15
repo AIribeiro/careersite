@@ -5,6 +5,7 @@ import streamlit as st
 
 from site_assets import PROFILE_BYTES
 from site_styles import CSS
+from site_meta import inject_metadata
 from page_home import home
 from page_impact import impact
 from page_thinking import thinking
@@ -36,6 +37,8 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+inject_metadata(PAGE, TITLES[PAGE])
 
 RENDER = {
     "home": home,

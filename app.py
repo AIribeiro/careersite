@@ -15,15 +15,17 @@ with zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded))) as bundle:
     }
 
 # Override the legacy embedded photographs with the repository's full-size
-# asset bundle. Keeping the high-resolution media separate from the legacy
-# payload prevents the older compressed images from being rendered on large
-# or retina displays.
+# asset bundle. If the optional media archive is unavailable or invalid, keep
+# the embedded assets so the public site still starts instead of failing.
 hq_media = ROOT / "hq_media.zip"
 if hq_media.exists():
-    with zipfile.ZipFile(hq_media) as media:
-        for name in media.namelist():
-            if not name.endswith("/"):
-                ASSET_BYTES[Path(name).name] = media.read(name)
+    try:
+        with zipfile.ZipFile(hq_media) as media:
+            for name in media.namelist():
+                if not name.endswith("/"):
+                    ASSET_BYTES[Path(name).name] = media.read(name)
+    except (zipfile.BadZipFile, OSError):
+        pass
 
 # Use the Learn AI portrait supplied by Jair as both the browser/page icon and
 # the visible site identity mark in the persistent navigation.

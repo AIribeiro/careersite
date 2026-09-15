@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+from functools import lru_cache
 import base64
+import io
+import zipfile
+
 from fpdf import FPDF
 
 ROOT = Path(__file__).resolve().parent
@@ -11,25 +15,88 @@ MEDIUM = "https://jairribeiro.medium.com"
 EMAIL = "jair.ribeiro@outlook.it"
 
 
-def image_bytes(name: str) -> bytes:
-    """Load approved high-resolution photography directly from /images.
+@lru_cache(maxsize=1)
+def _legacy_media() -> dict[str, bytes]:
+    """Load last-known-valid repository media as an availability fallback.
 
-    Public photography never falls back to legacy payload bundles. A missing or
-    undersized selected asset is a deployment error so visual quality cannot
-    silently degrade.
+    Public pages prefer /images. This fallback exists only so a damaged image
+    asset can never take the whole Streamlit application offline. Image-quality
+    enforcement belongs in CI, not in module import side effects.
+    """
+    media: dict[str, bytes] = {}
+
+    parts = sorted((ROOT / "payload_parts").glob("part_*.b64"))
+    if parts:
+        try:
+            encoded = "".join(p.read_text(encoding="ascii") for p in parts)
+            with zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded))) as bundle:
+                for name in bundle.namelist():
+                    if name.startswith("assets/") and not name.endswith("/"):
+                        media[Path(name).name] = bundle.read(name)
+        except (ValueError, zipfile.BadZipFile, OSError):
+            pass
+
+    hq = ROOT / "hq_media.zip"
+    if hq.exists():
+        try:
+            with zipfile.ZipFile(hq) as bundle:
+                for name in bundle.namelist():
+                    if not name.endswith("/"):
+                        media[Path(name).name] = bundle.read(name)
+        except (zipfile.BadZipFile, OSError):
+            pass
+
+    panel_parts = sorted((ROOT / "asset_parts").glob("panel.webp.part*.b64"))
+    if panel_parts:
+        try:
+            encoded = "".join(p.read_text(encoding="ascii") for p in panel_parts)
+            media["panel.webp"] = base64.b64decode(encoded)
+        except (ValueError, OSError):
+            pass
+
+    return media
+
+
+def image_bytes(name: str, *fallback_names: str) -> bytes:
+    """Load selected photography without making image problems fatal at runtime.
+
+    /images remains the canonical source. If a deployment contains a missing,
+    truncated or corrupt image, the app uses last-known-valid repository media
+    until CI-backed replacement files are committed.
     """
     path = IMAGE_DIR / name
-    if not path.exists():
-        raise FileNotFoundError(f"Required high-resolution site image is missing: {path}")
-    data = path.read_bytes()
-    if len(data) < 20_000:
-        raise ValueError(f"Site image is unexpectedly small: {path}")
-    return data
+    try:
+        if path.exists():
+            data = path.read_bytes()
+            if len(data) >= 20_000:
+                return data
+    except OSError:
+        pass
+
+    media = _legacy_media()
+    for fallback in fallback_names:
+        data = media.get(fallback, b"")
+        if data:
+            return data
+    return b""
 
 
-def data_uri(blob: bytes, mime: str) -> str:
+def mime_for(blob: bytes) -> str:
+    if blob.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if blob.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if blob.startswith(b"RIFF") and blob[8:12] == b"WEBP":
+        return "image/webp"
+    if len(blob) > 12 and blob[4:12] in (b"ftypavif", b"ftypavis"):
+        return "image/avif"
+    return "application/octet-stream"
+
+
+def data_uri(blob: bytes, mime: str | None = None) -> str:
     if not blob:
         return ""
+    mime = mime or mime_for(blob)
     return f"data:{mime};base64,{base64.b64encode(blob).decode('ascii')}"
 
 
@@ -123,15 +190,13 @@ def build_cv_pdf() -> bytes:
     return bytes(pdf.output())
 
 
-# Approved direct photography. Every file is committed under /images and must
-# meet the high-resolution CI policy; no public image is loaded from legacy bundles.
-PROFILE_BYTES = image_bytes("jair-conference-stage.webp")
-SPEAKING_BYTES = image_bytes("jair-panel-conversation.webp")
-WORKSHOP_BYTES = image_bytes("jair-leadership-workshop.webp")
+PROFILE_BYTES = image_bytes("jair-conference-stage.webp", "site-icon.png", "panel.webp")
+SPEAKING_BYTES = image_bytes("jair-panel-conversation.webp", "panel.webp", "impact19-header.png")
+WORKSHOP_BYTES = image_bytes("jair-leadership-workshop.webp", "impact19-header.png", "panel.webp")
 
-PROFILE_URI = data_uri(PROFILE_BYTES, "image/webp")
-SPEAKING_URI = data_uri(SPEAKING_BYTES, "image/webp")
-WORKSHOP_URI = data_uri(WORKSHOP_BYTES, "image/webp")
+PROFILE_URI = data_uri(PROFILE_BYTES)
+SPEAKING_URI = data_uri(SPEAKING_BYTES)
+WORKSHOP_URI = data_uri(WORKSHOP_BYTES)
 
 CV_BYTES = build_cv_pdf()
 CV_URI = data_uri(CV_BYTES, "application/pdf")

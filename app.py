@@ -5,6 +5,11 @@ import streamlit as st
 from site_styles import CSS
 from site_image_styles import IMAGE_CSS
 from site_meta import inject_metadata
+
+# Validate and expose the manually installed /images photography before page
+# modules import the URI constants from site_assets.
+import site_photo_patch  # noqa: F401
+
 from page_home import home
 from page_impact import impact
 from page_thinking import thinking

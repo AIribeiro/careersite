@@ -2,49 +2,29 @@ from __future__ import annotations
 
 from pathlib import Path
 import base64
-import io
-import zipfile
-
 from fpdf import FPDF
 
 ROOT = Path(__file__).resolve().parent
+IMAGE_DIR = ROOT / "images"
 LINKEDIN = "https://www.linkedin.com/in/jairribeiro"
 MEDIUM = "https://jairribeiro.medium.com"
 EMAIL = "jair.ribeiro@outlook.it"
 
 
-def load_media() -> dict[str, bytes]:
-    """Reuse repository media without executing the legacy embedded application."""
-    media: dict[str, bytes] = {}
-    parts = sorted((ROOT / "payload_parts").glob("part_*.b64"))
-    if parts:
-        try:
-            encoded = "".join(p.read_text(encoding="ascii") for p in parts)
-            with zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded))) as bundle:
-                for name in bundle.namelist():
-                    if name.startswith("assets/") and not name.endswith("/"):
-                        media[Path(name).name] = bundle.read(name)
-        except (ValueError, zipfile.BadZipFile, OSError):
-            pass
+def image_bytes(name: str) -> bytes:
+    """Load approved high-resolution photography directly from /images.
 
-    hq = ROOT / "hq_media.zip"
-    if hq.exists():
-        try:
-            with zipfile.ZipFile(hq) as bundle:
-                for name in bundle.namelist():
-                    if not name.endswith("/"):
-                        media[Path(name).name] = bundle.read(name)
-        except (zipfile.BadZipFile, OSError):
-            pass
-
-    panel_parts = sorted((ROOT / "asset_parts").glob("panel.webp.part*.b64"))
-    if panel_parts:
-        try:
-            panel = "".join(p.read_text(encoding="ascii") for p in panel_parts)
-            media["panel.webp"] = base64.b64decode(panel)
-        except (ValueError, OSError):
-            pass
-    return media
+    Public photography never falls back to legacy payload bundles. A missing or
+    undersized selected asset is a deployment error so visual quality cannot
+    silently degrade.
+    """
+    path = IMAGE_DIR / name
+    if not path.exists():
+        raise FileNotFoundError(f"Required high-resolution site image is missing: {path}")
+    data = path.read_bytes()
+    if len(data) < 20_000:
+        raise ValueError(f"Site image is unexpectedly small: {path}")
+    return data
 
 
 def data_uri(blob: bytes, mime: str) -> str:
@@ -143,10 +123,15 @@ def build_cv_pdf() -> bytes:
     return bytes(pdf.output())
 
 
-MEDIA = load_media()
-PROFILE_BYTES = MEDIA.get("site-icon.png", b"")
-SPEAKING_BYTES = MEDIA.get("panel.webp", MEDIA.get("impact19-header.png", b""))
-PROFILE_URI = data_uri(PROFILE_BYTES, "image/png")
-SPEAKING_URI = data_uri(SPEAKING_BYTES, "image/webp" if "panel.webp" in MEDIA else "image/png")
+# Approved direct photography. Every file is committed under /images and must
+# meet the high-resolution CI policy; no public image is loaded from legacy bundles.
+PROFILE_BYTES = image_bytes("jair-conference-stage.webp")
+SPEAKING_BYTES = image_bytes("jair-panel-conversation.webp")
+WORKSHOP_BYTES = image_bytes("jair-leadership-workshop.webp")
+
+PROFILE_URI = data_uri(PROFILE_BYTES, "image/webp")
+SPEAKING_URI = data_uri(SPEAKING_BYTES, "image/webp")
+WORKSHOP_URI = data_uri(WORKSHOP_BYTES, "image/webp")
+
 CV_BYTES = build_cv_pdf()
 CV_URI = data_uri(CV_BYTES, "application/pdf")

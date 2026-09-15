@@ -9,7 +9,7 @@ def nav(active: str) -> str:
     def link(page: str, label: str) -> str:
         cls = "link on" if page == active else "link"
         return f'<a class="{cls}" href="?page={page}" target="_self">{html.escape(label)}</a>'
-    return f'''<nav class="nav"><div class="navin"><a class="brand" href="?page=home" target="_self"><div><strong>Jair Ribeiro</strong><span>Senior AI &amp; Data Leader</span></div></a><div class="links">{link("home","Home")}{link("impact","Leadership Impact")}{link("thinking","Thinking")}{link("about","About")}<a class="link contactlink{' on' if active=='contact' else ''}" href="?page=contact" target="_self" data-hq-event="contact_nav">Contact</a></div></div></nav>'''
+    return f'''<nav class="nav"><div class="navin"><a class="brand" href="?page=home" target="_self"><div><strong>Jair Ribeiro</strong><span>Enterprise AI &amp; Data Leader</span></div></a><div class="links">{link("home","Home")}{link("impact","Leadership Impact")}{link("thinking","Thinking")}{link("about","About")}<a class="link contactlink{' on' if active=='contact' else ''}" href="?page=contact" target="_self" data-hq-event="contact_nav">Contact</a></div></div></nav>'''
 
 
 def footer() -> str:

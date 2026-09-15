@@ -14,7 +14,7 @@ Public availability language is intentionally restrained. The site signals recep
 
 ## Homepage reading model
 
-Home is designed for three reading times:
+The homepage is designed for three reading times:
 
 - **10 seconds** — Who is Jair?
 - **30 seconds** — Why might I interview him?
@@ -25,11 +25,23 @@ The homepage therefore follows a deliberate evidence hierarchy rather than tryin
 1. Hero positioning
 2. Four evidence metrics
 3. Three leadership cases
-4. Three role lenses
-5. External credibility
+4. External perspective — three selected recommendations
+5. Three role lenses
 6. Contact CTA
 
 Detailed leadership philosophy, enterprise-AI operating-system thinking, technical fluency and article content belong deeper in the site.
+
+## External perspective standard
+
+The main site uses only three recommendations, selected for complementary evidence rather than enthusiasm:
+
+- **Claes Sandros** — direct-manager evidence for senior leadership, strategic judgment, technical credibility and business value.
+- **Anna Börjesson Sandberg** — VP-level cross-functional evidence for clarity, influence and direction.
+- **Kumara Datta** — AI peer evidence for technical/business translation, AI credibility and adoption.
+
+Recommendations are shown as intact excerpts, not rewritten copy. No ratings, stars, portrait carousel or testimonial-wall treatment should be introduced. LinkedIn links should remain attributable and should not imply a direct recommendation permalink unless one is verified.
+
+Contextual recommendations may be used on role lenses when they strengthen the specific hiring case. **Jim Edwards** is reserved for consulting/transformation contexts because his recommendation emphasizes bringing people along, education and executive communication.
 
 ## Content standard
 
@@ -43,13 +55,13 @@ Do not manufacture decision authority, financial ROI, team size, budget ownershi
 
 ## Site structure
 
-- **Home** — positioning, evidence metrics, three leadership cases, three role lenses, external credibility and contact
+- **Home** — positioning, evidence metrics, three leadership cases, external perspective, three role lenses and contact
 - **Leadership Impact** — decision-based cases from MSX International, Volvo Group / Volvo Trucks and Kimberly-Clark, plus technical foundations
 - **Thinking** — curated enterprise-AI thought leadership with an explicit editorial point of view
-- **About** — career arc, leadership approach, enterprise-AI operating lens, technical fluency, research perspective, credentials and languages
+- **About** — career arc, leadership approach, enterprise AI operating-system lens, technical fluency, research perspective, credentials and languages
 - **Contact** — low-friction leadership-opportunity contact page
 - **Primary role lenses** — Data & AI Leadership; AI Transformation & Adoption; AI Governance & Operating Model
-- **Additional shareable lens** — Business-Driven AI & Consulting
+- **Secondary shareable lens** — Business-Driven AI & Consulting
 
 ## Runtime
 
@@ -84,7 +96,7 @@ Streamlit Community Cloud deployment source:
 ├── site_components.py      # navigation, footer, shared content
 ├── site_meta.py            # metadata, Person schema + conversion event hooks
 ├── site_styles.py          # executive editorial design system
-├── site_lenses.py          # role-specific landing pages
+├── site_lenses.py          # role-specific landing pages + contextual references
 ├── page_home.py
 ├── page_impact.py
 ├── page_thinking.py
@@ -104,7 +116,7 @@ The application logic is normal readable Python. The old embedded application so
 
 ## Conversion measurement
 
-Important actions include a `data-hq-event` attribute (CV downloads, contact intent, LinkedIn/Medium outbound links, article opens, Leadership Impact visits and role-lens opens). `site_meta.py` dispatches a first-party `hq-conversion` browser event for those interactions.
+Important actions include a `data-hq-event` attribute (CV downloads, contact intent, LinkedIn/Medium outbound links, article opens, Leadership Impact visits, external-reference visits and role-lens opens). `site_meta.py` dispatches a first-party `hq-conversion` browser event for those interactions.
 
 No external analytics provider is enabled by default. This is intentional: a privacy-conscious provider such as Plausible or Umami should only be connected once the deployment domain and privacy approach are explicitly configured. The event taxonomy is already in place for that integration.
 

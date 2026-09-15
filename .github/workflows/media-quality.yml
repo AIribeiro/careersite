@@ -32,12 +32,14 @@ jobs:
           from PIL import Image
 
           required = {
-              "images/jair-conference-stage.webp": 1_500_000,
-              "images/jair-leadership-workshop.webp": 1_000_000,
-              "images/jair-panel-conversation.webp": 1_000_000,
+              "images/jair-hero-executive.webp": (1500, 1100),
+              "images/jair-panel-dialogue.webp": (1400, 900),
+              "images/jair-thinking-panel.webp": (760, 950),
+              "images/jair-ai-panel.webp": (1150, 750),
+              "images/jair-about-bw.webp": (1000, 800),
           }
 
-          for name, min_pixels in required.items():
+          for name, (min_width, min_height) in required.items():
               path = Path(name)
               if not path.exists():
                   raise SystemExit(f"Missing required leadership image: {name}")
@@ -45,11 +47,10 @@ jobs:
                   image.verify()
               with Image.open(path) as image:
                   width, height = image.size
-                  pixels = width * height
-                  if pixels < min_pixels:
+                  if width < min_width or height < min_height:
                       raise SystemExit(
-                          f"{name} is below the high-resolution threshold: "
-                          f"{width}x{height} ({pixels:,} pixels)"
+                          f"{name} is below the display-quality threshold: "
+                          f"{width}x{height}; expected at least {min_width}x{min_height}"
                       )
-                  print(f"{name}: {width}x{height} ({pixels:,} pixels) — OK")
+                  print(f"{name}: {width}x{height} — OK")
           PY

@@ -126,6 +126,10 @@ PANEL_DIALOGUE_URI = image_uri("jair-panel-dialogue.webp")
 THINKING_PANEL_URI = image_uri("jair-thinking-panel.webp")
 ABOUT_BW_URI = image_uri("jair-about-bw.webp")
 
+# Stable fallback: the optional delivery layer may replace this with a dedicated
+# AI-panel image, but importers must always be able to rely on the symbol.
+AI_PANEL_URI = WORKSHOP_URI
+
 # Compatibility aliases used by shared components.
 PROFILE_URI = HERO_URI
 SPEAKING_URI = PANEL_DIALOGUE_URI

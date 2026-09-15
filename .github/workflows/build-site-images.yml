@@ -1,0 +1,79 @@
+name: Build Site Images
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/build_site_images.py"
+      - "hq_media.zip"
+      - "payload_parts/**"
+      - ".github/workflows/build-site-images.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install image tooling
+        run: python -m pip install pillow
+
+      - name: Build selected leadership photography from original sources
+        run: python scripts/build_site_images.py
+
+      - name: Verify selected sources were rendered at full pixel dimensions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          expected = {
+              "jair-hero-executive.webp": (2048, 1365),
+              "jair-ai-panel.webp": (2048, 1365),
+              "jair-leadership-workshop.webp": (3500, 2340),
+              "jair-panel-dialogue.webp": (3500, 2340),
+              "jair-thinking-panel.webp": (2000, 1333),
+              "jair-about-bw.webp": (1024, 1536),
+          }
+
+          for name, dimensions in expected.items():
+              path = Path("images") / name
+              with Image.open(path) as image:
+                  image.verify()
+              with Image.open(path) as image:
+                  if image.size != dimensions:
+                      raise SystemExit(
+                          f"Unexpected dimensions for {name}: {image.size}; expected {dimensions}"
+                      )
+                  print(f"{name}: {image.width}x{image.height} — full resolution OK")
+          PY
+
+      - name: Commit generated public images
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images/jair-hero-executive.webp \
+                  images/jair-ai-panel.webp \
+                  images/jair-leadership-workshop.webp \
+                  images/jair-panel-dialogue.webp \
+                  images/jair-thinking-panel.webp \
+                  images/jair-about-bw.webp
+          if git diff --cached --quiet; then
+            echo "Selected images already match the original sources."
+            exit 0
+          fi
+          git commit -m "Publish selected high-resolution leadership photography [skip ci]"
+          git push origin HEAD:main

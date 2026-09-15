@@ -68,12 +68,14 @@ def build_cv_pdf() -> bytes:
         pdf.set_text_color(17, 21, 27)
 
     def body(text: str, bold: bool = False, size: float = 9) -> None:
+        pdf.set_x(pdf.l_margin)
         pdf.set_font("Helvetica", "B" if bold else "", size)
-        pdf.multi_cell(0, 4.5, text)
+        pdf.multi_cell(0, 4.5, text, new_x="LMARGIN", new_y="NEXT")
 
     def bullet(text: str) -> None:
+        pdf.set_x(pdf.l_margin)
         pdf.set_font("Helvetica", "", 8.5)
-        pdf.multi_cell(0, 4.2, f"- {text}")
+        pdf.multi_cell(0, 4.2, f"- {text}", new_x="LMARGIN", new_y="NEXT")
 
     pdf.set_font("Helvetica", "B", 22)
     pdf.set_text_color(11, 18, 32)
@@ -83,7 +85,7 @@ def build_cv_pdf() -> bytes:
     pdf.cell(0, 6, "AI, Data & Analytics Director | Governance, Adoption & Business Value", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 8.5)
     pdf.set_text_color(70, 76, 84)
-    pdf.multi_cell(0, 4.5, "Gothenburg, Sweden | jair.ribeiro@outlook.it | +46 76 761 2158 | linkedin.com/in/jairribeiro")
+    pdf.multi_cell(0, 4.5, "Gothenburg, Sweden | jair.ribeiro@outlook.it | +46 76 761 2158 | linkedin.com/in/jairribeiro", new_x="LMARGIN", new_y="NEXT")
 
     heading("Executive Profile")
     body("Enterprise AI, data and analytics leader with 15+ years across business strategy, governance, adoption, architecture and technology delivery. Experienced in building capability models, shaping AI and analytics portfolios, improving data trust and translating complex opportunities into governed, practical outcomes. International leadership experience across Sweden, Poland, Italy and Brazil, including automotive, consumer goods and enterprise technology environments.")

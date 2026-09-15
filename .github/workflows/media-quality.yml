@@ -32,11 +32,11 @@ jobs:
           from PIL import Image
 
           required = {
-              "images/jair-hero-executive.webp": (1500, 1100),
-              "images/jair-panel-dialogue.webp": (1400, 900),
-              "images/jair-thinking-panel.webp": (760, 950),
-              "images/jair-ai-panel.webp": (1150, 750),
-              "images/jair-about-bw.webp": (1000, 800),
+              "images/jair-hero-executive.webp": (1500, 1000),
+              "images/jair-leadership-workshop.webp": (1500, 900),
+              "images/jair-panel-dialogue.webp": (1600, 1000),
+              "images/jair-thinking-panel.webp": (1600, 1000),
+              "images/jair-about-bw.webp": (1200, 1100),
           }
 
           for name, (min_width, min_height) in required.items():

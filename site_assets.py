@@ -1,12 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from functools import lru_cache
 import base64
-import io
-import zipfile
 
-from PIL import Image
 from fpdf import FPDF
 
 ROOT = Path(__file__).resolve().parent
@@ -16,95 +12,22 @@ MEDIUM = "https://jairribeiro.medium.com"
 EMAIL = "jair.ribeiro@outlook.it"
 
 
-def _is_valid_image(blob: bytes) -> bool:
-    if not blob:
-        return False
+def image_bytes(name: str) -> bytes:
+    """Read canonical website photography directly from /images."""
     try:
-        with Image.open(io.BytesIO(blob)) as image:
-            image.verify()
-        return True
-    except (OSError, ValueError, SyntaxError):
-        return False
-
-
-@lru_cache(maxsize=1)
-def _legacy_media() -> dict[str, bytes]:
-    """Load last-known-valid repository media as an availability fallback.
-
-    Public pages prefer /images. This fallback exists only so a damaged image
-    asset can never take the whole Streamlit application offline. Image-quality
-    enforcement belongs in CI, not in module import side effects.
-    """
-    media: dict[str, bytes] = {}
-
-    parts = sorted((ROOT / "payload_parts").glob("part_*.b64"))
-    if parts:
-        try:
-            encoded = "".join(p.read_text(encoding="ascii") for p in parts)
-            with zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded))) as bundle:
-                for name in bundle.namelist():
-                    if name.startswith("assets/") and not name.endswith("/"):
-                        media[Path(name).name] = bundle.read(name)
-        except (ValueError, zipfile.BadZipFile, OSError):
-            pass
-
-    hq = ROOT / "hq_media.zip"
-    if hq.exists():
-        try:
-            with zipfile.ZipFile(hq) as bundle:
-                for name in bundle.namelist():
-                    if not name.endswith("/"):
-                        media[Path(name).name] = bundle.read(name)
-        except (zipfile.BadZipFile, OSError):
-            pass
-
-    panel_parts = sorted((ROOT / "asset_parts").glob("panel.webp.part*.b64"))
-    if panel_parts:
-        try:
-            encoded = "".join(p.read_text(encoding="ascii") for p in panel_parts)
-            media["panel.webp"] = base64.b64decode(encoded)
-        except (ValueError, OSError):
-            pass
-
-    return media
-
-
-def image_bytes(name: str, *fallback_names: str) -> bytes:
-    """Load selected photography without making image problems fatal at runtime."""
-    path = IMAGE_DIR / name
-    try:
-        if path.exists():
-            data = path.read_bytes()
-            if len(data) >= 20_000 and _is_valid_image(data):
-                return data
+        return (IMAGE_DIR / name).read_bytes()
     except OSError:
-        pass
-
-    media = _legacy_media()
-    for fallback in fallback_names:
-        data = media.get(fallback, b"")
-        if _is_valid_image(data):
-            return data
-    return b""
+        return b""
 
 
-def mime_for(blob: bytes) -> str:
-    if blob.startswith(b"\xff\xd8\xff"):
-        return "image/jpeg"
-    if blob.startswith(b"\x89PNG\r\n\x1a\n"):
-        return "image/png"
-    if blob.startswith(b"RIFF") and blob[8:12] == b"WEBP":
-        return "image/webp"
-    if len(blob) > 12 and blob[4:12] in (b"ftypavif", b"ftypavis"):
-        return "image/avif"
-    return "application/octet-stream"
-
-
-def data_uri(blob: bytes, mime: str | None = None) -> str:
+def data_uri(blob: bytes, mime: str) -> str:
     if not blob:
         return ""
-    mime = mime or mime_for(blob)
     return f"data:{mime};base64,{base64.b64encode(blob).decode('ascii')}"
+
+
+def image_uri(name: str) -> str:
+    return data_uri(image_bytes(name), "image/webp")
 
 
 def build_cv_pdf() -> bytes:
@@ -197,22 +120,15 @@ def build_cv_pdf() -> bytes:
     return bytes(pdf.output())
 
 
-HERO_BYTES = image_bytes("jair-hero-executive.webp", "panel.webp", "impact19-header.png")
-PANEL_DIALOGUE_BYTES = image_bytes("jair-panel-dialogue.webp", "panel.webp", "impact19-header.png")
-THINKING_PANEL_BYTES = image_bytes("jair-thinking-panel.webp", "panel.webp", "impact19-header.png")
-AI_PANEL_BYTES = image_bytes("jair-ai-panel.webp", "panel.webp", "impact19-header.png")
-ABOUT_BW_BYTES = image_bytes("jair-about-bw.webp", "site-icon.png", "panel.webp")
+HERO_URI = image_uri("jair-hero-executive.webp")
+WORKSHOP_URI = image_uri("jair-leadership-workshop.webp")
+PANEL_DIALOGUE_URI = image_uri("jair-panel-dialogue.webp")
+THINKING_PANEL_URI = image_uri("jair-thinking-panel.webp")
+ABOUT_BW_URI = image_uri("jair-about-bw.webp")
 
-HERO_URI = data_uri(HERO_BYTES)
-PANEL_DIALOGUE_URI = data_uri(PANEL_DIALOGUE_BYTES)
-THINKING_PANEL_URI = data_uri(THINKING_PANEL_BYTES)
-AI_PANEL_URI = data_uri(AI_PANEL_BYTES)
-ABOUT_BW_URI = data_uri(ABOUT_BW_BYTES)
-
-# Backward-compatible aliases for shared components while public pages migrate.
+# Compatibility aliases used by shared components.
 PROFILE_URI = HERO_URI
 SPEAKING_URI = PANEL_DIALOGUE_URI
-WORKSHOP_URI = AI_PANEL_URI
 
 CV_BYTES = build_cv_pdf()
 CV_URI = data_uri(CV_BYTES, "application/pdf")

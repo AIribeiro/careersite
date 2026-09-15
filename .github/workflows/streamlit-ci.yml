@@ -33,14 +33,15 @@ jobs:
         run: python -m py_compile app.py site_*.py page_*.py
 
       - name: Validate generated CV
-        shell: python
         run: |
+          python - <<'PY'
           from site_assets import CV_BYTES
           if not CV_BYTES.startswith(b'%PDF'):
               raise SystemExit('Generated CV is not a PDF')
           if len(CV_BYTES) < 5000:
               raise SystemExit('Generated CV is unexpectedly small')
           print(f'Validated generated CV ({len(CV_BYTES)} bytes)')
+          PY
 
       - name: Start Streamlit
         run: |

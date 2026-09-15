@@ -6,7 +6,21 @@ from site_assets import CV_URI, AI_PANEL_URI, HERO_URI, PANEL_DIALOGUE_URI
 from site_components import nav, footer, opportunity
 
 
-def role_lens(kicker: str, title: str, deck: str, perspective: str, sections: list[tuple[str, str, str, list[str]]], image_uri: str, image_alt: str) -> str:
+CLAES_LINKEDIN = "https://se.linkedin.com/in/claes-sandros-1a795512"
+KUMARA_LINKEDIN = "https://in.linkedin.com/in/kumara-datta"
+JIM_LINKEDIN = "https://www.linkedin.com/in/james-edwards-7233b8152"
+
+
+def role_lens(
+    kicker: str,
+    title: str,
+    deck: str,
+    perspective: str,
+    sections: list[tuple[str, str, str, list[str]]],
+    image_uri: str,
+    image_alt: str,
+    reference: tuple[str, str, str, str] | None = None,
+) -> str:
     body = []
     for k, h, p, bullets in sections:
         bullet_html = "".join(f'<div>{html.escape(x)}</div>' for x in bullets)
@@ -15,6 +29,21 @@ def role_lens(kicker: str, title: str, deck: str, perspective: str, sections: li
             f'<h3>{html.escape(h)}</h3><p>{html.escape(p)}</p>'
             f'<div class="bullets">{bullet_html}</div></section>'
         )
+
+    if reference:
+        person, role, quote, url = reference
+        role_html = f'<p><strong>{html.escape(role)}</strong></p>' if role else ""
+        body.append(
+            '<section class="lenssection"><p class="eyebrow">External perspective</p>'
+            '<div class="card">'
+            f'<span class="org">Independent recommendation</span><h3>{html.escape(person)}</h3>'
+            f'{role_html}'
+            f'<p style="font:500 20px/1.45 Georgia,serif;color:var(--ink);margin-top:22px">“{html.escape(quote)}”</p>'
+            f'<div class="proof"><a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener" '
+            f'data-hq-event="reference_{html.escape(person.lower().replace(" ", "_"))}_lens">LinkedIn profile ↗</a></div>'
+            '</div></section>'
+        )
+
     cv = (
         f'<a class="btn dark" href="{CV_URI}" download="Jair_Ribeiro_Master_CV_2026.pdf" '
         f'data-hq-event="cv_download_lens">Download CV</a>'
@@ -83,6 +112,12 @@ def enterprise() -> str:
         ],
         AI_PANEL_URI,
         "Jair Ribeiro discussing AI with senior industry peers",
+        (
+            "Claes Sandros",
+            "Acting Head of Data and Vice President Data, Analytics & AI, Volvo Trucks · Direct manager",
+            "What truly impressed me was his ability to combine deep analytical knowledge with strategic thinking and a collaborative mindset.",
+            CLAES_LINKEDIN,
+        ),
     )
 
 
@@ -126,6 +161,12 @@ def transformation() -> str:
         ],
         HERO_URI,
         "Jair Ribeiro speaking during an executive AI panel",
+        (
+            "Kumara Datta",
+            "AI Strategy & Adoption / Product Owner – GenAI Hub, Volvo · AI colleague",
+            "Jair has a rare ability to translate complex AI and data concepts into clear, actionable insights that resonate with both technical and business stakeholders.",
+            KUMARA_LINKEDIN,
+        ),
     )
 
 
@@ -212,4 +253,10 @@ def consulting() -> str:
         ],
         PANEL_DIALOGUE_URI,
         "Jair Ribeiro in an industry panel dialogue",
+        (
+            "Jim Edwards",
+            "",
+            "He’s incredibly good at bringing people along on the journey and explaining the benefits of what AI can bring to an organization.",
+            JIM_LINKEDIN,
+        ),
     )

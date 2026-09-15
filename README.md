@@ -1,4 +1,4 @@
-# Jair Ribeiro — Senior AI & Data Leadership Site
+# Jair Ribeiro — Enterprise AI & Data Leadership Site
 
 Enterprise AI & Data leadership focused on strategy, operating models, governance, adoption and business value.
 
@@ -8,9 +8,28 @@ The site helps recruiters, hiring managers, executive-search consultants, techni
 
 Core positioning:
 
-> **Senior AI & Data Leader — turning enterprise AI ambition into operating capability, adoption and measurable business value.**
+> **Enterprise AI & Data Leader — turning AI strategy into operating capability, adoption and measurable business value.**
 
 Public availability language is intentionally restrained. The site signals receptiveness to the right mandate without publishing unemployment status, urgency, "Open to Work", or immediate availability.
+
+## Homepage reading model
+
+Home is designed for three reading times:
+
+- **10 seconds** — Who is Jair?
+- **30 seconds** — Why might I interview him?
+- **90 seconds** — What proves it?
+
+The homepage therefore follows a deliberate evidence hierarchy rather than trying to carry the full professional story:
+
+1. Hero positioning
+2. Four evidence metrics
+3. Three leadership cases
+4. Three role lenses
+5. External credibility
+6. Contact CTA
+
+Detailed leadership philosophy, enterprise-AI operating-system thinking, technical fluency and article content belong deeper in the site.
 
 ## Content standard
 
@@ -24,12 +43,13 @@ Do not manufacture decision authority, financial ROI, team size, budget ownershi
 
 ## Site structure
 
-- **Home** — positioning, evidence, value domains, operating-system lens, leadership style, technical fluency and selected thinking
+- **Home** — positioning, evidence metrics, three leadership cases, three role lenses, external credibility and contact
 - **Leadership Impact** — decision-based cases from MSX International, Volvo Group / Volvo Trucks and Kimberly-Clark, plus technical foundations
 - **Thinking** — curated enterprise-AI thought leadership with an explicit editorial point of view
-- **About** — career arc, research perspective, credentials, languages and shareable role lenses
+- **About** — career arc, leadership approach, enterprise-AI operating lens, technical fluency, research perspective, credentials and languages
 - **Contact** — low-friction leadership-opportunity contact page
-- **Role lenses** — Enterprise AI & Data Leadership; AI Transformation & Capability; Business-Driven AI & Consulting
+- **Primary role lenses** — Data & AI Leadership; AI Transformation & Adoption; AI Governance & Operating Model
+- **Additional shareable lens** — Business-Driven AI & Consulting
 
 ## Runtime
 
@@ -90,7 +110,7 @@ No external analytics provider is enabled by default. This is intentional: a pri
 
 ## Content guardrails
 
-- Keep the primary identity broad and senior: **Senior AI & Data Leader**.
+- Keep the primary identity broad and senior: **Enterprise AI & Data Leader**.
 - Prefer evidence, trade-offs and operating impact over adjectives.
 - Explain concepts briefly enough that a senior reader understands why they matter; do not rely on slogans alone.
 - Never publish "Open to Work", unemployment status, "available immediately", or urgency signals.

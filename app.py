@@ -10,6 +10,10 @@ from site_meta import inject_metadata
 # modules import the URI constants from site_assets.
 import site_photo_patch  # noqa: F401
 
+# Replace the legacy downloadable CV with the website-aligned, ATS-readable
+# canonical version before page modules import CV_URI from site_assets.
+import site_cv_patch  # noqa: F401
+
 from page_home import home
 from page_impact import impact
 from page_thinking import thinking

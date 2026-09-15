@@ -11,9 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "images"
 OUT.mkdir(exist_ok=True)
 
-# These are the exact original photographs selected for the public site.
-# They already exist in the repository's preserved source-media bundles.
-# Public derivatives keep the source pixel dimensions; CSS handles display crops.
+# Exact original photographs selected for the public site. Public derivatives
+# keep the source pixel dimensions; CSS controls only the responsive crop.
 SPECS = {
     "jair-hero-executive.webp": "1700157848740",
     "jair-ai-panel.webp": "1700157848740",
@@ -24,6 +23,21 @@ SPECS = {
 }
 
 QUALITY = 92
+
+
+def _read_zip_payload(parts: list[Path], sources: dict[str, bytes], label: str) -> None:
+    if not parts:
+        return
+    try:
+        encoded = "".join(p.read_text(encoding="ascii").strip() for p in parts)
+        payload = base64.b64decode(encoded, validate=True)
+        with zipfile.ZipFile(BytesIO(payload)) as zf:
+            for name in zf.namelist():
+                if not name.endswith("/"):
+                    sources[Path(name).name] = zf.read(name)
+        print(f"Loaded preserved source bundle: {label} ({len(parts)} parts)")
+    except (ValueError, zipfile.BadZipFile, OSError) as exc:
+        print(f"Skipped unreadable source bundle {label}: {exc}")
 
 
 def collect_sources() -> dict[str, bytes]:
@@ -39,7 +53,7 @@ def collect_sources() -> dict[str, bytes]:
             except OSError:
                 pass
 
-    # Preserved high-resolution media from the earlier site.
+    # Preserved high-resolution media zip.
     hq = ROOT / "hq_media.zip"
     if hq.exists():
         try:
@@ -50,16 +64,33 @@ def collect_sources() -> dict[str, bytes]:
         except zipfile.BadZipFile:
             pass
 
-    # Original embedded project payload.
-    parts = sorted((ROOT / "payload_parts").glob("part_*.b64"))
-    if parts:
+    # Legacy application payload.
+    _read_zip_payload(
+        sorted((ROOT / "payload_parts").glob("part_*.b64")),
+        sources,
+        "payload_parts",
+    )
+
+    # High-resolution photo bundles previously uploaded to the repository.
+    # v3/v4 are consecutive pieces of the same later bundle.
+    _read_zip_payload(
+        sorted((ROOT / "image_bundle").glob("part_*.b64")),
+        sources,
+        "image_bundle",
+    )
+    _read_zip_payload(
+        sorted((ROOT / "image_bundle_v3").glob("part_*.b64"))
+        + sorted((ROOT / "image_bundle_v4").glob("part_*.b64")),
+        sources,
+        "image_bundle_v3+v4",
+    )
+
+    print("Available preserved image sources:")
+    for name, data in sorted(sources.items()):
         try:
-            encoded = "".join(p.read_text(encoding="ascii") for p in parts)
-            with zipfile.ZipFile(BytesIO(base64.b64decode(encoded))) as zf:
-                for name in zf.namelist():
-                    if not name.endswith("/"):
-                        sources[Path(name).name] = zf.read(name)
-        except (ValueError, zipfile.BadZipFile, OSError):
+            with Image.open(BytesIO(data)) as image:
+                print(f"  {name}: {image.width}x{image.height}")
+        except Exception:
             pass
 
     return sources
@@ -96,8 +127,7 @@ def build() -> None:
     for output_name, needle in SPECS.items():
         source_name, raw = find_source(sources, needle)
         with Image.open(BytesIO(raw)) as source:
-            # Preserve the original pixel dimensions. No upscaling, resizing or
-            # destructive baked-in crop; page CSS controls framing responsively.
+            # Preserve original pixel dimensions: no resize and no baked-in crop.
             image = source.convert("RGB")
             output = OUT / output_name
             image.save(output, "WEBP", quality=QUALITY, method=6)

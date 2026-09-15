@@ -2,17 +2,18 @@ from __future__ import annotations
 
 import html
 
-from site_assets import CV_URI
+from site_assets import CV_URI, AI_PANEL_URI, HERO_URI, PANEL_DIALOGUE_URI
 from site_components import nav, footer, opportunity
 
 
-def role_lens(kicker: str, title: str, deck: str, perspective: str, sections: list[tuple[str,str,str,list[str]]]) -> str:
+def role_lens(kicker: str, title: str, deck: str, perspective: str, sections: list[tuple[str,str,str,list[str]]], image_uri: str, image_alt: str) -> str:
     body = []
     for k,h,p,bullets in sections:
         bullet_html = "".join(f'<div>{html.escape(x)}</div>' for x in bullets)
         body.append(f'<section class="lenssection"><p class="eyebrow">{html.escape(k)}</p><h3>{html.escape(h)}</h3><p>{html.escape(p)}</p><div class="bullets">{bullet_html}</div></section>')
     cv = f'<a class="btn dark" href="{CV_URI}" download="Jair_Ribeiro_Master_CV_2026.pdf" data-hq-event="cv_download_lens">Download CV</a>' if CV_URI else ""
-    return f'''{nav("")}<main><section class="pagehero"><div class="container"><p class="eyebrow">{html.escape(kicker)}</p><h1>{html.escape(title)}</h1><p>{html.escape(deck)}</p></div></section><section class="section paper"><div class="container lensgrid"><aside class="lensaside"><p class="eyebrow">Jair Ribeiro</p><h2>Senior AI &amp; Data Leader</h2><p class="muted">Strategy, operating models, governance, adoption and business value — with technical fluency grounded in enterprise technology.</p><p class="muted">{html.escape(perspective)}</p><div class="actions"><a class="btn dark" href="?page=impact" target="_self" data-hq-event="impact_lens">Leadership impact</a>{cv}</div></aside><div>{"".join(body)}</div></div></section>{opportunity()}</main>{footer()}'''
+    photo = f'<div class="lensphoto"><img src="{image_uri}" alt="{html.escape(image_alt)}" loading="lazy" decoding="async"></div>' if image_uri else ""
+    return f'''{nav("")}<main><section class="pagehero"><div class="container"><p class="eyebrow">{html.escape(kicker)}</p><h1>{html.escape(title)}</h1><p>{html.escape(deck)}</p></div></section><section class="section paper"><div class="container lensgrid"><aside class="lensaside"><p class="eyebrow">Jair Ribeiro</p><h2>Senior AI &amp; Data Leader</h2>{photo}<p class="muted">Strategy, operating models, governance, adoption and business value — with technical fluency grounded in enterprise technology.</p><p class="muted">{html.escape(perspective)}</p><div class="actions"><a class="btn dark" href="?page=impact" target="_self" data-hq-event="impact_lens">Leadership impact</a>{cv}</div></aside><div>{"".join(body)}</div></div></section>{opportunity()}</main>{footer()}'''
 
 
 def enterprise() -> str:
@@ -26,6 +27,8 @@ def enterprise() -> str:
             ("Operating model","From scattered activity to clearer ownership","I focus on the structures that make AI repeatable: roles, decision rights, lifecycle stages, portfolio logic, data ownership and escalation paths. The aim is enough structure to improve decisions without making a central function the bottleneck for every decision.",["AI / Data CoE foundations at MSX International","Lifecycle stages, ownership and scale-readiness criteria","Data stewardship, quality and trusted-data foundations"]),
             ("Leadership style","Technically credible without pretending to be the deepest specialist","I can challenge architecture, scalability, cost, governance and adoption trade-offs while giving specialists room to own specialist decisions. That balance matters in leadership teams where business urgency and technical constraints are both real.",["Enterprise technology and cloud foundations","IBM Watson solution-design background","Cross-functional leadership across business, Digital & IT, analytics and governance"]),
         ],
+        AI_PANEL_URI,
+        "Jair Ribeiro discussing AI with senior industry peers",
     )
 
 
@@ -40,6 +43,8 @@ def transformation() -> str:
             ("Adoption","Training is not adoption","Capability building has to connect to real workflows, decisions, ownership and confidence. Literacy improves the quality of demand and use, but adoption only becomes visible when behavior and operating routines change.",["Practical GenAI literacy and responsible-use programs","Cross-functional use-case discovery and business translation","Connecting AI adoption with governance and data foundations"]),
             ("Scale","Governance should help good work move faster","I prefer governance mechanisms that clarify ownership, evidence and risk so teams know how to move. The useful question is not how many approvals exist, but whether the organization can distinguish low-risk experimentation from work that needs stronger evidence before it reaches customers, employees or critical processes.",["Lifecycle stage-gates and scale-readiness criteria","Risk-aware portfolio choices","Responsible AI positioned as an enabler of trusted adoption"]),
         ],
+        HERO_URI,
+        "Jair Ribeiro speaking during an executive AI panel",
     )
 
 
@@ -54,4 +59,6 @@ def consulting() -> str:
             ("Commercial relevance","Shape the problem before shaping the solution","My background includes consulting, client-facing technology work, IBM Watson solution design and supporting the development and sale of cognitive solutions. I am strongest in advisory selling built around a real business problem rather than a pre-packaged AI proposition.",["Business problem and value discovery","Solution and proposition shaping","Executive workshops and stakeholder dialogue"]),
             ("Differentiator","Strategy connected to operating reality","The strongest advisory work is not a recommendation that stops at the presentation. It creates decisions, ownership and a realistic path into execution, while making assumptions and dependencies visible enough for the client to act on them.",["Portfolio prioritization and decision mechanisms","Governance and data-readiness implications","Adoption and internal capability building"]),
         ],
+        PANEL_DIALOGUE_URI,
+        "Jair Ribeiro in an industry panel dialogue",
     )

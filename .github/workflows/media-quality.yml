@@ -25,32 +25,36 @@ jobs:
       - name: Install Pillow
         run: python -m pip install pillow
 
-      - name: Validate high-resolution leadership photography
+      - name: Validate persistent leadership photography bundle
         run: |
           python - <<'PY'
           from pathlib import Path
+          import base64
+          import io
+          import zipfile
           from PIL import Image
 
+          parts = sorted(Path("images/site_photos_bundle").glob("part_*.b64"))
+          if not parts:
+              raise SystemExit("Missing persistent site photo bundle")
+
+          encoded = "".join(path.read_text(encoding="ascii") for path in parts)
+          payload = base64.b64decode(encoded)
           required = {
-              "images/jair-hero-executive.webp": (1500, 1100),
-              "images/jair-panel-dialogue.webp": (1400, 900),
-              "images/jair-thinking-panel.webp": (760, 950),
-              "images/jair-ai-panel.webp": (1150, 750),
-              "images/jair-about-bw.webp": (1000, 800),
+              "hero.avif": (1400, 1050),
+              "keynote.avif": (1200, 750),
+              "ai-panel.avif": (1400, 875),
+              "thinking.avif": (900, 1125),
+              "portrait.avif": (720, 720),
           }
 
-          for name, (min_width, min_height) in required.items():
-              path = Path(name)
-              if not path.exists():
-                  raise SystemExit(f"Missing required leadership image: {name}")
-              with Image.open(path) as image:
-                  image.verify()
-              with Image.open(path) as image:
-                  width, height = image.size
-                  if width < min_width or height < min_height:
-                      raise SystemExit(
-                          f"{name} is below the display-quality threshold: "
-                          f"{width}x{height}; expected at least {min_width}x{min_height}"
-                      )
-                  print(f"{name}: {width}x{height} — OK")
+          with zipfile.ZipFile(io.BytesIO(payload)) as bundle:
+              for name, expected in required.items():
+                  data = bundle.read(name)
+                  with Image.open(io.BytesIO(data)) as image:
+                      image.verify()
+                  with Image.open(io.BytesIO(data)) as image:
+                      if image.size != expected:
+                          raise SystemExit(f"{name}: {image.size}; expected {expected}")
+                      print(f"{name}: {image.size[0]}x{image.size[1]} — OK")
           PY

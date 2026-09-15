@@ -32,23 +32,23 @@ jobs:
       - name: Compile application
         run: python -m py_compile app.py site_*.py page_*.py
 
-      - name: Validate generated CV
+      - name: Validate canonical CV binary and public URL
         run: |
           python - <<'PY'
           import site_cv_patch
-          from site_assets import CV_BYTES, CV_URI
+          import site_delivery_patch
           from pathlib import Path
+          from site_assets import CV_BYTES, CV_URI
 
+          target = Path('static/Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf')
+          data = target.read_bytes()
+          if not data.startswith(b'%PDF') or len(data) < 4000:
+              raise SystemExit('Canonical repository CV is invalid')
           if not CV_BYTES.startswith(b'%PDF'):
-              raise SystemExit('Generated CV is not a PDF')
-          if len(CV_BYTES) < 1000:
-              raise SystemExit('Generated CV is unexpectedly small')
-          if not CV_URI.startswith('/app/static/'):
-              raise SystemExit(f'CV URI is not a static URL: {CV_URI}')
-          target = Path('static') / Path(CV_URI).name
-          if not target.exists() or not target.read_bytes().startswith(b'%PDF'):
-              raise SystemExit('Static CV file was not created correctly')
-          print(f'Validated generated CV ({len(CV_BYTES)} bytes) at {CV_URI}')
+              raise SystemExit('Runtime CV bytes are invalid')
+          if not CV_URI.startswith('https://raw.githubusercontent.com/AIribeiro/careersite/'):
+              raise SystemExit(f'CV URI is not the direct repository URL: {CV_URI}')
+          print(f'Validated canonical CV ({len(data)} bytes) at {CV_URI}')
           PY
 
       - name: Start Streamlit
@@ -71,11 +71,12 @@ jobs:
           cat /tmp/streamlit.log
           exit 1
 
-      - name: Validate downloadable CV route
+      - name: Validate public CV bytes from repository CDN
         run: |
-          curl --fail --silent http://127.0.0.1:8501/app/static/Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf -o /tmp/cv.pdf
+          curl --fail --silent "https://raw.githubusercontent.com/AIribeiro/careersite/${GITHUB_SHA}/static/Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf" -o /tmp/cv.pdf
           test "$(head -c 4 /tmp/cv.pdf)" = "%PDF"
-          echo "Downloadable CV route passed"
+          test "$(wc -c < /tmp/cv.pdf)" -gt 4000
+          echo "Public CV binary passed"
 
       - name: Show Streamlit log on failure
         if: failure()

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 Keeps the downloadable website CV ATS-readable while matching the site's navy,
 copper and editorial design language. Imported by app.py before page modules so
-all CV CTA buttons receive the same canonical PDF data URI.
+all CV CTA buttons receive the same canonical PDF URL.
 """
+
+from pathlib import Path
 
 from fpdf import FPDF
 
@@ -34,7 +36,6 @@ def build_public_cv() -> bytes:
     pdf.set_margins(16, 14, 16)
     pdf.add_page()
 
-    # Visual language mirrors the site while keeping all information as selectable text.
     pdf.set_fill_color(*NAVY)
     pdf.rect(0, 0, 210, 42, "F")
     pdf.set_xy(16, 10)
@@ -236,5 +237,10 @@ def build_public_cv() -> bytes:
 
 
 CV_BYTES = build_public_cv()
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+STATIC_DIR.mkdir(exist_ok=True)
+CV_FILENAME = "Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
+(STATIC_DIR / CV_FILENAME).write_bytes(CV_BYTES)
+
 site_assets.CV_BYTES = CV_BYTES
-site_assets.CV_URI = site_assets.data_uri(CV_BYTES, "application/pdf")
+site_assets.CV_URI = f"/app/static/{CV_FILENAME}"

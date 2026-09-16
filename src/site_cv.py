@@ -114,7 +114,7 @@ def build_public_cv() -> bytes:
 
     section("Executive Profile")
     paragraph(
-        "Enterprise AI, data and analytics leader with 15+ years across technology, business-facing AI, governance and enterprise adoption. I turn AI ambition into operating capability by connecting business priorities, opportunity portfolios, data and architecture, governance, adoption and measurable value. Experience includes AI & Data Center of Excellence leadership, regional AI strategy, global analytics and AI adoption, product and portfolio work, and executive stakeholder engagement across automotive, consumer goods and enterprise technology environments.",
+        "Enterprise AI, data and analytics leader with 20+ years in enterprise technology, including 8+ years in AI, data and analytics leadership. I turn AI ambition into operating capability by connecting business priorities, opportunity portfolios, data and architecture, governance, adoption and measurable value. Experience includes AI & Data Center of Excellence leadership, regional AI strategy, global analytics and AI adoption, product and portfolio work, and executive stakeholder engagement across automotive, consumer goods and enterprise technology environments.",
         size=8.8,
         line=4.45,
     )

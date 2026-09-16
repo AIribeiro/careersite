@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 
 CANONICAL_SITE_URL = "https://jairribeiro-ai.streamlit.app/"
 CANONICAL_SITE_DISPLAY = "jairribeiro-ai.streamlit.app"
+CV_PORTFOLIO_LABEL = "AI & Data Portfolio"
 
 ATTRIBUTION_SOURCES = (
     "linkedin",

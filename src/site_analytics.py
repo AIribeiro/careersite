@@ -34,6 +34,13 @@ ALLOWED_EVENTS = (
     "article_click",
 )
 LENS_PAGES = ("enterprise", "transformation", "governance", "consulting")
+RECOMMENDED_ATTRIBUTION_SOURCES = (
+    "linkedin",
+    "email",
+    "cv",
+    "outreach",
+    "application",
+)
 
 
 def inject_analytics(page: str, source: str = "streamlit") -> None:

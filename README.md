@@ -2,7 +2,11 @@
 
 Professional website for Jair Ribeiro, positioned around one core identity:
 
-> **Enterprise AI & Data Leader — turning AI strategy into operating capability, adoption and measurable business value.**
+> **Enterprise AI & Data Leader — building the decision system around AI so strategy becomes operating capability, adoption and measurable business value.**
+
+Core point of view:
+
+> **AI scales as a system, not as a model.**
 
 The site is designed for recruiters, hiring managers, executive-search consultants, technical leaders and referrers evaluating senior AI, Data and Analytics leadership mandates.
 
@@ -13,6 +17,8 @@ This is not a digital CV and not an AI-engineering demo portfolio. It is a decis
 The website adds evidence that a CV cannot carry well: leadership cases, sanitized operating frameworks, role-specific lenses, external recommendations, technical-judgment signals and thought leadership.
 
 Public availability language is intentionally restrained. The site does not publish unemployment status, urgency, "Open to Work" language or immediate-availability signals.
+
+The differentiating positioning idea is the **decision system around AI**: the combination of business priorities, portfolio choices, data and architecture, governance, adoption, ownership and value evidence that determines whether AI can move from experimentation to repeatable enterprise capability. This should remain more central than generic “AI ambition to value” language.
 
 ## Homepage reading model
 
@@ -31,6 +37,8 @@ The homepage hierarchy is:
 5. Leadership-framework teaser
 6. External perspective
 7. Contact CTA
+
+The hero leads with the proprietary point of view **“AI scales as a system, not as a model”** and then explains the decision system around AI. Location is expressed simply as **“Based in Gothenburg · Sweden & international mandates.”**
 
 The evidence strip deliberately separates overall career maturity from modern AI leadership:
 
@@ -173,7 +181,7 @@ streamlit run app.py
 GitHub Actions validates:
 
 - Python compilation;
-- smoke tests for CV delivery, media loading, navigation coverage and career-tenure positioning;
+- smoke tests for CV delivery, media loading, navigation coverage, career-tenure positioning and core homepage positioning;
 - Streamlit startup and health;
 - integrity and expected dimensions of the canonical leadership-photo bundle.
 
@@ -184,7 +192,9 @@ GitHub Actions validates:
 ## Content guardrails
 
 - Keep the primary identity broad and senior: **Enterprise AI & Data Leader**.
+- Keep **“AI scales as a system, not as a model”** and the **decision system around AI** central to the positioning; do not dilute the site back into generic AI-transformation language.
 - Use **20+ years enterprise technology** and **8+ years AI / data / analytics leadership** as separate chronology signals; never imply 20+ years in modern AI.
+- Use **“Based in Gothenburg · Sweden & international mandates”** when a compact location/mandate line is needed; avoid repetitive constructions such as “Gothenburg, Sweden · Sweden / International.”
 - Prefer evidence, trade-offs and operating impact over adjectives.
 - Never publish "Open to Work", unemployment status, immediate availability or urgency signals.
 - Do not reposition Jair as an ML engineer, generic project/program manager, AI influencer or independent consultant selling packaged services.

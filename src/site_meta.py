@@ -8,15 +8,15 @@ from site_assets import LINKEDIN, MEDIUM, EMAIL
 SOCIAL_IMAGE = "https://avatars.githubusercontent.com/u/97567343?v=4"
 
 DESCRIPTIONS = {
-    "home": "Enterprise AI & Data leadership focused on building the decision system around AI — connecting strategy, portfolio, data, governance, adoption and measurable value.",
-    "impact": "Leadership evidence from Jair Ribeiro across enterprise AI and data: operating models, portfolio choices, adoption, governance, data readiness and decisions required to scale responsibly.",
+    "home": "Jair Ribeiro is an Enterprise AI & Data Leader. A curated portfolio of leadership cases, operating judgment, practical frameworks and selected writing across AI, Data and Analytics.",
+    "impact": "Leadership cases from Jair Ribeiro showing situations, trade-offs, cross-functional leadership and decisions behind enterprise AI and Data work.",
     "thinking": "Selected writing by Jair Ribeiro on enterprise AI strategy, value, operating models, governance, data readiness, adoption and leadership judgment.",
-    "about": "About Jair Ribeiro, an Enterprise AI & Data Leader based in Gothenburg with international experience across enterprise technology, data, analytics, AI adoption and governance.",
-    "contact": "Contact Jair Ribeiro to discuss senior AI, Data and Analytics leadership mandates in Sweden and international environments.",
-    "enterprise": "Data & AI leadership profile for Jair Ribeiro: strategy, portfolio management, operating models, data foundations, governance, adoption and scale.",
-    "transformation": "AI transformation and adoption profile for Jair Ribeiro: prioritization, capability building, governance, operating models, data readiness and moving from pilots to scale.",
-    "governance": "AI governance and operating model profile for Jair Ribeiro: decision rights, lifecycle ownership, responsible AI, data trust, evidence and scale-readiness.",
-    "consulting": "Business-driven AI and consulting leadership profile for Jair Ribeiro, connecting executive priorities with technology choices, governance, adoption and delivery reality.",
+    "about": "The professional story of Jair Ribeiro: from enterprise technology foundations into business-facing AI, Data and Analytics leadership across international organizations.",
+    "contact": "Contact Jair Ribeiro about senior AI, Data and Analytics leadership where strategy, portfolio, governance, adoption and operating capability need to work together.",
+    "enterprise": "Contextual view of Jair Ribeiro's Enterprise AI & Data leadership experience across strategy, portfolio, operating models, governance, adoption and technical judgment.",
+    "transformation": "Contextual view of Jair Ribeiro's AI transformation and adoption experience, connecting experimentation with capability building, workflow change, governance and scale-readiness.",
+    "governance": "Contextual view of Jair Ribeiro's AI governance and operating-model experience across decision rights, lifecycle ownership, Responsible AI, data trust and scale-readiness.",
+    "consulting": "Contextual view of Jair Ribeiro's business-driven AI and consulting experience, connecting problem framing and executive dialogue with enterprise operating reality.",
 }
 
 

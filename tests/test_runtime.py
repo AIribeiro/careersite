@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import base64
 from io import BytesIO
 from pathlib import Path
+import subprocess
 import sys
 import unittest
 
@@ -17,28 +17,21 @@ if str(SRC) not in sys.path:
 class RuntimeSmokeTests(unittest.TestCase):
     def test_canonical_cv_delivery(self) -> None:
         import site_cv
-        import site_cv_delivery  # noqa: F401
         from site_assets import CV_BYTES, CV_URI
 
         filename = "Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
-        runtime_file = ROOT / "static" / filename
-        data = runtime_file.read_bytes()
+        path = ROOT / "static" / filename
+        data = path.read_bytes()
 
         self.assertTrue(data.startswith(b"%PDF-"))
         self.assertTrue(data.rstrip().endswith(b"%%EOF"))
         self.assertGreater(len(data), 4000)
         self.assertEqual(data, CV_BYTES)
+        self.assertEqual(CV_URI, f"/app/static/{filename}")
 
-        # Website delivery must use the exact validated bytes, not a potentially
-        # stale Community Cloud static-file copy.
-        prefix = "data:application/pdf;base64,"
-        self.assertTrue(CV_URI.startswith(prefix))
-        delivered = base64.b64decode(CV_URI[len(prefix):], validate=True)
-        self.assertEqual(delivered, CV_BYTES)
-
-        # Parser-level validation: this catches broken xref/trailer/object
-        # structures that simple %PDF magic-byte tests cannot detect.
-        reader = PdfReader(BytesIO(delivered), strict=True)
+        # Parser-level validation catches broken xref/trailer/object structures
+        # that a simple magic-byte check would miss.
+        reader = PdfReader(BytesIO(data), strict=True)
         self.assertGreaterEqual(len(reader.pages), 1)
         self.assertIsNotNone(reader.trailer.get("/Root"))
 
@@ -47,10 +40,21 @@ class RuntimeSmokeTests(unittest.TestCase):
             site_cv.CV_SITE_URL,
             "https://jairribeiro-ai.streamlit.app/?source=cv",
         )
-        self.assertIn(b"/Subtype /Link", delivered)
-        self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), delivered)
+        self.assertIn(b"/Subtype /Link", data)
+        self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), data)
         source = (ROOT / "src/site_cv.py").read_text(encoding="utf-8")
         self.assertIn("CV_SITE_DISPLAY, link=CV_SITE_URL", source)
+
+        # On deployed main this must be a repository-backed static asset, not
+        # only a runtime-generated file. GitHub Actions maintains it from source.
+        tracked = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", f"static/{filename}"],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        self.assertEqual(tracked.returncode, 0, "Canonical PDF must be committed to main")
 
     def test_distribution_policy_is_canonical_and_contextual(self) -> None:
         import page_analytics
@@ -216,7 +220,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn('if PAGE == "analytics":', app)
         self.assertIn("render_analytics_dashboard()", app)
         self.assertIn("inject_analytics(PAGE, source=\"streamlit\")", app)
-        self.assertIn("import site_cv_delivery", app)
+        self.assertNotIn("site_cv_delivery", app)
 
         self.assertIn("noindex,nofollow,noarchive", dashboard)
         self.assertIn("Attribution link builder", dashboard)

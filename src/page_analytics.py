@@ -125,6 +125,19 @@ def _pct(numerator: int, denominator: int) -> str:
     return f"{100 * numerator / denominator:.1f}%"
 
 
+def _seconds(value: object) -> str:
+    try:
+        seconds = float(value or 0)
+    except (TypeError, ValueError):
+        return "—"
+    if seconds < 60:
+        return f"{seconds:.0f}s"
+    minutes = seconds / 60
+    if minutes < 60:
+        return f"{minutes:.1f}m"
+    return f"{minutes / 60:.1f}h"
+
+
 def _build_attribution_link(source: str, role: str, destination: str) -> str:
     params: list[tuple[str, str]] = []
     if destination and destination != "home":
@@ -135,14 +148,22 @@ def _build_attribution_link(source: str, role: str, destination: str) -> str:
     return PUBLIC_BASE_URL + "?" + parse.urlencode(params)
 
 
+def _table(title: str, rows: object, empty: str) -> None:
+    st.subheader(title)
+    if isinstance(rows, list) and rows:
+        st.dataframe(rows, hide_index=True, use_container_width=True)
+    else:
+        st.caption(empty)
+
+
 def render_analytics_dashboard() -> None:
     """Render the hidden, access-controlled hiring-funnel dashboard."""
     _noindex()
 
     st.title("Hiring-funnel analytics")
     st.caption(
-        "Privacy-conscious behavioral measurement for the career site. "
-        "No heatmaps, recordings, persistent visitor IDs or personal visitor profiles."
+        "First-party, privacy-conscious measurement for the career site. "
+        "No heatmaps, recordings, raw IP storage, full user-agent storage, persistent visitor IDs, or cross-session profiles."
     )
 
     if "careersite_analytics_access_code" not in st.session_state:
@@ -244,50 +265,85 @@ def render_analytics_dashboard() -> None:
     impact_sessions = int(totals.get("impact_sessions", 0) or 0)
     lens_sessions = int(totals.get("lens_sessions", 0) or 0)
     cv_sessions = int(totals.get("cv_sessions", 0) or 0)
+    email_sessions = int(totals.get("email_sessions", 0) or 0)
+    linkedin_sessions = int(totals.get("linkedin_sessions", 0) or 0)
+    engaged_sessions = int(totals.get("engaged_sessions", 0) or 0)
+    single_page_sessions = int(totals.get("single_page_sessions", 0) or 0)
+
+    st.subheader("Session quality")
+    q1, q2, q3, q4, q5, q6 = st.columns(6)
+    q1.metric("Sessions", sessions)
+    q2.metric("Engaged", engaged_sessions, _pct(engaged_sessions, sessions))
+    q3.metric("Avg duration", _seconds(totals.get("avg_session_seconds")))
+    q4.metric("Median duration", _seconds(totals.get("median_session_seconds")))
+    q5.metric("Avg engaged time", _seconds(totals.get("avg_engaged_seconds")))
+    q6.metric("Pages / session", f"{float(totals.get('avg_pages_per_session', 0) or 0):.2f}")
+    st.caption(
+        f"Single-page sessions: {single_page_sessions} ({_pct(single_page_sessions, sessions)}). "
+        "An engaged session has at least 10 seconds of active visible time, two or more pages, or a conversion action."
+    )
 
     st.subheader("Hiring funnel")
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Sessions", sessions)
-    c2.metric("Home sessions", home_sessions)
-    c3.metric("Reached Impact", impact_sessions, _pct(impact_sessions, home_sessions))
-    c4.metric("Opened a lens", lens_sessions, _pct(lens_sessions, home_sessions))
-    c5.metric("Downloaded CV", cv_sessions, _pct(cv_sessions, sessions))
-
+    c1, c2, c3, c4, c5, c6 = st.columns(6)
+    c1.metric("Home sessions", home_sessions)
+    c2.metric("Reached Impact", impact_sessions, _pct(impact_sessions, home_sessions))
+    c3.metric("Opened a lens", lens_sessions, _pct(lens_sessions, home_sessions))
+    c4.metric("Downloaded CV", cv_sessions, _pct(cv_sessions, sessions))
+    c5.metric("Email clicks", email_sessions, _pct(email_sessions, sessions))
+    c6.metric("LinkedIn clicks", linkedin_sessions, _pct(linkedin_sessions, sessions))
     st.caption(
-        "Percentages use Home sessions for Impact/lens progression and all measured sessions for CV conversion. "
+        "Impact/lens percentages use Home sessions; CV/email/LinkedIn percentages use all measured sessions. "
         "Treat very small samples as directional only."
     )
 
     left, right = st.columns(2)
     with left:
-        st.subheader("Role-lens usage")
-        lenses = data.get("lenses", []) or []
-        if lenses:
-            st.dataframe(lenses, hide_index=True, use_container_width=True)
-        else:
-            st.caption("No lens views in this reporting window yet.")
-
+        _table("Role-lens usage", data.get("lenses", []), "No lens views in this reporting window yet.")
     with right:
-        st.subheader("Event activity")
-        events = data.get("events", []) or []
-        if events:
-            st.dataframe(events, hide_index=True, use_container_width=True)
-        else:
-            st.caption("No events in this reporting window yet.")
+        _table("Event activity", data.get("events", []), "No events in this reporting window yet.")
 
-    st.subheader("Attribution by job-search activity")
-    attribution = data.get("attribution", []) or []
-    if attribution:
-        st.dataframe(attribution, hide_index=True, use_container_width=True)
-    else:
-        st.caption("No attributed sessions yet.")
+    st.subheader("Audience & technology")
+    a1, a2 = st.columns(2)
+    with a1:
+        _table("Device class", data.get("devices", []), "No device data yet.")
+        _table("Operating system", data.get("operating_systems", []), "No operating-system data yet.")
+    with a2:
+        _table("Browser", data.get("browsers", []), "No browser data yet.")
+        _table("Country", data.get("countries", []), "No country data is available from the infrastructure yet.")
 
-    st.subheader("Activity by day")
-    daily = data.get("daily", []) or []
-    if daily:
-        st.dataframe(daily, hide_index=True, use_container_width=True)
-    else:
-        st.caption("No activity in this reporting window yet.")
+    a3, a4 = st.columns(2)
+    with a3:
+        _table("Language", data.get("languages", []), "No browser-language data yet.")
+    with a4:
+        _table("Timezone", data.get("timezones", []), "No timezone data yet.")
+
+    st.caption(
+        "Country is recorded only when the hosting/API infrastructure supplies a coarse two-letter country header. "
+        "The site does not perform a third-party IP lookup and does not store raw IP addresses."
+    )
+
+    st.subheader("Acquisition & journey")
+    j1, j2 = st.columns(2)
+    with j1:
+        _table("Referrer", data.get("referrers", []), "No external referrer data yet.")
+        _table("Landing page", data.get("landing_pages", []), "No landing-page data yet.")
+    with j2:
+        _table("Attribution by job-search activity", data.get("attribution", []), "No attributed sessions yet.")
+        _table("Exit page", data.get("exit_pages", []), "No exit-page data yet.")
+
+    st.subheader("Engagement distribution")
+    e1, e2 = st.columns(2)
+    with e1:
+        _table("Session duration", data.get("duration_buckets", []), "No duration data yet.")
+    with e2:
+        _table("Activity by day", data.get("daily", []), "No daily activity yet.")
+
+    st.subheader("When visitors arrive")
+    t1, t2 = st.columns(2)
+    with t1:
+        _table("Hour of day · Stockholm time", data.get("hours", []), "No hourly data yet.")
+    with t2:
+        _table("Day of week · Stockholm time", data.get("weekdays", []), "No weekday data yet.")
 
     st.divider()
     st.subheader("Attribution link builder")

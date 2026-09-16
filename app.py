@@ -1,16 +1,22 @@
 from __future__ import annotations
 
+from pathlib import Path
+import sys
+
 import streamlit as st
+
+ROOT = Path(__file__).resolve().parent
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
 from site_styles import CSS
 from site_image_styles import IMAGE_CSS
 from site_meta import inject_metadata
 
-# Load the curated public photography before page modules import asset URIs.
+# Load curated production media and the canonical public CV before page modules
+# import the shared asset constants.
 import site_media  # noqa: F401
-
-# Build the canonical ATS-readable public CV and expose its same-origin static URL
-# before page modules import CV_URI from site_assets.
 import site_cv  # noqa: F401
 
 from page_home import home

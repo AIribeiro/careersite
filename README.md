@@ -1,176 +1,188 @@
 # Jair Ribeiro — Enterprise AI & Data Leadership Site
 
-Enterprise AI & Data leadership focused on strategy, operating models, governance, adoption and business value.
-
-## Strategic purpose
-
-The site helps recruiters, hiring managers, executive-search consultants, technical leaders and referrers quickly understand Jair Ribeiro's fit for senior AI, Data and Analytics leadership mandates.
-
-Core positioning:
+Professional website for Jair Ribeiro, positioned around one core identity:
 
 > **Enterprise AI & Data Leader — turning AI strategy into operating capability, adoption and measurable business value.**
 
-Public availability language is intentionally restrained. The site signals receptiveness to the right mandate without publishing unemployment status, urgency, "Open to Work", or immediate availability.
+The site is designed for recruiters, hiring managers, executive-search consultants, technical leaders and referrers evaluating senior AI, Data and Analytics leadership mandates.
+
+## Strategic purpose
+
+This is not a digital CV and not an AI-engineering demo portfolio. It is a decision-support site for senior hiring conversations.
+
+The website adds evidence that a CV cannot carry well: leadership cases, sanitized operating frameworks, role-specific lenses, external recommendations, technical-judgment signals and thought leadership.
+
+Public availability language is intentionally restrained. The site does not publish unemployment status, urgency, "Open to Work" language or immediate-availability signals.
 
 ## Homepage reading model
 
-The homepage is designed for three reading times:
+The homepage is optimized for three reading times:
 
 - **10 seconds** — Who is Jair?
 - **30 seconds** — Why might I interview him?
 - **90 seconds** — What proves it?
 
-The homepage therefore follows a deliberate evidence hierarchy rather than trying to carry the full professional story:
+The homepage hierarchy is:
 
 1. Hero positioning
 2. Four evidence metrics
-3. Front-door mandate selector — Enterprise AI & Data Leadership; AI Transformation & Capability; Business-Driven AI & Consulting
+3. Front-door mandate selector
 4. Three leadership cases
-5. Leadership-framework teaser — concrete, sanitized evidence of how Jair structures enterprise AI decisions
-6. External perspective — selected recommendations
+5. Leadership-framework teaser
+6. External perspective
 7. Contact CTA
 
-The mandate selector is intentionally positioned immediately after the evidence strip so recruiters and hiring managers can self-select into the most relevant version of Jair's experience before reading the full homepage. AI Governance & Operating Model remains available as a direct/deeper role lens without competing for front-door attention.
+The front-door mandate selector lets a visitor self-select into:
 
-Detailed leadership philosophy, enterprise-AI operating-system thinking, technical fluency and article content belong deeper in the site.
+- Enterprise AI & Data Leadership
+- AI Transformation & Capability
+- Business-Driven AI & Consulting
+
+AI Governance & Operating Model remains available as a direct/shareable role lens.
 
 ## Navigation standard
 
-Every public page must be reachable from the persistent top navigation. The primary menu exposes **Home**, **Leadership Impact**, **Thinking**, **About** and **Contact** directly. A **Role lenses** dropdown exposes all four role-specific pages:
+Every public page is reachable from the persistent top navigation.
+
+Primary menu:
+
+- Home
+- Leadership Impact
+- Thinking
+- About
+- Role lenses
+- Contact
+
+The **Role lenses** submenu contains all four role-specific pages:
 
 - Enterprise AI & Data Leadership
 - AI Transformation & Capability
 - AI Governance & Operating Model
 - Business-Driven AI & Consulting
 
-The Role lenses parent is shown as active while the visitor is on any of the four lens pages. Leadership artifacts remain part of the Leadership Impact page rather than being represented as artificial standalone pages.
+## Leadership evidence standard
 
-## Leadership artifacts
+Leadership cases use this structure wherever the source material supports it:
 
-The website intentionally contains evidence that cannot fit naturally in a CV. The Leadership Impact page includes a set of sanitized leadership artifacts that make Jair's decision logic visible without reproducing confidential company material:
+> **Inherited problem → What Jair owned → Decision / trade-off → What he chose or shaped → What changed**
+
+The site must not manufacture decision authority, financial ROI, direct-report counts, budget ownership, commercial results or delivery scope that are not supported by source material.
+
+## Sanitized leadership artifacts
+
+The Leadership Impact page includes generic reconstructions of recurring enterprise-AI decision patterns:
 
 - **AI portfolio lifecycle** — problem framing → qualification → value/feasibility discovery → experiment/pilot → scale-readiness → operated value.
-- **Enterprise AI operating model** — business ownership, portfolio/CoE orchestration, product/delivery, data & architecture, governance/risk, and adoption/value.
+- **Enterprise AI operating model** — business ownership, portfolio/CoE orchestration, product/delivery, data & architecture, governance/risk, adoption and value.
 - **Pilot → enterprise scale framework** — business ownership, value hypothesis, data readiness, technical readiness, governance readiness and adoption readiness.
 - **Governance decision matrix** — control intensity matched to consequence and uncertainty.
 
-These are generic reconstructions of recurring patterns from enterprise practice. They must never reproduce internal templates, confidential data, proprietary thresholds, employer-specific governance details or material that implies ownership Jair did not actually have.
+These are illustrative leadership artifacts. They must never reproduce confidential company material, internal thresholds, proprietary templates or employer-specific governance details.
 
 ## Technical-fluency positioning
 
-Technical credibility is an important part of the leadership proposition, but it must be expressed through **technical judgment rather than coding theatre**. The site should show that Jair can reason credibly about enterprise AI architecture, data quality and ownership, security, MLOps principles, scalability, operational readiness, vendor choices, and cost/accuracy/control trade-offs while remaining clear about when specialist engineering depth should drive the decision.
+Technical credibility is expressed through **technical judgment**, not coding theatre.
 
-The site must therefore **not drift into a hands-on AI-engineer portfolio**. Avoid presenting toy RAG applications, LangChain demos, coding exercises, model experiments or GitHub activity as the primary proof of seniority. Those artifacts would distort the intended professional archetype: a senior enterprise AI & Data leader who can lead technical specialists, challenge trade-offs and connect technology choices to business, governance, risk and adoption.
+The site should demonstrate the ability to reason across:
 
-The public GitHub repository may support the profile quietly as evidence of implementation discipline and transparency, but **GitHub must not become a prominent navigation item or a core identity signal**. If a GitHub link is ever surfaced, it should remain contextual and subordinate to leadership evidence, operating judgment and business impact.
+- enterprise AI architecture;
+- data platforms, quality, lineage and stewardship;
+- security and AI risk;
+- MLOps principles and operational readiness;
+- scalability, maintainability and integration;
+- cost / accuracy / autonomy trade-offs;
+- vendor and solution choices.
+
+The site should not drift into a hands-on AI-engineer archetype built around toy RAG applications, LangChain demos, coding exercises or model showcases. The public GitHub repository can support credibility quietly, but GitHub is not a primary navigation or positioning element.
 
 ## External perspective standard
 
-The main site uses only selected recommendations, chosen for complementary evidence rather than enthusiasm:
+Selected recommendations are used for complementary evidence, not enthusiasm:
 
 - **Claes Sandros** — direct-manager evidence for senior leadership, strategic judgment, technical credibility and business value.
 - **Anna Börjesson Sandberg** — VP-level cross-functional evidence for clarity, influence and direction.
 - **Kumara Datta** — AI peer evidence for technical/business translation, AI credibility and adoption.
 - **Jim Edwards** — transformation / consulting evidence for bringing people along, education and executive communication.
 
-Recommendations are shown as intact excerpts, not rewritten copy. No ratings, stars, portrait carousel or testimonial-wall treatment should be introduced. LinkedIn links should remain attributable and should not imply a direct recommendation permalink unless one is verified.
+Recommendations are shown as intact excerpts. No ratings, stars or testimonial-wall treatment should be introduced.
 
-## Content standard
+## Public pages
 
-The site should remain concise, but concise does not mean shallow. Headings and metrics should be accompanied by enough context to explain the operating problem, why the concept matters and what judgment sits behind it.
+- **Home** — positioning, evidence metrics, mandate selector, leadership cases, framework teaser, external perspective and contact.
+- **Leadership Impact** — decision-based cases, sanitized leadership artifacts, recurring trade-offs and technical foundations.
+- **Thinking** — curated enterprise-AI thought leadership.
+- **About** — career arc, leadership approach, operating-system lens, technical fluency, credentials and languages.
+- **Contact** — low-friction leadership-opportunity contact page.
+- **Enterprise AI & Data Leadership** — role lens.
+- **AI Transformation & Capability** — role lens.
+- **AI Governance & Operating Model** — role lens.
+- **Business-Driven AI & Consulting** — role lens.
 
-Leadership evidence should use this structure wherever the source material supports it:
+## Repository structure
 
-> **Inherited problem → What Jair owned → Decision / trade-off → What he chose or shaped → What changed**
+The default branch intentionally contains only active production material:
 
-Do not manufacture decision authority, financial ROI, team size, budget ownership or commercial results that are not supported by source material.
+```text
+.
+├── .github/workflows/        # CI and media-quality checks
+├── .streamlit/               # Streamlit configuration
+├── assets/                   # canonical production media only
+│   ├── README.md
+│   └── site_photos_bundle/
+├── docs/
+│   └── ARCHITECTURE.md
+├── src/                      # active application code
+│   ├── page_*.py
+│   ├── site_*.py
+│   └── __init__.py
+├── static/                   # public downloadable CV
+├── tests/
+│   └── test_runtime.py
+├── app.py                    # Streamlit entry point
+├── README.md
+└── requirements.txt
+```
 
-## Site structure
+Development-history media bundles, temporary patch modules, empty placeholder files and obsolete image-build tooling are excluded from `main`.
 
-- **Home** — positioning, evidence metrics, front-door mandate selector, three leadership cases, leadership-framework teaser, external perspective and contact
-- **Leadership Impact** — decision-based cases from MSX International, Volvo Group / Volvo Trucks and Kimberly-Clark, sanitized leadership artifacts, recurring trade-offs and technical foundations
-- **Thinking** — curated enterprise-AI thought leadership with an explicit editorial point of view
-- **About** — career arc, leadership approach, enterprise AI operating-system lens, technical fluency, research perspective, credentials and languages
-- **Contact** — low-friction leadership-opportunity contact page
-- **Primary front-door role lenses** — Enterprise AI & Data Leadership; AI Transformation & Capability; Business-Driven AI & Consulting
-- **Additional direct/shareable lens** — AI Governance & Operating Model
+The repository state immediately before this cleanup is preserved on:
+
+`archive/pre-public-cleanup-2026-09-16`
 
 ## Runtime
 
 - Python 3.12
 - Streamlit 1.53.0
-- fpdf2 2.8.8 for the downloadable canonical CV
+- fpdf2 2.8.8
 - Entrypoint: `app.py`
-- No application secrets required
 
 ```bash
 python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Deployment
+## Validation
 
-Streamlit Community Cloud deployment source:
+GitHub Actions validates:
 
-- Repository: `AIribeiro/careersite`
-- Branch: `main`
-- Main file: `app.py`
-- Python: `3.12`
+- Python compilation;
+- smoke tests for CV delivery, media loading and navigation coverage;
+- Streamlit startup and health;
+- integrity and expected dimensions of the canonical leadership-photo bundle.
 
-## Repository layout
+## SEO and conversion measurement
 
-```text
-.
-├── .github/workflows/streamlit-ci.yml
-├── .streamlit/config.toml
-├── app.py                  # routing / entry point
-├── site_assets.py          # authentic media + generated PDF CV
-├── site_artifacts.py       # sanitized leadership frameworks + homepage teaser
-├── site_components.py      # complete top navigation, footer, shared content
-├── site_cv_patch.py        # canonical public CV generator + static file
-├── site_delivery_patch.py  # final same-origin CV download URL
-├── site_meta.py            # metadata, Person schema + conversion event hooks
-├── site_styles.py          # executive editorial design system
-├── site_lenses.py          # role-specific landing pages + contextual references
-├── page_home.py
-├── page_impact.py
-├── page_thinking.py
-├── page_about.py
-├── page_contact.py
-├── asset_parts/            # text-safe authentic panel image
-├── payload_parts/          # legacy bundle retained only as media source
-├── hq_media.zip            # existing higher-quality photography
-└── requirements.txt
-```
-
-The application logic is normal readable Python. The old embedded application source is no longer executed; the legacy payload is used only to recover existing media assets. The downloadable PDF CV is generated at runtime from the same factual career source used by the site, keeping dates and claims consistent.
-
-### CV delivery
-
-`site_cv_patch.py` writes the canonical public CV into Streamlit's enabled `static/` directory. `site_delivery_patch.py` exposes the same-origin `/app/static/Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf` URL to all CV CTAs. This avoids large data-URI anchors and keeps the footer, About, Contact and role-lens download controls reliably clickable.
-
-## SEO and social metadata
-
-`site_meta.py` adds page descriptions, canonical URLs, OpenGraph/Twitter metadata and `Person` JSON-LD to the browser document. Streamlit remains a client-rendered application, so social crawlers that do not execute client-side JavaScript may not read every dynamically injected tag. If reliable server-rendered social unfurls become a priority, the presentation layer should eventually move to a framework that controls the document `<head>` directly.
-
-## Conversion measurement
-
-Important actions include a `data-hq-event` attribute (CV downloads, contact intent, LinkedIn/Medium outbound links, article opens, Leadership Impact visits, external-reference visits, role-lens opens and leadership-framework visits). `site_meta.py` dispatches a first-party `hq-conversion` browser event for those interactions.
-
-No external analytics provider is enabled by default. This is intentional: a privacy-conscious provider such as Plausible or Umami should only be connected once the deployment domain and privacy approach are explicitly configured. The event taxonomy is already in place for that integration.
+`site_meta.py` adds page descriptions, canonical URLs, OpenGraph/Twitter metadata and `Person` JSON-LD. Important user actions carry `data-hq-event` attributes and dispatch a first-party `hq-conversion` browser event. No external analytics provider is enabled by default.
 
 ## Content guardrails
 
 - Keep the primary identity broad and senior: **Enterprise AI & Data Leader**.
 - Prefer evidence, trade-offs and operating impact over adjectives.
-- Explain concepts briefly enough that a senior reader understands why they matter; do not rely on slogans alone.
-- Never publish "Open to Work", unemployment status, "available immediately", or urgency signals.
-- Do not reposition Jair as an ML engineer, generic project/program manager, AI influencer, or independent consultant selling service packages.
-- Express technical credibility through architectural and operating judgment, not hands-on coding demos or toy AI projects.
-- Do not add GitHub as a prominent top-navigation item.
-- Keep employment dates factual and consistent with the master CV.
-- Do not invent ROI, budget, direct-report counts, team sizes or commercial ownership.
-- Do not publish MIT coursework references.
+- Never publish "Open to Work", unemployment status, immediate availability or urgency signals.
+- Do not reposition Jair as an ML engineer, generic project/program manager, AI influencer or independent consultant selling packaged services.
+- Keep employment dates factual and consistent with the canonical CV.
+- Do not invent ROI, budgets, team sizes, direct reports or commercial ownership.
 - Use authentic photography; avoid stock/futuristic AI imagery.
-- Keep leadership artifacts generic and sanitized; do not reproduce confidential employer material or proprietary thresholds.
+- Keep leadership artifacts generic and sanitized.
+- Keep GitHub as quiet supporting evidence, not a prominent site destination.
 - English remains the primary site language.

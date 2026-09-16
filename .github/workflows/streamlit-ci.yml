@@ -13,6 +13,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      PYTHONPATH: src
 
     steps:
       - name: Check out repository
@@ -30,31 +32,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: Compile application
-        run: python -m py_compile app.py site_*.py page_*.py
+        run: python -m py_compile app.py src/*.py tests/*.py
 
-      - name: Validate canonical CV binary and direct download URI
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          import site_cv
-          from site_assets import CV_BYTES, CV_URI
-
-          filename = 'Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf'
-          target = Path('static') / filename
-          data = target.read_bytes()
-          if not data.startswith(b'%PDF') or len(data) < 4000:
-              raise SystemExit('Canonical repository CV is invalid')
-          if not CV_BYTES.startswith(b'%PDF') or len(CV_BYTES) < 4000:
-              raise SystemExit('Runtime CV bytes are invalid')
-          if data != CV_BYTES:
-              raise SystemExit('Static CV does not match canonical runtime PDF')
-
-          expected_uri = f'/app/static/{filename}'
-          if CV_URI != expected_uri:
-              raise SystemExit(f'CV URI is not the expected same-origin static endpoint: {CV_URI!r}')
-          print(f'Validated clickable static CV download ({len(data)} bytes) at {CV_URI}')
-          PY
+      - name: Run smoke tests
+        run: python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Start Streamlit
         run: |
@@ -75,27 +56,6 @@ jobs:
           done
           cat /tmp/streamlit.log
           exit 1
-
-      - name: Validate page image assets
-        run: |
-          python - <<'PY'
-          import site_media
-          from site_assets import HERO_URI, WORKSHOP_URI, PANEL_DIALOGUE_URI, THINKING_PANEL_URI, ABOUT_BW_URI
-
-          assets = {
-              'home': HERO_URI,
-              'impact': WORKSHOP_URI,
-              'panel': PANEL_DIALOGUE_URI,
-              'thinking': THINKING_PANEL_URI,
-              'about': ABOUT_BW_URI,
-          }
-          for name, uri in assets.items():
-              if not uri.startswith('data:image/'):
-                  raise SystemExit(f'{name} image is missing or not embedded correctly')
-              if len(uri) < 10000:
-                  raise SystemExit(f'{name} image payload is unexpectedly small')
-              print(f'{name}: embedded image OK')
-          PY
 
       - name: Show Streamlit log on failure
         if: failure()

@@ -1,11 +1,6 @@
 from __future__ import annotations
 
-"""Expose the curated conference photography from a persistent repository bundle.
-
-The bundle is committed as text chunks so the live Streamlit app does not depend
-on generated image files or a GitHub Actions rebuild. Images are verified before
-being exposed and delivered as data URIs, which avoids static-path/proxy issues.
-"""
+"""Load the curated production photography from the canonical asset bundle."""
 
 import base64
 import io
@@ -16,8 +11,8 @@ from PIL import Image
 
 import site_assets as assets
 
-ROOT = Path(__file__).resolve().parent
-BUNDLE_DIR = ROOT / "images" / "site_photos_bundle"
+ROOT = Path(__file__).resolve().parents[1]
+BUNDLE_DIR = ROOT / "assets" / "site_photos_bundle"
 
 
 def _load_bundle() -> dict[str, bytes]:
@@ -62,8 +57,6 @@ def _uri(media: dict[str, bytes], name: str) -> str:
 
 media = _load_bundle()
 
-# Purpose-specific editorial mapping. These are the selected conference images,
-# not the old city/collage fallback set.
 hero = _uri(media, "hero.avif")
 keynote = _uri(media, "keynote.avif")
 ai_panel = _uri(media, "ai-panel.avif")

@@ -25,7 +25,7 @@ jobs:
       - name: Install Pillow
         run: python -m pip install pillow
 
-      - name: Validate persistent leadership photography bundle
+      - name: Validate canonical leadership photography bundle
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -34,9 +34,9 @@ jobs:
           import zipfile
           from PIL import Image
 
-          parts = sorted(Path("images/site_photos_bundle").glob("part_*.b64"))
+          parts = sorted(Path("assets/site_photos_bundle").glob("part_*.b64"))
           if not parts:
-              raise SystemExit("Missing persistent site photo bundle")
+              raise SystemExit("Missing canonical site photo bundle")
 
           encoded = "".join(path.read_text(encoding="ascii") for path in parts)
           payload = base64.b64decode(encoded)

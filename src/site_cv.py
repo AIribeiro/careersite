@@ -1,11 +1,6 @@
 from __future__ import annotations
 
-"""Canonical public CV override.
-
-Keeps the downloadable website CV ATS-readable while matching the site's navy,
-copper and editorial design language. Imported by app.py before page modules so
-all CV CTA buttons receive the same canonical PDF URL.
-"""
+"""Build and expose the canonical public CV used by every website download CTA."""
 
 from pathlib import Path
 
@@ -30,7 +25,6 @@ class _CVPDF(FPDF):
 
 
 def build_public_cv() -> bytes:
-    """Build the public, ATS-readable CV used by all website download CTAs."""
     pdf = _CVPDF(format="A4")
     pdf.set_auto_page_break(auto=True, margin=13)
     pdf.set_margins(16, 14, 16)
@@ -237,7 +231,8 @@ def build_public_cv() -> bytes:
 
 
 CV_BYTES = build_public_cv()
-STATIC_DIR = Path(__file__).resolve().parent / "static"
+ROOT = Path(__file__).resolve().parents[1]
+STATIC_DIR = ROOT / "static"
 STATIC_DIR.mkdir(exist_ok=True)
 CV_FILENAME = "Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
 (STATIC_DIR / CV_FILENAME).write_bytes(CV_BYTES)

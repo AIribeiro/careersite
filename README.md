@@ -216,14 +216,17 @@ Events are written to a shared Supabase table using anonymous insert-only access
 
 ### Job-search attribution
 
-Preferred attributed links use `source` and an optional `role` label:
+Preferred attributed links use `source` and an optional `role` label. The canonical acquisition sources are LinkedIn, email, CV, outreach and selected applications:
 
 ```text
 https://jairribeiro-ai.streamlit.app/?source=linkedin
+https://jairribeiro-ai.streamlit.app/?source=email
 https://jairribeiro-ai.streamlit.app/?source=cv
 https://jairribeiro-ai.streamlit.app/?source=outreach
 https://jairribeiro-ai.streamlit.app/?source=application&role=ai-transformation
 ```
+
+`email` is deliberately separate from `outreach`: use it for links placed in email signatures, email footers or ordinary email introductions; use `outreach` when measuring a deliberate recruiter/network outreach activity.
 
 Attribution is retained only for the current browser tab/session, allowing later Impact, lens and CV actions to be associated with the original job-search activity without identifying an individual. Legacy `utm_source`, `src` and `utm_campaign` remain supported.
 

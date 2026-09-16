@@ -56,20 +56,23 @@ class AnalyticsControlTests(unittest.TestCase):
             self.assertIn(token, client)
 
         for label in (
-            "Session quality",
-            "Audience & technology",
-            "Device class",
+            "Career site intelligence",
+            "Session trend",
+            "Depth of exploration",
+            "Device mix",
+            "Operating systems",
             "Country",
-            "Language",
-            "Timezone",
-            "Acquisition & journey",
+            "Browser language",
+            "Job-search sources",
             "Session duration",
-            "Hour of day",
-            "Day of week",
+            "Sessions by hour",
+            "Sessions by weekday",
         ):
             self.assertIn(label, dashboard)
 
-        self.assertIn("does not store raw IP addresses", dashboard)
+        self.assertIn("No raw IP addresses", dashboard)
+        self.assertIn("st.vega_lite_chart", dashboard)
+        self.assertNotIn("st.dataframe", dashboard)
         self.assertNotIn("localStorage", client)
 
 

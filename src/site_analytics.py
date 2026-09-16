@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-"""Minimal first-party behavioral analytics for the public career site.
+"""Privacy-conscious first-party behavioral analytics for the public career site.
 
-The browser sends only a deliberately small event taxonomy to Supabase. There
-are no cookies, persistent visitor identifiers, heatmaps, recordings, IP fields
-or user-agent fields in the application-owned dataset. A random session UUID and
-optional job-search attribution are stored in sessionStorage so one tab visit can
-be reconstructed as a funnel without creating a durable visitor profile.
+The browser sends a deliberately small event taxonomy plus coarse session context
+to Supabase. There are no analytics cookies, persistent visitor identifiers,
+heatmaps, recordings, raw IP fields, or raw user-agent fields in the
+application-owned dataset. A random session UUID, attribution, and engagement
+state live only in sessionStorage so a single tab visit can be reconstructed
+without creating a durable cross-session visitor profile.
 """
 
 import json
@@ -32,6 +33,7 @@ ALLOWED_EVENTS = (
     "email_click",
     "linkedin_click",
     "article_click",
+    "engagement_ping",
 )
 LENS_PAGES = ("enterprise", "transformation", "governance", "consulting")
 RECOMMENDED_ATTRIBUTION_SOURCES = (
@@ -77,6 +79,16 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     win.sessionStorage.setItem(sessionKey, sessionId);
   }}
 
+  const startedKey = 'jair_hq_started_v2';
+  let startedAt = Number(win.sessionStorage.getItem(startedKey) || 0);
+  if (!startedAt || startedAt > Date.now()) {{
+    startedAt = Date.now();
+    win.sessionStorage.setItem(startedKey, String(startedAt));
+  }}
+
+  const engagedKey = 'jair_hq_engaged_v2';
+  let engagedMs = Math.max(0, Number(win.sessionStorage.getItem(engagedKey) || 0));
+
   // Attribution describes the job-search activity that brought a visitor to
   // the site, never an individual. Persist it only for this browser tab so
   // internal navigation can drop query parameters without losing the funnel.
@@ -114,9 +126,70 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     }}
   }};
 
+  const clientContext = () => {{
+    const nav = win.navigator || {{}};
+    const ua = String(nav.userAgent || '');
+    const platform = String(nav.platform || '');
+    const touchPoints = Number(nav.maxTouchPoints || 0);
+    const width = Number(win.innerWidth || doc.documentElement.clientWidth || 0);
+    const isIPadDesktopUa = platform === 'MacIntel' && touchPoints > 1;
+    const isTablet = isIPadDesktopUa || /iPad|Tablet|PlayBook|Silk/i.test(ua) || (/Android/i.test(ua) && !/Mobile/i.test(ua));
+    const isMobile = !isTablet && (/Mobi|iPhone|iPod|Android/i.test(ua) || width < 600);
+    const deviceType = isTablet ? 'tablet' : (isMobile ? 'mobile' : 'desktop');
+
+    let browserFamily = 'Other';
+    if (ua.includes('Edg/')) browserFamily = 'Edge';
+    else if (ua.includes('OPR/')) browserFamily = 'Opera';
+    else if (ua.includes('Firefox/')) browserFamily = 'Firefox';
+    else if (ua.includes('CriOS/')) browserFamily = 'Chrome iOS';
+    else if (ua.includes('Chrome/')) browserFamily = 'Chrome';
+    else if (ua.includes('FxiOS/')) browserFamily = 'Firefox iOS';
+    else if (ua.includes('Safari/')) browserFamily = 'Safari';
+
+    let osFamily = 'Other';
+    if (/Windows NT/i.test(ua)) osFamily = 'Windows';
+    else if (/Android/i.test(ua)) osFamily = 'Android';
+    else if (/iPhone|iPad|iPod/i.test(ua) || isIPadDesktopUa) osFamily = 'iOS/iPadOS';
+    else if (/Mac OS X|Macintosh/i.test(ua)) osFamily = 'macOS';
+    else if (/Linux/i.test(ua)) osFamily = 'Linux';
+
+    let timezone = null;
+    try {{ timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || null; }} catch (_) {{}}
+    const connection = nav.connection || nav.mozConnection || nav.webkitConnection || null;
+
+    return {{
+      device_type: deviceType,
+      browser_family: browserFamily.slice(0, 32),
+      os_family: osFamily.slice(0, 32),
+      language: String(nav.language || '').slice(0, 35) || null,
+      timezone: timezone ? String(timezone).slice(0, 64) : null,
+      viewport_width: Math.min(20000, Math.max(1, Math.round(width || 1))),
+      viewport_height: Math.min(20000, Math.max(1, Math.round(win.innerHeight || 1))),
+      screen_width: Math.min(20000, Math.max(1, Math.round((win.screen && win.screen.width) || 1))),
+      screen_height: Math.min(20000, Math.max(1, Math.round((win.screen && win.screen.height) || 1))),
+      connection_type: connection && connection.effectiveType
+        ? String(connection.effectiveType).slice(0, 20)
+        : null,
+    }};
+  }};
+
+  const updateEngagement = () => {{
+    const state = win.__jairAnalyticsEngagementState;
+    if (!state) return;
+    const nowPerf = win.performance ? win.performance.now() : Date.now();
+    const delta = Math.max(0, Math.min(5000, nowPerf - state.lastTick));
+    state.lastTick = nowPerf;
+    if (doc.visibilityState === 'visible') {{
+      engagedMs = Math.min(86400000, engagedMs + delta);
+      win.sessionStorage.setItem(engagedKey, String(Math.round(engagedMs)));
+    }}
+  }};
+
   win.__jairAnalyticsSend = (eventName, extra = {{}}) => {{
     if (!allowed.has(eventName)) return;
+    updateEngagement();
     const context = win.__jairAnalyticsContext || {{ page: 'home', source: 'streamlit' }};
+    const elapsedMs = Math.min(86400000, Math.max(0, Date.now() - startedAt));
     const payload = {{
       event_name: eventName,
       page: String(context.page || 'home').slice(0, 64),
@@ -129,6 +202,9 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       attribution_role: attribution.role,
       utm_source: attribution.utm_source,
       utm_campaign: attribution.utm_campaign,
+      session_elapsed_ms: Math.round(elapsedMs),
+      engaged_ms: Math.round(Math.min(86400000, Math.max(0, engagedMs))),
+      ...clientContext(),
     }};
 
     fetch(endpoint, {{
@@ -143,8 +219,6 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       body: JSON.stringify(payload)
     }}).catch(() => {{}});
 
-    // Preserve the existing first-party browser event for local debugging or
-    // future integrations; no external listener is required for measurement.
     win.dispatchEvent(new CustomEvent('hq-conversion', {{
       detail: {{ event: eventName, page: payload.page, lens: payload.lens, target: payload.target }}
     }}));
@@ -165,6 +239,34 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       win.__jairAnalyticsSend('lens_view', {{ lens: win.__jairAnalyticsContext.page }});
     }}
     win.sessionStorage.setItem('jair_hq_last_view_v1', JSON.stringify({{ signature: viewSignature, at: now }}));
+  }}
+
+  if (!win.__jairAnalyticsEngagementBound) {{
+    win.__jairAnalyticsEngagementBound = true;
+    const nowPerf = win.performance ? win.performance.now() : Date.now();
+    win.__jairAnalyticsEngagementState = {{ lastTick: nowPerf }};
+
+    win.setInterval(() => {{
+      updateEngagement();
+    }}, 1000);
+
+    win.setInterval(() => {{
+      if (doc.visibilityState === 'visible' && win.__jairAnalyticsSend) {{
+        win.__jairAnalyticsSend('engagement_ping');
+      }}
+    }}, 30000);
+
+    doc.addEventListener('visibilitychange', () => {{
+      updateEngagement();
+      if (doc.visibilityState === 'hidden' && win.__jairAnalyticsSend) {{
+        win.__jairAnalyticsSend('engagement_ping');
+      }}
+    }});
+
+    win.addEventListener('pagehide', () => {{
+      updateEngagement();
+      if (win.__jairAnalyticsSend) win.__jairAnalyticsSend('engagement_ping');
+    }});
   }}
 
   // Bind once using event delegation so links rendered after this component

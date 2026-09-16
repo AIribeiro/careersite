@@ -179,7 +179,19 @@ class RuntimeSmokeTests(unittest.TestCase):
     def test_analytics_taxonomy_privacy_and_attribution(self) -> None:
         from site_analytics import ALLOWED_EVENTS, LENS_PAGES, RECOMMENDED_ATTRIBUTION_SOURCES
 
-        self.assertEqual(set(ALLOWED_EVENTS), {"page_view", "impact_view", "lens_view", "cv_download", "email_click", "linkedin_click", "article_click"})
+        self.assertEqual(
+            set(ALLOWED_EVENTS),
+            {
+                "page_view",
+                "impact_view",
+                "lens_view",
+                "cv_download",
+                "email_click",
+                "linkedin_click",
+                "article_click",
+                "engagement_ping",
+            },
+        )
         self.assertEqual(set(LENS_PAGES), {"enterprise", "transformation", "governance", "consulting"})
         self.assertEqual(tuple(RECOMMENDED_ATTRIBUTION_SOURCES), ("linkedin", "email", "cv", "outreach", "application"))
 
@@ -200,14 +212,16 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn('PUBLIC_VALID | {"analytics"}', app)
         self.assertIn('if PAGE == "analytics":', app)
         self.assertIn("render_analytics_dashboard()", app)
-        self.assertIn("inject_analytics(PAGE, source=\"streamlit\")", app)
+        self.assertIn('inject_analytics(PAGE, source="streamlit")', app)
         self.assertIn("import site_cv_runtime", app)
         self.assertNotIn("site_cv_delivery", app)
 
         self.assertIn("noindex,nofollow,noarchive", dashboard)
         self.assertIn("Attribution link builder", dashboard)
         self.assertIn("RECOMMENDED_ATTRIBUTION_SOURCES", dashboard)
-        self.assertIn("Email is tracked separately from recruiter outreach", dashboard)
+        self.assertIn("Job-search sources", dashboard)
+        self.assertIn("st.vega_lite_chart", dashboard)
+        self.assertNotIn("st.dataframe", dashboard)
 
 
 if __name__ == "__main__":

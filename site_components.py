@@ -5,11 +5,52 @@ import html
 from site_assets import CV_URI, LINKEDIN, MEDIUM, EMAIL
 
 
+ROLE_LENSES = {
+    "enterprise": "Enterprise AI & Data Leadership",
+    "transformation": "AI Transformation & Capability",
+    "governance": "AI Governance & Operating Model",
+    "consulting": "Business-Driven AI & Consulting",
+}
+
+
 def nav(active: str) -> str:
     def link(page: str, label: str) -> str:
         cls = "link on" if page == active else "link"
         return f'<a class="{cls}" href="?page={page}" target="_self">{html.escape(label)}</a>'
-    return f'''<nav class="nav"><div class="navin"><a class="brand" href="?page=home" target="_self"><div><strong>Jair Ribeiro</strong><span>Enterprise AI &amp; Data Leader</span></div></a><div class="links">{link("home","Home")}{link("impact","Leadership Impact")}{link("thinking","Thinking")}{link("about","About")}<a class="link contactlink{' on' if active=='contact' else ''}" href="?page=contact" target="_self" data-hq-event="contact_nav">Contact</a></div></div></nav>'''
+
+    lens_active = active in ROLE_LENSES
+    lens_items = "".join(
+        f'<a href="?page={page}" target="_self" '
+        f'style="display:block;padding:11px 14px;color:{"#fff" if page == active else "#c9d0da"}!important;'
+        f'background:{"rgba(255,255,255,.08)" if page == active else "transparent"};text-decoration:none!important;'
+        f'font-size:12px;font-weight:700;line-height:1.35" data-hq-event="nav_role_{page}">'
+        f'{html.escape(label)}</a>'
+        for page, label in ROLE_LENSES.items()
+    )
+    lens_menu = (
+        '<details style="position:relative">'
+        f'<summary class="link{" on" if lens_active else ""}" '
+        'style="list-style:none;cursor:pointer;user-select:none;white-space:nowrap">Role lenses ▾</summary>'
+        '<div style="position:absolute;right:0;top:calc(100% + 6px);z-index:1001;'
+        'min-width:270px;max-width:calc(100vw - 34px);padding:6px;background:#111b2c;'
+        'border:1px solid rgba(255,255,255,.14);box-shadow:0 18px 40px rgba(0,0,0,.28)">'
+        f'{lens_items}</div></details>'
+    )
+
+    return (
+        '<nav class="nav"><div class="navin">'
+        '<a class="brand" href="?page=home" target="_self"><div><strong>Jair Ribeiro</strong>'
+        '<span>Enterprise AI &amp; Data Leader</span></div></a>'
+        '<div class="links">'
+        f'{link("home", "Home")}'
+        f'{link("impact", "Leadership Impact")}'
+        f'{link("thinking", "Thinking")}'
+        f'{link("about", "About")}'
+        f'{lens_menu}'
+        f'<a class="link contactlink{" on" if active == "contact" else ""}" href="?page=contact" '
+        'target="_self" data-hq-event="contact_nav">Contact</a>'
+        '</div></div></nav>'
+    )
 
 
 def footer() -> str:

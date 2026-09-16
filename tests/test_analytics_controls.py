@@ -36,6 +36,42 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertIn("remaining_events", source)
         self.assertIn("reset_at", source)
 
+    def test_extended_first_party_metrics_are_present(self) -> None:
+        client = (ROOT / "src/site_analytics.py").read_text(encoding="utf-8")
+        dashboard = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
+
+        for token in (
+            "engagement_ping",
+            "device_type",
+            "browser_family",
+            "os_family",
+            "language",
+            "timezone",
+            "viewport_width",
+            "screen_width",
+            "connection_type",
+            "session_elapsed_ms",
+            "engaged_ms",
+        ):
+            self.assertIn(token, client)
+
+        for label in (
+            "Session quality",
+            "Audience & technology",
+            "Device class",
+            "Country",
+            "Language",
+            "Timezone",
+            "Acquisition & journey",
+            "Session duration",
+            "Hour of day",
+            "Day of week",
+        ):
+            self.assertIn(label, dashboard)
+
+        self.assertIn("does not store raw IP addresses", dashboard)
+        self.assertNotIn("localStorage", client)
+
 
 if __name__ == "__main__":
     unittest.main()

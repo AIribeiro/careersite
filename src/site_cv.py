@@ -15,6 +15,11 @@ COPPER = (184, 97, 52)
 LINE = (215, 209, 199)
 WHITE = (255, 253, 248)
 
+LINKEDIN_DISPLAY = "linkedin.com/in/jairribeiro"
+LINKEDIN_URL = "https://www.linkedin.com/in/jairribeiro"
+CV_SITE_DISPLAY = "jairribeiro-ai.streamlit.app"
+CV_SITE_URL = "https://jairribeiro-ai.streamlit.app/?source=cv"
+
 
 class _CVPDF(FPDF):
     def footer(self) -> None:
@@ -47,13 +52,21 @@ def build_public_cv() -> bytes:
     )
     pdf.set_font("Helvetica", "", 8.2)
     pdf.set_text_color(215, 223, 232)
-    pdf.multi_cell(
+    pdf.cell(
         0,
         4.2,
-        "Gothenburg, Sweden | jair.ribeiro@outlook.it | +46 76 761 21 58 | linkedin.com/in/jairribeiro",
+        "Gothenburg, Sweden | jair.ribeiro@outlook.it | +46 76 761 21 58",
         new_x="LMARGIN",
         new_y="NEXT",
     )
+
+    pdf.set_font("Helvetica", "", 8.2)
+    pdf.set_text_color(215, 223, 232)
+    linkedin_width = pdf.get_string_width(LINKEDIN_DISPLAY)
+    separator_width = pdf.get_string_width(" | ")
+    pdf.cell(linkedin_width, 4.2, LINKEDIN_DISPLAY, link=LINKEDIN_URL)
+    pdf.cell(separator_width, 4.2, " | ")
+    pdf.cell(0, 4.2, CV_SITE_DISPLAY, link=CV_SITE_URL, new_x="LMARGIN", new_y="NEXT")
     pdf.set_y(48)
 
     def section(title: str) -> None:

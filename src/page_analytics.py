@@ -114,6 +114,8 @@ def _reset_analytics(access_code: str) -> dict:
 
     if not isinstance(data, dict):
         raise RuntimeError("Unexpected analytics reset response format.")
+    if not data.get("reset_at"):
+        raise RuntimeError("Analytics reset did not return a persistent reset baseline.")
     return data
 
 
@@ -188,8 +190,8 @@ def render_analytics_dashboard() -> None:
 
     if st.session_state.careersite_analytics_reset_pending:
         st.warning(
-            "Reset permanently deletes all stored career-site analytics events. "
-            "All dashboard counters will return to zero and this cannot be undone."
+            "Reset permanently establishes a new zero baseline for all dashboard metrics and deletes stored events from before that moment. "
+            "New visits after the reset will start increasing the counters again."
         )
         confirm_col, cancel_col, _ = st.columns([1.4, 1, 3])
         with confirm_col:
@@ -205,9 +207,12 @@ def render_analytics_dashboard() -> None:
                     st.error(str(exc))
                     return
                 deleted = int(result.get("deleted_events", 0) or 0)
+                remaining = int(result.get("remaining_events", 0) or 0)
+                reset_at = str(result.get("reset_at") or "")
                 st.session_state.careersite_analytics_reset_pending = False
                 st.session_state.careersite_analytics_flash = (
-                    f"Analytics reset complete. {deleted} stored event{'s' if deleted != 1 else ''} deleted."
+                    f"Analytics reset persisted at {reset_at}. {deleted} pre-reset event{'s' if deleted != 1 else ''} deleted. "
+                    f"{remaining} event{'s' if remaining != 1 else ''} arrived at or after the new baseline."
                 )
                 st.rerun()
         with cancel_col:
@@ -228,7 +233,10 @@ def render_analytics_dashboard() -> None:
 
     period_label = str(data.get("period_label") or REPORTING_WINDOW_LABELS.get(str(window), str(window)))
     period_since = data.get("period_since")
+    reset_at = data.get("reset_at")
     st.caption(f"Showing: {period_label}" + (f" · since {period_since}" if period_since else ""))
+    if reset_at:
+        st.caption(f"Persistent analytics reset baseline: {reset_at}. Events before this timestamp are excluded from every reporting window.")
 
     totals = data.get("totals", {}) or {}
     sessions = int(totals.get("sessions", 0) or 0)

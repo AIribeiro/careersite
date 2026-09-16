@@ -55,7 +55,7 @@ def nav(active: str) -> str:
 
 def footer() -> str:
     cv = f'<a href="{CV_URI}" download="Jair_Ribeiro_Master_CV_2026.pdf" data-hq-event="cv_download_footer">Download CV ↓</a>' if CV_URI else ""
-    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI and Data leadership focused on strategy, operating models, governance, adoption and measurable business value. Based in Gothenburg, Sweden.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_footer">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_footer">Medium ↗</a><a href="mailto:{EMAIL}" data-hq-event="email_footer">Email</a>{cv}</div></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
+    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI and Data leadership focused on strategy, operating models, governance, adoption and measurable business value. Based in Gothenburg · Sweden &amp; international mandates.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_footer">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_footer">Medium ↗</a><a href="mailto:{EMAIL}" data-hq-event="email_footer">Email</a>{cv}</div></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
 
 
 def opportunity() -> str:

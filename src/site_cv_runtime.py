@@ -12,7 +12,7 @@ from pathlib import Path
 
 import site_assets
 
-CV_FILENAME = "Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
+CV_FILENAME = "Jair_Ribeiro_Enterprise_AI_Data_Leader_CV_2026.pdf"
 ROOT = Path(__file__).resolve().parents[1]
 CV_PATH = ROOT / "static" / CV_FILENAME
 

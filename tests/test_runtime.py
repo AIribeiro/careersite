@@ -12,7 +12,7 @@ if str(SRC) not in sys.path:
 
 class RuntimeSmokeTests(unittest.TestCase):
     def test_canonical_cv_delivery(self) -> None:
-        import site_cv  # noqa: F401
+        import site_cv
         from site_assets import CV_BYTES, CV_URI
 
         filename = "Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
@@ -21,6 +21,11 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertGreater(len(data), 4000)
         self.assertEqual(data, CV_BYTES)
         self.assertEqual(CV_URI, f"/app/static/{filename}")
+        self.assertEqual(site_cv.CV_SITE_DISPLAY, "jairribeiro-ai.streamlit.app")
+        self.assertEqual(
+            site_cv.CV_SITE_URL,
+            "https://jairribeiro-ai.streamlit.app/?source=cv",
+        )
 
     def test_curated_media_bundle_loads(self) -> None:
         import site_media  # noqa: F401

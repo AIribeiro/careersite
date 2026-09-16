@@ -63,8 +63,10 @@ jobs:
           PY
 
       - name: Validate with standard PDF tools and renderer
+        env:
+          PYTHONPATH: src
         run: |
-          PDF="static/Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
+          PDF="static/$(python -c 'import site_cv; print(site_cv.CV_FILENAME)')"
           qpdf --check "$PDF"
           pdfinfo "$PDF"
           mkdir -p /tmp/cv-render
@@ -73,8 +75,12 @@ jobs:
           file /tmp/cv-render/page.png
 
       - name: Commit generated PDF when changed
+        env:
+          PYTHONPATH: src
         run: |
-          git add static/Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf
+          CV="$(python -c 'import site_cv; print(site_cv.CV_FILENAME)')"
+          find static -maxdepth 1 -type f -name 'Jair_Ribeiro_*_CV_2026.pdf' ! -name "$CV" -delete
+          git add -A static
           if git diff --cached --quiet; then
             echo "Canonical PDF already current."
             exit 0

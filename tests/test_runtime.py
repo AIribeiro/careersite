@@ -75,7 +75,11 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertNotIn("Gothenburg, Sweden · Sweden / International", home)
 
     def test_analytics_taxonomy_privacy_and_attribution(self) -> None:
-        from site_analytics import ALLOWED_EVENTS, LENS_PAGES
+        from site_analytics import (
+            ALLOWED_EVENTS,
+            LENS_PAGES,
+            RECOMMENDED_ATTRIBUTION_SOURCES,
+        )
 
         self.assertEqual(
             set(ALLOWED_EVENTS),
@@ -92,6 +96,10 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertEqual(
             set(LENS_PAGES),
             {"enterprise", "transformation", "governance", "consulting"},
+        )
+        self.assertEqual(
+            tuple(RECOMMENDED_ATTRIBUTION_SOURCES),
+            ("linkedin", "email", "cv", "outreach", "application"),
         )
 
         analytics = (ROOT / "src/site_analytics.py").read_text(encoding="utf-8")
@@ -115,7 +123,8 @@ class RuntimeSmokeTests(unittest.TestCase):
 
         self.assertIn("noindex,nofollow,noarchive", dashboard)
         self.assertIn("Attribution link builder", dashboard)
-        self.assertIn('"linkedin", "cv", "outreach", "application"', dashboard)
+        self.assertIn("RECOMMENDED_ATTRIBUTION_SOURCES", dashboard)
+        self.assertIn("Email is tracked separately from recruiter outreach", dashboard)
         self.assertIn("source", dashboard)
         self.assertIn("role", dashboard)
 

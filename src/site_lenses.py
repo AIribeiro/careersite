@@ -3,7 +3,7 @@ from __future__ import annotations
 import html
 
 from site_assets import CV_URI, AI_PANEL_URI, HERO_URI, PANEL_DIALOGUE_URI
-from site_components import nav, footer, opportunity
+from site_components import nav, footer, opportunity, CV_DOWNLOAD_NAME
 
 
 CLAES_LINKEDIN = "https://se.linkedin.com/in/claes-sandros-1a795512"
@@ -12,6 +12,7 @@ JIM_LINKEDIN = "https://www.linkedin.com/in/james-edwards-7233b8152"
 
 
 def role_lens(
+    page: str,
     kicker: str,
     title: str,
     deck: str,
@@ -36,16 +37,16 @@ def role_lens(
         body.append(
             '<section class="lenssection"><p class="eyebrow">External perspective</p>'
             '<div class="card">'
-            f'<span class="org">Independent recommendation</span><h3>{html.escape(person)}</h3>'
+            f'<span class="org">Recommendation context</span><h3>{html.escape(person)}</h3>'
             f'{role_html}'
-            f'<p style="font:500 20px/1.45 Georgia,serif;color:var(--ink);margin-top:22px">“{html.escape(quote)}”</p>'
+            f'<p style="font:500 18px/1.5 Georgia,serif;color:var(--ink);margin-top:20px">“{html.escape(quote)}”</p>'
             f'<div class="proof"><a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener" '
             f'data-hq-event="reference_{html.escape(person.lower().replace(" ", "_"))}_lens">LinkedIn profile ↗</a></div>'
             '</div></section>'
         )
 
     cv = (
-        f'<a class="btn dark" href="{CV_URI}" download="Jair_Ribeiro_Master_CV_2026.pdf" '
+        f'<a class="btn dark" href="{CV_URI}" download="{CV_DOWNLOAD_NAME}" '
         f'data-hq-event="cv_download_lens">Download CV</a>'
         if CV_URI
         else ""
@@ -57,14 +58,13 @@ def role_lens(
         else ""
     )
     return (
-        f'{nav("")}<main><section class="pagehero"><div class="container">'
+        f'{nav(page)}<main><section class="pagehero"><div class="container">'
         f'<p class="eyebrow">{html.escape(kicker)}</p><h1>{html.escape(title)}</h1>'
         f'<p>{html.escape(deck)}</p></div></section>'
         f'<section class="section paper"><div class="container lensgrid">'
         f'<aside class="lensaside"><p class="eyebrow">Jair Ribeiro</p>'
         f'<h2>Enterprise AI &amp; Data Leader</h2>{photo}'
-        f'<p class="muted">Strategy, operating models, governance, adoption and business value — '
-        f'with technical fluency grounded in enterprise technology.</p>'
+        f'<p class="muted">This page reorganizes selected evidence around one hiring context. It is not a separate CV or a claim to a different professional identity.</p>'
         f'<p class="muted">{html.escape(perspective)}</p><div class="actions">'
         f'<a class="btn dark" href="?page=impact" target="_self" data-hq-event="impact_lens">'
         f'Leadership impact</a>{cv}</div></aside><div>{"".join(body)}</div></div></section>'
@@ -74,39 +74,40 @@ def role_lens(
 
 def enterprise() -> str:
     return role_lens(
-        "Role lens · Data & AI Leadership",
-        "Data and AI leadership that turns strategy into operating capability.",
-        "For Head / Director mandates spanning AI, data and analytics where the organization needs clearer priorities, ownership, data trust, governance and a practical path from experimentation to scale.",
-        "My strongest fit is where one leader has to connect business direction with the data and AI capabilities underneath it, while remaining clear about where specialist technical ownership belongs.",
+        "enterprise",
+        "Role lens · Enterprise AI & Data Leadership",
+        "Connecting AI and Data strategy with the operating capability underneath it.",
+        "This lens is most relevant when a leadership mandate spans priorities, portfolio choices, Data & Analytics, operating models, governance and enterprise adoption rather than one isolated technical domain.",
+        "My strongest contribution in this context is connecting disciplines that often sit in different parts of the organization while keeping specialist ownership explicit.",
         [
             (
-                "What I bring",
-                "A business-facing data and AI leadership profile",
-                "Experience spanning enterprise AI strategy, data and analytics, portfolio management, governance, adoption, operating models and architecture-aware decision-making. The value is in connecting these disciplines so they support one set of business choices rather than competing agendas.",
+                "Selected evidence",
+                "A business-facing AI and Data leadership profile",
+                "The experience spans AI strategy, analytics, portfolio decisions, governance, adoption, operating models and architecture-aware decision-making. I have worked across global industrial and consumer environments where those disciplines had to support the same business choices.",
                 [
-                    "100+ AI initiatives and PoCs shaped across global contexts",
-                    "AI literacy and adoption activity reaching 1,000+ employees",
-                    "CoE and portfolio foundations connecting business, data, governance and technology",
+                    "Across my Volvo AI roles, I shaped and supported 100+ AI initiatives, PoCs and projects.",
+                    "At MSX International, I built foundations for an emerging AI & Data CoE covering portfolio, governance, data ownership and scale-readiness.",
+                    "At Kimberly-Clark, I led EMEA AI value discovery across functions with different levels of readiness.",
                 ],
             ),
             (
                 "Operating capability",
-                "From scattered activity to clearer ownership",
-                "I focus on the structures that make AI repeatable: roles, decision rights, lifecycle stages, portfolio logic, data ownership and escalation paths. The aim is enough structure to improve decisions without making a central function the bottleneck for every decision.",
+                "Make ownership clearer before adding more process",
+                "I focus on the structures that help AI become repeatable: roles, decision rights, lifecycle stages, portfolio logic, data ownership and escalation. The aim is enough structure to improve decisions without making a central function the bottleneck for every decision.",
                 [
-                    "AI & Data CoE foundations at MSX International",
-                    "Lifecycle stages, ownership and scale-readiness criteria",
+                    "Portfolio visibility and prioritization",
+                    "Lifecycle ownership and scale-readiness evidence",
                     "Data stewardship, quality and trusted-data foundations",
                 ],
             ),
             (
                 "Leadership style",
-                "Technically credible without pretending to be the deepest specialist",
-                "I can challenge architecture, scalability, cost, governance and adoption trade-offs while giving specialists room to own specialist decisions. That balance matters in leadership teams where business urgency and technical constraints are both real.",
+                "Work comfortably between business priorities and technical reality",
+                "My technical background helps me engage engineers, architects and data specialists and understand where architecture, security, cost or data choices change the business answer. Specialist depth remains with the specialists responsible for those decisions.",
                 [
-                    "Enterprise technology and cloud foundations",
-                    "IBM Watson solution-design background",
-                    "Cross-functional leadership across business, Digital & IT, analytics and governance",
+                    "Cross-functional work across business, Digital & IT, analytics and governance",
+                    "Executive stakeholder communication and business translation",
+                    "Technical judgment rather than technical demonstration",
                 ],
             ),
         ],
@@ -123,39 +124,40 @@ def enterprise() -> str:
 
 def transformation() -> str:
     return role_lens(
+        "transformation",
         "Role lens · AI Transformation & Adoption",
-        "Moving AI from experimentation into adopted enterprise capability.",
-        "For mandates where the organization already has AI activity but needs clearer priorities, stronger adoption, governance and a practical path to scale. The work is less about launching another pilot and more about changing the system around the pilots.",
-        "I tend to be most useful after initial enthusiasm has produced a long list of use cases. At that point, the leadership problem becomes prioritization, ownership, readiness, capability and the discipline to stop or reshape work that is not ready to scale.",
+        "Moving AI from experimentation toward practical organizational use.",
+        "This lens is relevant when an organization already has AI activity but needs clearer priorities, stronger adoption, capability building and a more credible path from promising work to repeatable use.",
+        "I tend to be most useful once initial enthusiasm has created enough activity to expose the real operating questions: what deserves investment, who owns the outcome, what evidence is missing and what has to change in the workflow.",
         [
             (
                 "Transformation focus",
-                "The hard part starts after the pilot",
-                "My work centers on the organizational mechanisms that make AI usable at scale: prioritization, adoption, literacy, governance, data readiness and operating-model choices. A technically successful pilot is evidence of possibility, not yet evidence of an enterprise capability.",
+                "The hard part usually begins after possibility has been proven",
+                "A technically successful pilot is useful evidence, but it does not yet show that the organization can operate, govern or adopt the capability. My work has often been about connecting those missing conditions around the technology.",
                 [
-                    "1,000+ employees reached through AI literacy and adoption",
-                    "1,500+ practitioners engaged through enterprise AI communities",
-                    "Business use cases across warranty, sales, aftermarket, manufacturing, supply chain, logistics and marketing",
+                    "AI literacy and adoption activity reaching 1,000+ employees",
+                    "Enterprise communities engaging 1,500+ practitioners",
+                    "Use-case work across commercial operations and other global business functions",
                 ],
             ),
             (
                 "Adoption",
-                "Training is not adoption",
-                "Capability building has to connect to real workflows, decisions, ownership and confidence. Literacy improves the quality of demand and use, but adoption only becomes visible when behavior and operating routines change.",
+                "Training matters, but behavior is the real test",
+                "Capability building works best when it is close to real workflows and decisions. Literacy can improve the quality of demand and confidence, while adoption becomes visible only when people change how work is done and ownership is clear enough to sustain it.",
                 [
-                    "Practical GenAI literacy and responsible-use programs",
+                    "Practical GenAI literacy and responsible-use activity",
                     "Cross-functional use-case discovery and business translation",
-                    "Connecting AI adoption with governance and data foundations",
+                    "Business, Digital & IT and specialist collaboration around real workflows",
                 ],
             ),
             (
                 "Scale",
-                "Governance should help good work move faster",
-                "I prefer governance mechanisms that clarify ownership, evidence and risk so teams know how to move. The useful question is not how many approvals exist, but whether the organization can distinguish low-risk experimentation from work that needs stronger evidence before it reaches customers, employees or critical processes.",
+                "Responsible adoption needs evidence, not only enthusiasm",
+                "I prefer governance that helps teams understand what has to be true next: which risks matter, who owns them, what evidence is required and when broader use should wait. That is different from treating governance as a separate compliance exercise.",
                 [
-                    "Lifecycle stage-gates and scale-readiness criteria",
+                    "Lifecycle and scale-readiness criteria",
                     "Risk-aware portfolio choices",
-                    "Responsible AI positioned as an enabler of trusted adoption",
+                    "Governance connected to adoption and operating ownership",
                 ],
             ),
         ],
@@ -172,37 +174,38 @@ def transformation() -> str:
 
 def governance() -> str:
     return role_lens(
+        "governance",
         "Role lens · AI Governance & Operating Model",
-        "Governance and operating models that make ownership, evidence and scale clearer.",
-        "For leadership mandates where AI needs stronger decision rights, lifecycle discipline, portfolio governance and responsible-AI mechanisms without creating a control layer that slows useful work.",
-        "I treat governance as part of the operating system around AI. The objective is not more gates. It is to make clear who owns each decision, what evidence is required, when risk needs escalation and what must be true before broader use is justified.",
+        "Creating clearer ownership, evidence and decision rights around AI.",
+        "This lens is relevant where AI needs stronger lifecycle discipline, portfolio governance, data accountability and Responsible AI mechanisms without turning governance into a control layer disconnected from delivery.",
+        "I treat governance as part of the operating system around AI. The purpose is to make clear who owns each decision, what evidence is required, when risk needs escalation and what must be true before broader use is justified.",
         [
             (
                 "Operating model",
                 "Make ownership visible before adding process",
-                "AI programs become hard to scale when business ownership, technical ownership, data accountability and risk decisions are implicit. I start by making those responsibilities visible, then design the minimum structure needed to support repeatable decisions.",
+                "AI becomes difficult to scale when business ownership, technical ownership, data accountability and risk decisions remain implicit. I start by making those responsibilities visible, then add the minimum structure needed for repeatable decisions.",
                 [
                     "Roles and decision rights across business, data, technology and governance",
                     "Lifecycle ownership from discovery through scale-readiness",
-                    "CoE patterns designed to enable rather than centralize every decision",
+                    "CoE patterns intended to enable rather than centralize every decision",
                 ],
             ),
             (
                 "Governance",
-                "Evidence and escalation instead of compliance theatre",
-                "Good governance tells teams what they need to prove and where a decision belongs. It should distinguish experimentation from higher-risk use, expose unresolved assumptions and create a credible route for escalation when the consequences justify it.",
+                "Responsible adoption, not compliance-only governance",
+                "Useful governance tells teams what they need to prove and where a decision belongs. It distinguishes experimentation from higher-consequence use, exposes unresolved assumptions and creates a credible route for escalation when the consequences justify it.",
                 [
                     "Responsible AI and risk-aware lifecycle mechanisms",
                     "Stage criteria and evidence requirements",
-                    "Clearer escalation paths for higher-risk or higher-scale use",
+                    "Clearer escalation for higher-risk or higher-scale use",
                 ],
             ),
             (
                 "Data and trust",
                 "Many governance problems begin as ownership problems",
-                "Data quality, semantics, stewardship, access and lineage shape both technical performance and organizational trust. Treating them as separate from AI governance usually moves the same problem downstream.",
+                "Data quality, semantics, stewardship, access and lineage shape both technical performance and organizational trust. Treating them as separate from AI governance often moves the same problem downstream.",
                 [
-                    "Data governance foundations connected to AI portfolio decisions",
+                    "Data-governance foundations connected to AI portfolio decisions",
                     "Stewardship and trusted-data responsibilities",
                     "Architecture, security, cost and control considered alongside adoption",
                 ],
@@ -215,15 +218,16 @@ def governance() -> str:
 
 def consulting() -> str:
     return role_lens(
+        "consulting",
         "Role lens · Business-Driven AI & Consulting",
-        "Executive AI conversations grounded in what happens after the strategy deck.",
-        "For consulting and advisory leadership where clients need a credible bridge between business priorities, technology choices, governance, adoption and delivery reality. My perspective is shaped by having worked on the operating side of that change as well as in client-facing technology roles.",
-        "The differentiator I bring to advisory work is practical consequence. Recommendations have to survive data quality, architecture, governance, competing priorities and the people who will actually use the capability after the consulting team leaves.",
+        "Advisory work grounded in what has to happen after the recommendation.",
+        "This is a secondary but genuine part of my profile: client-facing technology, problem framing, value discovery and executive dialogue, informed by having also worked on the operating side of enterprise AI change.",
+        "The perspective I bring to consulting is practical consequence. Recommendations have to survive data quality, architecture, governance, competing priorities and the people who will use the capability after the presentation is over.",
         [
             (
-                "Advisory value",
-                "Lived enterprise experience on the client side of AI change",
-                "Experience from the operating side of global organizations — where recommendations have to survive architecture constraints, data realities, governance, adoption and competing priorities. That changes the questions I ask before recommending a target state.",
+                "Client perspective",
+                "Start from the problem and the organization that has to act on it",
+                "Experience from the operating side of global organizations changes the questions I ask in advisory work. I want to understand the business problem, readiness, ownership and dependencies before describing a target state.",
                 [
                     "AI value discovery across EMEA business units",
                     "Enterprise portfolio and operating-model work",
@@ -231,19 +235,19 @@ def consulting() -> str:
                 ],
             ),
             (
-                "Commercial relevance",
-                "Shape the problem before shaping the solution",
-                "My background includes consulting, client-facing technology work, IBM Watson solution design and supporting the development and sale of cognitive solutions. I am strongest in advisory selling built around a real business problem rather than a pre-packaged AI proposition.",
+                "Problem framing",
+                "Shape the question before shaping the solution",
+                "My background includes consulting, client-facing technology work and IBM Watson solution design. The most useful part of that experience is learning to clarify the problem, expose assumptions and connect technical possibilities to what the client is actually trying to change.",
                 [
                     "Business problem and value discovery",
                     "Solution and proposition shaping",
-                    "Executive workshops and stakeholder dialogue",
+                    "Workshops and stakeholder dialogue",
                 ],
             ),
             (
-                "Differentiator",
-                "Strategy connected to operating reality",
-                "The strongest advisory work is not a recommendation that stops at the presentation. It creates decisions, ownership and a realistic path into execution, while making assumptions and dependencies visible enough for the client to act on them.",
+                "Practical consequence",
+                "A recommendation is useful when the client can act on it",
+                "The strongest advisory work leaves clearer decisions, ownership and a realistic path into execution. It should also make the unresolved assumptions visible enough for the client to know what needs to be learned next.",
                 [
                     "Portfolio prioritization and decision mechanisms",
                     "Governance and data-readiness implications",
@@ -255,7 +259,7 @@ def consulting() -> str:
         "Jair Ribeiro in an industry panel dialogue",
         (
             "Jim Edwards",
-            "",
+            "Leadership colleague · transformation / consulting perspective",
             "He’s incredibly good at bringing people along on the journey and explaining the benefits of what AI can bring to an organization.",
             JIM_LINKEDIN,
         ),

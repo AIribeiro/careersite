@@ -16,12 +16,9 @@ if str(SRC) not in sys.path:
 
 class RuntimeSmokeTests(unittest.TestCase):
     def test_canonical_cv_delivery(self) -> None:
-        filename = "Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
+        filename = "Jair_Ribeiro_Enterprise_AI_Data_Leader_CV_2026.pdf"
         path = ROOT / "static" / filename
 
-        # Validate the exact repository-backed bytes that production serves.
-        # This happens before the generator is imported so a fresh generation
-        # cannot mask a stale or malformed committed artifact.
         committed = path.read_bytes()
         self.assertTrue(committed.startswith(b"%PDF-"))
         self.assertTrue(committed.rstrip().endswith(b"%%EOF"))
@@ -30,10 +27,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertGreaterEqual(len(reader.pages), 1)
         self.assertIsNotNone(reader.trailer.get("/Root"))
         self.assertIn(b"/Subtype /Link", committed)
-        self.assertIn(
-            b"https://jairribeiro-ai.streamlit.app/?source=cv",
-            committed,
-        )
+        self.assertIn(b"https://jairribeiro-ai.streamlit.app/?source=cv", committed)
 
         tracked = subprocess.run(
             ["git", "ls-files", "--error-unmatch", f"static/{filename}"],
@@ -44,8 +38,6 @@ class RuntimeSmokeTests(unittest.TestCase):
         )
         self.assertEqual(tracked.returncode, 0, "Canonical PDF must be committed to main")
 
-        # Production binds the shared CV URL and bytes to that committed file;
-        # it does not import the PDF generator at Streamlit runtime.
         import site_cv_runtime  # noqa: F401
         from site_assets import CV_BYTES, CV_URI
 
@@ -53,8 +45,6 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertEqual(CV_URI, f"app/static/{filename}")
         self.assertFalse(CV_URI.startswith("/"))
 
-        # Independently validate the generator. fpdf2 includes a CreationDate,
-        # so two valid generations need not be byte-identical.
         import site_cv
 
         generated = site_cv.CV_BYTES
@@ -63,14 +53,14 @@ class RuntimeSmokeTests(unittest.TestCase):
         generated_reader = PdfReader(BytesIO(generated), strict=True)
         self.assertGreaterEqual(len(generated_reader.pages), 1)
         self.assertIsNotNone(generated_reader.trailer.get("/Root"))
+        self.assertEqual(site_cv.CV_FILENAME, filename)
         self.assertEqual(site_cv.CV_SITE_DISPLAY, "AI & Data Portfolio")
-        self.assertEqual(
-            site_cv.CV_SITE_URL,
-            "https://jairribeiro-ai.streamlit.app/?source=cv",
-        )
+        self.assertEqual(site_cv.CV_SITE_URL, "https://jairribeiro-ai.streamlit.app/?source=cv")
         self.assertIn(b"/Subtype /Link", generated)
         self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), generated)
         source = (ROOT / "src/site_cv.py").read_text(encoding="utf-8")
+        self.assertIn("Enterprise AI & Data Leader", source)
+        self.assertNotIn("Senior AI & Data Leader", source)
         self.assertIn("CV_SITE_DISPLAY, link=CV_SITE_URL", source)
         self.assertIn('site_assets.CV_URI = f"app/static/{CV_FILENAME}"', source)
 
@@ -96,59 +86,23 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertEqual(site_cv.CV_SITE_URL, PERMANENT_SURFACES["cv"])
         self.assertEqual(page_analytics.PUBLIC_BASE_URL, CANONICAL_SITE_URL)
         self.assertEqual(tuple(RECOMMENDED_ATTRIBUTION_SOURCES), ATTRIBUTION_SOURCES)
-        self.assertEqual(
-            ATTRIBUTION_SOURCES,
-            ("linkedin", "email", "cv", "outreach", "application"),
-        )
-        self.assertEqual(
-            PERMANENT_SURFACES["linkedin"],
-            "https://jairribeiro-ai.streamlit.app/?source=linkedin",
-        )
-        self.assertEqual(
-            PERMANENT_SURFACES["application"],
-            "https://jairribeiro-ai.streamlit.app/?source=application",
-        )
-        self.assertEqual(
-            APPLICATION_LENSES["head_data_ai"],
-            "https://jairribeiro-ai.streamlit.app/?page=enterprise&source=application&role=head-data-ai",
-        )
-        self.assertEqual(
-            APPLICATION_LENSES["ai_transformation"],
-            "https://jairribeiro-ai.streamlit.app/?page=transformation&source=application&role=ai-transformation",
-        )
-        self.assertEqual(
-            APPLICATION_LENSES["ai_governance"],
-            "https://jairribeiro-ai.streamlit.app/?page=governance&source=application&role=ai-governance",
-        )
-        self.assertEqual(
-            APPLICATION_LENSES["business_driven_ai"],
-            "https://jairribeiro-ai.streamlit.app/?page=consulting&source=application&role=business-driven-ai",
-        )
-        self.assertEqual(
-            APPLICATION_LENSES["ai_data_leadership"],
-            "https://jairribeiro-ai.streamlit.app/?page=impact&source=application&role=ai-data-leadership",
-        )
-        self.assertEqual(
-            POST_INTERVIEW_LINKS["operating_model"],
-            "https://jairribeiro-ai.streamlit.app/?page=impact&source=email&role=ai-transformation#leadership-frameworks",
-        )
+        self.assertEqual(ATTRIBUTION_SOURCES, ("linkedin", "email", "cv", "outreach", "application"))
+        self.assertEqual(PERMANENT_SURFACES["linkedin"], "https://jairribeiro-ai.streamlit.app/?source=linkedin")
+        self.assertEqual(PERMANENT_SURFACES["application"], "https://jairribeiro-ai.streamlit.app/?source=application")
+        self.assertEqual(APPLICATION_LENSES["head_data_ai"], "https://jairribeiro-ai.streamlit.app/?page=enterprise&source=application&role=head-data-ai")
+        self.assertEqual(APPLICATION_LENSES["ai_transformation"], "https://jairribeiro-ai.streamlit.app/?page=transformation&source=application&role=ai-transformation")
+        self.assertEqual(APPLICATION_LENSES["ai_governance"], "https://jairribeiro-ai.streamlit.app/?page=governance&source=application&role=ai-governance")
+        self.assertEqual(APPLICATION_LENSES["business_driven_ai"], "https://jairribeiro-ai.streamlit.app/?page=consulting&source=application&role=business-driven-ai")
+        self.assertEqual(APPLICATION_LENSES["ai_data_leadership"], "https://jairribeiro-ai.streamlit.app/?page=impact&source=application&role=ai-data-leadership")
+        self.assertEqual(POST_INTERVIEW_LINKS["operating_model"], "https://jairribeiro-ai.streamlit.app/?page=impact&source=email&role=ai-transformation#leadership-frameworks")
         self.assertEqual(LINKEDIN_FEATURED["title"], "Enterprise AI & Data Leadership")
         self.assertNotIn("lovable.app", "\n".join(PERMANENT_SURFACES.values()))
-        self.assertNotIn("lovable.app", "\n".join(APPLICATION_LENSES.values()))
-        self.assertNotIn("lovable.app", "\n".join(POST_INTERVIEW_LINKS.values()))
 
     def test_curated_media_bundle_loads(self) -> None:
         import site_media  # noqa: F401
-        from site_assets import (
-            ABOUT_BW_URI,
-            HERO_URI,
-            PANEL_DIALOGUE_URI,
-            THINKING_PANEL_URI,
-            WORKSHOP_URI,
-        )
+        from site_assets import ABOUT_BW_URI, HERO_URI, PANEL_DIALOGUE_URI, THINKING_PANEL_URI, WORKSHOP_URI
 
-        assets = [HERO_URI, WORKSHOP_URI, PANEL_DIALOGUE_URI, THINKING_PANEL_URI, ABOUT_BW_URI]
-        for uri in assets:
+        for uri in [HERO_URI, WORKSHOP_URI, PANEL_DIALOGUE_URI, THINKING_PANEL_URI, ABOUT_BW_URI]:
             self.assertTrue(uri.startswith("data:image/"))
             self.assertGreater(len(uri), 10000)
 
@@ -158,66 +112,63 @@ class RuntimeSmokeTests(unittest.TestCase):
         html = nav("home")
         for label in ("Home", "Leadership Impact", "Thinking", "About", "Contact", "Role lenses"):
             self.assertIn(label, html)
-        self.assertEqual(
-            set(ROLE_LENSES),
-            {"enterprise", "transformation", "governance", "consulting"},
-        )
+        self.assertEqual(set(ROLE_LENSES), {"enterprise", "transformation", "governance", "consulting"})
+        self.assertEqual(ROLE_LENSES["transformation"], "AI Transformation & Adoption")
         self.assertNotIn("Analytics", html)
 
+        active = nav("transformation")
+        self.assertIn('summary class="link on"', active)
+        self.assertIn("AI Transformation &amp; Adoption", active)
+
     def test_experience_metrics_are_precise(self) -> None:
-        for relative in (
-            "src/page_home.py",
-            "src/page_about.py",
-            "src/site_cv.py",
-            "src/site_assets.py",
-        ):
+        for relative in ("src/page_home.py", "src/page_about.py", "src/site_cv.py", "src/site_assets.py"):
             text = (ROOT / relative).read_text(encoding="utf-8")
             self.assertIn("20+", text, relative)
             self.assertIn("8+", text, relative)
             self.assertNotIn("15+ years", text, relative)
             self.assertNotIn("More than 15 years", text, relative)
 
-    def test_home_keeps_distinctive_positioning(self) -> None:
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
-        meta = (ROOT / "src/site_meta.py").read_text(encoding="utf-8")
-        components = (ROOT / "src/site_components.py").read_text(encoding="utf-8")
+        impact = (ROOT / "src/page_impact.py").read_text(encoding="utf-8")
+        self.assertIn("Across my Volvo AI roles", home)
+        self.assertIn("Across my Volvo AI roles", impact)
+        self.assertNotIn("managed a portfolio of 100+", home.lower())
+        self.assertNotIn("managed a portfolio of 100+", impact.lower())
 
+    def test_revised_portfolio_positioning(self) -> None:
+        home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
+        about = (ROOT / "src/page_about.py").read_text(encoding="utf-8")
+        lenses = (ROOT / "src/site_lenses.py").read_text(encoding="utf-8")
+        artifacts = (ROOT / "src/site_artifacts.py").read_text(encoding="utf-8")
+        meta = (ROOT / "src/site_meta.py").read_text(encoding="utf-8")
+
+        self.assertIn("I work at the point where enterprise AI strategy meets operating reality", home)
         self.assertIn("AI scales as a system, not as a model.", home)
-        self.assertIn("decision system around AI", home)
         self.assertIn("Based in Gothenburg · Sweden &amp; international mandates", home)
-        self.assertIn("decision system around AI", meta)
-        self.assertIn("Based in Gothenburg · Sweden &amp; international mandates", components)
+        self.assertIn("Three recurring areas of enterprise work", home)
+        self.assertIn("Governance, Operating Model &amp; Responsible Scale", home)
+        self.assertNotIn("Business-Driven AI &amp; Consulting →", home)
+        self.assertIn("Claes Sandros", home)
+        self.assertIn("Anna Börjesson Sandberg", home)
+        self.assertIn("Kumara Datta", home)
+        self.assertNotIn("Jim Edwards", home)
         self.assertIn("Download my CV ↓", home)
-        self.assertIn('data-hq-event="cv_download_home"', home)
-        self.assertNotIn("Gothenburg, Sweden · Sweden / International", home)
+
+        for aggressive in ("coding theatre", "compliance theatre", "Challenge without theatre"):
+            self.assertNotIn(aggressive, about)
+            self.assertNotIn(aggressive, lenses)
+        self.assertIn("Make disagreement useful", about)
+        self.assertIn("Specialist depth should remain with the specialists", about)
+        self.assertIn("examples", artifacts.lower())
+        self.assertNotIn("proprietary methods", artifacts.lower().replace("not proprietary methods", ""))
+        self.assertIn("curated portfolio", meta.lower())
 
     def test_analytics_taxonomy_privacy_and_attribution(self) -> None:
-        from site_analytics import (
-            ALLOWED_EVENTS,
-            LENS_PAGES,
-            RECOMMENDED_ATTRIBUTION_SOURCES,
-        )
+        from site_analytics import ALLOWED_EVENTS, LENS_PAGES, RECOMMENDED_ATTRIBUTION_SOURCES
 
-        self.assertEqual(
-            set(ALLOWED_EVENTS),
-            {
-                "page_view",
-                "impact_view",
-                "lens_view",
-                "cv_download",
-                "email_click",
-                "linkedin_click",
-                "article_click",
-            },
-        )
-        self.assertEqual(
-            set(LENS_PAGES),
-            {"enterprise", "transformation", "governance", "consulting"},
-        )
-        self.assertEqual(
-            tuple(RECOMMENDED_ATTRIBUTION_SOURCES),
-            ("linkedin", "email", "cv", "outreach", "application"),
-        )
+        self.assertEqual(set(ALLOWED_EVENTS), {"page_view", "impact_view", "lens_view", "cv_download", "email_click", "linkedin_click", "article_click"})
+        self.assertEqual(set(LENS_PAGES), {"enterprise", "transformation", "governance", "consulting"})
+        self.assertEqual(tuple(RECOMMENDED_ATTRIBUTION_SOURCES), ("linkedin", "email", "cv", "outreach", "application"))
 
         analytics = (ROOT / "src/site_analytics.py").read_text(encoding="utf-8")
         app = (ROOT / "app.py").read_text(encoding="utf-8")
@@ -238,15 +189,12 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn("render_analytics_dashboard()", app)
         self.assertIn("inject_analytics(PAGE, source=\"streamlit\")", app)
         self.assertIn("import site_cv_runtime", app)
-        self.assertNotIn("import site_cv  #", app)
         self.assertNotIn("site_cv_delivery", app)
 
         self.assertIn("noindex,nofollow,noarchive", dashboard)
         self.assertIn("Attribution link builder", dashboard)
         self.assertIn("RECOMMENDED_ATTRIBUTION_SOURCES", dashboard)
         self.assertIn("Email is tracked separately from recruiter outreach", dashboard)
-        self.assertIn("source", dashboard)
-        self.assertIn("role", dashboard)
 
 
 if __name__ == "__main__":

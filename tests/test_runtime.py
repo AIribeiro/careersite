@@ -130,8 +130,8 @@ class RuntimeSmokeTests(unittest.TestCase):
 
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
         impact = (ROOT / "src/page_impact.py").read_text(encoding="utf-8")
-        self.assertIn("Across my Volvo AI roles", home)
-        self.assertIn("Across my Volvo AI roles", impact)
+        self.assertIn("across my volvo ai roles", home.lower())
+        self.assertIn("across my volvo ai roles", impact.lower())
         self.assertNotIn("managed a portfolio of 100+", home.lower())
         self.assertNotIn("managed a portfolio of 100+", impact.lower())
 

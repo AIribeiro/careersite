@@ -13,7 +13,17 @@ from site_analytics import (
 )
 
 DASHBOARD_RPC = "careersite_analytics_dashboard"
+RESET_RPC = "careersite_analytics_reset"
 PUBLIC_BASE_URL = "https://jairribeiro-ai.streamlit.app/"
+REPORTING_WINDOWS = (
+    ("last_hour", "Last hour"),
+    ("today", "Today"),
+    ("7d", "Last 7 days"),
+    ("30d", "Last 30 days"),
+    ("90d", "Last 90 days"),
+    ("365d", "Last 365 days"),
+)
+REPORTING_WINDOW_LABELS = dict(REPORTING_WINDOWS)
 
 
 def _noindex() -> None:
@@ -37,9 +47,21 @@ def _noindex() -> None:
     )
 
 
-def _fetch_dashboard(access_code: str, days: int) -> dict:
+def _dashboard_payload(access_code: str, window: str) -> dict[str, object]:
+    if window == "last_hour":
+        return {"p_token": access_code, "p_days": 30, "p_window": "last_hour"}
+    if window == "today":
+        return {"p_token": access_code, "p_days": 30, "p_window": "today"}
+    if window.endswith("d") and window[:-1].isdigit():
+        days = int(window[:-1])
+        if days in {7, 30, 90, 365}:
+            return {"p_token": access_code, "p_days": days, "p_window": "days"}
+    raise ValueError("Unsupported analytics reporting window.")
+
+
+def _fetch_dashboard(access_code: str, window: str) -> dict:
     endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{DASHBOARD_RPC}"
-    payload = json.dumps({"p_token": access_code, "p_days": int(days)}).encode("utf-8")
+    payload = json.dumps(_dashboard_payload(access_code, window)).encode("utf-8")
     req = request.Request(
         endpoint,
         data=payload,
@@ -63,6 +85,35 @@ def _fetch_dashboard(access_code: str, days: int) -> dict:
 
     if not isinstance(data, dict):
         raise RuntimeError("Unexpected analytics response format.")
+    return data
+
+
+def _reset_analytics(access_code: str) -> dict:
+    endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{RESET_RPC}"
+    payload = json.dumps({"p_token": access_code}).encode("utf-8")
+    req = request.Request(
+        endpoint,
+        data=payload,
+        method="POST",
+        headers={
+            "apikey": ANALYTICS_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+    )
+    try:
+        with request.urlopen(req, timeout=12) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        if exc.code in {400, 401, 403}:
+            raise ValueError("Invalid analytics access code.") from exc
+        raise RuntimeError(f"Analytics reset returned HTTP {exc.code}: {body[:180]}") from exc
+    except error.URLError as exc:
+        raise RuntimeError("Analytics service is temporarily unreachable.") from exc
+
+    if not isinstance(data, dict):
+        raise RuntimeError("Unexpected analytics reset response format.")
     return data
 
 
@@ -94,12 +145,14 @@ def render_analytics_dashboard() -> None:
 
     if "careersite_analytics_access_code" not in st.session_state:
         st.session_state.careersite_analytics_access_code = ""
+    if "careersite_analytics_reset_pending" not in st.session_state:
+        st.session_state.careersite_analytics_reset_pending = False
 
     if not st.session_state.careersite_analytics_access_code:
         access_code = st.text_input("Access code", type="password", autocomplete="off")
         if st.button("Open analytics", type="primary"):
             try:
-                _fetch_dashboard(access_code, 30)
+                _fetch_dashboard(access_code, "30d")
             except (ValueError, RuntimeError) as exc:
                 st.error(str(exc))
             else:
@@ -108,23 +161,74 @@ def render_analytics_dashboard() -> None:
         st.info("This page is intentionally absent from the public site navigation and is marked noindex.")
         return
 
-    top_left, top_right = st.columns([3, 1])
-    with top_left:
-        days = st.selectbox("Reporting window", [7, 30, 90, 365], index=1, format_func=lambda x: f"Last {x} days")
-    with top_right:
-        if st.button("Lock dashboard"):
+    flash = st.session_state.get("careersite_analytics_flash")
+    if flash:
+        st.success(str(flash))
+        del st.session_state["careersite_analytics_flash"]
+
+    filter_col, reset_col, lock_col = st.columns([3, 1, 1])
+    with filter_col:
+        window = st.selectbox(
+            "Reporting window",
+            [key for key, _ in REPORTING_WINDOWS],
+            index=3,
+            format_func=lambda key: REPORTING_WINDOW_LABELS[key],
+            key="careersite_analytics_reporting_window",
+        )
+    with reset_col:
+        st.write("")
+        if st.button("Reset analytics", use_container_width=True):
+            st.session_state.careersite_analytics_reset_pending = True
+    with lock_col:
+        st.write("")
+        if st.button("Lock dashboard", use_container_width=True):
             st.session_state.careersite_analytics_access_code = ""
+            st.session_state.careersite_analytics_reset_pending = False
             st.rerun()
 
+    if st.session_state.careersite_analytics_reset_pending:
+        st.warning(
+            "Reset permanently deletes all stored career-site analytics events. "
+            "All dashboard counters will return to zero and this cannot be undone."
+        )
+        confirm_col, cancel_col, _ = st.columns([1.4, 1, 3])
+        with confirm_col:
+            if st.button("Confirm reset to zero", type="primary", use_container_width=True):
+                try:
+                    result = _reset_analytics(st.session_state.careersite_analytics_access_code)
+                except ValueError:
+                    st.session_state.careersite_analytics_access_code = ""
+                    st.session_state.careersite_analytics_reset_pending = False
+                    st.error("The access code is no longer valid. Reload the page and enter it again.")
+                    return
+                except RuntimeError as exc:
+                    st.error(str(exc))
+                    return
+                deleted = int(result.get("deleted_events", 0) or 0)
+                st.session_state.careersite_analytics_reset_pending = False
+                st.session_state.careersite_analytics_flash = (
+                    f"Analytics reset complete. {deleted} stored event{'s' if deleted != 1 else ''} deleted."
+                )
+                st.rerun()
+        with cancel_col:
+            if st.button("Cancel reset", use_container_width=True):
+                st.session_state.careersite_analytics_reset_pending = False
+                st.rerun()
+
     try:
-        data = _fetch_dashboard(st.session_state.careersite_analytics_access_code, int(days))
+        data = _fetch_dashboard(st.session_state.careersite_analytics_access_code, str(window))
     except ValueError:
         st.session_state.careersite_analytics_access_code = ""
+        st.session_state.careersite_analytics_reset_pending = False
         st.error("The access code is no longer valid. Reload the page and enter it again.")
         return
     except RuntimeError as exc:
         st.error(str(exc))
         return
+
+    period_label = str(data.get("period_label") or REPORTING_WINDOW_LABELS.get(str(window), str(window)))
+    period_since = data.get("period_since")
+    st.caption(f"Showing: {period_label}" + (f" · since {period_since}" if period_since else ""))
 
     totals = data.get("totals", {}) or {}
     sessions = int(totals.get("sessions", 0) or 0)
@@ -170,12 +274,12 @@ def render_analytics_dashboard() -> None:
     else:
         st.caption("No attributed sessions yet.")
 
-    st.subheader("Daily trend")
+    st.subheader("Activity by day")
     daily = data.get("daily", []) or []
     if daily:
         st.dataframe(daily, hide_index=True, use_container_width=True)
     else:
-        st.caption("No daily activity yet.")
+        st.caption("No activity in this reporting window yet.")
 
     st.divider()
     st.subheader("Attribution link builder")

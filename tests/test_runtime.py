@@ -27,6 +27,67 @@ class RuntimeSmokeTests(unittest.TestCase):
             "https://jairribeiro-ai.streamlit.app/?source=cv",
         )
 
+    def test_distribution_policy_is_canonical_and_contextual(self) -> None:
+        import page_analytics
+        import site_cv
+        from site_analytics import RECOMMENDED_ATTRIBUTION_SOURCES
+        from site_distribution import (
+            APPLICATION_LENSES,
+            ATTRIBUTION_SOURCES,
+            CANONICAL_SITE_DISPLAY,
+            CANONICAL_SITE_URL,
+            LINKEDIN_FEATURED,
+            PERMANENT_SURFACES,
+            POST_INTERVIEW_LINKS,
+        )
+
+        self.assertEqual(CANONICAL_SITE_URL, "https://jairribeiro-ai.streamlit.app/")
+        self.assertEqual(CANONICAL_SITE_DISPLAY, "jairribeiro-ai.streamlit.app")
+        self.assertEqual(site_cv.CV_SITE_DISPLAY, CANONICAL_SITE_DISPLAY)
+        self.assertEqual(site_cv.CV_SITE_URL, PERMANENT_SURFACES["cv"])
+        self.assertEqual(page_analytics.PUBLIC_BASE_URL, CANONICAL_SITE_URL)
+        self.assertEqual(tuple(RECOMMENDED_ATTRIBUTION_SOURCES), ATTRIBUTION_SOURCES)
+        self.assertEqual(
+            ATTRIBUTION_SOURCES,
+            ("linkedin", "email", "cv", "outreach", "application"),
+        )
+        self.assertEqual(
+            PERMANENT_SURFACES["linkedin"],
+            "https://jairribeiro-ai.streamlit.app/?source=linkedin",
+        )
+        self.assertEqual(
+            PERMANENT_SURFACES["application"],
+            "https://jairribeiro-ai.streamlit.app/?source=application",
+        )
+        self.assertEqual(
+            APPLICATION_LENSES["head_data_ai"],
+            "https://jairribeiro-ai.streamlit.app/?page=enterprise&source=application&role=head-data-ai",
+        )
+        self.assertEqual(
+            APPLICATION_LENSES["ai_transformation"],
+            "https://jairribeiro-ai.streamlit.app/?page=transformation&source=application&role=ai-transformation",
+        )
+        self.assertEqual(
+            APPLICATION_LENSES["ai_governance"],
+            "https://jairribeiro-ai.streamlit.app/?page=governance&source=application&role=ai-governance",
+        )
+        self.assertEqual(
+            APPLICATION_LENSES["business_driven_ai"],
+            "https://jairribeiro-ai.streamlit.app/?page=consulting&source=application&role=business-driven-ai",
+        )
+        self.assertEqual(
+            APPLICATION_LENSES["ai_data_leadership"],
+            "https://jairribeiro-ai.streamlit.app/?page=impact&source=application&role=ai-data-leadership",
+        )
+        self.assertEqual(
+            POST_INTERVIEW_LINKS["operating_model"],
+            "https://jairribeiro-ai.streamlit.app/?page=impact&source=email&role=ai-transformation#leadership-frameworks",
+        )
+        self.assertEqual(LINKEDIN_FEATURED["title"], "Enterprise AI & Data Leadership")
+        self.assertNotIn("lovable.app", "\n".join(PERMANENT_SURFACES.values()))
+        self.assertNotIn("lovable.app", "\n".join(APPLICATION_LENSES.values()))
+        self.assertNotIn("lovable.app", "\n".join(POST_INTERVIEW_LINKS.values()))
+
     def test_curated_media_bundle_loads(self) -> None:
         import site_media  # noqa: F401
         from site_assets import (

@@ -27,10 +27,14 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertEqual(month_payload, {"p_token": "token", "p_days": 30, "p_window": "days"})
 
         source = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
-        self.assertIn("Reset permanently deletes all stored career-site analytics events", source)
+        self.assertIn("new zero baseline", source)
+        self.assertIn("Persistent analytics reset baseline", source)
+        self.assertIn("Events before this timestamp are excluded from every reporting window", source)
         self.assertIn("Confirm reset to zero", source)
         self.assertIn("Cancel reset", source)
         self.assertIn("_reset_analytics", source)
+        self.assertIn("remaining_events", source)
+        self.assertIn("reset_at", source)
 
 
 if __name__ == "__main__":

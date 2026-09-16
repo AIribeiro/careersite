@@ -57,6 +57,33 @@ jobs:
           cat /tmp/streamlit.log
           exit 1
 
+      - name: Verify public CV endpoint serves PDF bytes
+        run: |
+          CV="Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
+          curl --fail --silent --show-error \
+            --dump-header /tmp/cv-headers.txt \
+            --output /tmp/downloaded-cv.pdf \
+            "http://127.0.0.1:8501/app/static/${CV}"
+
+          python - <<'PY'
+          from io import BytesIO
+          from pathlib import Path
+          from pypdf import PdfReader
+
+          served = Path('/tmp/downloaded-cv.pdf').read_bytes()
+          committed = Path('static/Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf').read_bytes()
+
+          assert served.startswith(b'%PDF-'), f'HTTP endpoint returned non-PDF bytes: {served[:32]!r}'
+          assert served.rstrip().endswith(b'%%EOF'), 'Served PDF is missing EOF marker'
+          assert served == committed, 'Served CV bytes differ from committed canonical PDF'
+          reader = PdfReader(BytesIO(served), strict=True)
+          assert len(reader.pages) >= 1, 'Served CV has no pages'
+          assert reader.trailer.get('/Root') is not None, 'Served CV catalog missing'
+          print(f'CV endpoint validated: {len(served)} bytes, {len(reader.pages)} pages')
+          PY
+
+          grep -i '^Content-Type:.*application/pdf' /tmp/cv-headers.txt
+
       - name: Show Streamlit log on failure
         if: failure()
         run: cat /tmp/streamlit.log || true

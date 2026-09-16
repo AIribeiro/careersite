@@ -150,7 +150,7 @@ def build_public_cv() -> bytes:
     role(
         "AI & Data Center of Excellence Director",
         "MSX International",
-        "Dec 2025 - Jun 2026",
+        "Dec 2025 - 2026",
         "Gothenburg, Sweden",
         [
             "Built foundations for a business-facing AI & Data Center of Excellence connecting AI strategy, data governance, responsible adoption and enterprise scale-readiness.",

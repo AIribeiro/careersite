@@ -38,12 +38,12 @@ VALID = PUBLIC_VALID | {"analytics"}
 PAGE = PAGE if PAGE in VALID else "home"
 
 TITLES = {
-    "home": "Jair Ribeiro | Enterprise AI & Data Leadership",
+    "home": "Jair Ribeiro | Enterprise AI & Data Leader",
     "impact": "Leadership Impact | Jair Ribeiro",
     "thinking": "Selected Thinking | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
     "contact": "Discuss a Leadership Opportunity | Jair Ribeiro",
-    "enterprise": "Data & AI Leadership | Jair Ribeiro",
+    "enterprise": "Enterprise AI & Data Leadership | Jair Ribeiro",
     "transformation": "AI Transformation & Adoption | Jair Ribeiro",
     "governance": "AI Governance & Operating Model | Jair Ribeiro",
     "consulting": "Business-Driven AI & Consulting | Jair Ribeiro",

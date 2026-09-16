@@ -35,27 +35,26 @@ jobs:
       - name: Validate canonical CV binary and direct download URI
         run: |
           python - <<'PY'
-          import base64
           from pathlib import Path
 
           import site_cv_patch
           import site_delivery_patch
           from site_assets import CV_BYTES, CV_URI
 
-          target = Path('static/Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf')
+          filename = 'Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf'
+          target = Path('static') / filename
           data = target.read_bytes()
           if not data.startswith(b'%PDF') or len(data) < 4000:
               raise SystemExit('Canonical repository CV is invalid')
           if not CV_BYTES.startswith(b'%PDF') or len(CV_BYTES) < 4000:
               raise SystemExit('Runtime CV bytes are invalid')
+          if data != CV_BYTES:
+              raise SystemExit('Static CV does not match canonical runtime PDF')
 
-          prefix = 'data:application/pdf;base64,'
-          if not CV_URI.startswith(prefix):
-              raise SystemExit('CV URI is not the restored in-page download data URI')
-          decoded = base64.b64decode(CV_URI[len(prefix):])
-          if decoded != CV_BYTES:
-              raise SystemExit('CV download URI does not contain the canonical runtime PDF')
-          print(f'Validated direct CV download ({len(decoded)} bytes)')
+          expected_uri = f'/app/static/{filename}'
+          if CV_URI != expected_uri:
+              raise SystemExit(f'CV URI is not the expected same-origin static endpoint: {CV_URI!r}')
+          print(f'Validated clickable static CV download ({len(data)} bytes) at {CV_URI}')
           PY
 
       - name: Start Streamlit

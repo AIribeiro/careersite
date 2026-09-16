@@ -16,11 +16,10 @@ from site_meta import inject_metadata
 from site_analytics import inject_analytics
 
 # Load curated production media and the canonical public CV before page modules
-# import the shared asset constants. The delivery layer replaces the static-file
-# URL with a data URI containing the exact validated PDF bytes.
+# import the shared asset constants. The canonical CV is generated from source
+# and committed by CI so Streamlit serves a repository-backed PDF binary.
 import site_media  # noqa: F401
 import site_cv  # noqa: F401
-import site_cv_delivery  # noqa: F401
 
 from page_home import home
 from page_impact import impact

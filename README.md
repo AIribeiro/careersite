@@ -24,24 +24,25 @@ The homepage therefore follows a deliberate evidence hierarchy rather than tryin
 
 1. Hero positioning
 2. Four evidence metrics
-3. Three leadership cases
-4. External perspective — three selected recommendations
-5. Three role lenses
+3. Front-door mandate selector — Enterprise AI & Data Leadership; AI Transformation & Capability; Business-Driven AI & Consulting
+4. Three leadership cases
+5. External perspective — selected recommendations
 6. Contact CTA
+
+The mandate selector is intentionally positioned immediately after the evidence strip so recruiters and hiring managers can self-select into the most relevant version of Jair's experience before reading the full homepage. AI Governance & Operating Model remains available as a direct/deeper role lens without competing for front-door attention.
 
 Detailed leadership philosophy, enterprise-AI operating-system thinking, technical fluency and article content belong deeper in the site.
 
 ## External perspective standard
 
-The main site uses only three recommendations, selected for complementary evidence rather than enthusiasm:
+The main site uses only selected recommendations, chosen for complementary evidence rather than enthusiasm:
 
 - **Claes Sandros** — direct-manager evidence for senior leadership, strategic judgment, technical credibility and business value.
 - **Anna Börjesson Sandberg** — VP-level cross-functional evidence for clarity, influence and direction.
 - **Kumara Datta** — AI peer evidence for technical/business translation, AI credibility and adoption.
+- **Jim Edwards** — transformation / consulting evidence for bringing people along, education and executive communication.
 
 Recommendations are shown as intact excerpts, not rewritten copy. No ratings, stars, portrait carousel or testimonial-wall treatment should be introduced. LinkedIn links should remain attributable and should not imply a direct recommendation permalink unless one is verified.
-
-Contextual recommendations may be used on role lenses when they strengthen the specific hiring case. **Jim Edwards** is reserved for consulting/transformation contexts because his recommendation emphasizes bringing people along, education and executive communication.
 
 ## Content standard
 
@@ -55,13 +56,13 @@ Do not manufacture decision authority, financial ROI, team size, budget ownershi
 
 ## Site structure
 
-- **Home** — positioning, evidence metrics, three leadership cases, external perspective, three role lenses and contact
+- **Home** — positioning, evidence metrics, front-door mandate selector, three leadership cases, external perspective and contact
 - **Leadership Impact** — decision-based cases from MSX International, Volvo Group / Volvo Trucks and Kimberly-Clark, plus technical foundations
 - **Thinking** — curated enterprise-AI thought leadership with an explicit editorial point of view
 - **About** — career arc, leadership approach, enterprise AI operating-system lens, technical fluency, research perspective, credentials and languages
 - **Contact** — low-friction leadership-opportunity contact page
-- **Primary role lenses** — Data & AI Leadership; AI Transformation & Adoption; AI Governance & Operating Model
-- **Secondary shareable lens** — Business-Driven AI & Consulting
+- **Primary front-door role lenses** — Enterprise AI & Data Leadership; AI Transformation & Capability; Business-Driven AI & Consulting
+- **Additional direct/shareable lens** — AI Governance & Operating Model
 
 ## Runtime
 

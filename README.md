@@ -32,6 +32,13 @@ The homepage hierarchy is:
 6. External perspective
 7. Contact CTA
 
+The evidence strip deliberately separates overall career maturity from modern AI leadership:
+
+- **20+ years enterprise technology** — supported by the public career timeline beginning in 2004.
+- **8+ years AI / data / analytics leadership** — anchored to the leadership arc beginning in 2018.
+
+These figures must remain distinct. The site must never imply 20+ years specifically in modern AI.
+
 The front-door mandate selector lets a visitor self-select into:
 
 - Enterprise AI & Data Leadership
@@ -166,7 +173,7 @@ streamlit run app.py
 GitHub Actions validates:
 
 - Python compilation;
-- smoke tests for CV delivery, media loading and navigation coverage;
+- smoke tests for CV delivery, media loading, navigation coverage and career-tenure positioning;
 - Streamlit startup and health;
 - integrity and expected dimensions of the canonical leadership-photo bundle.
 
@@ -177,6 +184,7 @@ GitHub Actions validates:
 ## Content guardrails
 
 - Keep the primary identity broad and senior: **Enterprise AI & Data Leader**.
+- Use **20+ years enterprise technology** and **8+ years AI / data / analytics leadership** as separate chronology signals; never imply 20+ years in modern AI.
 - Prefer evidence, trade-offs and operating impact over adjectives.
 - Never publish "Open to Work", unemployment status, immediate availability or urgency signals.
 - Do not reposition Jair as an ML engineer, generic project/program manager, AI influencer or independent consultant selling packaged services.

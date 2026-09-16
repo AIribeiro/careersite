@@ -17,7 +17,7 @@ WHITE = (255, 253, 248)
 
 LINKEDIN_DISPLAY = "linkedin.com/in/jairribeiro"
 LINKEDIN_URL = "https://www.linkedin.com/in/jairribeiro"
-CV_SITE_DISPLAY = "jairribeiro-ai.streamlit.app"
+CV_SITE_DISPLAY = "AI & Data Portfolio"
 CV_SITE_URL = "https://jairribeiro-ai.streamlit.app/?source=cv"
 
 

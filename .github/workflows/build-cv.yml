@@ -1,0 +1,70 @@
+name: Build canonical CV
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/site_cv.py"
+      - "src/site_assets.py"
+      - "requirements.txt"
+      - ".github/workflows/build-cv.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-cv:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Generate canonical PDF
+        env:
+          PYTHONPATH: src
+        run: python -c "import site_cv"
+
+      - name: Validate PDF structure
+        env:
+          PYTHONPATH: src
+        run: |
+          python - <<'PY'
+          from io import BytesIO
+          from pathlib import Path
+          from pypdf import PdfReader
+          import site_cv
+
+          path = Path("static") / site_cv.CV_FILENAME
+          data = path.read_bytes()
+          assert data.startswith(b"%PDF-"), "Missing PDF header"
+          assert data.rstrip().endswith(b"%%EOF"), "Missing PDF EOF marker"
+          reader = PdfReader(BytesIO(data), strict=True)
+          assert len(reader.pages) >= 1, "PDF has no pages"
+          assert reader.trailer.get("/Root") is not None, "PDF catalog missing"
+          assert b"/Subtype /Link" in data, "Expected hyperlinks are missing"
+          assert site_cv.CV_SITE_URL.encode("latin-1") in data, "Portfolio hyperlink missing"
+          print(f"Validated {path}: {len(data)} bytes, {len(reader.pages)} page(s)")
+          PY
+
+      - name: Commit generated PDF when changed
+        run: |
+          git add static/Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf
+          if git diff --cached --quiet; then
+            echo "Canonical PDF already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update canonical public CV PDF"
+          git push

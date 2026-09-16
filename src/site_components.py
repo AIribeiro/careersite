@@ -7,10 +7,12 @@ from site_assets import CV_URI, LINKEDIN, MEDIUM, EMAIL
 
 ROLE_LENSES = {
     "enterprise": "Enterprise AI & Data Leadership",
-    "transformation": "AI Transformation & Capability",
+    "transformation": "AI Transformation & Adoption",
     "governance": "AI Governance & Operating Model",
     "consulting": "Business-Driven AI & Consulting",
 }
+
+CV_DOWNLOAD_NAME = "Jair_Ribeiro_Enterprise_AI_Data_Leader_CV_2026.pdf"
 
 
 def nav(active: str) -> str:
@@ -54,42 +56,40 @@ def nav(active: str) -> str:
 
 
 def footer() -> str:
-    cv = f'<a href="{CV_URI}" download="Jair_Ribeiro_Master_CV_2026.pdf" data-hq-event="cv_download_footer">Download CV ↓</a>' if CV_URI else ""
-    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI and Data leadership focused on strategy, operating models, governance, adoption and measurable business value. Based in Gothenburg · Sweden &amp; international mandates.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_footer">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_footer">Medium ↗</a><a href="mailto:{EMAIL}" data-hq-event="email_footer">Email</a>{cv}</div></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
+    cv = f'<a href="{CV_URI}" download="{CV_DOWNLOAD_NAME}" data-hq-event="cv_download_footer">Download CV ↓</a>' if CV_URI else ""
+    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI and Data leadership across strategy, operating models, governance, adoption and measurable business value. Based in Gothenburg · Sweden &amp; international mandates.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_footer">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_footer">Medium ↗</a><a href="mailto:{EMAIL}" data-hq-event="email_footer">Email</a>{cv}</div></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
 
 
 def opportunity() -> str:
-    return '''<section class="cta"><div class="container ctain"><div><h2>Senior AI and data mandates where the operating model matters as much as the technology.</h2><p>I’m particularly interested in situations where strategy, data, governance, adoption and ownership have to work together. These are usually the points where promising AI activity either becomes a repeatable business capability or stays a collection of isolated experiments.</p></div><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_opportunity">Discuss a leadership opportunity →</a></div></section>'''
+    return '''<section class="cta"><div class="container ctain"><div><h2>Senior AI and Data leadership where operating reality matters.</h2><p>My strongest fit is where strategy, portfolio choices, data, governance, adoption and ownership have to work together — and where the next useful step is a clearer decision rather than another layer of AI activity.</p></div><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_opportunity">Discuss a leadership opportunity →</a></div></section>'''
 
 
 VALUES = [
-    ("01","AI Strategy & Portfolio","Connect enterprise priorities with realistic AI opportunities, investment choices, ownership and portfolio discipline. The important work is deciding what deserves attention, what evidence is still missing and what should not progress yet."),
-    ("02","Operating Models & CoEs","Create the roles, decision rights, lifecycle and collaboration model needed to move beyond disconnected experiments. A useful operating model makes ownership clearer without creating a central team that becomes a bottleneck."),
-    ("03","Adoption & Capability","Translate AI into practical work, build literacy close to the business and help people use new capabilities with confidence. Adoption is visible when workflows and decisions change — not when training attendance is high."),
-    ("04","Governance & Responsible Scale","Build governance as an operating mechanism for ownership, evidence, escalation and trust. The objective is not more gates; it is helping teams understand what they need to prove before higher-risk or higher-scale use is justified."),
-    ("05","Data & Analytics Foundations","Connect AI ambition with data quality, stewardship, analytics, architecture and the enterprise realities that determine scalability. Many AI problems that appear to be model problems are actually ownership, semantics or data-trust problems."),
-    ("06","Business Value & Execution","Move conversations from possibility to prioritization, practical delivery and evidence that the business can defend. Value needs a credible link between the use case, the changed decision or workflow, adoption and the outcome being measured."),
+    ("01", "AI Strategy & Portfolio", "Connect enterprise priorities with realistic AI opportunities, investment choices, ownership and portfolio discipline. The important work is deciding what deserves attention, what evidence is still missing and what should not progress yet."),
+    ("02", "Operating Models & CoEs", "Create the roles, decision rights, lifecycle and collaboration model needed to move beyond disconnected experiments. A useful operating model makes ownership clearer without creating a central team that becomes a bottleneck."),
+    ("03", "Adoption & Capability", "Translate AI into practical work, build literacy close to the business and help people use new capabilities with confidence. Adoption becomes visible when workflows and decisions change, not simply when training is completed."),
+    ("04", "Governance & Responsible Scale", "Use governance to clarify ownership, evidence, escalation and trust. The objective is to help teams understand what they need to prove before higher-risk or higher-scale use is justified."),
+    ("05", "Data & Analytics Foundations", "Connect AI ambition with data quality, stewardship, analytics, architecture and the enterprise realities that determine scalability. Many apparent model problems are actually ownership, semantics or data-trust problems."),
+    ("06", "Business Value & Execution", "Move conversations from possibility to prioritization, practical delivery and evidence the business can defend. Value needs a credible link between the use case, the changed decision or workflow, adoption and the outcome being measured."),
 ]
 
 THOUGHTS = [
-    ("Strategy","Strategy Alignment","Why enterprise AI choices need to start with business priorities, portfolio trade-offs and clear ownership.","https://lnkd.in/eFNiAX8M"),
-    ("Value","AI ROI","Moving beyond activity metrics to value realization, evidence and the discipline of proving where AI is paying back.","https://lnkd.in/ekQqQdgf"),
-    ("Organization","Operating Model","How roles, decision rights and team design determine whether successful AI work becomes repeatable enterprise capability.","https://lnkd.in/e7yrc6zh"),
-    ("Governance","AI Governance","Governance as a practical system for ownership, evidence and escalation — not a collection of gates that slows useful work.","https://lnkd.in/eJ8EHKHQ"),
-    ("Data","Data Readiness","Why access, quality, semantics and ownership of data often decide whether AI can scale long before model choice does.","https://lnkd.in/ezmrefxC"),
-    ("Capability","Talent & Upskilling","Building AI capability without replacing expert judgment: literacy, new skills, confidence and learning close to the work itself.","https://lnkd.in/ez9xAzWb"),
-    ("Adoption","Change Management","Training is not adoption. The real measure is whether workflows, decisions and everyday behavior actually change.","https://lnkd.in/ew5mtJKv"),
-    ("Autonomy","Agentic AI","What changes when AI systems can plan, coordinate and act — and why accountability has to evolve with that autonomy.","https://lnkd.in/dYmKgQCi"),
+    ("Strategy", "Strategy Alignment", "Why enterprise AI choices need to start with business priorities, portfolio trade-offs and clear ownership.", "https://lnkd.in/eFNiAX8M"),
+    ("Value", "AI ROI", "Moving beyond activity metrics to value realization, evidence and the discipline of proving where AI is paying back.", "https://lnkd.in/ekQqQdgf"),
+    ("Organization", "Operating Model", "How roles, decision rights and team design determine whether successful AI work becomes repeatable enterprise capability.", "https://lnkd.in/e7yrc6zh"),
+    ("Governance", "AI Governance", "Governance as a practical system for ownership, evidence and escalation rather than a collection of disconnected gates.", "https://lnkd.in/eJ8EHKHQ"),
+    ("Data", "Data Readiness", "Why access, quality, semantics and ownership of data often decide whether AI can scale long before model choice does.", "https://lnkd.in/ezmrefxC"),
+    ("Adoption", "Change Management", "Training is not adoption. The real measure is whether workflows, decisions and everyday behavior actually change.", "https://lnkd.in/ew5mtJKv"),
 ]
 
 
-def card_grid(items: list[tuple[str,str,str]]) -> str:
-    return "".join(f'<article class="card"><span class="n">{n}</span><h3>{html.escape(t)}</h3><p>{html.escape(d)}</p></article>' for n,t,d in items)
+def card_grid(items: list[tuple[str, str, str]]) -> str:
+    return "".join(f'<article class="card"><span class="n">{n}</span><h3>{html.escape(t)}</h3><p>{html.escape(d)}</p></article>' for n, t, d in items)
 
 
-def thought_grid(items: list[tuple[str,str,str,str]], cls: str = "thoughts") -> str:
+def thought_grid(items: list[tuple[str, str, str, str]], cls: str = "thoughts") -> str:
     cards = []
-    for topic,title,desc,url in items:
+    for topic, title, desc, url in items:
         card_cls = "thought" if cls == "thoughts" else "article"
         cards.append(f'<a class="{card_cls}" href="{url}" target="_blank" rel="noopener" data-hq-event="article_open"><span class="topic">{html.escape(topic)}</span><h3>{html.escape(title)}</h3><p>{html.escape(desc)}</p><span class="read">Read article ↗</span></a>')
     return f'<div class="{cls}">' + "".join(cards) + "</div>"

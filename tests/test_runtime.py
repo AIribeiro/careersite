@@ -145,7 +145,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn("I work at the point where enterprise AI strategy meets operating reality", home)
         self.assertIn("AI scales as a system, not as a model.", home)
         self.assertIn("Based in Gothenburg · Sweden &amp; international mandates", home)
-        self.assertIn("Three recurring areas of enterprise work", home)
+        self.assertIn("Where I create the most value.", home)
         self.assertIn("Governance, Operating Model &amp; Responsible Scale", home)
         self.assertNotIn("Business-Driven AI &amp; Consulting →", home)
         self.assertIn("Claes Sandros", home)
@@ -153,6 +153,15 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn("Kumara Datta", home)
         self.assertNotIn("Jim Edwards", home)
         self.assertIn("Download my CV ↓", home)
+
+        for editorial_instruction in (
+            "These figures are included for context, not as a scorecard",
+            "These are broad contexts, not job-title boxes",
+            "Each example focuses on the situation",
+            "not a list of responsibilities copied from a CV",
+            "More specific role lenses remain available in the navigation",
+        ):
+            self.assertNotIn(editorial_instruction, home)
 
         for aggressive in ("coding theatre", "compliance theatre", "Challenge without theatre"):
             self.assertNotIn(aggressive, about)

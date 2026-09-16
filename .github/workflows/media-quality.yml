@@ -25,36 +25,42 @@ jobs:
       - name: Install Pillow
         run: python -m pip install pillow
 
-      - name: Validate canonical leadership photography bundle
+      - name: Validate canonical leadership photography
         run: |
           python - <<'PY'
           from pathlib import Path
-          import base64
-          import io
-          import zipfile
           from PIL import Image
 
-          parts = sorted(Path("assets/site_photos_bundle").glob("part_*.b64"))
-          if not parts:
-              raise SystemExit("Missing canonical site photo bundle")
-
-          encoded = "".join(path.read_text(encoding="ascii") for path in parts)
-          payload = base64.b64decode(encoded)
           required = {
-              "hero.avif": (1400, 1050),
-              "keynote.avif": (1200, 750),
-              "ai-panel.avif": (1400, 875),
-              "thinking.avif": (900, 1125),
-              "portrait.avif": (720, 720),
+              "54907620908_f7c872f825_o.jpg": ((2400, 1500), 700_000),
+              "IMG_0777.jpg": ((1600, 900), 700_000),
+              "1700157848740.jpg": ((1600, 1000), 250_000),
+              "54549047980_f668a9ffde_o Copy.JPG": ((1000, 800), 250_000),
+              "IMG_8281.jpg": ((900, 1300), 700_000),
+              "pixelup_1683528862014.jpg": ((1500, 1300), 400_000),
+              "profile_red_bg.jpg.jpg": ((1600, 1000), 350_000),
           }
 
-          with zipfile.ZipFile(io.BytesIO(payload)) as bundle:
-              for name, expected in required.items():
-                  data = bundle.read(name)
-                  with Image.open(io.BytesIO(data)) as image:
-                      image.verify()
-                  with Image.open(io.BytesIO(data)) as image:
-                      if image.size != expected:
-                          raise SystemExit(f"{name}: {image.size}; expected {expected}")
-                      print(f"{name}: {image.size[0]}x{image.size[1]} — OK")
+          root = Path("images")
+          for name, ((min_w, min_h), min_bytes) in required.items():
+              path = root / name
+              if not path.is_file():
+                  raise SystemExit(f"Missing canonical image: {path}")
+              if path.stat().st_size < min_bytes:
+                  raise SystemExit(
+                      f"{name}: {path.stat().st_size} bytes; expected at least {min_bytes}"
+                  )
+              with Image.open(path) as image:
+                  image.verify()
+              with Image.open(path) as image:
+                  width, height = image.size
+                  if width < min_w or height < min_h:
+                      raise SystemExit(
+                          f"{name}: {width}x{height}; expected at least {min_w}x{min_h}"
+                      )
+                  print(f"{name}: {width}x{height}, {path.stat().st_size} bytes — OK")
+
+          media_source = Path("src/site_media.py").read_text(encoding="utf-8")
+          if "site_photos_bundle" in media_source or "_prepare_for_display" in media_source:
+              raise SystemExit("Production media must use original /images files without recompression")
           PY

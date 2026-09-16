@@ -16,6 +16,9 @@ CV_FILENAME = "Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
 ROOT = Path(__file__).resolve().parents[1]
 CV_PATH = ROOT / "static" / CV_FILENAME
 
-# Keep shared components aligned with the exact repository-backed artifact.
+# Streamlit static files must use the app-relative route documented by
+# Streamlit: app/static/<filename>. A leading slash can be handled by the
+# Community Cloud frontend as an application route and return the Streamlit
+# HTML shell with a .pdf filename instead of the PDF bytes.
 site_assets.CV_BYTES = CV_PATH.read_bytes()
-site_assets.CV_URI = f"/app/static/{CV_FILENAME}"
+site_assets.CV_URI = f"app/static/{CV_FILENAME}"

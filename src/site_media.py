@@ -33,6 +33,7 @@ panel_dialogue = _uri("1700157848740.jpg")
 thinking = _uri("IMG_8281.jpg")
 portrait = _uri("pixelup_1683528862014.jpg")
 contact = _uri("profile_red_bg.jpg.jpg")
+brand_icon = contact
 
 if hero:
     assets.HERO_URI = hero
@@ -50,3 +51,5 @@ if portrait:
     assets.ABOUT_BW_URI = portrait
 if contact:
     assets.CONTACT_URI = contact
+if brand_icon:
+    assets.BRAND_ICON_URI = brand_icon

@@ -470,7 +470,7 @@ def _daily_chart(rows: object) -> None:
                             {"field": "sessions", "type": "quantitative", "title": "Sessions"},
                             {"field": "events", "type": "quantitative", "title": "Events"},
                             {"field": "impact_sessions", "type": "quantitative", "title": "Impact"},
-                            {"field": "cv_sessions", "type": "quantitative", "title": "CV downloads"},
+                            {"field": "cv_sessions", "type": "quantitative", "title": "CV download sessions"},
                         ],
                     },
                 },
@@ -703,6 +703,14 @@ def render_analytics_dashboard() -> None:
     linkedin_sessions = int(totals.get("linkedin_sessions", 0) or 0)
     engaged_sessions = int(totals.get("engaged_sessions", 0) or 0)
     single_page_sessions = int(totals.get("single_page_sessions", 0) or 0)
+    cv_download_events = next(
+        (
+            int(row.get("events", 0) or 0)
+            for row in data.get("events", [])
+            if isinstance(row, dict) and row.get("event_name") == "cv_download"
+        ),
+        0,
+    )
 
     st.caption(
         f"{period_label}"
@@ -715,13 +723,14 @@ def render_analytics_dashboard() -> None:
     k2.metric("Engagement", _pct(engaged_sessions, sessions), f"{engaged_sessions} engaged")
     k3.metric("Avg session", _seconds(totals.get("avg_session_seconds")))
     k4.metric("Pages / session", f"{float(totals.get('avg_pages_per_session', 0) or 0):.2f}")
-    k5.metric("CV conversion", _pct(cv_sessions, sessions), f"{cv_sessions} downloads")
+    k5.metric("CV downloads", cv_download_events, f"{cv_sessions} downloading sessions")
 
-    o1, o2, o3, o4 = st.columns(4)
+    o1, o2, o3, o4, o5 = st.columns(5)
     o1.metric("Reached Impact", _pct(impact_sessions, home_sessions), f"{impact_sessions} sessions")
     o2.metric("Opened a lens", _pct(lens_sessions, home_sessions), f"{lens_sessions} sessions")
-    o3.metric("Contact intent", email_sessions + linkedin_sessions, "email + LinkedIn")
-    o4.metric("Single-page", _pct(single_page_sessions, sessions), f"{single_page_sessions} sessions")
+    o3.metric("CV conversion", _pct(cv_sessions, sessions), f"{cv_sessions} downloading sessions")
+    o4.metric("Contact intent", email_sessions + linkedin_sessions, "email + LinkedIn")
+    o5.metric("Single-page", _pct(single_page_sessions, sessions), f"{single_page_sessions} sessions")
 
     overview_tab, audience_tab, acquisition_tab, engagement_tab, tools_tab = st.tabs(
         ["Overview", "Audience", "Acquisition", "Engagement", "Tools"]

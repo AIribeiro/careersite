@@ -56,6 +56,14 @@ The website intentionally contains evidence that cannot fit naturally in a CV. T
 
 These are generic reconstructions of recurring patterns from enterprise practice. They must never reproduce internal templates, confidential data, proprietary thresholds, employer-specific governance details or material that implies ownership Jair did not actually have.
 
+## Technical-fluency positioning
+
+Technical credibility is an important part of the leadership proposition, but it must be expressed through **technical judgment rather than coding theatre**. The site should show that Jair can reason credibly about enterprise AI architecture, data quality and ownership, security, MLOps principles, scalability, operational readiness, vendor choices, and cost/accuracy/control trade-offs while remaining clear about when specialist engineering depth should drive the decision.
+
+The site must therefore **not drift into a hands-on AI-engineer portfolio**. Avoid presenting toy RAG applications, LangChain demos, coding exercises, model experiments or GitHub activity as the primary proof of seniority. Those artifacts would distort the intended professional archetype: a senior enterprise AI & Data leader who can lead technical specialists, challenge trade-offs and connect technology choices to business, governance, risk and adoption.
+
+The public GitHub repository may support the profile quietly as evidence of implementation discipline and transparency, but **GitHub must not become a prominent navigation item or a core identity signal**. If a GitHub link is ever surfaced, it should remain contextual and subordinate to leadership evidence, operating judgment and business impact.
+
 ## External perspective standard
 
 The main site uses only selected recommendations, chosen for complementary evidence rather than enthusiasm:
@@ -158,6 +166,8 @@ No external analytics provider is enabled by default. This is intentional: a pri
 - Explain concepts briefly enough that a senior reader understands why they matter; do not rely on slogans alone.
 - Never publish "Open to Work", unemployment status, "available immediately", or urgency signals.
 - Do not reposition Jair as an ML engineer, generic project/program manager, AI influencer, or independent consultant selling service packages.
+- Express technical credibility through architectural and operating judgment, not hands-on coding demos or toy AI projects.
+- Do not add GitHub as a prominent top-navigation item.
 - Keep employment dates factual and consistent with the master CV.
 - Do not invent ROI, budget, direct-report counts, team sizes or commercial ownership.
 - Do not publish MIT coursework references.

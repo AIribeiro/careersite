@@ -125,6 +125,8 @@ WORKSHOP_URI = image_uri("jair-leadership-workshop.webp")
 PANEL_DIALOGUE_URI = image_uri("jair-panel-dialogue.webp")
 THINKING_PANEL_URI = image_uri("jair-thinking-panel.webp")
 ABOUT_BW_URI = image_uri("jair-about-bw.webp")
+CONTACT_URI = ""
+BRAND_ICON_URI = ""
 
 # Stable fallback: the optional delivery layer may replace this with a dedicated
 # AI-panel image, but importers must always be able to rely on the symbol.

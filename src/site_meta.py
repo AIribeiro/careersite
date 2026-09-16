@@ -21,7 +21,7 @@ DESCRIPTIONS = {
 
 
 def inject_metadata(page: str, title: str) -> None:
-    """Add page metadata to the browser document without introducing third-party tracking."""
+    """Add page metadata without third-party tracking."""
     description = DESCRIPTIONS.get(page, DESCRIPTIONS["home"])
     person = {
         "@context": "https://schema.org",
@@ -100,18 +100,6 @@ def inject_metadata(page: str, title: str) -> None:
   const person = {json.dumps(person)};
   person.url = base;
   schema.textContent = JSON.stringify(person);
-
-  // Event names are deliberately attached without sending data anywhere.
-  // They are ready for a privacy-conscious analytics provider if one is later configured.
-  doc.querySelectorAll('[data-hq-event]').forEach((el) => {{
-    if (el.dataset.hqBound === '1') return;
-    el.dataset.hqBound = '1';
-    el.addEventListener('click', () => {{
-      window.parent.dispatchEvent(new CustomEvent('hq-conversion', {{
-        detail: {{ event: el.dataset.hqEvent, page }}
-      }}));
-    }});
-  }});
 }})();
 </script>
 """

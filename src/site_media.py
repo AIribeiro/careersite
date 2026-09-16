@@ -1,18 +1,29 @@
 from __future__ import annotations
 
-"""Load the curated production photography from the canonical asset bundle."""
+"""Load and prepare the curated production photography for high-quality display."""
 
 import base64
 import io
 import zipfile
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageFilter
 
 import site_assets as assets
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE_DIR = ROOT / "assets" / "site_photos_bundle"
+
+# The source bundle is intentionally compact. These targets correspond to the
+# largest useful display sizes in the site layout and avoid asking the browser
+# to enlarge compressed source pixels on high-DPI screens.
+DISPLAY_TARGETS: dict[str, int] = {
+    "hero.avif": 1600,
+    "keynote.avif": 1600,
+    "ai-panel.avif": 1600,
+    "thinking.avif": 1200,
+    "portrait.avif": 1000,
+}
 
 
 def _load_bundle() -> dict[str, bytes]:
@@ -22,7 +33,7 @@ def _load_bundle() -> dict[str, bytes]:
         return media
     try:
         encoded = "".join(p.read_text(encoding="ascii") for p in parts)
-        payload = base64.b64decode(encoded)
+        payload = base64.b64decode(encoded, validate=True)
         with zipfile.ZipFile(io.BytesIO(payload)) as bundle:
             for name in bundle.namelist():
                 if name.endswith("/"):
@@ -36,23 +47,46 @@ def _load_bundle() -> dict[str, bytes]:
     return media
 
 
-def _mime(blob: bytes) -> str:
-    if blob.startswith(b"\xff\xd8\xff"):
-        return "image/jpeg"
-    if blob.startswith(b"RIFF") and len(blob) >= 12 and blob[8:12] == b"WEBP":
-        return "image/webp"
-    if len(blob) >= 12 and blob[4:12] in (b"ftypavif", b"ftypavis"):
-        return "image/avif"
-    if blob.startswith(b"\x89PNG\r\n\x1a\n"):
-        return "image/png"
-    return "application/octet-stream"
+def _prepare_for_display(blob: bytes, source_name: str) -> bytes:
+    """Reduce visible compression grain and create a clean high-DPI WebP.
+
+    This deliberately does not invent detail. A very light smoothing pass is
+    applied before Lanczos resampling, followed by restrained sharpening after
+    resize. The result prevents another aggressive lossy encode from becoming
+    visible in faces, gradients and dark backgrounds.
+    """
+    if not blob:
+        return b""
+    try:
+        with Image.open(io.BytesIO(blob)) as source:
+            image = source.convert("RGB")
+
+        # Sub-pixel smoothing suppresses block/ringing noise without producing
+        # the waxy look of a heavy denoise filter.
+        image = image.filter(ImageFilter.GaussianBlur(radius=0.22))
+
+        target_width = DISPLAY_TARGETS.get(source_name, image.width)
+        if image.width < target_width:
+            scale = target_width / image.width
+            target_size = (target_width, max(1, round(image.height * scale)))
+            image = image.resize(target_size, Image.Resampling.LANCZOS)
+
+        image = image.filter(
+            ImageFilter.UnsharpMask(radius=0.55, percent=32, threshold=4)
+        )
+
+        rendered = io.BytesIO()
+        image.save(rendered, format="WEBP", quality=94, method=6)
+        return rendered.getvalue()
+    except (OSError, ValueError, SyntaxError):
+        return blob
 
 
 def _uri(media: dict[str, bytes], name: str) -> str:
-    blob = media.get(name, b"")
+    blob = _prepare_for_display(media.get(name, b""), name)
     if not blob:
         return ""
-    return f"data:{_mime(blob)};base64,{base64.b64encode(blob).decode('ascii')}"
+    return f"data:image/webp;base64,{base64.b64encode(blob).decode('ascii')}"
 
 
 media = _load_bundle()

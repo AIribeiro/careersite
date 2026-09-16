@@ -4,8 +4,9 @@ from __future__ import annotations
 
 The browser sends only a deliberately small event taxonomy to Supabase. There
 are no cookies, persistent visitor identifiers, heatmaps, recordings, IP fields
-or user-agent fields in the application-owned dataset. A random session UUID is
-stored in sessionStorage so one tab visit can be reconstructed as a funnel.
+or user-agent fields in the application-owned dataset. A random session UUID and
+optional job-search attribution are stored in sessionStorage so one tab visit can
+be reconstructed as a funnel without creating a durable visitor profile.
 """
 
 import json
@@ -69,13 +70,32 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     win.sessionStorage.setItem(sessionKey, sessionId);
   }}
 
-  const campaign = () => {{
-    const params = new URL(win.location.href).searchParams;
-    return {{
-      utm_source: (params.get('utm_source') || params.get('src') || '').slice(0, 100) || null,
-      utm_campaign: (params.get('utm_campaign') || '').slice(0, 100) || null,
+  // Attribution describes the job-search activity that brought a visitor to
+  // the site, never an individual. Persist it only for this browser tab so
+  // internal navigation can drop query parameters without losing the funnel.
+  const attributionKey = 'jair_hq_attribution_v1';
+  const params = new URL(win.location.href).searchParams;
+  let attribution = {{ source: null, role: null, utm_source: null, utm_campaign: null }};
+  try {{
+    attribution = JSON.parse(win.sessionStorage.getItem(attributionKey) || 'null') || attribution;
+  }} catch (_) {{}}
+
+  const incomingSource = (
+    params.get('source') || params.get('utm_source') || params.get('src') || ''
+  ).trim().slice(0, 100) || null;
+  const incomingRole = (params.get('role') || '').trim().slice(0, 120) || null;
+  const incomingUtmSource = (params.get('utm_source') || params.get('src') || '').trim().slice(0, 100) || null;
+  const incomingCampaign = (params.get('utm_campaign') || '').trim().slice(0, 100) || null;
+
+  if (incomingSource || incomingRole || incomingUtmSource || incomingCampaign) {{
+    attribution = {{
+      source: incomingSource || attribution.source || null,
+      role: incomingRole || attribution.role || null,
+      utm_source: incomingUtmSource || attribution.utm_source || null,
+      utm_campaign: incomingCampaign || attribution.utm_campaign || null,
     }};
-  }};
+    win.sessionStorage.setItem(attributionKey, JSON.stringify(attribution));
+  }}
 
   const referrerHost = () => {{
     try {{
@@ -90,7 +110,6 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   win.__jairAnalyticsSend = (eventName, extra = {{}}) => {{
     if (!allowed.has(eventName)) return;
     const context = win.__jairAnalyticsContext || {{ page: 'home', source: 'streamlit' }};
-    const c = campaign();
     const payload = {{
       event_name: eventName,
       page: String(context.page || 'home').slice(0, 64),
@@ -99,8 +118,10 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       source: context.source,
       session_id: sessionId,
       referrer_host: referrerHost(),
-      utm_source: c.utm_source,
-      utm_campaign: c.utm_campaign,
+      attribution_source: attribution.source,
+      attribution_role: attribution.role,
+      utm_source: attribution.utm_source,
+      utm_campaign: attribution.utm_campaign,
     }};
 
     fetch(endpoint, {{

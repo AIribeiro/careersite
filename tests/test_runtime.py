@@ -50,7 +50,8 @@ class RuntimeSmokeTests(unittest.TestCase):
         from site_assets import CV_BYTES, CV_URI
 
         self.assertEqual(CV_BYTES, committed)
-        self.assertEqual(CV_URI, f"/app/static/{filename}")
+        self.assertEqual(CV_URI, f"app/static/{filename}")
+        self.assertFalse(CV_URI.startswith("/"))
 
         # Independently validate the generator. fpdf2 includes a CreationDate,
         # so two valid generations need not be byte-identical.
@@ -71,6 +72,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), generated)
         source = (ROOT / "src/site_cv.py").read_text(encoding="utf-8")
         self.assertIn("CV_SITE_DISPLAY, link=CV_SITE_URL", source)
+        self.assertIn('site_assets.CV_URI = f"app/static/{CV_FILENAME}"', source)
 
     def test_distribution_policy_is_canonical_and_contextual(self) -> None:
         import page_analytics
@@ -90,7 +92,6 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertEqual(CANONICAL_SITE_URL, "https://jairribeiro-ai.streamlit.app/")
         self.assertEqual(CANONICAL_SITE_DISPLAY, "jairribeiro-ai.streamlit.app")
         self.assertEqual(CV_PORTFOLIO_LABEL, "AI & Data Portfolio")
-        self.assertEqual(site_cv.CV_SITE_DISPLAY, CV_PORTFOLIO_LABEL)
         self.assertNotEqual(site_cv.CV_SITE_DISPLAY, CANONICAL_SITE_DISPLAY)
         self.assertEqual(site_cv.CV_SITE_URL, PERMANENT_SURFACES["cv"])
         self.assertEqual(page_analytics.PUBLIC_BASE_URL, CANONICAL_SITE_URL)

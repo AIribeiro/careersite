@@ -153,7 +153,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn("Anna Börjesson Sandberg", home)
         self.assertIn("Kumara Datta", home)
         self.assertIn("Jim Edwards", home)
-        self.assertEqual(home.count('role_lens_') - home.count('role_lens_') + 4, 4)
+        self.assertEqual(home.count('data-hq-event="role_lens_'), 4)
         self.assertEqual(home.count('<article class="card"><span class="org">'), 4)
         self.assertEqual(home.count('data-hq-event="reference_'), 4)
         self.assertIn("Download my CV ↓", home)

@@ -25,13 +25,15 @@ from page_impact import impact
 from page_thinking import thinking
 from page_about import about
 from page_contact import contact
+from page_analytics import render_analytics_dashboard
 from site_lenses import enterprise, transformation, governance, consulting
 
 PAGE = st.query_params.get("page", "home")
 if isinstance(PAGE, list):
     PAGE = PAGE[0] if PAGE else "home"
 PAGE = str(PAGE).lower().strip()
-VALID = {"home", "impact", "thinking", "about", "contact", "enterprise", "transformation", "governance", "consulting"}
+PUBLIC_VALID = {"home", "impact", "thinking", "about", "contact", "enterprise", "transformation", "governance", "consulting"}
+VALID = PUBLIC_VALID | {"analytics"}
 PAGE = PAGE if PAGE in VALID else "home"
 
 TITLES = {
@@ -44,6 +46,7 @@ TITLES = {
     "transformation": "AI Transformation & Adoption | Jair Ribeiro",
     "governance": "AI Governance & Operating Model | Jair Ribeiro",
     "consulting": "Business-Driven AI & Consulting | Jair Ribeiro",
+    "analytics": "Hiring-Funnel Analytics | Jair Ribeiro",
 }
 
 st.set_page_config(
@@ -53,19 +56,22 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-inject_metadata(PAGE, TITLES[PAGE])
+if PAGE == "analytics":
+    render_analytics_dashboard()
+else:
+    inject_metadata(PAGE, TITLES[PAGE])
 
-RENDER = {
-    "home": home,
-    "impact": impact,
-    "thinking": thinking,
-    "about": about,
-    "contact": contact,
-    "enterprise": enterprise,
-    "transformation": transformation,
-    "governance": governance,
-    "consulting": consulting,
-}
+    RENDER = {
+        "home": home,
+        "impact": impact,
+        "thinking": thinking,
+        "about": about,
+        "contact": contact,
+        "enterprise": enterprise,
+        "transformation": transformation,
+        "governance": governance,
+        "consulting": consulting,
+    }
 
-st.html(CSS + IMAGE_CSS + '<div class="site">' + RENDER[PAGE]() + '</div>')
-inject_analytics(PAGE, source="streamlit")
+    st.html(CSS + IMAGE_CSS + '<div class="site">' + RENDER[PAGE]() + '</div>')
+    inject_analytics(PAGE, source="streamlit")

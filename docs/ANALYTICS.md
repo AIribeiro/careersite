@@ -34,14 +34,21 @@ The preferred parameters are:
 Recommended source labels:
 
 - `linkedin`
+- `email`
 - `cv`
 - `outreach`
 - `application`
+
+`email` is intentionally separate from `outreach`. Use `source=email` for links placed in ordinary email signatures, email footers, direct email introductions, or other email-originated traffic when the goal is to measure email as the channel. Use `source=outreach` for deliberate recruiter/network outreach campaigns where the activity itself is what should be measured.
 
 Examples:
 
 ```text
 https://jairribeiro-ai.streamlit.app/?source=linkedin
+```
+
+```text
+https://jairribeiro-ai.streamlit.app/?source=email
 ```
 
 ```text
@@ -118,16 +125,17 @@ The dashboard shows:
 - event activity;
 - source/role attribution performance;
 - daily trends;
-- a simple attribution-link builder.
+- a simple attribution-link builder including LinkedIn, email, CV, outreach and application sources.
 
 ## Lovable implementation contract
 
-Lovable must use the same endpoint, table, taxonomy, attribution parameters, privacy rules and per-tab session behavior, with deployment `source='lovable'`. The implementation may be idiomatic TypeScript/React, but the measurement semantics must remain identical to Streamlit so the two deployments are comparable.
+Lovable must use the same endpoint, table, taxonomy, attribution parameters, recommended source labels, privacy rules and per-tab session behavior, with deployment `source='lovable'`. The implementation may be idiomatic TypeScript/React, but the measurement semantics must remain identical to Streamlit so the two deployments are comparable.
 
 ## Questions the data should answer
 
 - Did the site receive visits from links used in hiring outreach?
 - Which job-search activity generated deeper investigation?
+- Does email-originated traffic behave differently from LinkedIn, CV, outreach or application traffic?
 - Which role lenses were actually opened?
 - What proportion of Home sessions reached Leadership Impact?
 - What proportion of sessions downloaded the CV?

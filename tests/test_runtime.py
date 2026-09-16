@@ -49,7 +49,12 @@ class RuntimeSmokeTests(unittest.TestCase):
         )
 
     def test_experience_metrics_are_precise(self) -> None:
-        for relative in ("src/page_home.py", "src/page_about.py", "src/site_cv.py"):
+        for relative in (
+            "src/page_home.py",
+            "src/page_about.py",
+            "src/site_cv.py",
+            "src/site_assets.py",
+        ):
             text = (ROOT / relative).read_text(encoding="utf-8")
             self.assertIn("20+", text, relative)
             self.assertIn("8+", text, relative)

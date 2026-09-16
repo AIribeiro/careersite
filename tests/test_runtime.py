@@ -16,37 +16,20 @@ if str(SRC) not in sys.path:
 
 class RuntimeSmokeTests(unittest.TestCase):
     def test_canonical_cv_delivery(self) -> None:
-        import site_cv
-        from site_assets import CV_BYTES, CV_URI
-
         filename = "Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
         path = ROOT / "static" / filename
-        data = path.read_bytes()
 
-        self.assertTrue(data.startswith(b"%PDF-"))
-        self.assertTrue(data.rstrip().endswith(b"%%EOF"))
-        self.assertGreater(len(data), 4000)
-        self.assertEqual(data, CV_BYTES)
-        self.assertEqual(CV_URI, f"/app/static/{filename}")
-
-        # Parser-level validation catches broken xref/trailer/object structures
-        # that a simple magic-byte check would miss.
-        reader = PdfReader(BytesIO(data), strict=True)
+        # Validate the exact repository-backed bytes BEFORE importing the PDF
+        # generator. This prevents a runtime regeneration from masking a broken
+        # or stale committed artifact.
+        committed = path.read_bytes()
+        self.assertTrue(committed.startswith(b"%PDF-"))
+        self.assertTrue(committed.rstrip().endswith(b"%%EOF"))
+        self.assertGreater(len(committed), 4000)
+        reader = PdfReader(BytesIO(committed), strict=True)
         self.assertGreaterEqual(len(reader.pages), 1)
         self.assertIsNotNone(reader.trailer.get("/Root"))
 
-        self.assertEqual(site_cv.CV_SITE_DISPLAY, "AI & Data Portfolio")
-        self.assertEqual(
-            site_cv.CV_SITE_URL,
-            "https://jairribeiro-ai.streamlit.app/?source=cv",
-        )
-        self.assertIn(b"/Subtype /Link", data)
-        self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), data)
-        source = (ROOT / "src/site_cv.py").read_text(encoding="utf-8")
-        self.assertIn("CV_SITE_DISPLAY, link=CV_SITE_URL", source)
-
-        # On deployed main this must be a repository-backed static asset, not
-        # only a runtime-generated file. GitHub Actions maintains it from source.
         tracked = subprocess.run(
             ["git", "ls-files", "--error-unmatch", f"static/{filename}"],
             cwd=ROOT,
@@ -55,6 +38,26 @@ class RuntimeSmokeTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(tracked.returncode, 0, "Canonical PDF must be committed to main")
+
+        # The source generator must reproduce the committed artifact byte for
+        # byte, and the production runtime binding must expose that static file.
+        import site_cv
+        self.assertEqual(committed, site_cv.CV_BYTES)
+        self.assertEqual(site_cv.CV_SITE_DISPLAY, "AI & Data Portfolio")
+        self.assertEqual(
+            site_cv.CV_SITE_URL,
+            "https://jairribeiro-ai.streamlit.app/?source=cv",
+        )
+        self.assertIn(b"/Subtype /Link", committed)
+        self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), committed)
+        source = (ROOT / "src/site_cv.py").read_text(encoding="utf-8")
+        self.assertIn("CV_SITE_DISPLAY, link=CV_SITE_URL", source)
+
+        import site_cv_runtime  # noqa: F401
+        from site_assets import CV_BYTES, CV_URI
+
+        self.assertEqual(CV_BYTES, committed)
+        self.assertEqual(CV_URI, f"/app/static/{filename}")
 
     def test_distribution_policy_is_canonical_and_contextual(self) -> None:
         import page_analytics
@@ -220,6 +223,8 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn('if PAGE == "analytics":', app)
         self.assertIn("render_analytics_dashboard()", app)
         self.assertIn("inject_analytics(PAGE, source=\"streamlit\")", app)
+        self.assertIn("import site_cv_runtime", app)
+        self.assertNotIn("import site_cv  #", app)
         self.assertNotIn("site_cv_delivery", app)
 
         self.assertIn("noindex,nofollow,noarchive", dashboard)

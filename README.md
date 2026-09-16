@@ -34,6 +34,17 @@ The mandate selector is intentionally positioned immediately after the evidence 
 
 Detailed leadership philosophy, enterprise-AI operating-system thinking, technical fluency and article content belong deeper in the site.
 
+## Navigation standard
+
+Every public page must be reachable from the persistent top navigation. The primary menu exposes **Home**, **Leadership Impact**, **Thinking**, **About** and **Contact** directly. A **Role lenses** dropdown exposes all four role-specific pages:
+
+- Enterprise AI & Data Leadership
+- AI Transformation & Capability
+- AI Governance & Operating Model
+- Business-Driven AI & Consulting
+
+The Role lenses parent is shown as active while the visitor is on any of the four lens pages. Leadership artifacts remain part of the Leadership Impact page rather than being represented as artificial standalone pages.
+
 ## Leadership artifacts
 
 The website intentionally contains evidence that cannot fit naturally in a CV. The Leadership Impact page includes a set of sanitized leadership artifacts that make Jair's decision logic visible without reproducing confidential company material:
@@ -107,7 +118,7 @@ Streamlit Community Cloud deployment source:
 ├── app.py                  # routing / entry point
 ├── site_assets.py          # authentic media + generated PDF CV
 ├── site_artifacts.py       # sanitized leadership frameworks + homepage teaser
-├── site_components.py      # navigation, footer, shared content
+├── site_components.py      # complete top navigation, footer, shared content
 ├── site_cv_patch.py        # canonical public CV generator + static file
 ├── site_delivery_patch.py  # final same-origin CV download URL
 ├── site_meta.py            # metadata, Person schema + conversion event hooks

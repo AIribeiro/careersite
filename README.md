@@ -26,12 +26,24 @@ The homepage therefore follows a deliberate evidence hierarchy rather than tryin
 2. Four evidence metrics
 3. Front-door mandate selector — Enterprise AI & Data Leadership; AI Transformation & Capability; Business-Driven AI & Consulting
 4. Three leadership cases
-5. External perspective — selected recommendations
-6. Contact CTA
+5. Leadership-framework teaser — concrete, sanitized evidence of how Jair structures enterprise AI decisions
+6. External perspective — selected recommendations
+7. Contact CTA
 
 The mandate selector is intentionally positioned immediately after the evidence strip so recruiters and hiring managers can self-select into the most relevant version of Jair's experience before reading the full homepage. AI Governance & Operating Model remains available as a direct/deeper role lens without competing for front-door attention.
 
 Detailed leadership philosophy, enterprise-AI operating-system thinking, technical fluency and article content belong deeper in the site.
+
+## Leadership artifacts
+
+The website intentionally contains evidence that cannot fit naturally in a CV. The Leadership Impact page includes a set of sanitized leadership artifacts that make Jair's decision logic visible without reproducing confidential company material:
+
+- **AI portfolio lifecycle** — problem framing → qualification → value/feasibility discovery → experiment/pilot → scale-readiness → operated value.
+- **Enterprise AI operating model** — business ownership, portfolio/CoE orchestration, product/delivery, data & architecture, governance/risk, and adoption/value.
+- **Pilot → enterprise scale framework** — business ownership, value hypothesis, data readiness, technical readiness, governance readiness and adoption readiness.
+- **Governance decision matrix** — control intensity matched to consequence and uncertainty.
+
+These are generic reconstructions of recurring patterns from enterprise practice. They must never reproduce internal templates, confidential data, proprietary thresholds, employer-specific governance details or material that implies ownership Jair did not actually have.
 
 ## External perspective standard
 
@@ -56,8 +68,8 @@ Do not manufacture decision authority, financial ROI, team size, budget ownershi
 
 ## Site structure
 
-- **Home** — positioning, evidence metrics, front-door mandate selector, three leadership cases, external perspective and contact
-- **Leadership Impact** — decision-based cases from MSX International, Volvo Group / Volvo Trucks and Kimberly-Clark, plus technical foundations
+- **Home** — positioning, evidence metrics, front-door mandate selector, three leadership cases, leadership-framework teaser, external perspective and contact
+- **Leadership Impact** — decision-based cases from MSX International, Volvo Group / Volvo Trucks and Kimberly-Clark, sanitized leadership artifacts, recurring trade-offs and technical foundations
 - **Thinking** — curated enterprise-AI thought leadership with an explicit editorial point of view
 - **About** — career arc, leadership approach, enterprise AI operating-system lens, technical fluency, research perspective, credentials and languages
 - **Contact** — low-friction leadership-opportunity contact page
@@ -94,7 +106,10 @@ Streamlit Community Cloud deployment source:
 ├── .streamlit/config.toml
 ├── app.py                  # routing / entry point
 ├── site_assets.py          # authentic media + generated PDF CV
+├── site_artifacts.py       # sanitized leadership frameworks + homepage teaser
 ├── site_components.py      # navigation, footer, shared content
+├── site_cv_patch.py        # canonical public CV generator + static file
+├── site_delivery_patch.py  # final same-origin CV download URL
 ├── site_meta.py            # metadata, Person schema + conversion event hooks
 ├── site_styles.py          # executive editorial design system
 ├── site_lenses.py          # role-specific landing pages + contextual references
@@ -111,13 +126,17 @@ Streamlit Community Cloud deployment source:
 
 The application logic is normal readable Python. The old embedded application source is no longer executed; the legacy payload is used only to recover existing media assets. The downloadable PDF CV is generated at runtime from the same factual career source used by the site, keeping dates and claims consistent.
 
+### CV delivery
+
+`site_cv_patch.py` writes the canonical public CV into Streamlit's enabled `static/` directory. `site_delivery_patch.py` exposes the same-origin `/app/static/Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf` URL to all CV CTAs. This avoids large data-URI anchors and keeps the footer, About, Contact and role-lens download controls reliably clickable.
+
 ## SEO and social metadata
 
 `site_meta.py` adds page descriptions, canonical URLs, OpenGraph/Twitter metadata and `Person` JSON-LD to the browser document. Streamlit remains a client-rendered application, so social crawlers that do not execute client-side JavaScript may not read every dynamically injected tag. If reliable server-rendered social unfurls become a priority, the presentation layer should eventually move to a framework that controls the document `<head>` directly.
 
 ## Conversion measurement
 
-Important actions include a `data-hq-event` attribute (CV downloads, contact intent, LinkedIn/Medium outbound links, article opens, Leadership Impact visits, external-reference visits and role-lens opens). `site_meta.py` dispatches a first-party `hq-conversion` browser event for those interactions.
+Important actions include a `data-hq-event` attribute (CV downloads, contact intent, LinkedIn/Medium outbound links, article opens, Leadership Impact visits, external-reference visits, role-lens opens and leadership-framework visits). `site_meta.py` dispatches a first-party `hq-conversion` browser event for those interactions.
 
 No external analytics provider is enabled by default. This is intentional: a privacy-conscious provider such as Plausible or Umami should only be connected once the deployment domain and privacy approach are explicitly configured. The event taxonomy is already in place for that integration.
 
@@ -132,4 +151,5 @@ No external analytics provider is enabled by default. This is intentional: a pri
 - Do not invent ROI, budget, direct-report counts, team sizes or commercial ownership.
 - Do not publish MIT coursework references.
 - Use authentic photography; avoid stock/futuristic AI imagery.
+- Keep leadership artifacts generic and sanitized; do not reproduce confidential employer material or proprietary thresholds.
 - English remains the primary site language.

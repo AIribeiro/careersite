@@ -78,7 +78,7 @@ def build_cv_pdf() -> bytes:
 
     heading("Professional Experience")
     body("AI & Data Center of Excellence Director | MSX International", True)
-    body("Dec 2025 - Jun 2026 | Gothenburg, Sweden", size=8)
+    body("Dec 2025 - 2026 | Gothenburg, Sweden", size=8)
     bullet("Built foundations for a business-facing AI & Data CoE connecting strategy, governance, adoption and responsible enablement.")
     bullet("Structured the enterprise AI opportunity portfolio, improving visibility, prioritization, decision quality and readiness to scale.")
     bullet("Advanced data governance foundations covering ownership, stewardship, data quality and trusted data practices.")

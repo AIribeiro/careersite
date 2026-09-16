@@ -30,6 +30,11 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
+      - name: Install PDF validation tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qpdf poppler-utils
+
       - name: Generate canonical PDF
         env:
           PYTHONPATH: src
@@ -54,8 +59,18 @@ jobs:
           assert reader.trailer.get("/Root") is not None, "PDF catalog missing"
           assert b"/Subtype /Link" in data, "Expected hyperlinks are missing"
           assert site_cv.CV_SITE_URL.encode("latin-1") in data, "Portfolio hyperlink missing"
-          print(f"Validated {path}: {len(data)} bytes, {len(reader.pages)} page(s)")
+          print(f"Strict parser validated {path}: {len(data)} bytes, {len(reader.pages)} page(s)")
           PY
+
+      - name: Validate with standard PDF tools and renderer
+        run: |
+          PDF="static/Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
+          qpdf --check "$PDF"
+          pdfinfo "$PDF"
+          mkdir -p /tmp/cv-render
+          pdftoppm -f 1 -singlefile -png -r 120 "$PDF" /tmp/cv-render/page >/dev/null
+          test -s /tmp/cv-render/page.png
+          file /tmp/cv-render/page.png
 
       - name: Commit generated PDF when changed
         run: |

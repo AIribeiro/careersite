@@ -6,17 +6,12 @@ from site_styles import CSS
 from site_image_styles import IMAGE_CSS
 from site_meta import inject_metadata
 
-# Validate and expose the manually installed /images photography before page
-# modules import the URI constants from site_assets.
-import site_photo_patch  # noqa: F401
+# Load the curated public photography before page modules import asset URIs.
+import site_media  # noqa: F401
 
-# Replace the legacy downloadable CV with the website-aligned, ATS-readable
-# canonical version before page modules import CV_URI from site_assets.
-import site_cv_patch  # noqa: F401
-
-# Final public-delivery overrides: verified high-resolution photography and a
-# direct repository-backed PDF URL, applied before page modules import assets.
-import site_delivery_patch  # noqa: F401
+# Build the canonical ATS-readable public CV and expose its same-origin static URL
+# before page modules import CV_URI from site_assets.
+import site_cv  # noqa: F401
 
 from page_home import home
 from page_impact import impact
@@ -44,7 +39,6 @@ TITLES = {
     "consulting": "Business-Driven AI & Consulting | Jair Ribeiro",
 }
 
-# Page configuration is deliberately independent from content photography.
 st.set_page_config(
     page_title=TITLES[PAGE],
     page_icon="🧭",

@@ -1,1 +1,0 @@
-Curated website photography is generated from an uploaded high-resolution bundle. The bundle is stored as Git data and unpacked by the site image workflow; public assets live in /images.

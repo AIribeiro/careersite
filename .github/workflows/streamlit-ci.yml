@@ -37,8 +37,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          import site_cv_patch
-          import site_delivery_patch
+          import site_cv
           from site_assets import CV_BYTES, CV_URI
 
           filename = 'Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf'
@@ -80,7 +79,7 @@ jobs:
       - name: Validate page image assets
         run: |
           python - <<'PY'
-          import site_photo_patch
+          import site_media
           from site_assets import HERO_URI, WORKSHOP_URI, PANEL_DIALOGUE_URI, THINKING_PANEL_URI, ABOUT_BW_URI
 
           assets = {

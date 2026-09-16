@@ -251,4 +251,4 @@ CV_FILENAME = "Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
 (STATIC_DIR / CV_FILENAME).write_bytes(CV_BYTES)
 
 site_assets.CV_BYTES = CV_BYTES
-site_assets.CV_URI = f"/app/static/{CV_FILENAME}"
+site_assets.CV_URI = f"app/static/{CV_FILENAME}"

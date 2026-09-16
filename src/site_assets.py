@@ -65,7 +65,7 @@ def build_cv_pdf() -> bytes:
     pdf.multi_cell(0, 4.5, "Gothenburg, Sweden | jair.ribeiro@outlook.it | +46 76 761 2158 | linkedin.com/in/jairribeiro", new_x="LMARGIN", new_y="NEXT")
 
     heading("Executive Profile")
-    body("Enterprise AI, data and analytics leader with 15+ years across business strategy, governance, adoption, architecture and technology delivery. Experienced in building capability models, shaping AI and analytics portfolios, improving data trust and translating complex opportunities into governed, practical outcomes. International leadership experience across Sweden, Poland, Italy and Brazil, including automotive, consumer goods and enterprise technology environments.")
+    body("Enterprise AI, data and analytics leader with 20+ years in enterprise technology, including 8+ years in AI, data and analytics leadership. Experienced in building capability models, shaping AI and analytics portfolios, improving data trust and translating complex opportunities into governed, practical outcomes. International leadership experience across Sweden, Poland, Italy and Brazil, including automotive, consumer goods and enterprise technology environments.")
 
     heading("Leadership & Domain Expertise")
     body("AI strategy & enterprise adoption | Responsible AI & AI governance | Data & analytics strategy | Data governance & maturity | GenAI and agentic AI enablement | Portfolio prioritization | Operating models & CoE design | Executive stakeholder management | Change, literacy & capability building | Enterprise architecture | Cloud & technology consulting", size=8.5)

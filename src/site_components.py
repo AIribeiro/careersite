@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import html
 
-from site_assets import CV_URI, LINKEDIN, MEDIUM, EMAIL
+from site_assets import BRAND_ICON_URI, CV_URI, LINKEDIN, MEDIUM, EMAIL
 
 
 ROLE_LENSES = {
@@ -38,10 +38,15 @@ def nav(active: str) -> str:
         'border:1px solid rgba(255,255,255,.14);box-shadow:0 18px 40px rgba(0,0,0,.28)">'
         f'{lens_items}</div></details>'
     )
+    brand_icon = (
+        f'<img src="{BRAND_ICON_URI}" alt="" aria-hidden="true">'
+        if BRAND_ICON_URI
+        else ""
+    )
 
     return (
         '<nav class="nav"><div class="navin">'
-        '<a class="brand" href="?page=home" target="_self"><div><strong>Jair Ribeiro</strong>'
+        f'<a class="brand" href="?page=home" target="_self">{brand_icon}<div><strong>Jair Ribeiro</strong>'
         '<span>Enterprise AI &amp; Data Leader</span></div></a>'
         '<div class="links">'
         f'{link("home", "Home")}'

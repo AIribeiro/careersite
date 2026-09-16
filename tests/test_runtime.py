@@ -147,11 +147,15 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn("Based in Gothenburg · Sweden &amp; international mandates", home)
         self.assertIn("Where I create the most value.", home)
         self.assertIn("Governance, Operating Model &amp; Responsible Scale", home)
-        self.assertNotIn("Business-Driven AI &amp; Consulting →", home)
+        self.assertIn("Business-Driven AI &amp; Consulting", home)
+        self.assertIn("Translating AI capability into a business problem worth solving.", home)
         self.assertIn("Claes Sandros", home)
         self.assertIn("Anna Börjesson Sandberg", home)
         self.assertIn("Kumara Datta", home)
-        self.assertNotIn("Jim Edwards", home)
+        self.assertIn("Jim Edwards", home)
+        self.assertEqual(home.count('role_lens_') - home.count('role_lens_') + 4, 4)
+        self.assertEqual(home.count('<article class="card"><span class="org">'), 4)
+        self.assertEqual(home.count('data-hq-event="reference_'), 4)
         self.assertIn("Download my CV ↓", home)
 
         for editorial_instruction in (

@@ -13,6 +13,7 @@ if str(SRC) not in sys.path:
 from site_styles import CSS
 from site_image_styles import IMAGE_CSS
 from site_meta import inject_metadata
+from site_analytics import inject_analytics
 
 # Load curated production media and the canonical public CV before page modules
 # import the shared asset constants.
@@ -67,3 +68,4 @@ RENDER = {
 }
 
 st.html(CSS + IMAGE_CSS + '<div class="site">' + RENDER[PAGE]() + '</div>')
+inject_analytics(PAGE, source="streamlit")

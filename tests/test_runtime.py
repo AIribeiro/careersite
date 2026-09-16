@@ -21,11 +21,15 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertGreater(len(data), 4000)
         self.assertEqual(data, CV_BYTES)
         self.assertEqual(CV_URI, f"/app/static/{filename}")
-        self.assertEqual(site_cv.CV_SITE_DISPLAY, "jairribeiro-ai.streamlit.app")
+        self.assertEqual(site_cv.CV_SITE_DISPLAY, "AI & Data Portfolio")
         self.assertEqual(
             site_cv.CV_SITE_URL,
             "https://jairribeiro-ai.streamlit.app/?source=cv",
         )
+        self.assertIn(b"/Subtype /Link", data)
+        self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), data)
+        source = (ROOT / "src/site_cv.py").read_text(encoding="utf-8")
+        self.assertIn("CV_SITE_DISPLAY, link=CV_SITE_URL", source)
 
     def test_distribution_policy_is_canonical_and_contextual(self) -> None:
         import page_analytics
@@ -36,6 +40,7 @@ class RuntimeSmokeTests(unittest.TestCase):
             ATTRIBUTION_SOURCES,
             CANONICAL_SITE_DISPLAY,
             CANONICAL_SITE_URL,
+            CV_PORTFOLIO_LABEL,
             LINKEDIN_FEATURED,
             PERMANENT_SURFACES,
             POST_INTERVIEW_LINKS,
@@ -43,7 +48,9 @@ class RuntimeSmokeTests(unittest.TestCase):
 
         self.assertEqual(CANONICAL_SITE_URL, "https://jairribeiro-ai.streamlit.app/")
         self.assertEqual(CANONICAL_SITE_DISPLAY, "jairribeiro-ai.streamlit.app")
-        self.assertEqual(site_cv.CV_SITE_DISPLAY, CANONICAL_SITE_DISPLAY)
+        self.assertEqual(CV_PORTFOLIO_LABEL, "AI & Data Portfolio")
+        self.assertEqual(site_cv.CV_SITE_DISPLAY, CV_PORTFOLIO_LABEL)
+        self.assertNotEqual(site_cv.CV_SITE_DISPLAY, CANONICAL_SITE_DISPLAY)
         self.assertEqual(site_cv.CV_SITE_URL, PERMANENT_SURFACES["cv"])
         self.assertEqual(page_analytics.PUBLIC_BASE_URL, CANONICAL_SITE_URL)
         self.assertEqual(tuple(RECOMMENDED_ATTRIBUTION_SOURCES), ATTRIBUTION_SOURCES)

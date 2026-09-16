@@ -73,6 +73,34 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn("Based in Gothenburg · Sweden &amp; international mandates", components)
         self.assertNotIn("Gothenburg, Sweden · Sweden / International", home)
 
+    def test_analytics_taxonomy_and_privacy(self) -> None:
+        from site_analytics import ALLOWED_EVENTS, LENS_PAGES
+
+        self.assertEqual(
+            set(ALLOWED_EVENTS),
+            {
+                "page_view",
+                "impact_view",
+                "lens_view",
+                "cv_download",
+                "email_click",
+                "linkedin_click",
+                "article_click",
+            },
+        )
+        self.assertEqual(
+            set(LENS_PAGES),
+            {"enterprise", "transformation", "governance", "consulting"},
+        )
+
+        analytics = (ROOT / "src/site_analytics.py").read_text(encoding="utf-8")
+        app = (ROOT / "app.py").read_text(encoding="utf-8")
+        self.assertIn("sessionStorage", analytics)
+        self.assertNotIn("localStorage", analytics)
+        self.assertNotIn("document.cookie", analytics)
+        self.assertNotIn("user_agent", analytics)
+        self.assertIn("inject_analytics(PAGE, source=\"streamlit\")", app)
+
 
 if __name__ == "__main__":
     unittest.main()

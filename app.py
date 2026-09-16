@@ -50,9 +50,11 @@ TITLES = {
     "analytics": "Hiring-Funnel Analytics | Jair Ribeiro",
 }
 
+PAGE_ICON = ROOT / "images" / "profile_red_bg.jpg.jpg"
+
 st.set_page_config(
     page_title=TITLES[PAGE],
-    page_icon="🧭",
+    page_icon=str(PAGE_ICON),
     layout="wide",
     initial_sidebar_state="collapsed",
 )

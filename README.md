@@ -145,9 +145,11 @@ The default branch intentionally contains only active production material:
 │   ├── README.md
 │   └── site_photos_bundle/
 ├── docs/
+│   ├── ANALYTICS.md          # event taxonomy, privacy model and reporting contract
 │   └── ARCHITECTURE.md
 ├── src/                      # active application code
 │   ├── page_*.py
+│   ├── site_analytics.py
 │   ├── site_*.py
 │   └── __init__.py
 ├── static/                   # public downloadable CV
@@ -176,18 +178,41 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
+The analytics client has sensible production defaults for the shared first-party Supabase event store. They can be overridden with:
+
+- `CAREERSITE_ANALYTICS_URL`
+- `CAREERSITE_ANALYTICS_PUBLISHABLE_KEY`
+
+The browser key is intentionally publishable; Row Level Security is the enforcement boundary.
+
 ## Validation
 
 GitHub Actions validates:
 
 - Python compilation;
-- smoke tests for CV delivery, media loading, navigation coverage, career-tenure positioning and core homepage positioning;
+- smoke tests for CV delivery, media loading, navigation coverage, career-tenure positioning, core homepage positioning and analytics taxonomy/privacy constraints;
 - Streamlit startup and health;
 - integrity and expected dimensions of the canonical leadership-photo bundle.
 
-## SEO and conversion measurement
+## SEO and behavioral measurement
 
-`site_meta.py` adds page descriptions, canonical URLs, OpenGraph/Twitter metadata and `Person` JSON-LD. Important user actions carry `data-hq-event` attributes and dispatch a first-party `hq-conversion` browser event. No external analytics provider is enabled by default.
+`site_meta.py` owns page descriptions, canonical URLs, OpenGraph/Twitter metadata and `Person` JSON-LD.
+
+`site_analytics.py` owns behavioral measurement. Both Streamlit and Lovable are required to use the same seven-event taxonomy:
+
+- `page_view`
+- `impact_view`
+- `lens_view`
+- `cv_download`
+- `email_click`
+- `linkedin_click`
+- `article_click`
+
+Events are written to a shared Supabase table using anonymous insert-only access. The application does not use analytics cookies, persistent visitor IDs, heatmaps or session recordings. A random per-tab UUID is stored only in `sessionStorage` so one visit can be reconstructed as a funnel. The application-owned analytics table does not store IP addresses, user-agent strings, names or email addresses.
+
+Optional attribution is limited to external referrer hostname, `utm_source`/`src`, and `utm_campaign`. This makes it possible to distinguish hiring-outreach traffic without building durable personal profiles.
+
+Existing `data-hq-event` attributes remain useful instrumentation hooks, but their many raw names are mapped into the reduced seven-event taxonomy before storage. Full implementation and reporting semantics are documented in `docs/ANALYTICS.md`.
 
 ## Content guardrails
 
@@ -203,4 +228,5 @@ GitHub Actions validates:
 - Use authentic photography; avoid stock/futuristic AI imagery.
 - Keep leadership artifacts generic and sanitized.
 - Keep GitHub as quiet supporting evidence, not a prominent site destination.
+- Keep analytics limited to the seven approved events and the privacy model in `docs/ANALYTICS.md`.
 - English remains the primary site language.

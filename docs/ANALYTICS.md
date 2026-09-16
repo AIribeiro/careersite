@@ -1,10 +1,10 @@
 # Privacy-conscious website analytics
 
-The site uses a deliberately small first-party behavioral analytics layer so hiring behavior can be evaluated without heatmaps, session replay, advertising identifiers or persistent visitor tracking.
+The site uses a first-party behavioral analytics layer to understand hiring-site usage without heatmaps, session replay, advertising identifiers, raw IP storage or persistent cross-session visitor tracking.
 
 ## What is measured
 
-Only these seven events are stored:
+The event taxonomy is intentionally small:
 
 - `page_view`
 - `impact_view`
@@ -13,16 +13,31 @@ Only these seven events are stored:
 - `email_click`
 - `linkedin_click`
 - `article_click`
+- `engagement_ping`
 
-No raw `data-hq-event` name is stored. Existing UI event tags are mapped into this reduced taxonomy.
+`engagement_ping` is a lightweight session-quality event used to keep active/visible time current. It is excluded from the visible event-activity table so it does not inflate behavioral actions.
+
+Alongside events, the application stores coarse session context that is useful for site decisions:
+
+- device class: desktop, mobile or tablet;
+- browser family and operating-system family, derived in the browser without storing the raw user-agent string;
+- browser language and IANA timezone;
+- viewport and screen dimensions;
+- effective connection class when the browser exposes it;
+- elapsed session time and active visible/engaged time;
+- external referrer hostname when available;
+- source/role attribution from campaign links;
+- a two-letter country code only when the hosting/API infrastructure supplies a trusted coarse country header.
+
+The reporting layer derives additional metrics from those fields, including pages per session, landing and exit pages, engagement rate, single-page sessions, duration bands, hour-of-day and day-of-week patterns.
 
 ## Privacy model
 
-The application does **not** write analytics cookies and does not use `localStorage` for analytics. A random UUID is kept in browser `sessionStorage` only for the lifetime of the current tab/session. That makes it possible to answer questions such as Home → Leadership Impact → CV download without creating a durable cross-session profile.
+The application does **not** write analytics cookies and does not use `localStorage` for analytics. A random UUID is kept in browser `sessionStorage` only for the lifetime of the current tab/session. The same per-tab storage holds the session start time, accumulated engaged time and optional job-search attribution.
 
-The application-owned event table does not contain IP addresses, user-agent strings, names, email addresses or free-form visitor input.
+The application-owned event table does not store raw IP addresses, raw user-agent strings, names, email addresses or free-form visitor input. Country is not obtained through a third-party IP lookup. If the API infrastructure does not provide a recognized country header, country remains unknown.
 
-Job-search attribution also lives only for the current browser tab/session. When an attributed landing URL is opened, the source and optional role are copied into `sessionStorage` so subsequent internal navigation and conversion events keep the same attribution even after the query string changes.
+This makes it possible to measure a Home → Leadership Impact → CV-download journey and session quality without creating a durable visitor profile across visits.
 
 ## Job-search attribution links
 
@@ -67,8 +82,6 @@ Attribution identifies a job-search activity, not a person. Avoid putting recrui
 
 Legacy `utm_source`, `src` and `utm_campaign` parameters remain accepted for compatibility. When `source` is present it is the preferred hiring-attribution label.
 
-External referrer hostname is also retained when available.
-
 ## Shared event store
 
 Both the Streamlit implementation and the Lovable implementation use the same Supabase table:
@@ -77,9 +90,11 @@ Both the Streamlit implementation and the Lovable implementation use the same Su
 
 The browser uses a Supabase **publishable** client key. The enforcement boundary is Row Level Security:
 
-- anonymous/public clients may `INSERT` valid whitelisted events;
+- anonymous/public clients may `INSERT` only valid whitelisted events and bounded analytics fields;
 - anonymous/public clients cannot `SELECT`, `UPDATE` or `DELETE` analytics data;
 - reporting is performed through controlled database access rather than exposing raw analytics publicly.
+
+The database also enriches inserts with a coarse country code if a recognized infrastructure country header is present. It does not persist the request IP address.
 
 Reporting structures include:
 
@@ -96,11 +111,14 @@ Raw event rows are not exposed through the dashboard.
 1. records `page_view` for every valid public page;
 2. records `impact_view` when Leadership Impact is reached;
 3. records `lens_view` when one of the four role lenses is reached;
-4. maps CV, email, LinkedIn and article actions into the four corresponding click/download events;
+4. maps CV, email, LinkedIn and article actions into the corresponding conversion events;
 5. captures `source` and optional `role` from attributed entry links;
-6. persists attribution only within the current tab/session;
-7. suppresses immediate duplicate view events caused by Streamlit reruns;
-8. preserves the existing `hq-conversion` browser event for local debugging/future integrations.
+6. derives coarse device/browser/OS context without retaining the raw user-agent;
+7. records language, timezone, viewport/screen dimensions and browser connection class when available;
+8. accumulates active visible time in the current tab and sends periodic `engagement_ping` updates;
+9. persists analytics state only within the current tab/session;
+10. suppresses immediate duplicate view events caused by Streamlit reruns;
+11. preserves the existing `hq-conversion` browser event for local debugging/future integrations.
 
 Internal Home → Impact and Home → lens clicks are not stored as separate click events. The destination view plus the ephemeral session ID provides a cleaner funnel signal without duplicate measurement.
 
@@ -118,28 +136,37 @@ The dashboard requires a separate analytics access code. Authentication is enfor
 
 The dashboard shows:
 
-- total measured sessions;
-- Home → Leadership Impact progression;
-- role-lens usage;
-- CV-download conversion;
-- event activity;
-- source/role attribution performance;
-- daily trends;
-- a simple attribution-link builder including LinkedIn, email, CV, outreach and application sources.
+- measured sessions and engagement rate;
+- average and median session duration;
+- average active/engaged time;
+- pages per session and single-page sessions;
+- Home → Leadership Impact → role-lens → CV/contact funnel behavior;
+- device class, browser family and operating-system family;
+- country when infrastructure data is available, plus browser language and timezone;
+- referrers, source/role attribution, landing pages and exit pages;
+- session-duration distribution;
+- daily activity, hour-of-day and weekday patterns;
+- role-lens usage and conversion event activity;
+- an attribution-link builder for LinkedIn, email, CV, outreach and application sources.
+
+An engaged session is defined as at least 10 seconds of active visible time, two or more pages, or a conversion action such as a CV download or outbound professional/contact click.
 
 ## Lovable implementation contract
 
-Lovable must use the same endpoint, table, taxonomy, attribution parameters, recommended source labels, privacy rules and per-tab session behavior, with deployment `source='lovable'`. The implementation may be idiomatic TypeScript/React, but the measurement semantics must remain identical to Streamlit so the two deployments are comparable.
+Lovable should use the same endpoint, table, event taxonomy, attribution parameters, session semantics and privacy rules, with deployment `source='lovable'`. The implementation may be idiomatic TypeScript/React, but the measurement semantics should remain comparable to Streamlit.
 
 ## Questions the data should answer
 
 - Did the site receive visits from links used in hiring outreach?
-- Which job-search activity generated deeper investigation?
-- Does email-originated traffic behave differently from LinkedIn, CV, outreach or application traffic?
-- Which role lenses were actually opened?
-- What proportion of Home sessions reached Leadership Impact?
-- What proportion of sessions downloaded the CV?
+- Which channels and role-specific links generated deeper investigation?
+- Are visitors primarily mobile, tablet or desktop?
+- Which browser/OS combinations account for meaningful traffic?
+- Where is traffic coming from at a coarse country/timezone/language level?
+- How long do sessions last, and how much of that time is actively engaged?
+- How many pages are viewed per session, and which pages tend to be entry and exit points?
+- What proportion of Home sessions reach Leadership Impact or a role lens?
+- What proportion of sessions download the CV or click contact/professional links?
+- Which days and hours show the most activity?
 - Do selected application links produce stronger engagement than generic LinkedIn/CV traffic?
-- Which articles and outbound professional links were used?
 
-The site intentionally does not implement heatmaps, session recordings, advertising pixels or broad product-analytics instrumentation.
+The site intentionally does not implement heatmaps, session recordings, advertising pixels, raw-IP retention, raw-user-agent retention or durable visitor fingerprinting.

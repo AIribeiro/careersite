@@ -19,9 +19,9 @@ class RuntimeSmokeTests(unittest.TestCase):
         filename = "Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
         path = ROOT / "static" / filename
 
-        # Validate the exact repository-backed bytes BEFORE importing the PDF
-        # generator. This prevents a runtime regeneration from masking a broken
-        # or stale committed artifact.
+        # Validate the exact repository-backed bytes that production serves.
+        # This happens before the generator is imported so a fresh generation
+        # cannot mask a stale or malformed committed artifact.
         committed = path.read_bytes()
         self.assertTrue(committed.startswith(b"%PDF-"))
         self.assertTrue(committed.rstrip().endswith(b"%%EOF"))
@@ -29,6 +29,11 @@ class RuntimeSmokeTests(unittest.TestCase):
         reader = PdfReader(BytesIO(committed), strict=True)
         self.assertGreaterEqual(len(reader.pages), 1)
         self.assertIsNotNone(reader.trailer.get("/Root"))
+        self.assertIn(b"/Subtype /Link", committed)
+        self.assertIn(
+            b"https://jairribeiro-ai.streamlit.app/?source=cv",
+            committed,
+        )
 
         tracked = subprocess.run(
             ["git", "ls-files", "--error-unmatch", f"static/{filename}"],
@@ -39,25 +44,33 @@ class RuntimeSmokeTests(unittest.TestCase):
         )
         self.assertEqual(tracked.returncode, 0, "Canonical PDF must be committed to main")
 
-        # The source generator must reproduce the committed artifact byte for
-        # byte, and the production runtime binding must expose that static file.
-        import site_cv
-        self.assertEqual(committed, site_cv.CV_BYTES)
-        self.assertEqual(site_cv.CV_SITE_DISPLAY, "AI & Data Portfolio")
-        self.assertEqual(
-            site_cv.CV_SITE_URL,
-            "https://jairribeiro-ai.streamlit.app/?source=cv",
-        )
-        self.assertIn(b"/Subtype /Link", committed)
-        self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), committed)
-        source = (ROOT / "src/site_cv.py").read_text(encoding="utf-8")
-        self.assertIn("CV_SITE_DISPLAY, link=CV_SITE_URL", source)
-
+        # Production binds the shared CV URL and bytes to that committed file;
+        # it does not import the PDF generator at Streamlit runtime.
         import site_cv_runtime  # noqa: F401
         from site_assets import CV_BYTES, CV_URI
 
         self.assertEqual(CV_BYTES, committed)
         self.assertEqual(CV_URI, f"/app/static/{filename}")
+
+        # Independently validate the generator. fpdf2 includes a CreationDate,
+        # so two valid generations need not be byte-identical.
+        import site_cv
+
+        generated = site_cv.CV_BYTES
+        self.assertTrue(generated.startswith(b"%PDF-"))
+        self.assertTrue(generated.rstrip().endswith(b"%%EOF"))
+        generated_reader = PdfReader(BytesIO(generated), strict=True)
+        self.assertGreaterEqual(len(generated_reader.pages), 1)
+        self.assertIsNotNone(generated_reader.trailer.get("/Root"))
+        self.assertEqual(site_cv.CV_SITE_DISPLAY, "AI & Data Portfolio")
+        self.assertEqual(
+            site_cv.CV_SITE_URL,
+            "https://jairribeiro-ai.streamlit.app/?source=cv",
+        )
+        self.assertIn(b"/Subtype /Link", generated)
+        self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), generated)
+        source = (ROOT / "src/site_cv.py").read_text(encoding="utf-8")
+        self.assertIn("CV_SITE_DISPLAY, link=CV_SITE_URL", source)
 
     def test_distribution_policy_is_canonical_and_contextual(self) -> None:
         import page_analytics

@@ -61,6 +61,18 @@ class RuntimeSmokeTests(unittest.TestCase):
             self.assertNotIn("15+ years", text, relative)
             self.assertNotIn("More than 15 years", text, relative)
 
+    def test_home_keeps_distinctive_positioning(self) -> None:
+        home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
+        meta = (ROOT / "src/site_meta.py").read_text(encoding="utf-8")
+        components = (ROOT / "src/site_components.py").read_text(encoding="utf-8")
+
+        self.assertIn("AI scales as a system, not as a model.", home)
+        self.assertIn("decision system around AI", home)
+        self.assertIn("Based in Gothenburg · Sweden &amp; international mandates", home)
+        self.assertIn("decision system around AI", meta)
+        self.assertIn("Based in Gothenburg · Sweden &amp; international mandates", components)
+        self.assertNotIn("Gothenburg, Sweden · Sweden / International", home)
+
 
 if __name__ == "__main__":
     unittest.main()

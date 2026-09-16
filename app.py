@@ -15,11 +15,11 @@ from site_image_styles import IMAGE_CSS
 from site_meta import inject_metadata
 from site_analytics import inject_analytics
 
-# Load curated production media and the canonical public CV before page modules
-# import the shared asset constants. The canonical CV is generated from source
-# and committed by CI so Streamlit serves a repository-backed PDF binary.
+# Load curated production media and bind the canonical repository-backed CV
+# before page modules import shared asset constants. PDF generation itself is a
+# CI/build concern and never runs in the deployed Streamlit process.
 import site_media  # noqa: F401
-import site_cv  # noqa: F401
+import site_cv_runtime  # noqa: F401
 
 from page_home import home
 from page_impact import impact

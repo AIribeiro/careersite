@@ -75,6 +75,8 @@ The **Role lenses** submenu contains all four role-specific pages:
 - AI Governance & Operating Model
 - Business-Driven AI & Consulting
 
+The analytics dashboard is deliberately **not** a public navigation item.
+
 ## Leadership evidence standard
 
 Leadership cases use this structure wherever the source material supports it:
@@ -133,6 +135,8 @@ Recommendations are shown as intact excerpts. No ratings, stars or testimonial-w
 - **AI Governance & Operating Model** — role lens.
 - **Business-Driven AI & Consulting** — role lens.
 
+A separate hidden analytics route exists for site-owner reporting and is not part of the public page architecture.
+
 ## Repository structure
 
 The default branch intentionally contains only active production material:
@@ -145,10 +149,10 @@ The default branch intentionally contains only active production material:
 │   ├── README.md
 │   └── site_photos_bundle/
 ├── docs/
-│   ├── ANALYTICS.md          # event taxonomy, privacy model and reporting contract
+│   ├── ANALYTICS.md          # event taxonomy, attribution and reporting contract
 │   └── ARCHITECTURE.md
 ├── src/                      # active application code
-│   ├── page_*.py
+│   ├── page_*.py             # public pages plus hidden analytics page
 │   ├── site_analytics.py
 │   ├── site_*.py
 │   └── __init__.py
@@ -190,7 +194,7 @@ The browser key is intentionally publishable; Row Level Security is the enforcem
 GitHub Actions validates:
 
 - Python compilation;
-- smoke tests for CV delivery, media loading, navigation coverage, career-tenure positioning, core homepage positioning and analytics taxonomy/privacy constraints;
+- smoke tests for CV delivery, media loading, navigation coverage, career-tenure positioning, core homepage positioning and analytics taxonomy/privacy/attribution constraints;
 - Streamlit startup and health;
 - integrity and expected dimensions of the canonical leadership-photo bundle.
 
@@ -210,7 +214,26 @@ GitHub Actions validates:
 
 Events are written to a shared Supabase table using anonymous insert-only access. The application does not use analytics cookies, persistent visitor IDs, heatmaps or session recordings. A random per-tab UUID is stored only in `sessionStorage` so one visit can be reconstructed as a funnel. The application-owned analytics table does not store IP addresses, user-agent strings, names or email addresses.
 
-Optional attribution is limited to external referrer hostname, `utm_source`/`src`, and `utm_campaign`. This makes it possible to distinguish hiring-outreach traffic without building durable personal profiles.
+### Job-search attribution
+
+Preferred attributed links use `source` and an optional `role` label:
+
+```text
+https://jairribeiro-ai.streamlit.app/?source=linkedin
+https://jairribeiro-ai.streamlit.app/?source=cv
+https://jairribeiro-ai.streamlit.app/?source=outreach
+https://jairribeiro-ai.streamlit.app/?source=application&role=ai-transformation
+```
+
+Attribution is retained only for the current browser tab/session, allowing later Impact, lens and CV actions to be associated with the original job-search activity without identifying an individual. Legacy `utm_source`, `src` and `utm_campaign` remain supported.
+
+The hidden site-owner dashboard is available at:
+
+```text
+https://jairribeiro-ai.streamlit.app/?page=analytics
+```
+
+It is excluded from public navigation, marked noindex and protected by a separate access code. The dashboard receives aggregate data from an access-controlled database function; raw analytics rows remain unreadable to anonymous clients.
 
 Existing `data-hq-event` attributes remain useful instrumentation hooks, but their many raw names are mapped into the reduced seven-event taxonomy before storage. Full implementation and reporting semantics are documented in `docs/ANALYTICS.md`.
 
@@ -229,4 +252,5 @@ Existing `data-hq-event` attributes remain useful instrumentation hooks, but the
 - Keep leadership artifacts generic and sanitized.
 - Keep GitHub as quiet supporting evidence, not a prominent site destination.
 - Keep analytics limited to the seven approved events and the privacy model in `docs/ANALYTICS.md`.
+- Use attribution to classify job-search activity, never to identify individual visitors.
 - English remains the primary site language.

@@ -28,8 +28,8 @@ def _uri(name: str) -> str:
 # leadership rather than treating photography as decoration.
 hero = _uri("54907620908_f7c872f825_o.jpg")
 workshop = _uri("IMG_0777.jpg")
-ai_panel = _uri("1700157848740.jpg")
-panel_dialogue = _uri("54549047980_f668a9ffde_o Copy.JPG")
+ai_panel = _uri("54549047980_f668a9ffde_o Copy.JPG")
+panel_dialogue = _uri("1700157848740.jpg")
 thinking = _uri("IMG_8281.jpg")
 portrait = _uri("pixelup_1683528862014.jpg")
 contact = _uri("profile_red_bg.jpg.jpg")

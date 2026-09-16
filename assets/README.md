@@ -1,7 +1,9 @@
 # Production assets
 
-This directory contains only assets required by the public website.
+The public website now uses the original photography stored in the repository-level `/images` directory as its canonical media source.
 
-`site_photos_bundle/` is the canonical curated photography bundle. It contains five selected, web-optimized leadership images used across Home, Leadership Impact, Thinking, About and the role-lens pages. The bundle is stored as text-safe chunks so Streamlit deployment remains portable and does not depend on an external media host.
+`src/site_media.py` selects the most appropriate authentic photograph for each website context and embeds the original file bytes without recompression. The previous text-safe `site_photos_bundle/` mechanism is retired and should not be used for production photography.
 
-Historical source-image experiments are intentionally excluded from `main`. The repository state before public cleanup is preserved on `archive/pre-public-cleanup-2026-09-16`.
+Image selection is intentional: Home emphasizes executive presence; Leadership Impact emphasizes visible leadership in practice; Thinking emphasizes public thought leadership; About uses a more personal editorial portrait; Contact uses a direct executive portrait; and the role-lens pages use panel/dialogue imagery that supports their specific leadership context.
+
+Historical source-image experiments remain outside the production path.

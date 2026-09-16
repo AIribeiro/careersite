@@ -19,6 +19,7 @@ LINKEDIN_DISPLAY = "linkedin.com/in/jairribeiro"
 LINKEDIN_URL = "https://www.linkedin.com/in/jairribeiro"
 CV_SITE_DISPLAY = "AI & Data Portfolio"
 CV_SITE_URL = "https://jairribeiro-ai.streamlit.app/?source=cv"
+CV_FILENAME = "Jair_Ribeiro_Enterprise_AI_Data_Leader_CV_2026.pdf"
 
 
 class _CVPDF(FPDF):
@@ -26,7 +27,7 @@ class _CVPDF(FPDF):
         self.set_y(-9)
         self.set_font("Helvetica", "", 7.5)
         self.set_text_color(*MUTED)
-        self.cell(0, 4, f"Jair Ribeiro | Senior AI & Data Leader | Page {self.page_no()}", align="R")
+        self.cell(0, 4, f"Jair Ribeiro | Enterprise AI & Data Leader | Page {self.page_no()}", align="R")
 
 
 def build_public_cv() -> bytes:
@@ -46,7 +47,7 @@ def build_public_cv() -> bytes:
     pdf.cell(
         0,
         5.5,
-        "Senior AI & Data Leader | Enterprise AI Strategy, Governance, Adoption & Business Value",
+        "Enterprise AI & Data Leader | Strategy, Governance, Adoption & Business Value",
         new_x="LMARGIN",
         new_y="NEXT",
     )
@@ -127,21 +128,21 @@ def build_public_cv() -> bytes:
 
     section("Executive Profile")
     paragraph(
-        "Enterprise AI, data and analytics leader with 20+ years in enterprise technology, including 8+ years in AI, data and analytics leadership. I turn AI ambition into operating capability by connecting business priorities, opportunity portfolios, data and architecture, governance, adoption and measurable value. Experience includes AI & Data Center of Excellence leadership, regional AI strategy, global analytics and AI adoption, product and portfolio work, and executive stakeholder engagement across automotive, consumer goods and enterprise technology environments.",
+        "Enterprise AI, data and analytics leader with 20+ years in enterprise technology, including 8+ years in AI, data and analytics leadership. Experience spans AI strategy, operating models, portfolio decisions, governance, analytics, adoption and business translation across automotive, consumer goods and enterprise technology environments. My work increasingly focuses on connecting business priorities with the data, governance, ownership and adoption conditions required to make AI useful at enterprise scale.",
         size=8.8,
         line=4.45,
     )
 
     section("Core Leadership & Domain Expertise")
     paragraph(
-        "Enterprise AI strategy | AI & Data operating models | AI & Data CoE design | AI governance & Responsible AI | AI portfolio prioritization | Data strategy, governance & trust | GenAI & agentic AI enablement | Analytics strategy | Product & portfolio leadership | Value discovery & business cases | Enterprise architecture | Cloud & AI solutions | Adoption, literacy & change | Executive stakeholder management | Management consulting",
+        "Enterprise AI strategy | AI & Data operating models | AI & Data CoE design | AI governance & Responsible AI | AI portfolio prioritization | Data strategy, governance & trust | GenAI enablement | Analytics strategy | Product & portfolio leadership | Value discovery & business cases | Enterprise architecture | Cloud & AI solutions | Adoption, literacy & change | Executive stakeholder management | Management consulting",
         size=8.35,
         line=4.25,
     )
 
     section("Selected Leadership Impact")
-    bullet("Shaped and supported 100+ AI initiatives, proofs of concept and projects across multiple regions and business functions.")
-    bullet("Designed and delivered AI literacy and adoption activity reaching 1,000+ employees, with 100+ learning sessions delivered across Volvo Group roles.")
+    bullet("Across Volvo AI roles, shaped and supported 100+ AI initiatives, proofs of concept and projects across multiple regions and business functions.")
+    bullet("Designed and delivered AI literacy and adoption activity reaching 1,000+ employees, with broader enterprise communities engaging 1,500+ practitioners.")
     bullet("Worked across business, data, technology, governance and risk stakeholders to move AI opportunities from early discovery toward governed, usable enterprise capability.")
     bullet("Built practical experience across AI strategy, portfolio governance, operating-model design, data foundations, responsible adoption and scale-readiness.")
 
@@ -152,7 +153,7 @@ def build_public_cv() -> bytes:
         "Dec 2025 - Jun 2026",
         "Gothenburg, Sweden",
         [
-            "Led the foundations of a business-facing AI & Data Center of Excellence, connecting AI strategy, data governance, responsible AI, adoption and enterprise scale-readiness.",
+            "Built foundations for a business-facing AI & Data Center of Excellence connecting AI strategy, data governance, responsible adoption and enterprise scale-readiness.",
             "Structured AI opportunity and lifecycle governance with clearer stages, ownership, decision points and criteria for moving initiatives toward investment and scale.",
             "Advanced data-governance foundations covering ownership, stewardship, data quality and trusted-data practices.",
             "Partnered with strategy, operations, technology and business leaders to make AI priorities, dependencies and next decisions clearer.",
@@ -165,9 +166,9 @@ def build_public_cv() -> bytes:
         "Gothenburg, Sweden",
         [
             "Led AI and analytics adoption across commercial operations, including warranty, sales and aftermarket, translating business needs into practical AI use cases and workflow improvements.",
-            "Designed and launched AI literacy and adoption programs reaching thousands of employees worldwide and supporting responsible use of generative AI.",
-            "Led cross-functional proofs of concept across warranty, sales, aftermarket, legal, compliance and sustainability, coordinating business, Digital & IT and specialist stakeholders.",
-            "Worked on AI solutions and agents intended to reduce cycle time and cost while improving adoption in everyday operations.",
+            "Designed practical AI literacy and adoption activity reaching 1,000+ employees and supporting responsible use of generative AI.",
+            "Led cross-functional use-case and proof-of-concept work across commercial and corporate functions, coordinating business, Digital & IT and specialist stakeholders.",
+            "Connected use-case discovery, adoption, governance and enterprise delivery realities rather than treating pilots or training volume as the outcome.",
         ],
     )
     role(
@@ -176,7 +177,7 @@ def build_public_cv() -> bytes:
         "Jul 2021 - Sep 2022",
         "Krakow, Poland / EMEA",
         [
-            "Managed value discovery and realization for AI and Data Science initiatives across EMEA, connecting business priorities with feasible AI opportunities.",
+            "Led value discovery and realization for AI and Data Science opportunities across EMEA, connecting business priorities with feasible AI opportunities.",
             "Worked in a global role reporting to the Chief Data & Analytics Officer and supporting the company ambition to become more AI-driven.",
             "Partnered with functions including supply chain, manufacturing, sales, marketing and logistics to shape use cases around business value and readiness.",
         ],
@@ -191,9 +192,9 @@ def build_public_cv() -> bytes:
         "Jun 2018 - Jul 2021",
         "Wroclaw, Poland",
         [
-            "Led business requirements, product management and stakeholder management for 100+ AI initiatives, proofs of concept and projects across multiple regions.",
+            "Led business requirements, product management and stakeholder work across a large portfolio of AI initiatives, proofs of concept and projects in multiple regions.",
             "Delivered 100+ sessions and training opportunities to strengthen AI literacy across the global Volvo Group.",
-            "Contributed to enterprise AI community and Center of Excellence activity, helping connect use-case demand, technical teams and practical adoption.",
+            "Supported enterprise AI community and Center of Excellence activity, engaging 1,500+ practitioners and connecting use-case demand with technical teams and practical adoption.",
         ],
     )
     role(
@@ -234,11 +235,10 @@ def build_public_cv() -> bytes:
         size=8.35,
     )
 
-    section("Recognition & Thought Leadership")
+    section("Recognition & Writing")
     bullet("Thinkers360 Top 50 Global Thought Leaders & Influencers on Emerging Technology (2023).")
     bullet("Speaker on enterprise AI adoption, including strategies for scaling AI across the enterprise.")
     bullet("Published writing on AI strategy, governance, operating models, data readiness, Responsible AI and enterprise adoption.")
-    bullet("Selected publication: How to Implement an effective AI strategy in your business.")
 
     return bytes(pdf.output())
 
@@ -247,7 +247,6 @@ CV_BYTES = build_public_cv()
 ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = ROOT / "static"
 STATIC_DIR.mkdir(exist_ok=True)
-CV_FILENAME = "Jair_Ribeiro_Senior_AI_Data_Leader_CV_2026.pdf"
 (STATIC_DIR / CV_FILENAME).write_bytes(CV_BYTES)
 
 site_assets.CV_BYTES = CV_BYTES

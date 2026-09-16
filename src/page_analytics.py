@@ -6,7 +6,11 @@ from urllib import error, parse, request
 import streamlit as st
 import streamlit.components.v1 as components
 
-from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
+from site_analytics import (
+    ANALYTICS_PUBLISHABLE_KEY,
+    ANALYTICS_URL,
+    RECOMMENDED_ATTRIBUTION_SOURCES,
+)
 
 DASHBOARD_RPC = "careersite_analytics_dashboard"
 PUBLIC_BASE_URL = "https://jairribeiro-ai.streamlit.app/"
@@ -177,12 +181,12 @@ def render_analytics_dashboard() -> None:
     st.subheader("Attribution link builder")
     st.caption(
         "Use the source label to identify the job-search activity, not the person. "
-        "The optional role label lets selected applications be grouped by mandate."
+        "Email is tracked separately from recruiter outreach. The optional role label lets selected applications be grouped by mandate."
     )
 
     a, b, c = st.columns(3)
     with a:
-        source = st.selectbox("Source", ["linkedin", "cv", "outreach", "application"], index=0)
+        source = st.selectbox("Source", list(RECOMMENDED_ATTRIBUTION_SOURCES), index=0)
     with b:
         role = st.text_input("Role / campaign (optional)", placeholder="ai-transformation")
     with c:

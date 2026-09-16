@@ -47,6 +47,7 @@ class RuntimeSmokeTests(unittest.TestCase):
             set(ROLE_LENSES),
             {"enterprise", "transformation", "governance", "consulting"},
         )
+        self.assertNotIn("Analytics", html)
 
     def test_experience_metrics_are_precise(self) -> None:
         for relative in (
@@ -73,7 +74,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn("Based in Gothenburg · Sweden &amp; international mandates", components)
         self.assertNotIn("Gothenburg, Sweden · Sweden / International", home)
 
-    def test_analytics_taxonomy_and_privacy(self) -> None:
+    def test_analytics_taxonomy_privacy_and_attribution(self) -> None:
         from site_analytics import ALLOWED_EVENTS, LENS_PAGES
 
         self.assertEqual(
@@ -95,11 +96,28 @@ class RuntimeSmokeTests(unittest.TestCase):
 
         analytics = (ROOT / "src/site_analytics.py").read_text(encoding="utf-8")
         app = (ROOT / "app.py").read_text(encoding="utf-8")
+        dashboard = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
+
         self.assertIn("sessionStorage", analytics)
         self.assertNotIn("localStorage", analytics)
         self.assertNotIn("document.cookie", analytics)
         self.assertNotIn("user_agent", analytics)
+        self.assertIn("params.get('source')", analytics)
+        self.assertIn("params.get('role')", analytics)
+        self.assertIn("attribution_source", analytics)
+        self.assertIn("attribution_role", analytics)
+        self.assertIn("jair_hq_attribution_v1", analytics)
+
+        self.assertIn('PUBLIC_VALID | {"analytics"}', app)
+        self.assertIn('if PAGE == "analytics":', app)
+        self.assertIn("render_analytics_dashboard()", app)
         self.assertIn("inject_analytics(PAGE, source=\"streamlit\")", app)
+
+        self.assertIn("noindex,nofollow,noarchive", dashboard)
+        self.assertIn("Attribution link builder", dashboard)
+        self.assertIn('"linkedin", "cv", "outreach", "application"', dashboard)
+        self.assertIn("source", dashboard)
+        self.assertIn("role", dashboard)
 
 
 if __name__ == "__main__":

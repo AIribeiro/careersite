@@ -64,7 +64,7 @@ def role_lens(
         f'<section class="section paper"><div class="container lensgrid">'
         f'<aside class="lensaside"><p class="eyebrow">Jair Ribeiro</p>'
         f'<h2>Enterprise AI &amp; Data Leader</h2>{photo}'
-        f'<p class="muted">This page reorganizes selected evidence around one hiring context. It is not a separate CV or a claim to a different professional identity.</p>'
+        f'<p class="muted">I bring enterprise AI, Data &amp; Analytics experience across strategy, portfolio choices, governance, adoption and operating-model decisions, with the technical fluency to connect business priorities with delivery reality.</p>'
         f'<p class="muted">{html.escape(perspective)}</p><div class="actions">'
         f'<a class="btn dark" href="?page=impact" target="_self" data-hq-event="impact_lens">'
         f'Leadership impact</a>{cv}</div></aside><div>{"".join(body)}</div></div></section>'

@@ -16,6 +16,15 @@ RECENT = [
     ("Decision note · AI Governance", "The AI governance gate I would never remove.", "Controls can be tiered. Human accountability for consequential use cannot be implicit.", "governance-accountability", "thinking_recent_governance_open"),
 ]
 
+UPCOMING = [
+    ("Point of view · AI Governance", "AI Governance That Helps Teams Move Faster", "How proportionate guardrails can reduce uncertainty and speed responsible decisions."),
+    ("Point of view · AI Adoption", "What AI Adoption Looks Like Beyond License Usage", "What changes when adoption is measured through workflows, decisions and behavior rather than access."),
+    ("Point of view · AI Strategy", "Why AI Strategy Without an Operating Model Usually Fails", "Why ambition stalls when ownership, decision rights and execution mechanisms stay implicit."),
+    ("Field note · Strategy & Delivery", "The Missing Owner Between AI Strategy and Delivery", "A look at the accountability gap between enterprise intent and day-to-day execution."),
+    ("Point of view · Operating Capability", "What Changes When AI Moves From Experiment to Operating Capability", "The organizational shift from proving possibility to running AI as part of normal operations."),
+    ("Point of view · AI Value", "AI ROI Is Often an Operating Problem Before It Is a Technology Problem", "Why value leakage often begins in workflow design, ownership and adoption before model performance becomes the issue."),
+]
+
 
 def _recent_cards() -> str:
     cards = []
@@ -27,12 +36,28 @@ def _recent_cards() -> str:
     return '<div class="recent-grid">' + ''.join(cards) + '</div>'
 
 
+def _upcoming_preview() -> str:
+    items = []
+    for label, title, desc in UPCOMING:
+        items.append(
+            f'<article class="upcoming-item"><span class="kicker">{html.escape(label)}</span>'
+            f'<strong>{html.escape(title)}</strong><p>{html.escape(desc)}</p></article>'
+        )
+    return (
+        '<section class="upcoming-wrap"><div class="upcoming-head"><div><p class="eyebrow">Coming next</p>'
+        '<h3>Questions I’m working through next.</h3></div>'
+        '<p>A short preview of the editorial agenda ahead — the operating questions I plan to explore as this body of work develops.</p></div>'
+        '<div class="upcoming-grid">' + ''.join(items) + '</div></section>'
+    )
+
+
 def landing() -> str:
     return f'''{THINKING_CSS}{nav("thinking")}<main>
 <section class="pagehero"><div class="container"><p class="eyebrow">Thinking</p><h1>Current thinking on the decisions behind enterprise AI.</h1><p>I use this page as a working record of the operating questions I keep encountering: what deserves investment, what is ready to scale, where governance helps or gets in the way, how ownership should work and what turns AI activity into durable business capability.</p></div></section>
 <section class="section paper"><div class="container"><div class="head"><div><p class="eyebrow">What I’m thinking about now</p><h2>Fresh arguments, short notes and practical frameworks.</h2></div><p>New material appears here first. The purpose is not publishing volume; it is to make the judgment behind enterprise AI and Data leadership visible while the questions are still current.</p></div>
 <div class="thinking-now"><article class="featured-thinking"><div class="kicker">Field note · Portfolio &amp; Value</div><h2>When an AI Use Case Should Be Stopped</h2><p>AI portfolios need explicit exit criteria. A technically credible use case can still be the wrong place for the next unit of investment — and continuing by default is not portfolio discipline.</p><a class="read-live" href="?page=thinking&amp;article=stop-ai-use-case" target="_self" data-hq-event="thinking_week4_stop_open">Read the field note →</a><div class="meta">17 Sep 2026 · Portfolio &amp; Value · 5 min</div></article>
 <article class="decision-note"><div class="kicker">Decision note · AI Value</div><h3>AI ROI is often diagnosed too late.</h3><p>If value only becomes a serious question after deployment, the portfolio has already missed the most useful moment to shape it.</p><a class="read-live" style="margin-top:18px;font-size:11px;font-weight:850;text-decoration:none" href="?page=thinking&amp;article=roi-diagnosed-too-late" target="_self" data-hq-event="thinking_week4_roi_open">Read note →</a><div class="meta">17 Sep 2026 · AI Value · 1 min</div></article></div>
+{_upcoming_preview()}
 <div class="format-strip"><div class="format-card"><span>Point of view</span><strong>A position worth defending</strong><p>Longer arguments on enterprise AI decisions, trade-offs and operating choices.</p></div><div class="format-card"><span>Field notes</span><strong>What practice teaches</strong><p>Observations shaped by recurring patterns in enterprise work.</p></div><div class="format-card"><span>Decision notes</span><strong>One judgment, briefly</strong><p>Short positions on a specific leadership or governance decision.</p></div><div class="format-card"><span>Frameworks</span><strong>Reusable ways to think</strong><p>Simple models for portfolio, operating-model, adoption and value questions.</p></div></div>
 <div class="themebar"><span>AI Strategy</span><span>Operating Models</span><span>AI Governance</span><span>Adoption</span><span>Portfolio &amp; Value</span><span>Data &amp; Analytics Leadership</span></div></div></section>
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Recent thinking</p><h2>Earlier topics remain part of the working record.</h2></div><p>Current material moves to the top without disappearing when the next argument is published.</p></div>{_recent_cards()}</div></section>

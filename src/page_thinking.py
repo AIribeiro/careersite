@@ -3,10 +3,9 @@ from __future__ import annotations
 import html
 import re
 
-from thinking_articles import article_by_key, article_relative_url, resolve_article
+from thinking_articles import article_by_key, article_relative_url, article_social_image_url, resolve_article
 from thinking_core import query_value
 from thinking_landing import CURRENT_PRIMARY, CURRENT_SECONDARY, RECENT, landing
-from thinking_visuals import visual_svg
 from thinking_week1 import pilot_to_scale, governance_accountability
 from thinking_week2 import investable_portfolio, adoption_metric
 from thinking_week3 import coe_not_ai_department, strategy_to_value_framework
@@ -19,8 +18,7 @@ PUBLIC_COPY_GUARD = (
 )
 
 VISUAL_CSS = r'''<style>
-.article-cover,.thinking-thumb{display:block;width:100%;aspect-ratio:16/9;overflow:hidden;background:#0a5682;border:1px solid rgba(255,255,255,.16)}
-.article-cover svg,.thinking-thumb svg{display:block;width:100%;height:100%}
+.article-cover,.thinking-thumb{display:block;width:100%;height:auto;aspect-ratio:1200/627;object-fit:cover;background:#0a5682;border:1px solid rgba(255,255,255,.16)}
 .article-cover{margin:24px 0 0;box-shadow:0 20px 48px rgba(0,0,0,.22)}
 .featured-thinking .thinking-thumb,.decision-note .thinking-thumb{margin:0 0 22px}
 .recent-card .thinking-thumb{margin:0 0 18px;border-color:var(--line)}
@@ -44,9 +42,9 @@ ROUTES = {
 def _image(article_key: str, css_class: str) -> str:
     article = article_by_key(article_key)
     return (
-        f'<div class="{css_class}" aria-label="{html.escape(article.title + " — Jair Ribeiro", quote=True)}">'
-        f'{visual_svg(article_key)}'
-        '</div>'
+        f'<img class="{css_class}" src="{html.escape(article_social_image_url(article), quote=True)}" '
+        f'alt="{html.escape(article.title + " — Jair Ribeiro", quote=True)}" '
+        'width="1200" height="627" loading="eager" decoding="async">'
     )
 
 

@@ -9,6 +9,7 @@ font = "sans serif"
 [server]
 headless = true
 enableStaticServing = true
+useStarlette = true
 
 [browser]
 gatherUsageStats = false

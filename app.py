@@ -2,96 +2,76 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
+from xml.sax.saxutils import escape
 
 import streamlit as st
+from starlette.responses import FileResponse, HTMLResponse, PlainTextResponse, Response
+from starlette.routing import Route
 
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from site_styles import CSS
-from site_image_styles import IMAGE_CSS
-from site_meta import inject_article_metadata, inject_metadata
-from site_analytics import inject_analytics
-from thinking_articles import resolve_article
-from thinking_social import ensure_all_article_social_assets
+from thinking_articles import ARTICLES, BASE_URL, article_url, resolve_article
+from thinking_social import ensure_article_share_page, ensure_article_social_image
 
-# Load curated production media and bind the canonical repository-backed CV
-# before page modules import shared asset constants. PDF generation itself is a
-# CI/build concern and never runs in the deployed Streamlit process.
-import site_media  # noqa: F401
-import site_cv_runtime  # noqa: F401
 
-from page_home import home
-from page_impact import impact
-from page_thinking import thinking
-from page_about import about
-from page_contact import contact
-from page_analytics import render_analytics_dashboard
-from site_lenses import enterprise, transformation, governance, consulting
+async def _thinking_article(request):
+    article = resolve_article(request.path_params.get("slug"))
+    if article is None:
+        return PlainTextResponse("Article not found", status_code=404)
+    path = ensure_article_share_page(article)
+    return HTMLResponse(
+        path.read_text(encoding="utf-8"),
+        headers={"Cache-Control": "public, max-age=900, stale-while-revalidate=3600"},
+    )
 
-PAGE = st.query_params.get("page", "home")
-if isinstance(PAGE, list):
-    PAGE = PAGE[0] if PAGE else "home"
-PAGE = str(PAGE).lower().strip()
-PUBLIC_VALID = {"home", "impact", "thinking", "about", "contact", "enterprise", "transformation", "governance", "consulting"}
-VALID = PUBLIC_VALID | {"analytics"}
-PAGE = PAGE if PAGE in VALID else "home"
 
-ARTICLE_QUERY = st.query_params.get("article", "") if PAGE == "thinking" else ""
-if isinstance(ARTICLE_QUERY, list):
-    ARTICLE_QUERY = ARTICLE_QUERY[0] if ARTICLE_QUERY else ""
-ARTICLE_META = resolve_article(str(ARTICLE_QUERY).strip().lower()) if ARTICLE_QUERY else None
+async def _thinking_social_image(request):
+    article = resolve_article(request.path_params.get("slug"))
+    if article is None:
+        return PlainTextResponse("Image not found", status_code=404)
+    path = ensure_article_social_image(article)
+    return FileResponse(
+        path,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=86400, stale-while-revalidate=604800"},
+    )
 
-TITLES = {
-    "home": "Jair Ribeiro | Enterprise AI & Data Leader",
-    "impact": "Leadership Impact | Jair Ribeiro",
-    "thinking": "Selected Thinking | Jair Ribeiro",
-    "about": "About | Jair Ribeiro",
-    "contact": "Discuss a Leadership Opportunity | Jair Ribeiro",
-    "enterprise": "Enterprise AI & Data Leadership | Jair Ribeiro",
-    "transformation": "AI Transformation & Adoption | Jair Ribeiro",
-    "governance": "AI Governance & Operating Model | Jair Ribeiro",
-    "consulting": "Business-Driven AI & Consulting | Jair Ribeiro",
-    "analytics": "Hiring-Funnel Analytics | Jair Ribeiro",
-}
 
-PAGE_TITLE = ARTICLE_META.seo_title if ARTICLE_META is not None else TITLES[PAGE]
-PAGE_ICON = ROOT / "images" / "profile_red_bg.jpg.jpg"
+async def _robots(_request):
+    return PlainTextResponse(
+        f"User-agent: *\nAllow: /\nSitemap: {BASE_URL}/sitemap.xml\n",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
 
-try:
-    ensure_all_article_social_assets()
-except OSError:
-    # The app remains usable if a constrained runtime cannot write derivatives.
-    pass
 
-st.set_page_config(
-    page_title=PAGE_TITLE,
-    page_icon=str(PAGE_ICON),
-    layout="wide",
-    initial_sidebar_state="collapsed",
+async def _sitemap(_request):
+    urls = [f"{BASE_URL}/"] + [article_url(article) for article in ARTICLES]
+    body = "".join(
+        f"<url><loc>{escape(url)}</loc><lastmod>{article.published_iso if index else '2026-09-17'}</lastmod></url>"
+        for index, (url, article) in enumerate(
+            [(urls[0], ARTICLES[0])] + [(article_url(item), item) for item in ARTICLES]
+        )
+    )
+    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{body}</urlset>'
+    return Response(
+        xml,
+        media_type="application/xml",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+# Streamlit 1.53 auto-detects an st.App instance named `app` when launched with
+# `streamlit run app.py`, including on Community Cloud. This gives the portfolio
+# real crawler-visible HTTP routes while keeping the interactive UI in main.py.
+app = st.App(
+    "main.py",
+    routes=[
+        Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),
+        Route("/social/{slug}.png", _thinking_social_image, methods=["GET", "HEAD"]),
+        Route("/robots.txt", _robots, methods=["GET", "HEAD"]),
+        Route("/sitemap.xml", _sitemap, methods=["GET", "HEAD"]),
+    ],
 )
-
-if PAGE == "analytics":
-    render_analytics_dashboard()
-else:
-    if ARTICLE_META is not None:
-        inject_article_metadata(ARTICLE_META)
-    else:
-        inject_metadata(PAGE, PAGE_TITLE)
-
-    RENDER = {
-        "home": home,
-        "impact": impact,
-        "thinking": thinking,
-        "about": about,
-        "contact": contact,
-        "enterprise": enterprise,
-        "transformation": transformation,
-        "governance": governance,
-        "consulting": consulting,
-    }
-
-    st.html(CSS + IMAGE_CSS + '<div class="site">' + RENDER[PAGE]() + '</div>')
-    inject_analytics(PAGE, source="streamlit")

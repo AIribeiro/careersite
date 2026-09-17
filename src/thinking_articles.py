@@ -150,7 +150,7 @@ ARTICLES: tuple[ArticleMeta, ...] = (
         seo_title="When an AI Use Case Should Be Stopped | Jair Ribeiro",
         seo_description="Six signals that an AI use case should be stopped or reconsidered, from weak value mechanisms and adoption costs to changed portfolio priorities.",
         social_title="When an AI Use Case Should Be Stopped",
-        social_description="Stopping is not portfolio failure. Continuing weak AI work after the evidence changes is.",
+        social_description="Stopping is not portfolio failure. The real failure is continuing to fund AI work after evidence shows weak value, high adoption cost or changed priorities.",
         tags=("AI Portfolio", "AI Value", "AI Use Cases", "Investment Decisions", "Enterprise AI"),
     ),
     ArticleMeta(

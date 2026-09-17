@@ -5,90 +5,26 @@ import html
 import json
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageOps
 
 from thinking_articles import (
     ARTICLES,
     ArticleMeta,
     article_app_url,
-    article_share_url,
     article_social_image_url,
     article_url,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "images" / "profile_red_bg.jpg.jpg"
+SOURCE_DIR = ROOT / "static" / "thinking-visuals"
 TARGET_DIR = ROOT / "static" / "thinking"
-# LinkedIn recommends a 1.91:1 image. 1200x627 also works well on X and other
-# Open Graph consumers, so one deterministic derivative can serve all channels.
 SIZE = (1200, 627)
-# Bump this value whenever all published article images must be regenerated,
-# even when article metadata and source photography have not changed.
-GENERATOR_VERSION = "thinking-social-v4-force-2026-09-17"
-
-NAVY = "#0b1220"
-WHITE = "#fffdf8"
-COPPER = "#b86134"
-COPPER_LIGHT = "#f0c09d"
-EYEBROW = "#e6aa7d"
-MUTED = "#c4ceda"
-MUTED_DARK = "#95a2b4"
-DIVIDER = "#364052"
-
-# Topic-aware accents keep the editorial system visually coherent while making
-# cards distinguishable in a LinkedIn feed. Unknown future topics fall back to
-# the portfolio copper treatment without requiring generator code changes.
-TOPIC_ACCENTS: dict[str, tuple[str, str]] = {
-    "enterprise ai": ("#b86134", "#f0c09d"),
-    "ai governance": ("#8a6748", "#dec7ad"),
-    "portfolio & value": ("#98603f", "#e6b596"),
-    "ai portfolio & value": ("#98603f", "#e6b596"),
-    "ai adoption": ("#58717e", "#bfd0d8"),
-    "ai operating model": ("#6d657f", "#cbc4dc"),
-    "ai value": ("#6f7750", "#d0d6af"),
-}
+GENERATOR_VERSION = "thinking-social-v5-article-visuals-2026-09-17"
+BACKGROUND = "#07527d"
 
 
-def _font(size: int, *, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    suffix = "-Bold" if bold else ""
-    candidates = [
-        Path(f"/usr/share/fonts/truetype/dejavu/DejaVuSans{suffix}.ttf"),
-        Path(
-            "/usr/share/fonts/truetype/liberation2/"
-            + ("LiberationSans-Bold.ttf" if bold else "LiberationSans-Regular.ttf")
-        ),
-    ]
-    for path in candidates:
-        if path.exists():
-            return ImageFont.truetype(str(path), size=size)
-    return ImageFont.load_default()
-
-
-def _wrap(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont, max_width: int) -> list[str]:
-    words = text.split()
-    lines: list[str] = []
-    current: list[str] = []
-    for word in words:
-        candidate = " ".join(current + [word])
-        bbox = draw.textbbox((0, 0), candidate, font=font)
-        if current and bbox[2] - bbox[0] > max_width:
-            lines.append(" ".join(current))
-            current = [word]
-        else:
-            current.append(word)
-    if current:
-        lines.append(" ".join(current))
-    return lines
-
-
-def _title_layout(draw: ImageDraw.ImageDraw, title: str) -> tuple[ImageFont.ImageFont, list[str]]:
-    for size in (56, 52, 48, 44, 40, 36):
-        font = _font(size, bold=True)
-        lines = _wrap(draw, title, font, 710)
-        if len(lines) <= 4:
-            return font, lines
-    font = _font(34, bold=True)
-    return font, _wrap(draw, title, font, 710)[:4]
+def _source_path(article: ArticleMeta) -> Path:
+    return SOURCE_DIR / f"{article.key}.webp"
 
 
 def _social_path(article: ArticleMeta) -> Path:
@@ -103,25 +39,21 @@ def _share_path(article: ArticleMeta) -> Path:
     return TARGET_DIR / f"{article.slug}.html"
 
 
-def _accent(article: ArticleMeta) -> tuple[str, str]:
-    return TOPIC_ACCENTS.get(article.topic.strip().lower(), (COPPER, COPPER_LIGHT))
-
-
 def _article_signature(article: ArticleMeta) -> str:
-    """Hash every input that can materially change the rendered card."""
+    source = _source_path(article)
     payload = {
         "generator": GENERATOR_VERSION,
         "size": SIZE,
         "key": article.key,
         "slug": article.slug,
         "title": article.social_title,
+        "description": article.social_description,
         "kind": article.kind,
         "topic": article.topic,
         "published": article.published_iso,
         "tags": article.tags,
-        "accent": _accent(article),
-        "source_size": SOURCE.stat().st_size if SOURCE.exists() else 0,
-        "source_mtime_ns": SOURCE.stat().st_mtime_ns if SOURCE.exists() else 0,
+        "source_size": source.stat().st_size if source.exists() else 0,
+        "source_mtime_ns": source.stat().st_mtime_ns if source.exists() else 0,
     }
     return hashlib.sha256(
         json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
@@ -129,12 +61,11 @@ def _article_signature(article: ArticleMeta) -> str:
 
 
 def ensure_article_social_image(article: ArticleMeta) -> Path:
-    """Generate the article's branded 1200x627 social card when needed.
+    """Derive the Open Graph card from the article's canonical branded visual."""
+    source = _source_path(article)
+    if not source.is_file():
+        raise FileNotFoundError(f"Missing Thinking visual: {source}")
 
-    Generation is metadata-driven and deterministic. Adding a new ArticleMeta
-    entry is enough to create the asset; changing title/topic/date/source photo
-    invalidates the signature and automatically rebuilds it.
-    """
     target = _social_path(article)
     signature_path = _signature_path(article)
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -149,48 +80,14 @@ def ensure_article_social_image(article: ArticleMeta) -> Path:
         except OSError:
             pass
 
-    accent, accent_light = _accent(article)
-    canvas = Image.new("RGB", SIZE, NAVY)
-    draw = ImageDraw.Draw(canvas)
-
-    # Editorial motif: topic-colored rail and small index marks. It adds visual
-    # differentiation without turning the leadership portfolio into AI artwork.
-    draw.rectangle((0, 0, 13, SIZE[1]), fill=accent)
-    for i in range(5):
-        x = 70 + i * 24
-        draw.rectangle((x, 42, x + 12, 46), fill=accent)
-
-    if SOURCE.exists():
-        with Image.open(SOURCE) as source:
-            photo = ImageOps.fit(
-                source.convert("RGB"),
-                (330, SIZE[1]),
-                method=Image.Resampling.LANCZOS,
-                centering=(0.52, 0.38),
-            )
-        # Topic tint behind the portrait keeps all cards related while the rail
-        # makes the individual subject area identifiable.
-        canvas.paste(photo, (870, 0))
-        draw.rectangle((848, 0, 870, SIZE[1]), fill=accent)
-
-    label = f"{article.kind.upper()} · {article.topic.upper()}"
-    draw.text((70, 66), label, font=_font(20, bold=True), fill=accent_light)
-
-    title_font, title_lines = _title_layout(draw, article.social_title)
-    y = 132
-    line_height = int(getattr(title_font, "size", 44) * 1.16)
-    for line in title_lines:
-        draw.text((70, y), line, font=title_font, fill=WHITE)
-        y += line_height
-
-    divider_y = min(430, max(360, y + 24))
-    draw.line((70, divider_y, 760, divider_y), fill=DIVIDER, width=2)
-    draw.text((70, divider_y + 28), "Jair Ribeiro", font=_font(25, bold=True), fill=accent_light)
-    draw.text((70, divider_y + 68), "Enterprise AI & Data Leadership", font=_font(22), fill=MUTED)
-    draw.text((70, 558), article.published_label.upper(), font=_font(15, bold=True), fill=MUTED_DARK)
-    draw.text((70, 584), "jairribeiro-ai.streamlit.app", font=_font(17, bold=True), fill=MUTED_DARK)
-
-    canvas.save(target, format="PNG", optimize=True)
+    with Image.open(source) as original:
+        branded = ImageOps.fit(
+            original.convert("RGB"),
+            SIZE,
+            method=Image.Resampling.LANCZOS,
+            centering=(0.5, 0.5),
+        )
+    branded.save(target, format="PNG", optimize=True)
     signature_path.write_text(signature + "\n", encoding="utf-8")
     return target
 
@@ -222,23 +119,14 @@ def _article_schema(article: ArticleMeta) -> dict[str, object]:
 
 
 def ensure_article_share_page(article: ArticleMeta) -> Path:
-    """Build the non-redirecting crawler document for /thinking/<slug>."""
+    """Build the crawler document for /thinking/<slug>."""
     target = _share_path(article)
     target.parent.mkdir(parents=True, exist_ok=True)
     canonical = article_url(article)
     app_url = article_app_url(article)
-    share = article_share_url(article)
     image = article_social_image_url(article)
     schema = json.dumps(_article_schema(article), ensure_ascii=False).replace("</", "<\\/")
-    title = html.escape(article.social_title, quote=True)
-    description = html.escape(article.social_description, quote=True)
-    seo_title = html.escape(article.seo_title, quote=True)
-    canonical_html = html.escape(canonical, quote=True)
-    app_url_html = html.escape(app_url, quote=True)
-    share_html = html.escape(share, quote=True)
-    image_html = html.escape(image, quote=True)
     tags = ", ".join(article.tags)
-
     article_tags = "\n".join(
         f'<meta property="article:tag" content="{html.escape(tag, quote=True)}">'
         for tag in article.tags
@@ -249,22 +137,22 @@ def ensure_article_share_page(article: ArticleMeta) -> Path:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{seo_title}</title>
+<title>{html.escape(article.seo_title, quote=True)}</title>
 <meta name="description" content="{html.escape(article.seo_description, quote=True)}">
 <meta name="author" content="Jair Ribeiro">
 <meta name="keywords" content="{html.escape(tags, quote=True)}">
 <meta name="robots" content="index,follow,max-image-preview:large">
-<link rel="canonical" href="{canonical_html}">
-<link rel="image_src" href="{image_html}">
-<meta property="og:title" content="{title}">
-<meta property="og:description" content="{description}">
+<link rel="canonical" href="{html.escape(canonical, quote=True)}">
+<link rel="image_src" href="{html.escape(image, quote=True)}">
+<meta property="og:title" content="{html.escape(article.social_title, quote=True)}">
+<meta property="og:description" content="{html.escape(article.social_description, quote=True)}">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Jair Ribeiro">
 <meta property="og:locale" content="en_US">
-<meta property="og:url" content="{share_html}">
-<meta property="og:image" content="{image_html}">
-<meta property="og:image:url" content="{image_html}">
-<meta property="og:image:secure_url" content="{image_html}">
+<meta property="og:url" content="{html.escape(canonical, quote=True)}">
+<meta property="og:image" content="{html.escape(image, quote=True)}">
+<meta property="og:image:url" content="{html.escape(image, quote=True)}">
+<meta property="og:image:secure_url" content="{html.escape(image, quote=True)}">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="627">
@@ -275,9 +163,9 @@ def ensure_article_share_page(article: ArticleMeta) -> Path:
 <meta property="article:section" content="{html.escape(article.topic, quote=True)}">
 {article_tags}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{title}">
-<meta name="twitter:description" content="{description}">
-<meta name="twitter:image" content="{image_html}">
+<meta name="twitter:title" content="{html.escape(article.social_title, quote=True)}">
+<meta name="twitter:description" content="{html.escape(article.social_description, quote=True)}">
+<meta name="twitter:image" content="{html.escape(image, quote=True)}">
 <meta name="twitter:image:alt" content="{html.escape(article.title + ' — Jair Ribeiro', quote=True)}">
 <script type="application/ld+json">{schema}</script>
 <style>body{{font:16px/1.6 system-ui,sans-serif;max-width:760px;margin:70px auto;padding:0 24px;color:#11151b}}a{{color:#b86134}}.meta{{color:#5e6670;font-size:13px}}</style>
@@ -286,7 +174,7 @@ def ensure_article_share_page(article: ArticleMeta) -> Path:
 <p class="meta">{html.escape(article.kind_topic)} · {html.escape(article.published_label)}</p>
 <h1>{html.escape(article.title)}</h1>
 <p>{html.escape(article.standfirst)}</p>
-<p><a href="{app_url_html}">Read the article by Jair Ribeiro →</a></p>
+<p><a href="{html.escape(app_url, quote=True)}">Read the article by Jair Ribeiro →</a></p>
 </body>
 </html>
 '''
@@ -303,7 +191,6 @@ def ensure_all_article_social_assets() -> tuple[tuple[Path, Path], ...]:
 
 
 def build_article_asset_manifest() -> dict[str, object]:
-    """Generate all article assets and return a machine-checkable manifest."""
     assets = []
     for article in ARTICLES:
         image_path, html_path = ensure_article_social_assets(article)

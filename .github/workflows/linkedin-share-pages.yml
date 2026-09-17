@@ -7,7 +7,7 @@ on:
       - "src/thinking_articles.py"
       - "src/thinking_social.py"
       - "scripts/build_linkedin_share_site.py"
-      - "images/profile_red_bg.jpg.jpg"
+      - "static/thinking-visuals/**"
       - ".github/workflows/linkedin-share-pages.yml"
   workflow_dispatch:
 

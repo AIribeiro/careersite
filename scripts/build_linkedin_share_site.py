@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 from urllib.parse import urlencode
 
+from PIL import Image, ImageOps
+
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
@@ -17,15 +19,21 @@ from thinking_articles import ARTICLES, ArticleMeta, BASE_URL
 from thinking_social import ensure_article_social_image
 
 DEFAULT_SHARE_BASE = "https://airibeiro.github.io/careersite"
+X_HANDLE = "@Liberoliber"
+X_CARD_VERSION = "xcard-20260917-1"
 
 
-def _human_url(article: ArticleMeta) -> str:
+def _human_url(article: ArticleMeta, source: str = "social") -> str:
     query = urlencode(
         {
             "page": "thinking",
             "article": article.slug,
-            "source": "linkedin",
+            "source": source,
             "content": article.slug,
+            "utm_source": source,
+            "utm_medium": "social",
+            "utm_campaign": "thinking",
+            "utm_content": article.slug,
         }
     )
     return f"{BASE_URL}/?{query}"
@@ -37,6 +45,13 @@ def _share_url(article: ArticleMeta, share_base: str) -> str:
 
 def _image_url(article: ArticleMeta, share_base: str) -> str:
     return f"{share_base.rstrip('/')}/social/{article.slug}.png"
+
+
+def _x_image_url(article: ArticleMeta, share_base: str) -> str:
+    return (
+        f"{share_base.rstrip('/')}/social-x/{article.slug}.jpg"
+        f"?v={X_CARD_VERSION}"
+    )
 
 
 def _schema(article: ArticleMeta, share_base: str) -> dict[str, object]:
@@ -69,7 +84,8 @@ def _schema(article: ArticleMeta, share_base: str) -> dict[str, object]:
 def _article_html(article: ArticleMeta, share_base: str) -> str:
     share_url = _share_url(article, share_base)
     image_url = _image_url(article, share_base)
-    human_url = _human_url(article)
+    x_image_url = _x_image_url(article, share_base)
+    fallback_human_url = _human_url(article, "social")
     schema_json = json.dumps(_schema(article, share_base), ensure_ascii=False).replace("</", "<\\/")
     tag_meta = "\n".join(
         f'<meta property="article:tag" content="{html.escape(tag, quote=True)}">'
@@ -104,9 +120,13 @@ def _article_html(article: ArticleMeta, share_base: str) -> str:
 <meta property="article:section" content="{html.escape(article.topic, quote=True)}">
 {tag_meta}
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="{X_HANDLE}">
+<meta name="twitter:creator" content="{X_HANDLE}">
+<meta name="twitter:url" content="{html.escape(share_url, quote=True)}">
 <meta name="twitter:title" content="{html.escape(article.social_title, quote=True)}">
 <meta name="twitter:description" content="{html.escape(article.social_description, quote=True)}">
-<meta name="twitter:image" content="{html.escape(image_url, quote=True)}">
+<meta name="twitter:image" content="{html.escape(x_image_url, quote=True)}">
+<meta name="twitter:image:alt" content="{html.escape(article.title + ' — Jair Ribeiro', quote=True)}">
 <script type="application/ld+json">{schema_json}</script>
 <style>
 body{{margin:0;background:#f4f0e8;color:#11151b;font:16px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}}
@@ -117,7 +137,36 @@ p{{color:#5e6670}}a{{display:inline-block;margin-top:16px;color:#fff;background:
 </style>
 <script>
 window.addEventListener('load', () => {{
-  window.setTimeout(() => window.location.replace({json.dumps(human_url)}), 900);
+  const ua = String(navigator.userAgent || '').toLowerCase();
+  if (/bot|crawler|spider|slurp|facebookexternalhit|linkedinbot|twitterbot/.test(ua)) return;
+
+  const params = new URLSearchParams(window.location.search);
+  let source = String(params.get('source') || '').trim().toLowerCase();
+  if (source === 'twitter') source = 'x';
+  if (!['linkedin', 'x', 'social'].includes(source)) {{
+    try {{
+      const ref = document.referrer ? new URL(document.referrer).hostname.toLowerCase() : '';
+      if (ref.includes('linkedin')) source = 'linkedin';
+      else if (ref === 't.co' || ref.includes('x.com') || ref.includes('twitter.com')) source = 'x';
+      else source = 'social';
+    }} catch (_) {{
+      source = 'social';
+    }}
+  }}
+
+  const target = new URL({json.dumps(BASE_URL + '/')});
+  target.searchParams.set('page', 'thinking');
+  target.searchParams.set('article', {json.dumps(article.slug)});
+  target.searchParams.set('source', source);
+  target.searchParams.set('content', {json.dumps(article.slug)});
+  target.searchParams.set('utm_source', source);
+  target.searchParams.set('utm_medium', 'social');
+  target.searchParams.set('utm_campaign', 'thinking');
+  target.searchParams.set('utm_content', {json.dumps(article.slug)});
+
+  const link = document.getElementById('read-article');
+  if (link) link.href = target.toString();
+  window.setTimeout(() => window.location.replace(target.toString()), 900);
 }});
 </script>
 </head>
@@ -127,11 +176,22 @@ window.addEventListener('load', () => {{
 <h1>{html.escape(article.title)}</h1>
 <p>{html.escape(article.standfirst)}</p>
 <p>Opening the full article on Jair Ribeiro's portfolio.</p>
-<a href="{html.escape(human_url, quote=True)}">Read the article →</a>
+<a id="read-article" href="{html.escape(fallback_human_url, quote=True)}">Read the article →</a>
 </main>
 </body>
 </html>
 '''
+
+
+def _write_x_image(source_image: Path, target_image: Path) -> None:
+    with Image.open(source_image) as image:
+        x_image = ImageOps.fit(
+            image.convert("RGB"),
+            (1200, 600),
+            method=Image.Resampling.LANCZOS,
+            centering=(0.5, 0.5),
+        )
+        x_image.save(target_image, format="JPEG", quality=90, optimize=True, progressive=True)
 
 
 def build(output: Path, share_base: str) -> None:
@@ -139,6 +199,7 @@ def build(output: Path, share_base: str) -> None:
         shutil.rmtree(output)
     (output / "thinking").mkdir(parents=True, exist_ok=True)
     (output / "social").mkdir(parents=True, exist_ok=True)
+    (output / "social-x").mkdir(parents=True, exist_ok=True)
     (output / ".nojekyll").write_text("", encoding="utf-8")
 
     links: list[str] = []
@@ -146,6 +207,7 @@ def build(output: Path, share_base: str) -> None:
         source_image = ensure_article_social_image(article)
         target_image = output / "social" / f"{article.slug}.png"
         shutil.copy2(source_image, target_image)
+        _write_x_image(source_image, output / "social-x" / f"{article.slug}.jpg")
 
         article_dir = output / "thinking" / article.slug
         article_dir.mkdir(parents=True, exist_ok=True)
@@ -168,13 +230,13 @@ def build(output: Path, share_base: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build static LinkedIn share pages for Thinking articles.")
+    parser = argparse.ArgumentParser(description="Build static social share pages for Thinking articles.")
     parser.add_argument("--output", default="_share_site")
     parser.add_argument("--share-base", default=DEFAULT_SHARE_BASE)
     args = parser.parse_args()
     output = ROOT / args.output
     build(output, args.share_base)
-    print(f"Built {len(ARTICLES)} LinkedIn share pages in {output}")
+    print(f"Built {len(ARTICLES)} social share pages in {output}")
 
 
 if __name__ == "__main__":

@@ -32,7 +32,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: Compile application
-        run: python -m py_compile app.py main.py src/*.py tests/*.py
+        run: python -m py_compile app.py main.py src/*.py scripts/*.py tests/*.py
+
+      - name: Build and validate Thinking publication assets
+        run: python scripts/build_thinking_assets.py --check
 
       - name: Run smoke tests
         run: python -m unittest discover -s tests -p "test_*.py" -v
@@ -111,8 +114,7 @@ jobs:
         run: |
           python - <<'PY'
           from io import BytesIO
-          from urllib.request import Request, build_opener, HTTPRedirectHandler, urlopen
-          from urllib.error import HTTPError
+          from urllib.request import Request, urlopen
           from PIL import Image
           from thinking_articles import ARTICLES
 

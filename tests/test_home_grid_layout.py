@@ -22,6 +22,8 @@ class HomeGridLayoutTests(unittest.TestCase):
         focus = focus.split('{framework_teaser()}', 1)[0]
         self.assertIn('<div class="thoughts">', focus)
         self.assertNotIn("auto-fit", focus)
+        self.assertEqual(focus.count('<a class="card"'), 3)
+        self.assertNotIn("AI Portfolio &amp; Business Value", focus)
 
         references = home.split('<p class="eyebrow">External perspective</p>', 1)[1]
         references = references.split('<section class="cta">', 1)[0]

@@ -4,8 +4,14 @@ import json
 import streamlit.components.v1 as components
 
 from site_assets import LINKEDIN, MEDIUM, EMAIL
+from site_social_preview import PUBLIC_URL as SOCIAL_IMAGE, ensure_social_preview
 
-SOCIAL_IMAGE = "https://avatars.githubusercontent.com/u/97567343?v=4"
+try:
+    ensure_social_preview()
+except OSError:
+    # Metadata remains valid even if a constrained runtime cannot write the
+    # derivative during import; the public URL is stable across deployments.
+    pass
 
 DESCRIPTIONS = {
     "home": "Jair Ribeiro is an Enterprise AI & Data Leader. A curated portfolio of leadership cases, operating judgment, practical frameworks and selected writing across AI, Data and Analytics.",
@@ -57,6 +63,7 @@ def inject_metadata(page: str, title: str) -> None:
   const title = {json.dumps(title)};
   const description = {json.dumps(description)};
   const socialImage = {json.dumps(SOCIAL_IMAGE)};
+  const socialAlt = "Jair Ribeiro — Enterprise AI & Data Leader";
   const base = window.parent.location.origin + window.parent.location.pathname;
   const canonical = page === 'home' ? base : base + '?page=' + encodeURIComponent(page);
 
@@ -75,12 +82,19 @@ def inject_metadata(page: str, title: str) -> None:
   meta('meta[property="og:title"]', 'property', 'og:title', title);
   meta('meta[property="og:description"]', 'property', 'og:description', description);
   meta('meta[property="og:type"]', 'property', 'og:type', 'profile');
+  meta('meta[property="og:site_name"]', 'property', 'og:site_name', 'Jair Ribeiro');
   meta('meta[property="og:url"]', 'property', 'og:url', canonical);
   meta('meta[property="og:image"]', 'property', 'og:image', socialImage);
+  meta('meta[property="og:image:secure_url"]', 'property', 'og:image:secure_url', socialImage);
+  meta('meta[property="og:image:type"]', 'property', 'og:image:type', 'image/png');
+  meta('meta[property="og:image:width"]', 'property', 'og:image:width', '1200');
+  meta('meta[property="og:image:height"]', 'property', 'og:image:height', '630');
+  meta('meta[property="og:image:alt"]', 'property', 'og:image:alt', socialAlt);
   meta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
   meta('meta[name="twitter:title"]', 'name', 'twitter:title', title);
   meta('meta[name="twitter:description"]', 'name', 'twitter:description', description);
   meta('meta[name="twitter:image"]', 'name', 'twitter:image', socialImage);
+  meta('meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', socialAlt);
 
   let canonicalLink = doc.head.querySelector('link[rel="canonical"]');
   if (!canonicalLink) {{

@@ -19,7 +19,10 @@ class HomeCaseOrderTests(unittest.TestCase):
         self.assertLess(volvo, msx)
         self.assertLess(msx, kimberly_clark)
         self.assertNotIn('<span class="org">IBM</span>', section)
-        self.assertIn("These three roles show the parts of my experience most relevant to current enterprise AI leadership", section)
+        self.assertIn(
+            "Across these roles, the context changed but the underlying questions became increasingly connected",
+            section,
+        )
 
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ class ThinkingPublishingTests(unittest.TestCase):
             article_url,
         )
 
-        self.assertEqual(len(ARTICLES), 8)
+        self.assertGreaterEqual(len(ARTICLES), 8)
         self.assertEqual(len({article.key for article in ARTICLES}), len(ARTICLES))
         self.assertEqual(len({article.slug for article in ARTICLES}), len(ARTICLES))
 

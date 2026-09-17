@@ -6,7 +6,7 @@ from urllib.parse import quote
 import streamlit as st
 
 from site_components import nav, footer, opportunity
-from thinking_articles import article_app_url, article_by_key, article_share_url, article_url
+from thinking_articles import article_by_key, article_share_url, article_url
 
 THINKING_CSS = r'''<style>
 .thinking-now{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,.7fr);gap:18px;align-items:stretch}
@@ -37,7 +37,7 @@ def _share_footer(article_key: str) -> str:
     article = article_by_key(article_key)
     canonical = article_url(article)
     share = article_share_url(article)
-    linkedin_target = article_app_url(article) + "&source=linkedin&content=" + quote(article.slug, safe="")
+    linkedin_target = f"https://airibeiro.github.io/careersite/thinking/{article.slug}/"
     linkedin = "https://www.linkedin.com/sharing/share-offsite/?url=" + quote(linkedin_target, safe="")
     x_share = "https://twitter.com/intent/tweet?url=" + quote(share, safe="") + "&text=" + quote(article.social_title, safe="")
     mailto = "mailto:?subject=" + quote(article.social_title, safe="") + "&body=" + quote(f"{article.social_description}\n\n{canonical}", safe="")

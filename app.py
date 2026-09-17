@@ -74,10 +74,9 @@ async def _sitemap(_request):
     )
 
 
-# Streamlit 1.53 auto-detects an ASGI App instance named `app` when launched
-# with `streamlit run app.py`, including on Community Cloud. This gives the
-# portfolio crawler-visible HTTP routes while keeping the interactive UI in
-# main.py.
+# Current Streamlit exposes the Starlette ASGI application directly. Keeping
+# the interactive UI in main.py lets this launcher provide crawler-visible
+# article, social-image, robots and sitemap routes on the same public domain.
 app = App(
     "main.py",
     routes=[

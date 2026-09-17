@@ -84,6 +84,29 @@ jobs:
 
           grep -i '^Content-Type:.*application/pdf' /tmp/cv-headers.txt
 
+      - name: Verify social preview endpoint serves branded PNG
+        run: |
+          PREVIEW="jair-ribeiro-social-preview.png"
+          curl --fail --silent --show-error \
+            --dump-header /tmp/social-headers.txt \
+            --output /tmp/social-preview.png \
+            "http://127.0.0.1:8501/app/static/${PREVIEW}"
+
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          path = Path('/tmp/social-preview.png')
+          served = path.read_bytes()
+          assert served.startswith(b'\x89PNG\r\n\x1a\n'), f'HTTP endpoint returned non-PNG bytes: {served[:32]!r}'
+          with Image.open(path) as image:
+              assert image.format == 'PNG', f'Expected PNG, got {image.format}'
+              assert image.size == (1200, 630), f'Unexpected social preview size: {image.size}'
+          print(f'Social preview endpoint validated: {len(served)} bytes, 1200x630 PNG')
+          PY
+
+          grep -i '^Content-Type:.*image/png' /tmp/social-headers.txt
+
       - name: Show Streamlit log on failure
         if: failure()
         run: cat /tmp/streamlit.log || true

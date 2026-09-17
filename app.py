@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 from xml.sax.saxutils import escape
 
-from starlette.responses import FileResponse, HTMLResponse, PlainTextResponse, Response
+from starlette.responses import FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse, Response
 from starlette.routing import Route
 from streamlit.starlette import App
 
@@ -13,7 +13,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from thinking_articles import ARTICLES, BASE_URL, article_url, resolve_article
+from thinking_articles import ARTICLES, BASE_URL, article_app_url, article_url, resolve_article
 from thinking_social import ensure_article_share_page, ensure_article_social_image
 
 # Source-level compatibility anchors for the established smoke tests. The
@@ -27,15 +27,50 @@ RUNTIME_SOURCE_GUARD = (
     'import site_cv_runtime\n'
 )
 
+# Social preview services and search crawlers need the raw server-rendered
+# metadata document. Human visitors should go straight to the full interactive
+# Streamlit article. LinkedIn's preview fetcher identifies itself as LinkedInBot.
+CRAWLER_TOKENS = (
+    "linkedinbot",
+    "twitterbot",
+    "facebookexternalhit",
+    "facebot",
+    "slackbot",
+    "discordbot",
+    "telegrambot",
+    "whatsapp",
+    "googlebot",
+    "bingbot",
+    "duckduckbot",
+    "yandexbot",
+    "baiduspider",
+)
+
+
+def _is_crawler(request) -> bool:
+    user_agent = str(request.headers.get("user-agent") or "").lower()
+    return any(token in user_agent for token in CRAWLER_TOKENS)
+
 
 async def _thinking_article(request):
     article = resolve_article(request.path_params.get("slug"))
     if article is None:
         return PlainTextResponse("Article not found", status_code=404)
+
+    if not _is_crawler(request):
+        return RedirectResponse(
+            article_app_url(article),
+            status_code=302,
+            headers={"Cache-Control": "no-store"},
+        )
+
     path = ensure_article_share_page(article)
     return HTMLResponse(
         path.read_text(encoding="utf-8"),
-        headers={"Cache-Control": "public, max-age=900, stale-while-revalidate=3600"},
+        headers={
+            "Cache-Control": "public, max-age=900, stale-while-revalidate=3600",
+            "X-Robots-Tag": "index, follow, max-image-preview:large",
+        },
     )
 
 
@@ -47,13 +82,16 @@ async def _thinking_social_image(request):
     return FileResponse(
         path,
         media_type="image/png",
-        headers={"Cache-Control": "public, max-age=86400, stale-while-revalidate=604800"},
+        headers={
+            "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+            "Access-Control-Allow-Origin": "*",
+        },
     )
 
 
 async def _robots(_request):
     return PlainTextResponse(
-        f"User-agent: *\nAllow: /\nSitemap: {BASE_URL}/sitemap.xml\n",
+        f"User-agent: *\nAllow: /\n\nUser-agent: LinkedInBot\nAllow: /thinking/\nAllow: /social/\n\nSitemap: {BASE_URL}/sitemap.xml\n",
         headers={"Cache-Control": "public, max-age=3600"},
     )
 

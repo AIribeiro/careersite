@@ -1,6 +1,6 @@
 # Jair Ribeiro — Enterprise AI & Data Leadership Portfolio
 
-Professional website for **Jair Ribeiro — Enterprise AI & Data Leader**.
+Enterprise AI & Data leadership portfolio by Jair Ribeiro, covering AI strategy, governance, adoption, operating models, portfolio decisions and business value.
 
 Core point of view:
 

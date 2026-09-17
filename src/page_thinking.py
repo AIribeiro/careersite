@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import base64
 import html
 import re
-from functools import lru_cache
-from pathlib import Path
 
 from thinking_articles import article_by_key, article_relative_url, resolve_article
 from thinking_core import query_value
 from thinking_landing import CURRENT_PRIMARY, CURRENT_SECONDARY, RECENT, landing
+from thinking_visuals import visual_data_uri
 from thinking_week1 import pilot_to_scale, governance_accountability
 from thinking_week2 import investable_portfolio, adoption_metric
 from thinking_week3 import coe_not_ai_department, strategy_to_value_framework
@@ -20,7 +18,6 @@ PUBLIC_COPY_GUARD = (
     "Writing, speaking and research extend the operating perspective."
 )
 
-VISUAL_DIR = Path(__file__).resolve().parents[1] / "static" / "thinking-visuals"
 VISUAL_CSS = r'''<style>
 .article-cover,.thinking-thumb{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;background:#0a5682;border:1px solid rgba(255,255,255,.16)}
 .article-cover{margin:24px 0 0;box-shadow:0 20px 48px rgba(0,0,0,.22)}
@@ -43,17 +40,8 @@ ROUTES = {
 }
 
 
-@lru_cache(maxsize=None)
 def _visual_src(article_key: str) -> str:
-    path = VISUAL_DIR / f"{article_key}.webp"
-    try:
-        payload = base64.b64encode(path.read_bytes()).decode("ascii")
-    except OSError:
-        return (
-            "https://raw.githubusercontent.com/AIribeiro/careersite/main/"
-            f"static/thinking-visuals/{article_key}.webp"
-        )
-    return f"data:image/webp;base64,{payload}"
+    return visual_data_uri(article_key)
 
 
 def _image(article_key: str, css_class: str) -> str:

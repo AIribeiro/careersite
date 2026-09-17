@@ -10,7 +10,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class ThinkingPublishingTests(unittest.TestCase):
     def test_registry_has_complete_unique_social_ready_metadata(self) -> None:
-        from thinking_articles import ARTICLES, article_share_url, article_social_image_url, article_url
+        from thinking_articles import (
+            ARTICLES,
+            article_app_url,
+            article_share_url,
+            article_social_image_url,
+            article_url,
+        )
 
         self.assertEqual(len(ARTICLES), 8)
         self.assertEqual(len({article.key for article in ARTICLES}), len(ARTICLES))
@@ -23,9 +29,10 @@ class ThinkingPublishingTests(unittest.TestCase):
                 self.assertLessEqual(len(article.seo_title), 75)
                 self.assertTrue(article.tags)
                 self.assertTrue(article.published_iso.startswith("2026-"))
-                self.assertIn(article.slug, article_url(article))
-                self.assertTrue(article_social_image_url(article).endswith(f"/{article.slug}.png"))
-                self.assertTrue(article_share_url(article).endswith(f"/{article.slug}.html"))
+                self.assertTrue(article_url(article).endswith(f"/thinking/{article.slug}"))
+                self.assertEqual(article_share_url(article), article_url(article))
+                self.assertTrue(article_social_image_url(article).endswith(f"/social/{article.slug}.png"))
+                self.assertIn(f"article={article.slug}", article_app_url(article))
 
     def test_legacy_article_slugs_resolve_to_canonical_metadata(self) -> None:
         from thinking_articles import ARTICLES, resolve_article
@@ -37,7 +44,7 @@ class ThinkingPublishingTests(unittest.TestCase):
                     self.assertIs(resolve_article(alias), article)
 
     def test_every_article_generates_valid_social_image_and_crawler_page(self) -> None:
-        from thinking_articles import ARTICLES, article_social_image_url, article_url
+        from thinking_articles import ARTICLES, article_app_url, article_social_image_url, article_url
         from thinking_social import ensure_article_social_assets
 
         for article in ARTICLES:
@@ -57,13 +64,15 @@ class ThinkingPublishingTests(unittest.TestCase):
                 self.assertIn('property="article:published_time"', share_html)
                 self.assertIn('type="application/ld+json"', share_html)
                 self.assertIn(article_social_image_url(article), share_html)
-                self.assertIn(article_url(article).replace("&", "&amp;"), share_html)
+                self.assertIn(article_url(article), share_html)
+                self.assertIn(article_app_url(article).replace("&", "&amp;"), share_html)
                 self.assertIn("window.location.replace", share_html)
 
-    def test_article_metadata_and_share_controls_are_wired(self) -> None:
+    def test_article_metadata_share_controls_and_asgi_routes_are_wired(self) -> None:
         meta = (ROOT / "src/site_meta.py").read_text(encoding="utf-8")
         core = (ROOT / "src/thinking_core.py").read_text(encoding="utf-8")
-        app = (ROOT / "app.py").read_text(encoding="utf-8")
+        launcher = (ROOT / "app.py").read_text(encoding="utf-8")
+        main = (ROOT / "main.py").read_text(encoding="utf-8")
 
         self.assertIn("inject_article_metadata", meta)
         self.assertIn("article:published_time", meta)
@@ -72,8 +81,12 @@ class ThinkingPublishingTests(unittest.TestCase):
         self.assertIn("linkedin.com/sharing/share-offsite", core)
         self.assertIn("twitter.com/intent/tweet", core)
         self.assertIn("mailto:?subject=", core)
-        self.assertIn("ensure_all_article_social_assets", app)
-        self.assertIn("ARTICLE_META.seo_title", app)
+        self.assertIn('Route("/thinking/{slug}"', launcher)
+        self.assertIn('Route("/social/{slug}.png"', launcher)
+        self.assertIn('Route("/sitemap.xml"', launcher)
+        self.assertIn("st.App(", launcher)
+        self.assertIn("ensure_all_article_social_assets", main)
+        self.assertIn("ARTICLE_META.seo_title", main)
 
 
 if __name__ == "__main__":

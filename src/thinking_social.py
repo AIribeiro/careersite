@@ -18,7 +18,9 @@ from thinking_articles import (
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "images" / "profile_red_bg.jpg.jpg"
 TARGET_DIR = ROOT / "static" / "thinking"
-SIZE = (1200, 630)
+# LinkedIn's sharing module recommends 1.91:1 and documents 1200x627 as its
+# minimum large-preview dimensions. Use that exact canvas for article cards.
+SIZE = (1200, 627)
 
 NAVY = "#0b1220"
 WHITE = "#fffdf8"
@@ -119,7 +121,7 @@ def ensure_article_social_image(article: ArticleMeta) -> Path:
     draw.line((70, divider_y, 760, divider_y), fill=DIVIDER, width=2)
     draw.text((70, divider_y + 28), "Jair Ribeiro", font=_font(25, bold=True), fill=COPPER_LIGHT)
     draw.text((70, divider_y + 68), "Enterprise AI & Data Leadership", font=_font(22), fill=MUTED)
-    draw.text((70, 563), "jairribeiro-ai.streamlit.app", font=_font(18, bold=True), fill=MUTED_DARK)
+    draw.text((70, 560), "jairribeiro-ai.streamlit.app", font=_font(18, bold=True), fill=MUTED_DARK)
 
     canvas.save(target, format="PNG", optimize=True)
     return target
@@ -152,7 +154,7 @@ def _article_schema(article: ArticleMeta) -> dict[str, object]:
 
 
 def ensure_article_share_page(article: ArticleMeta) -> Path:
-    """Build the HTML returned by the friendly /thinking/<slug> route."""
+    """Build the non-redirecting crawler document for /thinking/<slug>."""
     target = _share_path(article)
     target.parent.mkdir(parents=True, exist_ok=True)
     canonical = article_url(article)
@@ -169,6 +171,11 @@ def ensure_article_share_page(article: ArticleMeta) -> Path:
     image_html = html.escape(image, quote=True)
     tags = ", ".join(article.tags)
 
+    article_tags = "\n".join(
+        f'<meta property="article:tag" content="{html.escape(tag, quote=True)}">'
+        for tag in article.tags
+    )
+
     document = f'''<!doctype html>
 <html lang="en">
 <head>
@@ -180,28 +187,31 @@ def ensure_article_share_page(article: ArticleMeta) -> Path:
 <meta name="keywords" content="{html.escape(tags, quote=True)}">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="canonical" href="{canonical_html}">
+<link rel="image_src" href="{image_html}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{description}">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Jair Ribeiro">
+<meta property="og:locale" content="en_US">
 <meta property="og:url" content="{share_html}">
 <meta property="og:image" content="{image_html}">
+<meta property="og:image:url" content="{image_html}">
 <meta property="og:image:secure_url" content="{image_html}">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:image:height" content="627">
 <meta property="og:image:alt" content="{html.escape(article.title + ' — Jair Ribeiro', quote=True)}">
 <meta property="article:published_time" content="{article.published_iso}">
 <meta property="article:modified_time" content="{article.published_iso}">
 <meta property="article:author" content="Jair Ribeiro">
 <meta property="article:section" content="{html.escape(article.topic, quote=True)}">
+{article_tags}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{title}">
 <meta name="twitter:description" content="{description}">
 <meta name="twitter:image" content="{image_html}">
 <meta name="twitter:image:alt" content="{html.escape(article.title + ' — Jair Ribeiro', quote=True)}">
 <script type="application/ld+json">{schema}</script>
-<script>window.location.replace({json.dumps(app_url)});</script>
 <style>body{{font:16px/1.6 system-ui,sans-serif;max-width:760px;margin:70px auto;padding:0 24px;color:#11151b}}a{{color:#b86134}}.meta{{color:#5e6670;font-size:13px}}</style>
 </head>
 <body>

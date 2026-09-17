@@ -143,16 +143,22 @@ window.addEventListener('load', () => {{
   const params = new URLSearchParams(window.location.search);
   let source = String(params.get('source') || '').trim().toLowerCase();
   if (source === 'twitter') source = 'x';
-  if (!['linkedin', 'x', 'social'].includes(source)) {{
+  if (source === 'fb') source = 'facebook';
+  if (!['linkedin', 'x', 'facebook', 'social'].includes(source)) {{
     try {{
       const ref = document.referrer ? new URL(document.referrer).hostname.toLowerCase() : '';
       if (ref.includes('linkedin')) source = 'linkedin';
       else if (ref === 't.co' || ref.includes('x.com') || ref.includes('twitter.com')) source = 'x';
+      else if (ref.includes('facebook.com') || ref.includes('fb.com') || ref.includes('messenger.com')) source = 'facebook';
       else source = 'social';
     }} catch (_) {{
       source = 'social';
     }}
   }}
+
+  let campaign = String(params.get('utm_campaign') || '').trim().toLowerCase();
+  campaign = campaign.replace(/[^a-z0-9_-]/g, '').slice(0, 100);
+  if (!campaign) campaign = source === 'facebook' ? 'facebook_groups' : 'thinking';
 
   const target = new URL({json.dumps(BASE_URL + '/')});
   target.searchParams.set('page', 'thinking');
@@ -161,7 +167,7 @@ window.addEventListener('load', () => {{
   target.searchParams.set('content', {json.dumps(article.slug)});
   target.searchParams.set('utm_source', source);
   target.searchParams.set('utm_medium', 'social');
-  target.searchParams.set('utm_campaign', 'thinking');
+  target.searchParams.set('utm_campaign', campaign);
   target.searchParams.set('utm_content', {json.dumps(article.slug)});
 
   const link = document.getElementById('read-article');

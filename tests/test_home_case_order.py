@@ -7,20 +7,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class HomeCaseOrderTests(unittest.TestCase):
-    def test_volvo_leads_selected_home_cases(self) -> None:
+    def test_home_leads_with_three_modern_leadership_cases(self) -> None:
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
         section = home.split('<p class="eyebrow">Selected leadership cases</p>', 1)[1]
-        section = section.split('{framework_teaser()}', 1)[0]
+        section = section.split('<p class="eyebrow">Leadership focus</p>', 1)[0]
 
         volvo = section.index('<span class="org">Volvo Group / Volvo Trucks</span>')
         msx = section.index('<span class="org">MSX International</span>')
         kimberly_clark = section.index('<span class="org">Kimberly-Clark</span>')
-        ibm = section.index('<span class="org">IBM</span>')
 
         self.assertLess(volvo, msx)
         self.assertLess(msx, kimberly_clark)
-        self.assertLess(kimberly_clark, ibm)
-        self.assertIn("Across Volvo, MSX, Kimberly-Clark and IBM", section)
+        self.assertNotIn('<span class="org">IBM</span>', section)
+        self.assertIn("These three roles show the parts of my experience most relevant to current enterprise AI leadership", section)
 
 
 if __name__ == "__main__":

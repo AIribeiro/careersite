@@ -6,3 +6,7 @@ venv/
 .DS_Store
 .streamlit/secrets.toml
 static/jair-ribeiro-social-preview.png
+static/thinking/*.png
+static/thinking/*.html
+static/thinking/*.sha256
+static/thinking/article-assets.json

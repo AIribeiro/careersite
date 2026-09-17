@@ -32,7 +32,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Compile application
-        run: python -m py_compile app.py src/*.py tests/*.py
+        run: python -m py_compile app.py main.py src/*.py tests/*.py
 
       - name: Run smoke tests
         run: python -m unittest discover -s tests -p "test_*.py" -v
@@ -107,7 +107,7 @@ jobs:
 
           grep -i '^Content-Type:.*image/png' /tmp/social-headers.txt
 
-      - name: Verify every article share page and thumbnail
+      - name: Verify every friendly article route and thumbnail
         run: |
           python - <<'PY'
           from io import BytesIO
@@ -115,24 +115,32 @@ jobs:
           from PIL import Image
           from thinking_articles import ARTICLES
 
-          base = 'http://127.0.0.1:8501/app/static/thinking'
+          base = 'http://127.0.0.1:8501'
           for article in ARTICLES:
-              with urlopen(f'{base}/{article.slug}.png', timeout=10) as response:
+              with urlopen(f'{base}/social/{article.slug}.png', timeout=10) as response:
                   image_bytes = response.read()
-                  assert response.headers.get_content_type() == 'image/png'
+                  assert response.headers.get_content_type() == 'image/png', response.headers
               with Image.open(BytesIO(image_bytes)) as image:
                   assert image.format == 'PNG'
                   assert image.size == (1200, 630)
 
-              with urlopen(f'{base}/{article.slug}.html', timeout=10) as response:
+              with urlopen(f'{base}/thinking/{article.slug}', timeout=10) as response:
                   share_html = response.read().decode('utf-8')
-                  assert response.headers.get_content_type() == 'text/html'
+                  assert response.headers.get_content_type() == 'text/html', response.headers
               assert 'property="og:type" content="article"' in share_html
               assert 'name="twitter:card" content="summary_large_image"' in share_html
+              assert 'type="application/ld+json"' in share_html
               assert article.title in share_html
-              assert article.slug in share_html
-              print(f'Validated social assets: {article.slug}')
+              assert f'/social/{article.slug}.png' in share_html
+              print(f'Validated friendly article route: {article.slug}')
           PY
+
+      - name: Verify robots and sitemap
+        run: |
+          curl --fail --silent --show-error http://127.0.0.1:8501/robots.txt | grep 'Sitemap:'
+          curl --fail --silent --show-error http://127.0.0.1:8501/sitemap.xml > /tmp/sitemap.xml
+          grep '<urlset' /tmp/sitemap.xml
+          grep '/thinking/when-an-ai-use-case-should-be-stopped' /tmp/sitemap.xml
 
       - name: Show Streamlit log on failure
         if: failure()

@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from thinking_articles import (
     ARTICLES,
     ArticleMeta,
+    article_app_url,
     article_share_url,
     article_social_image_url,
     article_url,
@@ -151,9 +152,11 @@ def _article_schema(article: ArticleMeta) -> dict[str, object]:
 
 
 def ensure_article_share_page(article: ArticleMeta) -> Path:
+    """Build the HTML returned by the friendly /thinking/<slug> route."""
     target = _share_path(article)
     target.parent.mkdir(parents=True, exist_ok=True)
     canonical = article_url(article)
+    app_url = article_app_url(article)
     share = article_share_url(article)
     image = article_social_image_url(article)
     schema = json.dumps(_article_schema(article), ensure_ascii=False).replace("</", "<\\/")
@@ -161,6 +164,7 @@ def ensure_article_share_page(article: ArticleMeta) -> Path:
     description = html.escape(article.social_description, quote=True)
     seo_title = html.escape(article.seo_title, quote=True)
     canonical_html = html.escape(canonical, quote=True)
+    app_url_html = html.escape(app_url, quote=True)
     share_html = html.escape(share, quote=True)
     image_html = html.escape(image, quote=True)
     tags = ", ".join(article.tags)
@@ -197,11 +201,14 @@ def ensure_article_share_page(article: ArticleMeta) -> Path:
 <meta name="twitter:image" content="{image_html}">
 <meta name="twitter:image:alt" content="{html.escape(article.title + ' — Jair Ribeiro', quote=True)}">
 <script type="application/ld+json">{schema}</script>
-<meta http-equiv="refresh" content="0;url={canonical_html}">
-<script>window.location.replace({json.dumps(canonical)});</script>
+<script>window.location.replace({json.dumps(app_url)});</script>
+<style>body{{font:16px/1.6 system-ui,sans-serif;max-width:760px;margin:70px auto;padding:0 24px;color:#11151b}}a{{color:#b86134}}.meta{{color:#5e6670;font-size:13px}}</style>
 </head>
 <body>
-<p>Opening <a href="{canonical_html}">{html.escape(article.title)}</a> by Jair Ribeiro.</p>
+<p class="meta">{html.escape(article.kind_topic)} · {html.escape(article.published_label)}</p>
+<h1>{html.escape(article.title)}</h1>
+<p>{html.escape(article.standfirst)}</p>
+<p><a href="{app_url_html}">Read the article by Jair Ribeiro →</a></p>
 </body>
 </html>
 '''

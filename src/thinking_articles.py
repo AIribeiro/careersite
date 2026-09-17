@@ -190,19 +190,26 @@ def article_by_key(key: str) -> ArticleMeta:
 
 
 def article_relative_url(article: ArticleMeta) -> str:
+    """Internal Streamlit navigation URL."""
     return f"?page=thinking&article={article.slug}"
 
 
-def article_url(article: ArticleMeta) -> str:
+def article_app_url(article: ArticleMeta) -> str:
+    """Direct Streamlit article URL used as the human redirect target."""
     return f"{BASE_URL}/?page=thinking&article={article.slug}"
 
 
+def article_url(article: ArticleMeta) -> str:
+    """Canonical and social-friendly public article URL."""
+    return f"{BASE_URL}/thinking/{article.slug}"
+
+
 def article_social_image_url(article: ArticleMeta) -> str:
-    return f"{BASE_URL}/app/static/thinking/{article.slug}.png"
+    return f"{BASE_URL}/social/{article.slug}.png"
 
 
 def article_share_url(article: ArticleMeta) -> str:
-    return f"{BASE_URL}/app/static/thinking/{article.slug}.html"
+    return article_url(article)
 
 
 def published_articles() -> Iterable[ArticleMeta]:

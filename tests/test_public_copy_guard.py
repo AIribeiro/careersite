@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class PublicCopyGuardTests(unittest.TestCase):
     def test_public_pages_use_audience_facing_storytelling(self) -> None:
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
+        about = (ROOT / "src/page_about.py").read_text(encoding="utf-8")
         lenses = (ROOT / "src/site_lenses.py").read_text(encoding="utf-8")
         impact = (ROOT / "src/page_impact.py").read_text(encoding="utf-8")
         thinking = (ROOT / "src/page_thinking.py").read_text(encoding="utf-8")
@@ -18,11 +19,15 @@ class PublicCopyGuardTests(unittest.TestCase):
             "It is not a separate CV or a claim to a different professional identity.",
             "They are intended to show the judgment behind the CV bullet point.",
             "Where I create the most value.",
+            "The leadership problems I tend to work around.",
             "The six-month mandate was not about claiming a company-wide transformation.",
             "I am not interested in publishing for volume.",
             "If it does not change the conversation, it is mostly content.",
+            "The value I try to add is not technical demonstration.",
+            "I treat recognition as external validation of the work, not as a professional title.",
+            "treated as external recognition rather than a professional title.",
         )
-        public_copy = home + "\n" + lenses + "\n" + impact + "\n" + thinking
+        public_copy = home + "\n" + about + "\n" + lenses + "\n" + impact + "\n" + thinking
         for phrase in forbidden:
             self.assertNotIn(phrase, public_copy)
 
@@ -50,6 +55,16 @@ class PublicCopyGuardTests(unittest.TestCase):
             "Selected recommendations from people who worked with me in different roles and organizational contexts.",
             home,
         )
+        self.assertIn(
+            "Across these roles, the context changed but the underlying questions became increasingly connected",
+            home,
+        )
+        self.assertIn("The enterprise AI problems that keep recurring.", home)
+        self.assertIn("Director of Digital, Innovation &amp; Platforms", home)
+        self.assertIn("Building the structures around AI &amp; Data", about)
+        self.assertIn("Global Thought Leaders &amp; Influencers on Emerging Technology, 2023.", about)
+        self.assertIn("Where the business-translation thread started.", impact)
+        self.assertIn("Writing, speaking and research extend the operating perspective.", thinking)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import html
 import json
 from pathlib import Path
@@ -18,9 +19,10 @@ from thinking_articles import (
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "images" / "profile_red_bg.jpg.jpg"
 TARGET_DIR = ROOT / "static" / "thinking"
-# LinkedIn's sharing module recommends 1.91:1 and documents 1200x627 as its
-# minimum large-preview dimensions. Use that exact canvas for article cards.
+# LinkedIn recommends a 1.91:1 image. 1200x627 also works well on X and other
+# Open Graph consumers, so one deterministic derivative can serve all channels.
 SIZE = (1200, 627)
+GENERATOR_VERSION = "thinking-social-v3"
 
 NAVY = "#0b1220"
 WHITE = "#fffdf8"
@@ -30,6 +32,19 @@ EYEBROW = "#e6aa7d"
 MUTED = "#c4ceda"
 MUTED_DARK = "#95a2b4"
 DIVIDER = "#364052"
+
+# Topic-aware accents keep the editorial system visually coherent while making
+# cards distinguishable in a LinkedIn feed. Unknown future topics fall back to
+# the portfolio copper treatment without requiring generator code changes.
+TOPIC_ACCENTS: dict[str, tuple[str, str]] = {
+    "enterprise ai": ("#b86134", "#f0c09d"),
+    "ai governance": ("#8a6748", "#dec7ad"),
+    "portfolio & value": ("#98603f", "#e6b596"),
+    "ai portfolio & value": ("#98603f", "#e6b596"),
+    "ai adoption": ("#58717e", "#bfd0d8"),
+    "ai operating model": ("#6d657f", "#cbc4dc"),
+    "ai value": ("#6f7750", "#d0d6af"),
+}
 
 
 def _font(size: int, *, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -78,23 +93,70 @@ def _social_path(article: ArticleMeta) -> Path:
     return TARGET_DIR / f"{article.slug}.png"
 
 
+def _signature_path(article: ArticleMeta) -> Path:
+    return TARGET_DIR / f"{article.slug}.sha256"
+
+
 def _share_path(article: ArticleMeta) -> Path:
     return TARGET_DIR / f"{article.slug}.html"
 
 
+def _accent(article: ArticleMeta) -> tuple[str, str]:
+    return TOPIC_ACCENTS.get(article.topic.strip().lower(), (COPPER, COPPER_LIGHT))
+
+
+def _article_signature(article: ArticleMeta) -> str:
+    """Hash every input that can materially change the rendered card."""
+    payload = {
+        "generator": GENERATOR_VERSION,
+        "size": SIZE,
+        "key": article.key,
+        "slug": article.slug,
+        "title": article.social_title,
+        "kind": article.kind,
+        "topic": article.topic,
+        "published": article.published_iso,
+        "tags": article.tags,
+        "accent": _accent(article),
+        "source_size": SOURCE.stat().st_size if SOURCE.exists() else 0,
+        "source_mtime_ns": SOURCE.stat().st_mtime_ns if SOURCE.exists() else 0,
+    }
+    return hashlib.sha256(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()
+
+
 def ensure_article_social_image(article: ArticleMeta) -> Path:
+    """Generate the article's branded 1200x627 social card when needed.
+
+    Generation is metadata-driven and deterministic. Adding a new ArticleMeta
+    entry is enough to create the asset; changing title/topic/date/source photo
+    invalidates the signature and automatically rebuilds it.
+    """
     target = _social_path(article)
+    signature_path = _signature_path(article)
     target.parent.mkdir(parents=True, exist_ok=True)
-    if target.exists() and SOURCE.exists() and target.stat().st_mtime >= SOURCE.stat().st_mtime:
+    signature = _article_signature(article)
+
+    if target.exists() and signature_path.exists():
         try:
-            with Image.open(target) as existing:
-                if existing.size == SIZE and existing.format == "PNG":
-                    return target
+            if signature_path.read_text(encoding="utf-8").strip() == signature:
+                with Image.open(target) as existing:
+                    if existing.size == SIZE and existing.format == "PNG":
+                        return target
         except OSError:
             pass
 
+    accent, accent_light = _accent(article)
     canvas = Image.new("RGB", SIZE, NAVY)
     draw = ImageDraw.Draw(canvas)
+
+    # Editorial motif: topic-colored rail and small index marks. It adds visual
+    # differentiation without turning the leadership portfolio into AI artwork.
+    draw.rectangle((0, 0, 13, SIZE[1]), fill=accent)
+    for i in range(5):
+        x = 70 + i * 24
+        draw.rectangle((x, 42, x + 12, 46), fill=accent)
 
     if SOURCE.exists():
         with Image.open(SOURCE) as source:
@@ -104,11 +166,13 @@ def ensure_article_social_image(article: ArticleMeta) -> Path:
                 method=Image.Resampling.LANCZOS,
                 centering=(0.52, 0.38),
             )
+        # Topic tint behind the portrait keeps all cards related while the rail
+        # makes the individual subject area identifiable.
         canvas.paste(photo, (870, 0))
-        draw.rectangle((848, 0, 870, SIZE[1]), fill=COPPER)
+        draw.rectangle((848, 0, 870, SIZE[1]), fill=accent)
 
     label = f"{article.kind.upper()} · {article.topic.upper()}"
-    draw.text((70, 66), label, font=_font(20, bold=True), fill=EYEBROW)
+    draw.text((70, 66), label, font=_font(20, bold=True), fill=accent_light)
 
     title_font, title_lines = _title_layout(draw, article.social_title)
     y = 132
@@ -119,11 +183,13 @@ def ensure_article_social_image(article: ArticleMeta) -> Path:
 
     divider_y = min(430, max(360, y + 24))
     draw.line((70, divider_y, 760, divider_y), fill=DIVIDER, width=2)
-    draw.text((70, divider_y + 28), "Jair Ribeiro", font=_font(25, bold=True), fill=COPPER_LIGHT)
+    draw.text((70, divider_y + 28), "Jair Ribeiro", font=_font(25, bold=True), fill=accent_light)
     draw.text((70, divider_y + 68), "Enterprise AI & Data Leadership", font=_font(22), fill=MUTED)
-    draw.text((70, 560), "jairribeiro-ai.streamlit.app", font=_font(18, bold=True), fill=MUTED_DARK)
+    draw.text((70, 558), article.published_label.upper(), font=_font(15, bold=True), fill=MUTED_DARK)
+    draw.text((70, 584), "jairribeiro-ai.streamlit.app", font=_font(17, bold=True), fill=MUTED_DARK)
 
     canvas.save(target, format="PNG", optimize=True)
+    signature_path.write_text(signature + "\n", encoding="utf-8")
     return target
 
 
@@ -232,3 +298,33 @@ def ensure_article_social_assets(article: ArticleMeta) -> tuple[Path, Path]:
 
 def ensure_all_article_social_assets() -> tuple[tuple[Path, Path], ...]:
     return tuple(ensure_article_social_assets(article) for article in ARTICLES)
+
+
+def build_article_asset_manifest() -> dict[str, object]:
+    """Generate all article assets and return a machine-checkable manifest."""
+    assets = []
+    for article in ARTICLES:
+        image_path, html_path = ensure_article_social_assets(article)
+        with Image.open(image_path) as image:
+            width, height = image.size
+            image_format = image.format
+        assets.append(
+            {
+                "key": article.key,
+                "slug": article.slug,
+                "title": article.title,
+                "topic": article.topic,
+                "image": str(image_path.relative_to(ROOT)),
+                "share_page": str(html_path.relative_to(ROOT)),
+                "width": width,
+                "height": height,
+                "format": image_format,
+                "signature": _article_signature(article),
+            }
+        )
+    return {
+        "generator": GENERATOR_VERSION,
+        "size": list(SIZE),
+        "count": len(assets),
+        "articles": assets,
+    }

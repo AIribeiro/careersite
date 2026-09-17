@@ -1,4 +1,4 @@
-name: LinkedIn Share Pages
+name: Social Share Pages
 
 on:
   push:
@@ -40,10 +40,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Build static LinkedIn share site
+      - name: Build static social share site
         run: python scripts/build_linkedin_share_site.py --output _share_site --share-base https://airibeiro.github.io/careersite
 
-      - name: Validate generated share page
+      - name: Validate generated social share page
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -55,12 +55,26 @@ jobs:
           assert 'property="og:type" content="article"' in html
           assert 'property="og:image"' in html
           assert 'article:published_time' in html
+          assert 'name="twitter:card" content="summary_large_image"' in html
+          assert 'name="twitter:image"' in html
+          assert '/social-x/' in html
+          assert 'name="twitter:image:alt"' in html
+          assert 'utm_source' in html
+          assert "source = 'x'" in html
           assert 'window.location.replace' in html
-          image = Path(f'_share_site/social/{slug}.png')
-          with Image.open(image) as im:
+
+          linkedin_image = Path(f'_share_site/social/{slug}.png')
+          with Image.open(linkedin_image) as im:
               assert im.format == 'PNG'
               assert im.size == (1200, 627)
-          print('Static LinkedIn share page validated')
+
+          x_image = Path(f'_share_site/social-x/{slug}.jpg')
+          with Image.open(x_image) as im:
+              assert im.format == 'JPEG'
+              assert im.size == (1200, 600)
+
+          assert x_image.stat().st_size < 1_000_000
+          print('Static LinkedIn and X share assets validated')
           PY
 
       - name: Configure GitHub Pages

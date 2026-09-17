@@ -84,7 +84,8 @@ class ThinkingPublishingTests(unittest.TestCase):
         self.assertIn('Route("/thinking/{slug}"', launcher)
         self.assertIn('Route("/social/{slug}.png"', launcher)
         self.assertIn('Route("/sitemap.xml"', launcher)
-        self.assertIn("st.App(", launcher)
+        self.assertIn("from streamlit.starlette import App", launcher)
+        self.assertIn("app = App(", launcher)
         self.assertIn("ensure_all_article_social_assets", main)
         self.assertIn("ARTICLE_META.seo_title", main)
 

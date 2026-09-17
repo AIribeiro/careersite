@@ -4,9 +4,9 @@ from pathlib import Path
 import sys
 from xml.sax.saxutils import escape
 
-import streamlit as st
 from starlette.responses import FileResponse, HTMLResponse, PlainTextResponse, Response
 from starlette.routing import Route
+from streamlit.starlette import App
 
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
@@ -74,10 +74,11 @@ async def _sitemap(_request):
     )
 
 
-# Streamlit 1.53 auto-detects an st.App instance named `app` when launched with
-# `streamlit run app.py`, including on Community Cloud. This gives the portfolio
-# real crawler-visible HTTP routes while keeping the interactive UI in main.py.
-app = st.App(
+# Streamlit 1.53 auto-detects an ASGI App instance named `app` when launched
+# with `streamlit run app.py`, including on Community Cloud. This gives the
+# portfolio crawler-visible HTTP routes while keeping the interactive UI in
+# main.py.
+app = App(
     "main.py",
     routes=[
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),

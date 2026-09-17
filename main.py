@@ -14,6 +14,7 @@ from site_styles import CSS
 from site_image_styles import IMAGE_CSS
 from site_meta import inject_article_metadata, inject_metadata
 from site_analytics import inject_analytics
+from site_article_analytics import inject_article_analytics
 from thinking_articles import resolve_article
 from thinking_social import ensure_all_article_social_assets
 
@@ -28,7 +29,7 @@ from page_impact import impact
 from page_thinking import thinking
 from page_about import about
 from page_contact import contact
-from page_analytics import render_analytics_dashboard
+from page_analytics_v2 import render_analytics_dashboard
 from site_lenses import enterprise, transformation, governance, consulting
 
 PAGE = st.query_params.get("page", "home")
@@ -96,3 +97,4 @@ else:
 
     st.html(CSS + IMAGE_CSS + '<div class="site">' + RENDER[PAGE]() + '</div>')
     inject_analytics(PAGE, source="streamlit")
+    inject_article_analytics(PAGE, ARTICLE_META, source="streamlit")

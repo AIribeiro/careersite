@@ -16,9 +16,14 @@ CV_DOWNLOAD_NAME = "Jair_Ribeiro_Enterprise_AI_Data_Leader_CV_2026.pdf"
 
 
 def nav(active: str) -> str:
+    top_item_style = "display:inline-flex!important;align-items:center;justify-content:center;white-space:nowrap"
+
     def link(page: str, label: str) -> str:
         cls = "link on" if page == active else "link"
-        return f'<a class="{cls}" href="?page={page}" target="_self">{html.escape(label)}</a>'
+        return (
+            f'<a class="{cls}" style="{top_item_style}" href="?page={page}" '
+            f'target="_self">{html.escape(label)}</a>'
+        )
 
     lens_active = active in ROLE_LENSES
     lens_items = "".join(
@@ -30,7 +35,7 @@ def nav(active: str) -> str:
         for page, label in ROLE_LENSES.items()
     )
     lens_menu = (
-        '<details style="position:relative">'
+        '<details style="position:relative;flex:0 0 auto">'
         f'<summary class="link{" on" if lens_active else ""}" '
         'style="list-style:none;cursor:pointer;user-select:none;white-space:nowrap">Role lenses ▾</summary>'
         '<div style="position:absolute;right:0;top:calc(100% + 6px);z-index:1001;'
@@ -45,16 +50,16 @@ def nav(active: str) -> str:
     )
 
     return (
-        '<nav class="nav"><div class="navin">'
-        f'<a class="brand" href="?page=home" target="_self">{brand_icon}<div><strong>Jair Ribeiro</strong>'
+        '<nav class="nav"><div class="navin" style="flex-wrap:wrap;padding:6px 0">'
+        f'<a class="brand" style="flex:0 0 auto" href="?page=home" target="_self">{brand_icon}<div><strong>Jair Ribeiro</strong>'
         '<span>Enterprise AI &amp; Data Leader</span></div></a>'
-        '<div class="links">'
+        '<div class="links" style="flex:1 1 560px;min-width:0;align-items:center;justify-content:flex-end">'
         f'{link("home", "Home")}'
         f'{link("impact", "Leadership Impact")}'
         f'{link("thinking", "Thinking")}'
         f'{link("about", "About")}'
         f'{lens_menu}'
-        f'<a class="link contactlink{" on" if active == "contact" else ""}" href="?page=contact" '
+        f'<a class="link contactlink{" on" if active == "contact" else ""}" style="{top_item_style}" href="?page=contact" '
         'target="_self" data-hq-event="contact_nav">Contact</a>'
         '</div></div></nav>'
     )

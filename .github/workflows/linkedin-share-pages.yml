@@ -1,0 +1,83 @@
+name: LinkedIn Share Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/thinking_articles.py"
+      - "src/thinking_social.py"
+      - "scripts/build_linkedin_share_site.py"
+      - "images/profile_red_bg.jpg.jpg"
+      - ".github/workflows/linkedin-share-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: src
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build static LinkedIn share site
+        run: python scripts/build_linkedin_share_site.py --output _share_site --share-base https://airibeiro.github.io/careersite
+
+      - name: Validate generated share page
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          slug = 'when-an-ai-use-case-should-be-stopped'
+          html = Path(f'_share_site/thinking/{slug}/index.html').read_text(encoding='utf-8')
+          assert 'When an AI Use Case Should Be Stopped' in html
+          assert 'property="og:type" content="article"' in html
+          assert 'property="og:image"' in html
+          assert 'article:published_time' in html
+          assert 'window.location.replace' in html
+          image = Path(f'_share_site/social/{slug}.png')
+          with Image.open(image) as im:
+              assert im.format == 'PNG'
+              assert im.size == (1200, 627)
+          print('Static LinkedIn share page validated')
+          PY
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _share_site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

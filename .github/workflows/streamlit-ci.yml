@@ -107,6 +107,33 @@ jobs:
 
           grep -i '^Content-Type:.*image/png' /tmp/social-headers.txt
 
+      - name: Verify every article share page and thumbnail
+        run: |
+          python - <<'PY'
+          from io import BytesIO
+          from urllib.request import urlopen
+          from PIL import Image
+          from thinking_articles import ARTICLES
+
+          base = 'http://127.0.0.1:8501/app/static/thinking'
+          for article in ARTICLES:
+              with urlopen(f'{base}/{article.slug}.png', timeout=10) as response:
+                  image_bytes = response.read()
+                  assert response.headers.get_content_type() == 'image/png'
+              with Image.open(BytesIO(image_bytes)) as image:
+                  assert image.format == 'PNG'
+                  assert image.size == (1200, 630)
+
+              with urlopen(f'{base}/{article.slug}.html', timeout=10) as response:
+                  share_html = response.read().decode('utf-8')
+                  assert response.headers.get_content_type() == 'text/html'
+              assert 'property="og:type" content="article"' in share_html
+              assert 'name="twitter:card" content="summary_large_image"' in share_html
+              assert article.title in share_html
+              assert article.slug in share_html
+              print(f'Validated social assets: {article.slug}')
+          PY
+
       - name: Show Streamlit log on failure
         if: failure()
         run: cat /tmp/streamlit.log || true

@@ -70,10 +70,16 @@ class PublicCopyGuardTests(unittest.TestCase):
 
         # Employability evidence should remain explicit rather than inferred.
         self.assertIn("1,500+ practitioners", home)
-        self.assertIn("100+ AI sessions and training opportunities", impact)
-        self.assertIn("practical AI adoption activity reached 1,000+ employees", impact)
-        self.assertIn("reporting to the Chief Data & Analytics Officer", impact)
-        self.assertIn("Director-level CoE mandate", impact)
+        self.assertIn("130,000+ interactions", home)
+        self.assertIn("100+ AI sessions", impact)
+        self.assertIn("1,000+ employees", impact)
+        self.assertIn("measurable improvements in efficiency and cycle time", impact)
+        self.assertIn("reporting directly to the Chief Data & Analytics Officer", impact)
+        self.assertIn("Enterprise CoE mandate across strategy, operations, technology and business leaders", impact)
+        self.assertIn("2026–2027 maturity roadmap", impact)
+        self.assertIn("2026–2027 maturity roadmap", about)
+        self.assertIn("Enterprise AI perspective", about)
+        self.assertNotIn('<div class="flow">', about)
         self.assertIn("Start from a situation, not a theme", thinking_landing)
         self.assertIn("when the operating consequence is visible", thinking_landing)
 

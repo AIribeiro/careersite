@@ -14,20 +14,6 @@ def case(org: str, role: str, date: str, title: str, intro: str, boxes: list[tup
 def impact() -> str:
     cases = [
         case(
-            "MSX International",
-            "AI & Data Center of Excellence Director",
-            "Dec 2025 – 2026 · Gothenburg",
-            "Building the foundations for an enterprise AI & Data capability.",
-            "The six-month mandate was not about claiming a company-wide transformation. It was about putting clearer foundations under an emerging AI and Data capability while portfolio management, data governance, adoption and business engagement were still maturing together.",
-            [
-                ("Situation", "AI opportunities existed across business areas, but visibility, prioritization, ownership and scale-readiness were inconsistent. Data governance also needed a practical starting point."),
-                ("My responsibility", "I was responsible for shaping the CoE foundations: portfolio structure, lifecycle stages, governance logic, maturity assessment, data-stewardship concepts and a stabilization roadmap."),
-                ("Trade-off", "The question was how much structure the organization could use productively at that stage. Too little would preserve ambiguity; too much would create bureaucracy before the operating habits existed."),
-                ("What I chose / influenced", "I favored a small number of connected decision mechanisms: clearer portfolio visibility, risk-aware criteria, lifecycle ownership, stewardship and evidence for scale-readiness rather than a heavy central control model."),
-                ("What changed", "The work established clearer foundations for portfolio prioritization, lifecycle ownership, data stewardship and responsible scale. It also made the remaining organizational dependencies more explicit."),
-            ],
-        ),
-        case(
             "Volvo Group / Volvo Trucks",
             "AI leadership roles across Volvo Group and Volvo Trucks",
             "Jun 2018 – Dec 2025 · Poland / Sweden",
@@ -42,6 +28,20 @@ def impact() -> str:
             ],
         ),
         case(
+            "MSX International",
+            "AI & Data Center of Excellence Director",
+            "Dec 2025 – 2026 · Gothenburg",
+            "Building the foundations for an enterprise AI & Data capability.",
+            "The six-month mandate was not about claiming a company-wide transformation. It was about putting clearer foundations under an emerging AI and Data capability while portfolio management, data governance, adoption and business engagement were still maturing together.",
+            [
+                ("Situation", "AI opportunities existed across business areas, but visibility, prioritization, ownership and scale-readiness were inconsistent. Data governance also needed a practical starting point."),
+                ("My responsibility", "I was responsible for shaping the CoE foundations: portfolio structure, lifecycle stages, governance logic, maturity assessment, data-stewardship concepts and a stabilization roadmap."),
+                ("Trade-off", "The question was how much structure the organization could use productively at that stage. Too little would preserve ambiguity; too much would create bureaucracy before the operating habits existed."),
+                ("What I chose / influenced", "I favored a small number of connected decision mechanisms: clearer portfolio visibility, risk-aware criteria, lifecycle ownership, stewardship and evidence for scale-readiness rather than a heavy central control model."),
+                ("What changed", "The work established clearer foundations for portfolio prioritization, lifecycle ownership, data stewardship and responsible scale. It also made the remaining organizational dependencies more explicit."),
+            ],
+        ),
+        case(
             "Kimberly-Clark",
             "AI Strategist – EMEA",
             "Jul 2021 – Sep 2022 · EMEA",
@@ -53,6 +53,20 @@ def impact() -> str:
                 ("Trade-off", "The tension was consistency versus context: create enough structure to compare opportunities, but not so much that the method replaced the business reality behind each one."),
                 ("What I chose / influenced", "I started from the business problem and value hypothesis before moving to the technical solution, using value-engineering thinking to make assumptions and delivery implications visible early."),
                 ("What changed", "The work created a clearer bridge between business priorities and data-science possibilities, improving the quality of opportunity framing and making cross-functional discussions more concrete."),
+            ],
+        ),
+        case(
+            "IBM",
+            "Cloud and AI Project Manager | IBM Watson Solution Designer",
+            "Jul 2017 – Jun 2018 · Wroclaw, Poland",
+            "Translating AI capability into a business problem worth solving.",
+            "Emerging AI conversations could easily begin with platform capability rather than the user need, business problem or operating context that should determine whether a solution was useful. My IBM work put me directly at that boundary between technical possibility and client need.",
+            [
+                ("Situation", "Client and sales conversations around IBM Watson and cognitive solutions needed to connect emerging AI capabilities with concrete user and business needs rather than starting from technology alone."),
+                ("My responsibility", "As an IBM Watson Solution Designer and Cloud and AI Project Manager, I supported customer problem framing, solution design, client-facing technology work and sales teams shaping cognitive and AI propositions."),
+                ("Trade-off", "The tension was capability versus relevance: demonstrating what the technology could do without allowing platform features to define a problem the client did not actually need to solve."),
+                ("What I chose / influenced", "I used IBM Design Thinking and solution-design practices to start from the customer problem, user context and assumptions, then connect those needs to feasible technical possibilities."),
+                ("What changed", "In the work I supported, technical possibilities were framed more explicitly around user and business needs, assumptions and implementation context before moving further into solution positioning and delivery."),
             ],
         ),
     ]

@@ -107,37 +107,57 @@ jobs:
 
           grep -i '^Content-Type:.*image/png' /tmp/social-headers.txt
 
-      - name: Verify every friendly article route and thumbnail
+      - name: Verify every LinkedIn article preview and thumbnail
         run: |
           python - <<'PY'
           from io import BytesIO
-          from urllib.request import urlopen
+          from urllib.request import Request, build_opener, HTTPRedirectHandler, urlopen
+          from urllib.error import HTTPError
           from PIL import Image
           from thinking_articles import ARTICLES
 
           base = 'http://127.0.0.1:8501'
+          linkedin_ua = 'LinkedInBot/1.0 (compatible; Mozilla/5.0; Apache-HttpClient +http://www.linkedin.com)'
+
           for article in ARTICLES:
-              with urlopen(f'{base}/social/{article.slug}.png', timeout=10) as response:
+              with urlopen(Request(f'{base}/social/{article.slug}.png', headers={'User-Agent': linkedin_ua}), timeout=10) as response:
                   image_bytes = response.read()
                   assert response.headers.get_content_type() == 'image/png', response.headers
               with Image.open(BytesIO(image_bytes)) as image:
                   assert image.format == 'PNG'
-                  assert image.size == (1200, 630)
+                  assert image.size == (1200, 627), image.size
 
-              with urlopen(f'{base}/thinking/{article.slug}', timeout=10) as response:
+              req = Request(f'{base}/thinking/{article.slug}', headers={'User-Agent': linkedin_ua})
+              with urlopen(req, timeout=10) as response:
                   share_html = response.read().decode('utf-8')
+                  assert response.status == 200
                   assert response.headers.get_content_type() == 'text/html', response.headers
               assert 'property="og:type" content="article"' in share_html
+              assert 'property="og:image:width" content="1200"' in share_html
+              assert 'property="og:image:height" content="627"' in share_html
+              assert 'rel="image_src"' in share_html
               assert 'name="twitter:card" content="summary_large_image"' in share_html
               assert 'type="application/ld+json"' in share_html
+              assert 'window.location.replace' not in share_html
               assert article.title in share_html
               assert f'/social/{article.slug}.png' in share_html
-              print(f'Validated friendly article route: {article.slug}')
+              print(f'Validated LinkedIn preview route: {article.slug}')
           PY
+
+      - name: Verify human friendly article route redirects to full article
+        run: |
+          SLUG="when-an-ai-use-case-should-be-stopped"
+          curl --silent --show-error --head \
+            --user-agent "Mozilla/5.0" \
+            --dump-header /tmp/human-article-headers.txt \
+            "http://127.0.0.1:8501/thinking/${SLUG}" >/dev/null
+          grep -E '^HTTP/.* 302' /tmp/human-article-headers.txt
+          grep -i '^location:.*page=thinking.*article=when-an-ai-use-case-should-be-stopped' /tmp/human-article-headers.txt
 
       - name: Verify robots and sitemap
         run: |
           curl --fail --silent --show-error http://127.0.0.1:8501/robots.txt | grep 'Sitemap:'
+          curl --fail --silent --show-error http://127.0.0.1:8501/robots.txt | grep 'LinkedInBot'
           curl --fail --silent --show-error http://127.0.0.1:8501/sitemap.xml > /tmp/sitemap.xml
           grep '<urlset' /tmp/sitemap.xml
           grep '/thinking/when-an-ai-use-case-should-be-stopped' /tmp/sitemap.xml

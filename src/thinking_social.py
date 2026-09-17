@@ -5,7 +5,7 @@ import html
 import json
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image
 
 from thinking_articles import (
     ARTICLES,
@@ -14,17 +14,12 @@ from thinking_articles import (
     article_social_image_url,
     article_url,
 )
+from thinking_visuals import VISUAL_VERSION, render_social_image
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DIR = ROOT / "static" / "thinking-visuals"
 TARGET_DIR = ROOT / "static" / "thinking"
 SIZE = (1200, 627)
-GENERATOR_VERSION = "thinking-social-v5-article-visuals-2026-09-17"
-BACKGROUND = "#07527d"
-
-
-def _source_path(article: ArticleMeta) -> Path:
-    return SOURCE_DIR / f"{article.key}.webp"
+GENERATOR_VERSION = f"thinking-social-v6-vector-{VISUAL_VERSION}"
 
 
 def _social_path(article: ArticleMeta) -> Path:
@@ -40,9 +35,9 @@ def _share_path(article: ArticleMeta) -> Path:
 
 
 def _article_signature(article: ArticleMeta) -> str:
-    source = _source_path(article)
     payload = {
         "generator": GENERATOR_VERSION,
+        "visual_version": VISUAL_VERSION,
         "size": SIZE,
         "key": article.key,
         "slug": article.slug,
@@ -52,8 +47,6 @@ def _article_signature(article: ArticleMeta) -> str:
         "topic": article.topic,
         "published": article.published_iso,
         "tags": article.tags,
-        "source_size": source.stat().st_size if source.exists() else 0,
-        "source_mtime_ns": source.stat().st_mtime_ns if source.exists() else 0,
     }
     return hashlib.sha256(
         json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
@@ -61,11 +54,7 @@ def _article_signature(article: ArticleMeta) -> str:
 
 
 def ensure_article_social_image(article: ArticleMeta) -> Path:
-    """Derive the Open Graph card from the article's canonical branded visual."""
-    source = _source_path(article)
-    if not source.is_file():
-        raise FileNotFoundError(f"Missing Thinking visual: {source}")
-
+    """Generate the Open Graph card from the same vector visual system as the article header."""
     target = _social_path(article)
     signature_path = _signature_path(article)
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -80,13 +69,7 @@ def ensure_article_social_image(article: ArticleMeta) -> Path:
         except OSError:
             pass
 
-    with Image.open(source) as original:
-        branded = ImageOps.fit(
-            original.convert("RGB"),
-            SIZE,
-            method=Image.Resampling.LANCZOS,
-            centering=(0.5, 0.5),
-        )
+    branded = render_social_image(article.key, SIZE)
     branded.save(target, format="PNG", optimize=True)
     signature_path.write_text(signature + "\n", encoding="utf-8")
     return target

@@ -5,3 +5,4 @@ venv/
 .env
 .DS_Store
 .streamlit/secrets.toml
+static/jair-ribeiro-social-preview.png

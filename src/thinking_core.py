@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import html
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 import streamlit as st
 
@@ -38,10 +38,12 @@ def _share_footer(article_key: str) -> str:
     canonical = article_url(article)
     share = article_share_url(article)
     linkedin_target = f"https://airibeiro.github.io/careersite/thinking/{article.slug}/"
-    linkedin = "https://www.linkedin.com/sharing/share-offsite/?url=" + quote(linkedin_target, safe="")
+    linkedin = "https://www.linkedin.com/feed/?" + urlencode(
+        {"shareActive": "true", "shareUrl": linkedin_target}
+    )
     x_share = "https://twitter.com/intent/tweet?url=" + quote(share, safe="") + "&text=" + quote(article.social_title, safe="")
     mailto = "mailto:?subject=" + quote(article.social_title, safe="") + "&body=" + quote(f"{article.social_description}\n\n{canonical}", safe="")
-    return f'''<section class="article-share"><div class="article-share-grid"><div><p class="eyebrow">Share this article</p><h3>Useful for someone working through the same decision?</h3><p>Share it directly, or copy the permanent article link.</p></div><div class="share-actions"><a class="share-btn primary" href="{html.escape(linkedin, quote=True)}" target="_blank" rel="noopener noreferrer" data-hq-event="article_share_linkedin">LinkedIn ↗</a><a class="share-btn" href="{html.escape(x_share, quote=True)}" target="_blank" rel="noopener noreferrer" data-hq-event="article_share_x">X ↗</a><a class="share-btn" href="{html.escape(mailto, quote=True)}" data-hq-event="article_share_email">Email</a><button class="share-btn" type="button" data-copy-url="{html.escape(canonical, quote=True)}" data-hq-event="article_share_copy">Copy link</button></div></div><div class="share-meta"><span>{html.escape(article.kind_topic)}</span><span>·</span><span>{html.escape(article.published_label)}</span><span>·</span><a href="?page=thinking" target="_self">More Thinking</a><span class="share-copy-status" data-copy-status></span></div></section>'''
+    return f'''<section class="article-share"><div class="article-share-grid"><div><p class="eyebrow">Share this article</p><h3>Useful for someone working through the same decision?</h3><p>Share it directly, or copy the permanent article link.</p></div><div class="share-actions"><a class="share-btn primary" href="{html.escape(linkedin, quote=True)}" target="_blank" rel="noopener noreferrer" data-share-target="{html.escape(linkedin_target, quote=True)}" data-hq-event="article_share_linkedin">LinkedIn ↗</a><a class="share-btn" href="{html.escape(x_share, quote=True)}" target="_blank" rel="noopener noreferrer" data-hq-event="article_share_x">X ↗</a><a class="share-btn" href="{html.escape(mailto, quote=True)}" data-hq-event="article_share_email">Email</a><button class="share-btn" type="button" data-copy-url="{html.escape(canonical, quote=True)}" data-hq-event="article_share_copy">Copy link</button></div></div><div class="share-meta"><span>{html.escape(article.kind_topic)}</span><span>·</span><span>{html.escape(article.published_label)}</span><span>·</span><a href="?page=thinking" target="_self">More Thinking</a><span class="share-copy-status" data-copy-status></span></div></section>'''
 
 
 def render_long(article_key: str, body: str, aside: str) -> str:

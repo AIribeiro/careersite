@@ -43,7 +43,7 @@ class ThinkingPublishingTests(unittest.TestCase):
                 with self.subTest(alias=alias):
                     self.assertIs(resolve_article(alias), article)
 
-    def test_every_article_generates_valid_social_image_and_crawler_page(self) -> None:
+    def test_every_article_generates_linkedin_ready_image_and_crawler_page(self) -> None:
         from thinking_articles import ARTICLES, article_app_url, article_social_image_url, article_url
         from thinking_social import ensure_article_social_assets
 
@@ -56,17 +56,21 @@ class ThinkingPublishingTests(unittest.TestCase):
 
                 with Image.open(image_path) as image:
                     self.assertEqual(image.format, "PNG")
-                    self.assertEqual(image.size, (1200, 630))
+                    self.assertEqual(image.size, (1200, 627))
 
                 share_html = html_path.read_text(encoding="utf-8")
                 self.assertIn('property="og:type" content="article"', share_html)
+                self.assertIn('property="og:image:width" content="1200"', share_html)
+                self.assertIn('property="og:image:height" content="627"', share_html)
+                self.assertIn('rel="image_src"', share_html)
                 self.assertIn('name="twitter:card" content="summary_large_image"', share_html)
                 self.assertIn('property="article:published_time"', share_html)
                 self.assertIn('type="application/ld+json"', share_html)
                 self.assertIn(article_social_image_url(article), share_html)
                 self.assertIn(article_url(article), share_html)
                 self.assertIn(article_app_url(article).replace("&", "&amp;"), share_html)
-                self.assertIn("window.location.replace", share_html)
+                self.assertNotIn("window.location.replace", share_html)
+                self.assertNotIn("http-equiv=\"refresh\"", share_html)
 
     def test_article_metadata_share_controls_and_asgi_routes_are_wired(self) -> None:
         meta = (ROOT / "src/site_meta.py").read_text(encoding="utf-8")
@@ -85,6 +89,9 @@ class ThinkingPublishingTests(unittest.TestCase):
         self.assertIn('Route("/social/{slug}.png"', launcher)
         self.assertIn('Route("/sitemap.xml"', launcher)
         self.assertIn("from streamlit.starlette import App", launcher)
+        self.assertIn("RedirectResponse", launcher)
+        self.assertIn("linkedinbot", launcher.lower())
+        self.assertIn("_is_crawler", launcher)
         self.assertIn("app = App(", launcher)
         self.assertIn("ensure_all_article_social_assets", main)
         self.assertIn("ARTICLE_META.seo_title", main)

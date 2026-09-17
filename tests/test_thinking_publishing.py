@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 import unittest
 
@@ -50,9 +51,12 @@ class ThinkingPublishingTests(unittest.TestCase):
         for article in ARTICLES:
             with self.subTest(article=article.key):
                 image_path, html_path = ensure_article_social_assets(article)
+                signature_path = image_path.with_suffix(".sha256")
                 self.assertTrue(image_path.exists())
                 self.assertTrue(html_path.exists())
+                self.assertTrue(signature_path.exists())
                 self.assertGreater(image_path.stat().st_size, 40_000)
+                self.assertEqual(len(signature_path.read_text(encoding="utf-8").strip()), 64)
 
                 with Image.open(image_path) as image:
                     self.assertEqual(image.format, "PNG")
@@ -72,11 +76,40 @@ class ThinkingPublishingTests(unittest.TestCase):
                 self.assertNotIn("window.location.replace", share_html)
                 self.assertNotIn("http-equiv=\"refresh\"", share_html)
 
+    def test_social_image_signature_changes_when_article_metadata_changes(self) -> None:
+        from thinking_articles import ARTICLES
+        from thinking_social import _article_signature
+
+        article = ARTICLES[0]
+        original = _article_signature(article)
+        changed_title = _article_signature(
+            replace(article, social_title=article.social_title + " Updated")
+        )
+        changed_topic = _article_signature(replace(article, topic=article.topic + " Strategy"))
+
+        self.assertNotEqual(original, changed_title)
+        self.assertNotEqual(original, changed_topic)
+
+    def test_asset_manifest_covers_every_published_article(self) -> None:
+        from thinking_articles import ARTICLES
+        from thinking_social import build_article_asset_manifest
+
+        manifest = build_article_asset_manifest()
+        self.assertEqual(manifest["count"], len(ARTICLES))
+        self.assertEqual(manifest["size"], [1200, 627])
+        rows = manifest["articles"]
+        self.assertEqual({row["slug"] for row in rows}, {article.slug for article in ARTICLES})
+        self.assertEqual(len({row["signature"] for row in rows}), len(ARTICLES))
+        for row in rows:
+            self.assertEqual(row["format"], "PNG")
+            self.assertEqual((row["width"], row["height"]), (1200, 627))
+
     def test_article_metadata_share_controls_and_asgi_routes_are_wired(self) -> None:
         meta = (ROOT / "src/site_meta.py").read_text(encoding="utf-8")
         core = (ROOT / "src/thinking_core.py").read_text(encoding="utf-8")
         launcher = (ROOT / "app.py").read_text(encoding="utf-8")
         main = (ROOT / "main.py").read_text(encoding="utf-8")
+        builder = (ROOT / "scripts/build_thinking_assets.py").read_text(encoding="utf-8")
 
         self.assertIn("inject_article_metadata", meta)
         self.assertIn("article:published_time", meta)
@@ -95,6 +128,8 @@ class ThinkingPublishingTests(unittest.TestCase):
         self.assertIn("app = App(", launcher)
         self.assertIn("ensure_all_article_social_assets", main)
         self.assertIn("ARTICLE_META.seo_title", main)
+        self.assertIn("build_article_asset_manifest", builder)
+        self.assertIn("--check", builder)
 
 
 if __name__ == "__main__":

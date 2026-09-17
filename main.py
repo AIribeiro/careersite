@@ -15,6 +15,7 @@ from site_image_styles import IMAGE_CSS
 from site_meta import inject_article_metadata, inject_metadata
 from site_analytics import inject_analytics
 from site_article_analytics import inject_article_analytics
+from site_share_guard import inject_share_guard
 from thinking_articles import resolve_article
 from thinking_social import ensure_all_article_social_assets
 
@@ -96,5 +97,10 @@ else:
     }
 
     st.html(CSS + IMAGE_CSS + '<div class="site">' + RENDER[PAGE]() + '</div>')
-    inject_analytics(PAGE, source="streamlit")
+
+    # Bind article interactions before the generic analytics listener. The
+    # share guard then prevents social-share controls from being misclassified
+    # as contact or generic article-click conversions.
     inject_article_analytics(PAGE, ARTICLE_META, source="streamlit")
+    inject_share_guard()
+    inject_analytics(PAGE, source="streamlit")

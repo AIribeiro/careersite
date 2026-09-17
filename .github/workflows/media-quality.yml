@@ -13,6 +13,9 @@ jobs:
   validate-images:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      PYTHONPATH: src
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -64,3 +67,6 @@ jobs:
           if "site_photos_bundle" in media_source or "_prepare_for_display" in media_source:
               raise SystemExit("Production media must use original /images files without recompression")
           PY
+
+      - name: Generate and validate every Thinking article image
+        run: python scripts/build_thinking_assets.py --check

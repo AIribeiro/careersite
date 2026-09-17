@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from thinking_articles import resolve_article
 from thinking_core import query_value
 from thinking_landing import landing
 from thinking_week1 import pilot_to_scale, governance_accountability
@@ -14,17 +15,21 @@ PUBLIC_COPY_GUARD = (
 )
 
 
+ROUTES = {
+    "pilot_to_scale": pilot_to_scale,
+    "governance_accountability": governance_accountability,
+    "investable_portfolio": investable_portfolio,
+    "adoption_metric": adoption_metric,
+    "coe_not_ai_department": coe_not_ai_department,
+    "strategy_to_value_framework": strategy_to_value_framework,
+    "stop_ai_use_case": stop_ai_use_case,
+    "roi_diagnosed_too_late": roi_diagnosed_too_late,
+}
+
+
 def thinking() -> str:
-    article = query_value("article")
-    routes = {
-        "pilot-to-scale": pilot_to_scale,
-        "governance-accountability": governance_accountability,
-        "investable-portfolio": investable_portfolio,
-        "adoption-metric": adoption_metric,
-        "coe-not-ai-department": coe_not_ai_department,
-        "strategy-to-value": strategy_to_value_framework,
-        "stop-ai-use-case": stop_ai_use_case,
-        "roi-diagnosed-too-late": roi_diagnosed_too_late,
-    }
-    renderer = routes.get(article)
+    article = resolve_article(query_value("article"))
+    if article is None:
+        return landing()
+    renderer = ROUTES.get(article.key)
     return renderer() if renderer else landing()

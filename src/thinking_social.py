@@ -22,7 +22,9 @@ TARGET_DIR = ROOT / "static" / "thinking"
 # LinkedIn recommends a 1.91:1 image. 1200x627 also works well on X and other
 # Open Graph consumers, so one deterministic derivative can serve all channels.
 SIZE = (1200, 627)
-GENERATOR_VERSION = "thinking-social-v3"
+# Bump this value whenever all published article images must be regenerated,
+# even when article metadata and source photography have not changed.
+GENERATOR_VERSION = "thinking-social-v4-force-2026-09-17"
 
 NAVY = "#0b1220"
 WHITE = "#fffdf8"

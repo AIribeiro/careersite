@@ -13,6 +13,7 @@ class PublicCopyGuardTests(unittest.TestCase):
         lenses = (ROOT / "src/site_lenses.py").read_text(encoding="utf-8")
         impact = (ROOT / "src/page_impact.py").read_text(encoding="utf-8")
         thinking = (ROOT / "src/page_thinking.py").read_text(encoding="utf-8")
+        thinking_landing = (ROOT / "src/thinking_landing.py").read_text(encoding="utf-8")
 
         forbidden = (
             "This page reorganizes selected evidence around one hiring context.",
@@ -26,8 +27,9 @@ class PublicCopyGuardTests(unittest.TestCase):
             "The value I try to add is not technical demonstration.",
             "I treat recognition as external validation of the work, not as a professional title.",
             "treated as external recognition rather than a professional title.",
+            "The purpose is not publishing volume",
         )
-        public_copy = home + "\n" + about + "\n" + lenses + "\n" + impact + "\n" + thinking
+        public_copy = home + "\n" + about + "\n" + lenses + "\n" + impact + "\n" + thinking + "\n" + thinking_landing
         for phrase in forbidden:
             self.assertNotIn(phrase, public_copy)
 
@@ -36,7 +38,7 @@ class PublicCopyGuardTests(unittest.TestCase):
             lenses,
         )
         self.assertIn(
-            "Across these roles, my work has centered on making AI decisions executable",
+            "What changed, what I was accountable for, and the trade-offs behind it.",
             impact,
         )
         self.assertIn(
@@ -65,6 +67,15 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("Global Thought Leaders &amp; Influencers on Emerging Technology, 2023.", about)
         self.assertIn("Where the business-translation thread started.", impact)
         self.assertIn("Writing, speaking and research extend the operating perspective.", thinking)
+
+        # Employability evidence should remain explicit rather than inferred.
+        self.assertIn("1,500+ practitioners", home)
+        self.assertIn("100+ AI sessions and training opportunities", impact)
+        self.assertIn("practical AI adoption activity reached 1,000+ employees", impact)
+        self.assertIn("reporting to the Chief Data & Analytics Officer", impact)
+        self.assertIn("Director-level CoE mandate", impact)
+        self.assertIn("Start from a situation, not a theme", thinking_landing)
+        self.assertIn("when the operating consequence is visible", thinking_landing)
 
 
 if __name__ == "__main__":

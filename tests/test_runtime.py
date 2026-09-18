@@ -16,7 +16,7 @@ if str(SRC) not in sys.path:
 
 class RuntimeSmokeTests(unittest.TestCase):
     def test_canonical_cv_delivery(self) -> None:
-        filename = "Jair_Ribeiro_Enterprise_AI_Data_Leader_CV_2026.pdf"
+        filename = "Jair_Ribeiro_CV.pdf"
         path = ROOT / "static" / filename
 
         committed = path.read_bytes()
@@ -54,7 +54,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertGreaterEqual(len(generated_reader.pages), 1)
         self.assertIsNotNone(generated_reader.trailer.get("/Root"))
         self.assertEqual(site_cv.CV_FILENAME, filename)
-        self.assertEqual(site_cv.CV_SITE_DISPLAY, "AI & Data Portfolio")
+        self.assertEqual(site_cv.CV_SITE_DISPLAY, "AI Leadership Portfolio")
         self.assertEqual(site_cv.CV_SITE_URL, "https://jairribeiro-ai.streamlit.app/?source=cv")
         self.assertIn(b"/Subtype /Link", generated)
         self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), generated)
@@ -121,7 +121,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn("AI Transformation &amp; Adoption", active)
 
     def test_experience_metrics_are_precise(self) -> None:
-        for relative in ("src/page_home.py", "src/page_about.py", "src/site_cv.py", "src/site_assets.py"):
+        for relative in ("src/page_home.py", "src/page_about.py", "src/site_assets.py"):
             text = (ROOT / relative).read_text(encoding="utf-8")
             self.assertIn("20+", text, relative)
             self.assertIn("8+", text, relative)

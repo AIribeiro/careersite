@@ -1,200 +1,207 @@
 from __future__ import annotations
 
-"""Build and expose the canonical public CV used by every website download CTA."""
+"""Build and expose the reviewed canonical public CV used by every website download CTA."""
 
 from pathlib import Path
-
 from fpdf import FPDF
-
 import site_assets
 
-NAVY = (11, 18, 32)
-INK = (17, 21, 27)
-MUTED = (82, 92, 103)
-COPPER = (184, 97, 52)
-LINE = (215, 209, 199)
-WHITE = (255, 253, 248)
+ACCENT = (24, 91, 117)
+TEXT = (31, 41, 51)
+MUTED = (93, 111, 123)
+RULE = (214, 224, 229)
 
-LINKEDIN_DISPLAY = "linkedin.com/in/jairribeiro"
+LINKEDIN_DISPLAY = "LinkedIn Profile"
 LINKEDIN_URL = "https://www.linkedin.com/in/jairribeiro"
-CV_SITE_DISPLAY = "AI & Data Portfolio"
+CV_SITE_DISPLAY = "AI Leadership Portfolio"
 CV_SITE_URL = "https://jairribeiro-ai.streamlit.app/?source=cv"
-CV_FILENAME = "Jair_Ribeiro_Enterprise_AI_Data_Leader_CV_2026.pdf"
+CV_FILENAME = "Jair_Ribeiro_CV.pdf"
 
 
 class _CVPDF(FPDF):
     def footer(self) -> None:
-        self.set_y(-9)
-        self.set_font("Helvetica", "", 7.5)
-        self.set_text_color(*MUTED)
-        self.cell(0, 4, f"Jair Ribeiro | Enterprise AI & Data Leader | Page {self.page_no()}", align="R")
+        self.set_y(-10)
+        self.set_font("DejaVu", "", 6.8)
+        self.set_text_color(136, 151, 162)
+        self.cell(0, 4, "Jair Ribeiro - Portfolio CV")
+        self.set_y(-10)
+        self.cell(0, 4, f"{self.page_no()} / 2", align="R")
 
 
 def build_public_cv() -> bytes:
     pdf = _CVPDF(format="A4")
-    pdf.set_auto_page_break(auto=True, margin=13)
-    pdf.set_margins(16, 14, 16)
-    pdf.add_page()
+    pdf.set_auto_page_break(auto=False)
+    pdf.set_margins(16, 13, 16)
+    pdf.add_font("DejaVu", "", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+    pdf.add_font("DejaVu", "B", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
 
-    pdf.set_fill_color(*NAVY)
-    pdf.rect(0, 0, 210, 42, "F")
-    pdf.set_xy(16, 10)
-    pdf.set_font("Helvetica", "B", 22)
-    pdf.set_text_color(*WHITE)
-    pdf.cell(0, 8, "JAIR RIBEIRO", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("Helvetica", "B", 10.2)
-    pdf.set_text_color(240, 192, 157)
-    pdf.cell(
+    def top_rule() -> None:
+        pdf.set_draw_color(*ACCENT)
+        pdf.set_line_width(0.55)
+        pdf.line(16, 7.5, 194, 7.5)
+
+    def section(title: str, before: float = 3.5) -> None:
+        pdf.ln(before)
+        pdf.set_font("DejaVu", "B", 8.2)
+        pdf.set_text_color(*ACCENT)
+        pdf.cell(0, 4.4, title.upper(), new_x="LMARGIN", new_y="NEXT")
+        y = pdf.get_y() + 0.25
+        pdf.set_draw_color(*RULE)
+        pdf.set_line_width(0.2)
+        pdf.line(16, y, 194, y)
+        pdf.set_y(y + 2.3)
+
+    def body(text: str, size: float = 8.45, line: float = 4.45, color=TEXT, bold: bool = False) -> None:
+        pdf.set_x(16)
+        pdf.set_font("DejaVu", "B" if bold else "", size)
+        pdf.set_text_color(*color)
+        pdf.multi_cell(178, line, text, new_x="LMARGIN", new_y="NEXT")
+
+    def role(title: str, company: str, dates: str, location: str, bullets: list[str]) -> None:
+        pdf.set_x(16)
+        pdf.set_font("DejaVu", "B", 9.0)
+        pdf.set_text_color(*TEXT)
+        pdf.write(4.7, f"{title} | ")
+        pdf.set_text_color(*ACCENT)
+        pdf.write(4.7, company)
+        pdf.ln(4.8)
+        pdf.set_font("DejaVu", "", 7.5)
+        pdf.set_text_color(*MUTED)
+        pdf.cell(0, 3.8, f"{dates} | {location}", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(0.3)
+        for item in bullets:
+            x, y = 18, pdf.get_y()
+            pdf.set_xy(x, y)
+            pdf.set_font("DejaVu", "", 8.0)
+            pdf.set_text_color(*TEXT)
+            pdf.multi_cell(176, 4.1, f"• {item}", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(1.2)
+
+    def earlier(title: str, company: str, dates: str) -> None:
+        pdf.set_x(16)
+        pdf.set_font("DejaVu", "", 7.8)
+        pdf.set_text_color(*TEXT)
+        pdf.multi_cell(178, 4.0, f"{title} | {company} | {dates}", new_x="LMARGIN", new_y="NEXT")
+
+    pdf.add_page()
+    top_rule()
+    pdf.set_y(17.5)
+    pdf.set_font("DejaVu", "B", 23.5)
+    pdf.set_text_color(*TEXT)
+    pdf.cell(0, 10, "Jair Ribeiro", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("DejaVu", "B", 10.4)
+    pdf.set_text_color(*ACCENT)
+    pdf.multi_cell(
         0,
-        5.5,
-        "Enterprise AI & Data Leader | Strategy, Governance, Adoption & Business Value",
+        5.0,
+        "Enterprise AI & Data Leader | Strategy - Operating Models - Governance - Adoption - Business Value",
         new_x="LMARGIN",
         new_y="NEXT",
     )
-    pdf.set_font("Helvetica", "", 8.2)
-    pdf.set_text_color(215, 223, 232)
+    pdf.ln(1.0)
+    pdf.set_font("DejaVu", "", 7.7)
+    pdf.set_text_color(*MUTED)
     pdf.cell(
         0,
-        4.2,
+        4.1,
         "Gothenburg, Sweden | jair.ribeiro@outlook.it | +46 76 761 21 58",
         new_x="LMARGIN",
         new_y="NEXT",
     )
+    linkedin_w = pdf.get_string_width(LINKEDIN_DISPLAY)
+    sep_w = pdf.get_string_width(" | ")
+    pdf.cell(linkedin_w, 4.1, LINKEDIN_DISPLAY, link=LINKEDIN_URL)
+    pdf.cell(sep_w, 4.1, " | ")
+    pdf.cell(0, 4.1, CV_SITE_DISPLAY, link=CV_SITE_URL, new_x="LMARGIN", new_y="NEXT")
 
-    pdf.set_font("Helvetica", "", 8.2)
-    pdf.set_text_color(215, 223, 232)
-    linkedin_width = pdf.get_string_width(LINKEDIN_DISPLAY)
-    separator_width = pdf.get_string_width(" | ")
-    pdf.cell(linkedin_width, 4.2, LINKEDIN_DISPLAY, link=LINKEDIN_URL)
-    pdf.cell(separator_width, 4.2, " | ")
-    pdf.cell(0, 4.2, CV_SITE_DISPLAY, link=CV_SITE_URL, new_x="LMARGIN", new_y="NEXT")
-    pdf.set_y(48)
-
-    def section(title: str) -> None:
-        pdf.ln(1.5)
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.set_text_color(*COPPER)
-        pdf.cell(0, 5.2, title.upper(), new_x="LMARGIN", new_y="NEXT")
-        pdf.set_draw_color(*LINE)
-        y = pdf.get_y()
-        pdf.line(16, y, 194, y)
-        pdf.ln(2.2)
-        pdf.set_text_color(*INK)
-
-    def paragraph(
-        text: str,
-        size: float = 8.8,
-        color: tuple[int, int, int] = INK,
-        line: float = 4.35,
-        bold: bool = False,
-    ) -> None:
-        pdf.set_x(pdf.l_margin)
-        pdf.set_font("Helvetica", "B" if bold else "", size)
-        pdf.set_text_color(*color)
-        pdf.multi_cell(0, line, text, new_x="LMARGIN", new_y="NEXT")
-
-    def bullet(text: str, size: float = 8.5, line: float = 4.15) -> None:
-        x = pdf.l_margin
-        y = pdf.get_y()
-        pdf.set_x(x)
-        pdf.set_font("Helvetica", "B", 8.5)
-        pdf.set_text_color(*COPPER)
-        pdf.cell(4, line, "-")
-        pdf.set_xy(x + 5, y)
-        pdf.set_font("Helvetica", "", size)
-        pdf.set_text_color(*INK)
-        pdf.multi_cell(0, line, text, new_x="LMARGIN", new_y="NEXT")
-
-    def role(
-        title: str,
-        company: str,
-        dates: str,
-        location: str,
-        bullets: list[str],
-    ) -> None:
-        if pdf.get_y() > 254:
-            pdf.add_page()
-        pdf.set_font("Helvetica", "B", 9.2)
-        pdf.set_text_color(*INK)
-        pdf.set_x(pdf.l_margin)
-        pdf.multi_cell(0, 4.7, f"{title} | {company}", new_x="LMARGIN", new_y="NEXT")
-        pdf.set_font("Helvetica", "", 7.9)
-        pdf.set_text_color(*MUTED)
-        pdf.multi_cell(0, 4.0, f"{dates} | {location}", new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(0.4)
-        for item in bullets:
-            bullet(item)
-        pdf.ln(1.5)
-
-    section("Executive Profile")
-    paragraph(
-        "Enterprise AI, data and analytics leader with 20+ years in enterprise technology, including 8+ years in AI, data and analytics leadership. Experience spans AI strategy, operating models, portfolio decisions, governance, analytics, adoption and business translation across automotive, consumer goods and enterprise technology environments. My work increasingly focuses on connecting business priorities with the data, governance, ownership and adoption conditions required to make AI useful at enterprise scale.",
-        size=8.8,
-        line=4.45,
+    section("Professional Summary", 3.6)
+    body(
+        "Artificial Intelligence (AI) and Data leader with enterprise experience across MSX International, Volvo Group, Kimberly-Clark and IBM. Builds the structures that move AI from experimentation into repeatable business capability, including portfolio governance, operating models, responsible AI, adoption and value realization. Experience spans enterprise AI strategy, product and portfolio leadership, cross-functional delivery, AI literacy and business adoption across global and Europe, Middle East and Africa (EMEA) environments."
     )
 
-    section("Core Leadership & Domain Expertise")
-    paragraph(
-        "Enterprise AI strategy | AI & Data operating models | AI & Data CoE design | AI governance & Responsible AI | AI portfolio prioritization | Data strategy, governance & trust | GenAI enablement | Analytics strategy | Product & portfolio leadership | Value discovery & business cases | Enterprise architecture | Cloud & AI solutions | Adoption, literacy & change | Executive stakeholder management | Management consulting",
-        size=8.35,
-        line=4.25,
+    section("Selected Impact")
+    body(
+        "100+ AI initiatives, Proofs of Concept (PoCs) and projects supported across multiple regions at Volvo Group.",
+        size=8.1,
+        line=4.2,
+    )
+    body(
+        "100+ AI literacy sessions and training opportunities delivered across the global Volvo Group.",
+        size=8.1,
+        line=4.2,
+    )
+    body(
+        "Thousands of employees reached through AI innovation and literacy programs supporting responsible adoption.",
+        size=8.1,
+        line=4.2,
     )
 
-    section("Selected Leadership Impact")
-    bullet("Across Volvo AI roles, shaped and supported 100+ AI initiatives, proofs of concept and projects across multiple regions and business functions.")
-    bullet("Designed and delivered AI literacy and adoption activity reaching 1,000+ employees, with broader enterprise communities engaging 1,500+ practitioners.")
-    bullet("Worked across business, data, technology, governance and risk stakeholders to move AI opportunities from early discovery toward governed, usable enterprise capability.")
-    bullet("Built practical experience across AI strategy, portfolio governance, operating-model design, data foundations, responsible adoption and scale-readiness.")
+    section("Core Competencies")
+    body(
+        "Enterprise AI Strategy | AI & Data Center of Excellence (CoE) | AI Operating Models | Responsible AI & AI Governance | Data Governance | AI Portfolio Management | Value Management",
+        size=7.95,
+        line=4.1,
+    )
+    pdf.ln(0.5)
+    body(
+        "AI Adoption & Literacy | Data & Analytics Leadership | AI Product Management | Product Management | Executive Stakeholder Management | Generative AI & Large Language Models (LLMs)",
+        size=7.95,
+        line=4.1,
+    )
 
     section("Professional Experience")
     role(
         "AI & Data Center of Excellence Director",
         "MSX International",
-        "Dec 2025 - 2026",
+        "2025 - 2026",
         "Gothenburg, Sweden",
         [
-            "Built foundations for a business-facing AI & Data Center of Excellence connecting AI strategy, data governance, responsible adoption and enterprise scale-readiness.",
-            "Structured AI opportunity and lifecycle governance with clearer stages, ownership, decision points and criteria for moving initiatives toward investment and scale.",
-            "Advanced data-governance foundations covering ownership, stewardship, data quality and trusted-data practices.",
-            "Partnered with strategy, operations, technology and business leaders to make AI priorities, dependencies and next decisions clearer.",
+            "Established and led MSXi's AI & Data Center of Excellence, connecting AI and data strategy, governance, adoption and business value across strategy, operations and technology.",
+            "Introduced lifecycle discipline for AI initiatives, with clearer stages, roles, ownership and scale-readiness criteria.",
+            "Worked with business and technology leaders to move AI opportunities from isolated experimentation toward managed enterprise capability and responsible adoption.",
         ],
     )
     role(
         "Data Analytics and AI Leader",
-        "Volvo Group / Volvo Trucks",
+        "Volvo Group",
         "Aug 2022 - Dec 2025",
-        "Gothenburg, Sweden",
+        "Greater Gothenburg Metropolitan Area, Sweden",
         [
-            "Led AI and analytics adoption across commercial operations, including warranty, sales and aftermarket, translating business needs into practical AI use cases and workflow improvements.",
-            "Designed practical AI literacy and adoption activity reaching 1,000+ employees and supporting responsible use of generative AI.",
-            "Led cross-functional use-case and proof-of-concept work across commercial and corporate functions, coordinating business, Digital & IT and specialist stakeholders.",
-            "Connected use-case discovery, adoption, governance and enterprise delivery realities rather than treating pilots or training volume as the outcome.",
+            "Designed and launched AI innovation and literacy programs reaching thousands of employees worldwide, supporting responsible adoption and compliance-aware use of AI.",
+            "Supported AI adoption across commercial operations, introducing AI solutions and agents in warranty, sales and aftermarket workflows with focus on cycle time, cost and adoption outcomes.",
+            "Led cross-functional AI Proofs of Concept across warranty, sales, aftermarket, legal, compliance and sustainability, connecting business problems with practical AI use cases.",
         ],
     )
     role(
         "Artificial Intelligence Strategist - EMEA",
         "Kimberly-Clark",
         "Jul 2021 - Sep 2022",
-        "Krakow, Poland / EMEA",
+        "Krakow Metropolitan Area, Poland",
         [
-            "Led value discovery and realization for AI and Data Science opportunities across EMEA, connecting business priorities with feasible AI opportunities.",
-            "Worked in a global role reporting to the Chief Data & Analytics Officer and supporting the company ambition to become more AI-driven.",
-            "Partnered with functions including supply chain, manufacturing, sales, marketing and logistics to shape use cases around business value and readiness.",
+            "Managed value discovery and realization for AI and Data Science initiatives supporting the company's AI agenda across EMEA.",
+            "Worked in a global role reporting directly to the Chief Data & Analytics Officer, connecting AI ambition with business opportunities and investment choices.",
         ],
     )
 
-    if pdf.get_y() > 230:
-        pdf.add_page()
+    pdf.add_page()
+    top_rule()
+    pdf.set_y(16.5)
+    pdf.set_font("DejaVu", "B", 12.0)
+    pdf.set_text_color(*TEXT)
+    pdf.cell(0, 5.4, "Jair Ribeiro", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("DejaVu", "B", 8.5)
+    pdf.set_text_color(*ACCENT)
+    pdf.cell(0, 4.0, "Enterprise AI & Data Leader", new_x="LMARGIN", new_y="NEXT")
 
+    section("Professional Experience", 3.2)
     role(
         "Senior Artificial Intelligence Business Expert",
         "Volvo Group",
         "Jun 2018 - Jul 2021",
         "Wroclaw, Poland",
         [
-            "Led business requirements, product management and stakeholder work across a large portfolio of AI initiatives, proofs of concept and projects in multiple regions.",
-            "Delivered 100+ sessions and training opportunities to strengthen AI literacy across the global Volvo Group.",
-            "Supported enterprise AI community and Center of Excellence activity, engaging 1,500+ practitioners and connecting use-case demand with technical teams and practical adoption.",
+            "Led business requirements, product management and stakeholder engagement for 100+ AI initiatives, Proofs of Concept and projects across multiple regions.",
+            "Delivered 100+ AI literacy sessions and training opportunities across the global Volvo Group.",
         ],
     )
     role(
@@ -203,42 +210,69 @@ def build_public_cv() -> bytes:
         "Jul 2017 - Jun 2018",
         "Wroclaw, Poland",
         [
-            "Applied IBM Design Thinking to frame customer problems and shape technology solutions around user and business needs.",
-            "Worked as an IBM Watson Solutions Designer, advising sales teams and supporting the development and positioning of cognitive and AI solutions.",
+            "Worked as an IBM Watson Solution Designer, providing technical advice to sales teams and supporting the development and sale of cognitive solutions.",
+            "Applied IBM Design Thinking to frame customer problems and shape technology-led solutions around user and business needs.",
         ],
     )
 
-    section("Earlier Career")
-    paragraph(
-        "AI, Cloud, IT Consulting & Infrastructure Roles | IBM, Hewlett Packard Enterprise and earlier employers",
-        size=8.5,
-        bold=True,
+    section("Earlier Career", 2.8)
+    earlier("Founder, ICT Manager", "Imprendo Consulting", "Mar 2012 - Apr 2013")
+    earlier("Information Technology System Administrator", "CityLife S.p.A", "Jun 2009 - Mar 2012")
+    earlier("Application Testing & Documentation", "AXA Assicurazioni", "Mar 2009 - May 2009")
+    earlier("IT System Administrator", "PeopleLab Srl", "May 2007 - Apr 2009")
+
+    section("Education", 2.8)
+    body(
+        "Selinus University of Sciences and Literature | Master of Science (MSc), Artificial Intelligence | Oct 2025 - Jun 2026",
+        size=7.85,
+        line=4.0,
     )
-    paragraph("2004 - 2018 | Italy, Brazil and Poland", size=8.2, color=MUTED)
-    bullet("Built a broad technology foundation spanning AI and cloud projects, IBM Watson solution design, virtualization, data centers, enterprise systems and IT delivery.")
-    bullet("Worked across consulting, architecture, infrastructure, client engagement and project delivery in multicultural environments.")
-
-    section("Technical & Enterprise Fluency")
-    paragraph(
-        "GenAI | Large Language Models (LLM) | Agentic AI | Enterprise AI architecture | Analytics | Data platforms | Data quality | Stewardship | Cloud | MLOps principles | Security | AI risk | Governance | Scalability | Vendor evaluation | Cost / accuracy trade-offs | Operational readiness",
-        size=8.35,
-        line=4.25,
+    body(
+        "Research focus: Responsible AI Adoption in Global Enterprises",
+        size=7.75,
+        line=3.9,
+        color=MUTED,
+    )
+    pdf.ln(0.5)
+    body(
+        "Massachusetts Institute of Technology - edX | MicroMasters program, Statistics and Data Science",
+        size=7.85,
+        line=4.0,
+    )
+    body(
+        "Massachusetts Institute of Technology | Minds and Machines - Philosophy & Ethics",
+        size=7.85,
+        line=4.0,
     )
 
-    section("Education")
-    paragraph("Selinus University of Sciences and Literature - MSc, Artificial Intelligence", size=8.5, bold=True)
-    paragraph("Research focus: Responsible AI Adoption in Global Enterprises | Oct 2025 - Jun 2026", size=8.2, color=MUTED)
-
-    section("Languages")
-    paragraph(
-        "Portuguese - native/bilingual | Italian - native/bilingual | English - full professional | Spanish - professional | Polish - limited working | Swedish - elementary",
-        size=8.35,
+    section("Languages", 2.8)
+    body(
+        "English C2 | Italian Native | Portuguese Native | Spanish B2 | Polish B1 | Swedish A2 | French A2",
+        size=7.85,
+        line=4.0,
     )
 
-    section("Recognition & Writing")
-    bullet("Thinkers360 Top 50 Global Thought Leaders & Influencers on Emerging Technology (2023).")
-    bullet("Speaker on enterprise AI adoption, including strategies for scaling AI across the enterprise.")
-    bullet("Published writing on AI strategy, governance, operating models, data readiness, Responsible AI and enterprise adoption.")
+    section("Publications & Recognition", 2.8)
+    body(
+        "Thinkers360 Top 50 Global Thought Leaders on Emerging Technology | 2023",
+        size=7.75,
+        line=3.95,
+    )
+    body(
+        "Leading in the AI Enterprise | Article series on AI strategy, ROI, operating models, governance, data readiness, workforce redesign, talent and adoption.",
+        size=7.75,
+        line=3.95,
+    )
+    body(
+        "AI Governance Is Not About Control. It Is About Scale. | Digital First Magazine, 2026",
+        size=7.75,
+        line=3.95,
+    )
+    body(
+        "How to Implement an Effective AI Strategy in Your Business | Publication on practical enterprise AI strategy.",
+        size=7.75,
+        line=3.95,
+    )
 
     return bytes(pdf.output())
 

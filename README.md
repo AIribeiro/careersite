@@ -153,6 +153,8 @@ No ratings, stars, testimonial-wall language, praise carousel or “trusted by i
 
 **About** carries the continuity of the career: how it evolved, why AI/Data became the focus, how technical foundations still influence leadership, how international experience shaped working style and which leadership principles emerged. The timeline stays compact and subordinate to the narrative.
 
+**Speaking & Thought Leadership** sits under About as an evidence page, not a personal-brand destination. It contains a selected, externally verifiable record of conferences, panels, publications, books and recognition that supports executive communication, representation and subject-matter credibility. Operating evidence remains more important than visibility. Do not add follower counts, creator metrics, badge walls, exhaustive social archives, "book me" CTAs or influencer-style claims.
+
 **Thinking** remains curated. Writing should demonstrate depth, consistency, lived experience and willingness to take a position; article count, follower count and influencer language are not authority signals. Thinkers360 recognition remains external validation, not a central identity.
 
 **Contact** stays simple. It describes broad areas of leadership fit without publishing urgency, unemployment status, salary, immediate availability or a long list of target titles.
@@ -186,10 +188,12 @@ Primary menu:
 - Leadership Impact
 - Thinking
 - About
+  - About
+  - Speaking & Thought Leadership
 - Role lenses
 - Contact
 
-The Role lenses submenu contains all four contextual pages. The selected lens must render an active submenu state. The analytics dashboard is deliberately excluded from public navigation.
+The About submenu contains the core About page and the selected Speaking & Thought Leadership evidence page. The Role lenses submenu contains all four contextual pages. Active submenu states must remain visible. The analytics dashboard is deliberately excluded from public navigation.
 
 ## CV standard
 

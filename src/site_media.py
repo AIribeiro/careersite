@@ -34,6 +34,9 @@ thinking = _uri("IMG_8281.jpg")
 portrait = _uri("pixelup_1683528862014.jpg")
 contact = _uri("profile_red_bg.jpg.jpg")
 brand_icon = contact
+presence_thinkers360 = _uri("presence_thinkers360_top50.jpg")
+presence_global_ambassador = _uri("presence_global_ai_ambassador.jpg")
+presence_ai_learning = _uri("presence_ai_learning_sessions.jpg")
 
 if hero:
     assets.HERO_URI = hero

@@ -10,18 +10,27 @@ from site_assets import (
     CONTACT_URI,
     ABOUT_BW_URI,
 )
+from site_media import (
+    presence_thinkers360,
+    presence_global_ambassador,
+    presence_ai_learning,
+)
 
 
 DFM_2026_IMAGE = "https://www.digitalfirstmagazine.com/wp-content/uploads/2026/06/Jair-Ribeiro.jpeg"
 DFM_2023_IMAGE = "https://www.digitalfirstmagazine.com/wp-content/uploads/2023/05/800_480-Jair-Ribeiro-550x330.jpg"
 
 
-def _media(uri: str, alt: str, *, contain: bool = False) -> str:
+def _media(uri: str, alt: str, *, contain: bool = False, variant: str = "") -> str:
     if not uri:
         return ""
-    mode = " contain" if contain else ""
+    classes = ["presence-media"]
+    if contain:
+        classes.append("contain")
+    if variant:
+        classes.append(variant)
     return (
-        f'<div class="presence-media{mode}">'
+        f'<div class="{" ".join(classes)}">'
         f'<img src="{uri}" alt="{alt}" loading="lazy" decoding="async">'
         '</div>'
     )
@@ -55,9 +64,9 @@ def presence() -> str:
 </div></div></div></section>
 
 <section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">External recognition &amp; networks</p><h2>Useful as third-party context, not as a substitute for operating evidence.</h2></div><p>Recognition is kept deliberately secondary on this portfolio. It matters only where an external organization has independently documented the contribution.</p></div><div class="grid3">
-<div class="card"><span class="org">Thinkers360 · 2021</span><h3>Top 50 Global Thought Leaders and Influencers on AI</h3><p>Included in Thinkers360's June 2021 global AI leaderboard while working at Volvo Group.</p><p><a href="https://www.thinkers360.com/top-50-global-thought-leaders-and-influencers-on-ai-june-2021/" target="_blank" rel="noopener" data-hq-event="article_presence_thinkers360">Source ↗</a></p></div>
-<div class="card"><span class="org">SwissCognitive</span><h3>Global AI Ambassador</h3><p>Member of SwissCognitive's international ambassador network, with a focus on responsible, human-centered AI discussion.</p><p><a href="https://swisscognitive.com/ambassadors/jair-ribeiro" target="_blank" rel="noopener" data-hq-event="article_presence_swisscognitive">Profile ↗</a></p></div>
-<div class="card"><span class="org">Enterprise learning</span><h3>100+ AI learning sessions at Volvo Group</h3><p>The public speaking record sits alongside a larger body of internal AI literacy and adoption work. Across my Volvo AI roles, I delivered more than 100 sessions and learning opportunities for employees and practitioners.</p></div>
+<article class="card presence-card">{_media(presence_thinkers360, "Thinkers360 Top 50 Global Thought Leaders and Influencers on AI, June 2021", contain=True)}<div class="presence-body"><span class="org">Thinkers360 · 2021</span><h3>Top 50 Global Thought Leaders and Influencers on AI</h3><p>Included in Thinkers360's June 2021 global AI leaderboard while working at Volvo Group.</p><p><a href="https://www.thinkers360.com/top-50-global-thought-leaders-and-influencers-on-ai-june-2021/" target="_blank" rel="noopener" data-hq-event="article_presence_thinkers360">Source ↗</a></p></div></article>
+<article class="card presence-card">{_media(presence_global_ambassador, "Global AI Ambassador recognition for Jair Ribeiro", variant="ambassador-focus")}<div class="presence-body"><span class="org">SwissCognitive</span><h3>Global AI Ambassador</h3><p>Member of SwissCognitive's international ambassador network, with a focus on responsible, human-centered AI discussion.</p><p><a href="https://swisscognitive.com/ambassadors/jair-ribeiro" target="_blank" rel="noopener" data-hq-event="article_presence_swisscognitive">Profile ↗</a></p></div></article>
+<article class="card presence-card">{_media(presence_ai_learning, "Jair Ribeiro with participants after an AI learning session")}<div class="presence-body"><span class="org">Enterprise learning</span><h3>100+ AI learning sessions at Volvo Group</h3><p>The public speaking record sits alongside a larger body of internal AI literacy and adoption work. Across my Volvo AI roles, I delivered more than 100 sessions and learning opportunities for employees and practitioners.</p></div></article>
 </div></div></section>
 
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Earlier selected archive</p><h2>A longer record, kept subordinate to the current leadership story.</h2></div><p>Earlier appearances are useful mainly because they show continuity: translating AI and emerging technology for business audiences has been part of the work for several years.</p></div><div class="timeline">

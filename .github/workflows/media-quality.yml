@@ -42,6 +42,9 @@ jobs:
               "IMG_8281.jpg": ((900, 1300), 700_000),
               "pixelup_1683528862014.jpg": ((1500, 1300), 400_000),
               "profile_red_bg.jpg.jpg": ((1600, 1000), 350_000),
+              "presence_thinkers360_top50.webp": ((315, 155), 5_000),
+              "presence_global_ai_ambassador.webp": ((295, 440), 5_000),
+              "presence_ai_learning_sessions.webp": ((335, 220), 5_000),
           }
 
           root = Path("images")

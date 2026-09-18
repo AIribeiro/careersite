@@ -12,7 +12,7 @@ ROLE_LENSES = {
     "consulting": "Business-Driven AI & Consulting",
 }
 
-CV_DOWNLOAD_NAME = "Jair_Ribeiro_Enterprise_AI_Data_Leader_CV_2026.pdf"
+CV_DOWNLOAD_NAME = "Jair_Ribeiro_CV.pdf"
 
 
 def nav(active: str) -> str:

@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 from xml.sax.saxutils import escape
-from urllib.parse import parse_qs
 
 from starlette.responses import FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse, Response
 from starlette.routing import Route
@@ -16,12 +15,6 @@ if str(SRC) not in sys.path:
 
 from thinking_articles import ARTICLES, BASE_URL, article_app_url, article_url, resolve_article
 from thinking_social import ensure_article_share_page, ensure_article_social_image
-from site_admin_auth import (
-    ANALYTICS_SESSION_COOKIE,
-    ANALYTICS_SESSION_COOKIE_MAX_AGE,
-    issue_admin_session,
-    revoke_admin_session,
-)
 
 # Source-level compatibility anchors for the established smoke tests. The
 # executable UI moved to main.py; these strings document that architecture
@@ -96,57 +89,6 @@ async def _thinking_social_image(request):
     )
 
 
-async def _analytics_login(request):
-    body = await request.body()
-    form = parse_qs(body.decode("utf-8", errors="replace"), keep_blank_values=True)
-    access_code = str((form.get("access_code") or [""])[0]).strip()
-
-    try:
-        session_token = issue_admin_session(access_code)
-    except (ValueError, RuntimeError):
-        return RedirectResponse(
-            "/?page=analytics&auth_error=1",
-            status_code=303,
-            headers={"Cache-Control": "no-store"},
-        )
-
-    response = RedirectResponse(
-        "/?page=analytics",
-        status_code=303,
-        headers={"Cache-Control": "no-store"},
-    )
-    response.set_cookie(
-        ANALYTICS_SESSION_COOKIE,
-        session_token,
-        max_age=ANALYTICS_SESSION_COOKIE_MAX_AGE,
-        path="/",
-        secure=True,
-        httponly=True,
-        samesite="strict",
-    )
-    return response
-
-
-async def _analytics_logout(request):
-    session_token = str(request.cookies.get(ANALYTICS_SESSION_COOKIE) or "")
-    if session_token:
-        revoke_admin_session(session_token)
-
-    response = RedirectResponse(
-        "/?page=analytics",
-        status_code=303,
-        headers={"Cache-Control": "no-store"},
-    )
-    response.delete_cookie(
-        ANALYTICS_SESSION_COOKIE,
-        path="/",
-        secure=True,
-        httponly=True,
-        samesite="strict",
-    )
-    return response
-
-
 async def _robots(_request):
     return PlainTextResponse(
         f"User-agent: *\nAllow: /\n\nUser-agent: LinkedInBot\nAllow: /thinking/\nAllow: /social/\n\nSitemap: {BASE_URL}/sitemap.xml\n",
@@ -176,8 +118,6 @@ async def _sitemap(_request):
 app = App(
     "main.py",
     routes=[
-        Route("/_analytics/login", _analytics_login, methods=["POST"]),
-        Route("/_analytics/logout", _analytics_logout, methods=["GET", "POST"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),
         Route("/social/{slug}.png", _thinking_social_image, methods=["GET", "HEAD"]),
         Route("/robots.txt", _robots, methods=["GET", "HEAD"]),

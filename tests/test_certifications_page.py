@@ -26,27 +26,35 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("Credentials &amp; Certifications", menu)
         self.assertIn('summary class="link on"', menu)
 
-    def test_flagship_credentials_are_curated_and_unique(self) -> None:
+    def test_flagship_credentials_are_curated_unique_and_verifiable(self) -> None:
         from page_certifications import FLAGSHIP, EITCA_COMPONENTS
 
         titles = [str(item["title"]) for item in FLAGSHIP]
         self.assertEqual(len(FLAGSHIP), 8)
         self.assertEqual(len(titles), len(set(titles)))
-        self.assertIn("Fundamentals of Building AI Agents", titles)
         self.assertIn("Generative AI for Executives and Business Leaders Specialization", titles)
         self.assertIn("Responsible Generative AI", titles)
-        self.assertIn("Explainable AI (XAI)", titles)
+        self.assertIn("AI for Organizational Leaders", titles)
+        self.assertIn("Agentic AI and AI Agents: A Primer for Leaders", titles)
+        self.assertIn("Fundamentals of Building AI Agents", titles)
         self.assertIn("EITCA/AI Artificial Intelligence Academy", titles)
         self.assertIn("Azure Databricks Platform Architect · Academy Accreditation", titles)
+        self.assertIn("Executive Data Science Specialization", titles)
+        self.assertNotIn("Explainable AI (XAI)", titles)
+        self.assertTrue(all(str(item.get("verify_url", "")).startswith("https://") for item in FLAGSHIP))
         self.assertEqual(len(EITCA_COMPONENTS), 12)
 
-    def test_page_preserves_senior_leadership_positioning(self) -> None:
+    def test_page_preserves_senior_leadership_positioning_and_evidence(self) -> None:
         from page_certifications import certifications
 
         page = certifications()
-        self.assertIn("Four dimensions that matter in senior AI &amp; Data roles.", page)
-        self.assertIn("24 ECTS across 12 component certifications", page)
+        self.assertIn("Four dimensions of the leadership profile.", page)
+        self.assertIn("79 unique certifications", page)
+        self.assertIn("12 component certifications · ~180 hours of curriculum", page)
+        self.assertNotIn("24 ECTS", page)
+        self.assertNotIn("Valid through Apr 2027", page)
         self.assertIn("not to replace specialist engineering ownership", page)
+        self.assertGreaterEqual(page.count("Verify credential ↗"), 9)
         self.assertIn("View full LinkedIn credential record", page)
         self.assertIn("https://www.linkedin.com/in/jairribeiro/details/certifications/", page)
         self.assertNotIn("Top 10 Thought Leader", page)

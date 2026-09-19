@@ -542,6 +542,20 @@ def _funnel(home: int, impact: int, lens: int, cv: int) -> None:
     st.markdown('<div class="funnel-wrap">' + "".join(rows) + "</div>", unsafe_allow_html=True)
 
 
+def _page_rows(rows: object, family: str | None = None) -> list[dict]:
+    if not isinstance(rows, list):
+        return []
+    prepared: list[dict] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        item = dict(row)
+        if family is not None and str(item.get("page_family") or "") != family:
+            continue
+        prepared.append(item)
+    return prepared
+
+
 def _top_label(rows: object, field: str) -> str:
     data = _top_rows(rows, 1)
     if not data:
@@ -665,6 +679,45 @@ def render_analytics_dashboard() -> None:
             with st.container(border=True):
                 _section("Actions", "Conversion activity")
                 _bar_chart(data.get("events", []), "event_name", value="sessions", limit=8, height=245, color=GREEN)
+
+        left, right = st.columns([1.45, 1])
+        with left:
+            with st.container(border=True):
+                _section(
+                    "Navigation",
+                    "Page exploration",
+                    "Distinct sessions that opened each page in the selected reporting window.",
+                )
+                _bar_chart(
+                    _page_rows(data.get("pages", [])),
+                    "page_label",
+                    value="sessions",
+                    limit=12,
+                    height=340,
+                    color=BLUE,
+                )
+        with right:
+            with st.container(border=True):
+                _section(
+                    "About",
+                    "About & profile pages",
+                    "About, Credentials & Certifications, and Speaking & Thought Leadership are tracked separately.",
+                )
+                about_rows = _page_rows(data.get("pages", []), "About")
+                _bar_chart(
+                    about_rows,
+                    "page_label",
+                    value="sessions",
+                    limit=3,
+                    height=340,
+                    color=GREEN,
+                )
+                if about_rows:
+                    about_sessions = sum(int(row.get("sessions", 0) or 0) for row in about_rows)
+                    about_views = sum(int(row.get("page_views", 0) or 0) for row in about_rows)
+                    st.caption(
+                        f"About-family activity: {about_sessions} page-session visits · {about_views} page views."
+                    )
 
         s1, s2, s3 = st.columns(3)
         s1.info(f"Top device: **{_top_label(data.get('devices', []), 'device_type')}**")

@@ -91,21 +91,23 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertIn("ANALYTICS_SESSION_COOKIE", dashboard)
         self.assertIn("st.context.cookies", dashboard)
         self.assertIn("Sign in once on this browser", dashboard)
-        self.assertIn('action="/_analytics/logout"', dashboard)
-        self.assertIn('target="_self"', dashboard)
-        self.assertIn('def _render_logout_button(label: str = "Log out")', dashboard)
+        self.assertIn("issue_admin_session(access_code)", dashboard)
+        self.assertIn("revoke_admin_session(current)", dashboard)
+        self.assertIn("document.cookie", dashboard)
+        self.assertIn("SameSite=Strict", dashboard)
+        self.assertIn("Secure", dashboard)
+        self.assertIn("Max-Age=", dashboard)
+        self.assertIn('st.button("Log out"', dashboard)
         self.assertNotIn('st.button("Lock"', dashboard)
+        self.assertNotIn('/_analytics/login', dashboard)
+        self.assertNotIn('/_analytics/logout', dashboard)
 
         self.assertIn("careersite_analytics_issue_session", auth)
         self.assertIn("careersite_analytics_revoke_session", auth)
         self.assertIn("10 * 365 * 24 * 60 * 60", auth)
 
-        self.assertIn('Route("/_analytics/login", _analytics_login, methods=["POST"])', app)
-        self.assertIn('Route("/_analytics/logout", _analytics_logout, methods=["GET", "POST"])', app)
-        self.assertIn("httponly=True", app)
-        self.assertIn("secure=True", app)
-        self.assertIn('samesite="strict"', app)
-        self.assertIn("response.delete_cookie", app)
+        self.assertNotIn('Route("/_analytics/login"', app)
+        self.assertNotIn('Route("/_analytics/logout"', app)
 
 
 if __name__ == "__main__":

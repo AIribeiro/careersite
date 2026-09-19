@@ -15,6 +15,8 @@ LINKEDIN_DISPLAY = "LinkedIn Profile"
 LINKEDIN_URL = "https://www.linkedin.com/in/jairribeiro"
 CV_SITE_DISPLAY = "AI Leadership Portfolio"
 CV_SITE_URL = "https://jairribeiro-ai.streamlit.app/?source=cv"
+CERTIFICATIONS_DISPLAY = "View additional certifications and credentials"
+CERTIFICATIONS_URL = "https://jairribeiro-ai.streamlit.app/?page=certifications&utm_source=cv"
 CV_FILENAME = "Jair_Ribeiro_CV.pdf"
 
 
@@ -116,22 +118,22 @@ def build_public_cv() -> bytes:
 
     section("Professional Summary", 3.6)
     body(
-        "Artificial Intelligence (AI) and Data leader with enterprise experience across MSX International, Volvo Group, Kimberly-Clark and IBM. Builds the structures that move AI from experimentation into repeatable business capability, including portfolio governance, operating models, responsible AI, adoption and value realization. Experience spans enterprise AI strategy, product and portfolio leadership, cross-functional delivery, AI literacy and business adoption across global and Europe, Middle East and Africa (EMEA) environments."
+        "Artificial Intelligence (AI) and Data leader with enterprise experience across MSX International, Volvo Group, Kimberly-Clark and IBM. Builds the structures that move AI from experimentation into repeatable business capability, including portfolio governance, operating models, responsible AI, adoption and value realization. Experience includes supporting operational use of AI in warranty, sales and aftermarket workflows, alongside enterprise AI strategy, product and portfolio leadership, cross-functional delivery and responsible adoption across global and Europe, Middle East and Africa (EMEA) environments."
     )
 
     section("Selected Impact")
     body(
-        "100+ AI initiatives, Proofs of Concept (PoCs) and projects supported across multiple regions at Volvo Group.",
+        "Supported operational adoption of AI solutions and agents in warranty, sales and aftermarket workflows, moving AI beyond awareness into everyday business processes.",
         size=8.1,
         line=4.2,
     )
     body(
-        "100+ AI literacy sessions and training opportunities delivered across the global Volvo Group.",
+        "Applied Generative AI to translation, summarization, structured analysis, communications and commercial operations, with human review and responsible-use practices.",
         size=8.1,
         line=4.2,
     )
     body(
-        "Thousands of employees reached through AI innovation and literacy programs supporting responsible adoption.",
+        "100+ AI initiatives, Proofs of Concept (PoCs) and projects supported across multiple regions at Volvo Group, complemented by 100+ AI literacy sessions as adoption enablement.",
         size=8.1,
         line=4.2,
     )
@@ -144,7 +146,7 @@ def build_public_cv() -> bytes:
     )
     pdf.ln(0.5)
     body(
-        "AI Adoption & Literacy | Data & Analytics Leadership | AI Product Management | Product Management | Executive Stakeholder Management | Generative AI & Large Language Models (LLMs)",
+        "AI Adoption & Change | Data & Analytics Leadership | AI Product Management | Product Management | Executive Stakeholder Management | Generative AI & Large Language Models (LLMs)",
         size=7.95,
         line=4.1,
     )
@@ -167,8 +169,9 @@ def build_public_cv() -> bytes:
         "Aug 2022 - Dec 2025",
         "Greater Gothenburg Metropolitan Area, Sweden",
         [
-            "Designed and launched AI innovation and literacy programs reaching thousands of employees worldwide, supporting responsible adoption and compliance-aware use of AI.",
-            "Supported AI adoption across commercial operations, introducing AI solutions and agents in warranty, sales and aftermarket workflows with focus on cycle time, cost and adoption outcomes.",
+            "Supported operational adoption of AI solutions and agents in warranty, sales and aftermarket workflows, working with business teams to move use cases into everyday processes.",
+            "Applied Generative AI in translation, summarization, structured analysis, communications and commercial operations, with human review and responsible-use practices.",
+            "Designed and launched AI innovation and literacy programs reaching thousands of employees worldwide, building the knowledge and confidence required to use AI responsibly.",
             "Led cross-functional AI Proofs of Concept across warranty, sales, aftermarket, legal, compliance and sustainability, connecting business problems with practical AI use cases.",
         ],
     )
@@ -201,7 +204,7 @@ def build_public_cv() -> bytes:
         "Wroclaw, Poland",
         [
             "Led business requirements, product management and stakeholder engagement for 100+ AI initiatives, Proofs of Concept and projects across multiple regions.",
-            "Delivered 100+ AI literacy sessions and training opportunities across the global Volvo Group.",
+            "Delivered 100+ AI literacy sessions and training opportunities across the global Volvo Group, supporting broader enterprise capability and adoption.",
         ],
     )
     role(
@@ -243,6 +246,18 @@ def build_public_cv() -> bytes:
         "Massachusetts Institute of Technology | Minds and Machines - Philosophy & Ethics",
         size=7.85,
         line=4.0,
+    )
+    pdf.ln(0.6)
+    pdf.set_x(16)
+    pdf.set_font("DejaVu", "", 7.7)
+    pdf.set_text_color(*ACCENT)
+    pdf.cell(
+        pdf.get_string_width(CERTIFICATIONS_DISPLAY),
+        4.0,
+        CERTIFICATIONS_DISPLAY,
+        link=CERTIFICATIONS_URL,
+        new_x="LMARGIN",
+        new_y="NEXT",
     )
 
     section("Languages", 2.8)

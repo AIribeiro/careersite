@@ -142,6 +142,10 @@ def _seconds(value: object) -> str:
         seconds = float(value or 0)
     except (TypeError, ValueError):
         return "—"
+    if seconds <= 0:
+        return "—"
+    if seconds < 1:
+        return "<1s"
     if seconds < 60:
         return f"{seconds:.0f}s"
     minutes = seconds / 60

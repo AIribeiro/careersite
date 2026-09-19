@@ -23,6 +23,17 @@ def _uri(name: str) -> str:
     return f"data:{mime};base64,{base64.b64encode(blob).decode('ascii')}"
 
 
+def _base64_uri_parts(directory: str, mime: str = "image/webp") -> str:
+    """Reassemble a repository-stored base64 asset from ordered text parts."""
+    folder = IMAGE_DIR / directory
+    try:
+        parts = sorted(folder.glob("part*.txt"))
+        payload = "".join(part.read_text(encoding="ascii").strip() for part in parts)
+    except OSError:
+        return ""
+    return f"data:{mime};base64,{payload}" if payload else ""
+
+
 # Curated page-to-image mapping. The intent is to reinforce the message of each
 # page with authentic evidence of executive presence, facilitation and thought
 # leadership rather than treating photography as decoration.
@@ -37,7 +48,7 @@ brand_icon = contact
 presence_thinkers360 = _uri("presence_thinkers360_top50.png")
 presence_global_ambassador = _uri("presence_global_ai_ambassador.jpg")
 presence_ai_learning = _uri("presence_ai_learning_sessions.jpg")
-eitca_eu_banner = _uri("eitca_eu_banner.webp")
+eitca_eu_banner = _base64_uri_parts("eitca_eu_banner_1280")
 
 if hero:
     assets.HERO_URI = hero

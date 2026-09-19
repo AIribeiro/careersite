@@ -74,6 +74,10 @@ class AnalyticsControlTests(unittest.TestCase):
             "Active time distribution",
             "Sessions by hour",
             "Sessions by weekday",
+            "Page exploration",
+            "About & profile pages",
+            "Credentials & Certifications",
+            "Speaking & Thought Leadership",
         ):
             self.assertIn(label, dashboard)
 
@@ -89,6 +93,8 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertIn("st.vega_lite_chart", dashboard)
         self.assertNotIn("st.dataframe", dashboard)
         self.assertNotIn("localStorage", client)
+        self.assertIn("def _page_rows", dashboard)
+        self.assertIn('data.get("pages", [])', dashboard)
 
     def test_duration_format_never_labels_positive_subsecond_time_as_zero(self) -> None:
         import page_analytics

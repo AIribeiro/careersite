@@ -8,21 +8,21 @@ LINKEDIN_CERTIFICATIONS = "https://www.linkedin.com/in/jairribeiro/details/certi
 
 FLAGSHIP = [
     {
-        "signal": "Agentic AI · current",
+        "signal": "Agentic AI",
         "title": "Fundamentals of Building AI Agents",
         "issuer": "IBM",
         "date": "May 2026",
         "credential": "VXKY3NPDNMW6",
-        "copy": "Recent formal work on AI agents and agentic patterns, complementing enterprise experience introducing AI solutions and agents into business workflows.",
+        "copy": "Strengthens my perspective on how AI agents can be applied within enterprise workflows, with attention to orchestration, autonomy and control.",
         "skills": ("AI agents", "Agentic AI", "Applied AI"),
     },
     {
-        "signal": "Executive AI strategy",
+        "signal": "AI strategy",
         "title": "Generative AI for Executives and Business Leaders Specialization",
         "issuer": "IBM",
         "date": "Oct 2025",
         "credential": "X5XFLRL8YQ9K",
-        "copy": "Structured executive-level study of GenAI use cases, strategy, governance and organizational planning.",
+        "copy": "Connects generative AI use cases with strategy, governance and organizational planning at executive level.",
         "skills": ("AI strategy", "GenAI", "Governance"),
     },
     {
@@ -31,7 +31,7 @@ FLAGSHIP = [
         "issuer": "University of Michigan",
         "date": "May 2025",
         "credential": "G7A2NUZLL0YJ",
-        "copy": "Formal study focused on responsible use of generative AI and the choices organizations need to make around risk, trust and accountability.",
+        "copy": "Deepens the governance perspective on risk, trust and accountability in the use of generative AI.",
         "skills": ("Responsible AI", "Generative AI", "Trust"),
     },
     {
@@ -40,7 +40,7 @@ FLAGSHIP = [
         "issuer": "Duke University",
         "date": "May 2025",
         "credential": "Y6M3FVJWGQ9R",
-        "copy": "Technical and governance grounding in explainability: useful when model behavior, evidence and stakeholder trust affect whether AI can be adopted.",
+        "copy": "Adds technical grounding in explainability and the role of evidence, transparency and trust in AI adoption.",
         "skills": ("XAI", "Responsible AI", "Machine learning"),
     },
     {
@@ -49,35 +49,35 @@ FLAGSHIP = [
         "issuer": "Microsoft + LinkedIn",
         "date": "Mar 2025",
         "credential": "",
-        "copy": "A leadership-oriented credential covering organizational AI adoption, Responsible AI and the business choices around applying AI at scale.",
+        "copy": "Focuses on the leadership choices involved in organizational AI adoption, Responsible AI and enterprise-scale use.",
         "skills": ("AI leadership", "Responsible AI", "Business adoption"),
     },
     {
-        "signal": "Enterprise technical depth",
+        "signal": "Technical foundation",
         "title": "EITCA/AI Artificial Intelligence Academy",
         "issuer": "EITCA Academy · European certification programme",
         "date": "Mar 2025",
         "credential": "EITCA/AI/SLJ25004525",
-        "copy": "A 24-ECTS programme comprising 12 component certifications across AI, machine learning, deep learning, Python, cloud and related technical foundations.",
+        "copy": "Provides structured technical breadth across AI, machine learning, deep learning, Python and cloud, supporting stronger leadership judgment in technical environments.",
         "skills": ("24 ECTS", "12 components", "AI / ML / Cloud"),
     },
     {
-        "signal": "Data platform architecture",
+        "signal": "Data platforms",
         "title": "Azure Databricks Platform Architect · Academy Accreditation",
         "issuer": "Databricks",
         "date": "Apr 2025",
         "credential": "141535340",
-        "copy": "Platform-architecture grounding that supports informed leadership conversations about enterprise data platforms, architecture choices and scale.",
+        "copy": "Adds architecture-level understanding of enterprise data platforms and the trade-offs involved in scale, data design and platform choices.",
         "skills": ("Databricks", "Azure", "Platform architecture"),
         "validity": "Valid through Apr 2027",
     },
     {
-        "signal": "Agentic AI · leadership",
+        "signal": "Agentic AI leadership",
         "title": "Agentic AI and AI Agents: A Primer for Leaders",
         "issuer": "Vanderbilt University",
         "date": "May 2025",
         "credential": "YAMOO2UIDDPN",
-        "copy": "Leadership-level study of agentic AI, with emphasis on understanding where autonomous and semi-autonomous patterns can create value and new control questions.",
+        "copy": "Builds leadership understanding of agentic patterns, where autonomous and semi-autonomous systems create value and new governance questions.",
         "skills": ("AI agents", "Leadership", "GenAI"),
     },
 ]
@@ -169,26 +169,32 @@ FOUNDATION_TIMELINE = [
 
 
 def _credential_card(item: dict[str, object]) -> str:
-    skills = "".join(f"<span>{html.escape(str(skill))}</span>" for skill in item["skills"])
-    credential = (
-        f'<span class="cert-id">Credential ID · {html.escape(str(item["credential"]))}</span>'
-        if item.get("credential")
-        else ""
-    )
-    validity = (
-        f'<span class="cert-valid">{html.escape(str(item["validity"]))}</span>'
-        if item.get("validity")
+    detail_bits = []
+    if item.get("credential"):
+        detail_bits.append(
+            f'<span>Credential ID · {html.escape(str(item["credential"]))}</span>'
+        )
+    if item.get("validity"):
+        detail_bits.append(
+            f'<span>{html.escape(str(item["validity"]))}</span>'
+        )
+    details = (
+        '<details class="cert-details"><summary>Credential details</summary>'
+        + "".join(detail_bits)
+        + "</details>"
+        if detail_bits
         else ""
     )
     return (
         '<article class="cert-card">'
-        f'<div class="cert-kicker">{html.escape(str(item["signal"]))}</div>'
+        '<div class="cert-card-head">'
+        f'<span class="cert-kicker">{html.escape(str(item["signal"]))}</span>'
+        f'<span class="cert-date">{html.escape(str(item["date"]))}</span>'
+        "</div>"
         f'<h3>{html.escape(str(item["title"]))}</h3>'
-        f'<div class="cert-meta"><strong>{html.escape(str(item["issuer"]))}</strong>'
-        f'<span>{html.escape(str(item["date"]))}</span>{validity}</div>'
+        f'<div class="cert-issuer">{html.escape(str(item["issuer"]))}</div>'
         f'<p>{html.escape(str(item["copy"]))}</p>'
-        f'<div class="cert-skills">{skills}</div>'
-        f'{credential}'
+        f'{details}'
         "</article>"
     )
 
@@ -218,7 +224,7 @@ def certifications() -> str:
 
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">What the record supports</p><h2>Four dimensions that matter in senior AI &amp; Data roles.</h2></div><p>The page is intentionally curated. Recent, role-relevant credentials come first; deeper technical modules sit underneath the leadership story rather than competing with it.</p></div><div class="grid3 cert-signal-grid"><article class="card"><span class="org">01 · Leadership</span><h3>AI strategy and organizational adoption</h3><p>Executive and leadership programmes from IBM, Microsoft and Vanderbilt reinforce the work of translating AI capability into priorities, operating choices and adoption.</p></article><article class="card"><span class="org">02 · Governance</span><h3>Responsible, explainable AI</h3><p>University of Michigan, Duke and Linux Foundation study supports a practical view of accountability, explainability, trust and responsible scale.</p></article><article class="card"><span class="org">03 · Technical fluency</span><h3>AI, ML, cloud and platform architecture</h3><p>The EITCA/AI programme, Databricks accreditation and Microsoft fundamentals provide enough technical depth to engage specialists and challenge enterprise trade-offs credibly.</p></article><article class="card"><span class="org">04 · Execution</span><h3>Product, data and value delivery</h3><p>Product-management, data-integration, executive data-science and design-thinking study strengthens the path from use-case framing to an operable business capability.</p></article></div></div></section>
 
-<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Selected credentials</p><h2>The credentials most relevant to my leadership work.</h2></div><p>Selected for their relevance to enterprise AI strategy, Responsible AI, adoption, operating models, data, and the technical judgment required to lead AI and Data initiatives at enterprise scale.</p></div><div class="cert-grid">{flagship}</div></div></section>
+<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Selected credentials</p><h2>A focused record of continuing professional development.</h2></div><p>Selected for their relevance to enterprise AI strategy, Responsible AI, adoption, operating models, data, and the technical judgment required to lead AI and Data at enterprise scale.</p></div><div class="cert-grid">{flagship}</div></div></section>
 
 <section class="section navy"><div class="container twocol"><div><p class="eyebrow">Depth behind the leadership profile</p><h2>EITCA/AI · 24 ECTS across 12 component certifications.</h2><p class="flowcopy">The programme provides a structured technical foundation across machine learning, deep learning, Python, Google Cloud and related AI technologies. I use that depth to ask better questions of technical teams, understand dependencies and make stronger leadership decisions—not to replace specialist engineering ownership.</p></div><div><details class="cert-archive" open><summary>See the 12 component certifications</summary><ul>{eitca}</ul></details></div></div></section>
 

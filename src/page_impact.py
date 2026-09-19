@@ -25,7 +25,7 @@ def impact() -> str:
                 ("My responsibility", "At Volvo Group, I led business-requirement gathering, product management and stakeholder management across 100+ AI initiatives, PoCs and projects while supporting the AI & ML Center of Excellence. At Volvo Trucks, I led AI adoption work across commercial operations and cross-functional use cases."),
                 ("Trade-off", "Visible activity can be mistaken for progress. More PoCs and more training can increase momentum without creating clear responsibility, changed workflows or a credible path into enterprise delivery."),
                 ("What I chose / influenced", "I treated adoption as both a portfolio and capability problem: connect use cases to real work, involve business and technical partners early, and make literacy practical enough to improve the quality of demand and everyday use."),
-                ("What changed", "The Volvo Group CoE work engaged 1,500+ practitioners, delivered 100+ AI sessions and generated 130,000+ internal community interactions over three years. At Volvo Trucks, adoption programs reached 1,000+ employees, while AI work across warranty, sales and aftermarket delivered measurable improvements in efficiency and cycle time."),
+                ("What changed", "At Volvo Trucks, AI solutions and agents moved into warranty, sales and aftermarket workflows, connecting adoption to day-to-day operational work rather than awareness alone. Across the wider Volvo AI portfolio, use cases and PoCs also spanned legal, compliance and sustainability, requiring the capability to work across different business contexts rather than one isolated pilot."),
             ],
         ),
         case(

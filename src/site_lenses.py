@@ -85,7 +85,7 @@ def enterprise() -> str:
                 "A business-facing AI and Data leadership profile",
                 "The experience spans AI strategy, analytics, portfolio decisions, governance, adoption, operating models and architecture-aware decision-making. I have worked across global industrial and consumer environments where those disciplines had to support the same business choices.",
                 [
-                    "Across my Volvo AI roles, I shaped and supported 100+ AI initiatives, PoCs and projects.",
+                    "Across Volvo Group and Volvo Trucks, AI work spanned warranty, sales, aftermarket, legal, compliance and sustainability, with AI solutions and agents introduced into commercial workflows.",
                     "At MSX International, I built foundations for an emerging AI & Data CoE covering portfolio, governance, data ownership and scale-readiness.",
                     "At Kimberly-Clark, I led EMEA AI value discovery across functions with different levels of readiness.",
                 ],
@@ -135,9 +135,9 @@ def transformation() -> str:
                 "The hard part usually begins after possibility has been proven",
                 "A technically successful pilot is useful evidence, but it does not yet show that the organization can operate, govern or adopt the capability. My work has often been about connecting those missing conditions around the technology.",
                 [
-                    "AI literacy and adoption activity reaching 1,000+ employees",
-                    "Enterprise communities engaging 1,500+ practitioners",
-                    "Use-case work across commercial operations and other global business functions",
+                    "AI solutions and agents introduced across warranty, sales and aftermarket workflows",
+                    "Cross-functional AI use cases across legal, compliance and sustainability",
+                    "Lifecycle ownership and scale-readiness criteria for moving beyond isolated PoCs",
                 ],
             ),
             (

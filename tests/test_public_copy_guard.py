@@ -68,12 +68,16 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("Where the business-translation thread started.", impact)
         self.assertIn("Writing, speaking and research extend the operating perspective.", thinking)
 
-        # Employability evidence should remain explicit rather than inferred.
-        self.assertIn("1,500+ practitioners", home)
-        self.assertIn("130,000+ interactions", home)
-        self.assertIn("100+ AI sessions", impact)
-        self.assertIn("1,000+ employees", impact)
-        self.assertIn("measurable improvements in efficiency and cycle time", impact)
+        # Adoption evidence should be operational, not participation-volume driven.
+        self.assertIn("Operational workflows", home)
+        self.assertIn("AI solutions and agents introduced across warranty, sales and aftermarket", home)
+        self.assertIn("PoC → repeatable capability", home)
+        self.assertIn("warranty, sales and aftermarket workflows", impact)
+        self.assertIn("legal, compliance and sustainability", impact)
+        self.assertNotIn("1,500+ practitioners", home)
+        self.assertNotIn("130,000+ interactions", home)
+        self.assertNotIn("100+ AI sessions", impact)
+        self.assertNotIn("1,000+ employees", impact)
         self.assertIn("reporting directly to the Chief Data & Analytics Officer", impact)
         self.assertIn("Enterprise CoE mandate across strategy, operations, technology and business leaders", impact)
         self.assertIn("2026–2027 maturity roadmap", impact)

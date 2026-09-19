@@ -83,6 +83,14 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertNotIn("st.dataframe", dashboard)
         self.assertNotIn("localStorage", client)
 
+    def test_duration_format_never_labels_positive_subsecond_time_as_zero(self) -> None:
+        import page_analytics
+
+        self.assertEqual(page_analytics._seconds(0), "—")
+        self.assertEqual(page_analytics._seconds(0.03), "<1s")
+        self.assertEqual(page_analytics._seconds(0.9), "<1s")
+        self.assertEqual(page_analytics._seconds(1.1), "1s")
+
     def test_admin_login_persists_until_explicit_logout(self) -> None:
         dashboard = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
         auth = (ROOT / "src/site_admin_auth.py").read_text(encoding="utf-8")

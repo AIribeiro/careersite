@@ -59,6 +59,8 @@ jobs:
           assert reader.trailer.get("/Root") is not None, "PDF catalog missing"
           assert b"/Subtype /Link" in data, "Expected hyperlinks are missing"
           assert site_cv.CV_SITE_URL.encode("latin-1") in data, "Portfolio hyperlink missing"
+          assert site_cv.CERTIFICATIONS_URL.encode("latin-1") in data, "Certifications hyperlink missing"
+          assert site_cv.PRESENCE_URL.encode("latin-1") in data, "Speaking/thought-leadership hyperlink missing"
           print(f"Strict parser validated {path}: {len(data)} bytes, {len(reader.pages)} page(s)")
           PY
 

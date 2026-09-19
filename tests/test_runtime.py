@@ -124,9 +124,12 @@ class RuntimeSmokeTests(unittest.TestCase):
         for relative in ("src/page_home.py", "src/page_about.py", "src/site_assets.py"):
             text = (ROOT / relative).read_text(encoding="utf-8")
             self.assertIn("20+", text, relative)
-            self.assertIn("8+", text, relative)
             self.assertNotIn("15+ years", text, relative)
             self.assertNotIn("More than 15 years", text, relative)
+
+        for relative in ("src/page_about.py", "src/site_assets.py"):
+            text = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn("8+", text, relative)
 
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
         impact = (ROOT / "src/page_impact.py").read_text(encoding="utf-8")

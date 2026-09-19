@@ -64,13 +64,21 @@ class AnalyticsControlTests(unittest.TestCase):
             "Country",
             "Browser language",
             "Job-search sources",
-            "Session duration",
+            "Active time distribution",
             "Sessions by hour",
             "Sessions by weekday",
         ):
             self.assertIn(label, dashboard)
 
         self.assertIn("No raw IP addresses", dashboard)
+        self.assertIn("Duration unconfirmed", dashboard)
+        self.assertIn("median_active_seconds", dashboard)
+        self.assertIn("avg_active_seconds", dashboard)
+        self.assertIn('DASHBOARD_RPC = "careersite_analytics_dashboard_v2"', dashboard)
+        self.assertIn("FIRST_HEARTBEAT_MS = 5000", client)
+        self.assertIn("HEARTBEAT_MS = 10000", client)
+        self.assertIn("SESSION_TIMEOUT_MS = 30 * 60 * 1000", client)
+        self.assertIn("jair_hq_last_active_v3", client)
         self.assertIn("st.vega_lite_chart", dashboard)
         self.assertNotIn("st.dataframe", dashboard)
         self.assertNotIn("localStorage", client)

@@ -27,7 +27,7 @@ class _CVPDF(FPDF):
         self.set_y(-10)
         self.set_font("DejaVu", "", 6.8)
         self.set_text_color(136, 151, 162)
-        self.cell(0, 4, "Jair Ribeiro - Portfolio CV")
+        self.cell(0, 4, "Jair Ribeiro | Enterprise AI & Data Leadership")
         self.set_y(-10)
         self.cell(0, 4, f"{self.page_no()} / 2", align="R")
 

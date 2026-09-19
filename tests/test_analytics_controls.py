@@ -83,6 +83,28 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertNotIn("st.dataframe", dashboard)
         self.assertNotIn("localStorage", client)
 
+    def test_admin_login_persists_until_explicit_logout(self) -> None:
+        dashboard = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
+        auth = (ROOT / "src/site_admin_auth.py").read_text(encoding="utf-8")
+        app = (ROOT / "app.py").read_text(encoding="utf-8")
+
+        self.assertIn("ANALYTICS_SESSION_COOKIE", dashboard)
+        self.assertIn("st.context.cookies", dashboard)
+        self.assertIn("Sign in once on this browser", dashboard)
+        self.assertIn('st.link_button("Log out", "/_analytics/logout"', dashboard)
+        self.assertNotIn('st.button("Lock"', dashboard)
+
+        self.assertIn("careersite_analytics_issue_session", auth)
+        self.assertIn("careersite_analytics_revoke_session", auth)
+        self.assertIn("10 * 365 * 24 * 60 * 60", auth)
+
+        self.assertIn('Route("/_analytics/login", _analytics_login, methods=["POST"])', app)
+        self.assertIn('Route("/_analytics/logout", _analytics_logout, methods=["GET", "POST"])', app)
+        self.assertIn("httponly=True", app)
+        self.assertIn("secure=True", app)
+        self.assertIn('samesite="strict"', app)
+        self.assertIn("response.delete_cookie", app)
+
 
 if __name__ == "__main__":
     unittest.main()

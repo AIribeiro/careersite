@@ -29,6 +29,7 @@ from page_home import home
 from page_impact import impact
 from page_thinking import thinking
 from page_about import about
+from page_certifications import certifications
 from page_presence import presence
 from page_contact import contact
 from page_analytics_v2 import render_analytics_dashboard
@@ -38,7 +39,7 @@ PAGE = st.query_params.get("page", "home")
 if isinstance(PAGE, list):
     PAGE = PAGE[0] if PAGE else "home"
 PAGE = str(PAGE).lower().strip()
-PUBLIC_VALID = {"home", "impact", "thinking", "about", "presence", "contact", "enterprise", "transformation", "governance", "consulting"}
+PUBLIC_VALID = {"home", "impact", "thinking", "about", "certifications", "presence", "contact", "enterprise", "transformation", "governance", "consulting"}
 VALID = PUBLIC_VALID | {"analytics"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -52,6 +53,7 @@ TITLES = {
     "impact": "Leadership Impact | Jair Ribeiro",
     "thinking": "Selected Thinking | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
+    "certifications": "Credentials & Certifications | Jair Ribeiro",
     "presence": "Speaking & Thought Leadership | Jair Ribeiro",
     "contact": "Discuss a Leadership Opportunity | Jair Ribeiro",
     "enterprise": "Enterprise AI & Data Leadership | Jair Ribeiro",
@@ -91,6 +93,7 @@ else:
         "impact": impact,
         "thinking": thinking,
         "about": about,
+        "certifications": certifications,
         "presence": presence,
         "contact": contact,
         "enterprise": enterprise,

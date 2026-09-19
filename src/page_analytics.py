@@ -12,7 +12,12 @@ from site_analytics import (
     ANALYTICS_URL,
     RECOMMENDED_ATTRIBUTION_SOURCES,
 )
-from site_admin_auth import ANALYTICS_SESSION_COOKIE
+from site_admin_auth import (
+    ANALYTICS_SESSION_COOKIE,
+    ANALYTICS_SESSION_COOKIE_MAX_AGE,
+    issue_admin_session,
+    revoke_admin_session,
+)
 
 DASHBOARD_RPC = "careersite_analytics_dashboard_v2"
 RESET_RPC = "careersite_analytics_reset"
@@ -577,49 +582,89 @@ def _saved_admin_session() -> str:
         return ""
 
 
-def _render_private_login() -> None:
-    auth_error = st.query_params.get("auth_error", "")
-    if isinstance(auth_error, list):
-        auth_error = auth_error[0] if auth_error else ""
-    if str(auth_error) == "1":
-        st.error("Invalid analytics access code.")
-
-    st.html(
-        """
-<div style="border:1px solid #ddd4c7;border-radius:18px;background:#fffdfa;padding:20px 22px;max-width:640px">
-  <div style="font-size:1.05rem;font-weight:750;color:#10131a;margin-bottom:.35rem">Private dashboard</div>
-  <div style="font-size:.86rem;color:#6f6a62;margin-bottom:1rem">
-    Sign in once on this browser. The admin session stays active until you log out or clear browser data.
-  </div>
-  <form method="post" action="/_analytics/login">
-    <label for="analytics-access-code" style="display:block;font-size:.78rem;color:#6f6a62;margin-bottom:.35rem">Access code</label>
-    <input id="analytics-access-code" name="access_code" type="password" autocomplete="current-password"
-      required
-      style="box-sizing:border-box;width:100%;padding:.72rem .8rem;border:1px solid #cfc5b7;border-radius:10px;background:#fff;color:#10131a;font:inherit;margin-bottom:.75rem">
-    <button type="submit"
-      style="width:100%;padding:.72rem .9rem;border:0;border-radius:10px;background:#c56f3d;color:white;font-weight:700;cursor:pointer">
-      Open analytics
-    </button>
-  </form>
-  <div style="font-size:.75rem;color:#6f6a62;margin-top:.8rem">
-    This route is absent from public navigation and marked noindex.
-  </div>
-</div>
-"""
-    )
-
-
-def _render_logout_button(label: str = "Log out") -> None:
-    st.html(
+def _set_admin_cookie(session_token: str) -> None:
+    token_json = json.dumps(session_token)
+    cookie_name_json = json.dumps(ANALYTICS_SESSION_COOKIE)
+    components.html(
         f"""
-<form method="post" action="/_analytics/logout" target="_self" style="margin:0">
-  <button type="submit"
-    style="box-sizing:border-box;width:100%;padding:.45rem .75rem;border:1px solid #ddd4c7;border-radius:8px;background:#fffdfa;color:#10131a;font:inherit;font-weight:600;cursor:pointer">
-    {html.escape(label)}
-  </button>
-</form>
-"""
+<script>
+(() => {{
+  const name = {cookie_name_json};
+  const value = {token_json};
+  window.parent.document.cookie =
+    name + '=' + encodeURIComponent(value) +
+    '; Path=/; Max-Age={ANALYTICS_SESSION_COOKIE_MAX_AGE}; Secure; SameSite=Strict';
+}})();
+</script>
+""",
+        height=0,
+        width=0,
     )
+
+
+def _clear_admin_cookie(*, reload_page: bool = False) -> None:
+    cookie_name_json = json.dumps(ANALYTICS_SESSION_COOKIE)
+    reload_js = (
+        "window.parent.setTimeout(() => window.parent.location.replace('/?page=analytics'), 80);"
+        if reload_page
+        else ""
+    )
+    components.html(
+        f"""
+<script>
+(() => {{
+  const name = {cookie_name_json};
+  window.parent.document.cookie =
+    name + '=; Path=/; Max-Age=0; Secure; SameSite=Strict';
+  {reload_js}
+}})();
+</script>
+""",
+        height=0,
+        width=0,
+    )
+
+
+def _render_private_login() -> bool:
+    with st.container(border=True):
+        st.markdown("#### Private dashboard")
+        st.caption(
+            "Sign in once on this browser. The admin session stays active until you log out or clear browser data."
+        )
+        access_code = st.text_input(
+            "Access code",
+            type="password",
+            autocomplete="current-password",
+            key="careersite_analytics_login_code",
+        )
+        if not st.button("Open analytics", type="primary", use_container_width=True):
+            st.caption("This route is absent from public navigation and marked noindex.")
+            return False
+
+        try:
+            session_token = issue_admin_session(access_code)
+            _fetch_dashboard(session_token, "30d")
+        except (ValueError, RuntimeError) as exc:
+            st.error(str(exc))
+            return False
+
+        st.session_state.careersite_analytics_access_code = session_token
+        st.session_state.careersite_analytics_reset_pending = False
+        _set_admin_cookie(session_token)
+        return True
+
+
+def _render_logout_button() -> bool:
+    if not st.button("Log out", use_container_width=True, key="careersite_analytics_logout"):
+        return False
+
+    current = str(st.session_state.get("careersite_analytics_access_code") or "")
+    if current:
+        revoke_admin_session(current)
+    st.session_state.careersite_analytics_access_code = ""
+    st.session_state.careersite_analytics_reset_pending = False
+    _clear_admin_cookie(reload_page=True)
+    return True
 
 
 def _top_label(rows: object, field: str) -> str:
@@ -695,16 +740,15 @@ def render_analytics_dashboard() -> None:
             try:
                 _fetch_dashboard(saved_session, "30d")
             except (ValueError, RuntimeError):
-                st.error("The saved analytics session is no longer valid.")
-                _render_logout_button("Clear saved session")
-                _render_private_login()
-                return
+                st.session_state.careersite_analytics_access_code = ""
+                _clear_admin_cookie()
+                st.warning("The saved analytics session expired or was revoked. Sign in again.")
             else:
                 st.session_state.careersite_analytics_access_code = saved_session
 
     if not st.session_state.careersite_analytics_access_code:
-        _render_private_login()
-        return
+        if not _render_private_login():
+            return
 
     flash = st.session_state.get("careersite_analytics_flash")
     if flash:
@@ -725,7 +769,8 @@ def render_analytics_dashboard() -> None:
         if st.button("Reset", use_container_width=True):
             st.session_state.careersite_analytics_reset_pending = True
     with logout_col:
-        _render_logout_button()
+        if _render_logout_button():
+            return
 
     if _render_reset_control():
         return
@@ -735,8 +780,8 @@ def render_analytics_dashboard() -> None:
     except ValueError:
         st.session_state.careersite_analytics_access_code = ""
         st.session_state.careersite_analytics_reset_pending = False
-        st.error("The analytics session is no longer valid. Log in again.")
-        _render_logout_button("Clear saved session")
+        _clear_admin_cookie()
+        st.error("The analytics session is no longer valid. Sign in again.")
         return
     except RuntimeError as exc:
         st.error(str(exc))

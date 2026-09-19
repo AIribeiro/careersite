@@ -198,6 +198,29 @@ def inject_article_analytics(
     }}).catch(() => {{}});
   }};
 
+  const scheduleFirstArticleHeartbeat = () => {{
+    const article = win.__jairArticleContext;
+    if (!article || !article.slug) return;
+    ensureArticleSession();
+    const token = `${{sessionId}}|${{article.slug}}`;
+    if (win.__jairArticleFirstHeartbeatToken === token) return;
+    win.__jairArticleFirstHeartbeatToken = token;
+    win.setTimeout(() => {{
+      const current = win.__jairArticleContext;
+      const ensure = win.__jairArticleEnsureSession;
+      if (ensure) ensure();
+      const currentSessionId = win.sessionStorage.getItem(sessionKey) || '';
+      if (
+        current && current.slug === article.slug &&
+        currentSessionId === sessionId &&
+        doc.visibilityState === 'visible' &&
+        win.__jairArticleSend
+      ) {{
+        win.__jairArticleSend('engagement_ping', {{ slug: article.slug }});
+      }}
+    }}, FIRST_HEARTBEAT_MS);
+  }};
+
   const recordArticleView = () => {{
     const article = win.__jairArticleContext;
     if (!article || !article.slug) return;
@@ -210,12 +233,14 @@ def inject_article_analytics(
       send('article_view', {{ slug: article.slug }});
       win.sessionStorage.setItem('jair_hq_last_article_view_v1', JSON.stringify({{ signature, at: now }}));
     }}
+    scheduleFirstArticleHeartbeat();
   }};
 
   win.__jairArticleEnsureSession = ensureArticleSession;
   win.__jairArticleUpdateEngagement = updateArticleEngagement;
   win.__jairArticleSend = send;
   win.__jairArticleRecordView = recordArticleView;
+  win.__jairArticleScheduleFirstHeartbeat = scheduleFirstArticleHeartbeat;
 
   syncArticleState();
   recordArticleView();
@@ -230,13 +255,6 @@ def inject_article_analytics(
       if (changed && win.__jairArticleRecordView) win.__jairArticleRecordView();
       if (update) update();
     }}, 1000);
-
-    win.setTimeout(() => {{
-      const article = win.__jairArticleContext;
-      if (article && article.slug && doc.visibilityState === 'visible' && win.__jairArticleSend) {{
-        win.__jairArticleSend('engagement_ping', {{ slug: article.slug }});
-      }}
-    }}, FIRST_HEARTBEAT_MS);
 
     win.setInterval(() => {{
       const article = win.__jairArticleContext;

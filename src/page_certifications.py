@@ -37,6 +37,16 @@ FLAGSHIP = [
         "copy": "Covers responsible development, assessment, adoption and governance of generative AI, including policy, regulation, trust and organizational accountability.",
     },
     {
+        "signal": "Explainability & trust",
+        "title": "Explainable AI (XAI)",
+        "issuer": "Duke University",
+        "date": "May 2025",
+        "credential": "Y6M3FVJWGQ9R",
+        "verify_url": "https://www.coursera.org/account/accomplishments/records/Y6M3FVJWGQ9R",
+        "program_url": "",
+        "copy": "Adds formal grounding in explainability, transparency and evidence—important when AI decisions need to be understood, challenged and governed.",
+    },
+    {
         "signal": "AI leadership & adoption",
         "title": "AI for Organizational Leaders",
         "issuer": "Microsoft + LinkedIn",
@@ -45,6 +55,16 @@ FLAGSHIP = [
         "verify_url": "https://www.linkedin.com/learning/certificates/94a24a7c132173b60320b2283bd9ac8a3aa66e4218af40c4d2bb2d4ad4df3e43",
         "program_url": "https://www.linkedin.com/learning/paths/ai-for-organizational-leaders-by-microsoft-and-linkedin",
         "copy": "Reinforces the leadership choices behind AI adoption: business strategy, Responsible AI, organization-wide capability and long-term value.",
+    },
+    {
+        "signal": "Executive AI leadership",
+        "title": "Generative AI for Leaders",
+        "issuer": "Vanderbilt University",
+        "date": "May 2025",
+        "credential": "EDHXM2H7DJP5",
+        "verify_url": "https://www.coursera.org/account/accomplishments/records/EDHXM2H7DJP5",
+        "program_url": "",
+        "copy": "Focuses on leadership choices around generative AI, helping connect emerging capabilities with business priorities, organizational readiness and responsible adoption.",
     },
     {
         "signal": "Agentic AI leadership",
@@ -67,6 +87,16 @@ FLAGSHIP = [
         "copy": "Adds practical fluency in agent reasoning and task execution, supporting informed discussion of agent architectures and delivery choices.",
     },
     {
+        "signal": "AI product judgment",
+        "title": "Generative AI for Product Managers",
+        "issuer": "SkillUp EdTech",
+        "date": "May 2025",
+        "credential": "G2UB5ZRCAEBU",
+        "verify_url": "https://www.coursera.org/account/accomplishments/records/G2UB5ZRCAEBU",
+        "program_url": "",
+        "copy": "Strengthens product-level judgment around where generative AI creates value, how use cases are framed and how AI capabilities translate into usable products and services.",
+    },
+    {
         "signal": "Data platforms",
         "title": "Azure Databricks Platform Architect · Academy Accreditation",
         "issuer": "Databricks",
@@ -75,6 +105,16 @@ FLAGSHIP = [
         "verify_url": "https://credentials.databricks.com/d1419d4d-9224-4749-81f7-948aee58d4c5",
         "program_url": "",
         "copy": "Strengthens architecture-level understanding of enterprise data platforms, including platform administration, networking, security and cloud integrations.",
+    },
+    {
+        "signal": "Data & analytics leadership",
+        "title": "Executive Data Science Specialization",
+        "issuer": "Johns Hopkins University",
+        "date": "Feb 2020",
+        "credential": "5L6Q5KMVMWQR",
+        "verify_url": "https://www.coursera.org/account/accomplishments/specialization/5L6Q5KMVMWQR",
+        "program_url": "https://www.coursera.org/specializations/executive-data-science",
+        "copy": "Adds leadership-level grounding in how data-science teams work, how analytical work is evaluated and how data initiatives stay connected to business decisions and outcomes.",
     },
 ]
 
@@ -221,7 +261,7 @@ def certifications() -> str:
 
 <section class="section navy eitca-feature"><div class="container"><div class="eitca-banner"><img src="{eitca_eu_banner}" alt="European Union flags outside a modern institutional building" loading="lazy" decoding="async"></div><div class="eitca-top"><div><p class="eyebrow">Featured technical foundation</p><h2>EITCA/AI Artificial Intelligence Academy</h2><p class="eitca-lead">A <strong>24 ECTS</strong> European AI certification programme spanning <strong>12 component certifications</strong> across machine learning, deep learning, Python, cloud platforms and applied AI technologies.</p></div><div class="eitca-facts"><div><strong>24 ECTS</strong><span>Structured AI curriculum</span></div><div><strong>12</strong><span>Component certifications</span></div><div><strong>2025</strong><span>Credential awarded</span></div></div></div><div class="eitca-body"><div><h3>What this adds to my leadership</h3><p>For me, the value of EITCA/AI is the structured technical breadth it adds to my business-facing AI leadership. I do not use the credential to position myself as a specialist engineer. I use that foundation to make better leadership decisions: to understand model and data dependencies, challenge architecture assumptions, engage product and engineering teams at the right level, and recognize where technical choices affect governance, risk, scalability and cost.</p><p class="eitca-secondary">That depth strengthens the bridge I need to lead effectively across business and technology. It helps me connect executive priorities with credible decisions on platforms, delivery approaches, Responsible AI and adoption—so strategy remains grounded in what can actually be built, governed and scaled.</p><div class="eitca-value-grid"><div><strong>Technical breadth</strong><span>AI, machine learning, deep learning, Python and cloud foundations.</span></div><div><strong>Decision quality</strong><span>Context for architecture, data, model and platform trade-offs.</span></div><div><strong>Leadership bridge</strong><span>Connects strategy, governance and adoption with technical delivery.</span></div></div><div class="actions"><a class="btn ghost" href="https://www.eitci.org/val.php?id=EITCA/AI/SLJ25004525&t=j5xq3TMD6GcHgrj9" target="_blank" rel="noopener">Verify credential ↗</a><a class="btn ghost" href="https://eitca.org/eitca-ai-artificial-intelligence-academy/" target="_blank" rel="noopener">Programme scope ↗</a></div><div class="eitca-meta-row">{EU_ROUND_EMBLEM}<div><span class="eitca-meta-label">European credential context</span><p class="eitca-id">Credential ID · EITCA/AI/SLJ25004525 · EITCA Academy</p></div></div></div><details class="cert-archive"><summary>View 12 component certifications</summary><ul>{eitca}</ul></details></div></div></section>
 
-<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Current and role-relevant credentials</p><h2>Focused evidence across today’s enterprise AI priorities.</h2></div><p>Six credentials complement the featured EITCA/AI programme with direct relevance to AI strategy, Responsible AI, organizational adoption, agentic systems and data-platform decisions. Each can be verified directly.</p></div><div class="cert-grid">{flagship}</div></div></section>
+<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Current and role-relevant credentials</p><h2>Focused evidence across today’s enterprise AI priorities.</h2></div><p>Ten credentials complement the featured EITCA/AI programme with direct relevance to AI strategy, Responsible AI, organizational adoption, agentic systems, product judgment, data platforms and analytics leadership. Each can be verified directly.</p></div><div class="cert-grid">{flagship}</div></div></section>
 
 
 

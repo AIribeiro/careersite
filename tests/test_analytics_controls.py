@@ -16,6 +16,8 @@ class AnalyticsControlTests(unittest.TestCase):
 
         self.assertEqual(page_analytics.REPORTING_WINDOW_LABELS["last_hour"], "Last hour")
         self.assertEqual(page_analytics.REPORTING_WINDOW_LABELS["today"], "Today")
+        source = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
+        self.assertIn("index=0", source)
 
         hour_payload = page_analytics._dashboard_payload("last_hour")
         today_payload = page_analytics._dashboard_payload("today")

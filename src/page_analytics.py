@@ -12,11 +12,9 @@ from site_analytics import (
     ANALYTICS_URL,
     RECOMMENDED_ATTRIBUTION_SOURCES,
 )
-from site_admin_auth import issue_admin_session, revoke_admin_session
-from site_admin_store import admin_session_store
 
 DASHBOARD_RPC = "careersite_analytics_dashboard_v2"
-RESET_RPC = "careersite_analytics_reset"
+PUBLIC_DASHBOARD_TOKEN = "public-readonly-v1"
 PUBLIC_BASE_URL = "https://jairribeiro-ai.streamlit.app/"
 REPORTING_WINDOWS = (
     ("last_hour", "Last hour"),
@@ -59,21 +57,21 @@ def _noindex() -> None:
     )
 
 
-def _dashboard_payload(access_code: str, window: str) -> dict[str, object]:
+def _dashboard_payload(window: str) -> dict[str, object]:
     if window == "last_hour":
-        return {"p_token": access_code, "p_days": 30, "p_window": "last_hour"}
+        return {"p_token": PUBLIC_DASHBOARD_TOKEN, "p_days": 30, "p_window": "last_hour"}
     if window == "today":
-        return {"p_token": access_code, "p_days": 30, "p_window": "today"}
+        return {"p_token": PUBLIC_DASHBOARD_TOKEN, "p_days": 30, "p_window": "today"}
     if window.endswith("d") and window[:-1].isdigit():
         days = int(window[:-1])
         if days in {7, 30, 90, 365}:
-            return {"p_token": access_code, "p_days": days, "p_window": "days"}
+            return {"p_token": PUBLIC_DASHBOARD_TOKEN, "p_days": days, "p_window": "days"}
     raise ValueError("Unsupported analytics reporting window.")
 
 
-def _fetch_dashboard(access_code: str, window: str) -> dict:
+def _fetch_dashboard(window: str) -> dict:
     endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{DASHBOARD_RPC}"
-    payload = json.dumps(_dashboard_payload(access_code, window)).encode("utf-8")
+    payload = json.dumps(_dashboard_payload(window)).encode("utf-8")
     req = request.Request(
         endpoint,
         data=payload,
@@ -97,37 +95,6 @@ def _fetch_dashboard(access_code: str, window: str) -> dict:
 
     if not isinstance(data, dict):
         raise RuntimeError("Unexpected analytics response format.")
-    return data
-
-
-def _reset_analytics(access_code: str) -> dict:
-    endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{RESET_RPC}"
-    payload = json.dumps({"p_token": access_code}).encode("utf-8")
-    req = request.Request(
-        endpoint,
-        data=payload,
-        method="POST",
-        headers={
-            "apikey": ANALYTICS_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        },
-    )
-    try:
-        with request.urlopen(req, timeout=12) as response:
-            data = json.loads(response.read().decode("utf-8"))
-    except error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
-        if exc.code in {400, 401, 403}:
-            raise ValueError("Invalid analytics access code.") from exc
-        raise RuntimeError(f"Analytics reset returned HTTP {exc.code}: {body[:180]}") from exc
-    except error.URLError as exc:
-        raise RuntimeError("Analytics service is temporarily unreachable.") from exc
-
-    if not isinstance(data, dict):
-        raise RuntimeError("Unexpected analytics reset response format.")
-    if not data.get("reset_at"):
-        raise RuntimeError("Analytics reset did not return a persistent reset baseline.")
     return data
 
 
@@ -575,60 +542,6 @@ def _funnel(home: int, impact: int, lens: int, cv: int) -> None:
     st.markdown('<div class="funnel-wrap">' + "".join(rows) + "</div>", unsafe_allow_html=True)
 
 
-def _browser_admin_session() -> tuple[str, bool, bool]:
-    write_token = str(st.session_state.pop("careersite_analytics_pending_store", "") or "")
-    clear = bool(st.session_state.pop("careersite_analytics_pending_clear", False))
-    suppress_restore = bool(st.session_state.pop("careersite_analytics_skip_restore_once", False))
-
-    result = admin_session_store(write_token=write_token, clear=clear)
-    token = str(getattr(result, "token", "") or "").strip()
-    ready = bool(getattr(result, "ready", False))
-    return token, ready, suppress_restore or clear
-
-
-def _render_private_login() -> bool:
-    with st.container(border=True):
-        st.markdown("#### Private dashboard")
-        st.caption(
-            "Sign in once on this browser. The admin session stays active until you log out or clear browser data."
-        )
-        access_code = st.text_input(
-            "Access code",
-            type="password",
-            autocomplete="current-password",
-            key="careersite_analytics_login_code",
-        )
-        if not st.button("Open analytics", type="primary", use_container_width=True):
-            st.caption("This route is absent from public navigation and marked noindex.")
-            return False
-
-        try:
-            session_token = issue_admin_session(access_code)
-            _fetch_dashboard(session_token, "30d")
-        except (ValueError, RuntimeError) as exc:
-            st.error(str(exc))
-            return False
-
-        st.session_state.careersite_analytics_access_code = session_token
-        st.session_state.careersite_analytics_reset_pending = False
-        st.session_state.careersite_analytics_pending_store = session_token
-        st.rerun()
-
-
-def _render_logout_button() -> bool:
-    if not st.button("Log out", use_container_width=True, key="careersite_analytics_logout"):
-        return False
-
-    current = str(st.session_state.get("careersite_analytics_access_code") or "")
-    if current:
-        revoke_admin_session(current)
-    st.session_state.careersite_analytics_access_code = ""
-    st.session_state.careersite_analytics_reset_pending = False
-    st.session_state.careersite_analytics_pending_clear = True
-    st.session_state.careersite_analytics_skip_restore_once = True
-    st.rerun()
-
-
 def _top_label(rows: object, field: str) -> str:
     data = _top_rows(rows, 1)
     if not data:
@@ -636,45 +549,8 @@ def _top_label(rows: object, field: str) -> str:
     return str(data[0].get(field) or "—")
 
 
-def _render_reset_control() -> bool:
-    if not st.session_state.careersite_analytics_reset_pending:
-        return False
-
-    st.warning(
-        "Reset permanently establishes a new zero baseline for all dashboard metrics and deletes stored events from before that moment. "
-        "New visits after the reset will start increasing the counters again."
-    )
-    confirm_col, cancel_col, _ = st.columns([1.4, 1, 3])
-    with confirm_col:
-        if st.button("Confirm reset to zero", type="primary", use_container_width=True):
-            try:
-                result = _reset_analytics(st.session_state.careersite_analytics_access_code)
-            except ValueError:
-                st.session_state.careersite_analytics_access_code = ""
-                st.session_state.careersite_analytics_reset_pending = False
-                st.error("The access code is no longer valid. Reload the page and enter it again.")
-                return True
-            except RuntimeError as exc:
-                st.error(str(exc))
-                return True
-            deleted = int(result.get("deleted_events", 0) or 0)
-            remaining = int(result.get("remaining_events", 0) or 0)
-            reset_at = str(result.get("reset_at") or "")
-            st.session_state.careersite_analytics_reset_pending = False
-            st.session_state.careersite_analytics_flash = (
-                f"Analytics reset persisted at {reset_at}. {deleted} pre-reset event{'s' if deleted != 1 else ''} deleted. "
-                f"{remaining} event{'s' if remaining != 1 else ''} arrived at or after the new baseline."
-            )
-            st.rerun()
-    with cancel_col:
-        if st.button("Cancel reset", use_container_width=True):
-            st.session_state.careersite_analytics_reset_pending = False
-            st.rerun()
-    return True
-
-
 def render_analytics_dashboard() -> None:
-    """Render the hidden, access-controlled hiring-funnel dashboard."""
+    """Render the hidden, noindex hiring-funnel dashboard."""
     _noindex()
     _dashboard_css()
 
@@ -691,42 +567,7 @@ def render_analytics_dashboard() -> None:
         unsafe_allow_html=True,
     )
 
-    if "careersite_analytics_access_code" not in st.session_state:
-        st.session_state.careersite_analytics_access_code = ""
-    if "careersite_analytics_reset_pending" not in st.session_state:
-        st.session_state.careersite_analytics_reset_pending = False
-
-    saved_session, store_ready, suppress_restore = _browser_admin_session()
-
-    if (
-        not st.session_state.careersite_analytics_access_code
-        and store_ready
-        and saved_session
-        and not suppress_restore
-    ):
-        try:
-            _fetch_dashboard(saved_session, "30d")
-        except (ValueError, RuntimeError):
-            st.session_state.careersite_analytics_access_code = ""
-            st.session_state.careersite_analytics_pending_clear = True
-            st.session_state.careersite_analytics_skip_restore_once = True
-            st.warning("The saved analytics session expired or was revoked. Sign in again.")
-        else:
-            st.session_state.careersite_analytics_access_code = saved_session
-
-    if not st.session_state.careersite_analytics_access_code:
-        if not store_ready and not suppress_restore:
-            st.caption("Restoring private analytics session…")
-            return
-        if not _render_private_login():
-            return
-
-    flash = st.session_state.get("careersite_analytics_flash")
-    if flash:
-        st.success(str(flash))
-        del st.session_state["careersite_analytics_flash"]
-
-    filter_col, spacer, reset_col, logout_col = st.columns([2.5, 2.8, 1.15, 1.15])
+    filter_col, _ = st.columns([2.5, 5.1])
     with filter_col:
         window = st.selectbox(
             "Reporting window",
@@ -736,24 +577,10 @@ def render_analytics_dashboard() -> None:
             key="careersite_analytics_reporting_window",
             label_visibility="collapsed",
         )
-    with reset_col:
-        if st.button("Reset", use_container_width=True):
-            st.session_state.careersite_analytics_reset_pending = True
-    with logout_col:
-        if _render_logout_button():
-            return
-
-    if _render_reset_control():
-        return
-
     try:
-        data = _fetch_dashboard(st.session_state.careersite_analytics_access_code, str(window))
+        data = _fetch_dashboard(str(window))
     except ValueError:
-        st.session_state.careersite_analytics_access_code = ""
-        st.session_state.careersite_analytics_reset_pending = False
-        st.session_state.careersite_analytics_pending_clear = True
-        st.session_state.careersite_analytics_skip_restore_once = True
-        st.error("The analytics session is no longer valid. Sign in again.")
+        st.error("Analytics is temporarily unavailable.")
         return
     except RuntimeError as exc:
         st.error(str(exc))
@@ -981,17 +808,4 @@ def render_analytics_dashboard() -> None:
             st.markdown(
                 "The dashboard uses first-party session analytics only: no heatmaps, recordings, raw IP storage, "
                 "full user-agent storage, persistent visitor IDs, advertising pixels or cross-session profiles."
-            )
-
-        with st.expander("Dashboard administration"):
-            st.caption(
-                "Reset permanently creates a new zero baseline and deletes events older than that baseline. "
-                "Use only when you intentionally want a fresh measurement period."
-            )
-            if st.button("Reset analytics to a new zero baseline", type="secondary"):
-                st.session_state.careersite_analytics_reset_pending = True
-                st.rerun()
-            st.caption(
-                "Persistent analytics reset baseline remains visible in every reporting window. "
-                "Events before this timestamp are excluded from every reporting window."
             )

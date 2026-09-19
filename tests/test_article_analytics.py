@@ -23,11 +23,18 @@ class ArticleAnalyticsTests(unittest.TestCase):
             "article_engaged_ms",
             "jair_hq_session_v1",
             "jair_hq_attribution_v1",
-            "jair_hq_article_engaged_v1",
+            "jair_hq_article_engaged_v2",
             "sessionStorage",
         ):
             self.assertIn(token, source)
 
+        self.assertIn("FIRST_HEARTBEAT_MS = 5000", source)
+        self.assertIn("HEARTBEAT_MS = 10000", source)
+        self.assertIn("SESSION_TIMEOUT_MS = 30 * 60 * 1000", source)
+        self.assertIn("jair_hq_started_v3", source)
+        self.assertIn("jair_hq_engaged_v3", source)
+        self.assertIn("jair_hq_last_active_v3", source)
+        self.assertIn("__jairArticleScheduleFirstHeartbeat", source)
         self.assertNotIn("localStorage", source)
         self.assertNotIn("document.cookie", source)
         self.assertNotIn("user_agent", source)
@@ -49,7 +56,7 @@ class ArticleAnalyticsTests(unittest.TestCase):
         wrapper = (ROOT / "src/page_analytics_v2.py").read_text(encoding="utf-8")
 
         for token in (
-            "careersite_analytics_articles",
+            "careersite_analytics_articles_v2",
             "Article visits & interactions",
             "Most-read articles",
             "Active reading time",
@@ -61,6 +68,9 @@ class ArticleAnalyticsTests(unittest.TestCase):
         ):
             self.assertIn(token, article_dashboard)
 
+        self.assertIn("Duration unconfirmed", article_dashboard)
+        self.assertIn("median_active_seconds", article_dashboard)
+        self.assertIn("confirmed_duration_sessions", article_dashboard)
         self.assertIn("render_site_analytics_dashboard()", wrapper)
         self.assertIn("render_article_analytics()", wrapper)
         self.assertNotIn("st.dataframe", article_dashboard)

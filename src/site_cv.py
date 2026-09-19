@@ -17,6 +17,8 @@ CV_SITE_DISPLAY = "AI Leadership Portfolio"
 CV_SITE_URL = "https://jairribeiro-ai.streamlit.app/?source=cv"
 CERTIFICATIONS_DISPLAY = "View additional certifications and credentials"
 CERTIFICATIONS_URL = "https://jairribeiro-ai.streamlit.app/?page=certifications&utm_source=cv"
+PRESENCE_DISPLAY = "Explore speaking and thought leadership"
+PRESENCE_URL = "https://jairribeiro-ai.streamlit.app/?page=presence&utm_source=cv"
 CV_FILENAME = "Jair_Ribeiro_CV.pdf"
 
 
@@ -287,6 +289,18 @@ def build_public_cv() -> bytes:
         "How to Implement an Effective AI Strategy in Your Business | Publication on practical enterprise AI strategy.",
         size=7.75,
         line=3.95,
+    )
+    pdf.ln(0.6)
+    pdf.set_x(16)
+    pdf.set_font("DejaVu", "", 7.7)
+    pdf.set_text_color(*ACCENT)
+    pdf.cell(
+        pdf.get_string_width(PRESENCE_DISPLAY),
+        4.0,
+        PRESENCE_DISPLAY,
+        link=PRESENCE_URL,
+        new_x="LMARGIN",
+        new_y="NEXT",
     )
 
     return bytes(pdf.output())

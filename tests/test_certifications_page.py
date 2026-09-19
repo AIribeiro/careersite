@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from io import BytesIO
-import base64
 from PIL import Image
 import sys
 import unittest
@@ -63,18 +61,16 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("European Union flags outside a modern institutional building", page)
         self.assertIn("eu-round-emblem", page)
         self.assertIn("European credential context", page)
-        parts_dir = ROOT / "images/eitca_eu_banner_1280"
-        parts = sorted(parts_dir.glob("part*.txt"))
-        self.assertEqual(len(parts), 7)
-        payload = "".join(part.read_text(encoding="ascii").strip() for part in parts)
-        with Image.open(BytesIO(base64.b64decode(payload))) as image:
+        banner = ROOT / "images/eitca_eu_banner.webp"
+        self.assertTrue(banner.exists())
+        with Image.open(banner) as image:
             self.assertEqual(image.format, "WEBP")
             self.assertEqual(image.size, (1280, 720))
             image.verify()
-        from site_media import eitca_eu_banner
-        self.assertTrue(eitca_eu_banner.startswith("data:image/webp;base64,"))
-        self.assertIn("What the credential adds", page)
-        self.assertIn("Leadership bridge", page)
+        self.assertIn("https://raw.githubusercontent.com/AIribeiro/careersite/main/images/eitca_eu_banner.webp", page)
+        self.assertIn("What this adds to my leadership", page)
+        self.assertIn("For me, the value of EITCA/AI", page)
+        self.assertIn("That depth strengthens the bridge I need to lead effectively", page)
         self.assertIn("eitca-value-grid", page)
         self.assertIn("View full LinkedIn credential record", page)
         self.assertIn("https://www.linkedin.com/in/jairribeiro/details/certifications/", page)

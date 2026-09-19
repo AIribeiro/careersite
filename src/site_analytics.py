@@ -214,6 +214,9 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     }}
   }};
 
+  win.__jairAnalyticsUpdateEngagement = updateEngagement;
+  win.__jairAnalyticsEnsureFreshSession = ensureFreshSession;
+
   win.__jairAnalyticsSend = (eventName, extra = {{}}) => {{
     if (!allowed.has(eventName)) return;
     ensureFreshSession();
@@ -288,11 +291,13 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     win.__jairAnalyticsEngagementState = {{ lastTick: nowPerf }};
 
     win.setInterval(() => {{
-      const reset = ensureFreshSession();
+      const ensure = win.__jairAnalyticsEnsureFreshSession;
+      const update = win.__jairAnalyticsUpdateEngagement;
+      const reset = ensure ? ensure() : false;
       if (reset && win.__jairAnalyticsRecordCurrentView) {{
         win.__jairAnalyticsRecordCurrentView();
       }}
-      updateEngagement();
+      if (update) update();
     }}, 1000);
 
     win.setTimeout(() => {{
@@ -308,20 +313,23 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     }}, HEARTBEAT_MS);
 
     doc.addEventListener('visibilitychange', () => {{
+      const ensure = win.__jairAnalyticsEnsureFreshSession;
+      const update = win.__jairAnalyticsUpdateEngagement;
       if (doc.visibilityState === 'visible') {{
-        const reset = ensureFreshSession();
+        const reset = ensure ? ensure() : false;
         if (reset && win.__jairAnalyticsRecordCurrentView) {{
           win.__jairAnalyticsRecordCurrentView();
         }}
-        updateEngagement();
+        if (update) update();
       }} else {{
-        updateEngagement();
+        if (update) update();
         if (win.__jairAnalyticsSend) win.__jairAnalyticsSend('engagement_ping');
       }}
     }});
 
     win.addEventListener('pagehide', () => {{
-      updateEngagement();
+      const update = win.__jairAnalyticsUpdateEngagement;
+      if (update) update();
       if (win.__jairAnalyticsSend) win.__jairAnalyticsSend('engagement_ping');
     }});
   }}

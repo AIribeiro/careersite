@@ -572,7 +572,7 @@ def render_analytics_dashboard() -> None:
         window = st.selectbox(
             "Reporting window",
             [key for key, _ in REPORTING_WINDOWS],
-            index=3,
+            index=0,
             format_func=lambda key: REPORTING_WINDOW_LABELS[key],
             key="careersite_analytics_reporting_window",
             label_visibility="collapsed",

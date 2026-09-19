@@ -12,12 +12,8 @@ from site_analytics import (
     ANALYTICS_URL,
     RECOMMENDED_ATTRIBUTION_SOURCES,
 )
-from site_admin_auth import (
-    ANALYTICS_SESSION_COOKIE,
-    ANALYTICS_SESSION_COOKIE_MAX_AGE,
-    issue_admin_session,
-    revoke_admin_session,
-)
+from site_admin_auth import issue_admin_session, revoke_admin_session
+from site_admin_store import admin_session_store
 
 DASHBOARD_RPC = "careersite_analytics_dashboard_v2"
 RESET_RPC = "careersite_analytics_reset"
@@ -575,54 +571,15 @@ def _funnel(home: int, impact: int, lens: int, cv: int) -> None:
     st.markdown('<div class="funnel-wrap">' + "".join(rows) + "</div>", unsafe_allow_html=True)
 
 
-def _saved_admin_session() -> str:
-    try:
-        return str(st.context.cookies.get(ANALYTICS_SESSION_COOKIE, "") or "").strip()
-    except Exception:
-        return ""
+def _browser_admin_session() -> tuple[str, bool, bool]:
+    write_token = str(st.session_state.pop("careersite_analytics_pending_store", "") or "")
+    clear = bool(st.session_state.pop("careersite_analytics_pending_clear", False))
+    suppress_restore = bool(st.session_state.pop("careersite_analytics_skip_restore_once", False))
 
-
-def _set_admin_cookie(session_token: str) -> None:
-    token_json = json.dumps(session_token)
-    cookie_name_json = json.dumps(ANALYTICS_SESSION_COOKIE)
-    components.html(
-        f"""
-<script>
-(() => {{
-  const name = {cookie_name_json};
-  const value = {token_json};
-  window.parent.document.cookie =
-    name + '=' + encodeURIComponent(value) +
-    '; Path=/; Max-Age={ANALYTICS_SESSION_COOKIE_MAX_AGE}; Secure; SameSite=Strict';
-}})();
-</script>
-""",
-        height=0,
-        width=0,
-    )
-
-
-def _clear_admin_cookie(*, reload_page: bool = False) -> None:
-    cookie_name_json = json.dumps(ANALYTICS_SESSION_COOKIE)
-    reload_js = (
-        "window.parent.setTimeout(() => window.parent.location.replace('/?page=analytics'), 80);"
-        if reload_page
-        else ""
-    )
-    components.html(
-        f"""
-<script>
-(() => {{
-  const name = {cookie_name_json};
-  window.parent.document.cookie =
-    name + '=; Path=/; Max-Age=0; Secure; SameSite=Strict';
-  {reload_js}
-}})();
-</script>
-""",
-        height=0,
-        width=0,
-    )
+    result = admin_session_store(write_token=write_token, clear=clear)
+    token = str(getattr(result, "token", "") or "").strip()
+    ready = bool(getattr(result, "ready", False))
+    return token, ready, suppress_restore or clear
 
 
 def _render_private_login() -> bool:
@@ -650,8 +607,8 @@ def _render_private_login() -> bool:
 
         st.session_state.careersite_analytics_access_code = session_token
         st.session_state.careersite_analytics_reset_pending = False
-        _set_admin_cookie(session_token)
-        return True
+        st.session_state.careersite_analytics_pending_store = session_token
+        st.rerun()
 
 
 def _render_logout_button() -> bool:
@@ -663,8 +620,9 @@ def _render_logout_button() -> bool:
         revoke_admin_session(current)
     st.session_state.careersite_analytics_access_code = ""
     st.session_state.careersite_analytics_reset_pending = False
-    _clear_admin_cookie(reload_page=True)
-    return True
+    st.session_state.careersite_analytics_pending_clear = True
+    st.session_state.careersite_analytics_skip_restore_once = True
+    st.rerun()
 
 
 def _top_label(rows: object, field: str) -> str:
@@ -734,19 +692,28 @@ def render_analytics_dashboard() -> None:
     if "careersite_analytics_reset_pending" not in st.session_state:
         st.session_state.careersite_analytics_reset_pending = False
 
-    if not st.session_state.careersite_analytics_access_code:
-        saved_session = _saved_admin_session()
-        if saved_session:
-            try:
-                _fetch_dashboard(saved_session, "30d")
-            except (ValueError, RuntimeError):
-                st.session_state.careersite_analytics_access_code = ""
-                _clear_admin_cookie()
-                st.warning("The saved analytics session expired or was revoked. Sign in again.")
-            else:
-                st.session_state.careersite_analytics_access_code = saved_session
+    saved_session, store_ready, suppress_restore = _browser_admin_session()
+
+    if (
+        not st.session_state.careersite_analytics_access_code
+        and store_ready
+        and saved_session
+        and not suppress_restore
+    ):
+        try:
+            _fetch_dashboard(saved_session, "30d")
+        except (ValueError, RuntimeError):
+            st.session_state.careersite_analytics_access_code = ""
+            st.session_state.careersite_analytics_pending_clear = True
+            st.session_state.careersite_analytics_skip_restore_once = True
+            st.warning("The saved analytics session expired or was revoked. Sign in again.")
+        else:
+            st.session_state.careersite_analytics_access_code = saved_session
 
     if not st.session_state.careersite_analytics_access_code:
+        if not store_ready and not suppress_restore:
+            st.caption("Restoring private analytics session…")
+            return
         if not _render_private_login():
             return
 
@@ -780,7 +747,8 @@ def render_analytics_dashboard() -> None:
     except ValueError:
         st.session_state.careersite_analytics_access_code = ""
         st.session_state.careersite_analytics_reset_pending = False
-        _clear_admin_cookie()
+        st.session_state.careersite_analytics_pending_clear = True
+        st.session_state.careersite_analytics_skip_restore_once = True
         st.error("The analytics session is no longer valid. Sign in again.")
         return
     except RuntimeError as exc:

@@ -23,9 +23,9 @@ from thinking_articles import resolve_article
 ARTICLE_DASHBOARD_RPC = "careersite_analytics_articles_v2"
 
 
-def _fetch_article_dashboard(access_code: str, window: str) -> dict:
+def _fetch_article_dashboard(window: str) -> dict:
     endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{ARTICLE_DASHBOARD_RPC}"
-    payload = json.dumps(_dashboard_payload(access_code, window)).encode("utf-8")
+    payload = json.dumps(_dashboard_payload(window)).encode("utf-8")
     req = request.Request(
         endpoint,
         data=payload,
@@ -162,15 +162,11 @@ def _article_daily_chart(rows: object) -> None:
 
 def render_article_analytics() -> None:
     """Render article-specific reading and social-sharing intelligence."""
-    access_code = str(st.session_state.get("careersite_analytics_access_code") or "")
-    if not access_code:
-        return
-
     window = str(st.session_state.get("careersite_analytics_reporting_window") or "30d")
     try:
-        data = _fetch_article_dashboard(access_code, window)
+        data = _fetch_article_dashboard(window)
     except ValueError:
-        st.warning("Article intelligence could not authenticate with the current dashboard session.")
+        st.warning("Article intelligence is temporarily unavailable.")
         return
     except RuntimeError as exc:
         st.warning(str(exc))

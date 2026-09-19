@@ -14,6 +14,7 @@ ROLE_LENSES = {
 
 ABOUT_PAGES = {
     "about": "About",
+    "certifications": "Credentials & Certifications",
     "presence": "Speaking & Thought Leadership",
 }
 

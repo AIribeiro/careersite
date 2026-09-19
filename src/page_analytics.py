@@ -609,6 +609,19 @@ def _render_private_login() -> None:
     )
 
 
+def _render_logout_button(label: str = "Log out") -> None:
+    st.html(
+        f"""
+<form method="post" action="/_analytics/logout" target="_self" style="margin:0">
+  <button type="submit"
+    style="box-sizing:border-box;width:100%;padding:.45rem .75rem;border:1px solid #ddd4c7;border-radius:8px;background:#fffdfa;color:#10131a;font:inherit;font-weight:600;cursor:pointer">
+    {html.escape(label)}
+  </button>
+</form>
+"""
+    )
+
+
 def _top_label(rows: object, field: str) -> str:
     data = _top_rows(rows, 1)
     if not data:
@@ -683,7 +696,7 @@ def render_analytics_dashboard() -> None:
                 _fetch_dashboard(saved_session, "30d")
             except (ValueError, RuntimeError):
                 st.error("The saved analytics session is no longer valid.")
-                st.link_button("Clear saved session", "/_analytics/logout", use_container_width=False)
+                _render_logout_button("Clear saved session")
                 _render_private_login()
                 return
             else:
@@ -712,7 +725,7 @@ def render_analytics_dashboard() -> None:
         if st.button("Reset", use_container_width=True):
             st.session_state.careersite_analytics_reset_pending = True
     with logout_col:
-        st.link_button("Log out", "/_analytics/logout", use_container_width=True)
+        _render_logout_button()
 
     if _render_reset_control():
         return
@@ -723,7 +736,7 @@ def render_analytics_dashboard() -> None:
         st.session_state.careersite_analytics_access_code = ""
         st.session_state.careersite_analytics_reset_pending = False
         st.error("The analytics session is no longer valid. Log in again.")
-        st.link_button("Clear saved session", "/_analytics/logout", use_container_width=False)
+        _render_logout_button("Clear saved session")
         return
     except RuntimeError as exc:
         st.error(str(exc))

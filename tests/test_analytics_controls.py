@@ -11,30 +11,35 @@ if str(SRC) not in sys.path:
 
 
 class AnalyticsControlTests(unittest.TestCase):
-    def test_short_reporting_windows_and_reset_controls_exist(self) -> None:
+    def test_short_reporting_windows_are_public_and_read_only(self) -> None:
         import page_analytics
 
         self.assertEqual(page_analytics.REPORTING_WINDOW_LABELS["last_hour"], "Last hour")
         self.assertEqual(page_analytics.REPORTING_WINDOW_LABELS["today"], "Today")
-        self.assertEqual(page_analytics.RESET_RPC, "careersite_analytics_reset")
 
-        hour_payload = page_analytics._dashboard_payload("token", "last_hour")
-        today_payload = page_analytics._dashboard_payload("token", "today")
-        month_payload = page_analytics._dashboard_payload("token", "30d")
+        hour_payload = page_analytics._dashboard_payload("last_hour")
+        today_payload = page_analytics._dashboard_payload("today")
+        month_payload = page_analytics._dashboard_payload("30d")
 
         self.assertEqual(hour_payload["p_window"], "last_hour")
         self.assertEqual(today_payload["p_window"], "today")
-        self.assertEqual(month_payload, {"p_token": "token", "p_days": 30, "p_window": "days"})
+        self.assertEqual(
+            month_payload,
+            {
+                "p_token": page_analytics.PUBLIC_DASHBOARD_TOKEN,
+                "p_days": 30,
+                "p_window": "days",
+            },
+        )
 
         source = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
-        self.assertIn("new zero baseline", source)
-        self.assertIn("Persistent analytics reset baseline", source)
-        self.assertIn("Events before this timestamp are excluded from every reporting window", source)
-        self.assertIn("Confirm reset to zero", source)
-        self.assertIn("Cancel reset", source)
-        self.assertIn("_reset_analytics", source)
-        self.assertIn("remaining_events", source)
-        self.assertIn("reset_at", source)
+        self.assertNotIn("Access code", source)
+        self.assertNotIn("Open analytics", source)
+        self.assertNotIn("Log out", source)
+        self.assertNotIn("Reset analytics to a new zero baseline", source)
+        self.assertNotIn("_reset_analytics", source)
+        self.assertNotIn("site_admin_auth", source)
+        self.assertNotIn("site_admin_store", source)
 
     def test_extended_first_party_metrics_are_present(self) -> None:
         client = (ROOT / "src/site_analytics.py").read_text(encoding="utf-8")
@@ -91,35 +96,19 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertEqual(page_analytics._seconds(0.9), "<1s")
         self.assertEqual(page_analytics._seconds(1.1), "1s")
 
-    def test_admin_login_persists_until_explicit_logout(self) -> None:
+    def test_dashboard_has_no_user_authentication_gate(self) -> None:
         dashboard = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
-        auth = (ROOT / "src/site_admin_auth.py").read_text(encoding="utf-8")
-        store = (ROOT / "src/site_admin_store.py").read_text(encoding="utf-8")
-        app = (ROOT / "app.py").read_text(encoding="utf-8")
+        wrapper = (ROOT / "src/page_analytics_v2.py").read_text(encoding="utf-8")
+        article = (ROOT / "src/page_article_analytics.py").read_text(encoding="utf-8")
 
-        self.assertIn("Sign in once on this browser", dashboard)
-        self.assertIn("issue_admin_session(access_code)", dashboard)
-        self.assertIn("revoke_admin_session(current)", dashboard)
-        self.assertIn("admin_session_store", dashboard)
-        self.assertIn("careersite_analytics_pending_store", dashboard)
-        self.assertIn("careersite_analytics_pending_clear", dashboard)
-        self.assertIn('st.button("Log out"', dashboard)
-        self.assertNotIn('st.button("Lock"', dashboard)
-        self.assertNotIn("st.context.cookies", dashboard)
-        self.assertNotIn("document.cookie", dashboard)
+        self.assertIn('PUBLIC_DASHBOARD_TOKEN = "public-readonly-v1"', dashboard)
+        self.assertNotIn("careersite_analytics_access_code", dashboard)
+        self.assertNotIn("careersite_analytics_reset_pending", dashboard)
+        self.assertNotIn("Access code", dashboard)
+        self.assertNotIn("access_code", article)
+        self.assertNotIn("careersite_analytics_access_code", wrapper)
+        self.assertIn("render_article_analytics()", wrapper)
 
-        self.assertIn("st.components.v2.component", store)
-        self.assertIn("window.localStorage.setItem", store)
-        self.assertIn("window.localStorage.getItem", store)
-        self.assertIn("window.localStorage.removeItem", store)
-        self.assertIn('setStateValue("token"', store)
-        self.assertIn('setStateValue("ready"', store)
-
-        self.assertIn("careersite_analytics_issue_session", auth)
-        self.assertIn("careersite_analytics_revoke_session", auth)
-
-        self.assertNotIn('Route("/_analytics/login"', app)
-        self.assertNotIn('Route("/_analytics/logout"', app)
 
 
 if __name__ == "__main__":

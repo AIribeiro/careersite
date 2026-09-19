@@ -67,7 +67,8 @@ class CertificationsPageTests(unittest.TestCase):
             self.assertEqual(image.format, "WEBP")
             self.assertEqual(image.size, (1280, 720))
             image.verify()
-        self.assertIn("https://raw.githubusercontent.com/AIribeiro/careersite/main/images/eitca_eu_banner.webp", page)
+        from site_media import eitca_eu_banner
+        self.assertTrue(eitca_eu_banner.startswith("data:image/webp;base64,"))
         self.assertIn("What this adds to my leadership", page)
         self.assertIn("For me, the value of EITCA/AI", page)
         self.assertIn("That depth strengthens the bridge I need to lead effectively", page)

@@ -30,7 +30,7 @@ class CertificationsPageTests(unittest.TestCase):
         from page_certifications import FLAGSHIP, EITCA_COMPONENTS
 
         titles = [str(item["title"]) for item in FLAGSHIP]
-        self.assertEqual(len(FLAGSHIP), 7)
+        self.assertEqual(len(FLAGSHIP), 6)
         self.assertEqual(len(titles), len(set(titles)))
         self.assertIn("Generative AI for Executives and Business Leaders Specialization", titles)
         self.assertIn("Responsible Generative AI", titles)
@@ -39,7 +39,7 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("Fundamentals of Building AI Agents", titles)
         self.assertNotIn("EITCA/AI Artificial Intelligence Academy", titles)
         self.assertIn("Azure Databricks Platform Architect · Academy Accreditation", titles)
-        self.assertIn("Executive Data Science Specialization", titles)
+        self.assertNotIn("Executive Data Science Specialization", titles)
         self.assertNotIn("Explainable AI (XAI)", titles)
         self.assertTrue(all(str(item.get("verify_url", "")).startswith("https://") for item in FLAGSHIP))
         self.assertEqual(len(EITCA_COMPONENTS), 12)
@@ -48,14 +48,14 @@ class CertificationsPageTests(unittest.TestCase):
         from page_certifications import certifications
 
         page = certifications()
-        self.assertIn("Four dimensions of the leadership profile.", page)
-        self.assertIn("79 unique certifications", page)
+        self.assertIn("Where the credential record adds depth.", page)
+        self.assertIn("Strategy &amp; value", page)
+        self.assertIn("Adoption &amp; operating model", page)
         self.assertIn("24 ECTS", page)
         self.assertIn("12 component certifications", page)
-                self.assertNotIn("Valid through Apr 2027", page)
-        self.assertIn("not to replace specialist engineering ownership", page)
+        self.assertNotIn("Valid through Apr 2027", page)
+        self.assertIn("Architecture-level judgment without engineering positioning", page)
         self.assertGreaterEqual(page.count("Verify credential ↗"), 7)
-        self.assertIn("Verify EITCA/AI credential ↗", page)
         self.assertIn("EITCA/AI/SLJ25004525", page)
         self.assertIn("View full LinkedIn credential record", page)
         self.assertIn("https://www.linkedin.com/in/jairribeiro/details/certifications/", page)

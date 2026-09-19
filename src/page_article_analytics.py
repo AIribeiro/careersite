@@ -20,7 +20,7 @@ from page_analytics import (
 from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
 from thinking_articles import resolve_article
 
-ARTICLE_DASHBOARD_RPC = "careersite_analytics_articles"
+ARTICLE_DASHBOARD_RPC = "careersite_analytics_articles_v2"
 
 
 def _fetch_article_dashboard(access_code: str, window: str) -> dict:
@@ -185,6 +185,8 @@ def render_article_analytics() -> None:
     shares = int(totals.get("shares", 0) or 0)
     share_sessions = int(totals.get("share_sessions", 0) or 0)
     engaged_sessions = int(totals.get("engaged_sessions", 0) or 0)
+    confirmed_duration_sessions = int(totals.get("confirmed_duration_sessions", 0) or 0)
+    unconfirmed_duration_sessions = int(totals.get("unconfirmed_duration_sessions", 0) or 0)
     open_clicks = int(totals.get("open_clicks", 0) or 0)
 
     st.divider()
@@ -201,12 +203,22 @@ def render_article_analytics() -> None:
         unsafe_allow_html=True,
     )
 
-    a1, a2, a3, a4, a5 = st.columns(5)
+    a1, a2, a3, a4, a5, a6 = st.columns(6)
     a1.metric("Article views", views, f"{sessions} reader sessions")
-    a2.metric("Engaged readers", _pct(engaged_sessions, sessions), f"{engaged_sessions} ≥10s active")
-    a3.metric("Avg active read", _seconds(totals.get("avg_active_seconds")))
-    a4.metric("Share actions", shares, f"{share_sessions} sharing sessions")
-    a5.metric("Article opens", open_clicks, "clicks from portfolio")
+    a2.metric("Reader sessions", sessions, f"{confirmed_duration_sessions} duration-confirmed")
+    a3.metric("Engaged readers", _pct(engaged_sessions, sessions), f"{engaged_sessions} ≥10s active")
+    a4.metric(
+        "Avg active read",
+        _seconds(totals.get("avg_active_seconds")),
+        f"median {_seconds(totals.get('median_active_seconds'))}",
+    )
+    a5.metric("Share actions", shares, f"{share_sessions} sharing sessions")
+    a6.metric(
+        "Duration unconfirmed",
+        unconfirmed_duration_sessions,
+        _pct(unconfirmed_duration_sessions, sessions),
+    )
+    st.caption(f"Portfolio article-open clicks in this window: {open_clicks}.")
 
     left, right = st.columns([1.45, 1])
     with left:
@@ -225,7 +237,11 @@ def render_article_analytics() -> None:
     left, right = st.columns(2)
     with left:
         with st.container(border=True):
-            _section("Depth", "Active reading time", "Average visible, active time recorded per article-reading session.")
+            _section(
+                "Depth",
+                "Active reading time",
+                "Average visible active time for duration-confirmed article sessions only; initial-hit-only sessions are excluded from the average.",
+            )
             _bar_chart(article_rows, "article", value="avg_active_seconds", limit=8, height=300, color=BLUE)
     with right:
         with st.container(border=True):
@@ -256,6 +272,7 @@ def render_article_analytics() -> None:
             _bar_chart(sources, "source", value="sessions", limit=10, height=260, color=ACCENT)
 
     st.caption(
-        "Article analytics remains first-party and session-scoped: article slug, share channel and active reading time are recorded, "
+        "Article analytics remains first-party and session-scoped: reader sessions are distinct session IDs with an actual article view; "
+        "active reading time is reported only after a heartbeat confirms duration. Article slug, share channel and active reading time are recorded, "
         "but no persistent visitor ID, raw IP address, full user agent, heatmap or cross-session profile is created."
     )

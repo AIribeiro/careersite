@@ -18,6 +18,7 @@ DESCRIPTIONS = {
     "impact": "Leadership cases from Jair Ribeiro showing situations, trade-offs, cross-functional leadership and decisions behind enterprise AI and Data work.",
     "thinking": "Selected writing by Jair Ribeiro on enterprise AI strategy, value, operating models, governance, data readiness, adoption and leadership judgment.",
     "about": "The professional story of Jair Ribeiro: from enterprise technology foundations into business-facing AI, Data and Analytics leadership across international organizations.",
+    "certifications": "Selected credentials supporting Jair Ribeiro\'s enterprise AI and Data leadership across agentic AI, Responsible AI, GenAI strategy, data platforms, product and technical foundations.",
     "presence": "Selected speaking, publications and externally documented contributions by Jair Ribeiro across enterprise AI, Data, responsible adoption and leadership.",
     "contact": "Contact Jair Ribeiro about senior AI, Data and Analytics leadership where strategy, portfolio, governance, adoption and operating capability need to work together.",
     "enterprise": "Contextual view of Jair Ribeiro's Enterprise AI & Data leadership experience across strategy, portfolio, operating models, governance, adoption and technical judgment.",

@@ -91,7 +91,9 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertIn("ANALYTICS_SESSION_COOKIE", dashboard)
         self.assertIn("st.context.cookies", dashboard)
         self.assertIn("Sign in once on this browser", dashboard)
-        self.assertIn('st.link_button("Log out", "/_analytics/logout"', dashboard)
+        self.assertIn('action="/_analytics/logout"', dashboard)
+        self.assertIn('target="_self"', dashboard)
+        self.assertIn(">Log out<", dashboard.replace("\n", ""))
         self.assertNotIn('st.button("Lock"', dashboard)
 
         self.assertIn("careersite_analytics_issue_session", auth)

@@ -48,7 +48,7 @@ brand_icon = contact
 presence_thinkers360 = _uri("presence_thinkers360_top50.png")
 presence_global_ambassador = _uri("presence_global_ai_ambassador.jpg")
 presence_ai_learning = _uri("presence_ai_learning_sessions.jpg")
-eitca_eu_banner = _base64_uri_parts("eitca_eu_banner_1280")
+eitca_eu_banner = _uri("eitca_eu_banner.webp")
 
 if hero:
     assets.HERO_URI = hero

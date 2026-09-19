@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from PIL import Image
 import sys
 import unittest
 
@@ -60,7 +61,13 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("European Union flags outside a modern institutional building", page)
         self.assertIn("eu-round-emblem", page)
         self.assertIn("European credential context", page)
-        self.assertTrue((ROOT / "images/eitca_eu_banner.webp").exists())
+        banner = ROOT / "images/eitca_eu_banner.webp"
+        self.assertTrue(banner.exists())
+        with Image.open(banner) as image:
+            self.assertEqual(image.format, "WEBP")
+            self.assertGreaterEqual(image.width, 400)
+            self.assertGreater(image.width, image.height)
+            image.verify()
         self.assertIn("View full LinkedIn credential record", page)
         self.assertIn("https://www.linkedin.com/in/jairribeiro/details/certifications/", page)
         self.assertNotIn("Top 10 Thought Leader", page)

@@ -66,28 +66,55 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     source: {json.dumps(source)}
   }};
 
+  const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+  const FIRST_HEARTBEAT_MS = 5000;
+  const HEARTBEAT_MS = 10000;
   const sessionKey = 'jair_hq_session_v1';
-  let sessionId = win.sessionStorage.getItem(sessionKey);
-  if (!sessionId) {{
-    sessionId = (win.crypto && win.crypto.randomUUID)
-      ? win.crypto.randomUUID()
-      : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {{
-          const r = Math.random() * 16 | 0;
-          const v = c === 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
-        }});
-    win.sessionStorage.setItem(sessionKey, sessionId);
-  }}
+  const startedKey = 'jair_hq_started_v3';
+  const engagedKey = 'jair_hq_engaged_v3';
+  const lastActiveKey = 'jair_hq_last_active_v3';
 
-  const startedKey = 'jair_hq_started_v2';
+  const makeSessionId = () => (win.crypto && win.crypto.randomUUID)
+    ? win.crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {{
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      }});
+
+  let sessionId = win.sessionStorage.getItem(sessionKey) || '';
   let startedAt = Number(win.sessionStorage.getItem(startedKey) || 0);
-  if (!startedAt || startedAt > Date.now()) {{
-    startedAt = Date.now();
-    win.sessionStorage.setItem(startedKey, String(startedAt));
-  }}
-
-  const engagedKey = 'jair_hq_engaged_v2';
   let engagedMs = Math.max(0, Number(win.sessionStorage.getItem(engagedKey) || 0));
+  let lastActiveAt = Number(win.sessionStorage.getItem(lastActiveKey) || 0);
+
+  const startFreshSession = (now = Date.now()) => {{
+    sessionId = makeSessionId();
+    startedAt = now;
+    engagedMs = 0;
+    lastActiveAt = now;
+    win.sessionStorage.setItem(sessionKey, sessionId);
+    win.sessionStorage.setItem(startedKey, String(startedAt));
+    win.sessionStorage.setItem(engagedKey, '0');
+    win.sessionStorage.setItem(lastActiveKey, String(lastActiveAt));
+    win.sessionStorage.removeItem('jair_hq_last_view_v1');
+    const state = win.__jairAnalyticsEngagementState;
+    if (state) {{
+      state.lastTick = win.performance ? win.performance.now() : Date.now();
+    }}
+  }};
+
+  const ensureFreshSession = () => {{
+    const now = Date.now();
+    const stale = !sessionId || !startedAt || startedAt > now || !lastActiveAt
+      || now - lastActiveAt > SESSION_TIMEOUT_MS;
+    if (stale) {{
+      startFreshSession(now);
+      return true;
+    }}
+    return false;
+  }};
+
+  ensureFreshSession();
 
   // Attribution describes the job-search activity that brought a visitor to
   // the site, never an individual. Persist it only for this browser tab so
@@ -181,12 +208,15 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     state.lastTick = nowPerf;
     if (doc.visibilityState === 'visible') {{
       engagedMs = Math.min(86400000, engagedMs + delta);
+      lastActiveAt = Date.now();
       win.sessionStorage.setItem(engagedKey, String(Math.round(engagedMs)));
+      win.sessionStorage.setItem(lastActiveKey, String(lastActiveAt));
     }}
   }};
 
   win.__jairAnalyticsSend = (eventName, extra = {{}}) => {{
     if (!allowed.has(eventName)) return;
+    ensureFreshSession();
     updateEngagement();
     const context = win.__jairAnalyticsContext || {{ page: 'home', source: 'streamlit' }};
     const elapsedMs = Math.min(86400000, Math.max(0, Date.now() - startedAt));
@@ -241,25 +271,52 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     win.sessionStorage.setItem('jair_hq_last_view_v1', JSON.stringify({{ signature: viewSignature, at: now }}));
   }}
 
+  win.__jairAnalyticsRecordCurrentView = () => {{
+    if (!win.__jairAnalyticsSend) return;
+    win.__jairAnalyticsSend('page_view');
+    if (win.__jairAnalyticsContext.page === 'impact') {{
+      win.__jairAnalyticsSend('impact_view');
+    }}
+    if (lenses.has(win.__jairAnalyticsContext.page)) {{
+      win.__jairAnalyticsSend('lens_view', {{ lens: win.__jairAnalyticsContext.page }});
+    }}
+  }};
+
   if (!win.__jairAnalyticsEngagementBound) {{
     win.__jairAnalyticsEngagementBound = true;
     const nowPerf = win.performance ? win.performance.now() : Date.now();
     win.__jairAnalyticsEngagementState = {{ lastTick: nowPerf }};
 
     win.setInterval(() => {{
+      const reset = ensureFreshSession();
+      if (reset && win.__jairAnalyticsRecordCurrentView) {{
+        win.__jairAnalyticsRecordCurrentView();
+      }}
       updateEngagement();
     }}, 1000);
+
+    win.setTimeout(() => {{
+      if (doc.visibilityState === 'visible' && win.__jairAnalyticsSend) {{
+        win.__jairAnalyticsSend('engagement_ping');
+      }}
+    }}, FIRST_HEARTBEAT_MS);
 
     win.setInterval(() => {{
       if (doc.visibilityState === 'visible' && win.__jairAnalyticsSend) {{
         win.__jairAnalyticsSend('engagement_ping');
       }}
-    }}, 30000);
+    }}, HEARTBEAT_MS);
 
     doc.addEventListener('visibilitychange', () => {{
-      updateEngagement();
-      if (doc.visibilityState === 'hidden' && win.__jairAnalyticsSend) {{
-        win.__jairAnalyticsSend('engagement_ping');
+      if (doc.visibilityState === 'visible') {{
+        const reset = ensureFreshSession();
+        if (reset && win.__jairAnalyticsRecordCurrentView) {{
+          win.__jairAnalyticsRecordCurrentView();
+        }}
+        updateEngagement();
+      }} else {{
+        updateEngagement();
+        if (win.__jairAnalyticsSend) win.__jairAnalyticsSend('engagement_ping');
       }}
     }});
 

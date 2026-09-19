@@ -58,16 +58,6 @@ FLAGSHIP = [
         "copy": "Adds practical fluency in agent reasoning and task execution, helping me engage technical teams on agent architectures without positioning as a hands-on engineer.",
     },
     {
-        "signal": "Technical foundation",
-        "title": "EITCA/AI Artificial Intelligence Academy",
-        "issuer": "EITCA Academy · European IT Certification programme",
-        "date": "Mar 2025",
-        "credential": "EITCA/AI/SLJ25004525",
-        "verify_url": "https://www.eitci.org/val.php?id=EITCA/AI/SLJ25004525&t=j5xq3TMD6GcHgrj9",
-        "program_url": "https://eitca.org/eitca-ai-artificial-intelligence-academy/",
-        "copy": "Provides broad technical grounding across machine learning, deep learning, Python and cloud through 12 constituent certifications and approximately 180 hours of curriculum.",
-    },
-    {
         "signal": "Data platforms",
         "title": "Azure Databricks Platform Architect · Academy Accreditation",
         "issuer": "Databricks",
@@ -130,7 +120,7 @@ PATHWAYS = [
         "Technical & platform fluency",
         "Technical depth for stronger architecture and engineering conversations.",
         [
-            "EITCA/AI Artificial Intelligence Academy · 12 components · ~180 hours · 2025",
+            "EITCA/AI Artificial Intelligence Academy · 24 ECTS · 12 component certifications · 2025",
             "Azure Databricks Platform Architect · Databricks · 2025",
             "Fundamentals of Building AI Agents · IBM · 2026",
             "Microsoft Certified: Azure AI Fundamentals · 2021",
@@ -230,9 +220,11 @@ def certifications() -> str:
 
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">What the record supports</p><h2>Four dimensions of the leadership profile.</h2></div><p>The full record spans 79 unique certifications after duplicate entries are removed. This page foregrounds the evidence that best complements senior enterprise AI and Data leadership.</p></div><div class="grid3 cert-signal-grid"><article class="card"><span class="org">01 · Leadership</span><h3>AI strategy and organizational adoption</h3><p>Executive learning from IBM, Microsoft and Vanderbilt reinforces strategy, adoption, capability building and business-value decisions.</p></article><article class="card"><span class="org">02 · Governance</span><h3>Responsible and explainable AI</h3><p>University of Michigan, Duke and Linux Foundation study adds depth in accountability, explainability, trust, policy and responsible scale.</p></article><article class="card"><span class="org">03 · Technical fluency</span><h3>AI, ML, cloud and platform architecture</h3><p>EITCA/AI, Databricks, Microsoft and current agent-building study support credible architecture and engineering conversations without repositioning the profile as hands-on engineering.</p></article><article class="card"><span class="org">04 · Data &amp; execution</span><h3>Data leadership and value delivery</h3><p>Executive data science, product, data-management and design-thinking study reinforces the path from use-case framing to adoption and measurable business outcomes.</p></article></div></div></section>
 
-<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Selected credentials</p><h2>A focused record of continuing professional development.</h2></div><p>These eight credentials provide the clearest combined signal across strategy, governance, adoption, agentic AI, data leadership and informed technical judgment. Each includes a direct verification link.</p></div><div class="cert-grid">{flagship}</div></div></section>
+<section class="section navy eitca-feature"><div class="container"><div class="eitca-top"><div><p class="eyebrow">Featured credential · European AI certification</p><h2>EITCA/AI Artificial Intelligence Academy</h2><p class="eitca-lead">A substantial European AI certification programme comprising <strong>24 ECTS</strong> and <strong>12 component certifications</strong> across artificial intelligence, machine learning, deep learning, Python and cloud technologies.</p></div><div class="eitca-facts"><div><strong>24 ECTS</strong><span>Structured AI learning</span></div><div><strong>12</strong><span>Component certifications</span></div><div><strong>2025</strong><span>Credential awarded</span></div></div></div><div class="eitca-body"><div><h3>Why it matters to my leadership profile</h3><p>The EITCA/AI credential provides formal technical depth behind my enterprise AI leadership experience. It strengthens my ability to engage credibly with architects, data scientists and engineering teams, assess technical trade-offs, understand dependencies across AI and cloud environments, and connect technical choices with governance, adoption and business value.</p><div class="actions"><a class="btn ghost" href="https://www.eitci.org/val.php?id=EITCA/AI/SLJ25004525&t=j5xq3TMD6GcHgrj9" target="_blank" rel="noopener">Verify EITCA/AI credential ↗</a><a class="btn ghost" href="https://eitca.org/eitca-ai-artificial-intelligence-academy/" target="_blank" rel="noopener">Programme scope ↗</a></div><p class="eitca-id">Credential ID · EITCA/AI/SLJ25004525 · EITCA Academy</p></div><details class="cert-archive" open><summary>12 component certifications</summary><ul>{eitca}</ul></details></div></div></section>
 
-<section class="section navy"><div class="container twocol"><div><p class="eyebrow">Depth behind the leadership profile</p><h2>EITCA/AI · 12 component certifications · ~180 hours of curriculum.</h2><p class="flowcopy">The issuer describes the programme as approximately 180 hours across 12 constituent certifications covering machine learning, deep learning, Python, Google Cloud and related AI technologies. I use that depth to ask better questions of technical teams, understand dependencies and make stronger leadership decisions—not to replace specialist engineering ownership.</p><div class="actions"><a class="btn ghost" href="https://eitca.org/eitca-ai-artificial-intelligence-academy/" target="_blank" rel="noopener">View programme scope ↗</a><a class="btn ghost" href="https://www.eitci.org/val.php?id=EITCA/AI/SLJ25004525&t=j5xq3TMD6GcHgrj9" target="_blank" rel="noopener">Verify credential ↗</a></div></div><div><details class="cert-archive" open><summary>See the 12 component certifications</summary><ul>{eitca}</ul></details></div></div></section>
+<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Selected credentials</p><h2>A focused record of continuing professional development.</h2></div><p>Alongside the featured EITCA/AI credential, these seven certifications provide strong evidence across strategy, governance, adoption, agentic AI, data leadership and informed technical judgment. Each includes a direct verification link.</p></div><div class="cert-grid">{flagship}</div></div></section>
+
+
 
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Credential pathways</p><h2>Depth accumulated across the leadership arc.</h2></div><p>Supporting credentials show continuity rather than a recent pivot: enterprise technology foundations, data and analytics leadership, ethics and governance, cloud, product thinking, GenAI and agentic AI.</p></div><div class="cert-path-grid">{pathways}</div></div></section>
 

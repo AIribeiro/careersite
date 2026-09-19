@@ -11,13 +11,18 @@ export default function(component) {
   const { data, setStateValue } = component;
   const key = data?.storage_key || "jair_analytics_admin_session_v1";
 
-  if (data?.clear === true) {
-    window.localStorage.removeItem(key);
-  } else if (data?.write_token) {
-    window.localStorage.setItem(key, String(data.write_token));
+  let token = "";
+  try {
+    if (data?.clear === true) {
+      window.localStorage.removeItem(key);
+    } else if (data?.write_token) {
+      window.localStorage.setItem(key, String(data.write_token));
+    }
+    token = window.localStorage.getItem(key) || "";
+  } catch (_) {
+    token = "";
   }
 
-  const token = window.localStorage.getItem(key) || "";
   setStateValue("token", token);
   setStateValue("ready", true);
 }

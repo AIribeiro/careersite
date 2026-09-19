@@ -13,7 +13,7 @@ from site_analytics import (
     RECOMMENDED_ATTRIBUTION_SOURCES,
 )
 
-DASHBOARD_RPC = "careersite_analytics_dashboard"
+DASHBOARD_RPC = "careersite_analytics_dashboard_v2"
 RESET_RPC = "careersite_analytics_reset"
 PUBLIC_BASE_URL = "https://jairribeiro-ai.streamlit.app/"
 REPORTING_WINDOWS = (
@@ -513,7 +513,7 @@ def _duration_chart(rows: object) -> None:
                 "x": {
                     "field": "duration_bucket",
                     "type": "ordinal",
-                    "sort": ["<10s", "10–29s", "30–59s", "1–2m", "2–5m", "5m+"],
+                    "sort": ["Unconfirmed", "<10s", "10–29s", "30–59s", "1–2m", "2–5m", "5m+"],
                     "axis": {"title": None, "labelAngle": 0, "labelColor": MUTED},
                 },
                 "y": {
@@ -522,7 +522,7 @@ def _duration_chart(rows: object) -> None:
                     "axis": {"title": None, "gridColor": "#eee5da", "labelColor": MUTED},
                 },
                 "tooltip": [
-                    {"field": "duration_bucket", "type": "ordinal", "title": "Duration"},
+                    {"field": "duration_bucket", "type": "ordinal", "title": "Active time"},
                     {"field": "sessions", "type": "quantitative", "title": "Sessions"},
                 ],
             },
@@ -703,6 +703,8 @@ def render_analytics_dashboard() -> None:
     linkedin_sessions = int(totals.get("linkedin_sessions", 0) or 0)
     engaged_sessions = int(totals.get("engaged_sessions", 0) or 0)
     single_page_sessions = int(totals.get("single_page_sessions", 0) or 0)
+    confirmed_duration_sessions = int(totals.get("confirmed_duration_sessions", 0) or 0)
+    unconfirmed_duration_sessions = int(totals.get("unconfirmed_duration_sessions", 0) or 0)
     cv_download_events = next(
         (
             int(row.get("events", 0) or 0)
@@ -721,7 +723,11 @@ def render_analytics_dashboard() -> None:
     k1, k2, k3, k4, k5 = st.columns(5)
     k1.metric("Sessions", sessions)
     k2.metric("Engagement", _pct(engaged_sessions, sessions), f"{engaged_sessions} engaged")
-    k3.metric("Avg session", _seconds(totals.get("avg_session_seconds")))
+    k3.metric(
+        "Avg active time",
+        _seconds(totals.get("avg_active_seconds")),
+        f"{confirmed_duration_sessions} confirmed sessions",
+    )
     k4.metric("Pages / session", f"{float(totals.get('avg_pages_per_session', 0) or 0):.2f}")
     k5.metric("CV downloads", cv_download_events, f"{cv_sessions} downloading sessions")
 
@@ -747,8 +753,9 @@ def render_analytics_dashboard() -> None:
                 _section("Funnel", "Depth of exploration", "Progression is relative to Home sessions.")
                 _funnel(home_sessions, impact_sessions, lens_sessions, cv_sessions)
                 st.markdown(
-                    f'<div class="callout">Median session: <b>{html.escape(_seconds(totals.get("median_session_seconds")))}</b> · '
-                    f'Average active time: <b>{html.escape(_seconds(totals.get("avg_engaged_seconds")))}</b></div>',
+                    f'<div class="callout">Median active time: <b>{html.escape(_seconds(totals.get("median_active_seconds")))}</b> · '
+                    f'Confirmed duration: <b>{confirmed_duration_sessions}</b> · '
+                    f'Unconfirmed: <b>{unconfirmed_duration_sessions}</b></div>',
                     unsafe_allow_html=True,
                 )
 
@@ -828,7 +835,11 @@ def render_analytics_dashboard() -> None:
         left, right = st.columns([1.15, 1])
         with left:
             with st.container(border=True):
-                _section("Quality", "Session duration")
+                _section(
+                    "Quality",
+                    "Active time distribution",
+                    "Visible active time only. Initial-hit-only sessions are shown as Unconfirmed instead of being assigned a false 0–1 second duration.",
+                )
                 _duration_chart(data.get("duration_buckets", []))
         with right:
             with st.container(border=True):
@@ -856,13 +867,18 @@ def render_analytics_dashboard() -> None:
         with st.container(border=True):
             _section(
                 "Interpretation",
-                "How engagement is counted",
-                "A session is engaged when it has at least 10 seconds of active visible time, two or more pages, or a meaningful conversion action.",
+                "How timing is counted",
+                "Active time counts only while the page is visible. A session's duration is considered confirmed after an engagement heartbeat arrives; sessions with only the initial hit remain Duration unconfirmed. A new session starts after 30 minutes without visible activity.",
             )
-            q1, q2, q3 = st.columns(3)
+            q1, q2, q3, q4 = st.columns(4)
             q1.metric("Engaged sessions", engaged_sessions, _pct(engaged_sessions, sessions))
-            q2.metric("Median duration", _seconds(totals.get("median_session_seconds")))
-            q3.metric("Average active time", _seconds(totals.get("avg_engaged_seconds")))
+            q2.metric("Median active time", _seconds(totals.get("median_active_seconds")))
+            q3.metric("Average active time", _seconds(totals.get("avg_active_seconds")))
+            q4.metric(
+                "Duration unconfirmed",
+                unconfirmed_duration_sessions,
+                _pct(unconfirmed_duration_sessions, sessions),
+            )
 
     with tools_tab:
         with st.container(border=True):

@@ -329,7 +329,17 @@ def _bar_chart(
         _empty("No data in this reporting window yet.")
         return
 
-    count_format = "d" if value in {"sessions", "events", "engaged_sessions", "page_views"} else None
+    numeric_values: list[float] = []
+    for row in data:
+        try:
+            numeric_values.append(float(row.get(value, 0) or 0))
+        except (TypeError, ValueError):
+            continue
+    if numeric_values and max(numeric_values) <= 0:
+        _empty("No data in this reporting window yet.")
+        return
+
+    count_format = "d" if value in {"sessions", "events", "engaged_sessions", "page_views", "shares"} else None
 
     if horizontal:
         encoding = {

@@ -104,6 +104,35 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertEqual(page_analytics._seconds(0.9), "<1s")
         self.assertEqual(page_analytics._seconds(1.1), "1s")
 
+    def test_page_rows_hide_zero_activity_and_normalize_counts(self) -> None:
+        import page_analytics
+
+        rows = [
+            {
+                "page": "home",
+                "page_label": "Home",
+                "page_family": "Core",
+                "sessions": "2",
+                "page_views": "3",
+            },
+            {
+                "page": "contact",
+                "page_label": "Contact",
+                "page_family": "Core",
+                "sessions": 0,
+                "page_views": 0,
+            },
+        ]
+
+        prepared = page_analytics._page_rows(rows)
+
+        self.assertEqual(len(prepared), 1)
+        self.assertEqual(prepared[0]["page"], "home")
+        self.assertEqual(prepared[0]["sessions"], 2)
+        self.assertEqual(prepared[0]["page_views"], 3)
+        self.assertIsInstance(prepared[0]["sessions"], int)
+        self.assertIsInstance(prepared[0]["page_views"], int)
+
     def test_dashboard_has_no_user_authentication_gate(self) -> None:
         dashboard = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
         wrapper = (ROOT / "src/page_analytics_v2.py").read_text(encoding="utf-8")

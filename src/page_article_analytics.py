@@ -200,9 +200,9 @@ def render_article_analytics() -> None:
     )
 
     a1, a2, a3, a4, a5, a6 = st.columns(6)
-    a1.metric("Article views", views, f"{sessions} reader sessions")
-    a2.metric("Reader sessions", sessions, f"{confirmed_duration_sessions} duration-confirmed")
-    a3.metric("Engaged readers", _pct(engaged_sessions, sessions), f"{engaged_sessions} ≥10s active")
+    a1.metric("Article views", views, f"{sessions} measured sessions")
+    a2.metric("Measured sessions", sessions, f"{confirmed_duration_sessions} ≥5s confirmed")
+    a3.metric("Engaged reads", _pct(engaged_sessions, sessions), f"{engaged_sessions} ≥10s active")
     a4.metric(
         "Avg active read",
         _seconds(totals.get("avg_active_seconds")),
@@ -222,7 +222,7 @@ def render_article_analytics() -> None:
             _section(
                 "Reading",
                 "Most-read articles",
-                "Reader sessions count distinct browsing sessions with an actual article view.",
+                "Measured sessions count distinct browser sessions with an article view; they are not assumed to equal people.",
             )
             _bar_chart(article_rows, "article", value="sessions", limit=8, height=320)
     with right:
@@ -245,14 +245,14 @@ def render_article_analytics() -> None:
             _bar_chart(article_rows, "article", value="shares", limit=8, height=300, color=GREEN)
 
     with st.container(border=True):
-        _section("Trend", "Article reader sessions", "Daily article readership in Stockholm reporting time.")
+        _section("Trend", "Article measured sessions", "Daily article-view sessions in Stockholm reporting time.")
         _article_daily_chart(data.get("daily", []))
 
     with st.container(border=True):
         _section(
             "Acquisition",
-            "Where article readers came from",
-            "Select an article to see the job-search attribution source retained for that browser tab/session.",
+            "Tagged acquisition source",
+            "Select an article to see the source tag retained for that browser tab/session; this is campaign attribution, not a verified referrer.",
         )
         slugs = [str(row.get("article_slug") or "") for row in article_rows if row.get("article_slug")]
         if not slugs:
@@ -268,7 +268,7 @@ def render_article_analytics() -> None:
             _bar_chart(sources, "source", value="sessions", limit=10, height=260, color=ACCENT)
 
     st.caption(
-        "Article analytics remains first-party and session-scoped: reader sessions are distinct session IDs with an actual article view; "
+        "Article analytics remains first-party and session-scoped: measured sessions are distinct browser session IDs with an actual article view and should not be interpreted as unique people. "
         "active reading time is reported only after a heartbeat confirms duration. Article slug, share channel and active reading time are recorded, "
         "but no persistent visitor ID, raw IP address, full user agent, heatmap or cross-session profile is created."
     )

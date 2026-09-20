@@ -684,7 +684,7 @@ def render_analytics_dashboard() -> None:
     )
 
     k1, k2, k3, k4, k5 = st.columns(5)
-    k1.metric("Sessions", sessions)
+    k1.metric("Measured sessions", sessions)
     k2.metric("Engagement", _pct(engaged_sessions, sessions), f"{engaged_sessions} engaged")
     k3.metric(
         "Avg active time",
@@ -693,6 +693,11 @@ def render_analytics_dashboard() -> None:
     )
     k4.metric("Pages / session", f"{float(totals.get('avg_pages_per_session', 0) or 0):.2f}")
     k5.metric("CV downloads", cv_download_events, f"{cv_sessions} downloading sessions")
+    st.caption(
+        "Measured sessions are distinct browser session IDs, not unique people. "
+        "Automated link previews or browser-rendering services can appear as sessions; "
+        "engagement and conversion metrics are stronger evidence of meaningful attention."
+    )
 
     o1, o2, o3, o4, o5 = st.columns(5)
     o1.metric("Reached Impact", _pct(impact_sessions, home_sessions), f"{impact_sessions} sessions")

@@ -62,9 +62,10 @@ class ArticleAnalyticsTests(unittest.TestCase):
             "Active reading time",
             "Most-shared articles",
             "Share channels",
-            "Where article readers came from",
+            "Tagged acquisition source",
             "Article views",
-            "Engaged readers",
+            "Measured sessions",
+            "Engaged reads",
         ):
             self.assertIn(token, article_dashboard)
 

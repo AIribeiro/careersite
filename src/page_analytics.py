@@ -296,6 +296,14 @@ def _empty(message: str) -> None:
     st.caption(message)
 
 
+def _count(value: object) -> int:
+    """Normalize aggregate count fields returned by PostgREST for charting."""
+    try:
+        return max(0, int(float(value or 0)))
+    except (TypeError, ValueError):
+        return 0
+
+
 def _top_rows(rows: object, limit: int = 8) -> list[dict]:
     if not isinstance(rows, list):
         return []
@@ -314,9 +322,14 @@ def _bar_chart(
     sort: object = "-x",
 ) -> None:
     data = _top_rows(rows, limit)
+    if value in {"sessions", "events", "engaged_sessions", "page_views"}:
+        for row in data:
+            row[value] = _count(row.get(value))
     if not data:
         _empty("No data in this reporting window yet.")
         return
+
+    count_format = "d" if value in {"sessions", "events", "engaged_sessions", "page_views"} else None
 
     if horizontal:
         encoding = {
@@ -329,11 +342,21 @@ def _bar_chart(
             "x": {
                 "field": value,
                 "type": "quantitative",
-                "axis": {"title": None, "grid": False, "labelColor": MUTED},
+                "axis": {
+                    "title": None,
+                    "grid": False,
+                    "labelColor": MUTED,
+                    **({"format": count_format} if count_format else {}),
+                },
             },
             "tooltip": [
                 {"field": category, "type": "nominal", "title": "Category"},
-                {"field": value, "type": "quantitative", "title": value.replace("_", " ").title()},
+                {
+                    "field": value,
+                    "type": "quantitative",
+                    "title": value.replace("_", " ").title(),
+                    **({"format": count_format} if count_format else {}),
+                },
             ],
         }
     else:
@@ -347,11 +370,21 @@ def _bar_chart(
             "y": {
                 "field": value,
                 "type": "quantitative",
-                "axis": {"title": None, "gridColor": "#eee5da", "labelColor": MUTED},
+                "axis": {
+                    "title": None,
+                    "gridColor": "#eee5da",
+                    "labelColor": MUTED,
+                    **({"format": count_format} if count_format else {}),
+                },
             },
             "tooltip": [
                 {"field": category, "type": "nominal", "title": "Category"},
-                {"field": value, "type": "quantitative", "title": value.replace("_", " ").title()},
+                {
+                    "field": value,
+                    "type": "quantitative",
+                    "title": value.replace("_", " ").title(),
+                    **({"format": count_format} if count_format else {}),
+                },
             ],
         }
 
@@ -551,6 +584,15 @@ def _page_rows(rows: object, family: str | None = None) -> list[dict]:
             continue
         item = dict(row)
         if family is not None and str(item.get("page_family") or "") != family:
+            continue
+
+        # The RPC returns the full page catalogue so unvisited pages appear as
+        # zero rows. Those rows flatten Vega's quantitative scale and make the
+        # navigation panel look broken. Keep only pages with actual activity
+        # and normalize aggregate counts to integers for display.
+        item["sessions"] = _count(item.get("sessions"))
+        item["page_views"] = _count(item.get("page_views"))
+        if item["sessions"] <= 0 and item["page_views"] <= 0:
             continue
         prepared.append(item)
     return prepared

@@ -114,6 +114,11 @@ def inject_article_analytics(
     win.sessionStorage.setItem(attributionKey, JSON.stringify(attribution));
   }}
 
+  const isExcludedTestTraffic = () => (
+    String(attribution.source || '').toLowerCase() === 'application' &&
+    String(attribution.role || '').toLowerCase() === 'test'
+  );
+
   const referrerHost = () => {{
     try {{
       if (!doc.referrer) return null;
@@ -162,6 +167,7 @@ def inject_article_analytics(
   }};
 
   const send = (eventName, {{ slug = null, action = null, target = null }} = {{}}) => {{
+    if (isExcludedTestTraffic()) return;
     updateArticleEngagement();
     const effectiveSlug = slug || (win.__jairArticleContext && win.__jairArticleContext.slug) || null;
     const articleMs = effectiveSlug && state.slug === effectiveSlug ? Math.round(state.engagedMs) : 0;

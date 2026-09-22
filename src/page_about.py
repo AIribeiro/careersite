@@ -9,32 +9,38 @@ def about() -> str:
     return f'''{nav("about")}<main>
 <section class="pagehero"><div class="container"><p class="eyebrow">About</p><h1>A career that moved from enterprise technology foundations into business-facing AI, Data and Analytics leadership.</h1><p>20+ years in enterprise technology, including 8+ years in AI, data and analytics leadership. The recurring work has been helping organizations connect ambition with the conditions required to make it useful: priorities, responsibility, data, governance, everyday use and value.</p></div></section>
 
-<section class="section soft"><div class="container leadership-identity"><div class="identity-copy"><p class="eyebrow">Leadership identity</p><h2>I lead where business, AI and technology meet.</h2><p>AI is not a standalone technical discipline in my work. I connect strategic intent with the data, technology, governance and operating conditions required to make it useful at enterprise scale.</p><p>That means moving from opportunity to adoption, from experimentation to repeatable capability, and from AI activity to measurable business value.</p><div class="chips identity-chips"><span>Business &amp; strategic leadership</span><span>AI &amp; Data leadership</span><span>Technology &amp; architecture</span></div></div><figure class="leadership-visual" aria-label="Jair Ribeiro leadership model">
-  <div class="leadership-card">
-    <div class="leadership-card-top">
-      <span>JAIR RIBEIRO</span>
-      <small>AI · DATA · PEOPLE · IMPACT</small>
-    </div>
-    <div class="leadership-card-title">Where business, AI and technology create enterprise value.</div>
-    <div class="venn-stage">
-      <div class="venn-circle venn-business">
+<section class="section soft"><div class="container leadership-identity"><div class="identity-copy"><p class="eyebrow">Leadership identity</p><h2>I lead where business, AI and technology meet.</h2><p>AI is not a standalone technical discipline in my work. I connect strategic intent with the data, technology, governance and operating conditions required to make it useful at enterprise scale.</p><p>That means moving from opportunity to adoption, from experimentation to repeatable capability, and from AI activity to measurable business value.</p><div class="chips identity-chips"><span>Business &amp; strategic leadership</span><span>AI &amp; Data leadership</span><span>Technology &amp; architecture</span></div></div><figure class="leadership-visual leadership-graphic2" aria-label="Jair Ribeiro leadership model">
+  <div class="lv-card">
+    <div class="lv-title">Where business, AI and technology create enterprise value.</div>
+    <div class="lv-stage">
+      <div class="lv-circle lv-business"></div>
+      <div class="lv-circle lv-ai"></div>
+      <div class="lv-circle lv-tech"></div>
+
+      <div class="lv-label lv-label-business">
+        <span class="lv-icon">↗</span>
         <strong>Business &amp;<br>strategic leadership</strong>
-        <span>Strategy · Value · Stakeholders · Change</span>
+        <small>Strategy · Value · Stakeholders</small>
       </div>
-      <div class="venn-circle venn-ai">
+
+      <div class="lv-label lv-label-ai">
+        <span class="lv-icon">AI</span>
         <strong>AI &amp; Data<br>leadership</strong>
-        <span>AI strategy · Governance · Adoption · Scale</span>
+        <small>AI strategy · Governance · Adoption</small>
       </div>
-      <div class="venn-circle venn-tech">
+
+      <div class="lv-label lv-label-tech">
+        <span class="lv-icon">◇</span>
         <strong>Technology &amp;<br>architecture</strong>
-        <span>Data · Platforms · Architecture · Security</span>
+        <small>Data · Platforms · Architecture</small>
       </div>
-      <div class="venn-center">
-        <strong>Enterprise<br>AI &amp; Data Leader</strong>
-        <span>People · Trust · Value</span>
+
+      <div class="lv-center">
+        <strong>Enterprise<br>AI &amp; Data<br>Leader</strong>
+        <small>People · Trust · Value</small>
       </div>
     </div>
-    <div class="leadership-card-bottom">AI can do a lot. <strong>People make it matter.</strong></div>
+    <div class="lv-tagline">AI CAN DO A LOT. <b>PEOPLE MAKE IT MATTER.</b></div>
   </div>
 </figure></div></section>
 

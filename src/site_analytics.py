@@ -143,6 +143,11 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     win.sessionStorage.setItem(attributionKey, JSON.stringify(attribution));
   }}
 
+  const isExcludedTestTraffic = () => (
+    String(attribution.source || '').toLowerCase() === 'application' &&
+    String(attribution.role || '').toLowerCase() === 'test'
+  );
+
   const referrerHost = () => {{
     try {{
       if (!doc.referrer) return null;
@@ -218,7 +223,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   win.__jairAnalyticsEnsureFreshSession = ensureFreshSession;
 
   win.__jairAnalyticsSend = (eventName, extra = {{}}) => {{
-    if (!allowed.has(eventName)) return;
+    if (!allowed.has(eventName) || isExcludedTestTraffic()) return;
     ensureFreshSession();
     updateEngagement();
     const context = win.__jairAnalyticsContext || {{ page: 'home', source: 'streamlit' }};

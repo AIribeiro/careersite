@@ -14,11 +14,11 @@ from site_media import (
     presence_thinkers360,
     presence_global_ambassador,
     presence_ai_learning,
+    presence_dfm_2023,
 )
 
 
 DFM_2026_IMAGE = "https://www.digitalfirstmagazine.com/wp-content/uploads/2026/06/Jair-Ribeiro.jpeg"
-DFM_2023_IMAGE = "https://www.digitalfirstmagazine.com/wp-content/uploads/2023/05/800_480-Jair-Ribeiro-550x330.jpg"
 
 
 def _media(uri: str, alt: str, *, contain: bool = False, variant: str = "") -> str:
@@ -53,7 +53,7 @@ def presence() -> str:
 <section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Selected publications &amp; media</p><h2>Writing that stays close to enterprise choices.</h2></div><p>The strongest pieces connect technology with governance, data, work, adoption and management responsibility rather than treating AI as a technology trend in isolation.</p></div>
 <div class="grid3">
 <article class="card presence-card">{_media(DFM_2026_IMAGE, "Digital First Magazine feature with Jair Ribeiro", contain=True)}<div class="presence-body"><span class="org">Digital First Magazine · 2026</span><h3>AI Governance Is Not About Control. It Is About Scale.</h3><p>Expert opinion on governance as an operating capability for ownership, trust and repeatable enterprise use.</p><p><a href="https://www.digitalfirstmagazine.com/leaders-are-finally-understanding-ai-governance-is-not-about-control-it-is-about-scale-temp/" target="_blank" rel="noopener" data-hq-event="article_presence_dfm_2026">Read publication ↗</a></p></div></article>
-<article class="card presence-card">{_media(DFM_2023_IMAGE, "Digital First Magazine cover-story image for Jair Ribeiro", contain=True)}<div class="presence-body"><span class="org">Digital First Magazine · 2023</span><h3>Navigating the Ethical AI Landscape</h3><p>Cover story in the magazine's June 2023 issue on responsible AI and the leadership responsibility around ethical development and use.</p><p><a href="https://www.digitalfirstmagazine.com/june-2023-10-must-watch-innovators-to-follow-in-2023/" target="_blank" rel="noopener" data-hq-event="article_presence_dfm_2023">Issue record ↗</a></p></div></article>
+<article class="card presence-card">{_media(presence_dfm_2023, "Digital First Magazine June 2023 cover featuring Jair Ribeiro", contain=True, variant="portrait-cover")}<div class="presence-body"><span class="org">Digital First Magazine · 2023</span><h3>Navigating the Ethical AI Landscape</h3><p>Cover story in the magazine's June 2023 issue on responsible AI and the leadership responsibility around ethical development and use.</p><p><a href="https://www.digitalfirstmagazine.com/june-2023-10-must-watch-innovators-to-follow-in-2023/" target="_blank" rel="noopener" data-hq-event="article_presence_dfm_2023">Issue record ↗</a></p></div></article>
 <article class="card presence-card">{_media(ABOUT_BW_URI, "Jair Ribeiro, featured by CIO Applications Europe")}<div class="presence-body"><span class="org">CIO Applications Europe</span><h3>Transforming the Trucking Industry with Data Analytics and AI</h3><p>Interview on data quality, data culture, Generative AI and the practical conditions required to use analytics effectively in a large enterprise.</p><p><a href="https://www.cioapplicationseurope.com/cxoinsights/transforming-the-trucking-industry-with-data-analytics-and-ai-nid-3643.html" target="_blank" rel="noopener" data-hq-event="article_presence_cio_trucking">Read interview ↗</a></p></div></article>
 </div></div></section>
 

@@ -45,6 +45,7 @@ jobs:
               "presence_thinkers360_top50.png": ((1500, 1000), 1_500_000),
               "presence_global_ai_ambassador.jpg": ((1000, 680), 50_000),
               "presence_ai_learning_sessions.jpg": ((1000, 680), 100_000),
+              "presence_digitalfirst_2023_cover.jpg": ((1100, 1400), 500_000),
           }
 
           root = Path("images")

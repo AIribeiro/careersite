@@ -17,21 +17,21 @@ def about() -> str:
   <linearGradient id="circleB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#067be1"/><stop offset="1" stop-color="#2da7ff"/></linearGradient>
   <linearGradient id="circleC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#074480"/><stop offset="1" stop-color="#0d6dc4"/></linearGradient>
   <style>
-    .brand{font:700 20px Arial,sans-serif;letter-spacing:7px;fill:#0b2c59}
-    .micro{font:600 13px Arial,sans-serif;letter-spacing:3px;fill:#506781}
-    .title{font:700 48px Arial,sans-serif;fill:#071d43}
-    .accent{fill:#1689f4}
-    .sub{font:400 20px Arial,sans-serif;fill:#30465f}
-    .circle-title{font:700 25px Arial,sans-serif;fill:white}
-    .circle-copy{font:400 17px Arial,sans-serif;fill:#eaf6ff}
-    .circle-tag{font:600 15px Arial,sans-serif;letter-spacing:.6px;fill:white}
-    .center-title{font:700 34px Arial,sans-serif;fill:#071d43}
-    .center-copy{font:700 12px Arial,sans-serif;letter-spacing:1.2px;fill:#263a53}
-    .side-kicker{font:700 13px Arial,sans-serif;letter-spacing:3px;fill:#405777}
-    .side-head{font:700 25px Arial,sans-serif;fill:#071d43}
-    .side-copy{font:400 16px Arial,sans-serif;fill:#334760}
-    .side-label{font:700 16px Arial,sans-serif;fill:#071d43}
-    .tagline{font:700 22px Arial,sans-serif;letter-spacing:2px;fill:#071d43}
+    .brand{{font:700 20px Arial,sans-serif;letter-spacing:7px;fill:#0b2c59}}
+    .micro{{font:600 13px Arial,sans-serif;letter-spacing:3px;fill:#506781}}
+    .title{{font:700 48px Arial,sans-serif;fill:#071d43}}
+    .accent{{fill:#1689f4}}
+    .sub{{font:400 20px Arial,sans-serif;fill:#30465f}}
+    .circle-title{{font:700 25px Arial,sans-serif;fill:white}}
+    .circle-copy{{font:400 17px Arial,sans-serif;fill:#eaf6ff}}
+    .circle-tag{{font:600 15px Arial,sans-serif;letter-spacing:.6px;fill:white}}
+    .center-title{{font:700 34px Arial,sans-serif;fill:#071d43}}
+    .center-copy{{font:700 12px Arial,sans-serif;letter-spacing:1.2px;fill:#263a53}}
+    .side-kicker{{font:700 13px Arial,sans-serif;letter-spacing:3px;fill:#405777}}
+    .side-head{{font:700 25px Arial,sans-serif;fill:#071d43}}
+    .side-copy{{font:400 16px Arial,sans-serif;fill:#334760}}
+    .side-label{{font:700 16px Arial,sans-serif;fill:#071d43}}
+    .tagline{{font:700 22px Arial,sans-serif;letter-spacing:2px;fill:#071d43}}
   </style>
 </defs>
 

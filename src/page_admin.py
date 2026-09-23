@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import base64
 import html
 import json
 import os
@@ -385,15 +386,27 @@ document.getElementById({json.dumps(key)}).addEventListener('click', async () =>
     )
 
 
-def _preview(article: CmsArticle) -> None:
+def _preview(article: CmsArticle, header_bytes: bytes | None = None) -> None:
     if not article.title or not strip_html(article.content_html):
         st.warning("Add a title and article body before previewing.")
         return
     from site_cms import render_cms_article
 
+    preview_article = article
+    if header_bytes:
+        preview_src = "data:image/webp;base64," + base64.b64encode(header_bytes).decode("ascii")
+        preview_article = replace(article, header_image_url=preview_src)
+
+    preview_html = (
+        "<style>html,body{margin:0;background:#f4f0e8;font-family:Arial,sans-serif}</style>"
+        + render_cms_article(preview_article)
+        + "<script>window.scrollTo(0,0);</script>"
+    )
+
     with st.expander("Preview", expanded=True):
+        st.caption("Live preview of the current editor state.")
         st.components.v1.html(
-            "<style>body{margin:0;background:#f4f0e8;font-family:Arial,sans-serif}</style>" + render_cms_article(article),
+            preview_html,
             height=900,
             scrolling=True,
         )
@@ -664,7 +677,10 @@ def _editor(article: CmsArticle, access_token: str) -> None:
     _leave_guard(_article_dirty(article, final_draft))
 
     if st.session_state.get(f"{prefix}_show_preview"):
-        _preview(final_draft)
+        preview_bytes = st.session_state.get(f"{prefix}_image_preview_bytes")
+        if not preview_bytes and "/cms-header/" in final_draft.header_image_url:
+            preview_bytes = bundled_header_bytes(final_draft.slug)
+        _preview(final_draft, preview_bytes)
 
 
 def _extract_legacy_article(article_meta, renderer) -> tuple[str, str]:

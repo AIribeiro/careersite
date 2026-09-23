@@ -527,6 +527,31 @@ def change_article_status(access_token: str, article_id: str, status: str) -> Cm
     return CmsArticle.from_row(rows[0])
 
 
+def update_article_header_image(
+    access_token: str,
+    article_id: str,
+    header_image_url: str,
+    header_image_alt: str = "",
+) -> CmsArticle:
+    """Persist only the image fields so replacing art does not save unrelated editor changes."""
+    payload = {"header_image_url": header_image_url}
+    if header_image_alt:
+        payload["header_image_alt"] = header_image_alt
+    result = _request_json(
+        "PATCH",
+        _rest_url(f"{TABLE}?id=eq.{parse.quote(article_id, safe='')}"),
+        token=access_token,
+        payload=payload,
+        prefer="return=representation",
+    )
+    rows = result if isinstance(result, list) else []
+    if not rows:
+        raise RuntimeError("The header image update returned no row.")
+    fetch_published_articles.clear()
+    fetch_public_article.clear()
+    return CmsArticle.from_row(rows[0])
+
+
 def duplicate_article(access_token: str, article: CmsArticle) -> CmsArticle:
     copy_article = CmsArticle(**asdict(article))
     copy_article.id = None
@@ -670,12 +695,17 @@ def effective_header_image_url(article: CmsArticle) -> str:
 
 
 def embedded_header_image_src(article: CmsArticle) -> str:
-    """Use bundled article art inline so the visible page never depends on a second HTTP route."""
+    """Prefer newly uploaded CMS art; use bundled art only as a resilient fallback."""
+    uploaded = article.header_image_url.strip()
+    if uploaded and f"/storage/v1/object/public/{IMAGE_BUCKET}/" in uploaded:
+        return uploaded
+
     data = bundled_header_bytes(article.slug)
     if data is not None:
         encoded = base64.b64encode(data).decode("ascii")
         return f"data:image/webp;base64,{encoded}"
-    return article.header_image_url.strip()
+
+    return uploaded
 
 
 def article_relative_url(article: CmsArticle) -> str:

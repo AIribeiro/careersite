@@ -170,6 +170,71 @@ def _article_from_state(base: CmsArticle, prefix: str) -> CmsArticle:
     )
 
 
+EDITABLE_FIELDS = (
+    "title", "slug", "subtitle", "content_html", "aside_html", "excerpt",
+    "header_image_url", "header_image_alt", "seo_title", "meta_description",
+    "keywords", "hashtags", "category", "kind", "source_url", "featured",
+    "read_minutes", "social_title", "social_description", "show_tags_publicly",
+)
+
+
+def _article_dirty(base: CmsArticle, draft: CmsArticle) -> bool:
+    return any(getattr(base, field) != getattr(draft, field) for field in EDITABLE_FIELDS)
+
+
+def _leave_guard(dirty: bool) -> None:
+    flag = "true" if dirty else "false"
+    components.html(
+        f"""
+<script>
+(() => {{
+  const win = window.parent;
+  if (win.__jairCmsBeforeUnload) {{
+    win.removeEventListener('beforeunload', win.__jairCmsBeforeUnload);
+    win.__jairCmsBeforeUnload = null;
+  }}
+  if ({flag}) {{
+    const handler = (event) => {{
+      event.preventDefault();
+      event.returnValue = '';
+      return '';
+    }};
+    win.__jairCmsBeforeUnload = handler;
+    win.addEventListener('beforeunload', handler);
+  }}
+}})();
+</script>
+""",
+        height=0,
+        width=0,
+    )
+
+
+def _editor_back_control(article: CmsArticle, prefix: str) -> bool:
+    draft = _article_from_state(article, prefix)
+    dirty = _article_dirty(article, draft)
+    if st.button("← Back to articles", key=f"{prefix}_back"):
+        if dirty:
+            st.session_state[f"{prefix}_confirm_leave"] = True
+        else:
+            st.session_state.pop("cms_edit_id", None)
+            st.rerun()
+
+    if st.session_state.get(f"{prefix}_confirm_leave"):
+        st.warning("You have unsaved changes. Discard them and return to the article list?")
+        discard, stay = st.columns(2)
+        if discard.button("Discard changes", key=f"{prefix}_discard", use_container_width=True):
+            for key in list(st.session_state):
+                if key.startswith(f"{prefix}_"):
+                    st.session_state.pop(key, None)
+            st.session_state.pop("cms_edit_id", None)
+            st.rerun()
+        if stay.button("Keep editing", key=f"{prefix}_stay", use_container_width=True):
+            st.session_state.pop(f"{prefix}_confirm_leave", None)
+            st.rerun()
+    return dirty
+
+
 def _load_editor_state(article: CmsArticle, prefix: str) -> None:
     values = {
         "title": article.title,
@@ -259,6 +324,7 @@ def _preview(article: CmsArticle) -> None:
 def _editor(article: CmsArticle, access_token: str) -> None:
     prefix = f"cms_{article.id or 'new'}"
     _load_editor_state(article, prefix)
+    _editor_back_control(article, prefix)
 
     left, right = st.columns([1.55, .75], gap="large")
     with left:
@@ -395,8 +461,11 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             f"{prefix}_copy_meta",
         )
 
+    final_draft = _article_from_state(article, prefix)
+    _leave_guard(_article_dirty(article, final_draft))
+
     if st.session_state.get(f"{prefix}_show_preview"):
-        _preview(_article_from_state(article, prefix))
+        _preview(final_draft)
 
 
 def _extract_legacy_article(article_meta, renderer) -> tuple[str, str]:
@@ -490,17 +559,11 @@ def _dashboard(session: dict) -> None:
     edit_id = st.session_state.get("cms_edit_id")
     if edit_id == "__new__":
         article = CmsArticle()
-        if st.button("← Back to articles"):
-            st.session_state.pop("cms_edit_id", None)
-            st.rerun()
         _editor(article, token)
         return
     if edit_id:
         article = next((item for item in articles if item.id == edit_id), None)
         if article is None:
-            st.session_state.pop("cms_edit_id", None)
-            st.rerun()
-        if st.button("← Back to articles"):
             st.session_state.pop("cms_edit_id", None)
             st.rerun()
         _editor(article, token)

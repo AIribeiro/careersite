@@ -45,18 +45,11 @@ class CareersiteCmsTests(unittest.TestCase):
             "https://jairribeiro-ai.streamlit.app/thinking/preview-article?source=application&role=Test",
         )
 
-    def test_latest_article_uses_bundled_generated_header(self) -> None:
+    def test_latest_article_has_no_stale_bundled_header(self) -> None:
         slug = "ai-has-too-many-owners-and-thats-why-nobody-owns-the-outcome"
         article = CmsArticle(title="AI Has Too Many Owners", slug=slug)
-        data = bundled_header_bytes(slug)
-        self.assertIsNotNone(data)
-        self.assertGreater(len(data or b""), 20_000)
-        self.assertEqual((data or b"")[:4], b"RIFF")
-        self.assertEqual((data or b"")[8:12], b"WEBP")
-        self.assertEqual(
-            effective_header_image_url(article),
-            f"https://jairribeiro-ai.streamlit.app/cms-header/{slug}.webp?v=e51f18261592",
-        )
+        self.assertIsNone(bundled_header_bytes(slug))
+        self.assertEqual(effective_header_image_url(article), "")
 
     def test_data_url_header_overrides_bundled_art_for_editor_preview(self) -> None:
         slug = "ai-has-too-many-owners-and-thats-why-nobody-owns-the-outcome"

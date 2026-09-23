@@ -53,20 +53,34 @@ def _is_crawler(request) -> bool:
 
 
 async def _thinking_article(request):
-    article = resolve_article(request.path_params.get("slug"))
-    if article is None:
+    slug = str(request.path_params.get("slug") or "").strip().lower()
+    try:
+        cms_article = fetch_public_article(slug)
+    except RuntimeError:
+        cms_article = None
+    article = None if cms_article is not None else resolve_article(slug)
+    if cms_article is None and article is None:
         return PlainTextResponse("Article not found", status_code=404)
 
     if not _is_crawler(request):
+        target = (
+            f"{BASE_URL}/?page=thinking&article={cms_article.slug}"
+            if cms_article is not None
+            else article_app_url(article)
+        )
         return RedirectResponse(
-            article_app_url(article),
+            target,
             status_code=302,
             headers={"Cache-Control": "no-store"},
         )
 
-    path = ensure_article_share_page(article)
+    if cms_article is not None:
+        document = cms_share_document(cms_article)
+    else:
+        path = ensure_article_share_page(article)
+        document = path.read_text(encoding="utf-8")
     return HTMLResponse(
-        path.read_text(encoding="utf-8"),
+        document,
         headers={
             "Cache-Control": "public, max-age=900, stale-while-revalidate=3600",
             "X-Robots-Tag": "index, follow, max-image-preview:large",
@@ -100,6 +114,14 @@ async def _sitemap(_request):
     entries = [(f"{BASE_URL}/", "2026-09-17")] + [
         (article_url(article), article.published_iso) for article in ARTICLES
     ]
+    try:
+        entries.extend(cms_sitemap_entries())
+    except RuntimeError:
+        pass
+    deduped = {}
+    for url, lastmod in entries:
+        deduped[url] = max(lastmod, deduped.get(url, ""))
+    entries = list(deduped.items())
     body = "".join(
         f"<url><loc>{escape(url)}</loc><lastmod>{lastmod}</lastmod></url>"
         for url, lastmod in entries

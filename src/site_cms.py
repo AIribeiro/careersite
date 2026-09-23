@@ -477,9 +477,20 @@ def save_article(access_token: str, article: CmsArticle) -> CmsArticle:
     rows = result if isinstance(result, list) else []
     if not rows:
         raise RuntimeError("The article save returned no row.")
+    saved = CmsArticle.from_row(rows[0])
+    if saved.status == "published" and saved.featured and saved.id:
+        _request_json(
+            "PATCH",
+            _rest_url(
+                f"{TABLE}?featured=eq.true&id=neq.{parse.quote(saved.id, safe='')}"
+            ),
+            token=access_token,
+            payload={"featured": False},
+            prefer="return=minimal",
+        )
     fetch_published_articles.clear()
     fetch_public_article.clear()
-    return CmsArticle.from_row(rows[0])
+    return saved
 
 
 def delete_article(access_token: str, article_id: str) -> None:
@@ -627,18 +638,72 @@ def render_cms_article(article: CmsArticle) -> str:
 
 
 def inject_cms_landing(document: str) -> str:
-    articles = [article for article in fetch_published_articles() if not article.legacy_key]
+    published = list(fetch_published_articles())
+    cms_articles = [article for article in published if not article.legacy_key]
+    featured = next((article for article in cms_articles if article.featured), None)
+
+    if featured is not None:
+        featured_image = ""
+        if featured.header_image_url:
+            featured_image = (
+                f'<div class="thinking-thumb cms-thinking-thumb">'
+                f'<img src="{escape(featured.header_image_url, quote=True)}" '
+                f'alt="{escape(featured.header_image_alt or featured.title, quote=True)}" '
+                f'loading="eager" decoding="async"></div>'
+            )
+        featured_copy = featured.subtitle or featured.excerpt
+        featured_html = (
+            f'<article class="featured-thinking">{featured_image}'
+            f'<div class="kicker">{escape(featured.kind_topic)}</div>'
+            f'<h2>{escape(featured.title)}</h2>'
+            f'<p>{escape(featured_copy)}</p>'
+            f'<a class="read-live" href="{escape(article_relative_url(featured), quote=True)}" '
+            f'target="_self" data-hq-event="cms_featured_article_open">Read the article →</a>'
+            f'<div class="meta">{escape(featured.published_label)} · '
+            f'{escape(featured.topic)} · {featured.read_minutes} min</div></article>'
+        )
+        document = re.sub(
+            r'<article class="featured-thinking">.*?</article>',
+            lambda _match: featured_html,
+            document,
+            count=1,
+            flags=re.S,
+        )
+
+    articles = [
+        article for article in cms_articles
+        if featured is None or article.id != featured.id
+    ]
     if not articles:
         return document
+
     cards = []
     for article in articles[:6]:
         thumb = ""
         if article.header_image_url:
-            thumb = f'<div class="cms-thinking-thumb"><img src="{escape(article.header_image_url, quote=True)}" alt="{escape(article.header_image_alt or article.title, quote=True)}" loading="lazy" decoding="async"></div>'
+            thumb = (
+                f'<div class="cms-thinking-thumb"><img '
+                f'src="{escape(article.header_image_url, quote=True)}" '
+                f'alt="{escape(article.header_image_alt or article.title, quote=True)}" '
+                f'loading="lazy" decoding="async"></div>'
+            )
         cards.append(
-            f'''<a class="recent-card" href="{escape(article_relative_url(article), quote=True)}" target="_self" data-hq-event="cms_article_open">{thumb}<div class="kicker">{escape(article.kind_topic)}</div><h3>{escape(article.title)}</h3><p>{escape(article.excerpt)}</p><div class="read">{escape(article.read_label)} →</div></a>'''
+            f'<a class="recent-card" href="{escape(article_relative_url(article), quote=True)}" '
+            f'target="_self" data-hq-event="cms_article_open">{thumb}'
+            f'<div class="kicker">{escape(article.kind_topic)}</div>'
+            f'<h3>{escape(article.title)}</h3><p>{escape(article.excerpt)}</p>'
+            f'<div class="read">{escape(article.read_label)} →</div></a>'
         )
-    section = f'''<section class="section white cms-latest"><div class="container"><div class="head"><div><p class="eyebrow">Latest publications</p><h2>New writing published directly to the portfolio.</h2></div><p>Current articles appear here as soon as they are published through the private editor.</p></div><div class="recent-grid">{''.join(cards)}</div></div></section><style>.cms-thinking-thumb{{margin:-25px -25px 20px;aspect-ratio:16/9;overflow:hidden;background:#0b1220}}.cms-thinking-thumb img{{width:100%;height:100%;display:block;object-fit:cover}}</style>'''
+    section = (
+        '<section class="section white cms-latest"><div class="container">'
+        '<div class="head"><div><p class="eyebrow">Latest publications</p>'
+        '<h2>New writing published directly to the portfolio.</h2></div>'
+        '<p>Current articles appear here as soon as they are published through the private editor.</p>'
+        '</div><div class="recent-grid">' + ''.join(cards) + '</div></div></section>'
+        '<style>.cms-thinking-thumb{margin:-25px -25px 20px;aspect-ratio:16/9;overflow:hidden;'
+        'background:#0b1220}.cms-thinking-thumb img{width:100%;height:100%;display:block;'
+        'object-fit:cover}.featured-thinking .cms-thinking-thumb{margin:0 0 22px}</style>'
+    )
     marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Recent thinking</p>'
     if marker in document:
         return document.replace(marker, section + marker, 1)

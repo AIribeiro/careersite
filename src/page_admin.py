@@ -307,6 +307,15 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             st.session_state[f"{prefix}_image_url"] = ""
             st.rerun()
 
+    body_text = strip_html(st.session_state.get(f"{prefix}_body", ""))
+    if (
+        st.session_state.get(f"{prefix}_title", "").strip()
+        and len(body_text) >= 80
+        and not st.session_state.get(f"{prefix}_metadata_seeded", False)
+    ):
+        _metadata(article, prefix, force=False)
+        st.session_state[f"{prefix}_metadata_seeded"] = True
+
     with right:
         st.markdown('<div class="cms-kicker">Publishing</div>', unsafe_allow_html=True)
         if st.button("Generate / regenerate metadata", use_container_width=True, key=f"{prefix}_generate"):
@@ -337,8 +346,6 @@ def _editor(article: CmsArticle, access_token: str) -> None:
         with st.expander("Advanced article aside"):
             st.text_area("Aside HTML", key=f"{prefix}_aside", height=160)
 
-        draft = _article_from_state(article, prefix)
-        _metadata(draft, prefix, force=False)
         draft = _article_from_state(article, prefix)
 
         pub_label = "Update published article" if article.status == "published" else "Publish"

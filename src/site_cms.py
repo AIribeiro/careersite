@@ -803,7 +803,7 @@ def inject_cms_landing(document: str) -> str:
             featured_image = _cms_fallback_cover(featured, "thinking-thumb cms-thinking-thumb")
         featured_copy = featured.subtitle or featured.excerpt
         featured_html = (
-            f'<article class="featured-thinking">{featured_image}'
+            f'<article class="featured-thinking cms-featured-thinking">{featured_image}'
             f'<div class="kicker">{escape(featured.kind_topic)}</div>'
             f'<h2>{escape(featured.title)}</h2>'
             f'<p>{escape(featured_copy)}</p>'
@@ -851,10 +851,21 @@ def inject_cms_landing(document: str) -> str:
         '<h2>New writing published directly to the portfolio.</h2></div>'
         '<p>Current articles appear here as soon as they are published through the private editor.</p>'
         '</div><div class="recent-grid">' + ''.join(cards) + '</div></div></section>'
-        '<style>.cms-thinking-thumb{margin:-25px -25px 20px;aspect-ratio:2/1;overflow:hidden;'
+        '<style>'
+        '.cms-thinking-thumb{margin:-25px -25px 20px;aspect-ratio:2/1!important;overflow:hidden;'
         'background:#0b1220;display:flex;align-items:center;justify-content:center}.cms-thinking-thumb img{'
-        'width:100%;height:100%;display:block;object-fit:contain;object-position:center center}.featured-thinking '
-        '.cms-thinking-thumb{margin:0 0 22px;aspect-ratio:2/1}</style>'
+        'width:100%!important;height:100%!important;display:block!important;object-fit:contain!important;'
+        'object-position:center center!important}.cms-featured-thinking{min-height:0!important}.cms-featured-thinking '
+        '.cms-thinking-thumb{margin:0!important;aspect-ratio:2/1!important;width:100%!important}'
+        '@media(min-width:700px){.cms-featured-thinking{display:grid!important;grid-template-columns:minmax(280px,.85fr) '
+        'minmax(0,1.15fr)!important;grid-template-rows:auto auto auto auto auto;column-gap:34px;row-gap:0;align-items:start;'
+        'padding:30px!important}.cms-featured-thinking .cms-thinking-thumb{grid-column:1;grid-row:1/6;align-self:center;'
+        'max-height:none!important}.cms-featured-thinking>.kicker,.cms-featured-thinking>h2,.cms-featured-thinking>p,'
+        '.cms-featured-thinking>.read-live,.cms-featured-thinking>.meta{grid-column:2}.cms-featured-thinking>h2{'
+        'margin:12px 0 14px!important;font-size:clamp(30px,4vw,48px)!important}.cms-featured-thinking>.read-live{'
+        'margin-top:16px!important}.cms-featured-thinking>.meta{margin-top:18px!important;padding-top:0!important}}'
+        '@media(max-width:699px){.cms-featured-thinking .cms-thinking-thumb{margin:0 0 20px!important;aspect-ratio:2/1!important}}'
+        '</style>'
     )
     marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Recent thinking</p>'
     if marker in document:

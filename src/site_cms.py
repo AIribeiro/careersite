@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
-import base64
 from datetime import datetime, timezone
 from html import escape
 import json
@@ -584,35 +583,38 @@ def delete_header_image(access_token: str, image_url: str) -> None:
         return
 
 
-def _bundled_header_parts(slug: str) -> tuple[Path, ...]:
-    directory = (
+def bundled_header_path(slug: str) -> Path:
+    return (
         Path(__file__).resolve().parents[1]
         / "assets"
         / "cms_headers"
         / slugify(slug)
+        / "header.webp"
     )
-    if not directory.is_dir():
-        return ()
-    return tuple(sorted(directory.glob("part_*.b64")))
 
 
 def bundled_header_bytes(slug: str) -> bytes | None:
-    parts = _bundled_header_parts(slug)
-    if not parts:
-        return None
+    path = bundled_header_path(slug)
     try:
-        encoded = "".join(part.read_text(encoding="utf-8").strip() for part in parts)
-        return base64.b64decode(encoded, validate=True)
-    except (OSError, ValueError):
+        data = path.read_bytes()
+    except OSError:
         return None
+    if len(data) < 12 or data[:4] != b"RIFF" or data[8:12] != b"WEBP":
+        return None
+    return data
 
 
 def effective_header_image_url(article: CmsArticle) -> str:
     if article.header_image_url:
         return article.header_image_url
-    if _bundled_header_parts(article.slug):
-        return f"{BASE_URL}/cms-header/{parse.quote(slugify(article.slug), safe='')}.webp"
-    return ""
+    data = bundled_header_bytes(article.slug)
+    if data is None:
+        return ""
+    version = hashlib.sha256(data).hexdigest()[:12]
+    return (
+        f"{BASE_URL}/cms-header/{parse.quote(slugify(article.slug), safe='')}.webp"
+        f"?v={version}"
+    )
 
 
 def article_relative_url(article: CmsArticle) -> str:

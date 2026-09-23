@@ -110,6 +110,32 @@ jobs:
 
           grep -i '^Content-Type:.*image/png' /tmp/social-headers.txt
 
+      - name: Verify canonical CMS header image endpoint
+        run: |
+          SLUG="ai-has-too-many-owners-and-thats-why-nobody-owns-the-outcome"
+          curl --fail --silent --show-error \
+            --dump-header /tmp/cms-header-headers.txt \
+            --output /tmp/cms-header.webp \
+            "http://127.0.0.1:8501/cms-header/${SLUG}.webp?v=e51f18261592"
+
+          python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          from PIL import Image
+
+          path = Path('/tmp/cms-header.webp')
+          data = path.read_bytes()
+          assert len(data) == 101244, f'Unexpected CMS header byte size: {len(data)}'
+          assert data[:4] == b'RIFF' and data[8:12] == b'WEBP', data[:12]
+          assert sha256(data).hexdigest() == 'e51f182615925954414dd6f314dfcdd91637bb4b4cd4a9583c2004a5aa602a63'
+          with Image.open(path) as image:
+              assert image.format == 'WEBP', image.format
+              assert image.size == (1600, 800), image.size
+          print('Canonical CMS header validated: 101244 bytes, 1600x800 WebP')
+          PY
+
+          grep -i '^Content-Type:.*image/webp' /tmp/cms-header-headers.txt
+
       - name: Verify every LinkedIn article preview and thumbnail
         run: |
           python - <<'PY'

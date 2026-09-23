@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from html import escape
+import base64
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -583,21 +585,28 @@ def delete_header_image(access_token: str, image_url: str) -> None:
         return
 
 
-def bundled_header_path(slug: str) -> Path:
-    return (
+def bundled_header_parts(slug: str) -> tuple[Path, ...]:
+    directory = (
         Path(__file__).resolve().parents[1]
         / "assets"
         / "cms_headers"
         / slugify(slug)
-        / "header.webp"
     )
+    if not directory.is_dir():
+        return ()
+    return tuple(sorted(directory.glob("part_*.b64")))
 
 
 def bundled_header_bytes(slug: str) -> bytes | None:
-    path = bundled_header_path(slug)
+    parts = bundled_header_parts(slug)
+    if not parts:
+        return None
     try:
-        data = path.read_bytes()
-    except OSError:
+        data = b"".join(
+            base64.b64decode(part.read_text(encoding="utf-8").strip(), validate=True)
+            for part in parts
+        )
+    except (OSError, ValueError):
         return None
     if len(data) < 12 or data[:4] != b"RIFF" or data[8:12] != b"WEBP":
         return None

@@ -14,7 +14,8 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from thinking_articles import ARTICLES, BASE_URL, article_app_url, article_url, resolve_article
-from thinking_social import ensure_article_share_page, ensure_article_social_image\nfrom site_cms import cms_share_document, cms_sitemap_entries, fetch_public_article
+from thinking_social import ensure_article_share_page, ensure_article_social_image
+from site_cms import cms_share_document, cms_sitemap_entries, fetch_public_article
 
 # Source-level compatibility anchors for the established smoke tests. The
 # executable UI moved to main.py; these strings document that architecture

@@ -579,6 +579,10 @@ def article_url(article: CmsArticle) -> str:
     return f"{BASE_URL}/thinking/{parse.quote(article.slug, safe='')}"
 
 
+def article_preview_url(article: CmsArticle) -> str:
+    return f"{article_url(article)}?source=application&role=Test"
+
+
 def _share_footer(article: CmsArticle) -> str:
     canonical = article_url(article)
     linkedin = "https://www.linkedin.com/feed/?" + parse.urlencode({"shareActive": "true", "shareUrl": canonical})

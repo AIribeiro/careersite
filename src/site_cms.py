@@ -643,8 +643,17 @@ def inject_cms_landing(document: str) -> str:
 
 def cms_share_document(article: CmsArticle) -> str:
     canonical = article_url(article)
-    image = article.header_image_url or DEFAULT_SOCIAL_IMAGE
+    legacy_social = bool(article.legacy_key and not article.header_image_url)
+    image = (
+        article.header_image_url
+        or (f"{BASE_URL}/social/{article.slug}.png" if article.legacy_key else DEFAULT_SOCIAL_IMAGE)
+    )
     description = article.meta_description or article.excerpt
+    image_size_meta = (
+        '<meta property="og:image:width" content="1200">'
+        '<meta property="og:image:height" content="627">'
+        if legacy_social else ""
+    )
     schema = {
         "@context": "https://schema.org",
         "@type": "Article",
@@ -659,7 +668,7 @@ def cms_share_document(article: CmsArticle) -> str:
         "articleSection": article.topic,
         "keywords": list(article.keywords),
     }
-    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{escape(article.seo_title or article.title)}</title><meta name="description" content="{escape(description, quote=True)}"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="{escape(canonical, quote=True)}"><meta property="og:type" content="article"><meta property="og:title" content="{escape(article.social_title or article.title, quote=True)}"><meta property="og:description" content="{escape(article.social_description or description, quote=True)}"><meta property="og:url" content="{escape(canonical, quote=True)}"><meta property="og:image" content="{escape(image, quote=True)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{escape(article.social_title or article.title, quote=True)}"><meta name="twitter:description" content="{escape(article.social_description or description, quote=True)}"><meta name="twitter:image" content="{escape(image, quote=True)}"><meta property="article:published_time" content="{escape(article.published_iso, quote=True)}"><meta property="article:modified_time" content="{escape((article.updated_at or article.published_at or article.published_iso), quote=True)}"><script type="application/ld+json">{json.dumps(schema, ensure_ascii=False).replace('</', '<\\/')}</script></head><body><main><h1>{escape(article.title)}</h1><p>{escape(description)}</p><p><a href="{escape(article_relative_url(article), quote=True)}">Read the full article</a></p></main></body></html>'''
+    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{escape(article.seo_title or article.title)}</title><meta name="description" content="{escape(description, quote=True)}"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="{escape(canonical, quote=True)}"><link rel="image_src" href="{escape(image, quote=True)}"><meta property="og:type" content="article"><meta property="og:title" content="{escape(article.social_title or article.title, quote=True)}"><meta property="og:description" content="{escape(article.social_description or description, quote=True)}"><meta property="og:url" content="{escape(canonical, quote=True)}"><meta property="og:image" content="{escape(image, quote=True)}">{image_size_meta}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{escape(article.social_title or article.title, quote=True)}"><meta name="twitter:description" content="{escape(article.social_description or description, quote=True)}"><meta name="twitter:image" content="{escape(image, quote=True)}"><meta property="article:published_time" content="{escape(article.published_iso, quote=True)}"><meta property="article:modified_time" content="{escape((article.updated_at or article.published_at or article.published_iso), quote=True)}"><script type="application/ld+json">{json.dumps(schema, ensure_ascii=False).replace('</', '<\\/')}</script></head><body><main><h1>{escape(article.title)}</h1><p>{escape(description)}</p><p><a href="{escape(article_relative_url(article), quote=True)}">Read the full article</a></p></main></body></html>'''
 
 
 def inject_cms_article_metadata(article: CmsArticle) -> None:

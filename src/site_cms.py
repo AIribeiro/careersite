@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
+import base64
 from datetime import datetime, timezone
 from html import escape
 import json
 import math
+from pathlib import Path
 import re
 import time
 import unicodedata
@@ -582,6 +584,37 @@ def delete_header_image(access_token: str, image_url: str) -> None:
         return
 
 
+def _bundled_header_parts(slug: str) -> tuple[Path, ...]:
+    directory = (
+        Path(__file__).resolve().parents[1]
+        / "assets"
+        / "cms_headers"
+        / slugify(slug)
+    )
+    if not directory.is_dir():
+        return ()
+    return tuple(sorted(directory.glob("part_*.b64")))
+
+
+def bundled_header_bytes(slug: str) -> bytes | None:
+    parts = _bundled_header_parts(slug)
+    if not parts:
+        return None
+    try:
+        encoded = "".join(part.read_text(encoding="utf-8").strip() for part in parts)
+        return base64.b64decode(encoded, validate=True)
+    except (OSError, ValueError):
+        return None
+
+
+def effective_header_image_url(article: CmsArticle) -> str:
+    if article.header_image_url:
+        return article.header_image_url
+    if _bundled_header_parts(article.slug):
+        return f"{BASE_URL}/cms-header/{parse.quote(slugify(article.slug), safe='')}.webp"
+    return ""
+
+
 def article_relative_url(article: CmsArticle) -> str:
     return f"?page=thinking&article={parse.quote(article.slug, safe='')}"
 
@@ -623,8 +656,9 @@ def render_cms_article(article: CmsArticle) -> str:
     from thinking_core import THINKING_CSS
 
     image = ""
-    if article.header_image_url:
-        image = f'''<div class="cms-article-image"><img src="{escape(article.header_image_url, quote=True)}" alt="{escape(article.header_image_alt or article.title, quote=True)}" loading="eager" decoding="async"></div>'''
+    header_image_url = effective_header_image_url(article)
+    if header_image_url:
+        image = f'''<div class="cms-article-image"><img src="{escape(header_image_url, quote=True)}" alt="{escape(article.header_image_alt or article.title, quote=True)}" loading="eager" decoding="async"></div>'''
     elif article.legacy_key:
         try:
             from page_thinking import _image
@@ -662,10 +696,11 @@ def inject_cms_landing(document: str) -> str:
 
     if featured is not None:
         featured_image = ""
-        if featured.header_image_url:
+        featured_header_url = effective_header_image_url(featured)
+        if featured_header_url:
             featured_image = (
                 f'<div class="thinking-thumb cms-thinking-thumb">'
-                f'<img src="{escape(featured.header_image_url, quote=True)}" '
+                f'<img src="{escape(featured_header_url, quote=True)}" '
                 f'alt="{escape(featured.header_image_alt or featured.title, quote=True)}" '
                 f'loading="eager" decoding="async"></div>'
             )
@@ -700,10 +735,11 @@ def inject_cms_landing(document: str) -> str:
     cards = []
     for article in articles[:6]:
         thumb = ""
-        if article.header_image_url:
+        card_header_url = effective_header_image_url(article)
+        if card_header_url:
             thumb = (
                 f'<div class="cms-thinking-thumb"><img '
-                f'src="{escape(article.header_image_url, quote=True)}" '
+                f'src="{escape(card_header_url, quote=True)}" '
                 f'alt="{escape(article.header_image_alt or article.title, quote=True)}" '
                 f'loading="lazy" decoding="async"></div>'
             )
@@ -734,7 +770,7 @@ def cms_share_document(article: CmsArticle) -> str:
     canonical = article_url(article)
     legacy_social = bool(article.legacy_key and not article.header_image_url)
     image = (
-        article.header_image_url
+        effective_header_image_url(article)
         or (f"{BASE_URL}/social/{article.slug}.png" if article.legacy_key else DEFAULT_SOCIAL_IMAGE)
     )
     description = article.meta_description or article.excerpt
@@ -762,7 +798,7 @@ def cms_share_document(article: CmsArticle) -> str:
 
 def inject_cms_article_metadata(article: CmsArticle) -> None:
     canonical = article_url(article)
-    image = article.header_image_url or DEFAULT_SOCIAL_IMAGE
+    image = effective_header_image_url(article) or DEFAULT_SOCIAL_IMAGE
     description = article.meta_description or article.excerpt
     schema = {
         "@context": "https://schema.org",

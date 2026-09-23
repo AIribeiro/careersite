@@ -61,7 +61,14 @@ def build_public_cv() -> bytes:
         pdf.set_text_color(*color)
         pdf.multi_cell(178, line, text, new_x="LMARGIN", new_y="NEXT")
 
-    def role(title: str, company: str, dates: str, location: str, bullets: list[str]) -> None:
+    def role(
+        title: str,
+        company: str,
+        dates: str,
+        location: str,
+        bullets: list[str],
+        company_context: str | None = None,
+    ) -> None:
         pdf.set_x(16)
         pdf.set_font("DejaVu", "B", 9.0)
         pdf.set_text_color(*TEXT)
@@ -72,6 +79,10 @@ def build_public_cv() -> bytes:
         pdf.set_font("DejaVu", "", 7.5)
         pdf.set_text_color(*MUTED)
         pdf.cell(0, 3.8, f"{dates} | {location}", new_x="LMARGIN", new_y="NEXT")
+        if company_context:
+            pdf.set_font("DejaVu", "", 7.4)
+            pdf.set_text_color(*MUTED)
+            pdf.multi_cell(178, 3.7, company_context, new_x="LMARGIN", new_y="NEXT")
         pdf.ln(0.3)
         for item in bullets:
             x, y = 18, pdf.get_y()
@@ -164,6 +175,7 @@ def build_public_cv() -> bytes:
             "Introduced lifecycle discipline for AI initiatives, with clearer stages, roles, ownership and scale-readiness criteria.",
             "Worked with business and technology leaders to move AI opportunities from isolated experimentation toward managed enterprise capability and responsible adoption.",
         ],
+        company_context="Global automotive business services.",
     )
     role(
         "Data Analytics and AI Leader",
@@ -248,6 +260,13 @@ def build_public_cv() -> bytes:
         "Massachusetts Institute of Technology | Minds and Machines - Philosophy & Ethics",
         size=7.85,
         line=4.0,
+    )
+    pdf.ln(0.5)
+    body(
+        "Selected credentials: EITCA/AI Artificial Intelligence Academy (24 ECTS) | Generative AI for Executives and Business Leaders Specialization - IBM | Responsible Generative AI - University of Michigan",
+        size=7.45,
+        line=3.85,
+        color=MUTED,
     )
     pdf.ln(0.6)
     pdf.set_x(16)

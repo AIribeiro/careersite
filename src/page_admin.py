@@ -20,7 +20,6 @@ from site_cms import (
     ensure_owner_session,
     generate_metadata,
     owner_signin,
-    owner_signup,
     save_article,
     sanitize_article_html,
     slugify,
@@ -96,47 +95,23 @@ def _login() -> None:
 <div class="cms-hero">
   <div class="cms-kicker">Private authoring</div>
   <h1>Portfolio article CMS</h1>
-  <p>Owner access only. Sign in with <strong>{html.escape(OWNER_EMAIL)}</strong> to publish and maintain Thinking articles.</p>
+  <p>Owner access only. <strong>{html.escape(OWNER_EMAIL)}</strong> is pre-authorized; sign in with your password.</p>
 </div>
 """,
         unsafe_allow_html=True,
     )
-    sign_in, setup = st.tabs(["Sign in", "First-time setup"])
 
-    with sign_in:
-        with st.form("cms_signin"):
-            st.text_input("Email", value=OWNER_EMAIL, disabled=True)
-            password = st.text_input("Password", type="password")
-            submitted = st.form_submit_button("Sign in", type="primary")
-        if submitted:
-            try:
-                st.session_state["cms_auth"] = owner_signin(password)
-                st.success("Signed in.")
-                st.rerun()
-            except Exception as exc:
-                st.error(str(exc))
-
-    with setup:
-        st.caption("Use this once to create the owner account. Supabase may send a verification email before the first sign-in.")
-        with st.form("cms_signup"):
-            st.text_input("Owner email", value=OWNER_EMAIL, disabled=True, key="setup_email")
-            password = st.text_input("Choose password", type="password", help="At least 12 characters.")
-            confirm = st.text_input("Confirm password", type="password")
-            submitted = st.form_submit_button("Create owner account")
-        if submitted:
-            if password != confirm:
-                st.error("Passwords do not match.")
-            else:
-                try:
-                    result = owner_signup(password)
-                    if result.get("access_token"):
-                        st.session_state["cms_auth"] = result
-                        st.success("Owner account created and signed in.")
-                        st.rerun()
-                    else:
-                        st.success("Account created. Check your email for the Supabase verification link, then return here and sign in.")
-                except Exception as exc:
-                    st.error(str(exc))
+    with st.form("cms_signin"):
+        st.text_input("Email", value=OWNER_EMAIL, disabled=True)
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Sign in", type="primary")
+    if submitted:
+        try:
+            st.session_state["cms_auth"] = owner_signin(password)
+            st.success("Signed in.")
+            st.rerun()
+        except Exception as exc:
+            st.error(str(exc))
 
 
 def _split_csv(value: str) -> tuple[str, ...]:

@@ -15,7 +15,7 @@ from site_cms import (
     OWNER_EMAIL,
     CmsArticle,
     admin_list_articles,
-    article_url,
+    article_preview_url,
     change_article_status,
     delete_article,
     delete_header_image,
@@ -774,7 +774,7 @@ def _dashboard(session: dict) -> None:
             if cols[2].button("Unpublish", key=f"status_{article.id}", use_container_width=True):
                 change_article_status(token, article.id, "draft")
                 st.rerun()
-            cols[3].link_button("Open", article_url(article), use_container_width=True)
+            cols[3].link_button("Open", article_preview_url(article), use_container_width=True)
         else:
             if cols[2].button("Publish", key=f"status_{article.id}", use_container_width=True):
                 change_article_status(token, article.id, "published")

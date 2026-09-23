@@ -495,6 +495,7 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             "Upload / replace header image",
             type=["jpg", "jpeg", "png", "webp", "avif"],
             key=f"{prefix}_upload",
+            help="Images are automatically normalized to the portfolio 2:1 header format (1600×800) without cropping the source content.",
         )
         upcol, rmcol = st.columns(2)
         if upload is not None and upcol.button("Upload image", key=f"{prefix}_upload_btn"):
@@ -510,7 +511,7 @@ def _editor(article: CmsArticle, access_token: str) -> None:
                 st.session_state[f"{prefix}_image_url"] = new_url
                 if old_url and old_url != new_url:
                     delete_header_image(access_token, old_url)
-                st.success("Header image uploaded.")
+                st.success("Header image uploaded and adapted to the portfolio format.")
                 st.rerun()
             except Exception as exc:
                 st.error(str(exc))

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from html import escape
+from io import BytesIO
 import base64
 import hashlib
 import json
@@ -17,6 +18,7 @@ from uuid import uuid4
 import bleach
 import streamlit as st
 import streamlit.components.v1 as components
+from PIL import Image, ImageFilter, ImageOps
 
 from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
 
@@ -539,25 +541,68 @@ def duplicate_article(access_token: str, article: CmsArticle) -> CmsArticle:
     return save_article(access_token, copy_article)
 
 
+HEADER_IMAGE_SIZE = (1600, 800)
+
+
+def normalize_header_image(data: bytes, mime_type: str) -> bytes:
+    """Normalize CMS header art to a safe 2:1 canvas without cropping source content."""
+    if not data:
+        raise ValueError("Header image is empty.")
+    try:
+        with Image.open(BytesIO(data)) as source:
+            image = ImageOps.exif_transpose(source).convert("RGB")
+    except Exception as exc:
+        raise ValueError("Header image could not be decoded.") from exc
+
+    target_w, target_h = HEADER_IMAGE_SIZE
+    target_ratio = target_w / target_h
+    source_ratio = image.width / max(image.height, 1)
+
+    if image.size == HEADER_IMAGE_SIZE and mime_type == "image/webp":
+        return data
+
+    if abs(source_ratio - target_ratio) < 0.01:
+        canvas = image.resize(HEADER_IMAGE_SIZE, Image.Resampling.LANCZOS)
+    else:
+        background = ImageOps.fit(
+            image,
+            HEADER_IMAGE_SIZE,
+            method=Image.Resampling.LANCZOS,
+            centering=(0.5, 0.5),
+        ).filter(ImageFilter.GaussianBlur(radius=28))
+        foreground = ImageOps.contain(
+            image,
+            HEADER_IMAGE_SIZE,
+            method=Image.Resampling.LANCZOS,
+        )
+        x = (target_w - foreground.width) // 2
+        y = (target_h - foreground.height) // 2
+        background.paste(foreground, (x, y))
+        canvas = background
+
+    output = BytesIO()
+    canvas.save(output, format="WEBP", quality=92, method=6)
+    return output.getvalue()
+
+
 def upload_header_image(access_token: str, slug: str, filename: str, mime_type: str, data: bytes) -> str:
     if mime_type not in {"image/jpeg", "image/png", "image/webp", "image/avif"}:
         raise ValueError("Header image must be JPEG, PNG, WebP or AVIF.")
     if len(data) > 5 * 1024 * 1024:
         raise ValueError("Header image must be 5 MB or smaller.")
-    suffix = {
-        "image/jpeg": ".jpg",
-        "image/png": ".png",
-        "image/webp": ".webp",
-        "image/avif": ".avif",
-    }[mime_type]
-    path = f"{slugify(slug)}/{int(time.time())}-{uuid4().hex[:10]}{suffix}"
+
+    normalized = normalize_header_image(data, mime_type)
+    if len(normalized) > 5 * 1024 * 1024:
+        raise ValueError("Normalized header image must be 5 MB or smaller.")
+
+    path = f"{slugify(slug)}/{int(time.time())}-{uuid4().hex[:10]}.webp"
     url = f"{ANALYTICS_URL.rstrip('/')}/storage/v1/object/{IMAGE_BUCKET}/{parse.quote(path, safe='/')}"
     headers = {
         "apikey": ANALYTICS_PUBLISHABLE_KEY,
         "Authorization": f"Bearer {access_token}",
-        "Content-Type": mime_type,
+        "Content-Type": "image/webp",
     }
-    req = request.Request(url, data=data, method="POST", headers=headers)
+    req = request.Request(url, data=normalized, method="POST", headers=headers)
     try:
         with request.urlopen(req, timeout=30):
             pass
@@ -565,8 +610,6 @@ def upload_header_image(access_token: str, slug: str, filename: str, mime_type: 
         detail = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"Image upload failed ({exc.code}): {detail[:240]}") from exc
     return f"{ANALYTICS_URL.rstrip('/')}/storage/v1/object/public/{IMAGE_BUCKET}/{parse.quote(path, safe='/')}"
-
-
 def delete_header_image(access_token: str, image_url: str) -> None:
     marker = f"/storage/v1/object/public/{IMAGE_BUCKET}/"
     if marker not in image_url:
@@ -776,9 +819,10 @@ def inject_cms_landing(document: str) -> str:
         '<h2>New writing published directly to the portfolio.</h2></div>'
         '<p>Current articles appear here as soon as they are published through the private editor.</p>'
         '</div><div class="recent-grid">' + ''.join(cards) + '</div></div></section>'
-        '<style>.cms-thinking-thumb{margin:-25px -25px 20px;aspect-ratio:16/9;overflow:hidden;'
-        'background:#0b1220}.cms-thinking-thumb img{width:100%;height:100%;display:block;'
-        'object-fit:cover}.featured-thinking .cms-thinking-thumb{margin:0 0 22px}</style>'
+        '<style>.cms-thinking-thumb{margin:-25px -25px 20px;aspect-ratio:2/1;overflow:hidden;'
+        'background:#0b1220;display:flex;align-items:center;justify-content:center}.cms-thinking-thumb img{'
+        'width:100%;height:100%;display:block;object-fit:contain;object-position:center center}.featured-thinking '
+        '.cms-thinking-thumb{margin:0 0 22px;aspect-ratio:2/1}</style>'
     )
     marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Recent thinking</p>'
     if marker in document:

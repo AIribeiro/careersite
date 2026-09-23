@@ -645,16 +645,52 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             except Exception as exc:
                 st.error(str(exc))
 
-        action1, action2 = st.columns(2)
+        action1, action2, action3 = st.columns(3)
         if action1.button("Preview", use_container_width=True, key=f"{prefix}_preview"):
             st.session_state[f"{prefix}_show_preview"] = True
-        if article.id and article.status == "published" and action2.button("Unpublish", use_container_width=True, key=f"{prefix}_unpublish"):
+        if article.id and article.status == "published" and action2.button(
+            "Unpublish",
+            use_container_width=True,
+            key=f"{prefix}_unpublish",
+        ):
             try:
                 change_article_status(access_token, article.id, "draft")
                 st.success("Article unpublished.")
                 st.rerun()
             except Exception as exc:
                 st.error(str(exc))
+        if article.id and action3.button(
+            "Delete article",
+            use_container_width=True,
+            key=f"{prefix}_delete",
+        ):
+            st.session_state["cms_delete_id"] = article.id
+
+        if article.id and st.session_state.get("cms_delete_id") == article.id:
+            st.warning(f'Delete “{article.title}”? This cannot be undone.')
+            delete_yes, delete_no = st.columns(2)
+            if delete_yes.button(
+                "Confirm delete",
+                type="primary",
+                use_container_width=True,
+                key=f"{prefix}_confirm_delete",
+            ):
+                try:
+                    delete_header_image(access_token, article.header_image_url)
+                    delete_article(access_token, article.id)
+                    st.session_state.pop("cms_delete_id", None)
+                    st.session_state.pop("cms_edit_id", None)
+                    st.success("Article deleted.")
+                    st.rerun()
+                except Exception as exc:
+                    st.error(str(exc))
+            if delete_no.button(
+                "Cancel",
+                use_container_width=True,
+                key=f"{prefix}_cancel_delete",
+            ):
+                st.session_state.pop("cms_delete_id", None)
+                st.rerun()
 
         _copy_button("Copy hashtags", " ".join(draft.hashtags), f"{prefix}_copy_hash")
         _copy_button(

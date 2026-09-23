@@ -52,7 +52,7 @@ class CareersiteCmsTests(unittest.TestCase):
         self.assertEqual((data or b"")[8:12], b"WEBP")
         self.assertEqual(
             effective_header_image_url(article),
-            f"https://jairribeiro-ai.streamlit.app/cms-header/{slug}.webp",
+            f"https://jairribeiro-ai.streamlit.app/cms-header/{slug}.webp?v=e51f18261592",
         )
 
     def test_featured_cms_article_replaces_primary_and_has_header_fallback(self) -> None:

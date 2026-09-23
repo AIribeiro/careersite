@@ -9,7 +9,7 @@ import re
 import streamlit as st
 import streamlit.components.v1 as components
 
-from cms_header_generator import background_palette_for, generate_templated_ai_header
+from cms_header_generator import background_palette_for, configured_image_model, generate_templated_ai_header
 
 from site_cms import (
     OWNER_EMAIL,
@@ -436,21 +436,25 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             "Different article identities produce different palette variants."
         )
 
-        def _openai_key() -> str:
-            env_key = os.environ.get("OPENAI_API_KEY", "").strip()
+        st.caption(
+            f"Image route: OpenRouter · {configured_image_model()} · ZDR required · data collection denied."
+        )
+
+        def _openrouter_key() -> str:
+            env_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
             if env_key:
                 return env_key
             try:
-                return str(st.secrets["OPENAI_API_KEY"]).strip()
+                return str(st.secrets["OPENROUTER_API_KEY"]).strip()
             except Exception:
                 return ""
 
         ai_label = "Regenerate AI header" if current_image else "Generate AI header"
         if st.button(ai_label, key=f"{prefix}_generate_header", use_container_width=True):
-            key = _openai_key()
+            key = _openrouter_key()
             if not key:
                 st.error(
-                    "AI header generation is not configured yet. Add OPENAI_API_KEY to the Streamlit app secrets."
+                    "AI header generation is not configured yet. Add OPENROUTER_API_KEY to the Streamlit app secrets."
                 )
             elif not st.session_state.get(f"{prefix}_title", "").strip():
                 st.warning("Add the article title before generating a header.")

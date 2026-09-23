@@ -10,8 +10,19 @@ from urllib import error, request
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 
-OPENAI_IMAGE_MODEL = "gpt-image-2.5-flare"
-OPENAI_IMAGES_URL = "https://api.openai.com/v1/images/generations"
+OPENROUTER_IMAGES_URL = "https://openrouter.ai/api/v1/images"
+DEFAULT_OPENROUTER_IMAGE_MODEL = "sourceful/riverflow-v2.5-pro"
+OPENROUTER_REFERER = "https://jairribeiro-ai.streamlit.app"
+OPENROUTER_TITLE = "Jair Ribeiro Portfolio CMS"
+
+
+def configured_image_model() -> str:
+    import os
+
+    return str(
+        os.environ.get("OPENROUTER_IMAGE_MODEL")
+        or DEFAULT_OPENROUTER_IMAGE_MODEL
+    ).strip()
 
 # Dark-to-vivid pairs chosen to preserve white-title legibility while giving each
 # article a distinct identity. Selection is pseudo-random but deterministic from
@@ -110,6 +121,21 @@ def build_header_prompt(title: str, subtitle: str = "", category: str = "", exce
     )
 
 
+def _openrouter_error(detail: str, status_code: int | None = None) -> str:
+    try:
+        payload = json.loads(detail)
+        error_value = payload.get("error") if isinstance(payload, dict) else None
+        if isinstance(error_value, dict):
+            message = str(error_value.get("message") or error_value.get("code") or "").strip()
+        else:
+            message = str(error_value or "").strip()
+    except (ValueError, TypeError):
+        message = str(detail or "").strip()
+    if message:
+        return message[:500]
+    return f"HTTP {status_code}" if status_code else "OpenRouter request failed."
+
+
 def generate_ai_motif(
     api_key: str,
     *,
@@ -120,26 +146,35 @@ def generate_ai_motif(
     timeout: int = 180,
 ) -> bytes:
     if not api_key.strip():
-        raise ValueError("OPENAI_API_KEY is not configured.")
+        raise ValueError("OPENROUTER_API_KEY is not configured.")
     if not title.strip():
         raise ValueError("Add the article title before generating a header.")
 
+    model = configured_image_model()
     payload = {
-        "model": OPENAI_IMAGE_MODEL,
+        "model": model,
         "prompt": build_header_prompt(title, subtitle, category, excerpt),
-        "size": "1024x1024",
-        "quality": "medium",
+        "resolution": "1K",
+        "aspect_ratio": "1:1",
         "background": "transparent",
         "output_format": "png",
         "n": 1,
+        "provider": {
+            "zdr": True,
+            "data_collection": "deny",
+            "allow_fallbacks": True,
+            "require_parameters": True,
+        },
     }
     req = request.Request(
-        OPENAI_IMAGES_URL,
+        OPENROUTER_IMAGES_URL,
         data=json.dumps(payload).encode("utf-8"),
         method="POST",
         headers={
             "Authorization": f"Bearer {api_key.strip()}",
             "Content-Type": "application/json",
+            "HTTP-Referer": OPENROUTER_REFERER,
+            "X-Title": OPENROUTER_TITLE,
         },
     )
     try:
@@ -147,20 +182,25 @@ def generate_ai_motif(
             data = json.loads(response.read().decode("utf-8"))
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
-        try:
-            detail_json = json.loads(detail)
-            message = detail_json.get("error", {}).get("message") or detail
-        except Exception:
-            message = detail
-        raise RuntimeError(f"OpenAI image generation failed ({exc.code}): {str(message)[:400]}") from exc
+        raise RuntimeError(
+            f"OpenRouter image generation failed ({exc.code}): "
+            f"{_openrouter_error(detail, exc.code)}"
+        ) from exc
     except error.URLError as exc:
-        raise RuntimeError(f"OpenAI image generation could not be reached: {exc.reason}") from exc
+        raise RuntimeError(
+            f"OpenRouter image generation could not be reached: {exc.reason}"
+        ) from exc
 
     try:
-        encoded = data["data"][0]["b64_json"]
+        rows = data.get("data") if isinstance(data, dict) else None
+        if not isinstance(rows, list) or not rows:
+            raise KeyError("data")
+        encoded = rows[0]["b64_json"]
         return base64.b64decode(encoded)
     except (KeyError, IndexError, TypeError, ValueError) as exc:
-        raise RuntimeError("OpenAI image generation returned an unexpected response.") from exc
+        raise RuntimeError(
+            "OpenRouter image generation returned an unexpected response."
+        ) from exc
 
 
 def _wrapped_lines(

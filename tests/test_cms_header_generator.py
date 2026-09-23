@@ -4,7 +4,13 @@ from io import BytesIO
 
 from PIL import Image
 
-from cms_header_generator import background_palette_for, build_header_prompt, compose_templated_header
+from cms_header_generator import (
+    DEFAULT_OPENROUTER_IMAGE_MODEL,
+    OPENROUTER_IMAGES_URL,
+    background_palette_for,
+    build_header_prompt,
+    compose_templated_header,
+)
 
 
 def _transparent_motif() -> bytes:
@@ -62,3 +68,9 @@ def test_different_palette_seeds_produce_different_headers():
     first = compose_templated_header(**kwargs, palette_seed="governance")
     second = compose_templated_header(**kwargs, palette_seed="portfolio")
     assert first != second
+
+
+def test_image_generation_uses_openrouter_not_direct_openai():
+    assert OPENROUTER_IMAGES_URL == "https://openrouter.ai/api/v1/images"
+    assert DEFAULT_OPENROUTER_IMAGE_MODEL == "sourceful/riverflow-v2.5-pro"
+    assert not DEFAULT_OPENROUTER_IMAGE_MODEL.startswith("openai/")

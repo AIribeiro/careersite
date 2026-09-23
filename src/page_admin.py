@@ -16,17 +16,20 @@ from site_cms import (
     CmsArticle,
     admin_list_articles,
     article_preview_url,
+    bundled_header_bytes,
     change_article_status,
     delete_article,
     delete_header_image,
     duplicate_article,
     ensure_owner_session,
     generate_metadata,
+    normalize_header_image,
     owner_signin,
     save_article,
     sanitize_article_html,
     slugify,
     strip_html,
+    update_article_header_image,
     upload_header_image,
 )
 
@@ -478,47 +481,96 @@ def _editor(article: CmsArticle, access_token: str) -> None:
                             generated,
                         )
                     old_url = st.session_state.get(f"{prefix}_image_url", "")
+                    image_alt = st.session_state.get(f"{prefix}_image_alt", "").strip()
+                    if not image_alt:
+                        image_alt = f"Editorial illustration for {st.session_state.get(f'{prefix}_title', '').strip()}"
+                        st.session_state[f"{prefix}_image_alt"] = image_alt
+
+                    if article.id:
+                        update_article_header_image(access_token, article.id, new_url, image_alt)
+
                     st.session_state[f"{prefix}_image_url"] = new_url
-                    if not st.session_state.get(f"{prefix}_image_alt", "").strip():
-                        st.session_state[f"{prefix}_image_alt"] = (
-                            f"Editorial illustration for {st.session_state.get(f'{prefix}_title', '').strip()}"
-                        )
+                    st.session_state[f"{prefix}_image_preview_bytes"] = normalize_header_image(
+                        generated, "image/webp"
+                    )
                     if old_url and old_url != new_url:
                         delete_header_image(access_token, old_url)
-                    st.success("AI header generated and attached to this article.")
+                    st.success("AI header generated, saved and refreshed across the article and thumbnail.")
                     st.rerun()
                 except Exception as exc:
                     st.error(str(exc))
-        if current_image:
-            st.image(current_image, use_container_width=True)
         upload = st.file_uploader(
             "Upload / replace header image",
             type=["jpg", "jpeg", "png", "webp", "avif"],
             key=f"{prefix}_upload",
             help="Images are automatically normalized to the portfolio 2:1 header format (1600×800) without cropping the source content.",
         )
+
+        normalized_upload: bytes | None = None
+        if upload is not None:
+            try:
+                normalized_upload = normalize_header_image(
+                    upload.getvalue(),
+                    upload.type or "application/octet-stream",
+                )
+                st.caption("New header preview · adapted to 1600×800")
+                st.image(normalized_upload, use_container_width=True)
+            except Exception as exc:
+                st.error(f"Image preview failed: {exc}")
+        else:
+            preview_bytes = st.session_state.get(f"{prefix}_image_preview_bytes")
+            if preview_bytes:
+                st.caption("Current header")
+                st.image(preview_bytes, use_container_width=True)
+            elif current_image:
+                bundled = bundled_header_bytes(article.slug)
+                if "/cms-header/" in current_image and bundled is not None:
+                    st.caption("Current header")
+                    st.image(bundled, use_container_width=True)
+                else:
+                    st.caption("Current header")
+                    st.image(current_image, use_container_width=True)
+
         upcol, rmcol = st.columns(2)
-        if upload is not None and upcol.button("Upload image", key=f"{prefix}_upload_btn"):
+        if upload is not None and normalized_upload is not None and upcol.button(
+            "Upload image", key=f"{prefix}_upload_btn"
+        ):
             try:
                 new_url = upload_header_image(
                     access_token,
                     st.session_state.get(f"{prefix}_slug") or st.session_state.get(f"{prefix}_title"),
-                    upload.name,
-                    upload.type or "application/octet-stream",
-                    upload.getvalue(),
+                    "normalized-header.webp",
+                    "image/webp",
+                    normalized_upload,
                 )
                 old_url = st.session_state.get(f"{prefix}_image_url", "")
+                image_alt = st.session_state.get(f"{prefix}_image_alt", "").strip()
+                if not image_alt:
+                    image_alt = st.session_state.get(f"{prefix}_title", "").strip()
+                    st.session_state[f"{prefix}_image_alt"] = image_alt
+
+                if article.id:
+                    update_article_header_image(access_token, article.id, new_url, image_alt)
+
                 st.session_state[f"{prefix}_image_url"] = new_url
+                st.session_state[f"{prefix}_image_preview_bytes"] = normalized_upload
                 if old_url and old_url != new_url:
                     delete_header_image(access_token, old_url)
-                st.success("Header image uploaded and adapted to the portfolio format.")
+                st.success("Header image saved. Article header and Thinking thumbnail now use the new image.")
                 st.rerun()
             except Exception as exc:
                 st.error(str(exc))
         if current_image and rmcol.button("Remove image", key=f"{prefix}_remove_image"):
-            delete_header_image(access_token, current_image)
-            st.session_state[f"{prefix}_image_url"] = ""
-            st.rerun()
+            try:
+                if article.id:
+                    update_article_header_image(access_token, article.id, "")
+                delete_header_image(access_token, current_image)
+                st.session_state[f"{prefix}_image_url"] = ""
+                st.session_state.pop(f"{prefix}_image_preview_bytes", None)
+                st.success("Header image removed.")
+                st.rerun()
+            except Exception as exc:
+                st.error(str(exc))
 
     body_text = strip_html(_editor_body_to_html(st.session_state.get(f"{prefix}_body", "")))
     if (

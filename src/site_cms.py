@@ -695,8 +695,10 @@ def effective_header_image_url(article: CmsArticle) -> str:
 
 
 def embedded_header_image_src(article: CmsArticle) -> str:
-    """Prefer newly uploaded CMS art; use bundled art only as a resilient fallback."""
+    """Prefer the current editor/upload image; use bundled art only as a resilient fallback."""
     uploaded = article.header_image_url.strip()
+    if uploaded.startswith("data:image/"):
+        return uploaded
     if uploaded and f"/storage/v1/object/public/{IMAGE_BUCKET}/" in uploaded:
         return uploaded
 

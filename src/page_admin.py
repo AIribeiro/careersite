@@ -9,7 +9,7 @@ import re
 import streamlit as st
 import streamlit.components.v1 as components
 
-from cms_header_generator import generate_templated_ai_header
+from cms_header_generator import background_palette_for, generate_templated_ai_header
 
 from site_cms import (
     OWNER_EMAIL,
@@ -425,6 +425,16 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             "a topic-specific motif, then applies the same Leading in the AI Enterprise template used by the current series."
         )
         current_image = st.session_state.get(f"{prefix}_image_url", "")
+        palette_seed = (
+            st.session_state.get(f"{prefix}_slug", "").strip()
+            or slugify(st.session_state.get(f"{prefix}_title", ""))
+            or "untitled"
+        )
+        palette = background_palette_for(palette_seed)
+        st.caption(
+            f"Background palette: {palette['name']} · pseudo-random but stable for this article. "
+            "Different article identities produce different palette variants."
+        )
 
         def _openai_key() -> str:
             env_key = os.environ.get("OPENAI_API_KEY", "").strip()
@@ -453,6 +463,7 @@ def _editor(article: CmsArticle, access_token: str) -> None:
                             subtitle=st.session_state.get(f"{prefix}_subtitle", ""),
                             category=st.session_state.get(f"{prefix}_category", ""),
                             excerpt=st.session_state.get(f"{prefix}_excerpt", ""),
+                            palette_seed=palette_seed,
                         )
                         new_url = upload_header_image(
                             access_token,

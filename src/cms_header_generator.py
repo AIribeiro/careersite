@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 from io import BytesIO
 import json
 import textwrap
@@ -11,6 +12,49 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 OPENAI_IMAGE_MODEL = "gpt-image-2.5-flare"
 OPENAI_IMAGES_URL = "https://api.openai.com/v1/images/generations"
+
+# Dark-to-vivid pairs chosen to preserve white-title legibility while giving each
+# article a distinct identity. Selection is pseudo-random but deterministic from
+# the article slug/title, so regenerating the same article keeps its color family.
+BACKGROUND_PALETTES = (
+    ("Arctic", (6, 59, 104), (23, 184, 207)),
+    ("Forest", (24, 61, 53), (63, 156, 122)),
+    ("Indigo", (43, 49, 94), (112, 106, 203)),
+    ("Plum", (73, 42, 79), (163, 91, 140)),
+    ("Ember", (97, 47, 41), (200, 109, 74)),
+    ("Slate", (38, 60, 74), (93, 141, 158)),
+    ("Teal", (6, 74, 82), (44, 166, 164)),
+    ("Bronze", (85, 58, 40), (184, 138, 85)),
+    ("Ink", (23, 37, 63), (74, 120, 168)),
+    ("Olive", (57, 69, 45), (131, 154, 83)),
+    ("Wine", (81, 43, 63), (167, 96, 114)),
+    ("Ocean", (10, 61, 86), (44, 142, 175)),
+)
+
+
+def background_palette_for(seed: str) -> dict[str, object]:
+    normalized = (seed or "untitled").strip().lower().encode("utf-8")
+    digest = hashlib.sha256(normalized).digest()
+    index = int.from_bytes(digest[:2], "big") % len(BACKGROUND_PALETTES)
+    name, left, right = BACKGROUND_PALETTES[index]
+
+    # Blend a small amount of a second approved palette into the right edge.
+    # This yields many stable variants while staying inside the designated family.
+    offset = 1 + digest[2] % (len(BACKGROUND_PALETTES) - 1)
+    _, _, neighbor_right = BACKGROUND_PALETTES[(index + offset) % len(BACKGROUND_PALETTES)]
+    mix = 0.04 + (digest[3] / 255.0) * 0.14
+    varied_right = tuple(
+        round(right[i] * (1.0 - mix) + neighbor_right[i] * mix)
+        for i in range(3)
+    )
+    tilt = (digest[4] / 255.0) * 2.0 - 1.0
+    return {
+        "name": name,
+        "left": left,
+        "right": varied_right,
+        "tilt": tilt,
+        "digest": digest,
+    }
 
 
 def _font(size: int, *, bold: bool = False):
@@ -26,19 +70,24 @@ def _font(size: int, *, bold: bool = False):
     return ImageFont.load_default()
 
 
-def _gradient(size: tuple[int, int]) -> Image.Image:
+def _gradient(size: tuple[int, int], *, seed: str) -> tuple[Image.Image, dict[str, object]]:
     width, height = size
+    palette = background_palette_for(seed)
+    left = palette["left"]
+    right = palette["right"]
+    tilt = float(palette["tilt"])
+
     image = Image.new("RGB", size)
     pixels = image.load()
-    left = (6, 59, 104)
-    right = (23, 184, 207)
     for x in range(width):
-        t = x / max(1, width - 1)
-        col = tuple(round(left[i] * (1 - t) + right[i] * t) for i in range(3))
+        x_t = x / max(1, width - 1)
         for y in range(height):
+            y_t = (y / max(1, height - 1)) - 0.5
+            t = max(0.0, min(1.0, x_t + y_t * tilt * 0.16))
+            col = tuple(round(left[i] * (1 - t) + right[i] * t) for i in range(3))
             vertical = min(1.0, 0.88 + 0.12 * (y / max(1, height - 1)))
             pixels[x, y] = tuple(round(c * vertical) for c in col)
-    return image
+    return image, palette
 
 
 def build_header_prompt(title: str, subtitle: str = "", category: str = "", excerpt: str = "") -> str:
@@ -162,10 +211,13 @@ def compose_templated_header(
     *,
     title: str,
     subtitle: str = "",
+    palette_seed: str = "",
     size: tuple[int, int] = (1600, 900),
 ) -> bytes:
     width, height = size
-    canvas = _gradient(size).convert("RGBA")
+    seed = palette_seed.strip() or title.strip() or "untitled"
+    background, palette = _gradient(size, seed=seed)
+    canvas = background.convert("RGBA")
     draw = ImageDraw.Draw(canvas)
 
     grid = (156, 232, 242, 30)
@@ -174,8 +226,20 @@ def compose_templated_header(
     for y in range(0, height, 70):
         draw.line((0, y, width, y), fill=grid, width=1)
 
-    draw.ellipse((-150, -220, 450, 380), outline=(123, 232, 244, 55), width=2)
-    draw.ellipse((1260, 560, 1960, 1260), outline=(123, 232, 244, 45), width=2)
+    digest = palette["digest"]
+    ring_dx = int(digest[5]) - 128
+    ring_dy = int(digest[6]) - 128
+    ring_color = tuple(palette["right"]) + (55,)
+    draw.ellipse(
+        (-150 + ring_dx, -220 + ring_dy // 2, 450 + ring_dx, 380 + ring_dy // 2),
+        outline=ring_color,
+        width=2,
+    )
+    draw.ellipse(
+        (1260 - ring_dx // 2, 560 - ring_dy // 2, 1960 - ring_dx // 2, 1260 - ring_dy // 2),
+        outline=tuple(palette["right"]) + (45,),
+        width=2,
+    )
 
     kicker_font = _font(20, bold=True)
     draw.text(
@@ -244,6 +308,7 @@ def generate_templated_ai_header(
     subtitle: str = "",
     category: str = "",
     excerpt: str = "",
+    palette_seed: str = "",
 ) -> bytes:
     motif = generate_ai_motif(
         api_key,
@@ -252,4 +317,9 @@ def generate_templated_ai_header(
         category=category,
         excerpt=excerpt,
     )
-    return compose_templated_header(motif, title=title, subtitle=subtitle)
+    return compose_templated_header(
+        motif,
+        title=title,
+        subtitle=subtitle,
+        palette_seed=palette_seed or title,
+    )

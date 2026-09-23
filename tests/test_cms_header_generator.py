@@ -4,7 +4,7 @@ from io import BytesIO
 
 from PIL import Image
 
-from cms_header_generator import build_header_prompt, compose_templated_header
+from cms_header_generator import background_palette_for, build_header_prompt, compose_templated_header
 
 
 def _transparent_motif() -> bytes:
@@ -40,3 +40,25 @@ def test_compose_templated_header_returns_16_9_webp():
     image = Image.open(BytesIO(rendered))
     assert image.format == "WEBP"
     assert image.size == (1600, 900)
+
+
+def test_palette_is_deterministic_but_varies_by_article_identity():
+    first = background_palette_for("ai-governance-at-scale")
+    again = background_palette_for("ai-governance-at-scale")
+    second = background_palette_for("why-enterprise-ai-stalls")
+    assert first == again
+    assert first != second
+    assert first["name"]
+    assert len(first["left"]) == 3
+    assert len(first["right"]) == 3
+
+
+def test_different_palette_seeds_produce_different_headers():
+    kwargs = {
+        "motif_png": _transparent_motif(),
+        "title": "AI Governance at Scale",
+        "subtitle": "Governance should enable responsible speed.",
+    }
+    first = compose_templated_header(**kwargs, palette_seed="governance")
+    second = compose_templated_header(**kwargs, palette_seed="portfolio")
+    assert first != second

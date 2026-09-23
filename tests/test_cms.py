@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
-from site_cms import CmsArticle, article_preview_url, cms_share_document, generate_metadata, sanitize_article_html, slugify
+from site_cms import CmsArticle, article_preview_url, cms_share_document, generate_metadata, inject_cms_landing, sanitize_article_html, slugify
 
 
 class CareersiteCmsTests(unittest.TestCase):
@@ -40,6 +41,33 @@ class CareersiteCmsTests(unittest.TestCase):
             article_preview_url(article),
             "https://jairribeiro-ai.streamlit.app/thinking/preview-article?source=application&role=Test",
         )
+
+    def test_featured_cms_article_replaces_primary_and_has_header_fallback(self) -> None:
+        article = CmsArticle(
+            id="new-article",
+            title="New featured article",
+            slug="new-featured-article",
+            subtitle="A leadership argument.",
+            excerpt="A leadership argument.",
+            category="AI Operating Model",
+            kind="Article",
+            status="published",
+            featured=True,
+            read_minutes=4,
+            published_at="2026-09-23T16:18:20+00:00",
+        )
+        document = (
+            '<article class="featured-thinking"><h2>Old featured article</h2></article>'
+            '<section class="section white"><div class="container"><div class="head">'
+            '<div><p class="eyebrow">Recent thinking</p>'
+        )
+        with patch("site_cms.fetch_published_articles", return_value=(article,)):
+            rendered = inject_cms_landing(document)
+
+        self.assertIn("New featured article", rendered)
+        self.assertNotIn("Old featured article", rendered)
+        self.assertIn("cms-fallback-cover", rendered)
+        self.assertIn("?page=thinking&amp;article=new-featured-article", rendered)
 
     def test_share_document_contains_article_metadata(self) -> None:
         article = CmsArticle(

@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from site_cms import CmsArticle, article_preview_url, cms_share_document, generate_metadata, inject_cms_landing, sanitize_article_html, slugify
+from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_share_document, effective_header_image_url, generate_metadata, inject_cms_landing, sanitize_article_html, slugify
 
 
 class CareersiteCmsTests(unittest.TestCase):
@@ -40,6 +40,19 @@ class CareersiteCmsTests(unittest.TestCase):
         self.assertEqual(
             article_preview_url(article),
             "https://jairribeiro-ai.streamlit.app/thinking/preview-article?source=application&role=Test",
+        )
+
+    def test_latest_article_uses_bundled_generated_header(self) -> None:
+        slug = "ai-has-too-many-owners-and-thats-why-nobody-owns-the-outcome"
+        article = CmsArticle(title="AI Has Too Many Owners", slug=slug)
+        data = bundled_header_bytes(slug)
+        self.assertIsNotNone(data)
+        self.assertGreater(len(data or b""), 20_000)
+        self.assertEqual((data or b"")[:4], b"RIFF")
+        self.assertEqual((data or b"")[8:12], b"WEBP")
+        self.assertEqual(
+            effective_header_image_url(article),
+            f"https://jairribeiro-ai.streamlit.app/cms-header/{slug}.webp",
         )
 
     def test_featured_cms_article_replaces_primary_and_has_header_fallback(self) -> None:

@@ -7,7 +7,6 @@ import re
 
 import streamlit as st
 import streamlit.components.v1 as components
-from streamlit_quill import st_quill
 
 from site_cms import (
     OWNER_EMAIL,
@@ -144,13 +143,111 @@ def _split_csv(value: str) -> tuple[str, ...]:
     return tuple(item.strip() for item in re.split(r"[,\n]+", value or "") if item.strip())
 
 
+def _inline_markup(value: str) -> str:
+    safe = html.escape(value, quote=False)
+    safe = re.sub(
+        r"\[([^\]]+)\]\((https?://[^\s)]+)\)",
+        r'<a href="\2" target="_blank" rel="noopener noreferrer">\1</a>',
+        safe,
+    )
+    safe = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", safe)
+    safe = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", safe)
+    return safe
+
+
+def _plain_text_to_html(value: str) -> str:
+    lines = (value or "").replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    parts: list[str] = []
+    paragraph: list[str] = []
+    list_type: str | None = None
+    list_items: list[str] = []
+
+    def flush_paragraph() -> None:
+        nonlocal paragraph
+        if paragraph:
+            text = " ".join(item.strip() for item in paragraph if item.strip())
+            if text:
+                parts.append(f"<p>{_inline_markup(text)}</p>")
+            paragraph = []
+
+    def flush_list() -> None:
+        nonlocal list_type, list_items
+        if list_type and list_items:
+            items = "".join(f"<li>{_inline_markup(item)}</li>" for item in list_items)
+            parts.append(f"<{list_type}>{items}</{list_type}>")
+        list_type = None
+        list_items = []
+
+    for raw in lines:
+        line = raw.strip()
+        if not line:
+            flush_paragraph()
+            flush_list()
+            continue
+
+        if line in {"---", "***", "___"}:
+            flush_paragraph()
+            flush_list()
+            parts.append("<hr>")
+            continue
+
+        heading = re.match(r"^(#{2,3})\s+(.+)$", line)
+        if heading:
+            flush_paragraph()
+            flush_list()
+            level = 2 if len(heading.group(1)) == 2 else 3
+            parts.append(f"<h{level}>{_inline_markup(heading.group(2))}</h{level}>")
+            continue
+
+        quote = re.match(r"^>\s*(.+)$", line)
+        if quote:
+            flush_paragraph()
+            flush_list()
+            parts.append(f"<blockquote><p>{_inline_markup(quote.group(1))}</p></blockquote>")
+            continue
+
+        bullet = re.match(r"^[-*]\s+(.+)$", line)
+        if bullet:
+            flush_paragraph()
+            if list_type not in {None, "ul"}:
+                flush_list()
+            list_type = "ul"
+            list_items.append(bullet.group(1))
+            continue
+
+        ordered = re.match(r"^\d+[.)]\s+(.+)$", line)
+        if ordered:
+            flush_paragraph()
+            if list_type not in {None, "ol"}:
+                flush_list()
+            list_type = "ol"
+            list_items.append(ordered.group(1))
+            continue
+
+        flush_list()
+        paragraph.append(line)
+
+    flush_paragraph()
+    flush_list()
+    return "".join(parts)
+
+
+def _editor_body_to_html(value: str) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return ""
+    if re.search(r"</?[a-z][^>]*>", raw, flags=re.I):
+        return sanitize_article_html(raw)
+    return sanitize_article_html(_plain_text_to_html(raw))
+
+
 def _article_from_state(base: CmsArticle, prefix: str) -> CmsArticle:
     return replace(
         base,
         title=st.session_state.get(f"{prefix}_title", ""),
         subtitle=st.session_state.get(f"{prefix}_subtitle", ""),
         slug=st.session_state.get(f"{prefix}_slug", ""),
-        content_html=sanitize_article_html(st.session_state.get(f"{prefix}_body", "")),
+        content_html=_editor_body_to_html(st.session_state.get(f"{prefix}_body", "")),
         aside_html=sanitize_article_html(st.session_state.get(f"{prefix}_aside", "")),
         excerpt=st.session_state.get(f"{prefix}_excerpt", ""),
         header_image_url=st.session_state.get(f"{prefix}_image_url", ""),
@@ -267,7 +364,7 @@ def _load_editor_state(article: CmsArticle, prefix: str) -> None:
 def _metadata(article: CmsArticle, prefix: str, force: bool = False) -> None:
     generated = generate_metadata(
         st.session_state.get(f"{prefix}_title", article.title),
-        st.session_state.get(f"{prefix}_body", article.content_html),
+        _editor_body_to_html(st.session_state.get(f"{prefix}_body", article.content_html)),
         st.session_state.get(f"{prefix}_subtitle", article.subtitle),
         bool(st.session_state.get(f"{prefix}_image_url", article.header_image_url)),
     )
@@ -332,14 +429,17 @@ def _editor(article: CmsArticle, access_token: str) -> None:
         st.text_input("Title", key=f"{prefix}_title")
         st.text_area("Subtitle / deck", key=f"{prefix}_subtitle", height=80)
 
-        body = st_quill(
-            value=st.session_state.get(f"{prefix}_body", ""),
-            html=True,
-            placeholder="Paste or write the complete article here…",
-            key=f"{prefix}_quill",
+        st.caption(
+            "Paste plain text, lightweight Markdown, or safe HTML. "
+            "Formatting: ## heading, ### subheading, **bold**, *italic*, "
+            "> quote, - bullets, 1. numbered items, [text](https://link), and --- divider."
         )
-        if body is not None:
-            st.session_state[f"{prefix}_body"] = body
+        st.text_area(
+            "Article body",
+            key=f"{prefix}_body",
+            height=540,
+            placeholder="Paste or write the complete article here…",
+        )
 
         st.markdown("#### Header image")
         current_image = st.session_state.get(f"{prefix}_image_url", "")
@@ -373,7 +473,7 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             st.session_state[f"{prefix}_image_url"] = ""
             st.rerun()
 
-    body_text = strip_html(st.session_state.get(f"{prefix}_body", ""))
+    body_text = strip_html(_editor_body_to_html(st.session_state.get(f"{prefix}_body", "")))
     if (
         st.session_state.get(f"{prefix}_title", "").strip()
         and len(body_text) >= 80

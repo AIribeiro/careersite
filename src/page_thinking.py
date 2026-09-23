@@ -3,7 +3,7 @@ from __future__ import annotations
 import html
 import re
 
-from thinking_articles import article_by_key, article_relative_url, resolve_article
+from thinking_articles import article_by_key, article_relative_url, resolve_article\nfrom site_cms import fetch_public_article, inject_cms_landing, render_cms_article
 from thinking_core import query_value
 from thinking_landing import CURRENT_PRIMARY, CURRENT_SECONDARY, RECENT, landing
 from thinking_visuals import visual_spec

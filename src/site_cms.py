@@ -626,6 +626,15 @@ def effective_header_image_url(article: CmsArticle) -> str:
     )
 
 
+def embedded_header_image_src(article: CmsArticle) -> str:
+    """Use bundled article art inline so the visible page never depends on a second HTTP route."""
+    data = bundled_header_bytes(article.slug)
+    if data is not None:
+        encoded = base64.b64encode(data).decode("ascii")
+        return f"data:image/webp;base64,{encoded}"
+    return article.header_image_url.strip()
+
+
 def article_relative_url(article: CmsArticle) -> str:
     return f"?page=thinking&article={parse.quote(article.slug, safe='')}"
 
@@ -667,7 +676,7 @@ def render_cms_article(article: CmsArticle) -> str:
     from thinking_core import THINKING_CSS
 
     image = ""
-    header_image_url = effective_header_image_url(article)
+    header_image_url = embedded_header_image_src(article)
     if header_image_url:
         image = f'''<div class="cms-article-image"><img src="{escape(header_image_url, quote=True)}" alt="{escape(article.header_image_alt or article.title, quote=True)}" loading="eager" decoding="async"></div>'''
     elif article.legacy_key:
@@ -707,7 +716,7 @@ def inject_cms_landing(document: str) -> str:
 
     if featured is not None:
         featured_image = ""
-        featured_header_url = effective_header_image_url(featured)
+        featured_header_url = embedded_header_image_src(featured)
         if featured_header_url:
             featured_image = (
                 f'<div class="thinking-thumb cms-thinking-thumb">'
@@ -746,7 +755,7 @@ def inject_cms_landing(document: str) -> str:
     cards = []
     for article in articles[:6]:
         thumb = ""
-        card_header_url = effective_header_image_url(article)
+        card_header_url = embedded_header_image_src(article)
         if card_header_url:
             thumb = (
                 f'<div class="cms-thinking-thumb"><img '

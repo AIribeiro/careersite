@@ -6,7 +6,7 @@ from io import BytesIO
 from PIL import Image
 from unittest.mock import patch
 
-from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_share_document, effective_header_image_url, generate_metadata, inject_cms_landing, normalize_header_image, sanitize_article_html, slugify
+from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_share_document, effective_header_image_url, embedded_header_image_src, generate_metadata, inject_cms_landing, normalize_header_image, sanitize_article_html, slugify
 
 
 class CareersiteCmsTests(unittest.TestCase):
@@ -57,6 +57,15 @@ class CareersiteCmsTests(unittest.TestCase):
             effective_header_image_url(article),
             f"https://jairribeiro-ai.streamlit.app/cms-header/{slug}.webp?v=e51f18261592",
         )
+
+    def test_uploaded_header_overrides_bundled_art_for_live_cards(self) -> None:
+        slug = "ai-has-too-many-owners-and-thats-why-nobody-owns-the-outcome"
+        uploaded = (
+            "https://example.supabase.co/storage/v1/object/public/"
+            "careersite-article-images/article/new-header.webp"
+        )
+        article = CmsArticle(title="Updated art", slug=slug, header_image_url=uploaded)
+        self.assertEqual(embedded_header_image_src(article), uploaded)
 
     def test_header_normalizer_preserves_full_source_on_two_to_one_canvas(self) -> None:
         source = Image.new("RGB", (600, 900), "white")

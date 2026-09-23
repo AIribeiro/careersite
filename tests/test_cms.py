@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import unittest
+from io import BytesIO
+
+from PIL import Image
 from unittest.mock import patch
 
-from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_share_document, effective_header_image_url, generate_metadata, inject_cms_landing, sanitize_article_html, slugify
+from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_share_document, effective_header_image_url, generate_metadata, inject_cms_landing, normalize_header_image, sanitize_article_html, slugify
 
 
 class CareersiteCmsTests(unittest.TestCase):
@@ -54,6 +57,18 @@ class CareersiteCmsTests(unittest.TestCase):
             effective_header_image_url(article),
             f"https://jairribeiro-ai.streamlit.app/cms-header/{slug}.webp?v=e51f18261592",
         )
+
+    def test_header_normalizer_preserves_full_source_on_two_to_one_canvas(self) -> None:
+        source = Image.new("RGB", (600, 900), "white")
+        source.putpixel((0, 0), (255, 0, 0))
+        source.putpixel((599, 899), (0, 0, 255))
+        raw = BytesIO()
+        source.save(raw, format="PNG")
+
+        normalized = normalize_header_image(raw.getvalue(), "image/png")
+        with Image.open(BytesIO(normalized)) as image:
+            self.assertEqual(image.format, "WEBP")
+            self.assertEqual(image.size, (1600, 800))
 
     def test_featured_cms_article_replaces_primary_and_has_header_fallback(self) -> None:
         article = CmsArticle(

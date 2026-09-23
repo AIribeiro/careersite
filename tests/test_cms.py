@@ -58,6 +58,12 @@ class CareersiteCmsTests(unittest.TestCase):
             f"https://jairribeiro-ai.streamlit.app/cms-header/{slug}.webp?v=e51f18261592",
         )
 
+    def test_data_url_header_overrides_bundled_art_for_editor_preview(self) -> None:
+        slug = "ai-has-too-many-owners-and-thats-why-nobody-owns-the-outcome"
+        data_url = "data:image/webp;base64,UklGRg=="
+        article = CmsArticle(title="Preview art", slug=slug, header_image_url=data_url)
+        self.assertEqual(embedded_header_image_src(article), data_url)
+
     def test_uploaded_header_overrides_bundled_art_for_live_cards(self) -> None:
         slug = "ai-has-too-many-owners-and-thats-why-nobody-owns-the-outcome"
         uploaded = (

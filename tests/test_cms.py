@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from site_cms import CmsArticle, cms_share_document, generate_metadata, sanitize_article_html, slugify
+from site_cms import CmsArticle, article_preview_url, cms_share_document, generate_metadata, sanitize_article_html, slugify
 
 
 class CareersiteCmsTests(unittest.TestCase):
@@ -33,6 +33,13 @@ class CareersiteCmsTests(unittest.TestCase):
         self.assertNotIn("onclick=", cleaned)
         self.assertIn("<h2>Safe heading</h2>", cleaned)
         self.assertIn('rel="noopener noreferrer"', cleaned)
+
+    def test_article_preview_url_uses_test_attribution(self) -> None:
+        article = CmsArticle(title="Preview", slug="preview-article")
+        self.assertEqual(
+            article_preview_url(article),
+            "https://jairribeiro-ai.streamlit.app/thinking/preview-article?source=application&role=Test",
+        )
 
     def test_share_document_contains_article_metadata(self) -> None:
         article = CmsArticle(

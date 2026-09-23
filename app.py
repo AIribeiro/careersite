@@ -15,7 +15,7 @@ if str(SRC) not in sys.path:
 
 from thinking_articles import ARTICLES, BASE_URL, article_app_url, article_url, resolve_article
 from thinking_social import ensure_article_share_page, ensure_article_social_image
-from site_cms import cms_share_document, cms_sitemap_entries, fetch_public_article
+from site_cms import bundled_header_bytes, cms_share_document, cms_sitemap_entries, fetch_public_article
 
 # Source-level compatibility anchors for the established smoke tests. The
 # executable UI moved to main.py; these strings document that architecture
@@ -104,9 +104,24 @@ async def _thinking_social_image(request):
     )
 
 
+async def _cms_header_image(request):
+    slug = str(request.path_params.get("slug") or "").strip().lower()
+    data = bundled_header_bytes(slug)
+    if data is None:
+        return PlainTextResponse("Image not found", status_code=404)
+    return Response(
+        data,
+        media_type="image/webp",
+        headers={
+            "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
+
+
 async def _robots(_request):
     return PlainTextResponse(
-        f"User-agent: *\nAllow: /\n\nUser-agent: LinkedInBot\nAllow: /thinking/\nAllow: /social/\n\nSitemap: {BASE_URL}/sitemap.xml\n",
+        f"User-agent: *\nAllow: /\n\nUser-agent: LinkedInBot\nAllow: /thinking/\nAllow: /social/\nAllow: /cms-header/\n\nSitemap: {BASE_URL}/sitemap.xml\n",
         headers={"Cache-Control": "public, max-age=3600"},
     )
 
@@ -143,6 +158,7 @@ app = App(
     routes=[
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),
         Route("/social/{slug}.png", _thinking_social_image, methods=["GET", "HEAD"]),
+        Route("/cms-header/{slug}.webp", _cms_header_image, methods=["GET", "HEAD"]),
         Route("/robots.txt", _robots, methods=["GET", "HEAD"]),
         Route("/sitemap.xml", _sitemap, methods=["GET", "HEAD"]),
     ],

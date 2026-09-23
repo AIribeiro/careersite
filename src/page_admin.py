@@ -3,10 +3,13 @@ from __future__ import annotations
 from dataclasses import replace
 import html
 import json
+import os
 import re
 
 import streamlit as st
 import streamlit.components.v1 as components
+
+from cms_header_generator import generate_templated_ai_header
 
 from site_cms import (
     OWNER_EMAIL,
@@ -417,7 +420,60 @@ def _editor(article: CmsArticle, access_token: str) -> None:
         )
 
         st.markdown("#### Header image")
+        st.caption(
+            "AI header generation uses the article title, subtitle, category and excerpt to create "
+            "a topic-specific motif, then applies the same Leading in the AI Enterprise template used by the current series."
+        )
         current_image = st.session_state.get(f"{prefix}_image_url", "")
+
+        def _openai_key() -> str:
+            env_key = os.environ.get("OPENAI_API_KEY", "").strip()
+            if env_key:
+                return env_key
+            try:
+                return str(st.secrets["OPENAI_API_KEY"]).strip()
+            except Exception:
+                return ""
+
+        ai_label = "Regenerate AI header" if current_image else "Generate AI header"
+        if st.button(ai_label, key=f"{prefix}_generate_header", use_container_width=True):
+            key = _openai_key()
+            if not key:
+                st.error(
+                    "AI header generation is not configured yet. Add OPENAI_API_KEY to the Streamlit app secrets."
+                )
+            elif not st.session_state.get(f"{prefix}_title", "").strip():
+                st.warning("Add the article title before generating a header.")
+            else:
+                try:
+                    with st.spinner("Generating the AI motif and applying the article-header template…"):
+                        generated = generate_templated_ai_header(
+                            key,
+                            title=st.session_state.get(f"{prefix}_title", ""),
+                            subtitle=st.session_state.get(f"{prefix}_subtitle", ""),
+                            category=st.session_state.get(f"{prefix}_category", ""),
+                            excerpt=st.session_state.get(f"{prefix}_excerpt", ""),
+                        )
+                        new_url = upload_header_image(
+                            access_token,
+                            st.session_state.get(f"{prefix}_slug")
+                            or st.session_state.get(f"{prefix}_title"),
+                            "ai-generated-header.webp",
+                            "image/webp",
+                            generated,
+                        )
+                    old_url = st.session_state.get(f"{prefix}_image_url", "")
+                    st.session_state[f"{prefix}_image_url"] = new_url
+                    if not st.session_state.get(f"{prefix}_image_alt", "").strip():
+                        st.session_state[f"{prefix}_image_alt"] = (
+                            f"Editorial illustration for {st.session_state.get(f'{prefix}_title', '').strip()}"
+                        )
+                    if old_url and old_url != new_url:
+                        delete_header_image(access_token, old_url)
+                    st.success("AI header generated and attached to this article.")
+                    st.rerun()
+                except Exception as exc:
+                    st.error(str(exc))
         if current_image:
             st.image(current_image, use_container_width=True)
         upload = st.file_uploader(

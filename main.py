@@ -40,13 +40,21 @@ if isinstance(PAGE, list):
     PAGE = PAGE[0] if PAGE else "home"
 PAGE = str(PAGE).lower().strip()
 PUBLIC_VALID = {"home", "impact", "thinking", "about", "certifications", "presence", "contact", "enterprise", "transformation", "governance", "consulting"}
-VALID = PUBLIC_VALID | {"analytics"}
+VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
 ARTICLE_QUERY = st.query_params.get("article", "") if PAGE == "thinking" else ""
 if isinstance(ARTICLE_QUERY, list):
     ARTICLE_QUERY = ARTICLE_QUERY[0] if ARTICLE_QUERY else ""
-ARTICLE_META = resolve_article(str(ARTICLE_QUERY).strip().lower()) if ARTICLE_QUERY else None
+CMS_ARTICLE_META = None
+if ARTICLE_QUERY:
+    try:
+        CMS_ARTICLE_META = fetch_public_article(str(ARTICLE_QUERY).strip().lower())
+    except RuntimeError:
+        CMS_ARTICLE_META = None
+ARTICLE_META = None if CMS_ARTICLE_META is not None else (
+    resolve_article(str(ARTICLE_QUERY).strip().lower()) if ARTICLE_QUERY else None
+)
 
 TITLES = {
     "home": "Jair Ribeiro | Enterprise AI & Data Leader",
@@ -63,7 +71,13 @@ TITLES = {
     "analytics": "Hiring-Funnel Analytics | Jair Ribeiro",
 }
 
-PAGE_TITLE = ARTICLE_META.seo_title if ARTICLE_META is not None else TITLES[PAGE]
+PAGE_TITLE = (
+    CMS_ARTICLE_META.seo_title
+    if CMS_ARTICLE_META is not None and CMS_ARTICLE_META.seo_title
+    else ARTICLE_META.seo_title
+    if ARTICLE_META is not None
+    else TITLES[PAGE]
+)
 PAGE_ICON = ROOT / "images" / "profile_red_bg.jpg.jpg"
 
 try:
@@ -82,8 +96,12 @@ st.set_page_config(
 
 if PAGE == "analytics":
     render_analytics_dashboard()
+elif PAGE == "admin":
+    render_admin_dashboard()
 else:
-    if ARTICLE_META is not None:
+    if CMS_ARTICLE_META is not None:
+        inject_cms_article_metadata(CMS_ARTICLE_META)
+    elif ARTICLE_META is not None:
         inject_article_metadata(ARTICLE_META)
     else:
         inject_metadata(PAGE, PAGE_TITLE)
@@ -107,6 +125,6 @@ else:
     # Bind article interactions before the generic analytics listener. The
     # share guard then prevents social-share controls from being misclassified
     # as contact or generic article-click conversions.
-    inject_article_analytics(PAGE, ARTICLE_META, source="streamlit")
+    inject_article_analytics(PAGE, CMS_ARTICLE_META or ARTICLE_META, source="streamlit")
     inject_share_guard()
     inject_analytics(PAGE, source="streamlit")

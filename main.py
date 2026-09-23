@@ -12,7 +12,8 @@ if str(SRC) not in sys.path:
 
 from site_styles import CSS
 from site_image_styles import IMAGE_CSS
-from site_meta import inject_article_metadata, inject_metadata\nfrom site_cms import fetch_public_article, inject_cms_article_metadata
+from site_meta import inject_article_metadata, inject_metadata
+from site_cms import fetch_public_article, inject_cms_article_metadata
 from site_analytics import inject_analytics
 from site_article_analytics import inject_article_analytics
 from site_share_guard import inject_share_guard
@@ -32,7 +33,8 @@ from page_about import about
 from page_certifications import certifications
 from page_presence import presence
 from page_contact import contact
-from page_analytics_v2 import render_analytics_dashboard\nfrom page_admin import render_admin_dashboard
+from page_analytics_v2 import render_analytics_dashboard
+from page_admin import render_admin_dashboard
 from site_lenses import enterprise, transformation, governance, consulting
 
 PAGE = st.query_params.get("page", "home")
@@ -68,7 +70,8 @@ TITLES = {
     "transformation": "AI Transformation & Adoption | Jair Ribeiro",
     "governance": "AI Governance & Operating Model | Jair Ribeiro",
     "consulting": "Business-Driven AI & Consulting | Jair Ribeiro",
-    "analytics": "Hiring-Funnel Analytics | Jair Ribeiro",\n    "admin": "Article CMS | Jair Ribeiro",
+    "analytics": "Hiring-Funnel Analytics | Jair Ribeiro",
+    "admin": "Article CMS | Jair Ribeiro",
 }
 
 PAGE_TITLE = (

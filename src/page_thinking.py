@@ -145,10 +145,27 @@ def _decorate_landing(document: str) -> str:
 
 
 def thinking() -> str:
-    article = resolve_article(query_value("article"))
+    slug = query_value("article")
+    if slug:
+        try:
+            cms_article = fetch_public_article(slug)
+        except RuntimeError:
+            cms_article = None
+        if cms_article is not None:
+            return VISUAL_CSS + render_cms_article(cms_article)
+
+    article = resolve_article(slug)
     if article is None:
-        return _decorate_landing(landing())
+        document = _decorate_landing(landing())
+        try:
+            return inject_cms_landing(document)
+        except RuntimeError:
+            return document
     renderer = ROUTES.get(article.key)
     if renderer is None:
-        return _decorate_landing(landing())
+        document = _decorate_landing(landing())
+        try:
+            return inject_cms_landing(document)
+        except RuntimeError:
+            return document
     return _decorate_article(renderer(), article.key)

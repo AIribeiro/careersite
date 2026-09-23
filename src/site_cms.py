@@ -594,6 +594,22 @@ def article_preview_url(article: CmsArticle) -> str:
     return f"{article_url(article)}?source=application&role=Test"
 
 
+def _cms_fallback_cover(article: CmsArticle, css_class: str) -> str:
+    subtitle = article.subtitle or article.excerpt
+    return f'''<div class="{escape(css_class, quote=True)} cms-fallback-cover" role="img" aria-label="{escape(article.header_image_alt or article.title, quote=True)}">
+<div class="cms-cover-copy"><span>People · Data · AI · Real Impact</span><strong>{escape(article.title)}</strong><p>{escape(subtitle)}</p></div>
+<div class="cms-cover-network" aria-hidden="true"><i>AI</i><b>CIO</b><b>CDO</b><b>Business</b><b>Risk</b><b>HR</b><b>CoE</b></div>
+</div>'''
+
+
+CMS_FALLBACK_CSS = '''<style>
+.cms-fallback-cover{position:relative;overflow:hidden;min-height:330px;aspect-ratio:2/1;background:radial-gradient(circle at 82% 28%,rgba(255,185,118,.28),transparent 26%),linear-gradient(122deg,#07182b 0%,#173750 62%,#7b6658 100%);color:#fff;border:1px solid rgba(255,255,255,.17);box-shadow:0 20px 48px rgba(0,0,0,.20)}
+.cms-cover-copy{position:absolute;left:5%;top:9%;width:55%;z-index:2}.cms-cover-copy span{display:block;font:750 11px/1.2 Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#c9d7e3;margin-bottom:34px}.cms-cover-copy strong{display:block;font:650 clamp(28px,4.1vw,58px)/1.02 Georgia,serif;letter-spacing:-.025em}.cms-cover-copy p{max-width:700px;margin:20px 0 0;font:400 clamp(13px,1.45vw,20px)/1.42 Arial,sans-serif;color:#e4ebef}
+.cms-cover-network{position:absolute;right:4%;bottom:8%;width:34%;height:72%;border:1px solid rgba(255,255,255,.16);border-radius:50%}.cms-cover-network:before,.cms-cover-network:after{content:"";position:absolute;left:50%;top:50%;width:86%;height:1px;background:rgba(255,255,255,.30);transform:translate(-50%,-50%) rotate(30deg)}.cms-cover-network:after{transform:translate(-50%,-50%) rotate(-30deg)}.cms-cover-network i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:86px;height:86px;border-radius:50%;background:#f1eee8;color:#132331;font:800 30px/1 Arial,sans-serif;font-style:normal;z-index:2}.cms-cover-network b{position:absolute;padding:8px 11px;border:1px solid rgba(255,255,255,.35);background:rgba(7,24,43,.75);font:650 11px/1 Arial,sans-serif;letter-spacing:.04em}.cms-cover-network b:nth-of-type(1){left:7%;top:13%}.cms-cover-network b:nth-of-type(2){right:9%;top:10%}.cms-cover-network b:nth-of-type(3){right:-2%;top:45%}.cms-cover-network b:nth-of-type(4){right:8%;bottom:9%}.cms-cover-network b:nth-of-type(5){left:10%;bottom:8%}.cms-cover-network b:nth-of-type(6){left:-3%;top:46%}
+@media(max-width:760px){.cms-fallback-cover{min-height:390px;aspect-ratio:auto}.cms-cover-copy{width:88%}.cms-cover-network{opacity:.28;width:58%;right:-12%}.cms-cover-copy strong{font-size:34px}}
+</style>'''
+
+
 def _share_footer(article: CmsArticle) -> str:
     canonical = article_url(article)
     linkedin = "https://www.linkedin.com/feed/?" + parse.urlencode({"shareActive": "true", "shareUrl": canonical})
@@ -614,7 +630,9 @@ def render_cms_article(article: CmsArticle) -> str:
             from page_thinking import _image
             image = _image(article.legacy_key, "article-cover")
         except Exception:
-            image = ""
+            image = _cms_fallback_cover(article, "cms-article-image")
+    else:
+        image = _cms_fallback_cover(article, "cms-article-image")
 
     tags = ""
     if article.show_tags_publicly and article.hashtags:
@@ -634,7 +652,7 @@ def render_cms_article(article: CmsArticle) -> str:
 .cms-source{margin-top:28px!important;padding-top:18px;border-top:1px solid var(--line)}.cms-source a{font-size:11px;font-weight:850;text-decoration:none}.article-body h3{margin:34px 0 14px;font:500 26px/1.15 Georgia,serif}.article-body ul,.article-body ol{margin:0 0 24px;padding-left:24px;color:#343b43;font-size:16px;line-height:1.75}.article-body li{margin:7px 0}.article-body hr{border:0;border-top:1px solid var(--line);margin:34px 0}
 </style>'''
 
-    return f'''{THINKING_CSS}{css}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="?page=thinking" target="_self">← Back to Thinking</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{escape(article.read_label)}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{opportunity()}</main>{footer()}'''
+    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="?page=thinking" target="_self">← Back to Thinking</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{escape(article.read_label)}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{opportunity()}</main>{footer()}'''
 
 
 def inject_cms_landing(document: str) -> str:
@@ -651,6 +669,8 @@ def inject_cms_landing(document: str) -> str:
                 f'alt="{escape(featured.header_image_alt or featured.title, quote=True)}" '
                 f'loading="eager" decoding="async"></div>'
             )
+        else:
+            featured_image = _cms_fallback_cover(featured, "thinking-thumb cms-thinking-thumb")
         featured_copy = featured.subtitle or featured.excerpt
         featured_html = (
             f'<article class="featured-thinking">{featured_image}'
@@ -675,7 +695,7 @@ def inject_cms_landing(document: str) -> str:
         if featured is None or article.id != featured.id
     ]
     if not articles:
-        return document
+        return CMS_FALLBACK_CSS + document
 
     cards = []
     for article in articles[:6]:
@@ -706,8 +726,8 @@ def inject_cms_landing(document: str) -> str:
     )
     marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Recent thinking</p>'
     if marker in document:
-        return document.replace(marker, section + marker, 1)
-    return section + document
+        return CMS_FALLBACK_CSS + document.replace(marker, section + marker, 1)
+    return CMS_FALLBACK_CSS + section + document
 
 
 def cms_share_document(article: CmsArticle) -> str:

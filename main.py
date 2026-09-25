@@ -16,6 +16,7 @@ from site_meta import inject_article_metadata, inject_metadata
 from site_cms import fetch_public_article, inject_cms_article_metadata
 from site_analytics import inject_analytics
 from site_article_analytics import inject_article_analytics
+from site_behavior_telemetry_v2 import mount_behavior_telemetry
 from site_share_guard import inject_share_guard
 from thinking_articles import resolve_article
 from thinking_social import ensure_all_article_social_assets
@@ -131,3 +132,4 @@ else:
     inject_article_analytics(PAGE, CMS_ARTICLE_META or ARTICLE_META, source="streamlit")
     inject_share_guard()
     inject_analytics(PAGE, source="streamlit")
+    mount_behavior_telemetry(PAGE, CMS_ARTICLE_META or ARTICLE_META)

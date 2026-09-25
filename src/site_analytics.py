@@ -341,6 +341,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     }};
   }};
 
+  win.__jairAnalyticsDescribeSection = sectionDescriptor;
   win.__jairAnalyticsDescribeArticleCard = articleCardDescriptor;
   win.__jairAnalyticsDescribeCta = ctaDescriptor;
 

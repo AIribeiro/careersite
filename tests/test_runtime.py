@@ -207,6 +207,13 @@ class RuntimeSmokeTests(unittest.TestCase):
                 "cta_click",
                 "section_view",
                 "performance_metric",
+                "section_attention",
+                "element_attention",
+                "cta_hesitation",
+                "scroll_abandonment",
+                "ux_signal",
+                "first_interaction",
+                "behavior_summary",
             },
         )
         self.assertEqual(set(LENS_PAGES), {"enterprise", "transformation", "governance", "consulting"})

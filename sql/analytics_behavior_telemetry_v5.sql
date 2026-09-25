@@ -146,7 +146,7 @@ BEGIN
     SELECT session_id,page,coalesce(article_slug,'') AS article_slug,
       coalesce(section_key,'unknown') AS section_key,max(section_label) AS section_label,
       min(occurred_at) AS first_seen_at
-    FROM scoped WHERE event_name='section_view'
+    FROM scoped WHERE event_name IN ('section_view','section_attention')
     GROUP BY session_id,page,coalesce(article_slug,''),coalesce(section_key,'unknown')
   ),
   section_per_session AS MATERIALIZED (
@@ -184,7 +184,7 @@ BEGIN
       coalesce(element_kind,'unknown') AS element_kind,coalesce(element_key,'unknown') AS element_key,
       coalesce(element_placement,'unknown') AS element_placement,max(element_label) AS element_label,
       min(occurred_at) AS first_seen_at
-    FROM scoped WHERE event_name='element_impression'
+    FROM scoped WHERE event_name IN ('element_impression','element_attention')
     GROUP BY session_id,page,coalesce(article_slug,''),coalesce(element_kind,'unknown'),
       coalesce(element_key,'unknown'),coalesce(element_placement,'unknown')
   ),

@@ -39,11 +39,9 @@ def _article_metadata() -> list[dict[str, object]]:
     return list(articles.values())
 
 
-def fetch_intelligence(window: str) -> dict:
-    payload = _dashboard_payload(window)
-    payload["p_article_metadata"] = _article_metadata()
+def _fetch_rpc(name: str, payload: dict[str, object]) -> dict:
     req = request.Request(
-        f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/careersite_content_intelligence_v2",
+        f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{name}",
         data=json.dumps(payload).encode(),
         method="POST",
         headers={"apikey": ANALYTICS_PUBLISHABLE_KEY, "Content-Type": "application/json"},
@@ -52,9 +50,25 @@ def fetch_intelligence(window: str) -> dict:
         with request.urlopen(req, timeout=20) as response:
             data = json.load(response)
     except (error.URLError, TimeoutError) as exc:
-        raise RuntimeError("Content intelligence is temporarily unavailable; established reports remain below.") from exc
+        raise RuntimeError(f"{name} is temporarily unavailable.") from exc
     if not isinstance(data, dict):
-        raise RuntimeError("Content intelligence returned an unexpected response.")
+        raise RuntimeError(f"{name} returned an unexpected response.")
+    return data
+
+
+def fetch_intelligence(window: str) -> dict:
+    payload = _dashboard_payload(window)
+    payload["p_article_metadata"] = _article_metadata()
+    try:
+        data = _fetch_rpc("careersite_content_intelligence_v2", payload)
+    except RuntimeError as exc:
+        raise RuntimeError("Content intelligence is temporarily unavailable; established reports remain below.") from exc
+
+    try:
+        data["behavior"] = _fetch_rpc("careersite_behavior_intelligence", _dashboard_payload(window))
+    except RuntimeError as exc:
+        data["behavior"] = {}
+        data["behavior_error"] = str(exc)
     return data
 
 
@@ -294,30 +308,199 @@ def _render_trends(data: dict, kind: str) -> None:
             st.info("No first-seven-day article history is available yet.")
 
 
+def _render_attention_ux(data: dict, kind: str) -> None:
+    behavior = data.get("behavior", {})
+
+    st.subheader("Section attention")
+    st.caption(
+        "Reach tells you whether a section entered the viewport; attention adds visible dwell time. "
+        "Assisted-action rates mean the action occurred later in the same anonymous tab session, not that the section caused it."
+    )
+    sections = []
+    for row in behavior.get("section_attention", []):
+        is_article = bool(row.get("article_slug"))
+        if is_article != (kind == "article"):
+            continue
+        reached = _count(row.get("reached_sessions"))
+        measured = _count(row.get("measured_attention_sessions"))
+        sections.append({
+            "Content": _article_title(row.get("article_slug")) if is_article else content_label(str(row.get("page") or "")),
+            "Section": row.get("section_label") or str(row.get("section_key") or "").replace("-", " ").title(),
+            "Reached sessions": reached,
+            "Attention measured": _rate(measured, reached),
+            "Avg attention": _seconds(row.get("avg_attention_seconds")),
+            "Median attention": _seconds(row.get("median_attention_seconds")),
+            "P75 attention": _seconds(row.get("p75_attention_seconds")),
+            "≥5s attention": _rate(row.get("attentive_5s_sessions"), reached),
+            "Later Impact": _rate(row.get("later_impact_sessions"), reached),
+            "Later CV": _rate(row.get("later_cv_sessions"), reached),
+            "Later contact": _rate(row.get("later_contact_sessions"), reached),
+        })
+    if sections:
+        st.dataframe(sections, hide_index=True, use_container_width=True)
+    else:
+        st.info("Awaiting Components-v2 section-attention events.")
+
+    st.subheader("Element attention")
+    st.caption(
+        "Cards and CTAs are measured while at least 50% visible. Hover is a consideration signal, not intent. "
+        "For Article Views, article-card rows describe the cards that earned the article open."
+    )
+    elements = []
+    for row in behavior.get("element_attention", []):
+        is_article_context = bool(row.get("article_slug"))
+        element_kind = str(row.get("element_kind") or "")
+        if kind == "article":
+            include = is_article_context or element_kind == "article_card"
+        else:
+            include = not is_article_context
+        if not include:
+            continue
+        exposed = _count(row.get("exposed_sessions"))
+        elements.append({
+            "Type": element_kind.replace("_", " ").title(),
+            "Element": row.get("element_label") or row.get("element_key") or "—",
+            "Placement": row.get("element_placement") or "—",
+            "Exposed sessions": exposed,
+            "Attention measured": _rate(row.get("measured_attention_sessions"), exposed),
+            "Avg attention": _seconds(row.get("avg_attention_seconds")),
+            "Median attention": _seconds(row.get("median_attention_seconds")),
+            "≥2s attention": _rate(row.get("attentive_2s_sessions"), exposed),
+            "Hover rate": _rate(row.get("hover_sessions"), exposed),
+            "Avg hover": _seconds(row.get("avg_hover_seconds")),
+            "Click rate": _rate(row.get("click_sessions"), exposed),
+        })
+    if elements:
+        st.dataframe(elements, hide_index=True, use_container_width=True)
+    else:
+        st.info("Awaiting Components-v2 element-attention events.")
+
+    st.subheader("CTA hesitation")
+    st.caption("Time from first 50%-visible exposure to a click. A long interval can mean considered intent, distraction or friction, so interpret it alongside CTR and attention.")
+    hesitation = [{
+        "CTA": row.get("element_label") or str(row.get("element_key") or "CTA").replace("_", " ").title(),
+        "Placement": row.get("element_placement") or "—",
+        "Click sessions": _count(row.get("sessions")),
+        "Median hesitation": _seconds(row.get("median_hesitation_seconds")),
+        "P75 hesitation": _seconds(row.get("p75_hesitation_seconds")),
+        "Average hesitation": _seconds(row.get("avg_hesitation_seconds")),
+    } for row in behavior.get("cta_hesitation", [])]
+    if hesitation:
+        st.dataframe(hesitation, hide_index=True, use_container_width=True)
+    else:
+        st.info("Awaiting CTA-hesitation events.")
+
+    st.subheader("Last observed reading region")
+    st.caption("This is the final region observed when the document unloads or its content context changes. It is a stronger abandonment clue than quartiles, but it is not proof that the visitor intentionally quit there.")
+    regions = []
+    for row in behavior.get("last_regions", []):
+        if row.get("kind") != kind:
+            continue
+        content = _article_title(row.get("article_slug")) if kind == "article" else content_label(str(row.get("page") or ""))
+        regions.append({
+            "Content": content,
+            "Last region": row.get("section_label") or str(row.get("section_key") or "").replace("-", " ").title(),
+            "Sessions": _count(row.get("sessions")),
+            "Avg scroll depth": f"{float(row.get('avg_scroll_depth') or 0):.0f}%" if row.get("avg_scroll_depth") is not None else "—",
+            "Avg visible time": _seconds(row.get("avg_visible_seconds")),
+            "Avg max scroll speed": f"{float(row.get('avg_max_scroll_velocity') or 0):.0f} px/s" if row.get("avg_max_scroll_velocity") is not None else "—",
+            "Avg reverse speed": f"{float(row.get('avg_max_reverse_scroll_velocity') or 0):.0f} px/s" if row.get("avg_max_reverse_scroll_velocity") is not None else "—",
+        })
+    if regions:
+        st.dataframe(regions, hide_index=True, use_container_width=True)
+    else:
+        st.info("Awaiting end-of-context reading-region events.")
+
+    st.subheader("Potential UX friction")
+    st.caption("Dead clicks are clicks on non-interactive/card-like surfaces. Rage clicks are repeated clicks in the same small area. These are diagnostic signals, not definitive evidence of frustration.")
+    signals = []
+    for row in behavior.get("ux_signals", []):
+        section_key = str(row.get("section_key") or "")
+        if kind == "article" and not section_key.startswith("article-"):
+            continue
+        if kind == "page" and section_key.startswith("article-"):
+            continue
+        signals.append({
+            "Signal": str(row.get("interaction_type") or "").replace("_", " ").title(),
+            "Page": content_label(str(row.get("page") or "")),
+            "Region": row.get("section_label") or section_key.replace("-", " ").title(),
+            "Sessions": _count(row.get("sessions")),
+            "Events": _count(row.get("events")),
+            "Error type": row.get("error_type") or "—",
+        })
+    if signals:
+        st.dataframe(signals, hide_index=True, use_container_width=True)
+    else:
+        st.info("No v2 UX-friction signals in this reporting window.")
+
+    st.subheader("Time to first interaction")
+    first = [{
+        "First action": str(row.get("interaction_type") or "").title(),
+        "Device": str(row.get("device_type") or "unknown").title(),
+        "Sessions": _count(row.get("sessions")),
+        "Median latency": _milliseconds(row.get("median_latency_ms")),
+        "P75 latency": _milliseconds(row.get("p75_latency_ms")),
+    } for row in behavior.get("first_interaction", [])]
+    if first:
+        st.dataframe(first, hide_index=True, use_container_width=True)
+    else:
+        st.info("Awaiting first-interaction telemetry.")
+
+
 def _render_experience(data: dict) -> None:
+    behavior = data.get("behavior", {})
+    vitals = {str(row.get("device_type") or "unknown"): row for row in behavior.get("web_vitals", [])}
+
     st.subheader("Technical experience by device")
-    st.caption("Browser-side document measurements: TTFB, largest-contentful-paint, cumulative layout shift and the maximum observed interaction-event duration. Small samples can move sharply; these show association with engagement, not causation.")
+    st.caption(
+        "Browser-side document measurements include TTFB, FCP, LCP, CLS and interaction timing. "
+        "INP is estimated from supported PerformanceEventTiming interaction IDs; browser support varies. "
+        "Small samples can move sharply and association does not prove causation."
+    )
     rows = []
-    for row in data.get("experience", []):
+    devices = {
+        str(row.get("device_type") or "unknown") for row in data.get("experience", [])
+    } | set(vitals)
+    existing = {str(row.get("device_type") or "unknown"): row for row in data.get("experience", [])}
+    for device in sorted(devices):
+        row = existing.get(device, {})
+        v2 = vitals.get(device, {})
         measured = _count(row.get("measured_sessions"))
         slow_lcp = _count(row.get("slow_lcp_sessions"))
         slow_lcp_engaged = _count(row.get("slow_lcp_engaged_sessions"))
         rows.append({
-            "Device": str(row.get("device_type") or "unknown").title(),
-            "Measured sessions": measured,
+            "Device": device.title(),
+            "Measured sessions": max(measured, _count(v2.get("fcp_sessions")), _count(v2.get("inp_sessions"))),
             "P75 TTFB": _milliseconds(row.get("p75_ttfb_ms")),
+            "P75 FCP": _milliseconds(v2.get("p75_fcp_ms")),
             "P75 LCP": _milliseconds(row.get("p75_lcp_ms")),
             "P75 CLS": row.get("p75_cls") if row.get("p75_cls") is not None else "—",
-            "P75 interaction": _milliseconds(row.get("p75_interaction_ms")),
+            "P75 INP estimate": _milliseconds(v2.get("p75_inp_ms")),
+            "P75 max interaction": _milliseconds(row.get("p75_interaction_ms")),
             "LCP >2.5s": _rate(slow_lcp, measured),
             "Engaged among slow-LCP": _rate(slow_lcp_engaged, slow_lcp),
             "CLS >0.1": _rate(row.get("unstable_cls_sessions"), measured),
-            "Interaction >200ms": _rate(row.get("slow_interaction_sessions"), measured),
         })
     if rows:
         st.dataframe(rows, hide_index=True, use_container_width=True)
     else:
-        st.info("Awaiting browser performance events from the new instrumentation.")
+        st.info("Awaiting browser performance events from the instrumentation.")
+
+    st.subheader("Browser context & attention interruptions")
+    summaries = [{
+        "Device": str(row.get("device_type") or "unknown").title(),
+        "Sessions": _count(row.get("sessions")),
+        "Avg focus losses": row.get("avg_focus_losses") if row.get("avg_focus_losses") is not None else "—",
+        "Avg resizes": row.get("avg_resizes") if row.get("avg_resizes") is not None else "—",
+        "Avg orientation changes": row.get("avg_orientation_changes") if row.get("avg_orientation_changes") is not None else "—",
+        "Avg logical cores": row.get("avg_logical_cores") if row.get("avg_logical_cores") is not None else "—",
+        "Avg device memory": f"{row.get('avg_device_memory_gb')} GB" if row.get("avg_device_memory_gb") is not None else "—",
+        "Data saver": _rate(row.get("save_data_sessions"), row.get("sessions")),
+    } for row in behavior.get("behavior_summary", [])]
+    if summaries:
+        st.dataframe(summaries, hide_index=True, use_container_width=True)
+    else:
+        st.info("Awaiting Components-v2 browser-context summaries.")
 
 
 def render_content_intelligence(kind: str, window: str) -> None:
@@ -338,8 +521,8 @@ def render_content_intelligence(kind: str, window: str) -> None:
     if kind == "page" and quality.get("legacy_thinking_views"):
         st.info(f"{quality['legacy_thinking_views']} historical Thinking views cannot be reliably separated into index and article visits. They remain in the established reports below.")
 
-    performance, exposure, paths, trends, acquisition, experience, health = st.tabs([
-        "Content performance", "Exposure & action", "Visitor paths", "Trends & topics",
+    performance, exposure, attention_ux, paths, trends, acquisition, experience, health = st.tabs([
+        "Content performance", "Exposure & action", "Attention & UX", "Visitor paths", "Trends & topics",
         "Source quality", "Technical experience", "Measurement health",
     ])
 
@@ -355,6 +538,9 @@ def render_content_intelligence(kind: str, window: str) -> None:
 
     with exposure:
         _render_exposure(data, kind)
+
+    with attention_ux:
+        _render_attention_ux(data, kind)
 
     with paths:
         _render_paths(data, kind)
@@ -388,11 +574,25 @@ def render_content_intelligence(kind: str, window: str) -> None:
     with health:
         content_sessions = _count(quality.get("content_sessions"))
         measured_v4 = _count(quality.get("attention_measured_content_sessions"))
+        behavior = data.get("behavior", {})
+        behavior_quality = behavior.get("quality", {})
         st.write(f"Last received event: {quality.get('last_event_at') or 'No events in window'}")
         st.write(f"Depth/timing measurement first seen: {quality.get('new_measurement_since') or 'Awaiting measured visitor events'}")
         st.write(f"Exposure/action measurement first seen: {quality.get('attention_measurement_since') or 'Awaiting v4 visitor events'}")
-        st.write(f"Content sessions with v4 instrumentation: {_rate(measured_v4, content_sessions)}")
-        st.caption("New exposure and browser-performance measurements are not backfilled. Missing historical measurements mean unavailable, not zero. Browser blocks, disabled JavaScript and failed requests can prevent collection. No persistent visitor profile is created.")
+        st.write(f"Components-v2 behavior first seen: {behavior_quality.get('behavior_first_seen') or 'Awaiting v5 visitor events'}")
+        st.write(f"Content sessions with v4+ instrumentation: {_rate(measured_v4, content_sessions)}")
+        st.write(
+            f"Components-v2 behavior events: {_count(behavior_quality.get('behavior_events'))} "
+            f"across {_count(behavior_quality.get('behavior_sessions'))} anonymous sessions"
+        )
+        if data.get("behavior_error"):
+            st.warning(f"Advanced behavior endpoint unavailable: {data['behavior_error']}")
+        st.caption(
+            "Attention, hesitation and browser-performance measurements are not backfilled. "
+            "Missing historical measurements mean unavailable, not zero. Browser blocks, disabled JavaScript "
+            "and failed requests can prevent collection. Coordinates are used only in-memory to detect repeated "
+            "nearby clicks and are never transmitted. No persistent visitor profile is created."
+        )
 
     st.caption(
         f"{data.get('period_label', window)} · since {data.get('period_since', '—')} · "

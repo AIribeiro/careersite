@@ -191,7 +191,7 @@ def inject_article_analytics(
       article_slug: effectiveSlug ? String(effectiveSlug).slice(0, 160) : null,
       article_action: action ? String(action).slice(0, 32) : null,
       content_kind: win.__jairArticleContext ? 'article' : 'page',
-      tracking_version: 4,
+      tracking_version: 5,
       scroll_depth: win.__jairAnalyticsScrollDepth ? win.__jairAnalyticsScrollDepth() : null,
       article_engaged_ms: effectiveSlug ? Math.min(86400000, Math.max(0, articleMs)) : null,
     }};

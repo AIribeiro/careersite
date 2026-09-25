@@ -34,6 +34,11 @@ ALLOWED_EVENTS = (
     "linkedin_click",
     "article_click",
     "engagement_ping",
+    "element_impression",
+    "article_card_click",
+    "cta_click",
+    "section_view",
+    "performance_metric",
 )
 LENS_PAGES = ("enterprise", "transformation", "governance", "consulting")
 RECOMMENDED_ATTRIBUTION_SOURCES = (
@@ -227,6 +232,152 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   win.__jairAnalyticsScrollDepth = scrollDepth;
   win.__jairAnalyticsClientContext = clientContext;
 
+  const safeText = (value, limit = 240) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, limit);
+  const keyify = (value) => safeText(value, 160).toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 160);
+
+  const sectionDescriptor = (section) => {{
+    if (!section) return null;
+    let label = '';
+    try {{
+      const heading = section.querySelector('.eyebrow, h1, h2, h3');
+      label = safeText(heading && heading.textContent);
+    }} catch (_) {{}}
+    let index = 0;
+    try {{
+      index = Math.max(0, Array.from(doc.querySelectorAll('main section')).indexOf(section));
+    }} catch (_) {{}}
+    const key = keyify(section.dataset && section.dataset.analyticsSection)
+      || keyify(label)
+      || `section-${{index + 1}}`;
+    return {{ key, label: label || key.replace(/-/g, ' ') }};
+  }};
+
+  const placementFor = (el) => {{
+    try {{
+      if (el.closest('nav')) return 'header';
+      if (el.closest('footer')) return 'footer';
+      const section = el.closest('section');
+      if (section) {{
+        const className = String(section.className || '');
+        if (win.__jairArticleContext && /(^|\s)cta(\s|$)/.test(className)) return 'article_footer';
+        const desc = sectionDescriptor(section);
+        if (desc) return `${{page}}:${{desc.key}}`;
+      }}
+    }} catch (_) {{}}
+    return page;
+  }};
+
+  const articleCardDescriptor = (el) => {{
+    if (!el || !el.getAttribute) return null;
+    const raw = String((el.dataset && el.dataset.hqEvent) || '').toLowerCase();
+    if (raw.startsWith('article_share_')) return null;
+    const href = String(el.getAttribute('href') || '');
+    let slug = '';
+    try {{ slug = new URL(href, win.location.href).searchParams.get('article') || ''; }} catch (_) {{}}
+    let isCard = Boolean(slug);
+    try {{
+      isCard = isCard || el.matches('a.recent-card, a.article') ||
+        Boolean(el.closest('.featured-thinking, .decision-note') && raw.includes('open'));
+    }} catch (_) {{}}
+    if (!isCard) return null;
+    let label = safeText(el.textContent);
+    try {{
+      const heading = el.querySelector('h2, h3') || (el.closest('article') && el.closest('article').querySelector('h2, h3'));
+      label = safeText(heading && heading.textContent) || label;
+    }} catch (_) {{}}
+    return {{
+      element_kind: 'article_card',
+      element_key: safeText(slug,160) || keyify(label) || keyify(href) || 'article',
+      element_label: label || safeText(slug,240) || 'Article',
+      element_placement: placementFor(el),
+    }};
+  }};
+
+  const ctaDescriptor = (el) => {{
+    if (!el || !el.getAttribute || articleCardDescriptor(el)) return null;
+    const raw = String((el.dataset && el.dataset.hqEvent) || '').toLowerCase();
+    if (raw.startsWith('article_share_')) return null;
+    const href = String(el.getAttribute('href') || '');
+    let qualifies = false;
+    try {{ qualifies = el.matches('a.btn, a.contactlink, footer a[data-hq-event]'); }} catch (_) {{}}
+    qualifies = qualifies || /^(cv_download|contact_|email_|linkedin_|impact_|medium_)/.test(raw);
+    if (!qualifies) return null;
+    let key = raw || keyify(el.textContent) || 'cta';
+    if (raw.startsWith('cv_download')) key = 'cv';
+    else if (raw.startsWith('contact_') || raw.startsWith('email_') || href.toLowerCase().startsWith('mailto:')) key = 'contact';
+    else if (raw.startsWith('linkedin_') || href.toLowerCase().includes('linkedin.com')) key = 'linkedin';
+    else if (raw.startsWith('impact_')) key = 'impact';
+    else if (raw.startsWith('medium_')) key = 'medium';
+    return {{
+      element_kind: 'cta',
+      element_key: safeText(key,160),
+      element_label: safeText(el.textContent) || key,
+      element_placement: placementFor(el),
+    }};
+  }};
+
+  win.__jairAnalyticsDescribeArticleCard = articleCardDescriptor;
+  win.__jairAnalyticsDescribeCta = ctaDescriptor;
+
+  const markAndSendExposure = (eventName, descriptor) => {{
+    if (!descriptor || !win.__jairAnalyticsSend) return;
+    const kind = descriptor.element_kind || 'section';
+    const elementKey = descriptor.element_key || descriptor.section_key || 'unknown';
+    const placement = descriptor.element_placement || page;
+    const seenKey = `jair_hq_seen_v4:${{sessionId}}:${{eventName}}:${{kind}}:${{elementKey}}:${{placement}}`;
+    if (win.sessionStorage.getItem(seenKey)) return;
+    win.sessionStorage.setItem(seenKey, '1');
+    win.__jairAnalyticsSend(eventName, descriptor);
+  }};
+
+  const refreshExposures = () => {{
+    if (win.__jairAnalyticsExposureObservers) {{
+      for (const observer of win.__jairAnalyticsExposureObservers) {{
+        try {{ observer.disconnect(); }} catch (_) {{}}
+      }}
+    }}
+    win.__jairAnalyticsExposureObservers = [];
+    if (!win.IntersectionObserver || !doc.querySelectorAll) return;
+
+    const sectionObserver = new win.IntersectionObserver((entries) => {{
+      for (const entry of entries) {{
+        if (!entry.isIntersecting || entry.intersectionRatio < 0.15) continue;
+        const desc = sectionDescriptor(entry.target);
+        if (desc) markAndSendExposure('section_view', {{
+          section_key: desc.key,
+          section_label: desc.label,
+          element_placement: page,
+        }});
+        sectionObserver.unobserve(entry.target);
+      }}
+    }}, {{ threshold: [0.15] }});
+    for (const section of doc.querySelectorAll('main section')) sectionObserver.observe(section);
+    win.__jairAnalyticsExposureObservers.push(sectionObserver);
+
+    const elementObserver = new win.IntersectionObserver((entries) => {{
+      for (const entry of entries) {{
+        if (!entry.isIntersecting || entry.intersectionRatio < 0.5) continue;
+        const article = articleCardDescriptor(entry.target);
+        const cta = article ? null : ctaDescriptor(entry.target);
+        if (article) markAndSendExposure('element_impression', article);
+        else if (cta) markAndSendExposure('element_impression', cta);
+        elementObserver.unobserve(entry.target);
+      }}
+    }}, {{ threshold: [0.5] }});
+
+    const candidates = doc.querySelectorAll(
+      'a[href*="article="], a.recent-card, a.article, .featured-thinking a, .decision-note a, ' +
+      'a.btn, a.contactlink, footer a[data-hq-event], a[data-hq-event^="cv_download"], ' +
+      'a[data-hq-event^="contact_"], a[data-hq-event^="email_"], a[data-hq-event^="linkedin_"], a[data-hq-event^="impact_"]'
+    );
+    for (const el of candidates) {{
+      if (articleCardDescriptor(el) || ctaDescriptor(el)) elementObserver.observe(el);
+    }}
+    win.__jairAnalyticsExposureObservers.push(elementObserver);
+  }};
+  win.__jairAnalyticsRefreshExposures = refreshExposures;
+
   const updateEngagement = () => {{
     const state = win.__jairAnalyticsEngagementState;
     if (!state) return;
@@ -275,9 +426,17 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       ...clientContext(),
       article_slug: win.__jairArticleContext ? win.__jairArticleContext.slug : null,
       content_kind: win.__jairArticleContext ? 'article' : 'page',
-      tracking_version: 3,
+      tracking_version: 4,
       page_engaged_ms: Math.round(pageEngagedMs),
       scroll_depth: scrollDepth(),
+      element_kind: extra.element_kind ? safeText(extra.element_kind, 32) : null,
+      element_key: extra.element_key ? safeText(extra.element_key, 160) : null,
+      element_label: extra.element_label ? safeText(extra.element_label, 240) : null,
+      element_placement: extra.element_placement ? safeText(extra.element_placement, 160) : null,
+      section_key: extra.section_key ? safeText(extra.section_key, 160) : null,
+      section_label: extra.section_label ? safeText(extra.section_label, 240) : null,
+      metric_name: extra.metric_name ? safeText(extra.metric_name, 32) : null,
+      metric_value: extra.metric_value == null ? null : Math.max(0, Math.min(10000000, Number(extra.metric_value) || 0)),
     }};
 
     fetch(endpoint, {{
@@ -325,6 +484,68 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       win.__jairAnalyticsSend('lens_view', {{ lens: win.__jairAnalyticsContext.page }});
     }}
   }};
+
+  if (win.__jairAnalyticsRefreshExposures) {{
+    win.setTimeout(() => win.__jairAnalyticsRefreshExposures && win.__jairAnalyticsRefreshExposures(), 0);
+  }}
+
+  if (!win.__jairAnalyticsPerformanceBound) {{
+    win.__jairAnalyticsPerformanceBound = true;
+    const perf = {{ ttfb_ms: null, lcp_ms: null, cls: 0, interaction_ms: 0 }};
+    win.__jairAnalyticsPerformanceState = perf;
+    const sendMetric = (metricName, value) => {{
+      if (value == null || !Number.isFinite(Number(value)) || !win.__jairAnalyticsSend) return;
+      win.__jairAnalyticsSend('performance_metric', {{
+        metric_name: metricName,
+        metric_value: Number(value),
+        element_placement: 'document',
+      }});
+    }};
+    const sendPerformanceSnapshot = () => {{
+      if (perf.ttfb_ms != null) sendMetric('ttfb_ms', Math.round(perf.ttfb_ms));
+      if (perf.lcp_ms != null) sendMetric('lcp_ms', Math.round(perf.lcp_ms));
+      sendMetric('cls', Number(perf.cls.toFixed(4)));
+      if (perf.interaction_ms > 0) sendMetric('interaction_ms', Math.round(perf.interaction_ms));
+    }};
+    win.__jairAnalyticsSendPerformance = sendPerformanceSnapshot;
+
+    try {{
+      const navEntry = win.performance && win.performance.getEntriesByType
+        ? win.performance.getEntriesByType('navigation')[0]
+        : null;
+      if (navEntry && Number.isFinite(navEntry.responseStart)) perf.ttfb_ms = Math.max(0, navEntry.responseStart);
+    }} catch (_) {{}}
+
+    if (win.PerformanceObserver) {{
+      try {{
+        const lcpObserver = new win.PerformanceObserver((list) => {{
+          for (const entry of list.getEntries()) perf.lcp_ms = Math.max(perf.lcp_ms || 0, Number(entry.startTime || 0));
+        }});
+        lcpObserver.observe({{ type: 'largest-contentful-paint', buffered: true }});
+      }} catch (_) {{}}
+      try {{
+        const clsObserver = new win.PerformanceObserver((list) => {{
+          for (const entry of list.getEntries()) {{
+            if (!entry.hadRecentInput) perf.cls += Number(entry.value || 0);
+          }}
+        }});
+        clsObserver.observe({{ type: 'layout-shift', buffered: true }});
+      }} catch (_) {{}}
+      try {{
+        const interactionObserver = new win.PerformanceObserver((list) => {{
+          for (const entry of list.getEntries()) {{
+            perf.interaction_ms = Math.max(perf.interaction_ms, Number(entry.duration || 0));
+          }}
+        }});
+        interactionObserver.observe({{ type: 'event', buffered: true, durationThreshold: 40 }});
+      }} catch (_) {{}}
+    }}
+
+    win.setTimeout(() => win.__jairAnalyticsSendPerformance && win.__jairAnalyticsSendPerformance(), 5000);
+    win.addEventListener('pagehide', () => {{
+      if (win.__jairAnalyticsSendPerformance) win.__jairAnalyticsSendPerformance();
+    }});
+  }}
 
   if (!win.__jairAnalyticsEngagementBound) {{
     win.__jairAnalyticsEngagementBound = true;
@@ -387,6 +608,17 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       if (!el) return;
 
       const raw = String(el.dataset.hqEvent || '').toLowerCase();
+      const articleDescriptor = win.__jairAnalyticsDescribeArticleCard
+        ? win.__jairAnalyticsDescribeArticleCard(el)
+        : null;
+      const ctaDescriptor = win.__jairAnalyticsDescribeCta
+        ? win.__jairAnalyticsDescribeCta(el)
+        : null;
+      if (articleDescriptor && win.__jairAnalyticsSend) {{
+        win.__jairAnalyticsSend('article_card_click', articleDescriptor);
+      }} else if (ctaDescriptor && win.__jairAnalyticsSend) {{
+        win.__jairAnalyticsSend('cta_click', ctaDescriptor);
+      }}
       if (raw.startsWith('article_share_')) return;
       try {{
         if (new URL(el.getAttribute('href') || '', win.location.href).searchParams.has('article')) return;

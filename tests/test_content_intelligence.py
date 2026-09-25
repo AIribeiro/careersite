@@ -6,7 +6,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 
-from page_content_intelligence import performance_rows, export_csv
+from page_content_intelligence import performance_rows, export_csv, _rate, _change
 
 
 class ContentIntelligenceTests(unittest.TestCase):
@@ -20,6 +20,11 @@ class ContentIntelligenceTests(unittest.TestCase):
         self.assertEqual(result['Reached 90%'], '—')
         self.assertIsNone(result['Deep reads ≥30s + 90%'])
         self.assertEqual(performance_rows({'performance': [row]}, 'article'), [])
+
+    def test_rates_always_show_counts(self):
+        self.assertEqual(_rate(2, 8), "25.0% (2 of 8)")
+        self.assertEqual(_rate(0, 0), "—")
+        self.assertEqual(_change(6, 4), "+50.0% (6 vs 4)")
 
     def test_csv_neutralizes_campaign_formulas(self):
         self.assertIn("'=HYPERLINK", export_csv([{'Campaign': '=HYPERLINK("x")'}]))

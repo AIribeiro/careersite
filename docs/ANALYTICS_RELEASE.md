@@ -48,3 +48,21 @@ for duplicate suppression, visible time, depth retention and share exclusion.
 Database inserts and article-to-portfolio-to-CV fixtures were tested inside
 rolled-back transactions. Revert the application commit to roll back the UI;
 the additive columns and aggregate RPC may safely remain.
+
+
+## Attention → action layer
+
+The next additive layer starts with tracking version 4 and keeps all earlier reports.
+
+- Article-card CTR uses card-visible sessions as the denominator.
+- CTA CTR is split by placement and uses CTA-visible sessions as the denominator.
+- Section reach uses page-viewing sessions as the denominator.
+- Article reading progression now reports 25%, 50%, 75% and 90% exposure.
+- Ordered Article → Leadership Impact → CV progression is separate from independent stage reach.
+- Multi-article reading, time to first meaningful action, topic performance, equal-duration period comparison and first-seven-day publication performance are reported.
+- Browser-side TTFB, LCP, CLS and maximum observed interaction duration are grouped by device so technical experience can be compared with engagement.
+- Every displayed rate includes the underlying counts.
+
+The additive database script is `sql/analytics_attention_action.sql`. It creates the v2 aggregate RPC while leaving the established aggregate RPC in place. Article metadata is supplied by the dashboard for aggregate topic/publication-age analysis; it is not used to create visitor profiles.
+
+Exposure uses browser `IntersectionObserver`: sections count at 15% visibility and cards/CTAs at 50% visibility, once per anonymous tab session and placement. Performance measurements are document-level; Streamlit rerenders can share one browser navigation timing. Technical correlations are descriptive, not causal.

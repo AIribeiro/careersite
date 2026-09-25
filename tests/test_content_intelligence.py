@@ -18,7 +18,7 @@ class ContentIntelligenceTests(unittest.TestCase):
                    later_contact_sessions=0, later_portfolio_sessions=0)
         result = performance_rows({'performance': [row]}, 'page')[0]
         self.assertEqual(result['Reached 90%'], '—')
-        self.assertIsNone(result['Deep reads ≥30s + 90%'])
+        self.assertEqual(result['Deep reads ≥30s + 90%'], '—')
         self.assertEqual(performance_rows({'performance': [row]}, 'article'), [])
 
     def test_rates_always_show_counts(self):

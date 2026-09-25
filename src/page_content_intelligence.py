@@ -112,7 +112,7 @@ def performance_rows(data: dict, kind: str) -> list[dict]:
             "Reached 50%": _rate(row.get("halfway_sessions"), depth_n),
             "Reached 75%": _rate(row.get("three_quarter_sessions"), depth_n),
             "Reached 90%": _rate(row.get("bottom_sessions"), depth_n),
-            "Deep read ≥30s + 90%": _rate(row.get("deep_read_sessions"), depth_n),
+            "Deep reads ≥30s + 90%": _rate(row.get("deep_read_sessions"), depth_n),
             "Share rate": _rate(row.get("sharing_sessions"), sessions),
             "Later portfolio": _rate(row.get("later_portfolio_sessions"), sessions),
             "Later CV": _rate(row.get("later_cv_sessions"), sessions),

@@ -47,6 +47,8 @@ export default function({ data }) {
     flushTimer: null,
     articleTimer: null,
     performanceTimer: null,
+    summaryTimer: null,
+    lastSummaryAt: 0,
     firstInteractionSent: false,
     firstInteractionType: null,
     focusLossCount: 0,
@@ -231,6 +233,23 @@ export default function({ data }) {
     });
   };
 
+  const sendElementExposureOnce = (descriptor) => {
+    if (!descriptor) return;
+    const sid = sessionId();
+    const seenKey = [
+      'jair_hq_behavior_element_v5',
+      sid,
+      state.page,
+      state.articleSlug,
+      descriptor.element_kind || 'element',
+      descriptor.element_key || 'unknown',
+      descriptor.element_placement || state.page,
+    ].join(':');
+    if (win.sessionStorage.getItem(seenKey)) return;
+    win.sessionStorage.setItem(seenKey, '1');
+    send('element_impression', descriptor);
+  };
+
   const tickArticleRegion = () => {
     if (!state.articleSlug || doc.visibilityState !== 'visible') return;
     const descriptor = currentSectionDescriptor();
@@ -303,7 +322,10 @@ export default function({ data }) {
         accrueSection(record, at);
         record.isVisible = visible;
         record.visibleSince = visible && doc.visibilityState === 'visible' ? at : null;
-        if (visible) record.exposureCount += 1;
+        if (visible) {
+          record.exposureCount += 1;
+          sendSectionViewOnce(descriptor);
+        }
       }
     }, { threshold: [0, 0.15, 0.5] });
 
@@ -325,6 +347,7 @@ export default function({ data }) {
         if (visible) {
           record.exposureCount += 1;
           if (record.firstSeenAt == null) record.firstSeenAt = Date.now();
+          sendElementExposureOnce(descriptor);
         }
         bindHover(entry.target, record);
       }
@@ -474,14 +497,18 @@ export default function({ data }) {
     });
   };
 
-  const sendSummary = () => {
-    send('behavior_summary', {
+  const sendSummary = (force = false) => {
+    const now = Date.now();
+    if (!force && state.lastSummaryAt && now - state.lastSummaryAt < 15000) return;
+    if (send('behavior_summary', {
       focus_loss_count: state.focusLossCount,
       resize_count: state.resizeCount,
       orientation_change_count: state.orientationChangeCount,
       max_scroll_velocity: Math.round(state.maxScrollVelocity),
       max_reverse_scroll_velocity: Math.round(state.maxReverseScrollVelocity),
-    });
+    })) {
+      state.lastSummaryAt = now;
+    }
   };
 
   const sendFcp = (value) => {
@@ -545,7 +572,7 @@ export default function({ data }) {
     tickArticleRegion();
     flushAttention();
     sendInp();
-    sendSummary();
+    sendSummary(true);
     if (abandonment) sendAbandonment();
   };
 
@@ -570,6 +597,7 @@ export default function({ data }) {
     state.focusLossCount = 0;
     state.resizeCount = 0;
     state.orientationChangeCount = 0;
+    state.lastSummaryAt = 0;
     state.maxScrollVelocity = 0;
     state.maxReverseScrollVelocity = 0;
     state.lastScrollY = Number(win.scrollY || 0);
@@ -596,6 +624,7 @@ export default function({ data }) {
     if (site) state.mutationObserver.observe(site, { childList: true, subtree: true });
 
     state.flushTimer = win.setInterval(flushAttention, 15000);
+    state.summaryTimer = win.setInterval(() => sendSummary(false), 15000);
     state.articleTimer = win.setInterval(tickArticleRegion, 750);
 
     win.addEventListener('scroll', handleScroll, { passive: true });
@@ -609,6 +638,9 @@ export default function({ data }) {
         state.focusLossCount += 1;
         for (const record of state.sectionRecords.values()) accrueSection(record, at);
         for (const record of state.elementRecords.values()) accrueElement(record, at);
+        flushAttention();
+        sendInp();
+        sendSummary(true);
       } else {
         for (const record of state.sectionRecords.values()) {
           if (record.isVisible) record.visibleSince = at;

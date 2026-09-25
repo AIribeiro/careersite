@@ -232,7 +232,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   win.__jairAnalyticsScrollDepth = scrollDepth;
   win.__jairAnalyticsClientContext = clientContext;
 
-  const safeText = (value, limit = 240) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, limit);
+  const safeText = (value, limit = 240) => String(value || '').replace(/\\s+/g, ' ').trim().slice(0, limit);
   const keyify = (value) => safeText(value, 160).toLowerCase()
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 160);
 
@@ -260,7 +260,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       const section = el.closest('section');
       if (section) {{
         const className = String(section.className || '');
-        if (win.__jairArticleContext && /(^|\s)cta(\s|$)/.test(className)) return 'article_footer';
+        if (win.__jairArticleContext && /(^|\\s)cta(\\s|$)/.test(className)) return 'article_footer';
         const desc = sectionDescriptor(section);
         if (desc) return `${{page}}:${{desc.key}}`;
       }}

@@ -149,49 +149,374 @@ def export_csv(rows: list[dict]) -> str:
     return output.getvalue()
 
 
+
+def _number(value: object) -> float | None:
+    try:
+        if value is None:
+            return None
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _chart_height(count: int, *, per_row: int = 34, minimum: int = 260, maximum: int = 720) -> int:
+    return max(minimum, min(maximum, per_row * max(1, count)))
+
+
+def _exact_metrics(title: str, rows: list[dict]) -> None:
+    if not rows:
+        return
+    with st.expander(title, expanded=False):
+        st.dataframe(rows, hide_index=True, use_container_width=True)
+
+
+def _rate_heatmap(rows: list[dict], label_field: str, metrics: tuple[str, ...], title: str) -> None:
+    values: list[dict] = []
+    for row in rows:
+        for metric in metrics:
+            value = row.get(metric)
+            if value is None:
+                continue
+            values.append({
+                "Label": row.get(label_field) or "Unknown",
+                "Metric": metric,
+                "Rate": float(value),
+                "Rate label": f"{float(value):.1f}%",
+            })
+    if not values:
+        return
+
+    order = [str(row.get(label_field) or "Unknown") for row in rows]
+    base = (
+        alt.Chart(alt.Data(values=values))
+        .encode(
+            x=alt.X("Metric:N", title=None, sort=list(metrics), axis=alt.Axis(labelAngle=-25)),
+            y=alt.Y("Label:N", title=None, sort=order, axis=alt.Axis(labelLimit=320)),
+            tooltip=[
+                alt.Tooltip("Label:N"),
+                alt.Tooltip("Metric:N"),
+                alt.Tooltip("Rate:Q", title="Rate", format=".1f"),
+            ],
+        )
+    )
+    heat = base.mark_rect(cornerRadius=3).encode(
+        color=alt.Color("Rate:Q", title="Rate %", scale=alt.Scale(scheme="blues"))
+    )
+    labels = base.mark_text(fontSize=11).encode(
+        text="Rate label:N",
+        color=alt.condition("datum.Rate >= 55", alt.value("white"), alt.value("#0f172a")),
+    )
+    st.altair_chart(
+        (heat + labels).properties(height=_chart_height(len(rows), per_row=38), title=title),
+        use_container_width=True,
+    )
+
+
+def _content_visual_rows(data: dict, kind: str) -> list[dict]:
+    rows: list[dict] = []
+    for row in data.get("performance", []):
+        if row.get("kind") != kind:
+            continue
+        sessions = _count(row.get("sessions"))
+        depth = _count(row.get("depth_measured_sessions"))
+        rows.append({
+            "Content": _article_title(row["content"]) if kind == "article" else content_label(row["content"]),
+            "Views": _count(row.get("views")),
+            "Sessions": sessions,
+            "Avg visible seconds": _number(row.get("avg_active_seconds")),
+            "Engaged": _percentage(row.get("engaged_sessions"), sessions),
+            "Reached 25": _percentage(row.get("quarter_sessions"), depth),
+            "Reached 50": _percentage(row.get("halfway_sessions"), depth),
+            "Reached 75": _percentage(row.get("three_quarter_sessions"), depth),
+            "Reached 90": _percentage(row.get("bottom_sessions"), depth),
+            "Deep read": _percentage(row.get("deep_read_sessions"), depth),
+            "Share": _percentage(row.get("sharing_sessions"), sessions),
+            "Later portfolio": _percentage(row.get("later_portfolio_sessions"), sessions),
+            "Later CV": _percentage(row.get("later_cv_sessions"), sessions),
+            "Later contact": _percentage(row.get("later_contact_sessions"), sessions),
+        })
+    return rows
+
+
+def _render_content_performance(data: dict, kind: str, window: str, prefix: str) -> None:
+    exact_rows = performance_rows(data, kind)
+    visual_rows = _content_visual_rows(data, kind)
+    st.subheader("Reading progression & downstream action" if kind == "article" else "Page attention & downstream action")
+    st.caption(
+        "Visual time and scroll exposure are behavioral proxies, not proof of attention or comprehension. "
+        "Rates remain exposure-based; hover any mark for the underlying values."
+    )
+    if not visual_rows:
+        st.info("No measured content views in this reporting window.")
+        return
+
+    total_views = sum(_count(row.get("Views")) for row in visual_rows)
+    total_content_sessions = sum(_count(row.get("Sessions")) for row in visual_rows)
+    timed = [row["Avg visible seconds"] for row in visual_rows if row.get("Avg visible seconds") is not None]
+    k1, k2, k3 = st.columns(3)
+    k1.metric("Content views", total_views)
+    k2.metric("Content-view sessions", total_content_sessions)
+    k3.metric("Median content visible time", _seconds(sorted(timed)[len(timed) // 2]) if timed else "—")
+
+    bubble_rows = [row for row in visual_rows if row.get("Avg visible seconds") is not None and row.get("Engaged") is not None]
+    if bubble_rows:
+        bubble = (
+            alt.Chart(alt.Data(values=bubble_rows))
+            .mark_circle(opacity=0.84, stroke="white", strokeWidth=1.5)
+            .encode(
+                x=alt.X("Sessions:Q", title="Content-view sessions", axis=alt.Axis(tickMinStep=1)),
+                y=alt.Y("Avg visible seconds:Q", title="Average visible time (seconds)", scale=alt.Scale(zero=True)),
+                size=alt.Size("Views:Q", title="Views", scale=alt.Scale(range=[180, 1800])),
+                color=alt.Color("Engaged:Q", title="Engaged ≥10s %", scale=alt.Scale(scheme="blues")),
+                tooltip=[
+                    alt.Tooltip("Content:N"),
+                    alt.Tooltip("Views:Q", format=","),
+                    alt.Tooltip("Sessions:Q", format=","),
+                    alt.Tooltip("Avg visible seconds:Q", title="Avg visible seconds", format=".1f"),
+                    alt.Tooltip("Engaged:Q", title="Engaged ≥10s", format=".1f"),
+                    alt.Tooltip("Reached 75:Q", title="Reached 75%", format=".1f"),
+                    alt.Tooltip("Later CV:Q", title="Later CV", format=".1f"),
+                    alt.Tooltip("Later contact:Q", title="Later contact", format=".1f"),
+                ],
+            )
+            .properties(height=410, title="Attention landscape")
+            .interactive()
+        )
+        st.altair_chart(bubble, use_container_width=True)
+
+    _rate_heatmap(
+        visual_rows,
+        "Content",
+        ("Engaged", "Reached 25", "Reached 50", "Reached 75", "Reached 90", "Deep read"),
+        "Reading progression by content (%)",
+    )
+    _rate_heatmap(
+        visual_rows,
+        "Content",
+        ("Share", "Later portfolio", "Later CV", "Later contact"),
+        "Downstream action by content (%)",
+    )
+
+    _exact_metrics("Exact content-performance metrics", exact_rows)
+    st.download_button(
+        "Download content report (CSV)",
+        export_csv(exact_rows),
+        file_name=f"{prefix}-analytics-{window}.csv",
+        mime="text/csv",
+    )
+
+
+def _campaign_visual_rows(data: dict) -> list[dict]:
+    rows: list[dict] = []
+    for row in data.get("campaigns", []):
+        sessions = _count(row.get("sessions"))
+        source = row.get("channel") or "direct/unknown"
+        campaign = row.get("campaign") or "untagged"
+        rows.append({
+            "Source / campaign": f"{source} · {campaign}",
+            "Source": source,
+            "Campaign": campaign,
+            "Sessions": sessions,
+            "Reader sessions": _count(row.get("reader_sessions")),
+            "Reader": _percentage(row.get("reader_sessions"), sessions),
+            "Engaged": _percentage(row.get("engaged_sessions"), sessions),
+            "CV": _percentage(row.get("cv_sessions"), sessions),
+            "Contact": _percentage(row.get("contact_sessions"), sessions),
+        })
+    return rows
+
+
+def _render_source_quality(data: dict) -> None:
+    st.subheader("Which sources bring attention and action?")
+    st.caption(
+        "Whole-site session cohorts using the first observed source/campaign in the window. "
+        "Charts show quality and action rates alongside volume; low-volume cohorts can move sharply."
+    )
+    visual_rows = _campaign_visual_rows(data)
+    if not visual_rows:
+        st.info("No source activity in this window.")
+        return
+
+    bubble_rows = [row for row in visual_rows if row.get("Engaged") is not None]
+    if bubble_rows:
+        bubble = (
+            alt.Chart(alt.Data(values=bubble_rows))
+            .mark_circle(opacity=0.84, stroke="white", strokeWidth=1.5)
+            .encode(
+                x=alt.X("Sessions:Q", title="Sessions", axis=alt.Axis(tickMinStep=1)),
+                y=alt.Y("Engaged:Q", title="Engaged session rate (%)", scale=alt.Scale(zero=True)),
+                size=alt.Size("Reader sessions:Q", title="Reader sessions", scale=alt.Scale(range=[180, 1700])),
+                color=alt.Color("Contact:Q", title="Contact rate %", scale=alt.Scale(scheme="blues")),
+                tooltip=[
+                    alt.Tooltip("Source:N"),
+                    alt.Tooltip("Campaign:N"),
+                    alt.Tooltip("Sessions:Q", format=","),
+                    alt.Tooltip("Reader:Q", title="Reader rate", format=".1f"),
+                    alt.Tooltip("Engaged:Q", title="Engaged rate", format=".1f"),
+                    alt.Tooltip("CV:Q", title="CV rate", format=".1f"),
+                    alt.Tooltip("Contact:Q", title="Contact rate", format=".1f"),
+                ],
+            )
+            .properties(height=410, title="Source quality: volume vs engagement")
+            .interactive()
+        )
+        st.altair_chart(bubble, use_container_width=True)
+
+    _rate_heatmap(
+        visual_rows,
+        "Source / campaign",
+        ("Reader", "Engaged", "CV", "Contact"),
+        "Source-to-action heatmap (%)",
+    )
+
+    exact = [{
+        "Source": row["Source"],
+        "Campaign / role": row["Campaign"],
+        "Sessions": row["Sessions"],
+        "Reader rate": _rate(
+            next((raw.get("reader_sessions") for raw in data.get("campaigns", [])
+                  if (raw.get("channel") or "direct/unknown") == row["Source"]
+                  and (raw.get("campaign") or "untagged") == row["Campaign"]), 0),
+            row["Sessions"],
+        ),
+        "Engaged rate": f"{row['Engaged']:.1f}% ({round(row['Engaged'] * row['Sessions'] / 100)} of {row['Sessions']})" if row["Engaged"] is not None else "—",
+        "CV rate": f"{row['CV']:.1f}% ({round(row['CV'] * row['Sessions'] / 100)} of {row['Sessions']})" if row["CV"] is not None else "—",
+        "Contact rate": f"{row['Contact']:.1f}% ({round(row['Contact'] * row['Sessions'] / 100)} of {row['Sessions']})" if row["Contact"] is not None else "—",
+    } for row in visual_rows]
+    _exact_metrics("Exact source-quality metrics", exact)
+
+
+
 def _render_exposure(data: dict, kind: str) -> None:
     if kind == "article":
         st.subheader("Article-card click-through")
-        st.caption("The denominator is sessions where the specific card was at least 50% visible. A click is counted only for an exposed card in the same session.")
-        cards = [{
-            "Article / card": row.get("label") or row.get("element_key"),
-            "Placement": row.get("placement"),
+        st.caption(
+            "The denominator is sessions where the specific card was at least 50% visible. "
+            "A click is counted only for an exposed card in the same session."
+        )
+        raw_cards = data.get("article_cards", [])
+        card_visual = [{
+            "Article / card": row.get("label") or row.get("element_key") or "Article",
+            "Placement": row.get("placement") or "unknown",
             "Exposed sessions": _count(row.get("exposed_sessions")),
             "Click sessions": _count(row.get("click_sessions")),
-            "CTR": _rate(row.get("click_sessions"), row.get("exposed_sessions")),
-        } for row in data.get("article_cards", [])]
-        if cards:
-            st.dataframe(cards, hide_index=True, use_container_width=True)
+            "CTR": _percentage(row.get("click_sessions"), row.get("exposed_sessions")),
+        } for row in raw_cards]
+        if card_visual:
+            chart_rows = [row for row in card_visual if row.get("CTR") is not None]
+            if chart_rows:
+                chart = (
+                    alt.Chart(alt.Data(values=chart_rows))
+                    .mark_bar(cornerRadiusEnd=6)
+                    .encode(
+                        x=alt.X("CTR:Q", title="Click-through rate (%)", scale=alt.Scale(domain=[0, 100])),
+                        y=alt.Y("Article / card:N", title=None, sort="-x", axis=alt.Axis(labelLimit=320)),
+                        color=alt.Color("Placement:N", title="Placement"),
+                        tooltip=[
+                            alt.Tooltip("Article / card:N"),
+                            alt.Tooltip("Placement:N"),
+                            alt.Tooltip("Exposed sessions:Q", format=","),
+                            alt.Tooltip("Click sessions:Q", format=","),
+                            alt.Tooltip("CTR:Q", format=".1f"),
+                        ],
+                    )
+                    .properties(height=_chart_height(len(chart_rows)), title="Article-card CTR")
+                )
+                st.altair_chart(chart, use_container_width=True)
+            exact = [{
+                "Article / card": row["Article / card"],
+                "Placement": row["Placement"],
+                "Exposed sessions": row["Exposed sessions"],
+                "Click sessions": row["Click sessions"],
+                "CTR": _rate(row["Click sessions"], row["Exposed sessions"]),
+            } for row in card_visual]
+            _exact_metrics("Exact article-card CTR metrics", exact)
         else:
             st.info("Awaiting article-card exposure events from the new instrumentation.")
 
     st.subheader("CTA performance by placement")
     st.caption("Header, content-section, article-footer and footer CTAs are measured against sessions that actually saw each CTA.")
-    ctas = [{
+    cta_visual = [{
         "CTA": str(row.get("element_key") or "cta").replace("_", " ").title(),
         "Label": row.get("label") or "—",
         "Placement": row.get("placement") or "—",
         "Exposed sessions": _count(row.get("exposed_sessions")),
         "Click sessions": _count(row.get("click_sessions")),
-        "CTR": _rate(row.get("click_sessions"), row.get("exposed_sessions")),
+        "CTR": _percentage(row.get("click_sessions"), row.get("exposed_sessions")),
     } for row in data.get("cta_placements", [])]
-    if ctas:
-        st.dataframe(ctas, hide_index=True, use_container_width=True)
+    if cta_visual:
+        chart_rows = [row for row in cta_visual if row.get("CTR") is not None]
+        if chart_rows:
+            chart = (
+                alt.Chart(alt.Data(values=chart_rows))
+                .mark_bar(cornerRadiusEnd=6)
+                .encode(
+                    x=alt.X("CTR:Q", title="Click-through rate (%)", scale=alt.Scale(domain=[0, 100])),
+                    y=alt.Y("Label:N", title=None, sort="-x", axis=alt.Axis(labelLimit=280)),
+                    color=alt.Color("Placement:N", title="Placement"),
+                    tooltip=[
+                        alt.Tooltip("CTA:N"),
+                        alt.Tooltip("Label:N"),
+                        alt.Tooltip("Placement:N"),
+                        alt.Tooltip("Exposed sessions:Q", format=","),
+                        alt.Tooltip("Click sessions:Q", format=","),
+                        alt.Tooltip("CTR:Q", format=".1f"),
+                    ],
+                )
+                .properties(height=_chart_height(len(chart_rows)), title="CTA conversion after exposure")
+            )
+            st.altair_chart(chart, use_container_width=True)
+        exact = [{
+            "CTA": row["CTA"],
+            "Label": row["Label"],
+            "Placement": row["Placement"],
+            "Exposed sessions": row["Exposed sessions"],
+            "Click sessions": row["Click sessions"],
+            "CTR": _rate(row["Click sessions"], row["Exposed sessions"]),
+        } for row in cta_visual]
+        _exact_metrics("Exact CTA metrics", exact)
     else:
         st.info("Awaiting CTA exposure events from the new instrumentation.")
 
     if kind == "page":
         st.subheader("Section reach")
         st.caption("A section counts as reached when at least 15% of it enters the viewport. The denominator is sessions that viewed that page.")
-        sections = [{
+        section_visual = [{
             "Page": content_label(str(row.get("page") or "")),
             "Section": row.get("section_label") or str(row.get("section_key") or "").replace("-", " ").title(),
             "Reached sessions": _count(row.get("reached_sessions")),
             "Page sessions": _count(row.get("page_sessions")),
-            "Reach": _rate(row.get("reached_sessions"), row.get("page_sessions")),
+            "Reach": _percentage(row.get("reached_sessions"), row.get("page_sessions")),
         } for row in data.get("section_reach", [])]
-        if sections:
-            st.dataframe(sections, hide_index=True, use_container_width=True)
+        if section_visual:
+            chart_rows = [dict(row, **{"Page · Section": f"{row['Page']} · {row['Section']}"}) for row in section_visual if row.get("Reach") is not None]
+            if chart_rows:
+                chart = (
+                    alt.Chart(alt.Data(values=chart_rows))
+                    .mark_bar(cornerRadiusEnd=6)
+                    .encode(
+                        x=alt.X("Reach:Q", title="Reached page sessions (%)", scale=alt.Scale(domain=[0, 100])),
+                        y=alt.Y("Page · Section:N", title=None, sort="-x", axis=alt.Axis(labelLimit=340)),
+                        color=alt.Color("Page:N", title="Page"),
+                        tooltip=[
+                            alt.Tooltip("Page:N"),
+                            alt.Tooltip("Section:N"),
+                            alt.Tooltip("Reached sessions:Q", format=","),
+                            alt.Tooltip("Page sessions:Q", format=","),
+                            alt.Tooltip("Reach:Q", format=".1f"),
+                        ],
+                    )
+                    .properties(height=_chart_height(len(chart_rows)), title="Section reach")
+                )
+                st.altair_chart(chart, use_container_width=True)
+            exact = [{
+                "Page": row["Page"],
+                "Section": row["Section"],
+                "Reached sessions": row["Reached sessions"],
+                "Page sessions": row["Page sessions"],
+                "Reach": _rate(row["Reached sessions"], row["Page sessions"]),
+            } for row in section_visual]
+            _exact_metrics("Exact section-reach metrics", exact)
         else:
             st.info("Awaiting section-exposure events from the new instrumentation.")
 
@@ -212,10 +537,32 @@ def _render_paths(data: dict, kind: str) -> None:
     article_impact = _count(funnel.get("article_to_impact_sessions"))
     article_impact_cv = _count(funnel.get("article_to_impact_to_cv_sessions"))
     st.subheader("Ordered Article → Impact → CV journey")
+    funnel_rows = [
+        {"Stage": "Article", "Sessions": article_sessions},
+        {"Stage": "Impact after article", "Sessions": article_impact},
+        {"Stage": "CV after Impact", "Sessions": article_impact_cv},
+    ]
+    funnel_chart = (
+        alt.Chart(alt.Data(values=funnel_rows))
+        .mark_bar(cornerRadiusEnd=8)
+        .encode(
+            x=alt.X("Sessions:Q", title="Sessions", axis=alt.Axis(tickMinStep=1)),
+            y=alt.Y("Stage:N", title=None, sort=list(reversed([row["Stage"] for row in funnel_rows]))),
+            color=alt.Color(
+                "Stage:N",
+                title=None,
+                scale=alt.Scale(domain=[row["Stage"] for row in funnel_rows], range=["#2563eb", "#0ea5e9", "#16a34a"]),
+                legend=None,
+            ),
+            tooltip=[alt.Tooltip("Stage:N"), alt.Tooltip("Sessions:Q", format=",")],
+        )
+        .properties(height=220)
+    )
+    st.altair_chart(funnel_chart, use_container_width=True)
     f1, f2, f3 = st.columns(3)
     f1.metric("Article sessions", article_sessions)
-    f2.metric("Reached Impact after article", _rate(article_impact, article_sessions))
-    f3.metric("Reached CV after Article → Impact", _rate(article_impact_cv, article_sessions))
+    f2.metric("Article → Impact", _rate(article_impact, article_sessions))
+    f3.metric("Article → Impact → CV", _rate(article_impact_cv, article_sessions))
     if article_impact:
         st.caption(f"CV after reaching Impact: {_rate(article_impact_cv, article_impact)}.")
 
@@ -223,18 +570,50 @@ def _render_paths(data: dict, kind: str) -> None:
     readers = _count(multi.get("reader_sessions"))
     multi_readers = _count(multi.get("multi_article_sessions"))
     st.subheader("Multi-article reading")
-    st.metric("Read 2+ different articles in one session", _rate(multi_readers, readers))
+    st.progress(min(1.0, multi_readers / readers) if readers else 0.0, text=f"{_rate(multi_readers, readers)} read 2+ different articles in one session")
 
     st.subheader("Time to first meaningful action")
     action_labels = {"case_study": "Open Leadership Impact", "cv": "Download CV", "contact": "Click contact"}
-    actions = [{
+    raw_actions = data.get("time_to_action", [])
+    action_visual = [{
         "Action": action_labels.get(str(row.get("action")), str(row.get("action")).replace("_", " ").title()),
         "Sessions": _count(row.get("sessions")),
-        "Median time": _seconds(row.get("median_seconds")),
-        "Average time": _seconds(row.get("avg_seconds")),
-    } for row in data.get("time_to_action", [])]
-    if actions:
-        st.dataframe(actions, hide_index=True, use_container_width=True)
+        "Median seconds": _number(row.get("median_seconds")),
+        "Average seconds": _number(row.get("avg_seconds")),
+    } for row in raw_actions]
+    if action_visual:
+        chart_rows: list[dict] = []
+        for row in action_visual:
+            if row["Median seconds"] is not None:
+                chart_rows.append({"Action": row["Action"], "Measure": "Median", "Seconds": row["Median seconds"], "Sessions": row["Sessions"]})
+            if row["Average seconds"] is not None:
+                chart_rows.append({"Action": row["Action"], "Measure": "Average", "Seconds": row["Average seconds"], "Sessions": row["Sessions"]})
+        if chart_rows:
+            chart = (
+                alt.Chart(alt.Data(values=chart_rows))
+                .mark_bar(cornerRadiusEnd=6)
+                .encode(
+                    x=alt.X("Seconds:Q", title="Seconds from session entry"),
+                    y=alt.Y("Action:N", title=None),
+                    color=alt.Color("Measure:N", title=None, scale=alt.Scale(domain=["Median", "Average"], range=["#2563eb", "#94a3b8"])),
+                    yOffset="Measure:N",
+                    tooltip=[
+                        alt.Tooltip("Action:N"),
+                        alt.Tooltip("Measure:N"),
+                        alt.Tooltip("Seconds:Q", format=".1f"),
+                        alt.Tooltip("Sessions:Q", format=","),
+                    ],
+                )
+                .properties(height=250, title="Speed to meaningful action")
+            )
+            st.altair_chart(chart, use_container_width=True)
+        exact = [{
+            "Action": row["Action"],
+            "Sessions": row["Sessions"],
+            "Median time": _seconds(row["Median seconds"]),
+            "Average time": _seconds(row["Average seconds"]),
+        } for row in action_visual]
+        _exact_metrics("Exact action-timing metrics", exact)
     else:
         st.info("No meaningful-action timing is available in this window.")
 
@@ -254,7 +633,6 @@ def _render_paths(data: dict, kind: str) -> None:
             if str(row.get("content", "")).startswith("article:") == (kind == "article")
         ], "label", limit=10)
     st.caption("Last observed content is not a confirmed exit; a session may still be active.")
-
 
 def _percentage(numerator: object, denominator: object) -> float | None:
     n, d = _count(numerator), _count(denominator)
@@ -622,6 +1000,7 @@ def _render_trends(data: dict, kind: str) -> None:
         else:
             st.info("No first-seven-day article history is available yet.")
 
+
 def _render_attention_ux(data: dict, kind: str) -> None:
     behavior = data.get("behavior", {})
 
@@ -630,16 +1009,29 @@ def _render_attention_ux(data: dict, kind: str) -> None:
         "Reach tells you whether a section entered the viewport; attention adds visible dwell time. "
         "Assisted-action rates mean the action occurred later in the same anonymous tab session, not that the section caused it."
     )
-    sections = []
+    section_visual = []
+    section_exact = []
     for row in behavior.get("section_attention", []):
         is_article = bool(row.get("article_slug"))
         if is_article != (kind == "article"):
             continue
         reached = _count(row.get("reached_sessions"))
         measured = _count(row.get("measured_attention_sessions"))
-        sections.append({
-            "Content": _article_title(row.get("article_slug")) if is_article else content_label(str(row.get("page") or "")),
-            "Section": row.get("section_label") or str(row.get("section_key") or "").replace("-", " ").title(),
+        content = _article_title(row.get("article_slug")) if is_article else content_label(str(row.get("page") or ""))
+        section = row.get("section_label") or str(row.get("section_key") or "").replace("-", " ").title()
+        section_visual.append({
+            "Content · Section": f"{content} · {section}",
+            "Reached sessions": reached,
+            "Avg attention seconds": _number(row.get("avg_attention_seconds")),
+            "Median attention seconds": _number(row.get("median_attention_seconds")),
+            "Attentive 5s": _percentage(row.get("attentive_5s_sessions"), reached),
+            "Later Impact": _percentage(row.get("later_impact_sessions"), reached),
+            "Later CV": _percentage(row.get("later_cv_sessions"), reached),
+            "Later contact": _percentage(row.get("later_contact_sessions"), reached),
+        })
+        section_exact.append({
+            "Content": content,
+            "Section": section,
             "Reached sessions": reached,
             "Attention measured": _rate(measured, reached),
             "Avg attention": _seconds(row.get("avg_attention_seconds")),
@@ -650,8 +1042,35 @@ def _render_attention_ux(data: dict, kind: str) -> None:
             "Later CV": _rate(row.get("later_cv_sessions"), reached),
             "Later contact": _rate(row.get("later_contact_sessions"), reached),
         })
-    if sections:
-        st.dataframe(sections, hide_index=True, use_container_width=True)
+    if section_visual:
+        chart_rows = [row for row in section_visual if row.get("Avg attention seconds") is not None]
+        if chart_rows:
+            chart = (
+                alt.Chart(alt.Data(values=chart_rows))
+                .mark_bar(cornerRadiusEnd=6)
+                .encode(
+                    x=alt.X("Avg attention seconds:Q", title="Average visible attention (seconds)"),
+                    y=alt.Y("Content · Section:N", title=None, sort="-x", axis=alt.Axis(labelLimit=360)),
+                    color=alt.Color("Later contact:Q", title="Later contact %", scale=alt.Scale(scheme="blues")),
+                    tooltip=[
+                        alt.Tooltip("Content · Section:N"),
+                        alt.Tooltip("Reached sessions:Q", format=","),
+                        alt.Tooltip("Avg attention seconds:Q", format=".1f"),
+                        alt.Tooltip("Attentive 5s:Q", title="≥5s attention %", format=".1f"),
+                        alt.Tooltip("Later CV:Q", format=".1f"),
+                        alt.Tooltip("Later contact:Q", format=".1f"),
+                    ],
+                )
+                .properties(height=_chart_height(len(chart_rows)), title="Where visitors actually spend visible time")
+            )
+            st.altair_chart(chart, use_container_width=True)
+        _rate_heatmap(
+            section_visual,
+            "Content · Section",
+            ("Attentive 5s", "Later Impact", "Later CV", "Later contact"),
+            "Section attention → later action (%)",
+        )
+        _exact_metrics("Exact section-attention metrics", section_exact)
     else:
         st.info("Awaiting Components-v2 section-attention events.")
 
@@ -660,7 +1079,8 @@ def _render_attention_ux(data: dict, kind: str) -> None:
         "Cards and CTAs are measured while at least 50% visible. Hover is a consideration signal, not intent. "
         "For Article Views, article-card rows describe the cards that earned the article open."
     )
-    elements = []
+    element_visual = []
+    element_exact = []
     for row in behavior.get("element_attention", []):
         is_article_context = bool(row.get("article_slug"))
         element_kind = str(row.get("element_kind") or "")
@@ -671,9 +1091,21 @@ def _render_attention_ux(data: dict, kind: str) -> None:
         if not include:
             continue
         exposed = _count(row.get("exposed_sessions"))
-        elements.append({
+        label = row.get("element_label") or row.get("element_key") or "—"
+        element_visual.append({
+            "Element": label,
             "Type": element_kind.replace("_", " ").title(),
-            "Element": row.get("element_label") or row.get("element_key") or "—",
+            "Placement": row.get("element_placement") or "—",
+            "Exposed sessions": exposed,
+            "Avg attention seconds": _number(row.get("avg_attention_seconds")),
+            "Avg hover seconds": _number(row.get("avg_hover_seconds")),
+            "Attentive 2s": _percentage(row.get("attentive_2s_sessions"), exposed),
+            "Hover": _percentage(row.get("hover_sessions"), exposed),
+            "Click": _percentage(row.get("click_sessions"), exposed),
+        })
+        element_exact.append({
+            "Type": element_kind.replace("_", " ").title(),
+            "Element": label,
             "Placement": row.get("element_placement") or "—",
             "Exposed sessions": exposed,
             "Attention measured": _rate(row.get("measured_attention_sessions"), exposed),
@@ -684,49 +1116,127 @@ def _render_attention_ux(data: dict, kind: str) -> None:
             "Avg hover": _seconds(row.get("avg_hover_seconds")),
             "Click rate": _rate(row.get("click_sessions"), exposed),
         })
-    if elements:
-        st.dataframe(elements, hide_index=True, use_container_width=True)
+    if element_visual:
+        bubble_rows = [row for row in element_visual if row.get("Avg attention seconds") is not None and row.get("Click") is not None]
+        if bubble_rows:
+            bubble = (
+                alt.Chart(alt.Data(values=bubble_rows))
+                .mark_circle(opacity=0.84, stroke="white", strokeWidth=1.5)
+                .encode(
+                    x=alt.X("Avg attention seconds:Q", title="Average visible attention (seconds)"),
+                    y=alt.Y("Click:Q", title="Click rate (%)", scale=alt.Scale(zero=True)),
+                    size=alt.Size("Exposed sessions:Q", title="Exposed sessions", scale=alt.Scale(range=[180, 1700])),
+                    color=alt.Color("Hover:Q", title="Hover rate %", scale=alt.Scale(scheme="blues")),
+                    shape=alt.Shape("Type:N", title="Element type"),
+                    tooltip=[
+                        alt.Tooltip("Element:N"),
+                        alt.Tooltip("Type:N"),
+                        alt.Tooltip("Placement:N"),
+                        alt.Tooltip("Exposed sessions:Q", format=","),
+                        alt.Tooltip("Avg attention seconds:Q", format=".1f"),
+                        alt.Tooltip("Hover:Q", format=".1f"),
+                        alt.Tooltip("Click:Q", format=".1f"),
+                    ],
+                )
+                .properties(height=410, title="Attention vs action")
+                .interactive()
+            )
+            st.altair_chart(bubble, use_container_width=True)
+        _exact_metrics("Exact element-attention metrics", element_exact)
     else:
         st.info("Awaiting Components-v2 element-attention events.")
 
     st.subheader("CTA hesitation")
-    st.caption("Time from first 50%-visible exposure to a click. A long interval can mean considered intent, distraction or friction, so interpret it alongside CTR and attention.")
-    hesitation = [{
+    st.caption("Time from first 50%-visible exposure to a click. Interpret long intervals alongside CTR and attention.")
+    hesitation_visual = [{
         "CTA": row.get("element_label") or str(row.get("element_key") or "CTA").replace("_", " ").title(),
         "Placement": row.get("element_placement") or "—",
         "Click sessions": _count(row.get("sessions")),
-        "Median hesitation": _seconds(row.get("median_hesitation_seconds")),
-        "P75 hesitation": _seconds(row.get("p75_hesitation_seconds")),
-        "Average hesitation": _seconds(row.get("avg_hesitation_seconds")),
+        "Median seconds": _number(row.get("median_hesitation_seconds")),
+        "P75 seconds": _number(row.get("p75_hesitation_seconds")),
+        "Average seconds": _number(row.get("avg_hesitation_seconds")),
     } for row in behavior.get("cta_hesitation", [])]
-    if hesitation:
-        st.dataframe(hesitation, hide_index=True, use_container_width=True)
+    if hesitation_visual:
+        long_rows = []
+        for row in hesitation_visual:
+            for metric, field in (("Median", "Median seconds"), ("P75", "P75 seconds")):
+                if row[field] is not None:
+                    long_rows.append({"CTA": row["CTA"], "Placement": row["Placement"], "Measure": metric, "Seconds": row[field], "Click sessions": row["Click sessions"]})
+        if long_rows:
+            chart = (
+                alt.Chart(alt.Data(values=long_rows))
+                .mark_bar(cornerRadiusEnd=6)
+                .encode(
+                    x=alt.X("Seconds:Q", title="Seconds from exposure to click"),
+                    y=alt.Y("CTA:N", title=None, axis=alt.Axis(labelLimit=280)),
+                    color=alt.Color("Measure:N", title=None, scale=alt.Scale(domain=["Median", "P75"], range=["#2563eb", "#94a3b8"])),
+                    yOffset="Measure:N",
+                    tooltip=["CTA:N", "Placement:N", "Measure:N", alt.Tooltip("Seconds:Q", format=".1f"), alt.Tooltip("Click sessions:Q", format=",")],
+                )
+                .properties(height=_chart_height(len(hesitation_visual)), title="CTA hesitation")
+            )
+            st.altair_chart(chart, use_container_width=True)
+        exact = [{
+            "CTA": row["CTA"],
+            "Placement": row["Placement"],
+            "Click sessions": row["Click sessions"],
+            "Median hesitation": _seconds(row["Median seconds"]),
+            "P75 hesitation": _seconds(row["P75 seconds"]),
+            "Average hesitation": _seconds(row["Average seconds"]),
+        } for row in hesitation_visual]
+        _exact_metrics("Exact CTA-hesitation metrics", exact)
     else:
         st.info("Awaiting CTA-hesitation events.")
 
     st.subheader("Last observed reading region")
-    st.caption("This is the final region observed when the document unloads or its content context changes. It is a stronger abandonment clue than quartiles, but it is not proof that the visitor intentionally quit there.")
+    st.caption("The final region observed before unload/context change is an abandonment clue, not proof of intent.")
     regions = []
     for row in behavior.get("last_regions", []):
         if row.get("kind") != kind:
             continue
         content = _article_title(row.get("article_slug")) if kind == "article" else content_label(str(row.get("page") or ""))
         regions.append({
-            "Content": content,
-            "Last region": row.get("section_label") or str(row.get("section_key") or "").replace("-", " ").title(),
+            "Content · Region": f"{content} · {row.get('section_label') or str(row.get('section_key') or '').replace('-', ' ').title()}",
             "Sessions": _count(row.get("sessions")),
-            "Avg scroll depth": f"{float(row.get('avg_scroll_depth') or 0):.0f}%" if row.get("avg_scroll_depth") is not None else "—",
-            "Avg visible time": _seconds(row.get("avg_visible_seconds")),
-            "Avg max scroll speed": f"{float(row.get('avg_max_scroll_velocity') or 0):.0f} px/s" if row.get("avg_max_scroll_velocity") is not None else "—",
-            "Avg reverse speed": f"{float(row.get('avg_max_reverse_scroll_velocity') or 0):.0f} px/s" if row.get("avg_max_reverse_scroll_velocity") is not None else "—",
+            "Avg scroll depth": _number(row.get("avg_scroll_depth")),
+            "Avg visible seconds": _number(row.get("avg_visible_seconds")),
+            "Avg max scroll speed": _number(row.get("avg_max_scroll_velocity")),
+            "Avg reverse speed": _number(row.get("avg_max_reverse_scroll_velocity")),
         })
     if regions:
-        st.dataframe(regions, hide_index=True, use_container_width=True)
+        chart = (
+            alt.Chart(alt.Data(values=regions))
+            .mark_bar(cornerRadiusEnd=6)
+            .encode(
+                x=alt.X("Sessions:Q", title="Sessions ending at region", axis=alt.Axis(tickMinStep=1)),
+                y=alt.Y("Content · Region:N", title=None, sort="-x", axis=alt.Axis(labelLimit=360)),
+                color=alt.Color("Avg scroll depth:Q", title="Avg depth %", scale=alt.Scale(scheme="blues")),
+                tooltip=[
+                    alt.Tooltip("Content · Region:N"),
+                    alt.Tooltip("Sessions:Q", format=","),
+                    alt.Tooltip("Avg scroll depth:Q", format=".1f"),
+                    alt.Tooltip("Avg visible seconds:Q", format=".1f"),
+                    alt.Tooltip("Avg max scroll speed:Q", format=".0f"),
+                    alt.Tooltip("Avg reverse speed:Q", format=".0f"),
+                ],
+            )
+            .properties(height=_chart_height(len(regions)), title="Last observed content region")
+        )
+        st.altair_chart(chart, use_container_width=True)
+        exact = [{
+            "Content / region": row["Content · Region"],
+            "Sessions": row["Sessions"],
+            "Avg scroll depth": f"{row['Avg scroll depth']:.0f}%" if row["Avg scroll depth"] is not None else "—",
+            "Avg visible time": _seconds(row["Avg visible seconds"]),
+            "Avg max scroll speed": f"{row['Avg max scroll speed']:.0f} px/s" if row["Avg max scroll speed"] is not None else "—",
+            "Avg reverse speed": f"{row['Avg reverse speed']:.0f} px/s" if row["Avg reverse speed"] is not None else "—",
+        } for row in regions]
+        _exact_metrics("Exact last-region metrics", exact)
     else:
         st.info("Awaiting end-of-context reading-region events.")
 
     st.subheader("Potential UX friction")
-    st.caption("Dead clicks are clicks on non-interactive/card-like surfaces. Rage clicks are repeated clicks in the same small area. These are diagnostic signals, not definitive evidence of frustration.")
+    st.caption("Dead and rage clicks are diagnostic signals, not definitive evidence of frustration.")
     signals = []
     for row in behavior.get("ux_signals", []):
         section_key = str(row.get("section_key") or "")
@@ -743,7 +1253,20 @@ def _render_attention_ux(data: dict, kind: str) -> None:
             "Error type": row.get("error_type") or "—",
         })
     if signals:
-        st.dataframe(signals, hide_index=True, use_container_width=True)
+        chart_rows = [dict(row, **{"Signal · Region": f"{row['Signal']} · {row['Page']} · {row['Region']}"}) for row in signals]
+        chart = (
+            alt.Chart(alt.Data(values=chart_rows))
+            .mark_bar(cornerRadiusEnd=6)
+            .encode(
+                x=alt.X("Events:Q", title="Observed events", axis=alt.Axis(tickMinStep=1)),
+                y=alt.Y("Signal · Region:N", title=None, sort="-x", axis=alt.Axis(labelLimit=360)),
+                color=alt.Color("Signal:N", title="Signal"),
+                tooltip=["Signal:N", "Page:N", "Region:N", alt.Tooltip("Sessions:Q", format=","), alt.Tooltip("Events:Q", format=","), "Error type:N"],
+            )
+            .properties(height=_chart_height(len(chart_rows)), title="UX-friction signals")
+        )
+        st.altair_chart(chart, use_container_width=True)
+        _exact_metrics("Exact UX-friction metrics", signals)
     else:
         st.info("No v2 UX-friction signals in this reporting window.")
 
@@ -752,11 +1275,37 @@ def _render_attention_ux(data: dict, kind: str) -> None:
         "First action": str(row.get("interaction_type") or "").title(),
         "Device": str(row.get("device_type") or "unknown").title(),
         "Sessions": _count(row.get("sessions")),
-        "Median latency": _milliseconds(row.get("median_latency_ms")),
-        "P75 latency": _milliseconds(row.get("p75_latency_ms")),
+        "Median latency ms": _number(row.get("median_latency_ms")),
+        "P75 latency ms": _number(row.get("p75_latency_ms")),
     } for row in behavior.get("first_interaction", [])]
     if first:
-        st.dataframe(first, hide_index=True, use_container_width=True)
+        long_rows = []
+        for row in first:
+            for metric, field in (("Median", "Median latency ms"), ("P75", "P75 latency ms")):
+                if row[field] is not None:
+                    long_rows.append({"First action": row["First action"], "Device": row["Device"], "Measure": metric, "Latency ms": row[field], "Sessions": row["Sessions"]})
+        if long_rows:
+            chart = (
+                alt.Chart(alt.Data(values=long_rows))
+                .mark_bar(cornerRadiusEnd=6)
+                .encode(
+                    x=alt.X("Latency ms:Q", title="Latency from page context start (ms)"),
+                    y=alt.Y("First action:N", title=None),
+                    color=alt.Color("Device:N", title="Device"),
+                    column=alt.Column("Measure:N", title=None),
+                    tooltip=["First action:N", "Device:N", "Measure:N", alt.Tooltip("Latency ms:Q", format=".0f"), alt.Tooltip("Sessions:Q", format=",")],
+                )
+                .properties(height=220)
+            )
+            st.altair_chart(chart, use_container_width=True)
+        exact = [{
+            "First action": row["First action"],
+            "Device": row["Device"],
+            "Sessions": row["Sessions"],
+            "Median latency": _milliseconds(row["Median latency ms"]),
+            "P75 latency": _milliseconds(row["P75 latency ms"]),
+        } for row in first]
+        _exact_metrics("Exact first-interaction metrics", exact)
     else:
         st.info("Awaiting first-interaction telemetry.")
 
@@ -768,13 +1317,11 @@ def _render_experience(data: dict) -> None:
     st.subheader("Technical experience by device")
     st.caption(
         "Browser-side document measurements include TTFB, FCP, LCP, CLS and interaction timing. "
-        "INP is estimated from supported PerformanceEventTiming interaction IDs; browser support varies. "
-        "Small samples can move sharply and association does not prove causation."
+        "INP is estimated from supported PerformanceEventTiming interaction IDs; browser support varies."
     )
-    rows = []
-    devices = {
-        str(row.get("device_type") or "unknown") for row in data.get("experience", [])
-    } | set(vitals)
+    visual_rows = []
+    exact_rows = []
+    devices = {str(row.get("device_type") or "unknown") for row in data.get("experience", [])} | set(vitals)
     existing = {str(row.get("device_type") or "unknown"): row for row in data.get("experience", [])}
     for device in sorted(devices):
         row = existing.get(device, {})
@@ -782,8 +1329,22 @@ def _render_experience(data: dict) -> None:
         measured = _count(row.get("measured_sessions"))
         slow_lcp = _count(row.get("slow_lcp_sessions"))
         slow_lcp_engaged = _count(row.get("slow_lcp_engaged_sessions"))
-        rows.append({
-            "Device": device.title(),
+        display_device = device.title()
+        visual_rows.append({
+            "Device": display_device,
+            "Measured sessions": max(measured, _count(v2.get("fcp_sessions")), _count(v2.get("inp_sessions"))),
+            "TTFB": _number(row.get("p75_ttfb_ms")),
+            "FCP": _number(v2.get("p75_fcp_ms")),
+            "LCP": _number(row.get("p75_lcp_ms")),
+            "INP estimate": _number(v2.get("p75_inp_ms")),
+            "Max interaction": _number(row.get("p75_interaction_ms")),
+            "CLS": _number(row.get("p75_cls")),
+            "LCP >2.5s": _percentage(slow_lcp, measured),
+            "Engaged among slow-LCP": _percentage(slow_lcp_engaged, slow_lcp),
+            "CLS >0.1": _percentage(row.get("unstable_cls_sessions"), measured),
+        })
+        exact_rows.append({
+            "Device": display_device,
             "Measured sessions": max(measured, _count(v2.get("fcp_sessions")), _count(v2.get("inp_sessions"))),
             "P75 TTFB": _milliseconds(row.get("p75_ttfb_ms")),
             "P75 FCP": _milliseconds(v2.get("p75_fcp_ms")),
@@ -795,24 +1356,84 @@ def _render_experience(data: dict) -> None:
             "Engaged among slow-LCP": _rate(slow_lcp_engaged, slow_lcp),
             "CLS >0.1": _rate(row.get("unstable_cls_sessions"), measured),
         })
-    if rows:
-        st.dataframe(rows, hide_index=True, use_container_width=True)
+    if visual_rows:
+        latency_rows = []
+        for row in visual_rows:
+            for metric in ("TTFB", "FCP", "LCP", "INP estimate", "Max interaction"):
+                if row.get(metric) is not None:
+                    latency_rows.append({
+                        "Device": row["Device"],
+                        "Metric": metric,
+                        "Milliseconds": row[metric],
+                        "Measured sessions": row["Measured sessions"],
+                    })
+        if latency_rows:
+            chart = (
+                alt.Chart(alt.Data(values=latency_rows))
+                .mark_bar(cornerRadiusEnd=5)
+                .encode(
+                    x=alt.X("Milliseconds:Q", title="P75 milliseconds"),
+                    y=alt.Y("Metric:N", title=None, sort=["TTFB", "FCP", "LCP", "INP estimate", "Max interaction"]),
+                    color=alt.Color("Device:N", title="Device"),
+                    yOffset="Device:N",
+                    tooltip=["Device:N", "Metric:N", alt.Tooltip("Milliseconds:Q", format=".0f"), alt.Tooltip("Measured sessions:Q", format=",")],
+                )
+                .properties(height=300, title="P75 browser experience")
+            )
+            st.altair_chart(chart, use_container_width=True)
+        _rate_heatmap(
+            visual_rows,
+            "Device",
+            ("LCP >2.5s", "Engaged among slow-LCP", "CLS >0.1"),
+            "Experience-rate diagnostics (%)",
+        )
+        _exact_metrics("Exact technical-experience metrics", exact_rows)
     else:
         st.info("Awaiting browser performance events from the instrumentation.")
 
     st.subheader("Browser context & attention interruptions")
-    summaries = [{
+    summary_visual = [{
         "Device": str(row.get("device_type") or "unknown").title(),
         "Sessions": _count(row.get("sessions")),
-        "Avg focus losses": row.get("avg_focus_losses") if row.get("avg_focus_losses") is not None else "—",
-        "Avg resizes": row.get("avg_resizes") if row.get("avg_resizes") is not None else "—",
-        "Avg orientation changes": row.get("avg_orientation_changes") if row.get("avg_orientation_changes") is not None else "—",
-        "Avg logical cores": row.get("avg_logical_cores") if row.get("avg_logical_cores") is not None else "—",
-        "Avg device memory": f"{row.get('avg_device_memory_gb')} GB" if row.get("avg_device_memory_gb") is not None else "—",
-        "Data saver": _rate(row.get("save_data_sessions"), row.get("sessions")),
+        "Avg focus losses": _number(row.get("avg_focus_losses")),
+        "Avg resizes": _number(row.get("avg_resizes")),
+        "Avg orientation changes": _number(row.get("avg_orientation_changes")),
+        "Avg logical cores": _number(row.get("avg_logical_cores")),
+        "Avg device memory": _number(row.get("avg_device_memory_gb")),
+        "Data saver": _percentage(row.get("save_data_sessions"), row.get("sessions")),
     } for row in behavior.get("behavior_summary", [])]
-    if summaries:
-        st.dataframe(summaries, hide_index=True, use_container_width=True)
+    if summary_visual:
+        interruptions = []
+        for row in summary_visual:
+            for metric in ("Avg focus losses", "Avg resizes", "Avg orientation changes"):
+                if row.get(metric) is not None:
+                    interruptions.append({"Device": row["Device"], "Metric": metric.replace("Avg ", ""), "Average count": row[metric], "Sessions": row["Sessions"]})
+        if interruptions:
+            chart = (
+                alt.Chart(alt.Data(values=interruptions))
+                .mark_bar(cornerRadiusEnd=5)
+                .encode(
+                    x=alt.X("Average count:Q", title="Average events per measured session"),
+                    y=alt.Y("Metric:N", title=None),
+                    color=alt.Color("Device:N", title="Device"),
+                    yOffset="Device:N",
+                    tooltip=["Device:N", "Metric:N", alt.Tooltip("Average count:Q", format=".1f"), alt.Tooltip("Sessions:Q", format=",")],
+                )
+                .properties(height=230, title="Attention interruptions & viewport changes")
+            )
+            st.altair_chart(chart, use_container_width=True)
+
+        exact = [{
+            "Device": row["Device"],
+            "Sessions": row["Sessions"],
+            "Avg focus losses": row["Avg focus losses"] if row["Avg focus losses"] is not None else "—",
+            "Avg resizes": row["Avg resizes"] if row["Avg resizes"] is not None else "—",
+            "Avg orientation changes": row["Avg orientation changes"] if row["Avg orientation changes"] is not None else "—",
+            "Avg logical cores": row["Avg logical cores"] if row["Avg logical cores"] is not None else "—",
+            "Avg device memory": f"{row['Avg device memory']} GB" if row["Avg device memory"] is not None else "—",
+            "Data saver": f"{row['Data saver']:.1f}%" if row["Data saver"] is not None else "—",
+        } for row in summary_visual]
+        _exact_metrics("Exact browser-context metrics", exact)
     else:
         st.info("Awaiting Components-v2 browser-context summaries.")
 
@@ -841,14 +1462,7 @@ def render_content_intelligence(kind: str, window: str) -> None:
     ])
 
     with performance:
-        rows = performance_rows(data, kind)
-        st.subheader("Reading progression & downstream action" if kind == "article" else "Page attention & downstream action")
-        st.caption("Visible time and scroll exposure are behavioral proxies, not proof of attention or comprehension. Every rate includes its numerator and denominator.")
-        if rows:
-            st.dataframe(rows, hide_index=True, use_container_width=True)
-            st.download_button("Download content report (CSV)", export_csv(rows), file_name=f"{prefix}-analytics-{window}.csv", mime="text/csv")
-        else:
-            st.info("No measured content views in this reporting window.")
+        _render_content_performance(data, kind, window, prefix)
 
     with exposure:
         _render_exposure(data, kind)
@@ -863,24 +1477,7 @@ def render_content_intelligence(kind: str, window: str) -> None:
         _render_trends(data, kind)
 
     with acquisition:
-        st.subheader("Which sources bring attention and action?")
-        st.caption("Whole-site session cohorts, using the first observed source/campaign in this window. Rates include counts because small samples can move sharply.")
-        campaigns = []
-        for row in data.get("campaigns", []):
-            sessions = _count(row.get("sessions"))
-            campaigns.append({
-                "Source": row.get("channel"),
-                "Campaign / role": row.get("campaign"),
-                "Sessions": sessions,
-                "Reader rate": _rate(row.get("reader_sessions"), sessions),
-                "Engaged rate": _rate(row.get("engaged_sessions"), sessions),
-                "CV rate": _rate(row.get("cv_sessions"), sessions),
-                "Contact rate": _rate(row.get("contact_sessions"), sessions),
-            })
-        if campaigns:
-            st.dataframe(campaigns, hide_index=True, use_container_width=True)
-        else:
-            st.info("No source activity in this window.")
+        _render_source_quality(data)
 
     with experience:
         _render_experience(data)
@@ -890,15 +1487,26 @@ def render_content_intelligence(kind: str, window: str) -> None:
         measured_v4 = _count(quality.get("attention_measured_content_sessions"))
         behavior = data.get("behavior", {})
         behavior_quality = behavior.get("quality", {})
-        st.write(f"Last received event: {quality.get('last_event_at') or 'No events in window'}")
-        st.write(f"Depth/timing measurement first seen: {quality.get('new_measurement_since') or 'Awaiting measured visitor events'}")
-        st.write(f"Exposure/action measurement first seen: {quality.get('attention_measurement_since') or 'Awaiting v4 visitor events'}")
-        st.write(f"Components-v2 behavior first seen: {behavior_quality.get('behavior_first_seen') or 'Awaiting v5 visitor events'}")
-        st.write(f"Content sessions with v4+ instrumentation: {_rate(measured_v4, content_sessions)}")
-        st.write(
-            f"Components-v2 behavior events: {_count(behavior_quality.get('behavior_events'))} "
-            f"across {_count(behavior_quality.get('behavior_sessions'))} anonymous sessions"
-        )
+
+        coverage = _percentage(measured_v4, content_sessions)
+        behavior_events = _count(behavior_quality.get("behavior_events"))
+        behavior_sessions = _count(behavior_quality.get("behavior_sessions"))
+        h1, h2, h3 = st.columns(3)
+        h1.metric("v4+ measured content sessions", f"{coverage:.1f}%" if coverage is not None else "—")
+        h2.metric("Components-v2 behavior events", behavior_events)
+        h3.metric("Behavior-measured sessions", behavior_sessions)
+
+        health_rows = [
+            {"Milestone": "Last received event", "Value": quality.get("last_event_at") or "No events in window"},
+            {"Milestone": "Depth/timing measurement first seen", "Value": quality.get("new_measurement_since") or "Awaiting measured visitor events"},
+            {"Milestone": "Exposure/action measurement first seen", "Value": quality.get("attention_measurement_since") or "Awaiting v4 visitor events"},
+            {"Milestone": "Components-v2 behavior first seen", "Value": behavior_quality.get("behavior_first_seen") or "Awaiting v5 visitor events"},
+        ]
+        with st.expander("Measurement timestamps & exact health details", expanded=False):
+            st.dataframe(health_rows, hide_index=True, use_container_width=True)
+            st.write(f"Content sessions with v4+ instrumentation: {_rate(measured_v4, content_sessions)}")
+            st.write(f"Components-v2 behavior events: {behavior_events} across {behavior_sessions} anonymous sessions")
+
         if data.get("behavior_error"):
             st.warning(f"Advanced behavior endpoint unavailable: {data['behavior_error']}")
         st.caption(
@@ -912,3 +1520,4 @@ def render_content_intelligence(kind: str, window: str) -> None:
         f"{data.get('period_label', window)} · since {data.get('period_since', '—')} · "
         f"previous comparison starts {data.get('previous_period_since', '—')} · generated {data.get('generated_at', '—')}"
     )
+

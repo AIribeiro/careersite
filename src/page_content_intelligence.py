@@ -6,6 +6,7 @@ import io
 import json
 from urllib import error, request
 
+import altair as alt
 import streamlit as st
 
 from page_analytics import _bar_chart, _dashboard_payload, _seconds
@@ -255,58 +256,371 @@ def _render_paths(data: dict, kind: str) -> None:
     st.caption("Last observed content is not a confirmed exit; a session may still be active.")
 
 
-def _render_trends(data: dict, kind: str) -> None:
-    st.subheader("Period-over-period movement")
-    st.caption("The selected window is compared with the immediately preceding window of equal duration. Counts are shown beside every percentage change.")
-    comparisons = []
+def _percentage(numerator: object, denominator: object) -> float | None:
+    n, d = _count(numerator), _count(denominator)
+    if not d:
+        return None
+    return round(100 * n / d, 1)
+
+
+def _trend_visual_rows(data: dict, kind: str) -> list[dict]:
+    rows: list[dict] = []
     for row in data.get("period_comparison", []):
         if row.get("kind") != kind:
             continue
-        comparisons.append({
+        current = _count(row.get("current_sessions"))
+        previous = _count(row.get("previous_sessions"))
+        rows.append({
             "Content": _article_title(row["content"]) if kind == "article" else content_label(row["content"]),
-            "Sessions": f"{_count(row.get('current_sessions'))} now / {_count(row.get('previous_sessions'))} previous",
-            "Session change": _change(row.get("current_sessions"), row.get("previous_sessions")),
-            "Views": f"{_count(row.get('current_views'))} now / {_count(row.get('previous_views'))} previous",
-            "View change": _change(row.get("current_views"), row.get("previous_views")),
-            "Engaged-session change": _change(row.get("current_engaged_sessions"), row.get("previous_engaged_sessions")),
+            "Current sessions": current,
+            "Previous sessions": previous,
+            "Session change %": _percentage(current - previous, previous) if previous else None,
+            "Current engaged": _count(row.get("current_engaged_sessions")),
+            "Previous engaged": _count(row.get("previous_engaged_sessions")),
         })
-    if comparisons:
-        st.dataframe(comparisons, hide_index=True, use_container_width=True)
+    return rows
+
+
+def _topic_visual_rows(data: dict) -> list[dict]:
+    rows: list[dict] = []
+    for row in data.get("topic_performance", []):
+        sessions = _count(row.get("article_sessions"))
+        depth = _count(row.get("depth_measured_sessions"))
+        rows.append({
+            "Topic": row.get("topic") or "Uncategorized",
+            "Article sessions": sessions,
+            "Views": _count(row.get("views")),
+            "Engaged %": _percentage(row.get("engaged_sessions"), sessions),
+            "Reached 75%": _percentage(row.get("reached_75_sessions"), depth),
+            "Reached 90%": _percentage(row.get("reached_90_sessions"), depth),
+            "Later portfolio %": _percentage(row.get("later_portfolio_sessions"), sessions),
+            "Later CV %": _percentage(row.get("later_cv_sessions"), sessions),
+            "Later contact %": _percentage(row.get("later_contact_sessions"), sessions),
+        })
+    return rows
+
+
+def _topic_heatmap_rows(rows: list[dict]) -> list[dict]:
+    metrics = (
+        "Engaged %",
+        "Reached 75%",
+        "Reached 90%",
+        "Later portfolio %",
+        "Later CV %",
+        "Later contact %",
+    )
+    heatmap: list[dict] = []
+    for row in rows:
+        for metric in metrics:
+            value = row.get(metric)
+            if value is None:
+                continue
+            heatmap.append({
+                "Topic": row["Topic"],
+                "Metric": metric.replace(" %", ""),
+                "Rate": float(value),
+                "Label": f"{float(value):.1f}%",
+            })
+    return heatmap
+
+
+def _first7_visual_rows(data: dict) -> list[dict]:
+    rows: list[dict] = []
+    for row in data.get("publication_age", []):
+        sessions = _count(row.get("sessions"))
+        depth = _count(row.get("depth_measured_sessions"))
+        rows.append({
+            "Article": row.get("title") or _article_title(row.get("slug")),
+            "Published": row.get("published_date") or "—",
+            "Topic": row.get("topic") or "Uncategorized",
+            "Views": _count(row.get("views")),
+            "Sessions": sessions,
+            "Engaged %": _percentage(row.get("engaged_sessions"), sessions),
+            "Reached 75%": _percentage(row.get("reached_75_sessions"), depth),
+        })
+    return rows
+
+
+def _render_period_visuals(rows: list[dict]) -> None:
+    if not rows:
+        return
+
+    current_total = sum(_count(row.get("Current sessions")) for row in rows)
+    previous_total = sum(_count(row.get("Previous sessions")) for row in rows)
+    delta = _percentage(current_total - previous_total, previous_total) if previous_total else None
+
+    a, b, c = st.columns(3)
+    a.metric("Current sessions", current_total)
+    b.metric("Previous-period sessions", previous_total)
+    c.metric(
+        "Session movement",
+        f"{delta:+.1f}%" if delta is not None else ("New activity" if current_total else "—"),
+    )
+
+    long_rows: list[dict] = []
+    for row in rows:
+        long_rows.extend([
+            {
+                "Content": row["Content"],
+                "Period": "Previous",
+                "Sessions": row["Previous sessions"],
+            },
+            {
+                "Content": row["Content"],
+                "Period": "Current",
+                "Sessions": row["Current sessions"],
+            },
+        ])
+
+    comparison = (
+        alt.Chart(alt.Data(values=long_rows))
+        .mark_bar(cornerRadiusEnd=5)
+        .encode(
+            x=alt.X("Sessions:Q", title="Anonymous sessions", axis=alt.Axis(tickMinStep=1)),
+            y=alt.Y(
+                "Content:N",
+                title=None,
+                sort=alt.SortField(field="Sessions", order="descending"),
+                axis=alt.Axis(labelLimit=300),
+            ),
+            color=alt.Color(
+                "Period:N",
+                title=None,
+                scale=alt.Scale(domain=["Previous", "Current"], range=["#94a3b8", "#2563eb"]),
+                legend=alt.Legend(orient="top"),
+            ),
+            yOffset="Period:N",
+            tooltip=[
+                alt.Tooltip("Content:N"),
+                alt.Tooltip("Period:N"),
+                alt.Tooltip("Sessions:Q", format=","),
+            ],
+        )
+        .properties(height=max(280, min(650, 34 * max(1, len(rows)))), title="Current vs previous period")
+    )
+    st.altair_chart(comparison, use_container_width=True)
+
+    change_rows = [row for row in rows if row.get("Session change %") is not None]
+    if change_rows:
+        movement = (
+            alt.Chart(alt.Data(values=change_rows))
+            .mark_bar(cornerRadiusEnd=5)
+            .encode(
+                x=alt.X(
+                    "Session change %:Q",
+                    title="Change in sessions (%)",
+                    axis=alt.Axis(format="+.0f"),
+                ),
+                y=alt.Y(
+                    "Content:N",
+                    title=None,
+                    sort=alt.SortField(field="Session change %", order="descending"),
+                    axis=alt.Axis(labelLimit=300),
+                ),
+                color=alt.condition(
+                    "datum['Session change %'] >= 0",
+                    alt.value("#16a34a"),
+                    alt.value("#dc2626"),
+                ),
+                tooltip=[
+                    alt.Tooltip("Content:N"),
+                    alt.Tooltip("Current sessions:Q", format=","),
+                    alt.Tooltip("Previous sessions:Q", format=","),
+                    alt.Tooltip("Session change %:Q", title="Change", format="+.1f"),
+                ],
+            )
+            .properties(height=max(260, min(600, 32 * len(change_rows))), title="Momentum by content")
+        )
+        st.altair_chart(movement, use_container_width=True)
+
+
+def _render_topic_visuals(rows: list[dict]) -> None:
+    if not rows:
+        return
+
+    st.subheader("Topic landscape")
+    st.caption(
+        "Bubble position separates reach from engagement. Bubble size represents views; "
+        "colour represents later contact rate. Hover for the exact rates and counts."
+    )
+
+    bubble_rows = [
+        row for row in rows
+        if row.get("Engaged %") is not None
+    ]
+    if bubble_rows:
+        bubble = (
+            alt.Chart(alt.Data(values=bubble_rows))
+            .mark_circle(opacity=0.85, stroke="white", strokeWidth=1.5)
+            .encode(
+                x=alt.X("Article sessions:Q", title="Article sessions", axis=alt.Axis(tickMinStep=1)),
+                y=alt.Y("Engaged %:Q", title="Engaged ≥10s (%)", scale=alt.Scale(zero=True)),
+                size=alt.Size("Views:Q", title="Views", scale=alt.Scale(range=[180, 1800])),
+                color=alt.Color(
+                    "Later contact %:Q",
+                    title="Later contact %",
+                    scale=alt.Scale(scheme="blues"),
+                ),
+                tooltip=[
+                    alt.Tooltip("Topic:N"),
+                    alt.Tooltip("Article sessions:Q", format=","),
+                    alt.Tooltip("Views:Q", format=","),
+                    alt.Tooltip("Engaged %:Q", format=".1f"),
+                    alt.Tooltip("Reached 75%:Q", format=".1f"),
+                    alt.Tooltip("Later portfolio %:Q", format=".1f"),
+                    alt.Tooltip("Later CV %:Q", format=".1f"),
+                    alt.Tooltip("Later contact %:Q", format=".1f"),
+                ],
+            )
+            .properties(height=420)
+            .interactive()
+        )
+        labels = (
+            alt.Chart(alt.Data(values=bubble_rows))
+            .mark_text(dy=-15, fontSize=12)
+            .encode(
+                x="Article sessions:Q",
+                y="Engaged %:Q",
+                text="Topic:N",
+            )
+        )
+        st.altair_chart(bubble + labels, use_container_width=True)
+
+    heat_rows = _topic_heatmap_rows(rows)
+    if heat_rows:
+        st.subheader("Topic performance heatmap")
+        st.caption("Each cell is an exposure-aware session rate. Blank cells mean the denominator was unavailable, not zero.")
+        heat = (
+            alt.Chart(alt.Data(values=heat_rows))
+            .mark_rect(cornerRadius=3)
+            .encode(
+                x=alt.X("Metric:N", title=None, axis=alt.Axis(labelAngle=-25)),
+                y=alt.Y("Topic:N", title=None, sort="-x", axis=alt.Axis(labelLimit=220)),
+                color=alt.Color("Rate:Q", title="Rate %", scale=alt.Scale(scheme="blues")),
+                tooltip=[
+                    alt.Tooltip("Topic:N"),
+                    alt.Tooltip("Metric:N"),
+                    alt.Tooltip("Rate:Q", format=".1f"),
+                ],
+            )
+            .properties(height=max(220, 42 * len(rows)))
+        )
+        labels = (
+            alt.Chart(alt.Data(values=heat_rows))
+            .mark_text(fontSize=11)
+            .encode(
+                x="Metric:N",
+                y=alt.Y("Topic:N", sort="-x"),
+                text="Label:N",
+                color=alt.condition("datum.Rate >= 55", alt.value("white"), alt.value("#0f172a")),
+            )
+        )
+        st.altair_chart(heat + labels, use_container_width=True)
+
+
+def _render_first7_visuals(rows: list[dict]) -> None:
+    if not rows:
+        return
+
+    chart_rows = sorted(rows, key=lambda row: _count(row.get("Views")), reverse=True)
+    chart = (
+        alt.Chart(alt.Data(values=chart_rows))
+        .mark_bar(cornerRadiusEnd=6)
+        .encode(
+            x=alt.X("Views:Q", title="Views in first seven days", axis=alt.Axis(tickMinStep=1)),
+            y=alt.Y(
+                "Article:N",
+                title=None,
+                sort="-x",
+                axis=alt.Axis(labelLimit=330),
+            ),
+            color=alt.Color("Topic:N", title="Topic", legend=alt.Legend(orient="bottom")),
+            tooltip=[
+                alt.Tooltip("Article:N"),
+                alt.Tooltip("Topic:N"),
+                alt.Tooltip("Published:N"),
+                alt.Tooltip("Views:Q", format=","),
+                alt.Tooltip("Sessions:Q", format=","),
+                alt.Tooltip("Engaged %:Q", format=".1f"),
+                alt.Tooltip("Reached 75%:Q", format=".1f"),
+            ],
+        )
+        .properties(height=max(300, min(700, 34 * len(chart_rows))), title="First-seven-day launch performance")
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+
+def _render_trends(data: dict, kind: str) -> None:
+    st.subheader("Period-over-period movement")
+    st.caption(
+        "The selected window is compared with the immediately preceding window of equal duration. "
+        "Charts are descriptive; low-volume content can move sharply."
+    )
+
+    visual_rows = _trend_visual_rows(data, kind)
+    if visual_rows:
+        _render_period_visuals(visual_rows)
     else:
         st.info("No comparable content activity in these two periods.")
 
+    with st.expander("Exact period comparison", expanded=False):
+        comparisons = []
+        for row in data.get("period_comparison", []):
+            if row.get("kind") != kind:
+                continue
+            comparisons.append({
+                "Content": _article_title(row["content"]) if kind == "article" else content_label(row["content"]),
+                "Sessions": f"{_count(row.get('current_sessions'))} now / {_count(row.get('previous_sessions'))} previous",
+                "Session change": _change(row.get("current_sessions"), row.get("previous_sessions")),
+                "Views": f"{_count(row.get('current_views'))} now / {_count(row.get('previous_views'))} previous",
+                "View change": _change(row.get("current_views"), row.get("previous_views")),
+                "Engaged-session change": _change(row.get("current_engaged_sessions"), row.get("previous_engaged_sessions")),
+            })
+        if comparisons:
+            st.dataframe(comparisons, hide_index=True, use_container_width=True)
+
     if kind == "article":
+        topic_rows = _topic_visual_rows(data)
         st.subheader("Topic performance")
-        topics = [{
-            "Topic": row.get("topic") or "Uncategorized",
-            "Article sessions": _count(row.get("article_sessions")),
-            "Views": _count(row.get("views")),
-            "Engaged ≥10s": _rate(row.get("engaged_sessions"), row.get("article_sessions")),
-            "Reached 75%": _rate(row.get("reached_75_sessions"), row.get("depth_measured_sessions")),
-            "Reached 90%": _rate(row.get("reached_90_sessions"), row.get("depth_measured_sessions")),
-            "Later portfolio": _rate(row.get("later_portfolio_sessions"), row.get("article_sessions")),
-            "Later CV": _rate(row.get("later_cv_sessions"), row.get("article_sessions")),
-            "Later contact": _rate(row.get("later_contact_sessions"), row.get("article_sessions")),
-        } for row in data.get("topic_performance", [])]
-        if topics:
-            st.dataframe(topics, hide_index=True, use_container_width=True)
+        if topic_rows:
+            _render_topic_visuals(topic_rows)
+            with st.expander("Exact topic metrics", expanded=False):
+                topics = [{
+                    "Topic": row.get("topic") or "Uncategorized",
+                    "Article sessions": _count(row.get("article_sessions")),
+                    "Views": _count(row.get("views")),
+                    "Engaged ≥10s": _rate(row.get("engaged_sessions"), row.get("article_sessions")),
+                    "Reached 75%": _rate(row.get("reached_75_sessions"), row.get("depth_measured_sessions")),
+                    "Reached 90%": _rate(row.get("reached_90_sessions"), row.get("depth_measured_sessions")),
+                    "Later portfolio": _rate(row.get("later_portfolio_sessions"), row.get("article_sessions")),
+                    "Later CV": _rate(row.get("later_cv_sessions"), row.get("article_sessions")),
+                    "Later contact": _rate(row.get("later_contact_sessions"), row.get("article_sessions")),
+                } for row in data.get("topic_performance", [])]
+                st.dataframe(topics, hide_index=True, use_container_width=True)
+        else:
+            st.info("No topic-performance activity in this reporting window.")
 
         st.subheader("First seven days after publication")
-        st.caption("This normalizes articles by publication age instead of comparing unequal lifetimes. It uses each article's first seven calendar days, independent of the reporting-window filter above.")
-        first7 = [{
-            "Article": row.get("title") or _article_title(row.get("slug")),
-            "Published": row.get("published_date"),
-            "Topic": row.get("topic") or "Uncategorized",
-            "Views": _count(row.get("views")),
-            "Sessions": _count(row.get("sessions")),
-            "Engaged ≥10s": _rate(row.get("engaged_sessions"), row.get("sessions")),
-            "Reached 75%": _rate(row.get("reached_75_sessions"), row.get("depth_measured_sessions")),
-        } for row in data.get("publication_age", [])]
-        if first7:
-            st.dataframe(first7, hide_index=True, use_container_width=True)
+        st.caption(
+            "This normalizes articles by publication age instead of comparing unequal lifetimes. "
+            "It uses each article's first seven calendar days, independent of the reporting-window filter above."
+        )
+        first7_rows = _first7_visual_rows(data)
+        if first7_rows:
+            _render_first7_visuals(first7_rows)
+            with st.expander("Exact first-seven-day metrics", expanded=False):
+                first7 = [{
+                    "Article": row.get("title") or _article_title(row.get("slug")),
+                    "Published": row.get("published_date"),
+                    "Topic": row.get("topic") or "Uncategorized",
+                    "Views": _count(row.get("views")),
+                    "Sessions": _count(row.get("sessions")),
+                    "Engaged ≥10s": _rate(row.get("engaged_sessions"), row.get("sessions")),
+                    "Reached 75%": _rate(row.get("reached_75_sessions"), row.get("depth_measured_sessions")),
+                } for row in data.get("publication_age", [])]
+                st.dataframe(first7, hide_index=True, use_container_width=True)
         else:
             st.info("No first-seven-day article history is available yet.")
-
 
 def _render_attention_ux(data: dict, kind: str) -> None:
     behavior = data.get("behavior", {})

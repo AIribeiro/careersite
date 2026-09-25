@@ -202,6 +202,11 @@ class RuntimeSmokeTests(unittest.TestCase):
                 "linkedin_click",
                 "article_click",
                 "engagement_ping",
+                "element_impression",
+                "article_card_click",
+                "cta_click",
+                "section_view",
+                "performance_metric",
             },
         )
         self.assertEqual(set(LENS_PAGES), {"enterprise", "transformation", "governance", "consulting"})

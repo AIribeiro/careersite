@@ -318,6 +318,9 @@ def _campaign_visual_rows(data: dict) -> list[dict]:
             "Campaign": campaign,
             "Sessions": sessions,
             "Reader sessions": _count(row.get("reader_sessions")),
+            "Engaged sessions": _count(row.get("engaged_sessions")),
+            "CV sessions": _count(row.get("cv_sessions")),
+            "Contact sessions": _count(row.get("contact_sessions")),
             "Reader": _percentage(row.get("reader_sessions"), sessions),
             "Engaged": _percentage(row.get("engaged_sessions"), sessions),
             "CV": _percentage(row.get("cv_sessions"), sessions),
@@ -373,15 +376,10 @@ def _render_source_quality(data: dict) -> None:
         "Source": row["Source"],
         "Campaign / role": row["Campaign"],
         "Sessions": row["Sessions"],
-        "Reader rate": _rate(
-            next((raw.get("reader_sessions") for raw in data.get("campaigns", [])
-                  if (raw.get("channel") or "direct/unknown") == row["Source"]
-                  and (raw.get("campaign") or "untagged") == row["Campaign"]), 0),
-            row["Sessions"],
-        ),
-        "Engaged rate": f"{row['Engaged']:.1f}% ({round(row['Engaged'] * row['Sessions'] / 100)} of {row['Sessions']})" if row["Engaged"] is not None else "—",
-        "CV rate": f"{row['CV']:.1f}% ({round(row['CV'] * row['Sessions'] / 100)} of {row['Sessions']})" if row["CV"] is not None else "—",
-        "Contact rate": f"{row['Contact']:.1f}% ({round(row['Contact'] * row['Sessions'] / 100)} of {row['Sessions']})" if row["Contact"] is not None else "—",
+        "Reader rate": _rate(row["Reader sessions"], row["Sessions"]),
+        "Engaged rate": _rate(row["Engaged sessions"], row["Sessions"]),
+        "CV rate": _rate(row["CV sessions"], row["Sessions"]),
+        "Contact rate": _rate(row["Contact sessions"], row["Sessions"]),
     } for row in visual_rows]
     _exact_metrics("Exact source-quality metrics", exact)
 

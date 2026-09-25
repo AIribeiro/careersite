@@ -39,6 +39,13 @@ ALLOWED_EVENTS = (
     "cta_click",
     "section_view",
     "performance_metric",
+    "section_attention",
+    "element_attention",
+    "cta_hesitation",
+    "scroll_abandonment",
+    "ux_signal",
+    "first_interaction",
+    "behavior_summary",
 )
 LENS_PAGES = ("enterprise", "transformation", "governance", "consulting")
 RECOMMENDED_ATTRIBUTION_SOURCES = (
@@ -209,6 +216,23 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       connection_type: connection && connection.effectiveType
         ? String(connection.effectiveType).slice(0, 20)
         : null,
+      hardware_concurrency: Number(nav.hardwareConcurrency || 0) > 0
+        ? Math.min(256, Math.max(1, Math.round(Number(nav.hardwareConcurrency))))
+        : null,
+      device_memory_gb: Number(nav.deviceMemory || 0) > 0
+        ? Math.min(256, Number(nav.deviceMemory))
+        : null,
+      save_data: connection && typeof connection.saveData === 'boolean'
+        ? Boolean(connection.saveData)
+        : null,
+      orientation: (() => {{
+        try {{
+          const value = String(win.screen && win.screen.orientation && win.screen.orientation.type || '');
+          if (value.startsWith('portrait')) return 'portrait';
+          if (value.startsWith('landscape')) return 'landscape';
+        }} catch (_) {{}}
+        return win.innerHeight >= win.innerWidth ? 'portrait' : 'landscape';
+      }})(),
     }};
   }};
 
@@ -426,7 +450,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       ...clientContext(),
       article_slug: win.__jairArticleContext ? win.__jairArticleContext.slug : null,
       content_kind: win.__jairArticleContext ? 'article' : 'page',
-      tracking_version: 4,
+      tracking_version: 5,
       page_engaged_ms: Math.round(pageEngagedMs),
       scroll_depth: scrollDepth(),
       element_kind: extra.element_kind ? safeText(extra.element_kind, 32) : null,
@@ -437,6 +461,18 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       section_label: extra.section_label ? safeText(extra.section_label, 240) : null,
       metric_name: extra.metric_name ? safeText(extra.metric_name, 32) : null,
       metric_value: extra.metric_value == null ? null : Math.max(0, Math.min(10000000, Number(extra.metric_value) || 0)),
+      attention_ms: extra.attention_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.attention_ms) || 0))),
+      hover_ms: extra.hover_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.hover_ms) || 0))),
+      hesitation_ms: extra.hesitation_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.hesitation_ms) || 0))),
+      latency_ms: extra.latency_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.latency_ms) || 0))),
+      exposure_count: extra.exposure_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.exposure_count) || 0))),
+      interaction_type: extra.interaction_type ? safeText(extra.interaction_type, 32) : null,
+      focus_loss_count: extra.focus_loss_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.focus_loss_count) || 0))),
+      resize_count: extra.resize_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.resize_count) || 0))),
+      orientation_change_count: extra.orientation_change_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.orientation_change_count) || 0))),
+      max_scroll_velocity: extra.max_scroll_velocity == null ? null : Math.max(0, Math.min(1000000, Number(extra.max_scroll_velocity) || 0)),
+      max_reverse_scroll_velocity: extra.max_reverse_scroll_velocity == null ? null : Math.max(0, Math.min(1000000, Number(extra.max_reverse_scroll_velocity) || 0)),
+      error_type: extra.error_type ? safeText(extra.error_type, 64) : null,
     }};
 
     fetch(endpoint, {{

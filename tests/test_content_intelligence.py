@@ -15,6 +15,8 @@ from page_content_intelligence import (
     _topic_visual_rows,
     _topic_heatmap_rows,
     _first7_visual_rows,
+    _content_visual_rows,
+    _campaign_visual_rows,
 )
 
 
@@ -73,6 +75,33 @@ class ContentIntelligenceTests(unittest.TestCase):
         row = _first7_visual_rows(data)[0]
         self.assertEqual(row['Engaged %'], 75.0)
         self.assertEqual(row['Reached 75%'], 50.0)
+
+    def test_content_visual_rows_keep_exact_rate_denominators(self):
+        data = {'performance': [{
+            'kind': 'article', 'content': 'example', 'views': 8, 'sessions': 4,
+            'avg_active_seconds': 21.5, 'engaged_sessions': 3,
+            'depth_measured_sessions': 2, 'quarter_sessions': 2, 'halfway_sessions': 2,
+            'three_quarter_sessions': 1, 'bottom_sessions': 1, 'deep_read_sessions': 1,
+            'sharing_sessions': 1, 'later_portfolio_sessions': 2,
+            'later_cv_sessions': 1, 'later_contact_sessions': 0,
+        }]}
+        row = _content_visual_rows(data, 'article')[0]
+        self.assertEqual(row['Engaged'], 75.0)
+        self.assertEqual(row['Reached 75'], 50.0)
+        self.assertEqual(row['Later CV'], 25.0)
+
+    def test_campaign_visual_rows_retain_raw_action_counts(self):
+        data = {'campaigns': [{
+            'channel': 'linkedin', 'campaign': 'role-a', 'sessions': 8,
+            'reader_sessions': 6, 'engaged_sessions': 4, 'cv_sessions': 2,
+            'contact_sessions': 1,
+        }]}
+        row = _campaign_visual_rows(data)[0]
+        self.assertEqual(row['Reader sessions'], 6)
+        self.assertEqual(row['Engaged sessions'], 4)
+        self.assertEqual(row['CV sessions'], 2)
+        self.assertEqual(row['Contact sessions'], 1)
+        self.assertEqual(row['Contact'], 12.5)
 
     def test_each_route_renders_only_its_dashboard_and_filter(self):
         from streamlit.testing.v1 import AppTest

@@ -50,6 +50,10 @@ class BehaviorTelemetryTests(unittest.TestCase):
         self.assertIn("first_interaction", js)
         self.assertIn("fcp_ms", js)
         self.assertIn("inp_ms", js)
+        self.assertIn("sendSectionViewOnce(descriptor)", js)
+        self.assertIn("sendElementExposureOnce(descriptor)", js)
+        self.assertIn("setInterval(() => sendSummary(false), 15000)", js)
+        self.assertIn("sendSummary(true)", js)
 
     def test_click_coordinates_are_only_used_in_memory(self) -> None:
         js = _telemetry_js()

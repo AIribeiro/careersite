@@ -6,7 +6,16 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 
-from page_content_intelligence import performance_rows, export_csv, _rate, _change
+from page_content_intelligence import (
+    performance_rows,
+    export_csv,
+    _rate,
+    _change,
+    _trend_visual_rows,
+    _topic_visual_rows,
+    _topic_heatmap_rows,
+    _first7_visual_rows,
+)
 
 
 class ContentIntelligenceTests(unittest.TestCase):
@@ -28,6 +37,42 @@ class ContentIntelligenceTests(unittest.TestCase):
 
     def test_csv_neutralizes_campaign_formulas(self):
         self.assertIn("'=HYPERLINK", export_csv([{'Campaign': '=HYPERLINK("x")'}]))
+
+    def test_trend_visual_rows_preserve_current_previous_counts(self):
+        data = {'period_comparison': [{
+            'kind': 'article', 'content': 'example', 'current_sessions': 6,
+            'previous_sessions': 4, 'current_engaged_sessions': 3,
+            'previous_engaged_sessions': 2,
+        }]}
+        row = _trend_visual_rows(data, 'article')[0]
+        self.assertEqual(row['Current sessions'], 6)
+        self.assertEqual(row['Previous sessions'], 4)
+        self.assertEqual(row['Session change %'], 50.0)
+
+    def test_topic_visuals_keep_unavailable_denominators_blank(self):
+        data = {'topic_performance': [{
+            'topic': 'AI Governance', 'article_sessions': 4, 'views': 6,
+            'engaged_sessions': 2, 'depth_measured_sessions': 0,
+            'reached_75_sessions': 0, 'reached_90_sessions': 0,
+            'later_portfolio_sessions': 1, 'later_cv_sessions': 1,
+            'later_contact_sessions': 0,
+        }]}
+        row = _topic_visual_rows(data)[0]
+        self.assertEqual(row['Engaged %'], 50.0)
+        self.assertIsNone(row['Reached 75%'])
+        heat = _topic_heatmap_rows([row])
+        self.assertNotIn('Reached 75', {cell['Metric'] for cell in heat})
+
+    def test_first7_visual_rows_use_exposure_denominators(self):
+        data = {'publication_age': [{
+            'slug': 'example', 'title': 'Example', 'topic': 'AI Strategy',
+            'published_date': '2026-09-01', 'views': 8, 'sessions': 4,
+            'engaged_sessions': 3, 'depth_measured_sessions': 2,
+            'reached_75_sessions': 1,
+        }]}
+        row = _first7_visual_rows(data)[0]
+        self.assertEqual(row['Engaged %'], 75.0)
+        self.assertEqual(row['Reached 75%'], 50.0)
 
     def test_each_route_renders_only_its_dashboard_and_filter(self):
         from streamlit.testing.v1 import AppTest

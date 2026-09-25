@@ -731,8 +731,8 @@ def _cms_fallback_cover(article: CmsArticle, css_class: str) -> str:
 
 
 CMS_FALLBACK_CSS = '''<style>
-.cms-fallback-cover{position:relative;overflow:hidden;min-height:330px;aspect-ratio:2/1;background:radial-gradient(circle at 82% 28%,rgba(255,185,118,.28),transparent 26%),linear-gradient(122deg,#07182b 0%,#173750 62%,#7b6658 100%);color:#fff;border:1px solid rgba(255,255,255,.17);box-shadow:0 20px 48px rgba(0,0,0,.20)}
-.cms-cover-copy{position:absolute;left:5%;top:9%;width:55%;z-index:2}.cms-cover-copy span{display:block;font:750 11px/1.2 Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#c9d7e3;margin-bottom:34px}.cms-cover-copy strong{display:block;font:650 clamp(28px,4.1vw,58px)/1.02 Georgia,serif;letter-spacing:-.025em}.cms-cover-copy p{max-width:700px;margin:20px 0 0;font:400 clamp(13px,1.45vw,20px)/1.42 Arial,sans-serif;color:#e4ebef}
+.cms-fallback-cover{position:relative;overflow:hidden;min-width:0;width:100%;max-width:100%;box-sizing:border-box;min-height:330px;aspect-ratio:2/1;background:radial-gradient(circle at 82% 28%,rgba(255,185,118,.28),transparent 26%),linear-gradient(122deg,#07182b 0%,#173750 62%,#7b6658 100%);color:#fff;border:1px solid rgba(255,255,255,.17);box-shadow:0 20px 48px rgba(0,0,0,.20)}
+.cms-cover-copy{position:absolute;left:5%;top:9%;width:55%;max-width:calc(100% - 32px);min-width:0;z-index:2}.cms-cover-copy span{display:block;font:750 11px/1.2 Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#c9d7e3;margin-bottom:34px}.cms-cover-copy strong{display:block;max-width:100%;overflow-wrap:anywhere;font:650 clamp(28px,4.1vw,58px)/1.02 Georgia,serif;letter-spacing:-.025em}.cms-cover-copy p{max-width:700px;margin:20px 0 0;overflow-wrap:anywhere;font:400 clamp(13px,1.45vw,20px)/1.42 Arial,sans-serif;color:#e4ebef}
 .cms-cover-network{position:absolute;right:4%;bottom:8%;width:34%;height:72%;border:1px solid rgba(255,255,255,.16);border-radius:50%}.cms-cover-network:before,.cms-cover-network:after{content:"";position:absolute;left:50%;top:50%;width:86%;height:1px;background:rgba(255,255,255,.30);transform:translate(-50%,-50%) rotate(30deg)}.cms-cover-network:after{transform:translate(-50%,-50%) rotate(-30deg)}.cms-cover-network i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:86px;height:86px;border-radius:50%;background:#f1eee8;color:#132331;font:800 30px/1 Arial,sans-serif;font-style:normal;z-index:2}.cms-cover-network b{position:absolute;padding:8px 11px;border:1px solid rgba(255,255,255,.35);background:rgba(7,24,43,.75);font:650 11px/1 Arial,sans-serif;letter-spacing:.04em}.cms-cover-network b:nth-of-type(1){left:7%;top:13%}.cms-cover-network b:nth-of-type(2){right:9%;top:10%}.cms-cover-network b:nth-of-type(3){right:-2%;top:45%}.cms-cover-network b:nth-of-type(4){right:8%;bottom:9%}.cms-cover-network b:nth-of-type(5){left:10%;bottom:8%}.cms-cover-network b:nth-of-type(6){left:-3%;top:46%}
 @media(max-width:760px){.cms-fallback-cover{min-height:390px;aspect-ratio:auto}.cms-cover-copy{width:88%}.cms-cover-network{opacity:.28;width:58%;right:-12%}.cms-cover-copy strong{font-size:34px}}
 </style>'''
@@ -852,19 +852,28 @@ def inject_cms_landing(document: str) -> str:
         '<p>Current articles appear here as soon as they are published through the private editor.</p>'
         '</div><div class="recent-grid">' + ''.join(cards) + '</div></div></section>'
         '<style>'
-        '.cms-thinking-thumb{margin:-25px -25px 20px;aspect-ratio:2/1!important;overflow:hidden;'
+        '.cms-thinking-thumb{margin:-25px -25px 20px;min-width:0;max-width:100%;box-sizing:border-box;aspect-ratio:2/1!important;overflow:hidden;'
         'background:#0b1220;display:flex;align-items:center;justify-content:center}.cms-thinking-thumb img{'
-        'width:100%!important;height:100%!important;display:block!important;object-fit:contain!important;'
-        'object-position:center center!important}.cms-featured-thinking{min-height:0!important}.cms-featured-thinking '
-        '.cms-thinking-thumb{margin:0!important;aspect-ratio:2/1!important;width:100%!important}'
-        '@media(min-width:700px){.cms-featured-thinking{display:grid!important;grid-template-columns:minmax(280px,.85fr) '
+        'width:100%!important;max-width:100%!important;height:100%!important;display:block!important;object-fit:contain!important;'
+        'object-position:center center!important}.cms-featured-thinking{min-width:0;max-width:100%;overflow:hidden;min-height:0!important}.cms-featured-thinking>*{min-width:0;max-width:100%}.cms-featured-thinking '
+        '.cms-thinking-thumb{margin:0!important;aspect-ratio:2/1!important;width:100%!important;max-width:100%!important}.cms-featured-thinking '
+        '.cms-fallback-cover{min-height:0!important;aspect-ratio:2/1!important}.cms-featured-thinking .cms-fallback-cover .cms-cover-copy{'
+        'left:5%;top:9%;width:58%;max-width:58%}.cms-featured-thinking .cms-fallback-cover .cms-cover-copy span{margin-bottom:14px;font-size:8px}.cms-featured-thinking '
+        '.cms-fallback-cover .cms-cover-copy strong{font-size:clamp(20px,3vw,34px)!important;line-height:1.04}.cms-featured-thinking .cms-fallback-cover .cms-cover-copy p{display:none}'
+        '@media(min-width:1020px){.cms-featured-thinking{display:grid!important;grid-template-columns:minmax(0,.85fr) '
         'minmax(0,1.15fr)!important;grid-template-rows:auto auto auto auto auto;column-gap:34px;row-gap:0;align-items:start;'
         'padding:30px!important}.cms-featured-thinking .cms-thinking-thumb{grid-column:1;grid-row:1/6;align-self:center;'
         'max-height:none!important}.cms-featured-thinking>.kicker,.cms-featured-thinking>h2,.cms-featured-thinking>p,'
         '.cms-featured-thinking>.read-live,.cms-featured-thinking>.meta{grid-column:2}.cms-featured-thinking>h2{'
         'margin:12px 0 14px!important;font-size:clamp(30px,4vw,48px)!important}.cms-featured-thinking>.read-live{'
         'margin-top:16px!important}.cms-featured-thinking>.meta{margin-top:18px!important;padding-top:0!important}}'
-        '@media(max-width:699px){.cms-featured-thinking .cms-thinking-thumb{margin:0 0 20px!important;aspect-ratio:2/1!important}}'
+        '@media(max-width:1019px){.cms-featured-thinking{display:flex!important;flex-direction:column!important}.cms-featured-thinking .cms-thinking-thumb{'
+        'margin:0 0 22px!important;aspect-ratio:2/1!important;width:100%!important}.cms-featured-thinking>h2{font-size:clamp(34px,6vw,50px)!important}}'
+        '@media(max-width:699px){.cms-featured-thinking{padding:20px!important}.cms-featured-thinking .cms-thinking-thumb{margin:0 0 18px!important}.cms-featured-thinking '
+        '.cms-fallback-cover .cms-cover-copy{left:5%;top:10%;width:45%;max-width:45%}.cms-featured-thinking .cms-fallback-cover .cms-cover-copy span{'
+        'margin:0;font-size:7px}.cms-featured-thinking .cms-fallback-cover .cms-cover-copy strong,.cms-featured-thinking .cms-fallback-cover .cms-cover-copy p{display:none}'
+        '.cms-featured-thinking .cms-fallback-cover .cms-cover-network{opacity:.65;width:46%;height:76%;right:4%;bottom:12%}.cms-featured-thinking>h2{'
+        'font-size:clamp(30px,8vw,42px)!important;margin:18px 0 14px!important}}'
         '</style>'
     )
     marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Recent thinking</p>'

@@ -58,6 +58,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   const doc = win.document;
   const endpoint = {json.dumps(endpoint)};
   const apiKey = {json.dumps(ANALYTICS_PUBLISHABLE_KEY)};
+  const page = {json.dumps(page)};
   const allowed = new Set({json.dumps(list(ALLOWED_EVENTS))});
   const lenses = new Set({json.dumps(list(LENS_PAGES))});
 
@@ -91,6 +92,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     sessionId = makeSessionId();
     startedAt = now;
     engagedMs = 0;
+    // Page counter is reloaded below when a new session starts.
     lastActiveAt = now;
     win.sessionStorage.setItem(sessionKey, sessionId);
     win.sessionStorage.setItem(startedKey, String(startedAt));
@@ -205,14 +207,42 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     }};
   }};
 
+  // Counters are per content/session, retained across genuine revisits.
+  let pageEngagedMs = 0;
+  const pageTimeKey = () => `jair_hq_page_time:${{sessionId}}:${{page}}:${{win.__jairArticleContext?.slug || ''}}`;
+  let currentPageTimeKey = pageTimeKey();
+  pageEngagedMs = Number(win.sessionStorage.getItem(pageTimeKey()) || 0);
+  let maxScrollDepth = Number(win.sessionStorage.getItem(pageTimeKey() + ':depth')) || null;
+  const scrollDepth = () => {{
+    const article = doc.querySelector('.article-body');
+    const surface = article || doc.querySelector('.site main');
+    if (!surface) return null;
+    const rect = surface.getBoundingClientRect();
+    if (rect.height <= 0) return null;
+    const depth = Math.round(Math.max(0, Math.min(100, 100 * (win.innerHeight - rect.top) / rect.height)));
+    maxScrollDepth = Math.max(maxScrollDepth || 0, depth);
+    win.sessionStorage.setItem(pageTimeKey() + ':depth', String(maxScrollDepth));
+    return maxScrollDepth;
+  }};
+  win.__jairAnalyticsScrollDepth = scrollDepth;
+  win.__jairAnalyticsClientContext = clientContext;
+
   const updateEngagement = () => {{
     const state = win.__jairAnalyticsEngagementState;
     if (!state) return;
+    if (currentPageTimeKey !== pageTimeKey()) {{
+      currentPageTimeKey = pageTimeKey();
+      pageEngagedMs = 0;
+      maxScrollDepth = null;
+    }};
     const nowPerf = win.performance ? win.performance.now() : Date.now();
     const delta = Math.max(0, Math.min(5000, nowPerf - state.lastTick));
     state.lastTick = nowPerf;
     if (doc.visibilityState === 'visible') {{
+      scrollDepth();
       engagedMs = Math.min(86400000, engagedMs + delta);
+      pageEngagedMs = Math.min(86400000, pageEngagedMs + delta);
+      win.sessionStorage.setItem(pageTimeKey(), String(Math.round(pageEngagedMs)));
       lastActiveAt = Date.now();
       win.sessionStorage.setItem(engagedKey, String(Math.round(engagedMs)));
       win.sessionStorage.setItem(lastActiveKey, String(lastActiveAt));
@@ -243,6 +273,11 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       session_elapsed_ms: Math.round(elapsedMs),
       engaged_ms: Math.round(Math.min(86400000, Math.max(0, engagedMs))),
       ...clientContext(),
+      article_slug: win.__jairArticleContext ? win.__jairArticleContext.slug : null,
+      content_kind: win.__jairArticleContext ? 'article' : 'page',
+      tracking_version: 3,
+      page_engaged_ms: Math.round(pageEngagedMs),
+      scroll_depth: scrollDepth(),
     }};
 
     fetch(endpoint, {{
@@ -268,7 +303,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   const now = Date.now();
   let lastView = null;
   try {{ lastView = JSON.parse(win.sessionStorage.getItem('jair_hq_last_view_v1') || 'null'); }} catch (_) {{}}
-  if (!lastView || lastView.signature !== viewSignature || now - lastView.at > 3000) {{
+  if (win.__jairAnalyticsLastDocumentView !== viewSignature) {{
     win.__jairAnalyticsSend('page_view');
     if (win.__jairAnalyticsContext.page === 'impact') {{
       win.__jairAnalyticsSend('impact_view');
@@ -276,6 +311,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     if (lenses.has(win.__jairAnalyticsContext.page)) {{
       win.__jairAnalyticsSend('lens_view', {{ lens: win.__jairAnalyticsContext.page }});
     }}
+    win.__jairAnalyticsLastDocumentView = viewSignature;
     win.sessionStorage.setItem('jair_hq_last_view_v1', JSON.stringify({{ signature: viewSignature, at: now }}));
   }}
 
@@ -351,6 +387,10 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       if (!el) return;
 
       const raw = String(el.dataset.hqEvent || '').toLowerCase();
+      if (raw.startsWith('article_share_')) return;
+      try {{
+        if (new URL(el.getAttribute('href') || '', win.location.href).searchParams.has('article')) return;
+      }} catch (_) {{}}
       const href = String(el.getAttribute('href') || '');
       let eventName = null;
       let target = null;
@@ -364,7 +404,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       }} else if (raw.startsWith('linkedin_') || href.toLowerCase().includes('linkedin.com')) {{
         eventName = 'linkedin_click';
         target = 'linkedin';
-      }} else if (raw.startsWith('article_')) {{
+      }} else if (raw.startsWith('article_') && !href.includes('article=')) {{
         eventName = 'article_click';
         target = href || (el.textContent || '').trim();
       }}

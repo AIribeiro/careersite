@@ -321,7 +321,8 @@ def _bar_chart(
     color: str = ACCENT,
     sort: object = "-x",
 ) -> None:
-    data = _top_rows(rows, limit)
+    ranked = sorted(rows, key=lambda row: float(row.get(value) or 0), reverse=True) if isinstance(rows, list) and sort == "-x" else rows
+    data = _top_rows(ranked, limit)
     if value in {"sessions", "events", "engaged_sessions", "page_views"}:
         for row in data:
             row[value] = _count(row.get(value))
@@ -563,7 +564,7 @@ def _hour_chart(rows: object) -> None:
 
 def _funnel(home: int, impact: int, lens: int, cv: int) -> None:
     stages = [
-        ("Home", home),
+        ("All sessions", home),
         ("Impact", impact),
         ("Role lens", lens),
         ("CV download", cv),
@@ -572,7 +573,7 @@ def _funnel(home: int, impact: int, lens: int, cv: int) -> None:
     rows = []
     for label, value in stages:
         width = max(2.0 if value else 0.0, min(100.0, 100 * value / ceiling))
-        pct = _pct(value, home) if label != "Home" else "100%" if home else "—"
+        pct = _pct(value, home) if label != "All sessions" else "100%" if home else "—"
         rows.append(
             f"""
 <div class="funnel-row">
@@ -633,16 +634,7 @@ def render_analytics_dashboard() -> None:
         unsafe_allow_html=True,
     )
 
-    filter_col, _ = st.columns([2.5, 5.1])
-    with filter_col:
-        window = st.selectbox(
-            "Reporting window",
-            [key for key, _ in REPORTING_WINDOWS],
-            index=0,
-            format_func=lambda key: REPORTING_WINDOW_LABELS[key],
-            key="careersite_analytics_reporting_window",
-            label_visibility="collapsed",
-        )
+    window = str(st.session_state.get("careersite_analytics_reporting_window") or "last_hour")
     try:
         data = _fetch_dashboard(str(window))
     except ValueError:
@@ -700,10 +692,10 @@ def render_analytics_dashboard() -> None:
     )
 
     o1, o2, o3, o4, o5 = st.columns(5)
-    o1.metric("Reached Impact", _pct(impact_sessions, home_sessions), f"{impact_sessions} sessions")
-    o2.metric("Opened a lens", _pct(lens_sessions, home_sessions), f"{lens_sessions} sessions")
+    o1.metric("Reached Impact", _pct(impact_sessions, sessions), f"{impact_sessions} sessions")
+    o2.metric("Opened a lens", _pct(lens_sessions, sessions), f"{lens_sessions} sessions")
     o3.metric("CV conversion", _pct(cv_sessions, sessions), f"{cv_sessions} downloading sessions")
-    o4.metric("Contact intent", email_sessions + linkedin_sessions, "email + LinkedIn")
+    o4.metric("Contact channel sessions", email_sessions + linkedin_sessions, "email + LinkedIn; overlap possible")
     o5.metric("Single-page", _pct(single_page_sessions, sessions), f"{single_page_sessions} sessions")
 
     overview_tab, audience_tab, acquisition_tab, engagement_tab, tools_tab = st.tabs(
@@ -718,8 +710,8 @@ def render_analytics_dashboard() -> None:
                 _daily_chart(data.get("daily", []))
         with right:
             with st.container(border=True):
-                _section("Funnel", "Depth of exploration", "Progression is relative to Home sessions.")
-                _funnel(home_sessions, impact_sessions, lens_sessions, cv_sessions)
+                _section("Funnel", "Depth of exploration", "Independent stage reach, relative to all sessions; not an ordered conversion funnel.")
+                _funnel(sessions, impact_sessions, lens_sessions, cv_sessions)
                 st.markdown(
                     f'<div class="callout">Median active time: <b>{html.escape(_seconds(totals.get("median_active_seconds")))}</b> · '
                     f'Confirmed duration: <b>{confirmed_duration_sessions}</b> · '

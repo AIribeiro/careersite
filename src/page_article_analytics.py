@@ -55,7 +55,13 @@ def _fetch_article_dashboard(window: str) -> dict:
 def _article_title(slug: object) -> str:
     value = str(slug or "").strip()
     article = resolve_article(value)
-    return article.title if article is not None else value or "Unknown article"
+    if article is not None:
+        return article.title
+    from site_cms import fetch_published_articles
+    try:
+        return next((item.title for item in fetch_published_articles() if item.slug == value), value or "Unknown article")
+    except RuntimeError:
+        return value or "Unknown article"
 
 
 def _article_rows(rows: object) -> list[dict]:
@@ -185,6 +191,7 @@ def render_article_analytics() -> None:
     unconfirmed_duration_sessions = int(totals.get("unconfirmed_duration_sessions", 0) or 0)
     open_clicks = int(totals.get("open_clicks", 0) or 0)
 
+    reader_visits = sum(int(row.get("sessions") or 0) for row in article_rows)
     st.divider()
     st.markdown(
         """
@@ -200,9 +207,9 @@ def render_article_analytics() -> None:
     )
 
     a1, a2, a3, a4, a5, a6 = st.columns(6)
-    a1.metric("Article views", views, f"{sessions} measured sessions")
+    a1.metric("Article views", views, f"{reader_visits} article-session visits")
     a2.metric("Measured sessions", sessions, f"{confirmed_duration_sessions} ≥5s confirmed")
-    a3.metric("Engaged reads", _pct(engaged_sessions, sessions), f"{engaged_sessions} ≥10s active")
+    a3.metric("Engaged reads", _pct(engaged_sessions, reader_visits), f"{engaged_sessions} ≥10s active")
     a4.metric(
         "Avg active read",
         _seconds(totals.get("avg_active_seconds")),
@@ -212,9 +219,9 @@ def render_article_analytics() -> None:
     a6.metric(
         "Duration unconfirmed",
         unconfirmed_duration_sessions,
-        _pct(unconfirmed_duration_sessions, sessions),
+        _pct(unconfirmed_duration_sessions, reader_visits),
     )
-    st.caption(f"Portfolio article-open clicks in this window: {open_clicks}.")
+    st.caption(f"Portfolio article-open clicks in this window: {open_clicks}. Reading-rate denominators use article-session visits; a session reading two articles contributes two visits.")
 
     left, right = st.columns([1.45, 1])
     with left:

@@ -173,6 +173,7 @@ def inject_article_analytics(
     const articleMs = effectiveSlug && state.slug === effectiveSlug ? Math.round(state.engagedMs) : 0;
     const sessionEngagedMs = Math.max(0, Number(win.sessionStorage.getItem(engagedKey) || 0));
     const payload = {{
+      ...(win.__jairAnalyticsClientContext ? win.__jairAnalyticsClientContext() : {{}}),
       event_name: eventName,
       page: String(page || 'thinking').slice(0, 64),
       lens: null,
@@ -188,6 +189,9 @@ def inject_article_analytics(
       engaged_ms: Math.round(Math.min(86400000, sessionEngagedMs)),
       article_slug: effectiveSlug ? String(effectiveSlug).slice(0, 160) : null,
       article_action: action ? String(action).slice(0, 32) : null,
+      content_kind: win.__jairArticleContext ? 'article' : 'page',
+      tracking_version: 3,
+      scroll_depth: win.__jairAnalyticsScrollDepth ? win.__jairAnalyticsScrollDepth() : null,
       article_engaged_ms: effectiveSlug ? Math.min(86400000, Math.max(0, articleMs)) : null,
     }};
 
@@ -235,7 +239,8 @@ def inject_article_analytics(
     const now = Date.now();
     let last = null;
     try {{ last = JSON.parse(win.sessionStorage.getItem('jair_hq_last_article_view_v1') || 'null'); }} catch (_) {{}}
-    if (!last || last.signature !== signature || now - last.at > 3000) {{
+    if (win.__jairArticleLastDocumentView !== signature) {{
+      win.__jairArticleLastDocumentView = signature;
       send('article_view', {{ slug: article.slug }});
       win.sessionStorage.setItem('jair_hq_last_article_view_v1', JSON.stringify({{ signature, at: now }}));
     }}

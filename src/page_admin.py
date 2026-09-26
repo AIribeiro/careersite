@@ -640,7 +640,10 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             try:
                 saved = save_article(access_token, replace(draft, status="published"))
                 st.session_state["cms_edit_id"] = saved.id
-                st.success("Article published.")
+                if article.status == "published":
+                    st.success("Published article updated. Internal portfolio links refreshed.")
+                else:
+                    st.success("Article published. Internal portfolio links added.")
                 st.rerun()
             except Exception as exc:
                 st.error(str(exc))

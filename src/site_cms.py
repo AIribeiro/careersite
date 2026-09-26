@@ -21,7 +21,7 @@ import streamlit.components.v1 as components
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
-from site_cms_links import enrich_article_html
+from site_cms_links import refresh_article_html
 
 OWNER_EMAIL = "jair.ribeiro@outlook.it"
 TABLE = "careersite_articles"
@@ -432,7 +432,7 @@ def admin_list_articles(access_token: str) -> list[CmsArticle]:
 def _article_payload(article: CmsArticle) -> dict[str, object]:
     content_html = sanitize_article_html(article.content_html)
     if not article.legacy_key:
-        content_html = enrich_article_html(content_html)
+        content_html = refresh_article_html(content_html)
 
     return {
         "title": article.title.strip(),

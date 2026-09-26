@@ -1059,7 +1059,7 @@ def inject_cms_landing(document: str) -> str:
 
 def cms_share_document(article: CmsArticle) -> str:
     canonical = article_url(article)
-    image = cms_social_image_url(article)
+    image = f"{BASE_URL}/social/{article.slug}.png" if article.legacy_key else cms_social_image_url(article)
     description = article.meta_description or article.excerpt
     image_size_meta = (
         '<meta property="og:image:type" content="image/png">'
@@ -1086,7 +1086,7 @@ def cms_share_document(article: CmsArticle) -> str:
 
 def inject_cms_article_metadata(article: CmsArticle) -> None:
     canonical = article_url(article)
-    image = cms_social_image_url(article)
+    image = f"{BASE_URL}/social/{article.slug}.png" if article.legacy_key else cms_social_image_url(article)
     description = article.meta_description or article.excerpt
     schema = {
         "@context": "https://schema.org",

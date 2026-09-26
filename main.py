@@ -34,6 +34,7 @@ from page_about import about
 from page_certifications import certifications
 from page_presence import presence
 from page_contact import contact
+from page_ai_data_governance import ai_data_governance
 from page_analytics_v2 import render_analytics_dashboard
 from page_admin import render_admin_dashboard
 from site_lenses import enterprise, transformation, governance, consulting
@@ -42,7 +43,7 @@ PAGE = st.query_params.get("page", "home")
 if isinstance(PAGE, list):
     PAGE = PAGE[0] if PAGE else "home"
 PAGE = str(PAGE).lower().strip()
-PUBLIC_VALID = {"home", "impact", "thinking", "about", "certifications", "presence", "contact", "enterprise", "transformation", "governance", "consulting"}
+PUBLIC_VALID = {"home", "impact", "thinking", "about", "certifications", "presence", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -70,6 +71,7 @@ TITLES = {
     "enterprise": "Enterprise AI & Data Leadership | Jair Ribeiro",
     "transformation": "AI Transformation & Adoption | Jair Ribeiro",
     "governance": "AI Governance & Operating Model | Jair Ribeiro",
+    "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
     "consulting": "Business-Driven AI & Consulting | Jair Ribeiro",
     "analytics": "Hiring-Funnel Analytics | Jair Ribeiro",
     "admin": "Article CMS | Jair Ribeiro",
@@ -121,6 +123,7 @@ else:
         "enterprise": enterprise,
         "transformation": transformation,
         "governance": governance,
+        "ai-data-governance": ai_data_governance,
         "consulting": consulting,
     }
 

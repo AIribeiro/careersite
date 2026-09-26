@@ -24,6 +24,7 @@ DESCRIPTIONS = {
     "enterprise": "Contextual view of Jair Ribeiro's Enterprise AI & Data leadership experience across strategy, portfolio, operating models, governance, adoption and technical judgment.",
     "transformation": "Contextual view of Jair Ribeiro's AI transformation and adoption experience, connecting experimentation with capability building, workflow change, governance and scale-readiness.",
     "governance": "Contextual view of Jair Ribeiro's AI governance and operating-model experience across decision rights, lifecycle ownership, Responsible AI, data trust and scale-readiness.",
+    "ai-data-governance": "Jair Ribeiro's executive perspective on AI and Data Governance: accountability, decision rights, trusted data, evidence, traceability, monitoring and responsible scale.",
     "consulting": "Contextual view of Jair Ribeiro's business-driven AI and consulting experience, connecting problem framing and executive dialogue with enterprise operating reality.",
 }
 

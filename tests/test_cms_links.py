@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 
 from site_cms import CmsArticle, _article_payload, sanitize_article_html
-from site_cms_links import enrich_article_html
+from site_cms_links import enrich_article_html, refresh_article_html
 
 
 class CmsAutoLinkTests(unittest.TestCase):
@@ -67,6 +67,36 @@ class CmsAutoLinkTests(unittest.TestCase):
         self.assertEqual(enriched.count("Jair Ribeiro"), 1)
         self.assertIn('href="?page=impact"', enriched)
         self.assertFalse(enriched.endswith('class="article-signature"'))
+
+    def test_refresh_recalculates_links_for_published_article_update(self) -> None:
+        original = enrich_article_html(
+            "<p>Enterprise AI needs practical AI governance.</p>"
+        )
+        edited = (
+            original
+            .replace(">Enterprise AI</a>", ">operational discipline</a>")
+            .replace(">AI governance</a>", ">AI adoption</a>")
+            .replace("</p>", " and business value.</p>", 1)
+        )
+
+        refreshed = refresh_article_html(edited)
+
+        self.assertIn('href="?page=transformation"', refreshed)
+        self.assertIn('href="?page=consulting"', refreshed)
+        self.assertNotIn('data-hq-event="article_internal_enterprise"', refreshed)
+        self.assertNotIn('data-hq-event="article_internal_governance"', refreshed)
+        self.assertEqual(refreshed.count('href="?page=impact"'), 1)
+
+        published = CmsArticle(
+            id="published-1",
+            title="Updated",
+            status="published",
+            content_html=edited,
+        )
+        payload = _article_payload(published)
+        saved_html = str(payload["content_html"])
+        self.assertIn('href="?page=transformation"', saved_html)
+        self.assertIn('href="?page=consulting"', saved_html)
 
     def test_payload_enriches_new_cms_article_but_not_legacy_article(self) -> None:
         body = "<p>Enterprise AI needs practical AI governance.</p>"

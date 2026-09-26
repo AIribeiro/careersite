@@ -15,8 +15,8 @@ from thinking_week4 import stop_ai_use_case, roi_diagnosed_too_late
 
 # Public-copy guard anchors retained here because tests intentionally inspect this module.
 PUBLIC_COPY_GUARD = (
-    "I write selectively, usually when a recurring operating question is worth working through. "
-    "Writing, speaking and research extend the operating perspective."
+    "The articles are not the point. The decisions behind them are. "
+    "The same thinking gets tested in research, industry conversations and leadership rooms."
 )
 
 VISUAL_CSS = r'''<style>

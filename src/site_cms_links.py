@@ -79,6 +79,11 @@ _CONTEXT_EVENT_RE = re.compile(
     r'data-hq-event=["\']article_internal_(?:enterprise|transformation|governance|consulting)["\']',
     flags=re.I,
 )
+_GENERATED_CONTEXT_LINK_RE = re.compile(
+    r'<a\b(?=[^>]*data-hq-event=["\']article_internal_'
+    r'(?:enterprise|transformation|governance|consulting)["\'])[^>]*>(.*?)</a>',
+    flags=re.I | re.S,
+)
 _SIGNATURE_CLASS_RE = re.compile(r'class=["\'][^"\']*\barticle-signature\b[^"\']*["\']', flags=re.I)
 _FINAL_AUTHOR_LINK_RE = re.compile(
     r'<a\b[^>]*>\s*Jair Ribeiro\s*</a>(?=\s*(?:</[^>]+>\s*)*$)',
@@ -276,11 +281,7 @@ def ensure_author_signature(value: str) -> str:
 
 
 def enrich_article_html(value: str, max_context_links: int = 2) -> str:
-    """Add two relevant portfolio cross-links and a linked Jair Ribeiro signature.
-
-    The function is intentionally idempotent: re-saving an article will not keep
-    adding links, and existing anchors are never rewritten or nested.
-    """
+    """Add relevant portfolio cross-links and a linked Jair Ribeiro signature."""
     html = (value or "").strip()
     existing = len(_CONTEXT_EVENT_RE.findall(html))
     remaining = max(0, max_context_links - existing)
@@ -293,3 +294,16 @@ def enrich_article_html(value: str, max_context_links: int = 2) -> str:
             html = parser.html()
 
     return ensure_author_signature(html)
+
+
+def refresh_article_html(value: str, max_context_links: int = 2) -> str:
+    """Re-evaluate generated links against the current article text.
+
+    This is the save/update path used by the CMS. Previously generated context
+    links are unwrapped, manually authored links are preserved, and the two most
+    relevant portfolio links are selected again from the current copy. The author
+    signature remains canonical and linked to Leadership Impact.
+    """
+    html = (value or "").strip()
+    html = _GENERATED_CONTEXT_LINK_RE.sub(lambda match: match.group(1), html)
+    return enrich_article_html(html, max_context_links=max_context_links)

@@ -374,9 +374,17 @@ def _link_selected_phrases(value: str, selected: list[tuple[str, str, str, str]]
 
 
 def enrich_article_internal_links(value: str) -> str:
-    """Add portfolio cross-links and a canonical author signature to CMS articles."""
+    """Add at most two portfolio cross-links and a canonical author signature."""
     cleaned = sanitize_article_html(value)
-    selected = _select_internal_link_phrases(cleaned, limit=2)
+    existing_context_links = len(
+        re.findall(
+            r'data-hq-event=["\']article_internal_(?:enterprise|transformation|governance|consulting)["\']',
+            cleaned,
+            flags=re.I,
+        )
+    )
+    remaining = max(0, 2 - existing_context_links)
+    selected = _select_internal_link_phrases(cleaned, limit=remaining) if remaining else []
     enriched = _link_selected_phrases(cleaned, selected)
 
     if re.search(r'class=["\']article-signature["\']', enriched, flags=re.I):

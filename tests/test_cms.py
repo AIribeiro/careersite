@@ -79,6 +79,7 @@ class CareersiteCmsTests(unittest.TestCase):
         self.assertIn('class="article-signature"', enriched)
         self.assertIn('href="?page=impact"', enriched)
         self.assertTrue(enriched.rstrip().endswith("</div>"))
+        self.assertEqual(enriched, enrich_article_internal_links(enriched))
 
     def test_article_enrichment_is_idempotent_and_does_not_nest_existing_links(self) -> None:
         body = (

@@ -6,7 +6,7 @@ from io import BytesIO
 from PIL import Image
 from unittest.mock import patch
 
-from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_share_document, effective_header_image_url, embedded_header_image_src, generate_metadata, inject_cms_landing, normalize_header_image, sanitize_article_html, slugify
+from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_share_document, cms_social_image_url, effective_header_image_url, embedded_header_image_src, generate_metadata, inject_cms_landing, normalize_header_image, render_cms_social_image, sanitize_article_html, slugify
 
 
 class CareersiteCmsTests(unittest.TestCase):
@@ -105,6 +105,23 @@ class CareersiteCmsTests(unittest.TestCase):
         self.assertIn("cms-fallback-cover", rendered)
         self.assertIn("?page=thinking&amp;article=new-featured-article", rendered)
 
+    def test_cms_social_image_is_article_specific_png(self) -> None:
+        article = CmsArticle(
+            title="When AI Stops Assisting and Starts Working, the Enterprise Has a Different Problem",
+            slug="when-ai-stops-assisting-and-starts-working-the-enterprise-has-a-different-problem",
+            social_title="When AI Stops Assisting and Starts Working, the Enterprise Has a Different Problem",
+            social_description="AI is moving from helping with work to carrying work forward.",
+            category="Enterprise AI",
+            kind="Point of view",
+            updated_at="2026-09-26T07:50:06+00:00",
+        )
+        url = cms_social_image_url(article)
+        self.assertIn("/cms-social/when-ai-stops-assisting-and-starts-working-the-enterprise-has-a-different-problem.png?v=", url)
+        data = render_cms_social_image(article)
+        with Image.open(BytesIO(data)) as image:
+            self.assertEqual(image.format, "PNG")
+            self.assertEqual(image.size, (1200, 627))
+
     def test_share_document_contains_article_metadata(self) -> None:
         article = CmsArticle(
             title="A CMS Article",
@@ -125,6 +142,9 @@ class CareersiteCmsTests(unittest.TestCase):
         self.assertIn("A CMS Article", document)
         self.assertIn("/thinking/a-cms-article", document)
         self.assertIn('type="application/ld+json"', document)
+        self.assertIn('/cms-social/a-cms-article.png?v=', document)
+        self.assertIn('property="og:image:width" content="1200"', document)
+        self.assertIn('property="og:image:height" content="627"', document)
 
 
 if __name__ == "__main__":

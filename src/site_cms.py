@@ -391,9 +391,9 @@ def enrich_article_internal_links(value: str) -> str:
         return enriched
 
     signature_patterns = (
-        r'<p>\s*Jair Ribeiro\s*</p>\s*\\Z',
-        r'<p>\s*<strong>\s*Jair Ribeiro\s*</strong>\s*</p>\s*\\Z',
-        r'<p>\s*<em>\s*Jair Ribeiro\s*</em>\s*</p>\s*\\Z',
+        r'<p>\s*Jair Ribeiro\s*</p>\s*\Z',
+        r'<p>\s*<strong>\s*Jair Ribeiro\s*</strong>\s*</p>\s*\Z',
+        r'<p>\s*<em>\s*Jair Ribeiro\s*</em>\s*</p>\s*\Z',
     )
     for pattern in signature_patterns:
         if re.search(pattern, enriched, flags=re.I):

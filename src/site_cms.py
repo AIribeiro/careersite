@@ -21,6 +21,7 @@ import streamlit.components.v1 as components
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
+from site_cms_links import enrich_article_html
 
 OWNER_EMAIL = "jair.ribeiro@outlook.it"
 TABLE = "careersite_articles"
@@ -33,7 +34,7 @@ ALLOWED_TAGS = [
     "blockquote", "ul", "ol", "li", "a", "hr", "code", "pre", "div", "span",
 ]
 ALLOWED_ATTRIBUTES = {
-    "a": ["href", "title", "target", "rel"],
+    "a": ["href", "title", "target", "rel", "data-hq-event"],
     "div": ["class"],
     "span": ["class"],
 }
@@ -429,11 +430,15 @@ def admin_list_articles(access_token: str) -> list[CmsArticle]:
 
 
 def _article_payload(article: CmsArticle) -> dict[str, object]:
+    content_html = sanitize_article_html(article.content_html)
+    if not article.legacy_key:
+        content_html = enrich_article_html(content_html)
+
     return {
         "title": article.title.strip(),
         "slug": slugify(article.slug or article.title),
         "subtitle": article.subtitle.strip() or None,
-        "content_html": sanitize_article_html(article.content_html),
+        "content_html": content_html,
         "aside_html": sanitize_article_html(article.aside_html),
         "excerpt": article.excerpt.strip(),
         "header_image_url": article.header_image_url.strip() or None,
@@ -953,7 +958,7 @@ def render_cms_article(article: CmsArticle) -> str:
 
     css = '''<style>
 .cms-article-image{margin:26px 0 0}.cms-article-image img{display:block;width:100%;max-height:620px;object-fit:cover;border:1px solid rgba(255,255,255,.16);box-shadow:0 20px 48px rgba(0,0,0,.22)}
-.cms-source{margin-top:28px!important;padding-top:18px;border-top:1px solid var(--line)}.cms-source a{font-size:11px;font-weight:850;text-decoration:none}.article-body h3{margin:34px 0 14px;font:500 26px/1.15 Georgia,serif}.article-body ul,.article-body ol{margin:0 0 24px;padding-left:24px;color:#343b43;font-size:16px;line-height:1.75}.article-body li{margin:7px 0}.article-body hr{border:0;border-top:1px solid var(--line);margin:34px 0}
+.cms-source{margin-top:28px!important;padding-top:18px;border-top:1px solid var(--line)}.cms-source a{font-size:11px;font-weight:850;text-decoration:none}.article-signature{margin:38px 0 0;padding-top:18px;border-top:1px solid var(--line)}.article-signature a{color:var(--copper)!important;text-decoration:none!important;font:600 19px/1.2 Georgia,serif}.article-signature a:hover{text-decoration:underline!important}.article-body h3{margin:34px 0 14px;font:500 26px/1.15 Georgia,serif}.article-body ul,.article-body ol{margin:0 0 24px;padding-left:24px;color:#343b43;font-size:16px;line-height:1.75}.article-body li{margin:7px 0}.article-body hr{border:0;border-top:1px solid var(--line);margin:34px 0}
 </style>'''
 
     return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="?page=thinking" target="_self">← Back to Thinking</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{escape(article.read_label)}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{opportunity()}</main>{footer()}'''

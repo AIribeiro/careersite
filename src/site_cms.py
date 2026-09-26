@@ -390,9 +390,22 @@ def enrich_article_internal_links(value: str) -> str:
     if re.search(r'class=["\']article-signature["\']', enriched, flags=re.I):
         return enriched
 
-    trailing_name = re.compile(
-        r'<p>\s*(?:<(?:strong|em|span)>\s*)*Jair Ribeiro\s*'
-        r'(?:</(?:strong|em|span)>\s*)*</p>\s*
+    signature_patterns = (
+        r'<p>\s*Jair Ribeiro\s*</p>\s*\\Z',
+        r'<p>\s*<strong>\s*Jair Ribeiro\s*</strong>\s*</p>\s*\\Z',
+        r'<p>\s*<em>\s*Jair Ribeiro\s*</em>\s*</p>\s*\\Z',
+    )
+    for pattern in signature_patterns:
+        if re.search(pattern, enriched, flags=re.I):
+            return re.sub(pattern, ARTICLE_SIGNATURE_HTML, enriched, flags=re.I)
+    return enriched.rstrip() + ARTICLE_SIGNATURE_HTML
+
+
+def strip_html(value: str) -> str:
+    text = re.sub(r"<[^>]+>", " ", value or "")
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
 
 def slugify(value: str) -> str:
     normalized = unicodedata.normalize("NFKD", value or "").encode("ascii", "ignore").decode("ascii")

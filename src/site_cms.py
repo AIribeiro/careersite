@@ -1027,9 +1027,9 @@ def inject_cms_landing(document: str) -> str:
         )
     section = (
         '<section class="section white cms-latest"><div class="container">'
-        '<div class="head"><div><p class="eyebrow">Latest publications</p>'
-        '<h2>New writing published directly to the portfolio.</h2></div>'
-        '<p>Current articles appear here as soon as they are published through the private editor.</p>'
+        '<div class="head"><div><p class="eyebrow">Latest articles</p>'
+        '<h2>New signals, practical leadership implications.</h2></div>'
+        '<p>These are the newest pieces, usually triggered by something changing in AI or data that has a real consequence for how enterprises lead, organize or execute.</p>'
         '</div><div class="recent-grid">' + ''.join(cards) + '</div></div></section>'
         '<style>'
         '.cms-thinking-thumb{margin:-25px -25px 20px;min-width:0;max-width:100%;box-sizing:border-box;aspect-ratio:2/1!important;overflow:hidden;'
@@ -1056,7 +1056,7 @@ def inject_cms_landing(document: str) -> str:
         'font-size:clamp(30px,8vw,42px)!important;margin:18px 0 14px!important}}'
         '</style>'
     )
-    marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Recent thinking</p>'
+    marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">More leadership questions</p>'
     if marker in document:
         return CMS_FALLBACK_CSS + document.replace(marker, section + marker, 1)
     return CMS_FALLBACK_CSS + section + document

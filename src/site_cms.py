@@ -18,7 +18,7 @@ from uuid import uuid4
 import bleach
 import streamlit as st
 import streamlit.components.v1 as components
-from PIL import Image, ImageFilter, ImageOps
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
 
@@ -722,6 +722,181 @@ def article_preview_url(article: CmsArticle) -> str:
     return f"{article_url(article)}?source=application&role=Test"
 
 
+CMS_SOCIAL_SIZE = (1200, 627)
+
+
+def cms_social_image_url(article: CmsArticle) -> str:
+    payload = "|".join(
+        [
+            article.slug,
+            article.social_title or article.title,
+            article.social_description or article.meta_description or article.excerpt,
+            article.updated_at or article.published_at or article.published_iso,
+        ]
+    )
+    version = hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]
+    return f"{BASE_URL}/cms-social/{parse.quote(slugify(article.slug), safe='')}.png?v={version}"
+
+
+def _social_font(size: int, *, bold: bool = False, serif: bool = False, italic: bool = False):
+    candidates: list[Path] = []
+    if serif:
+        if italic:
+            candidates.append(Path("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Italic.ttf"))
+        candidates.append(Path("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"))
+    else:
+        if bold:
+            candidates.append(Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"))
+        candidates.append(Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
+    for path in candidates:
+        if path.exists():
+            try:
+                return ImageFont.truetype(str(path), size=size)
+            except OSError:
+                pass
+    return ImageFont.load_default()
+
+
+def _wrap_social_text(draw: ImageDraw.ImageDraw, text: str, font, max_width: int, max_lines: int) -> list[str]:
+    words = re.sub(r"\s+", " ", text or "").strip().split()
+    if not words:
+        return []
+    lines: list[str] = []
+    current = ""
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        width = draw.textbbox((0, 0), candidate, font=font)[2]
+        if current and width > max_width:
+            lines.append(current)
+            current = word
+            if len(lines) >= max_lines:
+                break
+        else:
+            current = candidate
+    if len(lines) < max_lines and current:
+        lines.append(current)
+    if len(lines) == max_lines:
+        consumed = " ".join(lines)
+        if len(consumed) < len(" ".join(words)):
+            last = lines[-1].rstrip(" ,.;:-")
+            while last and draw.textbbox((0, 0), last + "…", font=font)[2] > max_width:
+                last = last.rsplit(" ", 1)[0] if " " in last else last[:-1]
+            lines[-1] = last + "…"
+    return lines
+
+
+def _draw_social_arrow(draw: ImageDraw.ImageDraw, start: tuple[int, int], end: tuple[int, int], color: tuple[int, int, int], width: int = 3) -> None:
+    draw.line((start, end), fill=color, width=width)
+    ex, ey = end
+    sx, sy = start
+    angle = math.atan2(ey - sy, ex - sx)
+    length = 11
+    wing = 0.55
+    p1 = (ex - length * math.cos(angle - wing), ey - length * math.sin(angle - wing))
+    p2 = (ex - length * math.cos(angle + wing), ey - length * math.sin(angle + wing))
+    draw.polygon([(ex, ey), p1, p2], fill=color)
+
+
+def render_cms_social_image(article: CmsArticle) -> bytes:
+    """Render a crawler-safe, article-specific Open Graph card for CMS articles."""
+    width, height = CMS_SOCIAL_SIZE
+    navy = (7, 22, 39)
+    navy_2 = (10, 42, 70)
+    grid = (20, 66, 96)
+    white = (247, 249, 252)
+    muted = (190, 205, 220)
+    cyan = (49, 211, 236)
+    gold = (242, 183, 90)
+    copper = (230, 170, 125)
+
+    image = Image.new("RGB", CMS_SOCIAL_SIZE, navy)
+    draw = ImageDraw.Draw(image)
+
+    for y in range(height):
+        ratio = y / max(1, height - 1)
+        r = int(navy[0] * (1 - ratio) + navy_2[0] * ratio)
+        g = int(navy[1] * (1 - ratio) + navy_2[1] * ratio)
+        b = int(navy[2] * (1 - ratio) + navy_2[2] * ratio)
+        draw.line((0, y, width, y), fill=(r, g, b))
+    for x in range(0, width, 48):
+        draw.line((x, 0, x, height), fill=grid, width=1)
+    for y in range(0, height, 48):
+        draw.line((0, y, width, y), fill=grid, width=1)
+
+    label_font = _social_font(17, bold=True)
+    title_font = _social_font(48, bold=True)
+    body_font = _social_font(22)
+    small_font = _social_font(15, bold=True)
+    signature_font = _social_font(23, serif=True, italic=True)
+
+    draw.text((68, 52), "PEOPLE · DATA · AI · REAL IMPACT", font=label_font, fill=muted)
+
+    title = article.social_title or article.title
+    title_lines = _wrap_social_text(draw, title, title_font, 650, 4)
+    y = 112
+    for line in title_lines:
+        fill = cyan if ("Starts Working" in line or "Working" in line and "AI" in title) else white
+        draw.text((68, y), line, font=title_font, fill=fill)
+        y += 57
+
+    description = article.social_description or article.subtitle or article.meta_description or article.excerpt
+    desc_lines = _wrap_social_text(draw, _trim_sentence(description, 185), body_font, 650, 3)
+    y += 10
+    for line in desc_lines:
+        draw.text((70, y), line, font=body_font, fill=muted)
+        y += 31
+
+    topic = (article.category or "Enterprise AI").upper()
+    draw.text((70, height - 56), f"{article.kind.upper()} · {topic}", font=small_font, fill=copper)
+
+    # Right-hand visual: human-assisted work becomes an autonomous agent
+    # connected to data, workflows, decisions and exception handling.
+    cx, cy = 915, 318
+    draw.ellipse((748, 145, 1110, 507), outline=(35, 146, 183), width=2)
+    draw.ellipse((772, 169, 1086, 483), outline=(24, 102, 139), width=2)
+
+    # Human / assisted-work node.
+    draw.rounded_rectangle((720, 250, 795, 325), radius=10, outline=cyan, width=2, fill=(10, 53, 79))
+    draw.ellipse((744, 263, 769, 288), outline=white, width=2)
+    draw.arc((738, 281, 775, 315), 200, 340, fill=white, width=2)
+    _draw_social_arrow(draw, (798, 287), (846, 303), cyan, 3)
+
+    # Agent core.
+    draw.polygon([(915, 236), (982, 274), (915, 312), (848, 274)], fill=(17, 111, 148), outline=cyan)
+    draw.polygon([(848, 274), (915, 312), (915, 394), (848, 356)], fill=(9, 77, 111), outline=cyan)
+    draw.polygon([(982, 274), (915, 312), (915, 394), (982, 356)], fill=(118, 82, 38), outline=gold)
+    draw.ellipse((899, 294, 931, 326), fill=gold)
+    draw.line((915, 288, 915, 332), fill=white, width=3)
+    draw.line((893, 310, 937, 310), fill=white, width=3)
+
+    # Connected enterprise nodes.
+    nodes = [
+        ((1030, 190, 1090, 250), "D", cyan),
+        ((1065, 285, 1125, 345), "↗", cyan),
+        ((1025, 388, 1085, 448), "!", gold),
+        ((790, 390, 850, 450), "✓", cyan),
+    ]
+    for box, symbol, color in nodes:
+        draw.rounded_rectangle(box, radius=9, outline=color, width=2, fill=(10, 53, 79))
+        font = _social_font(25, bold=True)
+        bbox = draw.textbbox((0, 0), symbol, font=font)
+        tx = (box[0] + box[2] - (bbox[2] - bbox[0])) / 2
+        ty = (box[1] + box[3] - (bbox[3] - bbox[1])) / 2 - 2
+        draw.text((tx, ty), symbol, font=font, fill=white)
+
+    _draw_social_arrow(draw, (980, 286), (1027, 223), white, 2)
+    _draw_social_arrow(draw, (982, 315), (1062, 315), white, 2)
+    _draw_social_arrow(draw, (979, 344), (1027, 418), white, 2)
+    _draw_social_arrow(draw, (850, 350), (834, 389), white, 2)
+
+    draw.text((1010, 527), "Jair Ribeiro", font=signature_font, fill=white)
+    draw.line((1012, 560, 1122, 560), fill=cyan, width=2)
+
+    output = BytesIO()
+    image.save(output, format="PNG", optimize=True)
+    return output.getvalue()
+
+
 def _cms_fallback_cover(article: CmsArticle, css_class: str) -> str:
     subtitle = article.subtitle or article.excerpt
     return f'''<div class="{escape(css_class, quote=True)} cms-fallback-cover" role="img" aria-label="{escape(article.header_image_alt or article.title, quote=True)}">
@@ -884,16 +1059,13 @@ def inject_cms_landing(document: str) -> str:
 
 def cms_share_document(article: CmsArticle) -> str:
     canonical = article_url(article)
-    legacy_social = bool(article.legacy_key and not article.header_image_url)
-    image = (
-        effective_header_image_url(article)
-        or (f"{BASE_URL}/social/{article.slug}.png" if article.legacy_key else DEFAULT_SOCIAL_IMAGE)
-    )
+    image = cms_social_image_url(article)
     description = article.meta_description or article.excerpt
     image_size_meta = (
+        '<meta property="og:image:type" content="image/png">'
         '<meta property="og:image:width" content="1200">'
         '<meta property="og:image:height" content="627">'
-        if legacy_social else ""
+        f'<meta property="og:image:alt" content="{escape(article.title + " — Jair Ribeiro", quote=True)}">'
     )
     schema = {
         "@context": "https://schema.org",
@@ -914,7 +1086,7 @@ def cms_share_document(article: CmsArticle) -> str:
 
 def inject_cms_article_metadata(article: CmsArticle) -> None:
     canonical = article_url(article)
-    image = effective_header_image_url(article) or DEFAULT_SOCIAL_IMAGE
+    image = cms_social_image_url(article)
     description = article.meta_description or article.excerpt
     schema = {
         "@context": "https://schema.org",

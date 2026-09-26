@@ -50,7 +50,7 @@ class PublicCopyGuardTests(unittest.TestCase):
             impact,
         )
         self.assertIn(
-            "I write selectively, usually when a recurring operating question is worth working through.",
+            "The articles are not the point. The decisions behind them are.",
             thinking,
         )
         self.assertIn(
@@ -66,7 +66,7 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("Building the structures around AI &amp; Data", about)
         self.assertIn("Global Thought Leaders &amp; Influencers on Emerging Technology, 2023.", about)
         self.assertIn("Where the business-translation thread started.", impact)
-        self.assertIn("Writing, speaking and research extend the operating perspective.", thinking)
+        self.assertIn("The same thinking gets tested in research, industry conversations and leadership rooms.", thinking)
 
         # Adoption evidence should be operational, not participation-volume driven.
         self.assertIn("Operational workflows", home)
@@ -84,8 +84,12 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("2026–2027 maturity roadmap", about)
         self.assertIn("Enterprise AI perspective", about)
         self.assertNotIn('<div class="flow">', about)
-        self.assertIn("Start from a situation, not a theme", thinking_landing)
-        self.assertIn("when the operating consequence is visible", thinking_landing)
+        self.assertIn("Start with what is actually happening", thinking_landing)
+        self.assertIn("the operating consequence is usually more useful than the abstract theme", thinking_landing)
+        self.assertIn("How I lead AI and data when strategy meets enterprise reality.", thinking_landing)
+        self.assertIn("Current leadership questions", thinking_landing)
+        self.assertIn("The AI and data decisions I’m working through right now.", thinking_landing)
+        self.assertIn("End with a decision, not a slogan", thinking_landing)
 
 
 if __name__ == "__main__":

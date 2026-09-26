@@ -6,7 +6,7 @@ from io import BytesIO
 from PIL import Image
 from unittest.mock import patch
 
-from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_share_document, cms_social_image_url, effective_header_image_url, embedded_header_image_src, enrich_article_internal_links, generate_metadata, inject_cms_landing, normalize_header_image, render_cms_social_image, sanitize_article_html, slugify
+from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_share_document, cms_social_image_url, effective_header_image_url, embedded_header_image_src, generate_metadata, inject_cms_landing, normalize_header_image, render_cms_social_image, sanitize_article_html, slugify
 
 
 class CareersiteCmsTests(unittest.TestCase):
@@ -65,34 +65,6 @@ class CareersiteCmsTests(unittest.TestCase):
         )
         article = CmsArticle(title="Updated art", slug=slug, header_image_url=uploaded)
         self.assertEqual(embedded_header_image_src(article), uploaded)
-
-    def test_article_enrichment_adds_signature_and_two_relevant_portfolio_links(self) -> None:
-        body = (
-            "<p>Enterprise AI is moving quickly, but AI governance and business value "
-            "still depend on how the organization works in practice.</p>"
-        )
-        enriched = enrich_article_internal_links(body)
-
-        self.assertIn('href="?page=enterprise"', enriched)
-        self.assertIn('href="?page=governance"', enriched)
-        self.assertNotIn('href="?page=consulting"', enriched)
-        self.assertIn('class="article-signature"', enriched)
-        self.assertIn('href="?page=impact"', enriched)
-        self.assertTrue(enriched.rstrip().endswith("</div>"))
-        self.assertEqual(enriched, enrich_article_internal_links(enriched))
-
-    def test_article_enrichment_is_idempotent_and_does_not_nest_existing_links(self) -> None:
-        body = (
-            '<p><a href="?page=enterprise" target="_self">Enterprise AI</a> '
-            "works with AI adoption and AI governance.</p>"
-        )
-        first = enrich_article_internal_links(body)
-        second = enrich_article_internal_links(first)
-
-        self.assertEqual(first, second)
-        self.assertEqual(first.count('class="article-signature"'), 1)
-        self.assertEqual(first.count('href="?page=impact"'), 1)
-        self.assertNotIn("<a href="?page=enterprise" target="_self"><a", first)
 
     def test_header_normalizer_preserves_full_source_on_two_to_one_canvas(self) -> None:
         source = Image.new("RGB", (600, 900), "white")

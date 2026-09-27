@@ -98,7 +98,11 @@ def inject_metadata(page: str, title: str) -> None:
   const socialImage = {json.dumps(SOCIAL_IMAGE)};
   const socialAlt = "Jair Ribeiro — Enterprise AI & Data Leader";
   const base = window.parent.location.origin + window.parent.location.pathname;
-  const canonical = page === 'home' ? base : base + '?page=' + encodeURIComponent(page);
+  const canonical = page === 'home'
+    ? base
+    : page === 'ai-data-governance'
+      ? base.replace(/\/$/, '') + '/ai-data-governance'
+      : base + '?page=' + encodeURIComponent(page);
   doc.title = title;
 
   const meta = (selector, attr, key, value) => {{

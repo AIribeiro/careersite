@@ -110,6 +110,24 @@ jobs:
 
           grep -i '^Content-Type:.*image/png' /tmp/social-headers.txt
 
+      - name: Verify governance social share route
+        run: |
+          curl --fail --silent --show-error \
+            --user-agent "Twitterbot/1.0" \
+            --output /tmp/governance-share.html \
+            "http://127.0.0.1:8501/ai-data-governance?utm_source=x"
+          grep 'name="twitter:card" content="summary_large_image"' /tmp/governance-share.html
+          grep 'property="og:title"' /tmp/governance-share.html
+          grep 'property="og:image"' /tmp/governance-share.html
+          grep 'AI &amp; Data Governance Leadership' /tmp/governance-share.html
+
+          curl --silent --show-error --head \
+            --user-agent "Mozilla/5.0" \
+            --dump-header /tmp/governance-human-headers.txt \
+            "http://127.0.0.1:8501/ai-data-governance?utm_source=x" >/dev/null
+          grep -E '^HTTP/.* 302' /tmp/governance-human-headers.txt
+          grep -i '^location:.*page=ai-data-governance.*utm_source=x' /tmp/governance-human-headers.txt
+
       - name: Verify every LinkedIn article preview and thumbnail
         run: |
           python - <<'PY'

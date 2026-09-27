@@ -17,14 +17,14 @@ def ai_data_governance() -> str:
 
     return f'''{nav("ai-data-governance")}<main>
 <section class="pagehero"><div class="container">
-<p class="eyebrow">AI &amp; Data Governance · Executive leadership</p>
-<h1>I build governance that lets enterprises scale AI with clearer accountability.</h1>
-<p>My work connects business ownership, data responsibility, lifecycle decisions, risk, evidence and adoption — so governance supports enterprise AI rather than becoming a separate control structure around it.</p>
+<p class="eyebrow">AI &amp; Data Governance · Executive perspective</p>
+<h1>AI &amp; Data governance that connects accountability with scale.</h1>
+<p>My approach connects business ownership, data responsibility, lifecycle decisions, risk, evidence and adoption — with the aim of making governance part of how enterprise AI is operated, rather than a separate control structure around it.</p>
 <div class="actions"><a class="btn primary" href="#governance-evidence" data-hq-event="governance_hero_evidence">See the evidence →</a><a class="btn ghost" href="{DFM_GOVERNANCE_URL}" target="_blank" rel="noopener" data-hq-event="article_governance_dfm">Read my governance article ↗</a>{cv}</div>
 </div></section>
 
 <section class="section white" id="governance-evidence"><div class="container">
-<div class="head"><div><p class="eyebrow">Leadership evidence</p><h2>Governance experience grounded in enterprise operating work.</h2></div><p>The perspective on this page comes from building structures around AI and Data, working across business and technology environments, and studying how Responsible AI can move from principles into enterprise practice.</p></div>
+<div class="head"><div><p class="eyebrow">Experience behind the perspective</p><h2>Governance shaped by enterprise operating work.</h2></div><p>The perspective on this page comes from building structures around AI and Data, working across business and technology environments, and studying how Responsible AI can move from principles into enterprise practice.</p></div>
 <div class="grid3">
 <article class="card"><span class="org">MSX International · AI &amp; Data CoE</span><h3>Portfolio, lifecycle and scale-readiness.</h3><p>I built portfolio and lifecycle structure for an emerging AI &amp; Data capability, including decision points, ownership, scale-readiness criteria, data-governance foundations and a 2026–2027 maturity roadmap.</p><div class="proof">Portfolio visibility · lifecycle stages · decision rights · stewardship foundations</div></article>
 <article class="card"><span class="org">Volvo Group / Volvo Trucks</span><h3>Governance connected to real enterprise use.</h3><p>Across AI roles, I worked between business, Digital &amp; IT and specialist functions while AI initiatives moved across warranty, sales, aftermarket, legal, compliance and sustainability contexts.</p><div class="proof">Cross-functional AI · adoption · business ownership · enterprise constraints</div></article>
@@ -32,14 +32,14 @@ def ai_data_governance() -> str:
 </div></div></section>
 
 <section class="section soft"><div class="container">
-<div class="head"><div><p class="eyebrow">What I can own</p><h2>The governance mandate I can take responsibility for.</h2></div><p>This is where the work becomes operational: turning policy intent into decision mechanisms, ownership and evidence that business, Data, Technology and Risk teams can use.</p></div>
+<div class="head"><div><p class="eyebrow">Areas I work across</p><h2>Where governance becomes operational.</h2></div><p>The work often sits across policy, decision mechanisms, ownership and evidence — connecting business, Data, Technology and Risk rather than treating governance as a separate specialist activity.</p></div>
 <div class="grid3">
-<article class="card"><span class="org">Operating model</span><h3>Enterprise governance structure.</h3><p>Define roles, decision rights, federated governance patterns, CoE responsibilities and escalation so accountability is explicit without centralizing every decision.</p></article>
-<article class="card"><span class="org">Portfolio &amp; lifecycle</span><h3>From intake to scale decision.</h3><p>Establish use-case intake, prioritization, risk classification, stage criteria, evidence requirements and clear scale, stop or change decisions.</p></article>
-<article class="card"><span class="org">Responsible AI</span><h3>Controls proportionate to consequence.</h3><p>Translate human oversight, transparency, accountability, fairness and risk principles into practical expectations for different classes of AI use.</p></article>
-<article class="card"><span class="org">Data governance for AI</span><h3>Trusted data responsibilities.</h3><p>Connect AI decisions with ownership, stewardship, quality, business definitions, lineage, access and the conditions under which data may be used.</p></article>
-<article class="card"><span class="org">Executive governance</span><h3>Visibility for leadership decisions.</h3><p>Create portfolio visibility, escalation paths, risk exposure and evidence that let senior leaders decide where AI can move faster and where stronger assurance is needed.</p></article>
-<article class="card"><span class="org">Adoption &amp; capability</span><h3>Governance people can actually use.</h3><p>Build role clarity, AI literacy and responsible-use patterns close enough to real workflows that governance becomes part of everyday operating behavior.</p></article>
+<article class="card"><span class="org">Operating model</span><h3>Enterprise governance structure.</h3><p>Roles, decision rights, federated governance patterns, CoE responsibilities and escalation — enough structure to make accountability explicit without centralizing every decision.</p></article>
+<article class="card"><span class="org">Portfolio &amp; lifecycle</span><h3>From intake to scale decision.</h3><p>Use-case intake, prioritization, risk classification, stage criteria, evidence requirements and clear scale, stop or change decisions.</p></article>
+<article class="card"><span class="org">Responsible AI</span><h3>Controls proportionate to consequence.</h3><p>Human oversight, transparency, accountability, fairness and risk principles translated into practical expectations for different classes of AI use.</p></article>
+<article class="card"><span class="org">Data governance for AI</span><h3>Trusted data responsibilities.</h3><p>AI decisions connected with ownership, stewardship, quality, business definitions, lineage, access and the conditions under which data may be used.</p></article>
+<article class="card"><span class="org">Executive governance</span><h3>Visibility for leadership decisions.</h3><p>Portfolio visibility, escalation paths, risk exposure and evidence that help senior leaders judge where AI can move faster and where stronger assurance is needed.</p></article>
+<article class="card"><span class="org">Adoption &amp; capability</span><h3>Governance people can actually use.</h3><p>Role clarity, AI literacy and responsible-use patterns close enough to real workflows that governance can become part of everyday operating behavior.</p></article>
 </div></div></section>
 
 <section class="section white"><div class="container">
@@ -76,7 +76,7 @@ def ai_data_governance() -> str:
 </div></div></section>
 
 <section class="section white"><div class="container">
-<div class="head"><div><p class="eyebrow">Questions I bring into an AI investment or scale decision</p><h2>The conversation I want before a leadership team says “go”.</h2></div><p>These questions are deliberately plain. If they cannot be answered without specialist jargon, the governance model is probably not yet usable by the people expected to own the decision.</p></div>
+<div class="head"><div><p class="eyebrow">Questions for an AI investment or scale decision</p><h2>The conversation that should happen before a leadership team says “go”.</h2></div><p>These questions are deliberately plain. If they cannot be answered without specialist jargon, the governance model is probably not yet usable by the people expected to own the decision.</p></div>
 <div class="prooflist">
 <div class="proofitem"><strong>Purpose:</strong> What decision, recommendation or workflow is this AI changing, and what happens if it is wrong?</div>
 <div class="proofitem"><strong>Data:</strong> Which sources does it depend on, who owns them, and do we know their quality, meaning and permitted use?</div>
@@ -141,5 +141,5 @@ def ai_data_governance() -> str:
 <div class="actions"><a class="btn dark" href="?page=governance" target="_self" data-hq-event="governance_role_lens">See the governance role lens →</a><a class="btn dark" href="?page=impact" target="_self" data-hq-event="governance_impact_final">Leadership impact →</a></div>
 </div></section>
 
-<section class="cta"><div class="container ctain"><div><h2>Building or strengthening enterprise AI governance?</h2><p>I am particularly relevant where an organization needs to connect AI strategy, Responsible AI, data governance, portfolio decisions and operating ownership without creating another layer of bureaucracy.</p></div><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_governance_final">Discuss an AI &amp; Data governance leadership mandate →</a></div></section>
+<section class="cta"><div class="container ctain"><div><h2>Governance works best when it is connected to the operating model around AI.</h2><p>That connection — across strategy, Responsible AI, data governance, portfolio decisions and operating ownership — is the thread running through the work and research shown on this page.</p></div><div class="actions"><a class="btn ghost" href="?page=impact" target="_self" data-hq-event="governance_impact_cta">Explore leadership impact →</a><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_governance_final">Contact</a></div></div></section>
 </main>{footer()}'''

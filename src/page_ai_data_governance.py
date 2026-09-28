@@ -19,7 +19,7 @@ def ai_data_governance() -> str:
 <section class="pagehero"><div class="container">
 <p class="eyebrow">AI &amp; Data Governance · Executive perspective</p>
 <h1>AI &amp; Data governance that connects accountability with scale.</h1>
-<p>My approach connects business ownership, data responsibility, lifecycle decisions, risk, evidence and adoption — with the aim of making governance part of how enterprise AI is operated, rather than a separate control structure around it.</p>
+<p>At enterprise scale, governance connects business ownership, data responsibility, lifecycle decisions, risk, evidence and adoption — becoming part of how AI is operated rather than a separate control structure around it.</p>
 <div class="actions"><a class="btn primary" href="#governance-evidence" data-hq-event="governance_hero_evidence">See the evidence →</a><a class="btn ghost" href="{DFM_GOVERNANCE_URL}" target="_blank" rel="noopener" data-hq-event="article_governance_dfm">Read my governance article ↗</a>{cv}</div>
 </div></section>
 

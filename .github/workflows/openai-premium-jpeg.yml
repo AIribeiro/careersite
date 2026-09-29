@@ -1,0 +1,40 @@
+name: OpenAI Premium JPEG
+
+on:
+  push:
+    paths:
+      - ".github/workflows/openai-premium-jpeg.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install Pillow
+      - name: Convert premium badge artwork for Safari compatibility
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          src = "images/credentials/openai_ai_leadership_premium.webp"
+          dst = "images/credentials/openai_ai_leadership_premium.jpg"
+          with Image.open(src) as im:
+              im = im.convert("RGB")
+              im.save(dst, "JPEG", quality=94, subsampling=0, optimize=True, progressive=True)
+              print(dst, im.size)
+          with Image.open(dst) as im:
+              print(im.format, im.size)
+              im.verify()
+          PY
+      - name: Commit JPEG asset
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images/credentials/openai_ai_leadership_premium.jpg
+          git commit -m "Add Safari-compatible premium OpenAI badge artwork"
+          git push

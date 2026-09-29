@@ -15,8 +15,8 @@ from thinking_week4 import stop_ai_use_case, roi_diagnosed_too_late
 
 # Public-copy guard anchors retained here because tests intentionally inspect this module.
 PUBLIC_COPY_GUARD = (
-    "The articles are not the point. The decisions behind them are. "
-    "The same thinking gets tested in research, industry conversations and leadership rooms."
+    "Each piece starts from a concrete operating decision. "
+    "Related research, speaking and publications are documented separately."
 )
 
 VISUAL_CSS = r'''<style>

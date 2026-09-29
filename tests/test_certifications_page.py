@@ -53,7 +53,8 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertEqual(len(CREDLY_BADGES), 8)
         titles = [str(item["title"]) for item in CREDLY_BADGES]
         self.assertEqual(len(titles), len(set(titles)))
-        self.assertIn("Fundamentals of Building AI Agents", titles)
+        self.assertIn("Cognitive Practitioner", titles)
+        self.assertNotIn("Fundamentals of Building AI Agents", titles)
         self.assertIn("AI Agents Using RAG and LangChain", titles)
         self.assertIn("Generative AI for Product Managers Specialization", titles)
         self.assertIn("Generative AI: Foundation Models and Platforms", titles)
@@ -89,6 +90,39 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("View full Credly profile", page)
         self.assertEqual(page.count("Verify on Credly ↗"), 8)
         self.assertGreaterEqual(page.count("digital badge"), 8)
+
+    def test_openai_academy_badge_is_highlighted_and_verifiable(self) -> None:
+        from page_certifications import OPENAI_AI_LEADERSHIP_URL, certifications
+        from site_media import openai_ai_leadership
+
+        self.assertTrue(
+            OPENAI_AI_LEADERSHIP_URL.startswith(
+                "https://oaiacademy.credential.net/855a1e37-b0d2-4e7d-aed6-ae9a839c6de0?"
+            )
+        )
+        self.assertIn("key=", OPENAI_AI_LEADERSHIP_URL)
+        self.assertNotIn("/auth?token=", OPENAI_AI_LEADERSHIP_URL)
+
+        artwork = ROOT / "images/credentials/openai_ai_leadership.jpg"
+        self.assertTrue(artwork.exists())
+        with Image.open(artwork) as image:
+            self.assertEqual(image.format, "JPEG")
+            self.assertEqual(image.size, (600, 600))
+            image.verify()
+
+        self.assertTrue(openai_ai_leadership.startswith("data:image/jpeg;base64,"))
+        page = certifications()
+        self.assertIn("Highlighted badge · OpenAI Academy", page)
+        self.assertIn("<h3>AI Leadership</h3>", page)
+        self.assertIn("how I lead enterprise AI", page)
+        self.assertIn("Verify issued badge ↗", page)
+        self.assertIn("course completion and passing assessment", page)
+        self.assertIn(OPENAI_AI_LEADERSHIP_URL, page)
+        self.assertNotIn("/auth?token=", page)
+        self.assertLess(
+            page.index("Highlighted badge · OpenAI Academy"),
+            page.index("Additional selected badges"),
+        )
 
     def test_page_preserves_senior_leadership_positioning_and_evidence(self) -> None:
         from page_certifications import certifications

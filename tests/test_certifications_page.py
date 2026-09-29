@@ -121,8 +121,8 @@ class CertificationsPageTests(unittest.TestCase):
         artwork = ROOT / "images/credentials/openai_ai_leadership_premium.webp"
         self.assertTrue(artwork.exists())
         with Image.open(artwork) as image:
-            self.assertEqual(image.format, "JPEG")
-            self.assertEqual(image.size, (600, 600))
+            self.assertEqual(image.format, "WEBP")
+            self.assertEqual(image.size, (1440, 480))
             image.verify()
 
         self.assertTrue(openai_ai_leadership.startswith("data:image/webp;base64,"))

@@ -14,18 +14,18 @@ except OSError:
     pass
 
 DESCRIPTIONS = {
-    "home": "Jair Ribeiro is an Enterprise AI & Data Leader. A curated portfolio of leadership cases, operating judgment, practical frameworks and selected writing across AI, Data and Analytics.",
-    "impact": "Leadership cases from Jair Ribeiro showing situations, trade-offs, cross-functional leadership and decisions behind enterprise AI and Data work.",
-    "thinking": "Selected writing by Jair Ribeiro on enterprise AI strategy, value, operating models, governance, data readiness, adoption and leadership judgment.",
+    "home": "Selected experience and writing from Jair Ribeiro across enterprise AI, Data & Analytics, governance, adoption and operating models.",
+    "impact": "Selected enterprise AI and Data experience showing responsibilities, trade-offs, cross-functional work and what changed.",
+    "thinking": "Notes on enterprise AI strategy, value, operating models, governance, data readiness, adoption and portfolio decisions.",
     "about": "The professional story of Jair Ribeiro: from enterprise technology foundations into business-facing AI, Data and Analytics leadership across international organizations.",
-    "certifications": "Selected credentials supporting Jair Ribeiro\'s enterprise AI and Data leadership across agentic AI, Responsible AI, GenAI strategy, data platforms, product and technical foundations.",
-    "presence": "Selected speaking, publications and externally documented contributions by Jair Ribeiro across enterprise AI, Data, responsible adoption and leadership.",
-    "contact": "Contact Jair Ribeiro about senior AI, Data and Analytics leadership where strategy, portfolio, governance, adoption and operating capability need to work together.",
-    "enterprise": "Contextual view of Jair Ribeiro's Enterprise AI & Data leadership experience across strategy, portfolio, operating models, governance, adoption and technical judgment.",
-    "transformation": "Contextual view of Jair Ribeiro's AI transformation and adoption experience, connecting experimentation with capability building, workflow change, governance and scale-readiness.",
-    "governance": "Contextual view of Jair Ribeiro's AI governance and operating-model experience across decision rights, lifecycle ownership, Responsible AI, data trust and scale-readiness.",
-    "ai-data-governance": "AI & Data governance leadership from Jair Ribeiro across Responsible AI, operating models, decision rights, data accountability, lifecycle governance, evidence and responsible scale.",
-    "consulting": "Contextual view of Jair Ribeiro's business-driven AI and consulting experience, connecting problem framing and executive dialogue with enterprise operating reality.",
+    "certifications": "Selected AI, data and leadership credentials covering agentic AI, Responsible AI, GenAI strategy, data platforms, product and technical foundations.",
+    "presence": "Selected speaking, publications and externally documented contributions across enterprise AI, Data, responsible adoption and governance.",
+    "contact": "Contact Jair Ribeiro about AI, Data and Analytics mandates involving strategy, portfolio, governance, adoption and operating capability.",
+    "enterprise": "Enterprise AI & Data experience across strategy, portfolio, operating models, governance, adoption and technical judgment.",
+    "transformation": "AI transformation and adoption experience connecting experimentation with capability building, workflow change, governance and scale-readiness.",
+    "governance": "AI governance and operating-model experience across decision rights, lifecycle ownership, Responsible AI, data trust and scale-readiness.",
+    "ai-data-governance": "AI & Data governance across Responsible AI, operating models, decision rights, data accountability, lifecycle governance, evidence and responsible scale.",
+    "consulting": "Business-driven AI and consulting experience connecting problem framing and executive dialogue with enterprise operating reality.",
 }
 
 

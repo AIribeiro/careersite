@@ -15,7 +15,7 @@ ROLE_LENSES = {
 ABOUT_PAGES = {
     "about": "About",
     "certifications": "Credentials & Certifications",
-    "presence": "Speaking & Thought Leadership",
+    "presence": "Speaking & Publications",
 }
 
 CV_DOWNLOAD_NAME = "Jair_Ribeiro_CV.pdf"
@@ -62,7 +62,7 @@ def nav(active: str) -> str:
     lens_menu = (
         '<details style="position:relative;flex:0 0 auto">'
         f'<summary class="link{" on" if lens_active else ""}" '
-        'style="list-style:none;cursor:pointer;user-select:none;white-space:nowrap">Role lenses ▾</summary>'
+        'style="list-style:none;cursor:pointer;user-select:none;white-space:nowrap">Experience by mandate ▾</summary>'
         '<div style="position:absolute;right:0;top:calc(100% + 6px);z-index:1001;'
         'min-width:270px;max-width:calc(100vw - 34px);padding:6px;background:#111b2c;'
         'border:1px solid rgba(255,255,255,.14);box-shadow:0 18px 40px rgba(0,0,0,.28)">'
@@ -80,7 +80,7 @@ def nav(active: str) -> str:
         '<span>Enterprise AI &amp; Data Leader</span></div></a>'
         '<div class="links" style="flex:1 1 560px;min-width:0;align-items:center;justify-content:flex-end">'
         f'{link("home", "Home")}'
-        f'{link("impact", "Leadership Impact")}'
+        f'{link("impact", "Selected Experience")}'
         f'{link("ai-data-governance", "AI & Data Governance")}'
         f'{link("thinking", "Thinking")}'
         f'{about_menu}'
@@ -93,11 +93,11 @@ def nav(active: str) -> str:
 
 def footer() -> str:
     cv = f'<a href="{CV_URI}" download="{CV_DOWNLOAD_NAME}" data-hq-event="cv_download_footer">Download CV ↓</a>' if CV_URI else ""
-    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI and Data leadership across strategy, operating models, governance, adoption and measurable business value. Based in Gothenburg · Sweden &amp; international mandates.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_footer">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_footer">Medium ↗</a><a href="mailto:{EMAIL}" data-hq-event="email_footer">Email</a>{cv}</div></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
+    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI &amp; Data · Gothenburg, Sweden · International experience.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_footer">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_footer">Medium ↗</a><a href="mailto:{EMAIL}" data-hq-event="email_footer">Email</a>{cv}</div></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
 
 
 def opportunity() -> str:
-    return '''<section class="cta"><div class="container ctain"><div><h2>Senior AI and Data leadership where operating reality matters.</h2><p>My strongest fit is where strategy, portfolio choices, data, governance, adoption and ownership have to work together — and where the next useful step is a clearer decision rather than another layer of AI activity.</p></div><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_opportunity">Discuss a leadership opportunity →</a></div></section>'''
+    return '''<section class="cta"><div class="container ctain"><div><h2>Working on a similar enterprise AI or data problem?</h2><p>If the context involves strategy, governance, adoption, portfolio choices or operating ownership, the experience on this site may be relevant.</p></div><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_opportunity">Contact →</a></div></section>'''
 
 
 VALUES = [

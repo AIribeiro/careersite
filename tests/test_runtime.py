@@ -110,7 +110,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         from site_components import ROLE_LENSES, nav
 
         html = nav("home")
-        for label in ("Home", "Leadership Impact", "Thinking", "About", "Contact", "Role lenses"):
+        for label in ("Home", "Selected Experience", "Thinking", "About", "Contact", "Experience by mandate"):
             self.assertIn(label, html)
         self.assertEqual(set(ROLE_LENSES), {"enterprise", "transformation", "governance", "consulting"})
         self.assertEqual(ROLE_LENSES["transformation"], "AI Transformation & Adoption")
@@ -147,9 +147,9 @@ class RuntimeSmokeTests(unittest.TestCase):
         meta = (ROOT / "src/site_meta.py").read_text(encoding="utf-8")
 
         self.assertIn("I work at the point where enterprise AI strategy meets operating reality", home)
-        self.assertIn("AI scales as a system, not as a model.", home)
+        self.assertIn("scaling AI usually depends as much on ownership, data, governance and adoption as on model performance", home)
         self.assertIn("Based in Gothenburg · Sweden &amp; international mandates", home)
-        self.assertIn("The enterprise AI problems that keep recurring.", home)
+        self.assertIn("The enterprise AI problems that keep returning.", home)
         self.assertIn("Governance &amp; Responsible Scale", home)
         self.assertNotIn("AI Portfolio &amp; Business Value", home)
         self.assertNotIn("Business-Driven AI &amp; Consulting", home)
@@ -159,13 +159,12 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn("Foundation · IBM", impact)
         self.assertIn("Claes Sandros", home)
         self.assertIn("Anna Börjesson Sandberg", home)
-        self.assertIn("Kumara Datta", home)
-        self.assertIn("Jim Edwards", home)
-        self.assertIn("Director of Digital, Innovation &amp; Platforms", home)
+        self.assertNotIn("Kumara Datta</h3>", home)
+        self.assertNotIn("Jim Edwards</h3>", home)
         self.assertEqual(home.count('data-hq-event="role_lens_'), 3)
         self.assertEqual(home.count('data-hq-event="impact_portfolio_home"'), 0)
         self.assertEqual(home.count('<article class="card"><span class="org">'), 3)
-        self.assertEqual(home.count('data-hq-event="reference_'), 4)
+        self.assertEqual(home.count('data-hq-event="reference_'), 2)
         self.assertIn("Download my CV ↓", home)
         self.assertIn("Building the structures around AI &amp; Data", about)
         self.assertIn("The value I add is knowing which technical questions matter for the business decision", about)
@@ -182,11 +181,11 @@ class RuntimeSmokeTests(unittest.TestCase):
         for aggressive in ("coding theatre", "compliance theatre", "Challenge without theatre"):
             self.assertNotIn(aggressive, about)
             self.assertNotIn(aggressive, lenses)
-        self.assertIn("Make disagreement useful", about)
+        self.assertIn("Surface disagreement early", about)
         self.assertIn("Specialist depth should remain with the specialists", about)
         self.assertIn("examples", artifacts.lower())
         self.assertNotIn("proprietary methods", artifacts.lower().replace("not proprietary methods", ""))
-        self.assertIn("curated portfolio", meta.lower())
+        self.assertIn("selected experience and writing", meta.lower())
 
     def test_analytics_taxonomy_privacy_and_attribution(self) -> None:
         from site_analytics import ALLOWED_EVENTS, LENS_PAGES, RECOMMENDED_ATTRIBUTION_SOURCES

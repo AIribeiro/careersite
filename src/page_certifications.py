@@ -5,7 +5,7 @@ import html
 from site_components import nav, footer, opportunity
 from site_media import (
     eitca_eu_banner,
-    openai_ai_leadership,
+    openai_ai_leadership,\n    databricks_genai_fundamentals_badge,
     credly_cognitive_practitioner,
     credly_ai_agents_rag_langchain,
     credly_genai_product_managers,
@@ -134,7 +134,7 @@ FLAGSHIP = [
     },
 ]
 
-CREDLY_PROFILE = "https://www.credly.com/users/jair-pinto-ribeiro/"
+CREDLY_PROFILE = "https://www.credly.com/users/jair-pinto-ribeiro/"\nACCREDIBLE_WALLET = "https://www.credential.net/profile/jairribeiro188506/wallet"
 
 CREDLY_BADGES = [
     {
@@ -208,6 +208,19 @@ CREDLY_BADGES = [
         "image": credly_azure_data,
         "url": "https://www.credly.com/badges/7b796e8b-50a1-4602-abde-73f9b5752ac8/public_url",
         "copy": "Verified grounding in core data concepts and Azure data services, complementing broader data-platform and analytics leadership.",
+    },
+]
+
+ACCREDIBLE_BADGES = [
+    {
+        "signal": "GenAI platform fluency",
+        "title": "Academy Accreditation - Generative AI Fundamentals",
+        "issuer": "Databricks Academy",
+        "date": "Apr 2025",
+        "image": databricks_genai_fundamentals_badge,
+        "url": "https://www.credential.net/debbdbb9-df3f-46d8-a218-4f5f73288dae",
+        "verify_label": "Verify on Accredible ↗",
+        "copy": "Adds Databricks-specific grounding in generative AI concepts, complementing broader foundation-model knowledge with platform context relevant to enterprise data and AI decisions.",
     },
 ]
 
@@ -328,6 +341,7 @@ def _credential_card(item: dict[str, str]) -> str:
 
 
 def _credly_badge(item: dict[str, str]) -> str:
+    verify_label = item.get("verify_label", "Verify on Credly ↗")
     return (
         '<article class="credly-card">'
         f'<a class="credly-art" href="{html.escape(item["url"], quote=True)}" target="_blank" rel="noopener">'
@@ -336,7 +350,7 @@ def _credly_badge(item: dict[str, str]) -> str:
         f'<h3>{html.escape(item["title"])}</h3>'
         f'<div class="credly-meta"><strong>{html.escape(item["issuer"])}</strong><span>{html.escape(item["date"])}</span></div>'
         f'<p>{html.escape(item["copy"])}</p>'
-        f'<a class="credly-verify" href="{html.escape(item["url"], quote=True)}" target="_blank" rel="noopener">Verify on Credly ↗</a>'
+        f'<a class="credly-verify" href="{html.escape(item["url"], quote=True)}" target="_blank" rel="noopener">{html.escape(verify_label)}</a>'
         '</article>'
     )
 
@@ -353,7 +367,7 @@ def _pathway(title: str, copy: str, items: list[str]) -> str:
 
 def certifications() -> str:
     flagship = "".join(_credential_card(item) for item in FLAGSHIP)
-    credly_badges = "".join(_credly_badge(item) for item in CREDLY_BADGES)
+    digital_badges = "".join(_credly_badge(item) for item in [*ACCREDIBLE_BADGES, *CREDLY_BADGES])
     pathways = "".join(_pathway(title, copy, items) for title, copy, items in PATHWAYS)
     eitca = "".join(f"<li>{html.escape(item)}</li>" for item in EITCA_COMPONENTS)
     timeline = "".join(
@@ -377,7 +391,7 @@ def certifications() -> str:
 
 <article class="openai-badge-highlight"><div class="openai-badge-art"><a href="{OPENAI_AI_LEADERSHIP_URL}" target="_blank" rel="noopener" data-hq-event="openai_ai_leadership_badge"><img src="{openai_ai_leadership}" alt="OpenAI Academy AI Leadership artwork" loading="lazy" decoding="async"></a></div><div class="openai-badge-copy"><span class="openai-badge-kicker">Highlighted badge · OpenAI Academy</span><h3>AI Leadership</h3><p class="openai-badge-lead">This badge is especially aligned with how I lead enterprise AI: connecting initiatives to business priorities, establishing ownership and governance, shaping a roadmap, and planning for adoption. It reinforces the operating discipline behind my work—turning AI strategy into accountable decisions, coordinated execution and measurable business value.</p><div class="openai-badge-facts"><div><strong>Strategy</strong><span>Business priorities</span></div><div><strong>Governance</strong><span>Ownership &amp; accountability</span></div><div><strong>Roadmap</strong><span>From initiative to action</span></div><div><strong>Adoption</strong><span>Organizational execution</span></div></div><div class="actions"><a class="btn ghost" href="{OPENAI_AI_LEADERSHIP_URL}" target="_blank" rel="noopener" data-hq-event="openai_ai_leadership_verify">Verify issued badge ↗</a></div><p class="openai-badge-meta">OpenAI Academy badge · course completion and passing assessment · issued via Accredible</p></div></article>
 
-<div class="credly-subhead"><div><span class="credly-subtitle">Additional selected badges</span><p>Agentic AI, GenAI product and platform judgment, privacy, human-centered adoption, and cloud/data foundations.</p></div><a class="btn dark" href="{CREDLY_PROFILE}" target="_blank" rel="noopener" data-hq-event="credly_profile">View full Credly profile ↗</a></div><div class="credly-grid">{credly_badges}</div></div></section>
+<div class="credly-subhead"><div><span class="credly-subtitle">Additional selected badges</span><p>Curated across Credly and Accredible: agentic AI, GenAI product and platform judgment, privacy, human-centered adoption, and cloud/data foundations.</p></div><div class="actions"><a class="btn dark" href="{CREDLY_PROFILE}" target="_blank" rel="noopener" data-hq-event="credly_profile">Credly profile ↗</a><a class="btn dark" href="{ACCREDIBLE_WALLET}" target="_blank" rel="noopener" data-hq-event="accredible_wallet">Accredible wallet ↗</a></div></div><div class="credly-grid">{digital_badges}</div></div></section>
 
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Earlier and specialist credentials</p><h2>Broader learning across AI, data and leadership.</h2></div><p>Earlier and specialist credentials provide context behind the headline selections, spanning enterprise AI leadership, Responsible AI, data and cloud foundations, product thinking and analytics.</p></div><div class="cert-path-grid">{pathways}</div></div></section>
 

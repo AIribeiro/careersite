@@ -118,14 +118,14 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("key=", OPENAI_AI_LEADERSHIP_URL)
         self.assertNotIn("/auth?token=", OPENAI_AI_LEADERSHIP_URL)
 
-        artwork = ROOT / "images/credentials/openai_ai_leadership_premium.webp"
+        artwork = ROOT / "images/credentials/openai_ai_leadership_premium.jpg"
         self.assertTrue(artwork.exists())
         with Image.open(artwork) as image:
-            self.assertEqual(image.format, "WEBP")
-            self.assertEqual(image.size, (1440, 480))
+            self.assertEqual(image.format, "JPEG")
+            self.assertEqual(image.size, (2172, 724))
             image.verify()
 
-        self.assertTrue(openai_ai_leadership.startswith("data:image/webp;base64,"))
+        self.assertTrue(openai_ai_leadership.startswith("data:image/jpeg;base64,"))
         page = certifications()
         self.assertIn("Highlighted badge · OpenAI Academy", page)
         self.assertIn("<h3>AI Leadership</h3>", page)

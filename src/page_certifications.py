@@ -5,7 +5,8 @@ import html
 from site_components import nav, footer, opportunity
 from site_media import (
     eitca_eu_banner,
-    openai_ai_leadership,\n    databricks_genai_fundamentals_badge,
+    openai_ai_leadership,
+    databricks_genai_fundamentals_badge,
     credly_cognitive_practitioner,
     credly_ai_agents_rag_langchain,
     credly_genai_product_managers,
@@ -134,7 +135,8 @@ FLAGSHIP = [
     },
 ]
 
-CREDLY_PROFILE = "https://www.credly.com/users/jair-pinto-ribeiro/"\nACCREDIBLE_WALLET = "https://www.credential.net/profile/jairribeiro188506/wallet"
+CREDLY_PROFILE = "https://www.credly.com/users/jair-pinto-ribeiro/"
+ACCREDIBLE_WALLET = "https://www.credential.net/profile/jairribeiro188506/wallet"
 
 CREDLY_BADGES = [
     {

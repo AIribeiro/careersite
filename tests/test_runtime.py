@@ -167,7 +167,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertEqual(home.count('data-hq-event="reference_'), 2)
         self.assertIn("Download my CV ↓", home)
         self.assertIn("Building the structures around AI &amp; Data", about)
-        self.assertIn("The value I add is knowing which technical questions matter for the business decision", about)
+        self.assertIn("The focus is on which technical questions matter for the business decision", about)
 
         for editorial_instruction in (
             "These figures are included for context, not as a scorecard",

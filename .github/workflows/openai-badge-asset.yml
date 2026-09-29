@@ -17,7 +17,10 @@ jobs:
         run: |
           set -euo pipefail
           API='https://api.accredible.com/v1/recipient/credentials/87f80b85-6d10-41d5-b1e7-51b31d29aaa3'
-          curl --fail --location --retry 3 -A 'Mozilla/5.0' "$API" -o credential.json
+          curl --fail --location --retry 3 -A 'Mozilla/5.0' \
+            -H 'Origin: https://oaiacademy.credential.net' \
+            -H 'Referer: https://oaiacademy.credential.net/' \
+            "$API" -o credential.json
           python - <<'PY'
           import json
           data=json.load(open("credential.json",encoding="utf-8"))

@@ -17,7 +17,7 @@ def ai_data_governance() -> str:
 
     return f'''{nav("ai-data-governance")}<main>
 <section class="pagehero"><div class="container">
-<p class="eyebrow">AI &amp; Data Governance · Executive perspective</p>
+<p class="eyebrow">AI &amp; Data Governance · Operating perspective</p>
 <h1>AI &amp; Data governance that connects accountability with scale.</h1>
 <p>At enterprise scale, governance connects business ownership, data responsibility, lifecycle decisions, risk, evidence and adoption — becoming part of how AI is operated rather than a separate control structure around it.</p>
 <div class="actions"><a class="btn primary" href="#governance-evidence" data-hq-event="governance_hero_evidence">See the evidence →</a><a class="btn ghost" href="{DFM_GOVERNANCE_URL}" target="_blank" rel="noopener" data-hq-event="article_governance_dfm">Read my governance article ↗</a>{cv}</div>
@@ -43,7 +43,7 @@ def ai_data_governance() -> str:
 </div></div></section>
 
 <section class="section white"><div class="container">
-<div class="head"><div><p class="eyebrow">The executive definition</p><h2>Know what AI may do, who owns the consequence, and what evidence supports the decision.</h2></div><p>That is the practical core. Governance should help leaders answer the difficult questions before an issue forces the organization to answer them under pressure.</p></div>
+<div class="head"><div><p class="eyebrow">A practical definition</p><h2>Know what AI may do, who owns the consequence, and what evidence supports the decision.</h2></div><p>That is the practical core. Governance should help leaders answer the difficult questions before an issue forces the organization to answer them under pressure.</p></div>
 <div class="principles">
 <article class="principle"><span>01 · Boundaries</span><h3>What is the system allowed to do?</h3><p>Define the business context, level of autonomy, actions that are out of scope and where human judgment remains explicit.</p></article>
 <article class="principle"><span>02 · Accountability</span><h3>Who owns the outcome?</h3><p>Separate business accountability, technical ownership, data responsibility and independent risk or assurance roles. Shared work should not mean anonymous responsibility.</p></article>
@@ -95,7 +95,7 @@ def ai_data_governance() -> str:
 </div></div></section>
 
 <section class="section navy"><div class="container">
-<div class="head"><div><p class="eyebrow">From policy to operating system</p><h2>The governance model I prefer is lifecycle-based.</h2></div><p>Policies set intent. Operating governance turns that intent into repeatable decisions with explicit owners, proportionate evidence and a path for exceptions.</p></div>
+<div class="head"><div><p class="eyebrow">From policy to operating practice</p><h2>A lifecycle-based governance model.</h2></div><p>Policies set intent. Operating governance turns that intent into repeatable decisions with explicit owners, proportionate evidence and a path for exceptions.</p></div>
 <div class="flow">
 <div class="step"><span>01</span><strong>Frame the business purpose and consequence</strong></div>
 <div class="step"><span>02</span><strong>Classify risk and data sensitivity</strong></div>
@@ -131,7 +131,7 @@ def ai_data_governance() -> str:
 </div></section>
 
 <section class="section white"><div class="container">
-<div class="head"><div><p class="eyebrow">The board view</p><h2>The signal is not “we have an AI policy.” The signal is that the enterprise can answer for its AI.</h2></div><p>For an executive team, I reduce governance health to four observable capabilities. They are simple to state and difficult to fake.</p></div>
+<div class="head"><div><p class="eyebrow">Four observable signals</p><h2>The signal is not “we have an AI policy.” The signal is that the enterprise can answer for its AI.</h2></div><p>Governance health can be tested through four observable capabilities.</p></div>
 <div class="metrics">
 <div class="metric"><strong>Know</strong><p>We know where material AI is being used and for which business purpose.</p></div>
 <div class="metric"><strong>Own</strong><p>We know who is accountable for the business consequence, data and technical behavior.</p></div>

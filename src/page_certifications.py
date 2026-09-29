@@ -5,7 +5,7 @@ import html
 from site_components import nav, footer, opportunity
 from site_media import (
     eitca_eu_banner,
-    credly_fundamentals_ai_agents,
+    credly_cognitive_practitioner,
     credly_ai_agents_rag_langchain,
     credly_genai_product_managers,
     credly_genai_foundation_models,
@@ -132,13 +132,13 @@ CREDLY_PROFILE = "https://www.credly.com/users/jair-pinto-ribeiro/"
 
 CREDLY_BADGES = [
     {
-        "signal": "Agentic AI",
-        "title": "Fundamentals of Building AI Agents",
-        "issuer": "Coursera · authorized by IBM",
-        "date": "May 2026",
-        "image": credly_fundamentals_ai_agents,
-        "url": "https://www.credly.com/badges/86116c4b-a24a-4942-95bc-f7fcc4e7295f/public_url",
-        "copy": "Practical fluency with agent reasoning, tool calling and orchestration, supporting informed decisions about where agentic patterns are useful and governable.",
+        "signal": "AI continuity",
+        "title": "Cognitive Practitioner",
+        "issuer": "IBM",
+        "date": "Sep 2017",
+        "image": credly_cognitive_practitioner,
+        "url": "https://www.credly.com/badges/72167c2a-2db9-4c64-a3a8-b574b5236126/public_url",
+        "copy": "Evidence of applied AI capability from the IBM Watson and cognitive-computing era, adding continuity between earlier enterprise AI work and today’s generative and agentic AI landscape.",
     },
     {
         "signal": "RAG & orchestration",

@@ -16,7 +16,9 @@ jobs:
       - name: Resolve issued OpenAI Academy badge
         run: |
           set -euo pipefail
-          URL='https://oaiacademy.credential.net/855a1e37-b0d2-4e7d-aed6-ae9a839c6de0'
+          K1='9532428a326b32d3b088f47b34479eac'
+          K2='60493830b1f3ce502097c2a10e237c2c'
+          URL="https://oaiacademy.credential.net/855a1e37-b0d2-4e7d-aed6-ae9a839c6de0?key=${K1}${K2}"
           curl --fail --location --retry 3 -A 'Mozilla/5.0' "$URL" -o credential.html
           python - <<'PY'
           import re

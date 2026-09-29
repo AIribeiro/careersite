@@ -63,7 +63,11 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("Microsoft Certified: Azure AI Fundamentals", titles)
         self.assertIn("Microsoft Certified: Azure Data Fundamentals", titles)
         self.assertTrue(all("/badges/" in str(item["url"]) for item in CREDLY_BADGES))
-        self.assertEqual(CREDLY_PROFILE, "https://www.credly.com/users/jair-pinto-ribeiro/")\n        self.assertEqual(ACCREDIBLE_WALLET, "https://www.credential.net/profile/jairribeiro188506/wallet")\n        self.assertEqual(len(ACCREDIBLE_BADGES), 1)\n        self.assertEqual(ACCREDIBLE_BADGES[0]["title"], "Academy Accreditation - Generative AI Fundamentals")\n        self.assertIn("debbdbb9-df3f-46d8-a218-4f5f73288dae", ACCREDIBLE_BADGES[0]["url"])
+        self.assertEqual(CREDLY_PROFILE, "https://www.credly.com/users/jair-pinto-ribeiro/")
+        self.assertEqual(ACCREDIBLE_WALLET, "https://www.credential.net/profile/jairribeiro188506/wallet")
+        self.assertEqual(len(ACCREDIBLE_BADGES), 1)
+        self.assertEqual(ACCREDIBLE_BADGES[0]["title"], "Academy Accreditation - Generative AI Fundamentals")
+        self.assertIn("debbdbb9-df3f-46d8-a218-4f5f73288dae", ACCREDIBLE_BADGES[0]["url"])
 
         badge_dir = ROOT / "images/credly"
         expected = {

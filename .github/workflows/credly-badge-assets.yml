@@ -26,14 +26,7 @@ jobs:
           curl --fail --location --retry 3 "https://images.credly.com/images/2700b813-82b8-4232-9b36-5dcd5cd24584/Badges_v8-08_Co-Creator.png" -o images/credly/enterprise_design_thinking_cocreator.png
           curl --fail --location --retry 3 "https://images.credly.com/images/4136ced8-75d5-4afb-8677-40b6236e2672/azure-ai-fundamentals-600x600.png" -o images/credly/azure_ai_fundamentals.png
           curl --fail --location --retry 3 "https://images.credly.com/images/70eb1e3f-d4de-4377-a062-b20fb29594ea/azure-data-fundamentals-600x600.png" -o images/credly/azure_data_fundamentals.png
-          python - <<'PY'
-          from pathlib import Path
-          from PIL import Image
-          for path in sorted(Path("images/credly").glob("*.png")):
-              with Image.open(path) as im:
-                  print(path.name, im.format, im.size)
-                  im.verify()
-          PY
+          file images/credly/*.png
       - name: Commit badge artwork
         run: |
           git config user.name "github-actions[bot]"

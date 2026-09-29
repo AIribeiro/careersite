@@ -31,20 +31,6 @@ def role_lens(
             f'<div class="bullets">{bullet_html}</div></section>'
         )
 
-    if reference:
-        person, role, quote, url = reference
-        role_html = f'<p><strong>{html.escape(role)}</strong></p>' if role else ""
-        body.append(
-            '<section class="lenssection"><p class="eyebrow">External perspective</p>'
-            '<div class="card">'
-            f'<span class="org">Recommendation context</span><h3>{html.escape(person)}</h3>'
-            f'{role_html}'
-            f'<p style="font:500 18px/1.5 Georgia,serif;color:var(--ink);margin-top:20px">“{html.escape(quote)}”</p>'
-            f'<div class="proof"><a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener" '
-            f'data-hq-event="reference_{html.escape(person.lower().replace(" ", "_"))}_lens">LinkedIn profile ↗</a></div>'
-            '</div></section>'
-        )
-
     cv = (
         f'<a class="btn dark" href="{CV_URI}" download="{CV_DOWNLOAD_NAME}" '
         f'data-hq-event="cv_download_lens">Download CV</a>'
@@ -64,25 +50,25 @@ def role_lens(
         f'<section class="section paper"><div class="container lensgrid">'
         f'<aside class="lensaside"><p class="eyebrow">Jair Ribeiro</p>'
         f'<h2>Enterprise AI &amp; Data Leader</h2>{photo}'
-        f'<p class="muted">I bring enterprise AI, Data &amp; Analytics experience across strategy, portfolio choices, governance, adoption and operating-model decisions, with the technical fluency to connect business priorities with delivery reality.</p>'
+        f'<p class="muted">Experience spans enterprise AI, Data &amp; Analytics strategy, portfolio choices, governance, adoption and operating-model decisions, with enough technical depth to connect business priorities with delivery reality.</p>'
         f'<p class="muted">{html.escape(perspective)}</p><div class="actions">'
         f'<a class="btn dark" href="?page=impact" target="_self" data-hq-event="impact_lens">'
         f'Leadership impact</a>{cv}</div></aside><div>{"".join(body)}</div></div></section>'
-        f'{opportunity()}</main>{footer()}'
+        f'</main>{footer()}'
     )
 
 
 def enterprise() -> str:
     return role_lens(
         "enterprise",
-        "Role lens · Enterprise AI & Data Leadership",
+        "Experience by mandate · Enterprise AI & Data Leadership",
         "Connecting AI and Data strategy with the operating capability underneath it.",
         "This lens is most relevant when a leadership mandate spans priorities, portfolio choices, Data & Analytics, operating models, governance and enterprise adoption rather than one isolated technical domain.",
-        "My strongest contribution in this context is connecting disciplines that often sit in different parts of the organization while keeping specialist ownership explicit.",
+        "This work connects disciplines that often sit in different parts of the organization while keeping specialist ownership explicit.",
         [
             (
                 "Selected evidence",
-                "A business-facing AI and Data leadership profile",
+                "Business-facing AI and Data experience",
                 "The experience spans AI strategy, analytics, portfolio decisions, governance, adoption, operating models and architecture-aware decision-making. I have worked across global industrial and consumer environments where those disciplines had to support the same business choices.",
                 [
                     "Across Volvo Group and Volvo Trucks, AI work spanned warranty, sales, aftermarket, legal, compliance and sustainability, with AI solutions and agents introduced into commercial workflows.",
@@ -103,7 +89,7 @@ def enterprise() -> str:
             (
                 "Leadership style",
                 "Work comfortably between business priorities and technical reality",
-                "My technical background helps me engage engineers, architects and data specialists and understand where architecture, security, cost or data choices change the business answer. Specialist depth remains with the specialists responsible for those decisions.",
+                "A technical background helps in discussions with engineers, architects and data specialists when architecture, security, cost or data choices change the business answer. Specialist depth remains with the specialists responsible for those decisions.",
                 [
                     "Cross-functional work across business, Digital & IT, analytics and governance",
                     "Executive stakeholder communication and business translation",
@@ -125,10 +111,10 @@ def enterprise() -> str:
 def transformation() -> str:
     return role_lens(
         "transformation",
-        "Role lens · AI Transformation & Adoption",
+        "Experience by mandate · AI Transformation & Adoption",
         "Moving AI from experimentation toward practical organizational use.",
         "This lens is relevant when an organization already has AI activity but needs clearer priorities, stronger adoption, capability building and a more credible path from promising work to repeatable use.",
-        "I tend to be most useful once initial enthusiasm has created enough activity to expose the real operating questions: what deserves investment, who owns the outcome, what evidence is missing and what has to change in the workflow.",
+        "The operating questions usually become clearer after initial experimentation: what deserves investment, who owns the outcome, what evidence is missing and what has to change in the workflow.",
         [
             (
                 "Transformation focus",
@@ -175,7 +161,7 @@ def transformation() -> str:
 def governance() -> str:
     return role_lens(
         "governance",
-        "Role lens · AI Governance & Operating Model",
+        "Experience by mandate · AI Governance & Operating Model",
         "Creating clearer ownership, evidence and decision rights around AI.",
         "This lens is relevant where AI needs stronger lifecycle discipline, portfolio governance, data accountability and Responsible AI mechanisms without turning governance into a control layer disconnected from delivery.",
         "I treat governance as part of the operating system around AI. The purpose is to make clear who owns each decision, what evidence is required, when risk needs escalation and what must be true before broader use is justified.",
@@ -219,10 +205,10 @@ def governance() -> str:
 def consulting() -> str:
     return role_lens(
         "consulting",
-        "Role lens · Business-Driven AI & Consulting",
+        "Experience by mandate · Business-Driven AI & Consulting",
         "Advisory work grounded in what has to happen after the recommendation.",
-        "This is a secondary but genuine part of my profile: client-facing technology, problem framing, value discovery and executive dialogue, informed by having also worked on the operating side of enterprise AI change.",
-        "The perspective I bring to consulting is practical consequence. Recommendations have to survive data quality, architecture, governance, competing priorities and the people who will use the capability after the presentation is over.",
+        "Experience also includes client-facing technology, problem framing, value discovery and executive dialogue alongside operating roles in enterprise AI.",
+        "Advisory recommendations still have to survive data quality, architecture, governance, competing priorities and the people who will use the capability after the presentation is over.",
         [
             (
                 "Client perspective",

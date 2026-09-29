@@ -13,13 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Resolve issued OpenAI Academy badge
+      - name: Resolve OpenAI Academy AI Leadership badge artwork
         run: |
           set -euo pipefail
-          K1='9532428a326b32d3b088f47b34479eac'
-          K2='60493830b1f3ce502097c2a10e237c2c'
-          KEY="${K1}${K2}"
-          API="https://api.accredible.com/v1/recipient/credentials/855a1e37-b0d2-4e7d-aed6-ae9a839c6de0?key=${KEY}"
+          API='https://api.accredible.com/v1/recipient/credentials/87f80b85-6d10-41d5-b1e7-51b31d29aaa3'
           curl --fail --location --retry 3 -A 'Mozilla/5.0' "$API" -o credential.json
           python - <<'PY'
           import json

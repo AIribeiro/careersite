@@ -30,6 +30,26 @@ jobs:
               print("COUNT", needle, text.lower().count(needle.lower()))
           open("wallet_excerpt.txt","w",encoding="utf-8").write(text[:200000])
           PY
+          curl --fail --location --retry 3 -A 'Mozilla/5.0' "https://www.credential.net/main.942b279e08dbf798.js" -o main.js
+          python - <<'PY'
+          import re
+          text=open("main.js",encoding="utf-8",errors="replace").read()
+          terms=["profile/", "wallet", "credentials?", "recipient", "credential_ids", "api.accredible.com", "credential.net/api"]
+          for term in terms:
+              print("TERM",term,"COUNT",text.count(term))
+              pos=0
+              shown=0
+              while shown<12:
+                  i=text.find(term,pos)
+                  if i<0: break
+                  print(text[max(0,i-220):i+320])
+                  pos=i+len(term)
+                  shown+=1
+          urls=sorted(set(re.findall(r'https?://[^"\\\x27 ]+',text)))
+          for u in urls:
+              if "accredible" in u or "credential" in u:
+                  print("URL",u[:500])
+          PY
       - name: Upload wallet snapshot
         uses: actions/upload-artifact@v4
         with:

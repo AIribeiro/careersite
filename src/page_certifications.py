@@ -3,7 +3,17 @@ from __future__ import annotations
 import html
 
 from site_components import nav, footer, opportunity
-from site_media import eitca_eu_banner
+from site_media import (
+    eitca_eu_banner,
+    credly_fundamentals_ai_agents,
+    credly_ai_agents_rag_langchain,
+    credly_genai_product_managers,
+    credly_genai_foundation_models,
+    credly_data_privacy,
+    credly_design_thinking_cocreator,
+    credly_azure_ai,
+    credly_azure_data,
+)
 
 LINKEDIN_CERTIFICATIONS = "https://www.linkedin.com/in/jairribeiro/details/certifications/"
 
@@ -115,6 +125,83 @@ FLAGSHIP = [
         "verify_url": "https://www.coursera.org/account/accomplishments/specialization/5L6Q5KMVMWQR",
         "program_url": "https://www.coursera.org/specializations/executive-data-science",
         "copy": "Adds leadership-level grounding in how data-science teams work, how analytical work is evaluated and how data initiatives stay connected to business decisions and outcomes.",
+    },
+]
+
+CREDLY_PROFILE = "https://www.credly.com/users/jair-pinto-ribeiro/"
+
+CREDLY_BADGES = [
+    {
+        "signal": "Agentic AI",
+        "title": "Fundamentals of Building AI Agents",
+        "issuer": "Coursera · authorized by IBM",
+        "date": "May 2026",
+        "image": credly_fundamentals_ai_agents,
+        "url": "https://www.credly.com/badges/86116c4b-a24a-4942-95bc-f7fcc4e7295f/public_url",
+        "copy": "Practical fluency with agent reasoning, tool calling and orchestration, supporting informed decisions about where agentic patterns are useful and governable.",
+    },
+    {
+        "signal": "RAG & orchestration",
+        "title": "AI Agents Using RAG and LangChain",
+        "issuer": "Coursera · authorized by IBM",
+        "date": "Jun 2025",
+        "image": credly_ai_agents_rag_langchain,
+        "url": "https://www.credly.com/badges/064f7390-5871-43c5-9886-99e7ec3faf24/public_url",
+        "copy": "Working context around RAG, retrieval, LangChain and agent workflows for stronger architecture and delivery conversations.",
+    },
+    {
+        "signal": "AI product & value",
+        "title": "Generative AI for Product Managers Specialization",
+        "issuer": "Coursera · authorized by IBM",
+        "date": "Jun 2025",
+        "image": credly_genai_product_managers,
+        "url": "https://www.credly.com/badges/942f3f3d-bdb2-4efa-8076-3a05f9f7ffd2/public_url",
+        "copy": "Connects generative AI with product concepts, roadmaps and lifecycle decisions, linking capability with usable business value.",
+    },
+    {
+        "signal": "Foundation models",
+        "title": "Generative AI: Foundation Models and Platforms",
+        "issuer": "Coursera · authorized by IBM",
+        "date": "Jun 2025",
+        "image": credly_genai_foundation_models,
+        "url": "https://www.credly.com/badges/b352e372-743f-409a-93ff-b9b5c9d470ff/public_url",
+        "copy": "Model- and platform-level context for decisions involving foundation models, pretrained capabilities and enterprise GenAI platforms.",
+    },
+    {
+        "signal": "Privacy & trust",
+        "title": "Data Privacy Fundamentals",
+        "issuer": "IBM",
+        "date": "Dec 2017",
+        "image": credly_data_privacy,
+        "url": "https://www.credly.com/badges/795e1e65-e8af-44c8-9ed6-2f285e81e7e8/public_url",
+        "copy": "An established privacy and ethics foundation behind later Responsible AI work, including the implications of collecting, using and sharing data.",
+    },
+    {
+        "signal": "Human-centered adoption",
+        "title": "Enterprise Design Thinking Co-Creator",
+        "issuer": "IBM",
+        "date": "Nov 2017",
+        "image": credly_design_thinking_cocreator,
+        "url": "https://www.credly.com/badges/0c166467-7348-42e0-a377-a00f46f0998c/public_url",
+        "copy": "Supports co-creation, facilitation and user-centered problem framing—useful when new AI capability must translate into adopted ways of working.",
+    },
+    {
+        "signal": "Cloud AI",
+        "title": "Microsoft Certified: Azure AI Fundamentals",
+        "issuer": "Microsoft",
+        "date": "Jun 2021",
+        "image": credly_azure_ai,
+        "url": "https://www.credly.com/badges/7d987d1e-e06f-4248-91a4-9544c8549c11/public_url",
+        "copy": "Verified foundational knowledge of AI, machine learning and related Azure services for cloud-platform discussions.",
+    },
+    {
+        "signal": "Cloud data",
+        "title": "Microsoft Certified: Azure Data Fundamentals",
+        "issuer": "Microsoft",
+        "date": "Jul 2021",
+        "image": credly_azure_data,
+        "url": "https://www.credly.com/badges/7b796e8b-50a1-4602-abde-73f9b5752ac8/public_url",
+        "copy": "Verified grounding in core data concepts and Azure data services, complementing broader data-platform and analytics leadership.",
     },
 ]
 
@@ -234,6 +321,20 @@ def _credential_card(item: dict[str, str]) -> str:
     )
 
 
+def _credly_badge(item: dict[str, str]) -> str:
+    return (
+        '<article class="credly-card">'
+        f'<a class="credly-art" href="{html.escape(item["url"], quote=True)}" target="_blank" rel="noopener">'
+        f'<img src="{item["image"]}" alt="{html.escape(item["title"])} digital badge" loading="lazy" decoding="async"></a>'
+        f'<span class="credly-signal">{html.escape(item["signal"])}</span>'
+        f'<h3>{html.escape(item["title"])}</h3>'
+        f'<div class="credly-meta"><strong>{html.escape(item["issuer"])}</strong><span>{html.escape(item["date"])}</span></div>'
+        f'<p>{html.escape(item["copy"])}</p>'
+        f'<a class="credly-verify" href="{html.escape(item["url"], quote=True)}" target="_blank" rel="noopener">Verify on Credly ↗</a>'
+        '</article>'
+    )
+
+
 def _pathway(title: str, copy: str, items: list[str]) -> str:
     rows = "".join(f"<li>{html.escape(item)}</li>" for item in items)
     return (
@@ -246,6 +347,7 @@ def _pathway(title: str, copy: str, items: list[str]) -> str:
 
 def certifications() -> str:
     flagship = "".join(_credential_card(item) for item in FLAGSHIP)
+    credly_badges = "".join(_credly_badge(item) for item in CREDLY_BADGES)
     pathways = "".join(_pathway(title, copy, items) for title, copy, items in PATHWAYS)
     eitca = "".join(f"<li>{html.escape(item)}</li>" for item in EITCA_COMPONENTS)
     timeline = "".join(
@@ -264,6 +366,8 @@ def certifications() -> str:
 <section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Recent credentials</p><h2>Current study across enterprise AI priorities.</h2></div><p>Ten credentials complement the featured EITCA/AI programme across AI strategy, Responsible AI, adoption, agentic systems, product judgment, data platforms and analytics. Each can be verified directly.</p></div><div class="cert-grid">{flagship}</div></div></section>
 
 
+
+<section class="section credly-section"><div class="container"><div class="head"><div><p class="eyebrow">Verified digital badges</p><h2>Specific capability evidence, independently verifiable.</h2></div><div><p>I use these badges as supporting evidence of specific capabilities beneath my broader AI &amp; Data leadership work. The selection focuses on agentic AI, GenAI product and platform judgment, privacy, human-centered adoption, and cloud/data foundations.</p><div class="actions"><a class="btn dark" href="{CREDLY_PROFILE}" target="_blank" rel="noopener" data-hq-event="credly_profile">View full Credly profile ↗</a></div></div></div><div class="credly-grid">{credly_badges}</div></div></section>
 
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Earlier and specialist credentials</p><h2>Broader learning across AI, data and leadership.</h2></div><p>Earlier and specialist credentials provide context behind the headline selections, spanning enterprise AI leadership, Responsible AI, data and cloud foundations, product thinking and analytics.</p></div><div class="cert-path-grid">{pathways}</div></div></section>
 

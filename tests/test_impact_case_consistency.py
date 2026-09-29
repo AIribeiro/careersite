@@ -17,8 +17,8 @@ class ImpactCaseConsistencyTests(unittest.TestCase):
             "Kimberly-Clark",
         ]
 
-        home_section = home.split('<p class="eyebrow">Selected leadership cases</p>', 1)[1]
-        home_section = home_section.split('<p class="eyebrow">Leadership focus</p>', 1)[0]
+        home_section = home.split('<p class="eyebrow">Selected experience</p>', 1)[1]
+        home_section = home_section.split('<p class="eyebrow">Recurring questions</p>', 1)[0]
 
         home_positions = [home_section.index(f'<span class="org">{org}</span>') for org in home_expected]
         self.assertEqual(home_positions, sorted(home_positions))

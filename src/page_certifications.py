@@ -5,6 +5,7 @@ import html
 from site_components import nav, footer, opportunity
 from site_media import (
     eitca_eu_banner,
+    openai_ai_leadership,
     credly_cognitive_practitioner,
     credly_ai_agents_rag_langchain,
     credly_genai_product_managers,
@@ -16,6 +17,11 @@ from site_media import (
 )
 
 LINKEDIN_CERTIFICATIONS = "https://www.linkedin.com/in/jairribeiro/details/certifications/"
+OPENAI_AI_LEADERSHIP_URL = (
+    "https://oaiacademy.credential.net/855a1e37-b0d2-4e7d-aed6-ae9a839c6de0?"
+    "key=9532428a326b32d3b088f47b34479eac"
+    "60493830b1f3ce502097c2a10e237c2c"
+)
 
 EU_ROUND_EMBLEM = """<svg class="eu-round-emblem" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
 <circle cx="32" cy="32" r="31" fill="#003399"/>
@@ -367,7 +373,11 @@ def certifications() -> str:
 
 
 
-<section class="section credly-section"><div class="container"><div class="head"><div><p class="eyebrow">Verified digital badges</p><h2>Specific capability evidence, independently verifiable.</h2></div><div><p>I use these badges as supporting evidence of specific capabilities beneath my broader AI &amp; Data leadership work. The selection focuses on agentic AI, GenAI product and platform judgment, privacy, human-centered adoption, and cloud/data foundations.</p><div class="actions"><a class="btn dark" href="{CREDLY_PROFILE}" target="_blank" rel="noopener" data-hq-event="credly_profile">View full Credly profile ↗</a></div></div></div><div class="credly-grid">{credly_badges}</div></div></section>
+<section class="section credly-section"><div class="container"><div class="head"><div><p class="eyebrow">Verified digital badges</p><h2>Specific capability evidence, independently verifiable.</h2></div><div><p>I use these badges as supporting evidence beneath my broader AI &amp; Data leadership work. The OpenAI Academy AI Leadership badge is highlighted because its scope closely matches how I work across enterprise AI strategy, governance, roadmap and adoption.</p></div></div>
+
+<article class="openai-badge-highlight"><div class="openai-badge-art"><a href="{OPENAI_AI_LEADERSHIP_URL}" target="_blank" rel="noopener" data-hq-event="openai_ai_leadership_badge"><img src="{openai_ai_leadership}" alt="OpenAI Academy AI Leadership artwork" loading="lazy" decoding="async"></a></div><div class="openai-badge-copy"><span class="openai-badge-kicker">Highlighted badge · OpenAI Academy</span><h3>AI Leadership</h3><p class="openai-badge-lead">This badge is especially aligned with how I lead enterprise AI: connecting initiatives to business priorities, establishing ownership and governance, shaping a roadmap, and planning for adoption. It reinforces the operating discipline behind my work—turning AI strategy into accountable decisions, coordinated execution and measurable business value.</p><div class="openai-badge-facts"><div><strong>Strategy</strong><span>Business priorities</span></div><div><strong>Governance</strong><span>Ownership &amp; accountability</span></div><div><strong>Roadmap</strong><span>From initiative to action</span></div><div><strong>Adoption</strong><span>Organizational execution</span></div></div><div class="actions"><a class="btn ghost" href="{OPENAI_AI_LEADERSHIP_URL}" target="_blank" rel="noopener" data-hq-event="openai_ai_leadership_verify">Verify issued badge ↗</a></div><p class="openai-badge-meta">OpenAI Academy badge · course completion and passing assessment · issued via Accredible</p></div></article>
+
+<div class="credly-subhead"><div><span class="credly-subtitle">Additional selected badges</span><p>Agentic AI, GenAI product and platform judgment, privacy, human-centered adoption, and cloud/data foundations.</p></div><a class="btn dark" href="{CREDLY_PROFILE}" target="_blank" rel="noopener" data-hq-event="credly_profile">View full Credly profile ↗</a></div><div class="credly-grid">{credly_badges}</div></div></section>
 
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Earlier and specialist credentials</p><h2>Broader learning across AI, data and leadership.</h2></div><p>Earlier and specialist credentials provide context behind the headline selections, spanning enterprise AI leadership, Responsible AI, data and cloud foundations, product thinking and analytics.</p></div><div class="cert-path-grid">{pathways}</div></div></section>
 

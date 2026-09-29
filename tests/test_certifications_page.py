@@ -72,7 +72,7 @@ class CertificationsPageTests(unittest.TestCase):
             image.verify()
         from site_media import eitca_eu_banner
         self.assertTrue(eitca_eu_banner.startswith("data:image/webp;base64,"))
-        self.assertIn("What this adds to my leadership", page)
+        self.assertIn("Scope and relevance", page)
         self.assertIn("For me, the value of EITCA/AI", page)
         self.assertIn("That depth strengthens the bridge I need to lead effectively", page)
         self.assertIn("eitca-value-grid", page)

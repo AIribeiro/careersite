@@ -77,7 +77,7 @@ class AnalyticsControlTests(unittest.TestCase):
             "Page exploration",
             "About & profile pages",
             "Credentials & Certifications",
-            "Speaking & Thought Leadership",
+            "Speaking & Publications",
         ):
             self.assertIn(label, dashboard)
 

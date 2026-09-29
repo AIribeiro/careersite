@@ -94,9 +94,9 @@ async def _thinking_article(request):
 async def _ai_data_governance_share(request):
     """Server-render social metadata for the governance page; redirect people to Streamlit."""
     canonical = f"{BASE_URL}/ai-data-governance"
-    title = "AI & Data Governance Leadership | Jair Ribeiro"
+    title = "AI & Data Governance | Jair Ribeiro"
     description = (
-        "An executive perspective on AI & Data governance across Responsible AI, "
+        "An operating perspective on AI & Data governance across Responsible AI, "
         "decision rights, data accountability, lifecycle governance, evidence and responsible scale."
     )
 

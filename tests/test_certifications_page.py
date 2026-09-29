@@ -48,7 +48,7 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertEqual(len(EITCA_COMPONENTS), 12)
 
     def test_credly_badges_are_curated_verifiable_and_use_original_artwork(self) -> None:
-        from page_certifications import CREDLY_BADGES, CREDLY_PROFILE, certifications
+        from page_certifications import ACCREDIBLE_BADGES, ACCREDIBLE_WALLET, CREDLY_BADGES, CREDLY_PROFILE, certifications
 
         self.assertEqual(len(CREDLY_BADGES), 8)
         titles = [str(item["title"]) for item in CREDLY_BADGES]
@@ -63,7 +63,7 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("Microsoft Certified: Azure AI Fundamentals", titles)
         self.assertIn("Microsoft Certified: Azure Data Fundamentals", titles)
         self.assertTrue(all("/badges/" in str(item["url"]) for item in CREDLY_BADGES))
-        self.assertEqual(CREDLY_PROFILE, "https://www.credly.com/users/jair-pinto-ribeiro/")
+        self.assertEqual(CREDLY_PROFILE, "https://www.credly.com/users/jair-pinto-ribeiro/")\n        self.assertEqual(ACCREDIBLE_WALLET, "https://www.credential.net/profile/jairribeiro188506/wallet")\n        self.assertEqual(len(ACCREDIBLE_BADGES), 1)\n        self.assertEqual(ACCREDIBLE_BADGES[0]["title"], "Academy Accreditation - Generative AI Fundamentals")\n        self.assertIn("debbdbb9-df3f-46d8-a218-4f5f73288dae", ACCREDIBLE_BADGES[0]["url"])
 
         badge_dir = ROOT / "images/credly"
         expected = {
@@ -84,12 +84,23 @@ class CertificationsPageTests(unittest.TestCase):
                 self.assertGreaterEqual(image.width, 352)
                 image.verify()
 
+        accredible_artwork = ROOT / "images/credentials/databricks_genai_fundamentals.png"
+        self.assertTrue(accredible_artwork.exists())
+        with Image.open(accredible_artwork) as image:
+            self.assertEqual(image.format, "PNG")
+            self.assertGreaterEqual(image.width, 300)
+            self.assertGreaterEqual(image.height, 300)
+            image.verify()
+
         page = certifications()
         self.assertIn("Verified digital badges", page)
         self.assertIn("Specific capability evidence, independently verifiable.", page)
-        self.assertIn("View full Credly profile", page)
+        self.assertIn("Credly profile ↗", page)
+        self.assertIn("Accredible wallet ↗", page)
         self.assertEqual(page.count("Verify on Credly ↗"), 8)
-        self.assertGreaterEqual(page.count("digital badge"), 8)
+        self.assertEqual(page.count("Verify on Accredible ↗"), 1)
+        self.assertIn("Academy Accreditation - Generative AI Fundamentals", page)
+        self.assertGreaterEqual(page.count("digital badge"), 9)
 
     def test_openai_academy_badge_is_highlighted_and_verifiable(self) -> None:
         from page_certifications import OPENAI_AI_LEADERSHIP_URL, certifications

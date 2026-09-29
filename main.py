@@ -62,12 +62,12 @@ ARTICLE_META = None if CMS_ARTICLE_META is not None else (
 
 TITLES = {
     "home": "Jair Ribeiro | Enterprise AI & Data Leader",
-    "impact": "Leadership Impact | Jair Ribeiro",
+    "impact": "Selected Experience | Jair Ribeiro",
     "thinking": "Selected Thinking | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
     "certifications": "Credentials & Certifications | Jair Ribeiro",
-    "presence": "Speaking & Thought Leadership | Jair Ribeiro",
-    "contact": "Discuss a Leadership Opportunity | Jair Ribeiro",
+    "presence": "Speaking & Publications | Jair Ribeiro",
+    "contact": "Contact | Jair Ribeiro",
     "enterprise": "Enterprise AI & Data Leadership | Jair Ribeiro",
     "transformation": "AI Transformation & Adoption | Jair Ribeiro",
     "governance": "AI Governance & Operating Model | Jair Ribeiro",

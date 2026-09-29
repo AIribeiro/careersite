@@ -66,7 +66,7 @@ class CertificationsPageTests(unittest.TestCase):
 
         badge_dir = ROOT / "images/credly"
         expected = {
-            "fundamentals_ai_agents.png",
+            "cognitive_practitioner.png",
             "ai_agents_rag_langchain.png",
             "genai_product_managers.png",
             "genai_foundation_models.png",

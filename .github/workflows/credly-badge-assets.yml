@@ -1,0 +1,47 @@
+name: Credly Badge Assets
+
+on:
+  push:
+    paths:
+      - ".github/workflows/credly-badge-assets.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download selected original Credly badge artwork
+        run: |
+          set -euo pipefail
+          mkdir -p images/credly
+          curl --fail --location --retry 3 "https://images.credly.com/images/9efdab6e-3095-4e52-a2ef-354d9b90b100/Fundamentals_20of_20Building_20AI_20Agents.png" -o images/credly/fundamentals_ai_agents.png
+          curl --fail --location --retry 3 "https://images.credly.com/images/bc1ee755-d8b5-4068-91fa-60a6e05f12dc/Coursera_20AI_20Agents_20Using_20RAG_20and_20LangChain.png" -o images/credly/ai_agents_rag_langchain.png
+          curl --fail --location --retry 3 "https://images.credly.com/images/14e9826e-ccff-40d4-b21f-06d3569286a0/Coursera_20Gen_20AI_20for_20Product_20Managers_20Specialization.png" -o images/credly/genai_product_managers.png
+          curl --fail --location --retry 3 "https://images.credly.com/images/b22dfb96-cd34-485c-ac03-2fc027e892cb/image.png" -o images/credly/genai_foundation_models.png
+          curl --fail --location --retry 3 "https://images.credly.com/images/95272ba4-d722-4e3c-8727-d3235c75e4d6/blob" -o images/credly/data_privacy_fundamentals.png
+          curl --fail --location --retry 3 "https://images.credly.com/images/2700b813-82b8-4232-9b36-5dcd5cd24584/Badges_v8-08_Co-Creator.png" -o images/credly/enterprise_design_thinking_cocreator.png
+          curl --fail --location --retry 3 "https://images.credly.com/images/4136ced8-75d5-4afb-8677-40b6236e2672/azure-ai-fundamentals-600x600.png" -o images/credly/azure_ai_fundamentals.png
+          curl --fail --location --retry 3 "https://images.credly.com/images/70eb1e3f-d4de-4377-a062-b20fb29594ea/azure-data-fundamentals-600x600.png" -o images/credly/azure_data_fundamentals.png
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          for path in sorted(Path("images/credly").glob("*.png")):
+              with Image.open(path) as im:
+                  print(path.name, im.format, im.size)
+                  im.verify()
+          PY
+      - name: Commit badge artwork
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images/credly
+          if git diff --cached --quiet; then
+            echo "No badge asset changes."
+          else
+            git commit -m "Add selected original Credly badge artwork"
+            git push
+          fi

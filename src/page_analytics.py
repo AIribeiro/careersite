@@ -750,7 +750,7 @@ def render_analytics_dashboard() -> None:
                 _section(
                     "About",
                     "About & profile pages",
-                    "About, Credentials & Certifications, and Speaking & Thought Leadership are tracked separately.",
+                    "About, Credentials & Certifications, and Speaking & Publications are tracked separately.",
                 )
                 about_rows = _page_rows(data.get("pages", []), "About")
                 _bar_chart(

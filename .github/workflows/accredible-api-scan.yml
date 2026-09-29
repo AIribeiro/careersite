@@ -40,9 +40,19 @@ jobs:
                   print(text[max(0,i-220):i+360].replace("\n"," "))
                   pos=i+len(needle)
                   count+=1
-          urls=sorted(set(re.findall(r'https?://[^"\x27\\ ]+',text)))
-          print("\n### URLs")
-          for u in urls:
-              if "accredible" in u.lower() or "credential" in u.lower():
-                  print(u[:500])
+          routes=sorted(set(re.findall(r'["\x27]([^"\x27]{0,220}/v1/[^"\x27]{0,320})["\x27]',text)))
+          print("\n### V1 ROUTES")
+          for route in routes:
+              if any(k in route.lower() for k in ("credential","recipient","badge","frontend","share")):
+                  print(route[:600])
+          for token in ("credentialId","credential_id","encodedId","encoded_id","accessKey","access_key","shareKey","share_key"):
+              print("\n### TOKEN",token)
+              pos=0
+              count=0
+              while True:
+                  i=text.find(token,pos)
+                  if i<0 or count>=15: break
+                  print(text[max(0,i-180):i+300].replace("\n"," "))
+                  pos=i+len(token)
+                  count+=1
           PY

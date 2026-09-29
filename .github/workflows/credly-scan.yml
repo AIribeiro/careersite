@@ -1,0 +1,40 @@
+name: Credly Scan
+
+on:
+  push:
+    paths:
+      - ".github/workflows/credly-scan.yml"
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch public Credly badge wallet
+        run: |
+          curl --fail --location --retry 3 \
+            -A "Mozilla/5.0 (compatible; PortfolioCredentialScan/1.0)" \
+            -H "Accept: application/json" \
+            "https://www.credly.com/users/jair-pinto-ribeiro/badges.json" \
+            -o credly_badges.json
+          python - <<'PY'
+          import json
+          data = json.load(open("credly_badges.json", encoding="utf-8"))
+          badges = data.get("data", [])
+          print("badge_count=", len(badges))
+          for b in badges:
+              print(json.dumps({
+                  "id": b.get("id"),
+                  "badge_template": b.get("badge_template", {}).get("name"),
+                  "issuer": b.get("issuer", {}).get("entities", [{}])[0].get("entity", {}).get("name") if isinstance(b.get("issuer"), dict) else None,
+                  "issued_at": b.get("issued_at_date") or b.get("issued_at"),
+                  "image_url": b.get("image_url"),
+                  "public_url": b.get("public_url"),
+              }, ensure_ascii=False))
+          PY
+      - name: Upload Credly snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: credly-badges
+          path: credly_badges.json
+          if-no-files-found: error

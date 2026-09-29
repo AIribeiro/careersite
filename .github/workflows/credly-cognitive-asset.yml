@@ -1,0 +1,28 @@
+name: Credly Cognitive Asset
+
+on:
+  push:
+    paths:
+      - ".github/workflows/credly-cognitive-asset.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download original Credly badge artwork
+        run: |
+          set -euo pipefail
+          mkdir -p images/credly
+          curl --fail --location --retry 3 "https://images.credly.com/images/ac149add-c35d-47e0-89ed-af16b9e37e05/Cognitive-Practitioner.png" -o images/credly/cognitive_practitioner.png
+          file images/credly/cognitive_practitioner.png
+      - name: Commit badge artwork
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images/credly/cognitive_practitioner.png
+          git commit -m "Add original Cognitive Practitioner Credly badge"
+          git push

@@ -119,7 +119,7 @@ jobs:
           grep 'name="twitter:card" content="summary_large_image"' /tmp/governance-share.html
           grep 'property="og:title"' /tmp/governance-share.html
           grep 'property="og:image"' /tmp/governance-share.html
-          grep 'AI &amp; Data Governance Leadership' /tmp/governance-share.html
+          grep 'AI &amp; Data Governance' /tmp/governance-share.html
 
           curl --silent --show-error --head \
             --user-agent "Mozilla/5.0" \

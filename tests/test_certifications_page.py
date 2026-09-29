@@ -51,7 +51,7 @@ class CertificationsPageTests(unittest.TestCase):
         from page_certifications import certifications
 
         page = certifications()
-        self.assertIn("Where the credential record adds depth.", page)
+        self.assertIn("What the credential record covers.", page)
         self.assertIn("Strategy &amp; value", page)
         self.assertIn("Adoption &amp; operating model", page)
         self.assertIn("24 ECTS", page)
@@ -73,8 +73,8 @@ class CertificationsPageTests(unittest.TestCase):
         from site_media import eitca_eu_banner
         self.assertTrue(eitca_eu_banner.startswith("data:image/webp;base64,"))
         self.assertIn("Scope and relevance", page)
-        self.assertIn("For me, the value of EITCA/AI", page)
-        self.assertIn("That depth strengthens the bridge I need to lead effectively", page)
+        self.assertIn("EITCA/AI adds structured technical breadth", page)
+        self.assertIn("The credential supports business-facing work", page)
         self.assertIn("eitca-value-grid", page)
         self.assertIn("View full LinkedIn credential record", page)
         self.assertIn("https://www.linkedin.com/in/jairribeiro/details/certifications/", page)

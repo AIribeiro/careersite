@@ -50,6 +50,14 @@ presence_global_ambassador = _uri("presence_global_ai_ambassador.jpg")
 presence_ai_learning = _uri("presence_ai_learning_sessions.jpg")
 presence_dfm_2023 = _uri("presence_digitalfirst_2023_cover.jpg")
 eitca_eu_banner = _uri("eitca_eu_banner.webp")
+credly_fundamentals_ai_agents = _uri("credly/fundamentals_ai_agents.png")
+credly_ai_agents_rag_langchain = _uri("credly/ai_agents_rag_langchain.png")
+credly_genai_product_managers = _uri("credly/genai_product_managers.png")
+credly_genai_foundation_models = _uri("credly/genai_foundation_models.png")
+credly_data_privacy = _uri("credly/data_privacy_fundamentals.png")
+credly_design_thinking_cocreator = _uri("credly/enterprise_design_thinking_cocreator.png")
+credly_azure_ai = _uri("credly/azure_ai_fundamentals.png")
+credly_azure_data = _uri("credly/azure_data_fundamentals.png")
 
 if hero:
     assets.HERO_URI = hero

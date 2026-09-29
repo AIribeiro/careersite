@@ -13,18 +13,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download issued OpenAI Academy badge
+      - name: Resolve issued OpenAI Academy badge
         run: |
           set -euo pipefail
-          mkdir -p images/credentials
-          curl --fail --location --retry 3 \
-            "https://api.accredible.com/v1/frontend/credential_badge_image/855a1e37-b0d2-4e7d-aed6-ae9a839c6de0" \
-            -o images/credentials/openai_ai_leadership.png
-          file images/credentials/openai_ai_leadership.png
-      - name: Commit badge artwork
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add images/credentials/openai_ai_leadership.png
-          git commit -m "Add issued OpenAI Academy AI Leadership badge"
-          git push
+          URL='https://oaiacademy.credential.net/855a1e37-b0d2-4e7d-aed6-ae9a839c6de0'
+          curl --fail --location --retry 3 -A 'Mozilla/5.0' "$URL" -o credential.html
+          python - <<'PY'
+          import re
+          from html import unescape
+          text=open("credential.html",encoding="utf-8",errors="replace").read()
+          for pattern in [
+              r'<meta[^>]+property=["\x27]og:title["\x27][^>]+content=["\x27]([^"\x27]+)',
+              r'<meta[^>]+property=["\x27]og:description["\x27][^>]+content=["\x27]([^"\x27]+)',
+              r'<meta[^>]+property=["\x27]og:image["\x27][^>]+content=["\x27]([^"\x27]+)',
+              r'<meta[^>]+name=["\x27]twitter:image["\x27][^>]+content=["\x27]([^"\x27]+)',
+          ]:
+              m=re.search(pattern,text,re.I)
+              if m: print(unescape(m.group(1)))
+          print("HTML_BYTES",len(text.encode()))
+          PY

@@ -9,37 +9,35 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch public wallet
+      - name: Render public wallet in Chrome
         run: |
           set -euo pipefail
           URL='https://www.credential.net/profile/jairribeiro188506/wallet'
-          curl --fail --location --retry 3 -A 'Mozilla/5.0' "$URL" -o wallet.html
+          BROWSER=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium)
+          echo "BROWSER $BROWSER"
+          "$BROWSER" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --virtual-time-budget=12000 --dump-dom "$URL" > wallet.html
           echo "HTML_BYTES $(wc -c < wallet.html)"
           python - <<'PY'
           import re, html
           text=open("wallet.html",encoding="utf-8",errors="replace").read()
-          for pat in [
-              r'<title>(.*?)</title>',
-              r'<meta[^>]+property=["\x27]og:title["\x27][^>]+content=["\x27]([^"\x27]+)',
-              r'<script[^>]+src=["\x27]([^"\x27]+)',
-          ]:
-              vals=re.findall(pat,text,re.I|re.S)
-              for v in vals[:30]:
-                  print("MATCH",html.unescape(re.sub(r'\s+',' ',v)).strip())
-          for needle in ["credential", "wallet", "recipient", "issuer", "AI Leadership", "Jair Ribeiro"]:
-              print("COUNT", needle, text.lower().count(needle.lower()))
-          open("wallet_excerpt.txt","w",encoding="utf-8").write(text[:200000])
-          PY
-          curl --fail --location --retry 3 -A 'Mozilla/5.0' \
-            "https://api.accredible.com/v1/credential-net/users/jairribeiro188506/user_wallet" \
-            -o wallet.json
-          python - <<'PY'
-          import json
-          data=json.load(open("wallet.json",encoding="utf-8"))
-          print("TOP_KEYS", sorted(data.keys()))
-          payload=data.get("data",data)
-          print("PAYLOAD_TYPE", type(payload).__name__)
-          print(json.dumps(payload,ensure_ascii=False,indent=2)[:120000])
+          clean=re.sub(r'<script[\\s\\S]*?</script>|<style[\\s\\S]*?</style>',' ',text,flags=re.I)
+          clean=re.sub(r'<[^>]+>','\\n',clean)
+          clean=html.unescape(clean)
+          lines=[re.sub(r'\\s+',' ',x).strip() for x in clean.splitlines()]
+          lines=[x for x in lines if x]
+          print("VISIBLE_TEXT")
+          for line in lines[:1200]:
+              print(line)
+          print("CREDENTIAL_LINKS")
+          links=sorted(set(re.findall(r'href=["\\x27]([^"\\x27]+)["\\x27]',text,re.I)))
+          for link in links:
+              if "credential.net/" in link or re.search(r'/[0-9a-f]{8}-[0-9a-f-]{27,}',link,re.I):
+                  print(link)
+          print("IMAGES")
+          imgs=sorted(set(re.findall(r'<img[^>]+src=["\\x27]([^"\\x27]+)',text,re.I)))
+          for img in imgs[:200]:
+              print(img)
           PY
       - name: Upload wallet snapshot
         uses: actions/upload-artifact@v4

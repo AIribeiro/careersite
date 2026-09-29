@@ -18,7 +18,7 @@ jobs:
           set -euo pipefail
           mkdir -p images/credentials
           curl --fail --location --retry 3 \
-            "https://cdn.gradual.com/images/https%3A//d2xo500swnpgl1.cloudfront.net/uploads/oaiacademy/Leadership-600x600-8500de53-af00-467a-9b8c-fbc2cee20f67-1788879140339.jpeg?fit=scale-down&width=1000" \
+            "https://d2xo500swnpgl1.cloudfront.net/uploads/oaiacademy/Leadership-600x600-8500de53-af00-467a-9b8c-fbc2cee20f67-1788879140339.jpeg" \
             -o images/credentials/openai_ai_leadership.jpg
           file images/credentials/openai_ai_leadership.jpg
           test -s images/credentials/openai_ai_leadership.jpg

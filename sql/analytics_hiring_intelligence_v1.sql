@@ -294,6 +294,7 @@ BEGIN
   quality_summary AS (
     SELECT
       pg_catalog.count(*) AS recorded_sessions,
+      pg_catalog.count(*) FILTER (WHERE NOT explicit_test AND has_content_view) AS valid_content_sessions,
       pg_catalog.count(*) FILTER (WHERE explicit_test) AS explicit_test_sessions,
       pg_catalog.count(*) FILTER (WHERE NOT explicit_test AND NOT has_content_view) AS telemetry_only_sessions,
       pg_catalog.count(*) FILTER (WHERE suspected_automation) AS suspected_automation_sessions,

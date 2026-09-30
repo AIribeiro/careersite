@@ -14,6 +14,7 @@ from site_analytics import (
 )
 
 DASHBOARD_RPC = "careersite_analytics_dashboard_v2"
+HIRING_INTELLIGENCE_RPC = "careersite_hiring_intelligence_v1"
 PUBLIC_DASHBOARD_TOKEN = "public-readonly-v1"
 PUBLIC_BASE_URL = "https://jairribeiro-ai.streamlit.app/"
 REPORTING_WINDOWS = (
@@ -96,6 +97,33 @@ def _fetch_dashboard(window: str) -> dict:
     if not isinstance(data, dict):
         raise RuntimeError("Unexpected analytics response format.")
     return data
+
+
+def _fetch_hiring_intelligence(window: str) -> dict:
+    """Fetch the quality-filtered hiring evidence layer.
+
+    This is additive to the established dashboard RPC so a temporary failure
+    here never makes the core analytics dashboard unavailable.
+    """
+    endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{HIRING_INTELLIGENCE_RPC}"
+    payload = json.dumps(_dashboard_payload(window)).encode("utf-8")
+    req = request.Request(
+        endpoint,
+        data=payload,
+        method="POST",
+        headers={
+            "apikey": ANALYTICS_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+    )
+    try:
+        with request.urlopen(req, timeout=12) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except (error.HTTPError, error.URLError, TimeoutError, json.JSONDecodeError):
+        return {}
+
+    return data if isinstance(data, dict) else {}
 
 
 def _pct(numerator: int, denominator: int) -> str:
@@ -586,6 +614,41 @@ def _funnel(home: int, impact: int, lens: int, cv: int) -> None:
     st.markdown('<div class="funnel-wrap">' + "".join(rows) + "</div>", unsafe_allow_html=True)
 
 
+def _hiring_funnel(rows: object) -> None:
+    """Render the ordered evidence funnel from analysis-eligible sessions."""
+    if not isinstance(rows, list):
+        _empty("No quality-layer data in this reporting window yet.")
+        return
+
+    stages = [
+        dict(row)
+        for row in rows
+        if isinstance(row, dict) and str(row.get("stage") or "") != "Engaged"
+    ]
+    if not stages:
+        _empty("No quality-layer data in this reporting window yet.")
+        return
+
+    base = _count(stages[0].get("sessions"))
+    ceiling = max(base, 1)
+    rendered: list[str] = []
+    for row in stages:
+        label = str(row.get("stage") or "Stage")
+        value = _count(row.get("sessions"))
+        width = max(2.0 if value else 0.0, min(100.0, 100 * value / ceiling))
+        pct = "100%" if label == "Analysis eligible" and base else _pct(value, base)
+        rendered.append(
+            f"""
+<div class="funnel-row">
+  <div class="funnel-label">{html.escape(label)}</div>
+  <div class="funnel-track"><div class="funnel-fill" style="width:{width:.1f}%"></div></div>
+  <div class="funnel-value">{value} · {pct}</div>
+</div>
+"""
+        )
+    st.markdown('<div class="funnel-wrap">' + "".join(rendered) + "</div>", unsafe_allow_html=True)
+
+
 def _page_rows(rows: object, family: str | None = None) -> list[dict]:
     if not isinstance(rows, list):
         return []
@@ -644,6 +707,8 @@ def render_analytics_dashboard() -> None:
         st.error(str(exc))
         return
 
+    hiring = _fetch_hiring_intelligence(str(window))
+
     period_label = str(data.get("period_label") or REPORTING_WINDOW_LABELS.get(str(window), str(window)))
     period_since = data.get("period_since")
     reset_at = data.get("reset_at")
@@ -660,6 +725,19 @@ def render_analytics_dashboard() -> None:
     single_page_sessions = int(totals.get("single_page_sessions", 0) or 0)
     confirmed_duration_sessions = int(totals.get("confirmed_duration_sessions", 0) or 0)
     unconfirmed_duration_sessions = int(totals.get("unconfirmed_duration_sessions", 0) or 0)
+    quality = hiring.get("quality_summary", {}) or {}
+    quality_sessions = _count(quality.get("analysis_eligible_sessions"))
+    quality_engaged = _count(quality.get("engaged_sessions"))
+    quality_evidence_reached = _count(quality.get("evidence_reached_sessions"))
+    quality_evidence_engaged = _count(quality.get("evidence_engaged_sessions"))
+    quality_verified = _count(quality.get("evidence_verified_sessions"))
+    quality_hiring_intent = _count(quality.get("hiring_intent_sessions"))
+    quality_recorded = _count(quality.get("recorded_sessions"))
+    quality_automation = _count(quality.get("suspected_automation_sessions"))
+    quality_telemetry_only = _count(quality.get("telemetry_only_sessions"))
+    quality_explicit_test = _count(quality.get("explicit_test_sessions"))
+    quality_since = hiring.get("quality_since")
+
     cv_download_events = next(
         (
             int(row.get("events", 0) or 0)
@@ -675,6 +753,20 @@ def render_analytics_dashboard() -> None:
         + (f" · reset baseline {reset_at}" if reset_at else "")
     )
 
+    if hiring:
+        q1, q2, q3, q4, q5 = st.columns(5)
+        q1.metric("Analysis-eligible", quality_sessions, f"{quality_recorded} recorded v5")
+        q2.metric("Engaged", _pct(quality_engaged, quality_sessions), f"{quality_engaged} sessions")
+        q3.metric("Median active time", _seconds(quality.get("median_engaged_seconds")))
+        q4.metric("Evidence verified", quality_verified, _pct(quality_verified, quality_sessions))
+        q5.metric("Hiring intent", quality_hiring_intent, _pct(quality_hiring_intent, quality_sessions))
+        st.caption(
+            "Quality metrics use tracking v5 only"
+            + (f" · since {quality_since}" if quality_since else "")
+            + ". Analysis-eligible means a valid content view, excluding explicit tests and a conservative suspected-automation cohort. "
+            "Sessions are browser-tab sessions, not unique people."
+        )
+
     k1, k2, k3, k4, k5 = st.columns(5)
     k1.metric("Measured sessions", sessions)
     k2.metric("Engagement", _pct(engaged_sessions, sessions), f"{engaged_sessions} engaged")
@@ -686,9 +778,8 @@ def render_analytics_dashboard() -> None:
     k4.metric("Pages / session", f"{float(totals.get('avg_pages_per_session', 0) or 0):.2f}")
     k5.metric("CV downloads", cv_download_events, f"{cv_sessions} downloading sessions")
     st.caption(
-        "Measured sessions are distinct browser session IDs, not unique people. "
-        "Automated link previews or browser-rendering services can appear as sessions; "
-        "engagement and conversion metrics are stronger evidence of meaningful attention."
+        "Recorded-traffic metrics below remain available for continuity. They can include automation and telemetry-only sessions; "
+        "use the quality layer above for behavioral interpretation. Sessions are distinct browser-tab session IDs, not unique people."
     )
 
     o1, o2, o3, o4, o5 = st.columns(5)
@@ -698,8 +789,8 @@ def render_analytics_dashboard() -> None:
     o4.metric("Contact channel sessions", email_sessions + linkedin_sessions, "email + LinkedIn; overlap possible")
     o5.metric("Single-page", _pct(single_page_sessions, sessions), f"{single_page_sessions} sessions")
 
-    overview_tab, audience_tab, acquisition_tab, engagement_tab, tools_tab = st.tabs(
-        ["Overview", "Audience", "Acquisition", "Engagement", "Tools"]
+    overview_tab, quality_tab, audience_tab, acquisition_tab, engagement_tab, tools_tab = st.tabs(
+        ["Overview", "Quality & intent", "Audience", "Acquisition", "Engagement", "Tools"]
     )
 
     with overview_tab:
@@ -710,14 +801,31 @@ def render_analytics_dashboard() -> None:
                 _daily_chart(data.get("daily", []))
         with right:
             with st.container(border=True):
-                _section("Funnel", "Depth of exploration", "Independent stage reach, relative to all sessions; not an ordered conversion funnel.")
-                _funnel(sessions, impact_sessions, lens_sessions, cv_sessions)
-                st.markdown(
-                    f'<div class="callout">Median active time: <b>{html.escape(_seconds(totals.get("median_active_seconds")))}</b> · '
-                    f'Confirmed duration: <b>{confirmed_duration_sessions}</b> · '
-                    f'Unconfirmed: <b>{unconfirmed_duration_sessions}</b></div>',
-                    unsafe_allow_html=True,
+                if hiring:
+                    _section(
+                        "Hiring evidence",
+                        "Evidence funnel",
+                        "Ordered stages use analysis-eligible v5 sessions. General engagement is shown separately because it is not a prerequisite for reaching a specialist evidence page.",
+                    )
+                    _hiring_funnel(hiring.get("quality_funnel", []))
+                    st.markdown(
+                        f'<div class="callout">Engaged: <b>{quality_engaged}</b> · '
+                        f'Evidence reached: <b>{quality_evidence_reached}</b> · '
+                        f'Evidence engaged: <b>{quality_evidence_engaged}</b></div>',
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    _section("Funnel", "Depth of exploration", "Independent stage reach, relative to all sessions.")
+                    _funnel(sessions, impact_sessions, lens_sessions, cv_sessions)
+
+        if hiring:
+            with st.container(border=True):
+                _section(
+                    "Legacy continuity",
+                    "Recorded-traffic depth",
+                    "The original raw session funnel is retained for historical continuity; use it as a recorded-traffic diagnostic rather than a people count.",
                 )
+                _funnel(sessions, impact_sessions, lens_sessions, cv_sessions)
 
         left, right = st.columns(2)
         with left:
@@ -769,16 +877,87 @@ def render_analytics_dashboard() -> None:
                     )
 
         s1, s2, s3 = st.columns(3)
-        s1.info(f"Top device: **{_top_label(data.get('devices', []), 'device_type')}**")
-        s2.info(f"Top source: **{_top_label(data.get('attribution', []), 'attribution_source')}**")
-        s3.info(f"Top country: **{_top_label(data.get('countries', []), 'country_code')}**")
+        s1.info(f"Top device: **{_top_label(hiring.get('devices', []) if hiring else data.get('devices', []), 'device_type')}**")
+        s2.info(f"Top source: **{_top_label(hiring.get('normalized_channels', []) if hiring else data.get('attribution', []), 'channel' if hiring else 'attribution_source')}**")
+        s3.info(f"Top country: **{_top_label(hiring.get('countries', []) if hiring else data.get('countries', []), 'country_code')}**")
+
+    with quality_tab:
+        if not hiring:
+            st.info("The audience-quality layer is not available for this reporting window.")
+        else:
+            a1, a2, a3, a4, a5 = st.columns(5)
+            a1.metric("Recorded v5", quality_recorded)
+            a2.metric("Analysis eligible", quality_sessions)
+            a3.metric("Suspected automation", quality_automation)
+            a4.metric("Telemetry only", quality_telemetry_only)
+            a5.metric("Explicit test", quality_explicit_test)
+
+            st.caption(
+                "No raw events are deleted. Classification happens only in reporting. "
+                "Suspected automation is a conservative cohort heuristic, not proof that an individual session was a bot."
+            )
+
+            left, right = st.columns([1.35, 1])
+            with left:
+                with st.container(border=True):
+                    _section(
+                        "Hiring evidence",
+                        "Evidence progression",
+                        "Analysis-eligible → evidence reached → evidence engaged → evidence verified → hiring intent.",
+                    )
+                    _hiring_funnel(hiring.get("quality_funnel", []))
+            with right:
+                with st.container(border=True):
+                    _section(
+                        "Actions",
+                        "Action intent tiers",
+                        "Exploration, evidence verification and direct hiring-intent behavior are kept separate.",
+                    )
+                    _bar_chart(hiring.get("action_tiers", []), "tier", value="sessions", limit=6, height=285, color=GREEN)
+
+            left, right = st.columns(2)
+            with left:
+                with st.container(border=True):
+                    _section(
+                        "Acquisition",
+                        "Qualified channel mix",
+                        "LinkedIn variants roll up to one parent channel while campaign/source detail remains preserved.",
+                    )
+                    _bar_chart(hiring.get("normalized_channels", []), "channel", value="sessions", limit=10, height=300, color=BLUE)
+            with right:
+                with st.container(border=True):
+                    _section(
+                        "Traffic quality",
+                        "Excluded from behavioral analysis",
+                        "Telemetry-only sessions are measurement-invalid; suspected automation is excluded conservatively; explicit tests are deliberately tagged.",
+                    )
+                    _bar_chart(hiring.get("excluded_traffic", []), "category", value="sessions", limit=6, height=300)
+
+            left, right = st.columns(2)
+            with left:
+                with st.container(border=True):
+                    _section("Qualified audience", "Country", "Geography after the quality filter.")
+                    _bar_chart(hiring.get("countries", []), "country_code", value="sessions", limit=10, height=280, color=GREEN)
+            with right:
+                with st.container(border=True):
+                    _section("Qualified audience", "Device mix", "Device mix after the quality filter.")
+                    _donut_chart(hiring.get("devices", []), "device_type", value="sessions", limit=6, height=280)
+
+            rule = hiring.get("automation_rule", {}) or {}
+            st.caption(
+                "Automation heuristic: repeated exact technical signature ≥ "
+                f"{_count(rule.get('minimum_repeated_signature_sessions'))} sessions, "
+                "zero recorded interactions, zero recorded actions, and cohort average active time below "
+                f"{_seconds(float(rule.get('maximum_signature_average_engaged_ms') or 0) / 1000)}. "
+                "The rule is intentionally narrow to avoid misclassifying legitimate visitors."
+            )
 
     with audience_tab:
         left, right = st.columns([1, 1.25])
         with left:
             with st.container(border=True):
                 _section("Audience", "Device mix")
-                _donut_chart(data.get("devices", []), "device_type")
+                _donut_chart(hiring.get("devices", []) if hiring else data.get("devices", []), "device_type")
         with right:
             with st.container(border=True):
                 _section("Technology", "Browsers")
@@ -792,7 +971,7 @@ def render_analytics_dashboard() -> None:
         with right:
             with st.container(border=True):
                 _section("Geography", "Country")
-                _bar_chart(data.get("countries", []), "country_code", limit=10, height=280, color=GREEN)
+                _bar_chart(hiring.get("countries", []) if hiring else data.get("countries", []), "country_code", limit=10, height=280, color=GREEN)
 
         left, right = st.columns(2)
         with left:
@@ -805,20 +984,38 @@ def render_analytics_dashboard() -> None:
                 _bar_chart(data.get("timezones", []), "timezone", limit=10, height=260, color=BLUE)
 
         st.caption(
-            "Country appears only when the hosting/API infrastructure supplies a coarse two-letter country code. "
-            "No raw IP addresses or third-party geolocation lookups are stored."
+            "Country and device use analysis-eligible sessions when the v5 quality layer is available. "
+            "Browser, operating-system, language and timezone panels remain recorded-traffic diagnostics for historical continuity. "
+            "Country is a coarse two-letter code; no raw IP addresses or third-party geolocation lookups are stored."
         )
 
     with acquisition_tab:
         left, right = st.columns([1.35, 1])
         with left:
             with st.container(border=True):
-                _section("Attribution", "Job-search sources", "Which distribution activity brings visitors into the site.")
-                _bar_chart(data.get("attribution", []), "attribution_source", limit=10, height=320)
+                if hiring:
+                    _section(
+                        "Attribution",
+                        "Qualified parent channels",
+                        "LinkedIn source variants are normalized into one parent channel for decision-making.",
+                    )
+                    _bar_chart(hiring.get("normalized_channels", []), "channel", limit=10, height=320)
+                else:
+                    _section("Attribution", "Job-search sources", "Which distribution activity brings visitors into the site.")
+                    _bar_chart(data.get("attribution", []), "attribution_source", limit=10, height=320)
         with right:
             with st.container(border=True):
                 _section("Referrals", "External referrers")
                 _bar_chart(data.get("referrers", []), "referrer_host", limit=10, height=320, color=BLUE)
+
+        if hiring:
+            with st.container(border=True):
+                _section(
+                    "Attribution detail",
+                    "Recorded source taxonomy",
+                    "Raw source labels are retained below so campaign diagnostics remain visible even though the primary channel view is normalized.",
+                )
+                _bar_chart(data.get("attribution", []), "attribution_source", limit=12, height=260, color=ACCENT)
 
         left, right = st.columns(2)
         with left:
@@ -861,7 +1058,7 @@ def render_analytics_dashboard() -> None:
         with right:
             with st.container(border=True):
                 _section("Engagement", "Device quality", "Engaged sessions by device class.")
-                _bar_chart(data.get("devices", []), "device_type", value="engaged_sessions", limit=6, height=260, color=BLUE)
+                _bar_chart(hiring.get("devices", []) if hiring else data.get("devices", []), "device_type", value="engaged_sessions", limit=6, height=260, color=BLUE)
 
         with st.container(border=True):
             _section(

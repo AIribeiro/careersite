@@ -132,7 +132,7 @@ https://jairribeiro-ai.streamlit.app/?page=analytics
 
 It is intentionally absent from public navigation and marked `noindex,nofollow,noarchive`.
 
-The dashboard requires a separate analytics access code. Authentication is enforced by the database reporting function; the public repository does not contain the access code or raw analytics read credentials.
+The dashboard uses a fixed public-readonly aggregate token. Raw analytics rows remain inaccessible to anonymous clients; the reporting RPC returns aggregates only and is the read boundary for the hidden dashboard.
 
 The dashboard shows:
 
@@ -150,6 +150,38 @@ The dashboard shows:
 - an attribution-link builder for LinkedIn, email, CV, outreach and application sources.
 
 An engaged session is defined as at least 10 seconds of active visible time, two or more pages, or a conversion action such as a CV download or outbound professional/contact click.
+
+## Audience quality and hiring evidence
+
+Tracking version 5 adds a reporting-quality layer on top of the raw event store. Raw rows are retained unchanged; classification is applied only when analytics are aggregated.
+
+The quality model separates:
+
+- **Recorded v5 sessions** — all tab-session IDs that emitted v5 telemetry in the selected window.
+- **Telemetry only** — sessions with no valid content view. These are measurement-invalid for audience/behavior interpretation and can occur when a background telemetry lifecycle outlives the content-view lifecycle.
+- **Suspected automation** — a deliberately narrow repeated-signature cohort heuristic: at least 10 sessions with the same coarse technical signature, zero recorded interactions, zero recorded actions and cohort average active time below 10 seconds.
+- **Explicit test** — deliberately tagged traffic such as `?source=application&role=test`.
+- **Analysis eligible** — valid content-view sessions after explicit tests and suspected-automation cohorts are excluded.
+
+The automation label is a reporting heuristic, not proof that an individual session is a bot. The implementation does not create a durable visitor fingerprint: the signature is built from already-collected coarse session fields and is used only in aggregate reporting.
+
+Hiring behavior is also separated by intent:
+
+1. **Exploration** — internal evidence-seeking actions such as opening Leadership Impact or an article card.
+2. **Evidence verification** — explicit credential verification or opening the external LinkedIn credential record.
+3. **Hiring intent** — CV download, email action or LinkedIn profile exit outside the credential-verification context.
+
+The dashboard presents an evidence progression of **Analysis eligible → Evidence reached → Evidence engaged → Evidence verified → Hiring intent**. General engagement is shown separately because a visitor can reach a specialist evidence page quickly without first crossing a 10-second engagement threshold.
+
+Source labels that begin with `linkedin` (for example `linkedin` and `linkedin_launch`) roll up to the parent channel **LinkedIn** for decision-making. The original source/campaign values are retained beneath that roll-up for diagnostics.
+
+The aggregate implementation is `public.careersite_hiring_intelligence_v1(...)`, versioned in `sql/analytics_hiring_intelligence_v1.sql`.
+
+## Collector integrity controls
+
+When a 30-minute session timeout creates a new session on the same open document, the document-level view guard is cleared so the new session can record its own `page_view`. This prevents background behavior summaries from becoming telemetry-only sessions simply because the document remained open.
+
+Repeated JavaScript errors and unhandled promise rejections are deduplicated by page/context, error type and section within the current telemetry context. This keeps a single looping browser error from dominating the UX-signal counts.
 
 ## Lovable implementation contract
 

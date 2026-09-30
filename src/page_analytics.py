@@ -733,6 +733,7 @@ def render_analytics_dashboard() -> None:
     quality_verified = _count(quality.get("evidence_verified_sessions"))
     quality_hiring_intent = _count(quality.get("hiring_intent_sessions"))
     quality_recorded = _count(quality.get("recorded_sessions"))
+    quality_valid_content = _count(quality.get("valid_content_sessions"))
     quality_automation = _count(quality.get("suspected_automation_sessions"))
     quality_telemetry_only = _count(quality.get("telemetry_only_sessions"))
     quality_explicit_test = _count(quality.get("explicit_test_sessions"))
@@ -885,12 +886,13 @@ def render_analytics_dashboard() -> None:
         if not hiring:
             st.info("The audience-quality layer is not available for this reporting window.")
         else:
-            a1, a2, a3, a4, a5 = st.columns(5)
+            a1, a2, a3, a4, a5, a6 = st.columns(6)
             a1.metric("Recorded v5", quality_recorded)
-            a2.metric("Analysis eligible", quality_sessions)
-            a3.metric("Suspected automation", quality_automation)
-            a4.metric("Telemetry only", quality_telemetry_only)
-            a5.metric("Explicit test", quality_explicit_test)
+            a2.metric("Valid content view", quality_valid_content)
+            a3.metric("Analysis eligible", quality_sessions)
+            a4.metric("Suspected automation", quality_automation)
+            a5.metric("Telemetry only", quality_telemetry_only)
+            a6.metric("Explicit test", quality_explicit_test)
 
             st.caption(
                 "No raw events are deleted. Classification happens only in reporting. "

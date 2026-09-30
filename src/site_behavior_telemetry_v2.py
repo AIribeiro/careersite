@@ -665,20 +665,28 @@ export default function({ data }) {
     } catch (_) {}
 
     win.addEventListener('error', (event) => {
-      const type = safeText(event?.error?.name || (event?.target !== win ? 'ResourceError' : 'Error'), 64);
+      const type = safeText(event?.error?.name || (event?.target !== win ? 'ResourceError' : 'Error'), 64) || 'Error';
+      const section = signalSectionPayload();
+      const signalKey = `error:${state.signature}:js_error:${type}:${section.section_key || 'unknown'}`;
+      if (state.signalKeys.has(signalKey)) return;
+      state.signalKeys.add(signalKey);
       send('ux_signal', {
         interaction_type: 'js_error',
-        error_type: type || 'Error',
-        ...signalSectionPayload(),
+        error_type: type,
+        ...section,
       });
     }, true);
 
     win.addEventListener('unhandledrejection', (event) => {
-      const type = safeText(event?.reason?.name || event?.reason?.constructor?.name || 'PromiseRejection', 64);
+      const type = safeText(event?.reason?.name || event?.reason?.constructor?.name || 'PromiseRejection', 64) || 'PromiseRejection';
+      const section = signalSectionPayload();
+      const signalKey = `error:${state.signature}:promise_rejection:${type}:${section.section_key || 'unknown'}`;
+      if (state.signalKeys.has(signalKey)) return;
+      state.signalKeys.add(signalKey);
       send('ux_signal', {
         interaction_type: 'promise_rejection',
-        error_type: type || 'PromiseRejection',
-        ...signalSectionPayload(),
+        error_type: type,
+        ...section,
       });
     });
 

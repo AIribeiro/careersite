@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
 
 class PublicCopyGuardTests(unittest.TestCase):
@@ -85,24 +89,33 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("AI &amp; Data Governance · Operating perspective", governance)
         self.assertIn("Four observable signals", governance)
 
-        # Preserve concrete evidence and scope.
-        self.assertIn("20+ years", home)
-        self.assertIn("AI solutions and agents introduced across warranty, sales and aftermarket", home)
-        self.assertIn("PoC → repeatable capability", home)
-        self.assertIn("100+ AI initiatives, PoCs and projects", impact)
-        self.assertIn("reporting directly to the Chief Data & Analytics Officer", impact)
-        self.assertIn("Enterprise CoE mandate across strategy, operations, technology and business leaders", impact)
-        self.assertIn("2026–2027 maturity roadmap", impact)
-        self.assertIn("2026–2027 maturity roadmap", about)
-        self.assertIn("Global Thought Leaders &amp; Influencers on Emerging Technology, 2023.", about)
-        self.assertIn("Where the business-translation thread started.", impact)
-        self.assertIn("legal, compliance and sustainability", impact)
+        # Preserve concrete evidence and scope. Canonical facts may now be
+        # interpolated from career_facts.py, so validate the rendered pages.
+        from page_about import about as render_about
+        from page_home import home as render_home
+        from page_impact import impact as render_impact
+
+        home_html = render_home()
+        about_html = render_about()
+        impact_html = render_impact()
+
+        self.assertIn("20+ years", home_html)
+        self.assertIn("AI solutions and agents introduced across warranty, sales and aftermarket", home_html)
+        self.assertIn("PoC → repeatable capability", home_html)
+        self.assertIn("100+ AI initiatives, PoCs and projects", impact_html)
+        self.assertIn("reporting directly to the Chief Data & Analytics Officer", impact_html)
+        self.assertIn("Enterprise CoE mandate across strategy, operations, technology and business leaders", impact_html)
+        self.assertIn("2026–2027 maturity roadmap", impact_html)
+        self.assertIn("2026–2027 maturity roadmap", about_html)
+        self.assertIn("Global Thought Leaders &amp; Influencers on Emerging Technology, 2023.", about_html)
+        self.assertIn("Where the business-translation thread started.", impact_html)
+        self.assertIn("legal, compliance and sustainability", impact_html)
 
         # Adoption evidence should stay operational rather than vanity-metric led.
-        self.assertNotIn("1,500+ practitioners", home)
-        self.assertNotIn("130,000+ interactions", home)
-        self.assertNotIn("100+ AI sessions", impact)
-        self.assertNotIn("1,000+ employees", impact)
+        self.assertNotIn("1,500+ practitioners", home_html)
+        self.assertNotIn("130,000+ interactions", home_html)
+        self.assertNotIn("100+ AI sessions", impact_html)
+        self.assertNotIn("1,000+ employees", impact_html)
 
 
 if __name__ == "__main__":

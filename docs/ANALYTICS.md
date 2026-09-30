@@ -158,12 +158,13 @@ Tracking version 5 adds a reporting-quality layer on top of the raw event store.
 The quality model separates:
 
 - **Recorded v5 sessions** — all tab-session IDs that emitted v5 telemetry in the selected window.
+- **Valid content view** — non-test sessions with at least one content view before automation filtering.
 - **Telemetry only** — sessions with no valid content view. These are measurement-invalid for audience/behavior interpretation and can occur when a background telemetry lifecycle outlives the content-view lifecycle.
 - **Suspected automation** — a deliberately narrow repeated-signature cohort heuristic: at least 10 sessions with the same coarse technical signature, zero recorded interactions, zero recorded actions and cohort average active time below 10 seconds.
 - **Explicit test** — deliberately tagged traffic such as `?source=application&role=test`.
 - **Analysis eligible** — valid content-view sessions after explicit tests and suspected-automation cohorts are excluded.
 
-The automation label is a reporting heuristic, not proof that an individual session is a bot. The implementation does not create a durable visitor fingerprint: the signature is built from already-collected coarse session fields and is used only in aggregate reporting.
+The automation label is a reporting heuristic, not proof that an individual session is a bot. Signature evidence is evaluated across the full v5 history and then applied to the selected reporting window, preventing a known synthetic cohort from being re-admitted simply because only a few of its sessions occurred in the last hour. The implementation does not create a durable visitor fingerprint: the signature is built from already-collected coarse session fields and is used only in aggregate reporting.
 
 Hiring behavior is also separated by intent:
 

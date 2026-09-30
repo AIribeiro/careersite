@@ -111,6 +111,10 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     win.sessionStorage.setItem(engagedKey, '0');
     win.sessionStorage.setItem(lastActiveKey, String(lastActiveAt));
     win.sessionStorage.removeItem('jair_hq_last_view_v1');
+    // A fresh session on the same document must be allowed to emit a new
+    // page_view. Without clearing this document-level guard, background
+    // telemetry can become the first (and only) event in the new session.
+    win.__jairAnalyticsLastDocumentView = null;
     const state = win.__jairAnalyticsEngagementState;
     if (state) {{
       state.lastTick = win.performance ? win.performance.now() : Date.now();

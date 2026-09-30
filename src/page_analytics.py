@@ -986,7 +986,7 @@ def render_analytics_dashboard() -> None:
         st.caption(
             "Country and device use analysis-eligible sessions when the v5 quality layer is available. "
             "Browser, operating-system, language and timezone panels remain recorded-traffic diagnostics for historical continuity. "
-            "Country is a coarse two-letter code; no raw IP addresses or third-party geolocation lookups are stored."
+            "Country is a coarse two-letter code. No raw IP addresses or third-party geolocation lookups are stored."
         )
 
     with acquisition_tab:

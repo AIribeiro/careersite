@@ -1436,6 +1436,50 @@ def _render_experience(data: dict) -> None:
         st.info("Awaiting Components-v2 browser-context summaries.")
 
 
+def _render_visit_overview(data: dict, kind: str) -> None:
+    """Keep the basic question—what was visited—outside all detail tabs."""
+    label = "Article" if kind == "article" else "Page"
+    rows = sorted(
+        (row for row in data.get("performance", [])
+         if row.get("kind") == kind and _count(row.get("views")) > 0),
+        key=lambda row: (-_count(row.get("views")), str(row.get("content", ""))),
+    )
+    st.subheader("Articles read" if kind == "article" else "Pages visited")
+    st.caption("Ranked by views in the selected reporting window. Repeat visits count as additional views.")
+    if not rows:
+        st.info("No recorded article views in this window." if kind == "article"
+                else "No recorded page views in this window.")
+        return
+
+    total = sum(_count(row.get("views")) for row in rows)
+    ranked = []
+    for index, row in enumerate(rows, 1):
+        name = (_article_title(str(row.get("content", ""))) if kind == "article"
+                else content_label(str(row.get("content", ""))))
+        views = _count(row.get("views"))
+        ranked.append({
+            "Rank": index, label: name, "Views": views,
+            "Sessions": _count(row.get("sessions")),
+            "Share of views": round(100 * views / total, 1),
+            "Avg visible time": _seconds(row.get("avg_active_seconds")),
+        })
+
+    first, second = st.columns(2)
+    first.metric("Most viewed article" if kind == "article" else "Most visited page", ranked[0][label],
+                 help="Highest view count in the selected window; tied counts share the lead.")
+    second.metric("Articles with views" if kind == "article" else "Pages with visits", len(ranked))
+    # Exact numbers are visible immediately, without hover, tabs or expanders.
+    st.dataframe(
+        ranked, hide_index=True, use_container_width=True,
+        height=min(600, 38 + 35 * len(ranked)),
+        column_config={"Share of views": st.column_config.NumberColumn("Share of views", format="%.1f%%")},
+    )
+    st.caption("Sessions are counted separately for each content item and cannot be added to get unique visitors. "
+               "Share uses only the listed, classified views; historical unclassified Thinking visits are excluded.")
+    st.divider()
+    st.subheader("Explore detailed insights")
+
+
 def render_content_intelligence(kind: str, window: str) -> None:
     try:
         data = fetch_intelligence(window)
@@ -1453,6 +1497,8 @@ def render_content_intelligence(kind: str, window: str) -> None:
 
     if kind == "page" and quality.get("legacy_thinking_views"):
         st.info(f"{quality['legacy_thinking_views']} historical Thinking views cannot be reliably separated into index and article visits. They remain in the established reports below.")
+
+    _render_visit_overview(data, kind)
 
     performance, exposure, attention_ux, paths, trends, acquisition, experience, health = st.tabs([
         "Content performance", "Exposure & action", "Attention & UX", "Visitor paths", "Trends & topics",

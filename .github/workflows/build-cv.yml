@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "src/site_cv.py"
+      - "src/career_facts.py"
       - "src/site_assets.py"
       - "requirements.txt"
       - ".github/workflows/build-cv.yml"

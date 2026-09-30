@@ -103,7 +103,7 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("AI solutions and agents introduced across warranty, sales and aftermarket", home_html)
         self.assertIn("PoC → repeatable capability", home_html)
         self.assertIn("100+ AI initiatives, PoCs and projects", impact_html)
-        self.assertIn("reporting directly to the Chief Data & Analytics Officer", impact_html)
+        self.assertIn("reporting directly to the Chief Data &amp; Analytics Officer", impact_html)
         self.assertIn("Enterprise CoE mandate across strategy, operations, technology and business leaders", impact_html)
         self.assertIn("2026–2027 maturity roadmap", impact_html)
         self.assertIn("2026–2027 maturity roadmap", about_html)

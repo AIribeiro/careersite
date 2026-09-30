@@ -4,6 +4,13 @@ from pathlib import Path
 import base64
 
 from fpdf import FPDF
+from career_facts import (
+    MSX_PUBLIC_DATES,
+    PROFILE_AI_LEADERSHIP_YEARS,
+    PROFILE_TECH_YEARS,
+    VOLVO_AI_INITIATIVES,
+    VOLVO_AI_LEARNING_SESSIONS,
+)
 
 ROOT = Path(__file__).resolve().parent
 IMAGE_DIR = ROOT / "images"
@@ -65,20 +72,20 @@ def build_cv_pdf() -> bytes:
     pdf.multi_cell(0, 4.5, "Gothenburg, Sweden | jair.ribeiro@outlook.it | +46 76 761 2158 | linkedin.com/in/jairribeiro", new_x="LMARGIN", new_y="NEXT")
 
     heading("Executive Profile")
-    body("Enterprise AI, data and analytics leader with 20+ years in enterprise technology, including 8+ years in AI, data and analytics leadership. Experience spans AI strategy, operating models, portfolio decisions, governance, analytics, adoption and business translation across automotive, consumer goods and enterprise technology environments.")
+    body(f"Enterprise AI, data and analytics leader with {PROFILE_TECH_YEARS} years in enterprise technology, including {PROFILE_AI_LEADERSHIP_YEARS} years in AI, data and analytics leadership. Experience spans AI strategy, operating models, portfolio decisions, governance, analytics, adoption and business translation across automotive, consumer goods and enterprise technology environments.")
 
     heading("Leadership & Domain Expertise")
     body("AI strategy & enterprise adoption | Responsible AI & AI governance | Data & analytics strategy | Data governance & maturity | GenAI enablement | Portfolio prioritization | Operating models & CoE design | Executive stakeholder management | Change, literacy & capability building | Enterprise architecture | Cloud & technology consulting", size=8.5)
 
     heading("Selected Leadership Impact")
-    bullet("Across Volvo AI roles, shaped and supported 100+ AI initiatives, proofs of concept and projects across global markets and business functions.")
+    bullet(f"Across Volvo AI roles, shaped and supported {VOLVO_AI_INITIATIVES} AI initiatives, proofs of concept and projects across global markets and business functions.")
     bullet("Designed AI literacy and adoption activity reaching 1,000+ employees and supported broader communities engaging 1,500+ practitioners.")
     bullet("Connected business, data, governance and technology stakeholders to move opportunities from ambiguity toward feasible, governed and adopted solutions.")
     bullet("Led AI value discovery across commercial operations, manufacturing, supply chain, logistics, sales and marketing contexts.")
 
     heading("Professional Experience")
     body("AI & Data Center of Excellence Director | MSX International", True)
-    body("Dec 2025 - 2026 | Gothenburg, Sweden", size=8)
+    body(f"{MSX_PUBLIC_DATES} | Gothenburg, Sweden", size=8)
     bullet("Built foundations for a business-facing AI & Data CoE connecting strategy, governance, adoption and responsible enablement.")
     bullet("Structured the enterprise AI opportunity portfolio, improving visibility, prioritization, decision quality and readiness to scale.")
     bullet("Advanced data governance foundations covering ownership, stewardship, data quality and trusted data practices.")
@@ -98,8 +105,8 @@ def build_cv_pdf() -> bytes:
 
     body("Senior AI Business Expert | Volvo Group", True)
     body("Jun 2018 - Jul 2021 | Wroclaw, Poland", size=8)
-    bullet("Co-led AI/ML Center of Excellence activities supporting enterprise adoption, use-case development and community growth.")
-    bullet("Engaged 1,500+ practitioners, delivered 100+ learning sessions and shaped or supported 100+ AI initiatives across regions.")
+    bullet("Co-led AI/ML Center of Excellence activities supporting enterprise use-case development and community growth.")
+    bullet(f"Engaged 1,500+ practitioners, delivered {VOLVO_AI_LEARNING_SESSIONS} learning sessions and shaped or supported {VOLVO_AI_INITIATIVES} AI initiatives across regions.")
 
     body("AI, Cloud, IT Consulting & Infrastructure Roles | IBM, Hewlett Packard Enterprise and earlier employers", True)
     body("2004 - 2018 | Italy, Brazil and Poland", size=8)

@@ -1468,12 +1468,41 @@ def _render_visit_overview(data: dict, kind: str) -> None:
     first.metric("Most viewed article" if kind == "article" else "Most visited page", ranked[0][label],
                  help="Highest view count in the selected window; tied counts share the lead.")
     second.metric("Articles with views" if kind == "article" else "Pages with visits", len(ranked))
-    # Exact numbers are visible immediately, without hover, tabs or expanders.
-    st.dataframe(
-        ranked, hide_index=True, use_container_width=True,
-        height=min(600, 38 + 35 * len(ranked)),
-        column_config={"Share of views": st.column_config.NumberColumn("Share of views", format="%.1f%%")},
+    metric = st.segmented_control(
+        "Rank by", ["Views", "Sessions"], default="Views",
+        key=f"{kind}_visit_ranking_metric", selection_mode="single",
+    ) or "Views"
+    chart_rows = sorted(ranked, key=lambda row: (-row[metric], row[label]))
+    order = [row[label] for row in chart_rows]
+    hover = alt.selection_point(fields=[label], on="pointerover", clear="pointerout", empty=False)
+    base = alt.Chart(alt.Data(values=chart_rows)).encode(
+        y=alt.Y(f"{label}:N", sort=order, title=None,
+                axis=alt.Axis(labelLimit=360, labelFontSize=13, ticks=False, domain=False)),
+        x=alt.X(f"{metric}:Q", title=None,
+                scale=alt.Scale(domain=[0, max(row[metric] for row in chart_rows) * 1.18]),
+                axis=alt.Axis(tickMinStep=1, gridOpacity=0.12, domain=False)),
+        tooltip=[alt.Tooltip(f"{label}:N"), alt.Tooltip("Views:Q", format=","),
+                 alt.Tooltip("Sessions:Q", format=","),
+                 alt.Tooltip("Share of views:Q", title="Share of views (%)", format=".1f"),
+                 alt.Tooltip("Avg visible time:N")],
     )
+    bars = base.mark_bar(cornerRadiusEnd=8, height=24).encode(
+        color=alt.condition(hover, alt.value("#22b8b0"), alt.value("#527bd9")),
+        opacity=alt.condition(hover, alt.value(1), alt.value(0.85)),
+    ).add_params(hover)
+    counts = base.mark_text(align="left", dx=10, fontSize=14, fontWeight="bold").encode(
+        text=alt.Text(f"{metric}:Q", format=","),
+    )
+    st.altair_chart(
+        (bars + counts).properties(height=max(180, len(chart_rows) * 48)),
+        use_container_width=True,
+    )
+    st.caption("Switch the measure to reorder the ranking. Hover a bar for view share and time on content.")
+    with st.expander("Exact visit counts", expanded=False):
+        st.dataframe(
+            ranked, hide_index=True, use_container_width=True,
+            column_config={"Share of views": st.column_config.NumberColumn("Share of views", format="%.1f%%")},
+        )
     st.caption("Sessions are counted separately for each content item and cannot be added to get unique visitors. "
                "Share uses only the listed, classified views; historical unclassified Thinking visits are excluded.")
     st.divider()

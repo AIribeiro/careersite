@@ -121,22 +121,27 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn("AI Transformation &amp; Adoption", active)
 
     def test_experience_metrics_are_precise(self) -> None:
+        from career_facts import PROFILE_AI_LEADERSHIP_YEARS, PROFILE_TECH_YEARS
+        from page_about import about
+        from page_home import home
+
+        home_html = home()
+        about_html = about()
+        self.assertIn(f"{PROFILE_TECH_YEARS} years", home_html)
+        self.assertIn(f"{PROFILE_TECH_YEARS} years", about_html)
+        self.assertIn(f"{PROFILE_AI_LEADERSHIP_YEARS} years", about_html)
+
         for relative in ("src/page_home.py", "src/page_about.py", "src/site_assets.py"):
             text = (ROOT / relative).read_text(encoding="utf-8")
-            self.assertIn("20+", text, relative)
             self.assertNotIn("15+ years", text, relative)
             self.assertNotIn("More than 15 years", text, relative)
 
-        for relative in ("src/page_about.py", "src/site_assets.py"):
-            text = (ROOT / relative).read_text(encoding="utf-8")
-            self.assertIn("8+", text, relative)
-
-        home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
-        impact = (ROOT / "src/page_impact.py").read_text(encoding="utf-8")
-        self.assertIn("across my volvo ai roles", home.lower())
-        self.assertIn("across my volvo ai roles", impact.lower())
-        self.assertNotIn("managed a portfolio of 100+", home.lower())
-        self.assertNotIn("managed a portfolio of 100+", impact.lower())
+        home_source = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
+        impact_source = (ROOT / "src/page_impact.py").read_text(encoding="utf-8")
+        self.assertIn("across my volvo ai roles", home_source.lower())
+        self.assertIn("across my volvo ai roles", impact_source.lower())
+        self.assertNotIn("managed a portfolio of 100+", home_source.lower())
+        self.assertNotIn("managed a portfolio of 100+", impact_source.lower())
 
     def test_revised_portfolio_positioning(self) -> None:
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")

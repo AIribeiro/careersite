@@ -33,7 +33,8 @@ class CareerFactConsistencyTests(unittest.TestCase):
         import site_cv
 
         reader = PdfReader(BytesIO(site_cv.CV_BYTES), strict=True)
-        return "\n".join(page.extract_text() or "" for page in reader.pages)
+        text = " ".join(page.extract_text() or "" for page in reader.pages)
+        return re.sub(r"\s+", " ", text).strip()
 
     @staticmethod
     def _public_source_text() -> str:

@@ -5,7 +5,9 @@
 --
 -- Suspected automation is deliberately conservative: repeated exact technical
 -- signature (>=10 valid sessions), zero recorded interactions, zero recorded
--- actions, and cohort average active time below 10 seconds.
+-- actions, and cohort average active time below 10 seconds. Signature evidence
+-- is learned from the full v5 history, then applied to the selected reporting
+-- window so short windows do not re-admit already-established synthetic cohorts.
 -- This is a reporting heuristic, not proof that an individual session is a bot.
 
 CREATE OR REPLACE FUNCTION public.careersite_hiring_intelligence_v1(p_token text, p_days integer DEFAULT 30, p_window text DEFAULT 'days'::text)
@@ -161,6 +163,64 @@ BEGIN
       ) AS technical_signature
     FROM session_base s
   ),
+  history_ids AS MATERIALIZED (
+    SELECT DISTINCT e.session_id
+    FROM public.careersite_analytics_events e
+    WHERE e.occurred_at >= v_v5_since
+      AND e.occurred_at <= v_now
+      AND coalesce(e.tracking_version, 0) >= 5
+  ),
+  history_base AS MATERIALIZED (
+    SELECT
+      e.session_id,
+      pg_catalog.max(coalesce(e.engaged_ms, 0))::bigint AS max_engaged_ms,
+      pg_catalog.bool_or(e.event_name IN ('page_view','article_view')) AS has_content_view,
+      pg_catalog.bool_or(e.event_name = 'first_interaction') AS has_first_interaction,
+      pg_catalog.bool_or(e.event_name IN (
+        'cv_download','email_click','linkedin_click','cta_click','article_card_click','article_share'
+      )) AS has_any_action,
+      pg_catalog.bool_or(
+        pg_catalog.lower(coalesce(e.attribution_source,'')) = 'application'
+        AND pg_catalog.lower(coalesce(e.attribution_role,'')) = 'test'
+      ) AS explicit_test,
+      pg_catalog.max(e.country_code) AS country_code,
+      pg_catalog.max(e.timezone) AS timezone,
+      pg_catalog.max(e.device_type) AS device_type,
+      pg_catalog.max(e.browser_family) AS browser_family,
+      pg_catalog.max(e.os_family) AS os_family,
+      pg_catalog.max(e.language) AS language,
+      pg_catalog.max(e.viewport_width) AS viewport_width,
+      pg_catalog.max(e.viewport_height) AS viewport_height,
+      pg_catalog.max(e.screen_width) AS screen_width,
+      pg_catalog.max(e.screen_height) AS screen_height,
+      pg_catalog.max(e.hardware_concurrency) AS hardware_concurrency,
+      pg_catalog.max(e.device_memory_gb) AS device_memory_gb
+    FROM public.careersite_analytics_events e
+    JOIN history_ids h USING (session_id)
+    WHERE e.occurred_at >= v_v5_since
+      AND e.occurred_at <= v_now
+    GROUP BY e.session_id
+  ),
+  history_signed AS MATERIALIZED (
+    SELECT
+      h.*,
+      pg_catalog.concat_ws(
+        '|',
+        coalesce(h.country_code,''),
+        coalesce(h.timezone,''),
+        coalesce(h.device_type,''),
+        coalesce(h.browser_family,''),
+        coalesce(h.os_family,''),
+        coalesce(h.language,''),
+        coalesce(h.viewport_width::text,''),
+        coalesce(h.viewport_height::text,''),
+        coalesce(h.screen_width::text,''),
+        coalesce(h.screen_height::text,''),
+        coalesce(h.hardware_concurrency::text,''),
+        coalesce(h.device_memory_gb::text,'')
+      ) AS technical_signature
+    FROM history_base h
+  ),
   signature_stats AS MATERIALIZED (
     SELECT
       s.technical_signature,
@@ -174,7 +234,7 @@ BEGIN
       pg_catalog.avg(s.max_engaged_ms) FILTER (
         WHERE s.has_content_view AND NOT s.explicit_test
       ) AS avg_engaged_ms
-    FROM signed s
+    FROM history_signed s
     GROUP BY s.technical_signature
   ),
   classified AS MATERIALIZED (

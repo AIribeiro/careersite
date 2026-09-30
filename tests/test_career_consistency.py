@@ -89,7 +89,7 @@ class CareerFactConsistencyTests(unittest.TestCase):
         )
         self.assertIn("strengthening AI literacy and the quality of business demand", pdf_text)
         self.assertIn(
-            f"operational adoption of AI solutions and agents in {VOLVO_WORKFLOW_SCOPE} workflows",
+            f"operational adoption of AI solutions and agents in {VOLVO_WORKFLOW_SCOPE} workflows".lower(),
             pdf_text.lower(),
         )
 

@@ -10,7 +10,7 @@ class HomeCaseOrderTests(unittest.TestCase):
     def test_home_leads_with_three_modern_leadership_cases(self) -> None:
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
         section = home.split('<p class="eyebrow">Selected experience</p>', 1)[1]
-        section = section.split('<p class="eyebrow">Recurring questions</p>', 1)[0]
+        section = section.split('{framework_teaser()}', 1)[0]
 
         volvo = section.index('<span class="org">Volvo Group / Volvo Trucks</span>')
         msx = section.index('<span class="org">MSX International</span>')

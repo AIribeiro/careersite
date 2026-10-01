@@ -149,6 +149,34 @@ def _seconds(value: object) -> str:
     return f"{minutes / 60:.1f}h"
 
 
+def _split_composite_source(value: object) -> tuple[str, str | None]:
+    raw = str(value or "").strip()
+    lowered = raw.lower()
+    marker = lowered.find("?role=")
+    if marker < 0:
+        marker = lowered.find("&role=")
+    if marker < 0:
+        return raw, None
+    source = raw[:marker].strip()
+    role = raw[marker + 6 :].split("&", 1)[0].strip()
+    return source, role or None
+
+
+def _attribution_rows(rows: object) -> list[dict]:
+    """Normalize display-only source labels while retaining raw database history."""
+    if not isinstance(rows, list):
+        return []
+    prepared: list[dict] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        item = dict(row)
+        source, _ = _split_composite_source(item.get("attribution_source"))
+        item["attribution_source"] = source or str(item.get("attribution_source") or "direct/unknown")
+        prepared.append(item)
+    return prepared
+
+
 def _campaign_rows(rows: object) -> list[dict]:
     """Prepare campaign/role attribution for display without changing stored values."""
     if not isinstance(rows, list):
@@ -162,6 +190,9 @@ def _campaign_rows(rows: object) -> list[dict]:
             continue
         item = dict(row)
         raw = str(item.get("campaign") or "untagged").strip()
+        _, composite_role = _split_composite_source(item.get("source"))
+        if raw.lower() == "untagged" and composite_role:
+            raw = composite_role
         item["campaign_label"] = labels.get(raw.lower(), raw)
         item["sessions"] = _count(item.get("sessions"))
         item["engaged_sessions"] = _count(item.get("engaged_sessions"))
@@ -1026,7 +1057,7 @@ def render_analytics_dashboard() -> None:
                     _bar_chart(hiring.get("normalized_channels", []), "channel", limit=10, height=320)
                 else:
                     _section("Attribution", "Job-search sources", "Which distribution activity brings visitors into the site.")
-                    _bar_chart(data.get("attribution", []), "attribution_source", limit=10, height=320)
+                    _bar_chart(_attribution_rows(data.get("attribution", [])), "attribution_source", limit=10, height=320)
         with right:
             with st.container(border=True):
                 _section("Referrals", "External referrers")
@@ -1039,7 +1070,7 @@ def render_analytics_dashboard() -> None:
                     "Recorded source taxonomy",
                     "Raw source labels are retained below so campaign diagnostics remain visible even though the primary channel view is normalized.",
                 )
-                _bar_chart(data.get("attribution", []), "attribution_source", limit=12, height=260, color=ACCENT)
+                _bar_chart(_attribution_rows(data.get("attribution", [])), "attribution_source", limit=12, height=260, color=ACCENT)
 
             with st.container(border=True):
                 _section(

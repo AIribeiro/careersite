@@ -144,12 +144,31 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     attribution = JSON.parse(win.sessionStorage.getItem(attributionKey) || 'null') || attribution;
   }} catch (_) {{}}
 
-  const incomingSource = (
+  const rawIncomingSource = (
     params.get('source') || params.get('utm_source') || params.get('src') || ''
-  ).trim().slice(0, 100) || null;
-  const incomingRole = (params.get('role') || '').trim().slice(0, 120) || null;
+  ).trim().slice(0, 180);
+  const compositeRoleMatch = rawIncomingSource.match(/[?&]role=([^&]+)/i);
+  const compositeRole = compositeRoleMatch
+    ? decodeURIComponent(compositeRoleMatch[1].replace(/\+/g, ' ')).trim().slice(0, 120)
+    : null;
+  const incomingSource = rawIncomingSource
+    ? rawIncomingSource.split(/[?&]role=/i)[0].trim().slice(0, 100) || null
+    : null;
+  const incomingRole = (params.get('role') || compositeRole || '').trim().slice(0, 120) || null;
   const incomingUtmSource = (params.get('utm_source') || params.get('src') || '').trim().slice(0, 100) || null;
   const incomingCampaign = (params.get('utm_campaign') || '').trim().slice(0, 100) || null;
+
+  // Repair an older malformed composite source kept in this tab's session
+  // storage, e.g. "linkedin?role=dailyquote". Raw database history remains
+  // unchanged; new events use separate source and role fields.
+  if (attribution.source) {{
+    const storedComposite = String(attribution.source).match(/^([^?&]+)[?&]role=([^&]+)/i);
+    if (storedComposite) {{
+      attribution.source = storedComposite[1].trim().slice(0, 100) || null;
+      attribution.role = attribution.role || decodeURIComponent(storedComposite[2].replace(/\+/g, ' ')).trim().slice(0, 120) || null;
+      win.sessionStorage.setItem(attributionKey, JSON.stringify(attribution));
+    }}
+  }}
 
   if (incomingSource || incomingRole || incomingUtmSource || incomingCampaign) {{
     attribution = {{

@@ -157,6 +157,23 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertEqual(prepared[0]["campaign_label"], "Daily Quotes")
         self.assertEqual(prepared[0]["sessions"], 3)
 
+        malformed = page_analytics._campaign_rows(
+            [
+                {
+                    "channel": "LinkedIn",
+                    "source": "linkedin?role=dailyquote",
+                    "campaign": "untagged",
+                    "sessions": 1,
+                }
+            ]
+        )
+        self.assertEqual(malformed[0]["campaign_label"], "Daily Quotes")
+
+        attribution = page_analytics._attribution_rows(
+            [{"attribution_source": "linkedin?role=dailyquote", "sessions": 1}]
+        )
+        self.assertEqual(attribution[0]["attribution_source"], "linkedin")
+
     def test_dashboard_has_no_user_authentication_gate(self) -> None:
         dashboard = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
         wrapper = (ROOT / "src/page_analytics_v2.py").read_text(encoding="utf-8")

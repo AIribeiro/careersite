@@ -136,6 +136,27 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertIsInstance(prepared[0]["sessions"], int)
         self.assertIsInstance(prepared[0]["page_views"], int)
 
+    def test_campaign_labels_keep_tracking_values_stable(self) -> None:
+        import page_analytics
+
+        rows = [
+            {
+                "channel": "LinkedIn",
+                "source": "linkedin",
+                "campaign": "dailyquote",
+                "sessions": "3",
+                "engaged_sessions": "2",
+                "evidence_verified_sessions": "1",
+                "hiring_intent_sessions": "0",
+            }
+        ]
+
+        prepared = page_analytics._campaign_rows(rows)
+
+        self.assertEqual(prepared[0]["campaign"], "dailyquote")
+        self.assertEqual(prepared[0]["campaign_label"], "Daily Quotes")
+        self.assertEqual(prepared[0]["sessions"], 3)
+
     def test_dashboard_has_no_user_authentication_gate(self) -> None:
         dashboard = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
         wrapper = (ROOT / "src/page_analytics_v2.py").read_text(encoding="utf-8")

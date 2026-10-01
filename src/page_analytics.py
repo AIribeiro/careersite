@@ -149,6 +149,28 @@ def _seconds(value: object) -> str:
     return f"{minutes / 60:.1f}h"
 
 
+def _campaign_rows(rows: object) -> list[dict]:
+    """Prepare campaign/role attribution for display without changing stored values."""
+    if not isinstance(rows, list):
+        return []
+    labels = {
+        "dailyquote": "Daily Quotes",
+    }
+    prepared: list[dict] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        item = dict(row)
+        raw = str(item.get("campaign") or "untagged").strip()
+        item["campaign_label"] = labels.get(raw.lower(), raw)
+        item["sessions"] = _count(item.get("sessions"))
+        item["engaged_sessions"] = _count(item.get("engaged_sessions"))
+        item["evidence_verified_sessions"] = _count(item.get("evidence_verified_sessions"))
+        item["hiring_intent_sessions"] = _count(item.get("hiring_intent_sessions"))
+        prepared.append(item)
+    return prepared
+
+
 def _build_attribution_link(source: str, role: str, destination: str) -> str:
     params: list[tuple[str, str]] = []
     if destination and destination != "home":
@@ -1018,6 +1040,21 @@ def render_analytics_dashboard() -> None:
                     "Raw source labels are retained below so campaign diagnostics remain visible even though the primary channel view is normalized.",
                 )
                 _bar_chart(data.get("attribution", []), "attribution_source", limit=12, height=260, color=ACCENT)
+
+            with st.container(border=True):
+                _section(
+                    "Campaigns",
+                    "Campaign / role attribution",
+                    "Tagged activity is shown separately from the parent channel. For example, role=dailyquote is displayed as Daily Quotes while the stored attribution remains unchanged.",
+                )
+                _bar_chart(
+                    _campaign_rows(hiring.get("campaigns", [])),
+                    "campaign_label",
+                    value="sessions",
+                    limit=12,
+                    height=280,
+                    color=GREEN,
+                )
 
         left, right = st.columns(2)
         with left:

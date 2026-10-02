@@ -658,6 +658,149 @@ def delete_header_image(access_token: str, image_url: str) -> None:
         return
 
 
+COMPETITIVE_ADVANTAGE_HEADER_SLUG = "when-everyone-has-ai-what-still-creates-competitive-advantage"
+
+
+def _header_font(size: int, *, bold: bool = False, serif: bool = False, italic: bool = False):
+    candidates: list[Path] = []
+    if serif:
+        if italic:
+            candidates.append(Path("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Italic.ttf"))
+        if bold:
+            candidates.append(Path("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"))
+        candidates.append(Path("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"))
+    else:
+        if bold:
+            candidates.append(Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"))
+        candidates.append(Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
+    for path in candidates:
+        if path.exists():
+            try:
+                return ImageFont.truetype(str(path), size=size)
+            except OSError:
+                continue
+    return ImageFont.load_default()
+
+
+def _render_competitive_advantage_header() -> bytes | None:
+    """Render the branded header from Jair's portfolio photo.
+
+    This avoids depending on an external image URL for the featured article and
+    guarantees that the article card and article page use the intended visual.
+    """
+    source_path = (
+        Path(__file__).resolve().parents[1]
+        / "images"
+        / "92A1E13A-B3D2-4153-92B4-836861F9995C.jpg"
+    )
+    if not source_path.exists():
+        return None
+
+    width, height = 1760, 880
+    try:
+        with Image.open(source_path) as source:
+            source = source.convert("RGB")
+
+            background = ImageOps.fit(
+                source,
+                (width, height),
+                method=Image.Resampling.LANCZOS,
+                centering=(0.5, 0.42),
+            ).filter(ImageFilter.GaussianBlur(12))
+            canvas = background.convert("RGBA")
+
+            # Cool the background and keep the left half quiet enough for copy.
+            blue_tint = Image.new("RGBA", (width, height), (4, 20, 38, 96))
+            canvas = Image.alpha_composite(canvas, blue_tint)
+
+            portrait = ImageOps.fit(
+                source,
+                (900, height),
+                method=Image.Resampling.LANCZOS,
+                centering=(0.5, 0.38),
+            ).convert("RGBA")
+            portrait_mask = Image.new("L", portrait.size, 255)
+            mask_draw = ImageDraw.Draw(portrait_mask)
+            for x in range(220):
+                mask_draw.line((x, 0, x, height), fill=int(255 * (x / 220)))
+            portrait.putalpha(portrait_mask)
+            canvas.alpha_composite(portrait, (860, 0))
+
+        overlay = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        overlay_draw = ImageDraw.Draw(overlay)
+        for x in range(width):
+            if x < 1040:
+                alpha = int(242 - (x / 1040) * 125)
+            else:
+                alpha = 95
+            overlay_draw.line((x, 0, x, height), fill=(4, 15, 29, max(70, alpha)))
+        canvas = Image.alpha_composite(canvas, overlay)
+
+        draw = ImageDraw.Draw(canvas)
+        white = (248, 249, 252, 255)
+        muted = (205, 216, 228, 255)
+        cyan = (49, 211, 236, 255)
+        line = (49, 211, 236, 150)
+
+        label_font = _header_font(22, bold=True)
+        title_font = _header_font(68, bold=True, serif=True)
+        body_font = _header_font(28)
+        signature_font = _header_font(34, serif=True, italic=True)
+
+        draw.text((84, 76), "PEOPLE  ·  DATA  ·  AI  ·  REAL IMPACT", font=label_font, fill=muted)
+        draw.line((84, 142, 250, 142), fill=cyan, width=4)
+
+        title_lines = [
+            ("When Everyone", white),
+            ("Has AI, What Still", white),
+            ("Creates Competitive", cyan),
+            ("Advantage?", cyan),
+        ]
+        y = 184
+        for line_text, color in title_lines:
+            draw.text((84, y), line_text, font=title_font, fill=color)
+            y += 78
+
+        subtitle = (
+            "As AI becomes easier to access, the real difference comes from how "
+            "companies connect it to business priorities, workflows, people and measurable results."
+        )
+        words = subtitle.split()
+        lines: list[str] = []
+        current = ""
+        max_width = 760
+        for word in words:
+            candidate = f"{current} {word}".strip()
+            if current and draw.textbbox((0, 0), candidate, font=body_font)[2] > max_width:
+                lines.append(current)
+                current = word
+            else:
+                current = candidate
+        if current:
+            lines.append(current)
+        y = 545
+        for text_line in lines[:4]:
+            draw.text((84, y), text_line, font=body_font, fill=muted)
+            y += 42
+
+        # Subtle network cues around the portrait to preserve the AI/business visual language.
+        nodes = [(1160, 132), (1485, 216), (1545, 430), (1415, 645)]
+        for idx, (nx, ny) in enumerate(nodes):
+            draw.ellipse((nx - 34, ny - 34, nx + 34, ny + 34), outline=line, width=2)
+            if idx:
+                px, py = nodes[idx - 1]
+                draw.line((px + 34, py, nx - 34, ny), fill=line, width=2)
+
+        draw.text((1390, 785), "Jair Ribeiro", font=signature_font, fill=white)
+        draw.line((1510, 830, 1660, 830), fill=cyan, width=3)
+
+        output = BytesIO()
+        canvas.convert("RGB").save(output, format="WEBP", quality=90, method=6)
+        return output.getvalue()
+    except (OSError, ValueError):
+        return None
+
+
 def bundled_header_parts(slug: str) -> tuple[Path, ...]:
     directory = (
         Path(__file__).resolve().parents[1]
@@ -671,7 +814,13 @@ def bundled_header_parts(slug: str) -> tuple[Path, ...]:
 
 
 def bundled_header_bytes(slug: str) -> bytes | None:
-    parts = bundled_header_parts(slug)
+    normalized_slug = slugify(slug)
+    if normalized_slug == COMPETITIVE_ADVANTAGE_HEADER_SLUG:
+        rendered = _render_competitive_advantage_header()
+        if rendered is not None:
+            return rendered
+
+    parts = bundled_header_parts(normalized_slug)
     if not parts:
         return None
     try:

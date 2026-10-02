@@ -659,6 +659,7 @@ def delete_header_image(access_token: str, image_url: str) -> None:
 
 
 COMPETITIVE_ADVANTAGE_HEADER_SLUG = "when-everyone-has-ai-what-still-creates-competitive-advantage"
+COMPETITIVE_ADVANTAGE_HEADER_REVISION = "2026-10-02-2"
 
 
 def _header_font(size: int, *, bold: bool = False, serif: bool = False, italic: bool = False):
@@ -841,7 +842,10 @@ def effective_header_image_url(article: CmsArticle) -> str:
     data = bundled_header_bytes(article.slug)
     if data is None:
         return ""
-    version = hashlib.sha256(data).hexdigest()[:12]
+    version_seed = data
+    if slugify(article.slug) == COMPETITIVE_ADVANTAGE_HEADER_SLUG:
+        version_seed += COMPETITIVE_ADVANTAGE_HEADER_REVISION.encode("utf-8")
+    version = hashlib.sha256(version_seed).hexdigest()[:12]
     return (
         f"{BASE_URL}/cms-header/{parse.quote(slugify(article.slug), safe='')}.webp"
         f"?v={version}"

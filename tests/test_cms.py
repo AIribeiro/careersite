@@ -78,6 +78,21 @@ class CareersiteCmsTests(unittest.TestCase):
             self.assertEqual(image.format, "WEBP")
             self.assertEqual(image.size, (1600, 800))
 
+    def test_competitive_advantage_article_has_branded_header(self) -> None:
+        slug = "when-everyone-has-ai-what-still-creates-competitive-advantage"
+        data = bundled_header_bytes(slug)
+        self.assertIsNotNone(data)
+        with Image.open(BytesIO(data)) as image:
+            self.assertEqual(image.format, "WEBP")
+            self.assertEqual(image.size, (1760, 880))
+
+        article = CmsArticle(
+            title="When Everyone Has AI, What Still Creates Competitive Advantage?",
+            slug=slug,
+        )
+        self.assertIn(f"/cms-header/{slug}.webp?v=", effective_header_image_url(article))
+        self.assertTrue(embedded_header_image_src(article).startswith("data:image/webp;base64,"))
+
     def test_featured_cms_article_replaces_primary_and_has_header_fallback(self) -> None:
         article = CmsArticle(
             id="new-article",

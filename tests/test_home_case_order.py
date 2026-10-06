@@ -20,7 +20,7 @@ class HomeCaseOrderTests(unittest.TestCase):
         self.assertLess(msx, kimberly_clark)
         self.assertNotIn('<span class="org">IBM</span>', section)
         self.assertIn(
-            "Across these roles, the context changed but the underlying questions became increasingly connected",
+            "Across these roles, the pattern is consistent: start with the business problem",
             section,
         )
 

@@ -103,7 +103,7 @@ class PublicCopyGuardTests(unittest.TestCase):
         impact_html = render_impact()
 
         self.assertIn("20+ years", home_html)
-        self.assertIn("AI solutions and agents introduced across warranty, sales and aftermarket", home_html)
+        self.assertIn("Microsoft 365 Copilot and agent initiatives plus AI solutions introduced across warranty, sales and aftermarket", home_html)
         self.assertIn("PoC → repeatable capability", home_html)
         self.assertIn("100+ AI initiatives, PoCs and projects", impact_html)
         self.assertIn("reporting directly to the Chief Data &amp; Analytics Officer", impact_html)

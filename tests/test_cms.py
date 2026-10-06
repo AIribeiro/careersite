@@ -6,7 +6,7 @@ from io import BytesIO
 from PIL import Image
 from unittest.mock import patch
 
-from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_share_document, cms_social_image_url, effective_header_image_url, embedded_header_image_src, generate_metadata, inject_cms_landing, normalize_header_image, render_cms_social_image, sanitize_article_html, slugify
+from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_feature_image_meta, cms_feature_image_url, cms_share_document, cms_social_image_url, effective_header_image_url, embedded_header_image_src, generate_metadata, inject_cms_landing, normalize_header_image, render_cms_social_image, sanitize_article_html, slugify
 
 
 class CareersiteCmsTests(unittest.TestCase):
@@ -136,6 +136,36 @@ class CareersiteCmsTests(unittest.TestCase):
         with Image.open(BytesIO(data)) as image:
             self.assertEqual(image.format, "PNG")
             self.assertEqual(image.size, (1200, 627))
+
+    def test_uploaded_header_is_canonical_feature_and_social_image(self) -> None:
+        uploaded = (
+            "https://example.supabase.co/storage/v1/object/public/"
+            "careersite-article-images/article/manual-header.webp"
+        )
+        article = CmsArticle(
+            title="CMS image source of truth",
+            slug="cms-image-source-of-truth",
+            header_image_url=uploaded,
+            header_image_alt="Manual CMS feature image",
+            excerpt="A concise article excerpt.",
+            meta_description="A concise article excerpt.",
+            status="published",
+        )
+
+        self.assertEqual(cms_feature_image_url(article), uploaded)
+        self.assertEqual(
+            cms_feature_image_meta(article),
+            (uploaded, "image/webp", 1600, 800),
+        )
+
+        document = cms_share_document(article)
+        self.assertIn(f'property="og:image" content="{uploaded}"', document)
+        self.assertIn(f'rel="image_src" href="{uploaded}"', document)
+        self.assertIn(f'name="twitter:image" content="{uploaded}"', document)
+        self.assertIn('property="og:image:type" content="image/webp"', document)
+        self.assertIn('property="og:image:width" content="1600"', document)
+        self.assertIn('property="og:image:height" content="800"', document)
+        self.assertNotIn("/cms-social/cms-image-source-of-truth.png", document)
 
     def test_share_document_contains_article_metadata(self) -> None:
         article = CmsArticle(

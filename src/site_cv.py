@@ -138,12 +138,15 @@ def build_public_cv() -> bytes:
     pdf.set_font("DejaVu", "B", 23)
     pdf.set_text_color(*TEXT)
     pdf.cell(0, 9.5, "Jair Ribeiro", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("DejaVu", "B", 8.8)
+    cv_headline = "Enterprise AI & Data Leader | Strategy - Operating Models - Governance - Adoption - Business Value"
+    pdf.set_font("DejaVu", "B", 8.6)
+    if pdf.get_string_width(cv_headline) > 178:
+        raise ValueError("CV headline must fit on one line")
     pdf.set_text_color(*ACCENT)
     pdf.cell(
         0,
         4.85,
-        "Enterprise AI & Data Leader | Strategy - Operating Models - Governance - Adoption - Business Value",
+        cv_headline,
         new_x="LMARGIN",
         new_y="NEXT",
     )

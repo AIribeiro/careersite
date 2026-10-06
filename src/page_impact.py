@@ -19,11 +19,11 @@ def impact() -> str:
             "AI leadership roles across Volvo Group and Volvo Trucks",
             "Jun 2018 – Dec 2025 · Poland / Sweden",
             f"Multiple regions and business functions · {VOLVO_WORKFLOW_SCOPE} · enterprise AI community / CoE work",
-            "Connecting AI opportunity, adoption and enterprise reality across two Volvo AI roles.",
+            "Connecting business priorities, AI adoption and enterprise reality across two Volvo AI roles.",
             "Across my Volvo AI roles, the recurring challenge was not a shortage of ideas. It was helping different business areas connect real workflows, data conditions, Digital & IT constraints, governance and the people expected to use the capability.",
             [
                 ("Situation", f"AI opportunities ranged from enterprise-wide use-case work and practitioner communities to commercial operations such as {VOLVO_WORKFLOW_SCOPE}, each with different stakeholders and readiness."),
-                ("My responsibility", f"At Volvo Group, I led business-requirement gathering, product management and stakeholder management across {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects while supporting the AI & ML Center of Excellence. At Volvo Trucks, I led AI adoption work across commercial operations and cross-functional use cases."),
+                ("My responsibility", f"At Volvo Group, I led business-requirement gathering, product management and stakeholder management across {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects while supporting the AI & ML Center of Excellence. At Volvo Trucks, I led AI adoption work across commercial operations and cross-functional use cases, including Microsoft 365 Copilot and agent initiatives."),
                 ("Trade-off", "Visible activity can be mistaken for progress. More PoCs and more training can increase momentum without creating clear responsibility, changed workflows or a credible path into enterprise delivery."),
                 ("Decision / contribution", "I treated adoption as both a portfolio and capability problem: connect use cases to real work, involve business and technical partners early, and make literacy practical enough to improve the quality of demand and everyday use."),
                 ("What changed", f"At Volvo Trucks, AI solutions and agents moved into {VOLVO_WORKFLOW_SCOPE} workflows, connecting adoption to day-to-day operational work rather than awareness alone. Across the wider Volvo AI portfolio, use cases and PoCs also spanned legal, compliance and sustainability, requiring the capability to work across different business contexts rather than one isolated pilot."),

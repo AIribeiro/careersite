@@ -87,7 +87,7 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("Speaking &amp; Publications", presence)
         self.assertIn("Selected AI, data and leadership credentials.", certifications)
         self.assertIn("Discuss the mandate.", contact)
-        self.assertIn("Available to start immediately", contact)
+        self.assertIn("Open to immediate collaboration", contact)
         self.assertIn("Experience spans enterprise AI, Data &amp; Analytics", lenses)
         self.assertIn("AI &amp; Data Governance · Operating perspective", governance)
         self.assertIn("Four observable signals", governance)

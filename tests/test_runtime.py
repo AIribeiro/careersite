@@ -60,6 +60,8 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), generated)
         source = (ROOT / "src/site_cv.py").read_text(encoding="utf-8")
         self.assertIn("Enterprise AI & Data Leader", source)
+        self.assertIn("Enterprise AI & Data Leader | Strategy - Operating Models - Governance - Adoption - Business Value", source)
+        self.assertIn('raise ValueError("CV headline must fit on one line")', source)
         self.assertIn("Open to immediate collaboration and relevant mandates", source)
         self.assertIn("Enterprise AI Adoption & Workflow Change", source)
         self.assertIn("Microsoft 365 Copilot and agent initiatives", source)

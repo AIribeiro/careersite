@@ -40,7 +40,7 @@ RULE = (214, 224, 229)
 
 LINKEDIN_DISPLAY = "LinkedIn Profile"
 LINKEDIN_URL = "https://www.linkedin.com/in/jairribeiro"
-CV_SITE_DISPLAY = "AI Leadership Portfolio"
+CV_SITE_DISPLAY = "AI & Data Portfolio"
 CV_SITE_URL = PORTFOLIO_CV_URL
 CERTIFICATIONS_DISPLAY = "View additional certifications and credentials"
 PRESENCE_DISPLAY = "Explore speaking and thought leadership"
@@ -157,6 +157,13 @@ def build_public_cv() -> bytes:
         new_x="LMARGIN",
         new_y="NEXT",
     )
+    pdf.cell(
+        0,
+        4.0,
+        "Sweden / Nordic scope | Open to immediate collaboration and relevant mandates",
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
     linkedin_w = pdf.get_string_width(LINKEDIN_DISPLAY)
     sep_w = pdf.get_string_width(" | ")
     pdf.cell(linkedin_w, 4.0, LINKEDIN_DISPLAY, link=LINKEDIN_URL)
@@ -165,7 +172,7 @@ def build_public_cv() -> bytes:
 
     section("Professional Summary", 3.25)
     body(
-        f"Enterprise AI, Data and Analytics leader with {PROFILE_TECH_YEARS} years in enterprise technology, including {PROFILE_AI_LEADERSHIP_YEARS} years in AI, data and analytics leadership across MSX International, Volvo Group, Kimberly-Clark and IBM. Builds the operating structures that turn AI strategy into governed, adopted and repeatable enterprise capability - spanning portfolio decisions, operating models, AI and data governance, Responsible AI, product and portfolio leadership, and business adoption. Experience includes operational AI use across {VOLVO_WORKFLOW_SCOPE}, EMEA value discovery, and enterprise CoE and data-governance foundations.",
+        f"Enterprise AI, Data and Analytics leader with {PROFILE_TECH_YEARS} years in enterprise technology, including {PROFILE_AI_LEADERSHIP_YEARS} years in AI, data and analytics leadership across MSX International, Volvo Group, Kimberly-Clark and IBM. Turns AI strategy into operating capability through clear priorities, ownership, adoption, governance and measurable business value - spanning portfolio decisions, operating models, AI and data governance, Responsible AI, product and portfolio leadership, and business adoption. Experience includes Microsoft 365 Copilot and agent initiatives, operational AI use across {VOLVO_WORKFLOW_SCOPE}, EMEA value discovery, and enterprise CoE and data-governance foundations.",
         size=8.2,
         line=4.15,
     )
@@ -177,7 +184,7 @@ def build_public_cv() -> bytes:
         3.95,
     )
     bullet(
-        f"Supported operational adoption of AI solutions and agents in {VOLVO_WORKFLOW_SCOPE} workflows, moving AI beyond awareness into day-to-day business processes.",
+        f"Led Microsoft 365 Copilot and agent initiatives alongside operational adoption of AI solutions in {VOLVO_WORKFLOW_SCOPE} workflows, moving AI beyond awareness into day-to-day business processes.",
         7.8,
         3.95,
     )
@@ -200,7 +207,7 @@ def build_public_cv() -> bytes:
     )
     pdf.ln(0.3)
     body(
-        "AI Adoption & Change | Data & Analytics Leadership | Generative AI & Agentic AI | Product & Portfolio Leadership | Executive Stakeholder Management",
+        "Enterprise AI Adoption & Workflow Change | Data & Analytics Leadership | Generative AI & Agentic AI | Product & Portfolio Leadership | Executive Stakeholder Management",
         size=7.7,
         line=3.9,
     )
@@ -226,7 +233,7 @@ def build_public_cv() -> bytes:
         VOLVO_CURRENT_DATES,
         "Greater Gothenburg Metropolitan Area, Sweden",
         [
-            f"Led AI and analytics adoption across commercial operations, with AI solutions and agents introduced into {VOLVO_WORKFLOW_SCOPE} workflows and business teams engaged in day-to-day use.",
+            f"Led enterprise AI adoption across commercial operations, including Microsoft 365 Copilot and agent initiatives alongside AI solutions introduced into {VOLVO_WORKFLOW_SCOPE} workflows and business teams engaged in day-to-day use.",
             "Applied Generative AI to translation, summarization, structured analysis, communications and commercial operations, with human review and responsible-use practices.",
             "Led cross-functional AI use-case and PoC work across warranty, sales, aftermarket, legal, compliance and sustainability, connecting business problems with practical AI solutions.",
             "Designed AI innovation and literacy programs reaching thousands of employees worldwide, strengthening responsible use and the quality of business demand.",

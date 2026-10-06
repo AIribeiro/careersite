@@ -88,8 +88,9 @@ class CareerFactConsistencyTests(unittest.TestCase):
             pdf_text,
         )
         self.assertIn("strengthening AI literacy and the quality of business demand", pdf_text)
+        self.assertIn("Microsoft 365 Copilot and agent initiatives", pdf_text)
         self.assertIn(
-            f"operational adoption of AI solutions and agents in {VOLVO_WORKFLOW_SCOPE} workflows".lower(),
+            f"operational adoption of AI solutions in {VOLVO_WORKFLOW_SCOPE} workflows".lower(),
             pdf_text.lower(),
         )
 
@@ -98,6 +99,7 @@ class CareerFactConsistencyTests(unittest.TestCase):
         self.assertIn("operational adoption is evidenced separately", presence_html.lower())
 
         home_html = home()
+        self.assertIn("Microsoft 365 Copilot and agent initiatives", home_html)
         self.assertNotIn("reducing cycle time and cost while increasing practical use", home_html)
         self.assertIn("targeting cycle time, cost and practical adoption", home_html)
 

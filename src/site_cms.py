@@ -896,6 +896,25 @@ def cms_social_image_url(article: CmsArticle) -> str:
     return f"{BASE_URL}/cms-social/{parse.quote(slugify(article.slug), safe='')}.png?v={version}"
 
 
+def cms_feature_image_url(article: CmsArticle) -> str:
+    """Return the single canonical public image for a CMS article.
+
+    A manually uploaded/generated CMS header is always authoritative for the
+    article page, Thinking thumbnails/featured cards and social/share metadata.
+    The generated social card is only a fallback when the article has no header.
+    """
+    header = effective_header_image_url(article)
+    return header or cms_social_image_url(article)
+
+
+def cms_feature_image_meta(article: CmsArticle) -> tuple[str, str, int, int]:
+    """Return canonical image URL plus Open Graph media metadata."""
+    header = effective_header_image_url(article)
+    if header:
+        return header, "image/webp", HEADER_IMAGE_SIZE[0], HEADER_IMAGE_SIZE[1]
+    return cms_social_image_url(article), "image/png", CMS_SOCIAL_SIZE[0], CMS_SOCIAL_SIZE[1]
+
+
 def _social_font(size: int, *, bold: bool = False, serif: bool = False, italic: bool = False):
     candidates: list[Path] = []
     if serif:
@@ -1217,13 +1236,17 @@ def inject_cms_landing(document: str) -> str:
 
 def cms_share_document(article: CmsArticle) -> str:
     canonical = article_url(article)
-    image = f"{BASE_URL}/social/{article.slug}.png" if article.legacy_key else cms_social_image_url(article)
+    if article.legacy_key:
+        image = f"{BASE_URL}/social/{article.slug}.png"
+        image_type, image_width, image_height = "image/png", 1200, 627
+    else:
+        image, image_type, image_width, image_height = cms_feature_image_meta(article)
     description = article.meta_description or article.excerpt
     image_size_meta = (
-        '<meta property="og:image:type" content="image/png">'
-        '<meta property="og:image:width" content="1200">'
-        '<meta property="og:image:height" content="627">'
-        f'<meta property="og:image:alt" content="{escape(article.title + " — Jair Ribeiro", quote=True)}">'
+        f'<meta property="og:image:type" content="{image_type}">'
+        f'<meta property="og:image:width" content="{image_width}">'
+        f'<meta property="og:image:height" content="{image_height}">'
+        f'<meta property="og:image:alt" content="{escape(article.header_image_alt or article.title + " — Jair Ribeiro", quote=True)}">'
     )
     schema = {
         "@context": "https://schema.org",
@@ -1244,7 +1267,11 @@ def cms_share_document(article: CmsArticle) -> str:
 
 def inject_cms_article_metadata(article: CmsArticle) -> None:
     canonical = article_url(article)
-    image = f"{BASE_URL}/social/{article.slug}.png" if article.legacy_key else cms_social_image_url(article)
+    if article.legacy_key:
+        image = f"{BASE_URL}/social/{article.slug}.png"
+        image_type, image_width, image_height = "image/png", 1200, 627
+    else:
+        image, image_type, image_width, image_height = cms_feature_image_meta(article)
     description = article.meta_description or article.excerpt
     schema = {
         "@context": "https://schema.org",
@@ -1280,6 +1307,10 @@ def inject_cms_article_metadata(article: CmsArticle) -> None:
   setMeta('meta[property="og:description"]','property','og:description',{json.dumps(article.social_description or description)});
   setMeta('meta[property="og:url"]','property','og:url',canonical);
   setMeta('meta[property="og:image"]','property','og:image',image);
+  setMeta('meta[property="og:image:type"]','property','og:image:type',{json.dumps(image_type)});
+  setMeta('meta[property="og:image:width"]','property','og:image:width',{json.dumps(str(image_width))});
+  setMeta('meta[property="og:image:height"]','property','og:image:height',{json.dumps(str(image_height))});
+  setMeta('meta[property="og:image:alt"]','property','og:image:alt',{json.dumps(article.header_image_alt or article.title + " — Jair Ribeiro")});
   setMeta('meta[name="twitter:card"]','name','twitter:card','summary_large_image');
   setMeta('meta[name="twitter:title"]','name','twitter:title',{json.dumps(article.social_title or article.title)});
   setMeta('meta[name="twitter:description"]','name','twitter:description',{json.dumps(article.social_description or description)});

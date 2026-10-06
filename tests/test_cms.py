@@ -6,6 +6,8 @@ from io import BytesIO
 from PIL import Image
 from unittest.mock import patch
 
+from page_admin import _preview_document
+
 from site_cms import CmsArticle, article_preview_url, bundled_header_bytes, cms_feature_image_meta, cms_feature_image_url, cms_share_document, cms_social_image_url, effective_header_image_url, embedded_header_image_src, generate_metadata, inject_cms_landing, normalize_header_image, render_cms_social_image, sanitize_article_html, slugify
 
 
@@ -136,6 +138,25 @@ class CareersiteCmsTests(unittest.TestCase):
         with Image.open(BytesIO(data)) as image:
             self.assertEqual(image.format, "PNG")
             self.assertEqual(image.size, (1200, 627))
+
+    def test_cms_preview_is_standalone_and_uses_public_site_styles(self) -> None:
+        article = CmsArticle(
+            title="Preview article",
+            slug="preview-article",
+            content_html="<p>Preview body</p>",
+            excerpt="Preview body",
+            category="Enterprise AI",
+            status="draft",
+        )
+        document = _preview_document(article)
+
+        self.assertIn('<meta name="viewport"', document)
+        self.assertIn('<div class="site">', document)
+        self.assertIn(":root{--navy:", document)
+        self.assertIn(".article-hero", document)
+        self.assertIn("Preview article", document)
+        self.assertIn("Preview body", document)
+        self.assertIn(".nav{position:relative!important}", document)
 
     def test_uploaded_header_is_canonical_feature_and_social_image(self) -> None:
         uploaded = (

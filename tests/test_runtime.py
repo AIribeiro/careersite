@@ -153,7 +153,7 @@ class RuntimeSmokeTests(unittest.TestCase):
 
         self.assertIn("I lead enterprise AI &amp; Data work where strategy has to become operating capability", home)
         self.assertIn("Enterprise AI and Data leadership, from strategic priorities to operating capability.", home)
-        self.assertIn("Based in Gothenburg · Sweden / Nordic scope · Gothenburg hybrid or Sweden-based remote · Available to start immediately", home)
+        self.assertIn("Based in Gothenburg · Sweden / Nordic scope · Gothenburg hybrid or Sweden-based remote · Open to immediate collaboration and relevant mandates", home)
         self.assertIn("Enterprise AI strategy &amp; scaling", home)
         self.assertIn("Data &amp; Analytics leadership", home)
         self.assertIn("Governance &amp; operating model", home)

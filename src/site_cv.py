@@ -138,9 +138,9 @@ def build_public_cv() -> bytes:
     pdf.set_font("DejaVu", "B", 23)
     pdf.set_text_color(*TEXT)
     pdf.cell(0, 9.5, "Jair Ribeiro", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("DejaVu", "B", 10.2)
+    pdf.set_font("DejaVu", "B", 8.8)
     pdf.set_text_color(*ACCENT)
-    pdf.multi_cell(
+    pdf.cell(
         0,
         4.85,
         "Enterprise AI & Data Leader | Strategy - Operating Models - Governance - Adoption - Business Value",

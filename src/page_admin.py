@@ -386,28 +386,45 @@ document.getElementById({json.dumps(key)}).addEventListener('click', async () =>
     )
 
 
-def _preview(article: CmsArticle, header_bytes: bytes | None = None) -> None:
-    if not article.title or not strip_html(article.content_html):
-        st.warning("Add a title and article body before previewing.")
-        return
+def _preview_document(article: CmsArticle, header_bytes: bytes | None = None) -> str:
+    """Build a standalone document that matches the public article renderer."""
     from site_cms import render_cms_article
+    from site_image_styles import IMAGE_CSS
+    from site_styles import CSS
 
     preview_article = article
     if header_bytes:
         preview_src = "data:image/webp;base64," + base64.b64encode(header_bytes).decode("ascii")
         preview_article = replace(article, header_image_url=preview_src)
 
-    preview_html = (
-        "<style>html,body{margin:0;background:#f4f0e8;font-family:Arial,sans-serif}</style>"
+    return (
+        '<!doctype html><html lang="en"><head>'
+        '<meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        + CSS
+        + IMAGE_CSS
+        + '<style>'
+        'html,body{margin:0!important;padding:0!important;background:#f4f0e8!important;overflow-x:hidden}'
+        'body{min-width:0}.site{width:100%;min-width:0}'
+        '.nav{position:relative!important}'
+        '</style></head><body><div class="site">'
         + render_cms_article(preview_article)
-        + "<script>window.scrollTo(0,0);</script>"
+        + '</div><script>window.scrollTo(0,0);</script></body></html>'
     )
 
+
+def _preview(article: CmsArticle, header_bytes: bytes | None = None) -> None:
+    if not article.title or not strip_html(article.content_html):
+        st.warning("Add a title and article body before previewing.")
+        return
+
+    preview_html = _preview_document(article, header_bytes)
+
     with st.expander("Preview", expanded=True):
-        st.caption("Live preview of the current editor state.")
+        st.caption("Live preview of the current editor state · same styling and image rules as the public article.")
         st.components.v1.html(
             preview_html,
-            height=900,
+            height=1100,
             scrolling=True,
         )
 

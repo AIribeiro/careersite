@@ -172,7 +172,7 @@ def build_public_cv() -> bytes:
 
     section("Professional Summary", 3.25)
     body(
-        f"Enterprise AI, Data and Analytics leader with {PROFILE_TECH_YEARS} years in enterprise technology, including {PROFILE_AI_LEADERSHIP_YEARS} years in AI, data and analytics leadership across MSX International, Volvo Group, Kimberly-Clark and IBM. Turns AI strategy into operating capability through clear priorities, ownership, adoption, governance and measurable business value - spanning portfolio decisions, operating models, AI and data governance, Responsible AI, product and portfolio leadership, and business adoption. Experience includes Microsoft 365 Copilot and agent initiatives, operational AI use across {VOLVO_WORKFLOW_SCOPE}, EMEA value discovery, and enterprise CoE and data-governance foundations.",
+        f"Enterprise AI, Data and Analytics leader with {PROFILE_TECH_YEARS} years in enterprise technology and {PROFILE_AI_LEADERSHIP_YEARS} years focused on AI, data and analytics leadership across MSX International, Volvo Group, Kimberly-Clark and IBM. I work where strategy has to become something the business can actually use - setting priorities, clarifying ownership, putting the right governance in place and helping teams adopt AI in day-to-day work. My experience spans Microsoft 365 Copilot and agent initiatives, AI in {VOLVO_WORKFLOW_SCOPE} workflows, EMEA value discovery, and building the operating and governance foundations needed to scale AI with clearer ownership and business value.",
         size=8.2,
         line=4.15,
     )

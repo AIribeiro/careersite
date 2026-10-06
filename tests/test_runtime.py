@@ -52,6 +52,11 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertTrue(generated.rstrip().endswith(b"%%EOF"))
         generated_reader = PdfReader(BytesIO(generated), strict=True)
         self.assertGreaterEqual(len(generated_reader.pages), 1)
+        first_page_text = generated_reader.pages[0].extract_text() or ""
+        self.assertIn(
+            "Enterprise AI & Data Leader | Strategy - Operating Models - Governance - Adoption - Business Value",
+            first_page_text,
+        )
         self.assertIsNotNone(generated_reader.trailer.get("/Root"))
         self.assertEqual(site_cv.CV_FILENAME, filename)
         self.assertEqual(site_cv.CV_SITE_DISPLAY, "AI & Data Portfolio")

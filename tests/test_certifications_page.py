@@ -179,7 +179,7 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("Verify Professional Certificate ↗", page)
         self.assertIn("View Specialization Diploma ↗", page)
         self.assertIn("Microsoft Leadership and Innovation Specialization diploma", page)
-        self.assertIn("Specialization · 4 courses · Oct 2026", page)
+        self.assertIn("Microsoft Leadership and Innovation · 4 courses · Oct 2026", page)
         self.assertIn("Professional Certificate + Specialization diploma", page)
         self.assertIn("https://www.coursera.org/account/accomplishments/specialization/49J7ASIMWWFA", page)
         self.assertIn("Copilot as decision support, not decision replacement", page)

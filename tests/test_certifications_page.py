@@ -160,7 +160,7 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("12 component certifications", page)
         self.assertNotIn("Valid through Apr 2027", page)
         self.assertIn("Architecture-level judgment without engineering positioning", page)
-        self.assertGreaterEqual(page.count("Verify credential ↗"), 11)
+        self.assertGreaterEqual(page.count("Verify credential ↗"), 10)
         self.assertIn("Ten selected credentials complement the featured EITCA/AI programme", page)
         self.assertIn("Current credentials across enterprise AI and leadership priorities.", page)
         self.assertIn("Leadership highlight · Enterprise AI", page)

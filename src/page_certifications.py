@@ -124,14 +124,14 @@ FLAGSHIP = [
         "copy": "Strengthens architecture-level understanding of enterprise data platforms, including platform administration, networking, security and cloud integrations.",
     },
     {
-        "signal": "Data & analytics leadership",
-        "title": "Executive Data Science Specialization",
-        "issuer": "Johns Hopkins University",
-        "date": "Feb 2020",
-        "credential": "5L6Q5KMVMWQR",
-        "verify_url": "https://www.coursera.org/account/accomplishments/specialization/5L6Q5KMVMWQR",
-        "program_url": "https://www.coursera.org/specializations/executive-data-science",
-        "copy": "Adds leadership-level grounding in how data-science teams work, how analytical work is evaluated and how data initiatives stay connected to business decisions and outcomes.",
+        "signal": "Leadership judgment & execution",
+        "title": "Leading with Foresight & Impact",
+        "issuer": "Microsoft",
+        "date": "Oct 2026",
+        "credential": "4SDY29HPN0A5",
+        "verify_url": "https://www.coursera.org/account/accomplishments/verify/4SDY29HPN0A5",
+        "program_url": "https://www.coursera.org/learn/leading-with-foresight-and-impact",
+        "copy": "Strengthens strategic prioritization, decision discipline and strategy-to-execution alignment, including a structured approach to evaluating evolving AI signals and adoption decisions.",
     },
 ]
 
@@ -246,6 +246,7 @@ PATHWAYS = [
         "Enterprise AI leadership",
         "Strategy, adoption and organizational judgment.",
         [
+            "Leading with Foresight & Impact · Microsoft · 2026",
             "Generative AI for Executives & Business Leaders · IBM · 2025",
             "AI for Organizational Leaders · Microsoft + LinkedIn · 2025",
             "Generative AI for Leaders · Vanderbilt University · 2025",
@@ -385,7 +386,7 @@ def certifications() -> str:
 
 <section class="section navy eitca-feature"><div class="container"><div class="eitca-banner"><img src="{eitca_eu_banner}" alt="European Union flags outside a modern institutional building" loading="lazy" decoding="async"></div><div class="eitca-top"><div><p class="eyebrow">Featured technical foundation</p><h2>EITCA/AI Artificial Intelligence Academy</h2><p class="eitca-lead">A <strong>24 ECTS</strong> European AI certification programme spanning <strong>12 component certifications</strong> across machine learning, deep learning, Python, cloud platforms and applied AI technologies.</p></div><div class="eitca-facts"><div><strong>24 ECTS</strong><span>Structured AI curriculum</span></div><div><strong>12</strong><span>Component certifications</span></div><div><strong>2025</strong><span>Credential awarded</span></div></div></div><div class="eitca-body"><div><h3>Scope and relevance</h3><p>EITCA/AI adds structured technical breadth across machine learning, deep learning, Python and cloud platforms. That background is useful when discussing model and data dependencies, architecture assumptions, platform choices, governance, scalability and cost with specialist teams.</p><p class="eitca-secondary">The credential supports business-facing work by providing technical context for decisions on platforms, delivery approaches, Responsible AI and adoption without positioning the role as specialist engineering.</p><div class="eitca-value-grid"><div><strong>Technical breadth</strong><span>AI, machine learning, deep learning, Python and cloud foundations.</span></div><div><strong>Decision quality</strong><span>Context for architecture, data, model and platform trade-offs.</span></div><div><strong>Leadership bridge</strong><span>Connects strategy, governance and adoption with technical delivery.</span></div></div><div class="actions"><a class="btn ghost" href="https://www.eitci.org/val.php?id=EITCA/AI/SLJ25004525&t=j5xq3TMD6GcHgrj9" target="_blank" rel="noopener">Verify credential ↗</a><a class="btn ghost" href="https://eitca.org/eitca-ai-artificial-intelligence-academy/" target="_blank" rel="noopener">Programme scope ↗</a></div><div class="eitca-meta-row">{EU_ROUND_EMBLEM}<div><span class="eitca-meta-label">European credential context</span><p class="eitca-id">Credential ID · EITCA/AI/SLJ25004525 · EITCA Academy</p></div></div></div><details class="cert-archive"><summary>View 12 component certifications</summary><ul>{eitca}</ul></details></div></div></section>
 
-<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Recent credentials</p><h2>Current study across enterprise AI priorities.</h2></div><p>Ten credentials complement the featured EITCA/AI programme across AI strategy, Responsible AI, adoption, agentic systems, product judgment, data platforms and analytics. Each can be verified directly.</p></div><div class="cert-grid">{flagship}</div></div></section>
+<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Recent credentials</p><h2>Current credentials across enterprise AI and leadership priorities.</h2></div><p>Ten credentials complement the featured EITCA/AI programme across AI strategy, leadership judgment, Responsible AI, adoption, agentic systems, product judgment and data platforms. Each can be verified directly.</p></div><div class="cert-grid">{flagship}</div></div></section>
 
 
 

@@ -182,7 +182,7 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("Microsoft Leadership and Innovation · 4 courses · Oct 2026", page)
         self.assertIn("Professional Certificate + Specialization diploma", page)
         self.assertIn("https://www.coursera.org/account/accomplishments/specialization/49J7ASIMWWFA", page)
-        self.assertIn("Copilot as decision support, not decision replacement", page)
+        self.assertIn("Responsible Copilot use and critical interpretation", page)
         self.assertNotIn("Leading with Foresight &amp; Impact", page)
         self.assertIn("EITCA/AI/SLJ25004525", page)
         self.assertIn("European Union flags outside a modern institutional building", page)

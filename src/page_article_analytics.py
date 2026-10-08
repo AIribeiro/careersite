@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from urllib import error, request
 
+import altair as alt
 import streamlit as st
 
 from page_analytics import (
@@ -23,6 +24,7 @@ from thinking_articles import resolve_article
 ARTICLE_DASHBOARD_RPC = "careersite_analytics_articles_v2"
 
 
+@st.cache_data(ttl=60, show_spinner=False)
 def _fetch_article_dashboard(window: str) -> dict:
     endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{ARTICLE_DASHBOARD_RPC}"
     payload = json.dumps(_dashboard_payload(window)).encode("utf-8")
@@ -164,6 +166,81 @@ def _article_daily_chart(rows: object) -> None:
         use_container_width=True,
         theme=None,
     )
+
+
+
+def _reader_source_rows(rows: list[dict], slug: str = "") -> list[dict]:
+    """Sum article-session visits, never claim cross-article unique readers."""
+    labels = {"kpmg": "KPMG", "linkedin": "LinkedIn", "x": "X", "twitter": "Twitter",
+              "facebook": "Facebook", "whatsapp": "WhatsApp", "email": "Email",
+              "direct/unknown": "Direct / untagged"}
+    counts: dict[str, int] = {}
+    originals: dict[str, str] = {}
+    for row in rows:
+        if slug and row.get("article_slug") != slug:
+            continue
+        raw = str(row.get("attribution_source") or "direct/unknown").strip() or "direct/unknown"
+        key = raw.casefold()
+        count = max(0, int(row.get("sessions") or 0))
+        counts[key] = counts.get(key, 0) + count
+        originals.setdefault(key, raw)
+    total = sum(counts.values())
+    return [{"Source": labels.get(key, originals[key]), "Reading visits": count,
+             "Share": count / total if total else 0,
+             "Label": f"{count:,}  ·  {count / total:.0%}" if total else "0",
+             "Tagged": key != "direct/unknown"}
+            for key, count in sorted(counts.items(), key=lambda pair: (-pair[1], pair[0])) if count]
+
+
+def render_reader_sources(window: str) -> None:
+    """Immediate attribution overview above the detailed article reports."""
+    st.subheader("Where readers come from")
+    st.caption("Article reading visits by source tag — including links shared with a company or contact.")
+    try:
+        data = _fetch_article_dashboard(window)
+    except (ValueError, RuntimeError, TimeoutError):
+        st.info("Reader sources are temporarily unavailable. Other reports remain below.")
+        return
+    source_rows = data.get("sources", []) or []
+    slugs = sorted({str(row["article_slug"]) for row in source_rows if row.get("article_slug")})
+    selected = st.selectbox("Source breakdown for", [""] + slugs,
+                            format_func=lambda slug: _article_title(slug) if slug else "All articles",
+                            key="reader_sources_article")
+    rows = _reader_source_rows(source_rows, selected)
+    if not rows:
+        st.info("No article reading visits in this window. Choose a longer reporting window to see earlier activity.")
+        return
+    total = sum(row["Reading visits"] for row in rows)
+    tagged = sum(row["Reading visits"] for row in rows if row["Tagged"])
+    top = next((row for row in rows if row["Tagged"]), None)
+    a, b, c = st.columns(3)
+    a.metric("Top tagged source", top["Source"] if top else "No source tags yet")
+    b.metric("Reading visits", f"{total:,}")
+    c.metric("With source attribution", f"{tagged / total:.0%}")
+    hover = alt.selection_point(fields=["Source"], on="pointerover", clear="pointerout", empty=False)
+    base = alt.Chart(alt.Data(values=rows)).encode(
+        y=alt.Y("Source:N", sort=[row["Source"] for row in rows], title=None,
+                axis=alt.Axis(labelLimit=240, labelFontSize=14, ticks=False, domain=False)),
+        x=alt.X("Reading visits:Q", title=None,
+                scale=alt.Scale(domain=[0, max(row["Reading visits"] for row in rows) * 1.4]),
+                axis=alt.Axis(tickMinStep=1, gridOpacity=0.12, domain=False)),
+        tooltip=[alt.Tooltip("Source:N"), alt.Tooltip("Reading visits:Q", format=","),
+                 alt.Tooltip("Share:Q", title="Share of reading visits", format=".1%")],
+    )
+    bars = base.mark_bar(cornerRadiusEnd=8, height=26).encode(
+        color=alt.condition(hover, alt.value("#22b8b0"),
+                            alt.Color("Tagged:N", scale=alt.Scale(domain=[True, False],
+                                      range=["#527bd9", "#9ca3af"]), legend=None)),
+    ).add_params(hover)
+    values = base.mark_text(align="left", dx=8, fontSize=13, fontWeight="bold").encode(text="Label:N")
+    st.altair_chart((bars + values).properties(height=max(180, len(rows) * 46)), use_container_width=True)
+    st.caption("One reading visit = one browser session opening one article. Across articles, the same session can count more than once. "
+               "Source tags are retained in the browser tab; KPMG means a KPMG-tagged link, not a verified KPMG employee. "
+               "Direct / untagged means no recorded source tag.")
+    with st.expander("Exact reader-source counts", expanded=False):
+        st.dataframe([{"Source": row["Source"], "Reading visits": row["Reading visits"],
+                       "Share": f"{row['Share']:.1%}"} for row in rows], hide_index=True, use_container_width=True)
+    st.divider()
 
 
 def render_article_analytics() -> None:

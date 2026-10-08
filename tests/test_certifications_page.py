@@ -162,12 +162,23 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("Architecture-level judgment without engineering positioning", page)
         self.assertGreaterEqual(page.count("Verify credential ↗"), 10)
         self.assertIn("Ten selected credentials complement the featured EITCA/AI programme", page)
+        diploma = ROOT / "images/credentials/microsoft_leadership_innovation_diploma.png"
+        self.assertTrue(diploma.exists())
+        with Image.open(diploma) as image:
+            self.assertEqual(image.format, "PNG")
+            self.assertEqual(image.size, (595, 560))
+            image.verify()
+        from site_media import microsoft_leadership_innovation_diploma
+        self.assertTrue(microsoft_leadership_innovation_diploma.startswith("data:image/png;base64,"))
+
         self.assertIn("Current credentials across enterprise AI and leadership priorities.", page)
         self.assertIn("Leadership highlight · Enterprise AI", page)
         self.assertIn("Microsoft AI Transformation Leader Professional Certificate", page)
         self.assertIn("49J7ASIMWWFA", page)
         self.assertIn("Verify Professional Certificate ↗", page)
         self.assertIn("View Specialization Diploma ↗", page)
+        self.assertIn("Microsoft Leadership and Innovation Specialization diploma", page)
+        self.assertIn("Specialization · 4 courses · Oct 2026", page)
         self.assertIn("Professional Certificate + Specialization diploma", page)
         self.assertIn("https://www.coursera.org/account/accomplishments/specialization/49J7ASIMWWFA", page)
         self.assertIn("Copilot, Azure AI &amp; agentic workflows", page)

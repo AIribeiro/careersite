@@ -7,6 +7,7 @@ from site_media import (
     eitca_eu_banner,
     openai_ai_leadership,
     databricks_genai_fundamentals_badge,
+    microsoft_leadership_innovation_diploma,
     credly_cognitive_practitioner,
     credly_ai_agents_rag_langchain,
     credly_genai_product_managers,
@@ -360,11 +361,17 @@ def _leadership_credential(item: dict[str, str]) -> str:
         '</div>'
         f'<p class="leadership-cert-meta">Professional Certificate + Specialization diploma · Credential {html.escape(item["credential"])} · Microsoft · Coursera</p>'
         '</div>'
+        '<div class="leadership-cert-side">'
+        f'<a class="leadership-cert-diploma" href="{html.escape(item["alternate_verify_url"], quote=True)}" target="_blank" rel="noopener">'
+        f'<img src="{microsoft_leadership_innovation_diploma}" alt="Microsoft Leadership and Innovation Specialization diploma" loading="lazy" decoding="async">'
+        '<span><strong>Microsoft Leadership and Innovation</strong>Specialization · 4 courses · Oct 2026</span>'
+        '</a>'
         '<div class="leadership-cert-facts">'
         '<div><strong>Strategy</strong><span>Enterprise AI transformation roadmap</span></div>'
         '<div><strong>Value</strong><span>Investment, TCO &amp; measurable outcomes</span></div>'
         '<div><strong>Governance</strong><span>Responsible AI, risk &amp; accountability</span></div>'
         '<div><strong>Orchestration</strong><span>Copilot, Azure AI &amp; agentic workflows</span></div>'
+        '</div>'
         '</div>'
         '</article>'
     )

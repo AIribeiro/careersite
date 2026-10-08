@@ -23,8 +23,22 @@ jobs:
             --hide-scrollbars --window-size=1600,1200 --virtual-time-budget=15000 \
             --screenshot=certificate-page.png "$URL" || true
           file certificate-page.png
-      - name: Upload capture
-        uses: actions/upload-artifact@v4
-        with:
-          name: coursera-specialization-diploma
-          path: certificate-page.png
+      - name: Crop and commit issued diploma
+        run: |
+          pip install Pillow
+          mkdir -p images/credentials
+          python - <<'PY'
+          from PIL import Image
+          src="certificate-page.png"
+          dst="images/credentials/microsoft_leadership_innovation_diploma.png"
+          with Image.open(src) as im:
+              crop=im.crop((840,250,1435,810))
+              crop.save(dst, optimize=True)
+              print("DIPLOMA", crop.size)
+          PY
+          file images/credentials/microsoft_leadership_innovation_diploma.png
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images/credentials/microsoft_leadership_innovation_diploma.png
+          git commit -m "Add Microsoft Leadership and Innovation specialization diploma"
+          git push

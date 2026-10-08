@@ -166,7 +166,8 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertTrue(diploma.exists())
         with Image.open(diploma) as image:
             self.assertEqual(image.format, "PNG")
-            self.assertGreaterEqual(image.width, 520)\n            self.assertGreaterEqual(image.height, 500)
+            self.assertGreaterEqual(image.width, 520)
+            self.assertGreaterEqual(image.height, 500)
             image.verify()
         from site_media import microsoft_leadership_innovation_diploma
         self.assertTrue(microsoft_leadership_innovation_diploma.startswith("data:image/png;base64,"))

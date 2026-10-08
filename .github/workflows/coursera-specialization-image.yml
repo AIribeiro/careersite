@@ -22,13 +22,7 @@ jobs:
           "$BROWSER" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
             --hide-scrollbars --window-size=1600,1200 --virtual-time-budget=15000 \
             --screenshot=certificate-page.png "$URL" || true
-          file certificate-page.png || true
-          python - <<'PY'
-          from PIL import Image
-          p="certificate-page.png"
-          im=Image.open(p)
-          print("SIZE", im.size)
-          PY
+          file certificate-page.png
       - name: Upload capture
         uses: actions/upload-artifact@v4
         with:

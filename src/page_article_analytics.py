@@ -192,30 +192,40 @@ def _reader_source_rows(rows: list[dict], slug: str = "") -> list[dict]:
             for key, count in sorted(counts.items(), key=lambda pair: (-pair[1], pair[0])) if count]
 
 
-def render_reader_sources(window: str) -> None:
+def render_reader_sources(window: str, kind: str = "article") -> None:
     """Immediate attribution overview above the detailed article reports."""
-    st.subheader("Where readers come from")
-    st.caption("Article reading visits by source tag — including links shared with a company or contact.")
+    is_page = kind == "page"
+    noun = "Page" if is_page else "Reading"
+    st.subheader("Where page visitors come from" if is_page else "Where readers come from")
+    st.caption("Visits by source tag — including links shared with a company or contact.")
     try:
-        data = _fetch_article_dashboard(window)
+        if is_page:
+            from page_content_intelligence import _fetch_rpc
+            data = _fetch_rpc("careersite_page_sources", _dashboard_payload(window))
+            data["sources"] = [dict(row, article_slug=row["page"]) for row in data.get("sources", [])]
+        else:
+            data = _fetch_article_dashboard(window)
     except (ValueError, RuntimeError, TimeoutError):
         st.info("Reader sources are temporarily unavailable. Other reports remain below.")
         return
     source_rows = data.get("sources", []) or []
     slugs = sorted({str(row["article_slug"]) for row in source_rows if row.get("article_slug")})
+    def content_name(slug: str) -> str:
+        if not slug:
+            return "All pages" if is_page else "All articles"
+        return slug.replace("-", " ").replace("_", " ").title() if is_page else _article_title(slug)
     selected = st.selectbox("Source breakdown for", [""] + slugs,
-                            format_func=lambda slug: _article_title(slug) if slug else "All articles",
-                            key="reader_sources_article")
+                            format_func=content_name, key=f"reader_sources_{kind}")
     rows = _reader_source_rows(source_rows, selected)
     if not rows:
-        st.info("No article reading visits in this window. Choose a longer reporting window to see earlier activity.")
+        st.info("No visits in this window. Choose a longer reporting window to see earlier activity.")
         return
     total = sum(row["Reading visits"] for row in rows)
     tagged = sum(row["Reading visits"] for row in rows if row["Tagged"])
     top = next((row for row in rows if row["Tagged"]), None)
     a, b, c = st.columns(3)
     a.metric("Top tagged source", top["Source"] if top else "No source tags yet")
-    b.metric("Reading visits", f"{total:,}")
+    b.metric(f"{noun} visits", f"{total:,}")
     c.metric("With source attribution", f"{tagged / total:.0%}")
     hover = alt.selection_point(fields=["Source"], on="pointerover", clear="pointerout", empty=False)
     base = alt.Chart(alt.Data(values=rows)).encode(
@@ -224,8 +234,8 @@ def render_reader_sources(window: str) -> None:
         x=alt.X("Reading visits:Q", title=None,
                 scale=alt.Scale(domain=[0, max(row["Reading visits"] for row in rows) * 1.4]),
                 axis=alt.Axis(tickMinStep=1, gridOpacity=0.12, domain=False)),
-        tooltip=[alt.Tooltip("Source:N"), alt.Tooltip("Reading visits:Q", format=","),
-                 alt.Tooltip("Share:Q", title="Share of reading visits", format=".1%")],
+        tooltip=[alt.Tooltip("Source:N"), alt.Tooltip("Reading visits:Q", title=f"{noun} visits", format=","),
+                 alt.Tooltip("Share:Q", title="Share of visits", format=".1%")],
     )
     bars = base.mark_bar(cornerRadiusEnd=8, height=26).encode(
         color=alt.condition(hover, alt.value("#22b8b0"),
@@ -234,11 +244,16 @@ def render_reader_sources(window: str) -> None:
     ).add_params(hover)
     values = base.mark_text(align="left", dx=8, fontSize=13, fontWeight="bold").encode(text="Label:N")
     st.altair_chart((bars + values).properties(height=max(180, len(rows) * 46)), use_container_width=True)
-    st.caption("One reading visit = one browser session opening one article. Across articles, the same session can count more than once. "
-               "Source tags are retained in the browser tab; KPMG means a KPMG-tagged link, not a verified KPMG employee. "
-               "Direct / untagged means no recorded source tag.")
-    with st.expander("Exact reader-source counts", expanded=False):
-        st.dataframe([{"Source": row["Source"], "Reading visits": row["Reading visits"],
+    if is_page:
+        st.caption("One page visit = one browser session opening one page. Across pages, a session can count more than once. "
+                   "Attribution uses the first recorded source tag for that page/session in the selected window. "
+                   "Article views and historical unclassified Thinking visits are excluded.")
+    else:
+        st.caption("One reading visit = one browser session opening one article. Across articles, the same session can count more than once. "
+                   "Source tags are retained in the browser tab.")
+    st.caption("Tags identify the shared link, not the visitor's identity or employer. Direct / untagged means no recorded source tag.")
+    with st.expander("Exact source counts", expanded=False):
+        st.dataframe([{"Source": row["Source"], f"{noun} visits": row["Reading visits"],
                        "Share": f"{row['Share']:.1%}"} for row in rows], hide_index=True, use_container_width=True)
     st.divider()
 

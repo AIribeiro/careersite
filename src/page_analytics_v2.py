@@ -27,8 +27,7 @@ def render_analytics_dashboard() -> None:
     window = st.selectbox("Reporting window", [key for key, _ in REPORTING_WINDOWS], index=0,
                           format_func=lambda key: REPORTING_WINDOW_LABELS[key],
                           key="careersite_analytics_reporting_window")
-    if section == "articles":
-        render_reader_sources(str(window))
+    render_reader_sources(str(window), "page" if section == "pages" else "article")
     render_content_intelligence("page" if section == "pages" else "article", str(window))
     st.divider()
     if section == "pages":

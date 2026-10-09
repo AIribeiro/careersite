@@ -176,7 +176,9 @@ def _relationship_screen(model: dict, *, compact: bool) -> None:
         st.dataframe([{
             "Market indicator": f["indicator"],
             "Outcome": OUTCOMES[f["outcome"]],
-            "Delay": f"{f['lag_months']} calendar month(s)",
+            "Compared variable": f.get("value_type", "Source metric"),
+            "Outcome window": "First full month after publication" if f["lag_months"] == 0
+                else f"{f['lag_months']+1} full months after publication",
             "Pearson r": round(f["r"], 2),
             "Rank correlation": round(f["rho"],2) if f["rho"] is not None else None,
             "Adjusted q": f["q"],
@@ -208,7 +210,8 @@ def _relationship_screen(model: dict, *, compact: bool) -> None:
             "publication date to participate in lagged tests; unseen historical releases cannot be backfilled "
             "as imaginary observations. The same market metric is compared with recorded application, contact, "
             "completed interview, progression, rejection and portfolio outcomes at 0/1/2/3-month lags. "
-            "Only full calendar months are paired; no forward filling or synthetic zero-history. "
+            "Only full calendar months after publication are paired, from the first through fourth subsequent month; "
+            "no forward filling or synthetic zero-history. "
             "The baseline needs at least 12 independent pairs, variation in source and outcome data, "
             "Pearson/Spearman agreement, leave-one-out and change checks. Repeated associations require at "
             "least 24 pairs, direction stability in both halves and an adjusted multiple-testing screen. "

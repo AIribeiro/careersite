@@ -268,10 +268,10 @@ def forecast_hiring(
     result["status"] = "scenario" if result["crossings"]["Current pace"] else "no_median"
     central = result["crossings"].get("Current pace")
     if central:
-        offer = day(central)
+        offer_day = day(central)
         result["start_window"] = {
-            "from": (offer + timedelta(days=START_DELAY_DAYS[0])).isoformat(),
-            "to": (offer + timedelta(days=START_DELAY_DAYS[1])).isoformat(),
+            "from": (offer_day + timedelta(days=START_DELAY_DAYS[0])).isoformat(),
+            "to": (offer_day + timedelta(days=START_DELAY_DAYS[1])).isoformat(),
         }
     result["modelled_90d"] = next((r["Current pace"] for r in curve if r["Days"] >= 91), None)
     result["modelled_180d"] = next((r["Current pace"] for r in curve if r["Days"] >= 182), None)

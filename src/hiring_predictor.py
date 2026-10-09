@@ -1,4 +1,4 @@
-"""Hiring Predictor Beta v2: transparent, evidence-sensitive *planning* scenarios.
+"""Hiring Predictor Beta v3.1: transparent, evidence-sensitive *planning* scenarios.
 
 No personal offer probabilities are calibrated: this individual's history has no
 observed offers. Dates are conditional illustrations, never statistical forecasts.
@@ -20,7 +20,7 @@ from job_search_metrics import (
 )
 from hiring_forecast_signals import forecast_drivers
 
-MODEL_VERSION = "hiring-beta-3"
+MODEL_VERSION = "hiring-beta-3.1"
 HORIZON_DAYS = 364
 SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5}
 # Purely illustrative offer propensity *given each hiring stage*, NOT observed
@@ -230,7 +230,7 @@ def forecast_hiring(
         "confidence": "Early estimate", "status": "insufficient",
         "drivers": drivers,
         "limitations": [
-            "The portfolio's qualified traffic, CV downloads and contact actions are positive planning signals, not identified recruiters.",
+            "Qualified CV-origin traffic, source variants, target-role tags and associated recruitment campaigns receive bounded positive planning weights; they do not identify visitors.",
             "Specific Swedish job-market signals can help or hurt future opportunity estimates; their weights are heuristic, not proven effects.",
             "Only new opportunities—not hiring decisions already under way—receive portfolio/market adjustments.",
             "Offer rates and decision times remain assumptions, not calibrated personal probabilities.",

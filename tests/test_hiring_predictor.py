@@ -135,6 +135,93 @@ class HiringPredictorTests(unittest.TestCase):
         self.assertGreater(short["effect"],0)
         self.assertGreater(long["effect"],short["effect"])
 
+    def test_cv_parent_and_explicit_tiers_are_weighted_and_not_stacked(self):
+        from hiring_forecast_signals import portfolio_adjustment, PORTFOLIO_CAP, CV_ATTRIBUTION_CAP
+
+        common = {
+            "quality_checked": True,
+            "includes_partial_today": True,
+            "recent_from": (TODAY - timedelta(days=27)).isoformat(),
+            "previous_from": (TODAY - timedelta(days=55)).isoformat(),
+            "through": TODAY.isoformat(),
+            "cv_download_sessions": {"recent":0,"previous":0},
+            "contact_click_sessions": {"recent":0,"previous":0},
+        }
+        raw = {
+            "classification":"exclusive_highest_quality_tier",
+            "tracking":"qualified_engaged_sessions",
+            "parent_recent":15,"parent_previous":0,
+            "base_only":15,"variants":0,"roles":0,"tags":0,"actions":0,
+        }
+        parent = portfolio_adjustment(None,{**common,"cv_attribution":raw},TODAY)
+        self.assertTrue(parent["cv_attribution_available"])
+        self.assertGreater(parent["cv_attribution_effect"],0)
+        self.assertEqual(parent["cv_attribution_tiers"]["roles"],0)
+        self.assertEqual(parent["cv_attribution_tiers"]["tags"],0)
+        self.assertEqual(parent["general_effect"],0)
+        targeted = portfolio_adjustment(None,{**common,"cv_attribution":{
+            **raw,"base_only":10,"variants":1,"roles":2,"tags":1,"actions":1
+        }},TODAY)
+        self.assertGreater(targeted["cv_attribution_effect"],parent["cv_attribution_effect"])
+        self.assertLessEqual(targeted["cv_attribution_effect"],CV_ATTRIBUTION_CAP)
+        self.assertLessEqual(targeted["effect"],PORTFOLIO_CAP)
+        self.assertEqual(targeted["cv_attribution_tiers"]["parent_recent"],15)
+        self.assertEqual(sum(targeted["cv_attribution_tiers"][key] for key
+                             in ("base_only","variants","roles","tags","actions")),15)
+        # Same visitor cannot claim several highest-quality buckets.
+        corrupted = portfolio_adjustment(None,{**common,"cv_attribution":{
+            **raw,"variants":15,"roles":15,"tags":15
+        }},TODAY)
+        self.assertFalse(corrupted["cv_attribution_available"])
+        self.assertEqual(corrupted["cv_attribution_effect"],0)
+
+    def test_cv_role_or_tag_evidence_influences_future_offer_curve(self):
+        core = [event(n,days_ago=(n*3)%52+1) for n in range(1,37)]
+        common = {
+            "quality_checked": True,
+            "includes_partial_today": True,
+            "recent_from": (TODAY-timedelta(days=27)).isoformat(),
+            "previous_from": (TODAY-timedelta(days=55)).isoformat(),
+            "through": TODAY.isoformat(),
+            "cv_download_sessions":{"recent":0,"previous":0},
+            "contact_click_sessions":{"recent":0,"previous":0},
+        }
+        origin = {"classification":"exclusive_highest_quality_tier",
+                  "tracking":"qualified_engaged_sessions",
+                  "parent_recent":15,"parent_previous":0,
+                  "base_only":15,"variants":0,"roles":0,"tags":0,"actions":0}
+        baseline = forecast_hiring(core,TODAY,portfolio_actions={
+            **common,"cv_attribution":origin})
+        enriched = forecast_hiring(core,TODAY,portfolio_actions={
+            **common,"cv_attribution":{
+                **origin,"base_only":11,"variants":1,"roles":2,"tags":1
+            }})
+        self.assertGreater(enriched["drivers"]["portfolio"]["cv_attribution_effect"],
+                           baseline["drivers"]["portfolio"]["cv_attribution_effect"])
+        self.assertGreaterEqual(enriched["curve"][-1]["Current pace"],
+                                baseline["curve"][-1]["Current pace"])
+
+    def test_attribution_quality_must_be_explicit(self):
+        from hiring_forecast_signals import portfolio_adjustment
+        common={
+            "quality_checked":True,
+            "includes_partial_today":True,
+            "recent_from":(TODAY-timedelta(days=27)).isoformat(),
+            "previous_from":(TODAY-timedelta(days=55)).isoformat(),
+            "through":TODAY.isoformat(),
+            "cv_download_sessions":{"recent":0,"previous":0},
+            "contact_click_sessions":{"recent":0,"previous":0},
+        }
+        bad={"parent_recent":20,"base_only":20,"variants":0,
+             "roles":0,"tags":0,"actions":0}
+        r=portfolio_adjustment(None,{**common,"cv_attribution":bad},TODAY)
+        self.assertEqual(r["cv_attribution_effect"],0)
+        self.assertFalse(r["cv_attribution_available"])
+        # Unqualified or stale action summaries cannot grant a CV-source bonus.
+        r=portfolio_adjustment(None,{**common,"quality_checked":False,
+                                     "cv_attribution":bad},TODAY)
+        self.assertEqual(r["cv_attribution_effect"],0)
+
     def test_market_can_help_or_hurt_and_avoids_look_ahead(self):
         from hiring_forecast_signals import market_adjustment, MARKET_CAP
         def indicator(key, score, published="2026-09-30"):

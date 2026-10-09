@@ -137,6 +137,21 @@ def render_hiring_predictor(
             f"{len(supportive)} supportive and {len(adverse)} adverse indicators. "
             "Both affect the model."
         )
+    if portfolio.get("cv_attribution_available"):
+        tiers = portfolio["cv_attribution_tiers"]
+        st.caption(
+            f"**CV source quality:** {portfolio['cv_attribution_effect']:+.1%} "
+            f"within the portfolio contribution. "
+            f"{tiers['parent_recent']} engaged CV-origin sessions; "
+            f"{tiers['variants']} specific source variants, "
+            f"{tiers['roles']} target-role referrals, "
+            f"{tiers['tags']} campaign-tagged visits and "
+            f"{tiers['actions']} CV-origin hiring actions. "
+            "Missing source/role/tag data receives no extra credit."
+        )
+    else:
+        st.caption("**CV source quality:** awaiting quality-screened attribution "
+                   "counts; no role or campaign tags are inferred.")
     movement = impact.get("combined_days")
     if movement is not None:
         if abs(movement) >= 7:
@@ -207,7 +222,9 @@ def render_hiring_predictor(
         st.markdown(
             "**Portfolio:** Quality-screened visits, engaged and deeper readers, "
             "CV downloads and contact clicks can add up to +12% to the future "
-            "opportunity rate. This is a positive heuristic, not employer attribution."
+            "opportunity rate. Up to +3% of that budget is reserved for CV-origin "
+            "channel quality, source variants, target roles and campaign tags. "
+            "This is a positive heuristic, not employer attribution."
         )
         if not portfolio["daily_history_available"]:
             st.caption("Visitor growth awaits comparable historical periods with "
@@ -221,7 +238,14 @@ def render_hiring_predictor(
         for driver in portfolio["drivers"]:
             if driver["effect"]:
                 is_action = driver["label"] in ("CV downloads", "Contact actions")
-                if is_action and not portfolio["full_action_baseline"]:
+                if driver["label"] in ("Specific CV source variants",
+                                       "Target-role CV referrals",
+                                       "Relevant CV campaign tags",
+                                       "CV-origin hiring actions"):
+                    evidence = f"{driver['current']} qualified CV sessions in the highest relevant tier"
+                elif driver["label"] == "Qualified CV parent channel":
+                    evidence = f"{driver['current']} engaged CV-origin sessions"
+                elif is_action and not portfolio["full_action_baseline"]:
                     evidence = f"{driver['current']} recorded recently; previous tracking is incomplete"
                 else:
                     evidence = f"{driver['current']} recent vs {driver['previous']} previous"

@@ -263,6 +263,44 @@ The hidden site-owner dashboard remains at:
 
 It is not part of public navigation and is marked noindex. All three reports — Page Views, Article Views, and Job Search Analytics — require the same Supabase CMS owner session (`cms_auth`). Switching reports uses native Streamlit controls rather than full-page links, so signing in once keeps the owner authenticated across analytics views within the active Streamlit session. Job-search records remain behind the owner bearer token; neither the table nor its rows should be exposed through public analytics RPCs. A fresh browser/Streamlit session still requires owner sign-in.
 
+### Private Job Search Analytics — adaptive portfolio correlations
+
+The **Portfolio correlations** tab compares two *independently collected* datasets,
+without pretending to identify a website visitor as a specific recruiter. Each
+visit reads current primary job events and the authenticated Supabase
+`careersite_portfolio_signals_daily_v1` RPC. While the dashboard is open, a
+Streamlit fragment refreshes both data sources approximately every 15 minutes.
+
+- **Owner-only access:** the new RPC checks the authenticated Supabase owner JWT and
+  grants execution only to `authenticated`, not `anon`/`PUBLIC`. It returns
+  daily **aggregates**, not visitor/session identifiers, IPs or individual routes.
+- **Comparable coverage:** V5 portfolio-tracking sessions only; exclude explicit
+  test records and known repeated low-engagement technical signatures. Exclude
+  the partial first day and the still-in-progress current day. Missing days
+  within the observed range are zero-filled.
+- **Job-event evidence:** deduplicated primary records, linked by exact
+  employer + role, dated at the event. Count distinct processes **per day**
+  for applications, inbound/two-way human contact, completed interviews,
+  explicit progression and explicit negative decisions. Do not use snapshot
+  totals as daily events.
+- **Adaptation:** re-evaluate the original two CV-related hypotheses every time;
+  automatically admit source and page features after at least 15 qualified
+  sessions across four days. Evaluate 0, 1–3 and 4–7-day exposure windows.
+- **False-positive controls:** require minimally informative days for Pearson
+  and Spearman correlation, screen multiple comparisons with Benjamini–Hochberg,
+  and recheck weekday-only, peak-day removal and split-half consistency.
+  Less than 42 complete observations cannot be classified as a monitored
+  statistical association; a repeated association needs at least 84 days and
+  sufficient positive outcome days. Approximate p/q values do **not** prove
+  causal effects, independence, or recruiters' identity.
+- **React to change:** recalculate ranking and status from current evidence.
+  When sufficient history exists, show recent versus previous 28-day changes
+  without retaining personal identifiers or rewriting historical events.
+
+The panel is deliberately not a predictive model or proof that portfolio visits
+produce interviews. It transparently reports when evidence is too sparse and
+does not self-modify business logic or data.
+
 ### Private Job Search Analytics — trends and signals
 
 The Job Search Analytics page includes a **Trends & signals** tab before the existing event, conversion, role and follow-up reporting. It presents:

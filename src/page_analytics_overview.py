@@ -26,6 +26,7 @@ _SOURCE_NAMES = {
     "market": "Swedish market",
     "site": "portfolio activity",
     "hiring": "qualified portfolio behavior",
+    "actions": "CV downloads and contact clicks",
 }
 
 
@@ -105,6 +106,7 @@ def render_analytics_overview(session: dict | None) -> None:
     market = []
     site = None
     hiring = {}
+    actions = None
     errors = []
     with st.spinner("Comparing current evidence…"):
         try:
@@ -120,11 +122,15 @@ def render_analytics_overview(session: dict | None) -> None:
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             errors.append("portfolio correlation")
         hiring = _fetch_hiring_intelligence("30d")
+        try:
+            actions = _fetch_rpc("careersite_hiring_predictor_actions_v1", {})
+        except (RuntimeError, TimeoutError, PermissionError, ValueError):
+            errors.append("portfolio action detail")
     current_signatures = {}
     failed_sources = {"jobs": "job search", "market": "market",
                       "site": "portfolio correlation"}
     for key, payload in (("jobs", jobs), ("market", market),
-                         ("site", site), ("hiring", hiring)):
+                         ("site", site), ("hiring", hiring), ("actions", actions)):
         # Unavailable sources must not be mistaken for newly deleted data.
         if payload is None or failed_sources.get(key) in errors:
             continue
@@ -155,7 +161,8 @@ def render_analytics_overview(session: dict | None) -> None:
     market_model = analyze_market(market,jobs,site,now.date()) if market else None
     site_corr = analyze_portfolio_job_correlations(site,jobs) if site and jobs else None
     if jobs:
-        render_hiring_predictor(jobs,market_model,site_corr,hiring,now.date())
+        render_hiring_predictor(jobs,market_model,site_corr,hiring,now.date(),
+                                portfolio_actions=actions)
     else:
         st.subheader("Hiring predictor")
         st.info("Forecast unavailable until primary job-search evidence can be loaded.")

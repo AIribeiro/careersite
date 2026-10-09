@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import hashlib
+import json
 
 import streamlit as st
 
@@ -16,6 +18,33 @@ from page_job_market_insights import fetch_market_records, _latest_by_indicator,
 from page_job_search_analytics import fetch_job_records
 from page_hiring_predictor import render_hiring_predictor
 from site_cms import ensure_owner_session
+
+
+_REFRESH_INTERVAL = "5m"
+_SOURCE_NAMES = {
+    "jobs": "job search",
+    "market": "Swedish market",
+    "site": "portfolio activity",
+    "hiring": "qualified portfolio behavior",
+}
+
+
+def _evidence_signature(value: object) -> str:
+    """Stable fingerprint of source data, not a cross-session data cache."""
+    serialized = json.dumps(value, sort_keys=True, separators=(",", ":"),
+                            ensure_ascii=False, default=str)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def _changes_since_last_check(
+    previous: dict[str, str] | None, current: dict[str, str],
+) -> list[str]:
+    """Only report actual changed, successfully loaded sources."""
+    if not previous:
+        return []
+    return [label for key, label in _SOURCE_NAMES.items()
+            if key in previous and key in current
+            and previous[key] != current[key]]
 
 
 def _go(view: str) -> None:
@@ -61,7 +90,7 @@ def _action_queue(search: dict) -> list[dict]:
     return sorted(queue,key=lambda r:(r["_sort"],-(r["Days since event"] or 0)))[:5]
 
 
-@st.fragment(run_every="15m")
+@st.fragment(run_every=_REFRESH_INTERVAL)
 def render_analytics_overview(session: dict | None) -> None:
     st.title("Decision overview")
     st.caption("Your portfolio, job-search progress and Swedish hiring conditions in one view. "
@@ -91,9 +120,25 @@ def render_analytics_overview(session: dict | None) -> None:
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             errors.append("portfolio correlation")
         hiring = _fetch_hiring_intelligence("30d")
-    st.caption(f"Checked {now:%d %b %Y at %H:%M} Stockholm · "
-               "job evidence is imported, portfolio activity updates when recorded, "
-               "market releases update only when new sources enter the database.")
+    current_signatures = {}
+    for key, payload in (("jobs", jobs), ("market", market),
+                         ("site", site), ("hiring", hiring)):
+        # Unavailable sources must not be mistaken for newly deleted data.
+        if payload is not None and (key not in ("jobs", "market") or key not in errors):
+            if key == "hiring" and not payload:
+                continue
+            current_signatures[key] = _evidence_signature(payload)
+    previous_signatures = st.session_state.get("analytics_overview_source_signatures")
+    changed = _changes_since_last_check(previous_signatures, current_signatures)
+    st.session_state["analytics_overview_source_signatures"] = {
+        **(previous_signatures or {}), **current_signatures,
+    }
+    st.caption(f"Last checked {now:%d %b %Y at %H:%M} Stockholm · "
+               "automatically checks source changes every 5 minutes while Overview is open; "
+               "recalculates immediately when the page is reopened. "
+               "Data must first be recorded in Supabase.")
+    if changed:
+        st.caption("New data detected and forecast recalculated: " + ", ".join(changed) + ".")
     if errors:
         st.warning("Some sources were temporarily unavailable: " + ", ".join(errors)
                    + ". Other available sections remain usable.")

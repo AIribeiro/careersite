@@ -8,6 +8,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hiring_predictor import forecast_hiring
+from page_analytics_overview import _evidence_signature, _changes_since_last_check
 
 
 TODAY = date(2026, 10, 9)
@@ -67,6 +68,29 @@ class HiringPredictorTests(unittest.TestCase):
         self.assertEqual(baseline["curve"], enriched["curve"])
         self.assertEqual(enriched["sources"]["market_indicator_series"], 8)
         self.assertEqual(enriched["sources"]["qualified_portfolio_sessions_30d"], 123)
+
+    def test_source_fingerprint_detects_only_recorded_changes(self):
+        previous = {
+            "jobs": _evidence_signature([{"id": 1, "status": "applied"}]),
+            "market": _evidence_signature([{"id": 1, "score": 15}]),
+            "site": _evidence_signature({"sessions": 2}),
+        }
+        self.assertEqual(_changes_since_last_check(None, previous), [])
+        self.assertEqual(_changes_since_last_check(previous, dict(previous)), [])
+        changed = dict(previous)
+        changed["jobs"] = _evidence_signature([{"id": 1, "status": "interview"}])
+        changed["site"] = _evidence_signature({"sessions": 3})
+        self.assertEqual(
+            _changes_since_last_check(previous, changed),
+            ["job search", "portfolio activity"],
+        )
+        self.assertEqual(
+            _changes_since_last_check(previous, {"market": previous["market"]}), [],
+        )
+        self.assertEqual(
+            _evidence_signature({"a": 1, "b": 2}),
+            _evidence_signature({"b": 2, "a": 1}),
+        )
 
     def test_future_events_are_not_used_to_predict_today(self):
         now = [event(n, n % 24 + 1) for n in range(1, 20)]

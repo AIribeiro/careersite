@@ -107,7 +107,8 @@ class ContentIntelligenceTests(unittest.TestCase):
         from streamlit.testing.v1 import AppTest
         code = 'from page_analytics_v2 import render_analytics_dashboard\nrender_analytics_dashboard()'
         for section in ('pages', 'articles'):
-            with patch('page_analytics_v2.render_reader_sources'), patch('page_analytics_v2.render_content_intelligence') as content, \
+            with patch('page_analytics_v2._owner_session', return_value={'access_token': 'test-owner'}), \
+                 patch('page_analytics_v2.render_reader_sources'), patch('page_analytics_v2.render_content_intelligence') as content, \
                  patch('page_analytics_v2.render_site_analytics_dashboard') as pages, \
                  patch('page_analytics_v2.render_article_analytics') as articles:
                 at = AppTest.from_string(code)

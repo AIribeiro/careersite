@@ -232,7 +232,18 @@ def forecast_hiring(
             "A formal offer and a first day of work are different events.",
         ],
     }
-    if recorded_offers:
+    # Historical offers are not evidence of being hired today. A previous
+    # declined or closed offer must not permanently disable future forecasts.
+    live_processes = {
+        process_key({"employer": p["Employer"], "role": p["Role"]})
+        for p in processes if p["State"] != "Closed / paused"
+    }
+    open_offer = any(
+        offer(event) and process_key(event) in live_processes
+        and (as_of - day(event.get("event_date"))).days <= 90
+        for event in events
+    )
+    if open_offer:
         result["status"] = "offer_recorded"
         return result
     if len(events) < 8 or not first or (not open_stages and last28 + prior28 < 3):

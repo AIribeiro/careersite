@@ -70,7 +70,9 @@ class JobAnalyticsTests(unittest.TestCase):
         code="from page_job_search_analytics import render_job_report\nrender_job_report([dict(id=1,record_type='evidence_event',is_primary_analytics_record=True,event_date='2026-09-01',employer='Example',role='Director AI',is_application=True)])"
         at=AppTest.from_string(code).run(timeout=15)
         self.assertFalse(at.exception)
-        self.assertGreater(len(at.get('vega_lite_chart')),3)
-        self.assertEqual(len(at.tabs),8)
-        self.assertEqual(at.tabs[1].label,'Correlations & insights')
-        self.assertEqual(at.tabs[0].label,'Trends & signals')
+        self.assertGreaterEqual(len(at.get('vega_lite_chart')),1)
+        # The redesigned decision dashboard progressively loads details
+        # rather than creating eight nested, fully-rendered tab trees.
+        self.assertEqual(len(at.tabs),0)
+        self.assertGreaterEqual(len(at.metric),4)
+        self.assertIn('Next recruitment actions',[h.value for h in at.subheader])

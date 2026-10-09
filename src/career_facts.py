@@ -34,7 +34,7 @@ IBM_DATES = "Jul 2017 - Jun 2018"
 
 SELECTED_CREDENTIALS = (
     "EITCA/AI Artificial Intelligence Academy (24 ECTS)",
-    "Generative AI for Executives and Business Leaders Specialization",
+    "Microsoft Leadership and Innovation Professional Certificate",
     "Responsible Generative AI",
 )
 

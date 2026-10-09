@@ -115,11 +115,15 @@ def portfolio_adjustment(site_model: dict | None, actions: dict | None,
         ])
 
     # Do not compare 56-day counts to partial months or stale sessions.
-    expected_recent = (end - timedelta(days=27)).isoformat()
-    expected_prior = (end - timedelta(days=55)).isoformat()
+    # The owner action RPC includes the current partial day so CV/contact
+    # actions are reflected on the next five-minute Overview refresh.
+    # The visitor growth comparison remains based on *complete* days.
+    action_end = as_of if actions and actions.get("includes_partial_today") else end
+    expected_recent = (action_end - timedelta(days=27)).isoformat()
+    expected_prior = (action_end - timedelta(days=55)).isoformat()
     valid_actions = bool(actions and actions.get("recent_from") == expected_recent
                          and actions.get("previous_from") == expected_prior
-                         and actions.get("through") == end.isoformat()
+                         and actions.get("through") == action_end.isoformat()
                          and actions.get("quality_checked") is True)
     if valid_actions:
         cv = actions.get("cv_download_sessions") or {}

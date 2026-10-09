@@ -10,6 +10,7 @@ import altair as alt
 import streamlit as st
 
 from job_search_metrics import analyze, canonical_events, day, ratio, completed_interview
+from page_job_search_trends import render_job_search_trends
 from site_cms import _request_json, _rest_url
 
 FIELDS = ('id,record_type,event_date,snapshot_date,employer,role,status,event_type,stage_outcome,activity,'
@@ -167,8 +168,10 @@ def render_job_report(records):
     if report['quality']['source_missing']:
         st.caption(f"Source channel is missing on {report['quality']['source_missing']} of {len(rows)} selected event records; channel success cannot yet be assessed reliably.")
 
-    momentum, conversion, targeting, pipeline, followups, evidence = st.tabs([
-        'Activity trend','Conversion & speed','Roles & channels','Process health','Follow-ups','Evidence & coverage'])
+    trends, momentum, conversion, targeting, pipeline, followups, evidence = st.tabs([
+        'Trends & signals','Activity trend','Conversion & speed','Roles & channels','Process health','Follow-ups','Evidence & coverage'])
+    with trends:
+        render_job_search_trends(records, start, end, employer)
     with momentum:
         cadence = st.segmented_control('Group activity by',['Week','Month'],default='Week') or 'Week'
         data = report['weekly' if cadence=='Week' else 'monthly']

@@ -111,7 +111,7 @@ class PortfolioJobCorrelationTests(unittest.TestCase):
         from unittest.mock import patch
         from streamlit.testing.v1 import AppTest
         site,jobs=fake_data()
-        code="from page_portfolio_job_correlations import render_portfolio_job_correlations\\nrender_portfolio_job_correlations()"
+        code="from page_portfolio_job_correlations import render_portfolio_job_correlations\nrender_portfolio_job_correlations()"
         with (
             patch("page_portfolio_job_correlations.ensure_owner_session",
                   return_value={"access_token":"test-owner"}),

@@ -112,10 +112,12 @@ class PortfolioJobCorrelationTests(unittest.TestCase):
         from streamlit.testing.v1 import AppTest
         site,jobs=fake_data()
         code="from page_portfolio_job_correlations import render_portfolio_job_correlations\\nrender_portfolio_job_correlations()"
-        with patch("page_portfolio_job_correlations.ensure_owner_session",
-                   return_value={"access_token":"test-owner"}), \\
-             patch("page_portfolio_job_correlations._fetch_rpc",return_value=site), \\
-             patch("page_job_search_analytics.fetch_job_records",return_value=jobs):
+        with (
+            patch("page_portfolio_job_correlations.ensure_owner_session",
+                  return_value={"access_token":"test-owner"}),
+            patch("page_portfolio_job_correlations._fetch_rpc",return_value=site),
+            patch("page_job_search_analytics.fetch_job_records",return_value=jobs),
+        ):
             at=AppTest.from_string(code)
             at.session_state["cms_auth"]={"access_token":"test-owner"}
             at.run(timeout=15)

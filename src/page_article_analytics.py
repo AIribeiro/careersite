@@ -18,13 +18,13 @@ from page_analytics import (
     _section,
     _seconds,
 )
-from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
+from site_analytics import ANALYTICS_URL
+from site_analytics_owner import owner_rpc_headers
 from thinking_articles import resolve_article
 
 ARTICLE_DASHBOARD_RPC = "careersite_analytics_articles_v2"
 
 
-@st.cache_data(ttl=60, show_spinner=False)
 def _fetch_article_dashboard(window: str) -> dict:
     endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{ARTICLE_DASHBOARD_RPC}"
     payload = json.dumps(_dashboard_payload(window)).encode("utf-8")
@@ -32,11 +32,7 @@ def _fetch_article_dashboard(window: str) -> dict:
         endpoint,
         data=payload,
         method="POST",
-        headers={
-            "apikey": ANALYTICS_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        },
+        headers=owner_rpc_headers(),
     )
     try:
         with request.urlopen(req, timeout=12) as response:

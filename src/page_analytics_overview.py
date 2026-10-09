@@ -14,6 +14,7 @@ from page_analytics import _fetch_hiring_intelligence
 from page_content_intelligence import _fetch_rpc
 from page_job_market_insights import fetch_market_records, _latest_by_indicator, _format_value, _readouts
 from page_job_search_analytics import fetch_job_records
+from page_hiring_predictor import render_hiring_predictor
 from site_cms import ensure_owner_session
 
 
@@ -101,6 +102,17 @@ def render_analytics_overview(session: dict | None) -> None:
     if jobs:
         search, trends = _search_brief(jobs,now.date())
 
+    # A single pass supplies the beta model and later drill-down summaries.
+    # Cross-domain relationships are contextual unless independently validated.
+    market_model = analyze_market(market,jobs,site,now.date()) if market else None
+    site_corr = analyze_portfolio_job_correlations(site,jobs) if site and jobs else None
+    if jobs:
+        render_hiring_predictor(jobs,market_model,site_corr,hiring,now.date())
+    else:
+        st.subheader("Hiring predictor")
+        st.info("Forecast unavailable until primary job-search evidence can be loaded.")
+    st.divider()
+
     st.subheader("Where your search stands")
     if search:
         processes = search["processes"]
@@ -164,11 +176,10 @@ def render_analytics_overview(session: dict | None) -> None:
         st.caption("The quality-filtered visitor summary is currently unavailable.")
 
     if site and jobs:
-        corr = analyze_portfolio_job_correlations(site,jobs)
-        if corr.get("top_status") is None:
+        if site_corr and site_corr.get("top_status") is None:
             st.info("Portfolio visits and job-search outcomes do not yet show a defensible repeated association. "
                     "The correlation engine continues checking timing, signal quality and new sources.")
-        else:
+        elif site_corr:
             st.info("A portfolio ↔ job-search association passed initial screening. "
                     "Review the evidence, lag and alternate explanations before interpreting it.")
     elif site:
@@ -179,7 +190,7 @@ def render_analytics_overview(session: dict | None) -> None:
     st.divider()
     st.subheader("What the Swedish market is telling you")
     if market:
-        model = analyze_market(market,jobs,site,now.date())
+        model = market_model
         by_key = _latest_by_indicator(model["latest"])
         highlights = [by_key[k] for k in (
             "employment_outlook_net_vgr",

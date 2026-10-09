@@ -268,7 +268,8 @@ def render_job_report(records):
             if action_rows:
                 st.dataframe(action_rows,hide_index=True,width='stretch')
             else:
-                st.info('No documented follow-up requirements in this scope.')    elif focus == "conversion":
+                st.info('No documented follow-up requirements in this scope.')
+    elif focus == "conversion":
         detail = st.selectbox("Performance question",
             ["funnel","targeting","pipeline"],
             format_func=lambda x:{
@@ -370,7 +371,8 @@ def render_job_report(records):
                 for row in audit:
                     writer.writerow({k: "'"+v if isinstance(v,str) and v.startswith(('=','+','-','@')) else v for k,v in row.items()})
                 st.download_button('Download filtered evidence CSV',output.getvalue(),'job-search-evidence.csv','text/csv')
-            details('Imported methodology',[{'Method':r.get('interpretation') or r.get('activity')} for r in records if r.get('record_type')=='methodology'])    st.caption("Source records are imported; the dashboard does not scan private email "
+            details('Imported methodology',[{'Method':r.get('interpretation') or r.get('activity')} for r in records if r.get('record_type')=='methodology'])
+    st.caption("Source records are imported; the dashboard does not scan private email "
                "or create applications by itself.")
 
 

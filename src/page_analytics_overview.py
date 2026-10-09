@@ -121,13 +121,16 @@ def render_analytics_overview(session: dict | None) -> None:
             errors.append("portfolio correlation")
         hiring = _fetch_hiring_intelligence("30d")
     current_signatures = {}
+    failed_sources = {"jobs": "job search", "market": "market",
+                      "site": "portfolio correlation"}
     for key, payload in (("jobs", jobs), ("market", market),
                          ("site", site), ("hiring", hiring)):
         # Unavailable sources must not be mistaken for newly deleted data.
-        if payload is not None and (key not in ("jobs", "market") or key not in errors):
-            if key == "hiring" and not payload:
-                continue
-            current_signatures[key] = _evidence_signature(payload)
+        if payload is None or failed_sources.get(key) in errors:
+            continue
+        if key == "hiring" and not payload:
+            continue
+        current_signatures[key] = _evidence_signature(payload)
     previous_signatures = st.session_state.get("analytics_overview_source_signatures")
     changed = _changes_since_last_check(previous_signatures, current_signatures)
     st.session_state["analytics_overview_source_signatures"] = {

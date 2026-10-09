@@ -10,7 +10,7 @@ import altair as alt
 import streamlit as st
 
 from job_search_metrics import analyze, canonical_events, day, ratio, completed_interview
-from site_cms import ensure_owner_session, owner_signin, _request_json, _rest_url
+from site_cms import _request_json, _rest_url
 
 FIELDS = ('id,record_type,event_date,snapshot_date,employer,role,status,event_type,stage_outcome,activity,'
           'source_channel,metric_name,metric_value,metric_value_text,interpretation,is_application,'
@@ -34,25 +34,6 @@ def fetch_job_records(token):
         offset += 500
         if offset >= 100000:
             raise RuntimeError('The evidence table is too large for this view; narrow the server query before continuing.')
-
-
-def _owner_session():
-    session = ensure_owner_session(st.session_state.get('cms_auth'))
-    if session:
-        st.session_state['cms_auth'] = session
-        return session
-    st.session_state.pop('cms_auth', None)
-    st.info('Private dashboard. Sign in with your portfolio CMS owner password.')
-    with st.form('job_search_signin', clear_on_submit=True):
-        password = st.text_input('Owner password', type='password')
-        submitted = st.form_submit_button('Sign in', type='primary')
-    if submitted:
-        try:
-            st.session_state['cms_auth'] = owner_signin(password)
-            st.rerun()
-        except (RuntimeError, ValueError, TimeoutError):
-            st.error('Sign-in failed. Check your CMS owner password and try again.')
-    return None
 
 
 def bar(rows, category, value, *, color='#527bd9', percent=False, preserve_order=False):
@@ -289,18 +270,16 @@ def render_job_report(records):
     st.caption('This dashboard reads the imported table; it does not automatically scan email or add applications.')
 
 
-def render_job_search_analytics():
+def render_job_search_analytics(session: dict | None = None) -> None:
+    """Read private job evidence using the Analytics page's shared owner session."""
     st.title('Job Search Analytics')
-    session = _owner_session()
-    if not session:
+    if not session or not session.get('access_token'):
+        st.warning('Sign in to Portfolio Analytics to view private job-search records.')
         return
-    if st.button('Sign out of owner session',key='job_signout'):
-        st.session_state.pop('cms_auth',None)
-        st.rerun()
     try:
         with st.spinner('Loading private job-search evidence…'):
-            records=fetch_job_records(str(session['access_token']))
-    except (RuntimeError,TimeoutError):
+            records = fetch_job_records(str(session['access_token']))
+    except (RuntimeError, TimeoutError):
         st.error('Private job-search data could not be loaded. Your owner session may need a fresh sign-in.')
         return
     if not records:

@@ -11,6 +11,7 @@ import streamlit as st
 
 from job_search_metrics import analyze, canonical_events, day, ratio, completed_interview
 from page_job_search_trends import render_job_search_trends
+from page_portfolio_job_correlations import render_portfolio_job_correlations
 from site_cms import _request_json, _rest_url
 
 FIELDS = ('id,record_type,event_date,snapshot_date,employer,role,status,event_type,stage_outcome,activity,'
@@ -168,10 +169,17 @@ def render_job_report(records):
     if report['quality']['source_missing']:
         st.caption(f"Source channel is missing on {report['quality']['source_missing']} of {len(rows)} selected event records; channel success cannot yet be assessed reliably.")
 
-    trends, momentum, conversion, targeting, pipeline, followups, evidence = st.tabs([
-        'Trends & signals','Activity trend','Conversion & speed','Roles & channels','Process health','Follow-ups','Evidence & coverage'])
+    trends, correlations, momentum, conversion, targeting, pipeline, followups, evidence = st.tabs([
+        'Trends & signals','Portfolio correlations','Activity trend','Conversion & speed',
+        'Roles & channels','Process health','Follow-ups','Evidence & coverage'])
     with trends:
         render_job_search_trends(records, start, end, employer)
+    with correlations:
+        if st.session_state.get("cms_auth"):
+            st.caption("This analysis covers the full portfolio and job-search history. Employer and activity filters above do not restrict the cross-dataset comparison.")
+            render_portfolio_job_correlations()
+        else:
+            st.info("Sign in as the portfolio owner to analyze private cross-dataset trends.")
     with momentum:
         cadence = st.segmented_control('Group activity by',['Week','Month'],default='Week') or 'Week'
         data = report['weekly' if cadence=='Week' else 'monthly']

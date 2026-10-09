@@ -10,18 +10,20 @@ from page_analytics import (
 from page_article_analytics import render_article_analytics, render_reader_sources
 from page_content_intelligence import render_content_intelligence
 from page_job_search_analytics import render_job_search_analytics
+from page_job_market_insights import render_swedish_job_market
 
 
 _VIEWS = {
     "pages": "Page Views",
     "articles": "Article Views",
     "jobs": "Job Search Analytics",
+    "market": "Swedish Job Market",
 }
 _VIEW_STATE_KEY = "careersite_analytics_view"
 
 
 def _owner_session() -> dict | None:
-    """Share the CMS owner session across the three analytics views."""
+    """Share the CMS owner session across every private analytics view."""
     session = ensure_owner_session(st.session_state.get("cms_auth"))
     if session:
         st.session_state["cms_auth"] = session
@@ -32,7 +34,7 @@ def _owner_session() -> dict | None:
 
 def _owner_login() -> None:
     st.title("Portfolio Analytics")
-    st.caption("Private owner reporting. One sign-in covers Page Views, Article Views and Job Search Analytics.")
+    st.caption("Private owner reporting. One sign-in covers every private analytics view, including the Swedish Job Market.")
     with st.form("analytics_owner_signin", clear_on_submit=True):
         password = st.text_input("Owner password", type="password")
         submitted = st.form_submit_button("Sign in", type="primary")
@@ -98,6 +100,9 @@ def render_analytics_dashboard() -> None:
 
     if section == "jobs":
         render_job_search_analytics(session)
+        return
+    if section == "market":
+        render_swedish_job_market(session)
         return
 
     st.title(_VIEWS[section])

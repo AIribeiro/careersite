@@ -61,7 +61,7 @@ class JobAnalyticsTests(unittest.TestCase):
             at.run(timeout=15)
             self.assertFalse(at.exception)
             fetch.assert_not_called()
-            self.assertEqual(at.title[0].value,'Job Search Analytics')
+            self.assertEqual(at.title[0].value,'Portfolio Analytics')
             self.assertEqual(len(at.text_input),1)
             self.assertEqual(len(at.metric),0)
 
@@ -71,4 +71,5 @@ class JobAnalyticsTests(unittest.TestCase):
         at=AppTest.from_string(code).run(timeout=15)
         self.assertFalse(at.exception)
         self.assertGreater(len(at.get('vega_lite_chart')),3)
-        self.assertEqual(len(at.tabs),6)
+        self.assertEqual(len(at.tabs),7)
+        self.assertEqual(at.tabs[0].label,'Trends & signals')

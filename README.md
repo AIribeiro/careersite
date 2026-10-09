@@ -263,6 +263,17 @@ The hidden site-owner dashboard remains at:
 
 It is not part of public navigation and is marked noindex. All three reports — Page Views, Article Views, and Job Search Analytics — require the same Supabase CMS owner session (`cms_auth`). Switching reports uses native Streamlit controls rather than full-page links, so signing in once keeps the owner authenticated across analytics views within the active Streamlit session. Job-search records remain behind the owner bearer token; neither the table nor its rows should be exposed through public analytics RPCs. A fresh browser/Streamlit session still requires owner sign-in.
 
+### Private Job Search Analytics — trends and signals
+
+The Job Search Analytics page includes a **Trends & signals** tab before the existing event, conversion, role and follow-up reporting. It presents:
+
+- **Comparable 28-day movement** in distinct linked hiring processes with application, inbound/two-way contact, completed interview or explicit negative-decision evidence. A complete 56-day selection is required for valid comparisons; sparse baseline coverage is flagged.
+- **Weekly or monthly movement** with periods that include zero recorded events. Values are distinct employer+role processes *within each period*, not lifetime application totals or job offers.
+- **Maturity-adjusted application cohorts** showing contacts and explicitly completed interviews within the first 28 days. Applications younger than 28 days are excluded from conversion denominators; outbound-only interactions do not count as employer contact.
+- **Latest official snapshot changes**, kept separate from incomplete event history. Employer-filtered reports omit portfolio-wide snapshot totals.
+
+The time series use the existing canonical-event deduplication method. They are not forecasts, do not imply that missing evidence means rejection, and preserve the existing owner-only Supabase authentication and RLS.
+
 ## Final content filter
 
 Before adding or expanding a section, ask:

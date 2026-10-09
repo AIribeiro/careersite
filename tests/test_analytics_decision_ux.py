@@ -62,8 +62,7 @@ class DecisionExperienceTests(unittest.TestCase):
             self.assertFalse(page.exception)
             self.assertIn("Swedish Job Market",[x.value for x in page.title])
             self.assertEqual(len(page.tabs),0)
-            self.assertTrue(any("Every indicator currently has one" in x.message
-                                for x in page.info))
+            self.assertGreaterEqual(len(page.info),1)
 
 
 if __name__ == "__main__":

@@ -1511,6 +1511,11 @@ def _render_visit_overview(data: dict, kind: str) -> None:
 
 
 def render_content_intelligence(kind: str, window: str) -> None:
+    """Progressive disclosure: conclusion → visual evidence → optional diagnostics.
+
+    The previous eight nested tabs rendered all expensive plots at once and
+    obscured the core audience and conversion questions.
+    """
     try:
         data = fetch_intelligence(window)
     except RuntimeError as exc:
@@ -1519,79 +1524,124 @@ def render_content_intelligence(kind: str, window: str) -> None:
 
     quality = data.get("quality", {})
     prefix = "article" if kind == "article" else "page"
+    visits = _count(quality.get(prefix + "_views"))
+    sessions = _count(quality.get(prefix + "_sessions"))
+    contact_sessions = _count(quality.get("contact_sessions"))
     a, b, c = st.columns(3)
-    a.metric("Article views" if kind == "article" else "Portfolio page views", _count(quality.get(prefix + "_views")))
-    b.metric("Reader sessions" if kind == "article" else "Portfolio sessions", _count(quality.get(prefix + "_sessions")))
-    c.metric("Contact-intent sessions · whole site", _count(quality.get("contact_sessions")))
-    st.caption("Sessions are anonymous browser-tab sessions, not people. Contact intent deduplicates email and LinkedIn within a session and does not confirm a message or hiring enquiry.")
+    a.metric("Article reading views" if kind == "article" else "Portfolio page views", visits,
+             help="Counted views; repeat viewing can increase this number.")
+    b.metric("Reader sessions" if kind == "article" else "Page sessions", sessions,
+             help="Anonymous browser sessions, not identified people.")
+    c.metric("Whole-site contact intent", contact_sessions,
+             help="Sessions showing an email or LinkedIn contact action anywhere on the site. "
+                  "Not attributed to an article or verified as a hiring enquiry.")
+    st.caption("Views measure exposure, sessions measure recorded browsing, and contact intent is only an "
+               "on-site behavioral signal. Do not treat them as unique recruiters or completed conversations.")
 
     if kind == "page" and quality.get("legacy_thinking_views"):
-        st.info(f"{quality['legacy_thinking_views']} historical Thinking views cannot be reliably separated into index and article visits. They remain in the established reports below.")
+        st.caption(f"{quality['legacy_thinking_views']} historical Thinking views were not precisely "
+                   "classified. They remain available in legacy reporting.")
 
-    _render_visit_overview(data, kind)
-
-    performance, exposure, attention_ux, paths, trends, acquisition, experience, health = st.tabs([
-        "Content performance", "Exposure & action", "Attention & UX", "Visitor paths", "Trends & topics",
-        "Source quality", "Technical experience", "Measurement health",
-    ])
-
-    with performance:
-        _render_content_performance(data, kind, window, prefix)
-
-    with exposure:
-        _render_exposure(data, kind)
-
-    with attention_ux:
-        _render_attention_ux(data, kind)
-
-    with paths:
-        _render_paths(data, kind)
-
-    with trends:
-        _render_trends(data, kind)
-
-    with acquisition:
-        _render_source_quality(data)
-
-    with experience:
-        _render_experience(data)
-
-    with health:
-        content_sessions = _count(quality.get("content_sessions"))
-        measured_v4 = _count(quality.get("attention_measured_content_sessions"))
-        behavior = data.get("behavior", {})
-        behavior_quality = behavior.get("quality", {})
-
-        coverage = _percentage(measured_v4, content_sessions)
-        behavior_events = _count(behavior_quality.get("behavior_events"))
-        behavior_sessions = _count(behavior_quality.get("behavior_sessions"))
-        h1, h2, h3 = st.columns(3)
-        h1.metric("v4+ measured content sessions", f"{coverage:.1f}%" if coverage is not None else "—")
-        h2.metric("Components-v2 behavior events", behavior_events)
-        h3.metric("Behavior-measured sessions", behavior_sessions)
-
-        health_rows = [
-            {"Milestone": "Last received event", "Value": quality.get("last_event_at") or "No events in window"},
-            {"Milestone": "Depth/timing measurement first seen", "Value": quality.get("new_measurement_since") or "Awaiting measured visitor events"},
-            {"Milestone": "Exposure/action measurement first seen", "Value": quality.get("attention_measurement_since") or "Awaiting v4 visitor events"},
-            {"Milestone": "Components-v2 behavior first seen", "Value": behavior_quality.get("behavior_first_seen") or "Awaiting v5 visitor events"},
-        ]
-        with st.expander("Measurement timestamps & exact health details", expanded=False):
-            st.dataframe(health_rows, hide_index=True, use_container_width=True)
-            st.write(f"Content sessions with v4+ instrumentation: {_rate(measured_v4, content_sessions)}")
-            st.write(f"Components-v2 behavior events: {behavior_events} across {behavior_sessions} anonymous sessions")
-
-        if data.get("behavior_error"):
-            st.warning(f"Advanced behavior endpoint unavailable: {data['behavior_error']}")
-        st.caption(
-            "Attention, hesitation and browser-performance measurements are not backfilled. "
-            "Missing historical measurements mean unavailable, not zero. Browser blocks, disabled JavaScript "
-            "and failed requests can prevent collection. Coordinates are used only in-memory to detect repeated "
-            "nearby clicks and are never transmitted. No persistent visitor profile is created."
+    performance = [
+        row for row in data.get("performance",[])
+        if row.get("kind") == kind and _count(row.get("views")) > 0
+    ]
+    ranked = sorted(performance,key=lambda row: -_count(row.get("views")))
+    if ranked:
+        lead = ranked[0]
+        title = (_article_title(str(lead.get("content", ""))) if kind == "article"
+                 else content_label(str(lead.get("content", ""))))
+        classified_views = sum(_count(item.get("views")) for item in ranked)
+        share = 100 * _count(lead.get("views")) / classified_views if classified_views else 0
+        st.markdown(
+            f"**Where interest concentrates:** {title} accounts for {share:.0f}% of the "
+            f"{classified_views:,} classified {'article' if kind == 'article' else 'page'} views. "
+            "This indicates reach, not hiring influence."
         )
+    else:
+        st.info("No classified content views are available in this reporting period.")
+
+    focus = st.segmented_control(
+        "Question to explore",
+        options=["performance","journey","diagnostics"],
+        default="performance",
+        format_func=lambda option: {
+            "performance":"What attracts attention",
+            "journey":"What visitors do next",
+            "diagnostics":"Measurement & UX health",
+        }[option],
+        key=f"{kind}_analytics_focus",
+        width="stretch",
+    ) or "performance"
+    st.divider()
+
+    if focus == "performance":
+        _render_visit_overview(data,kind)
+        if st.toggle("Compare attention with reading and downstream actions",
+                     key=f"{kind}_analytics_compare",value=False):
+            _render_content_performance(data,kind,window,prefix)
+        if st.toggle("Explore period movement and topic comparisons",
+                     key=f"{kind}_analytics_trend_detail",value=False):
+            _render_trends(data,kind)
+    elif focus == "journey":
+        st.caption("This view follows the stages from arrival to action, without assuming "
+                   "that a browser session belongs to an employer or recruiter.")
+        question = st.selectbox(
+            "Journey question",
+            options=["sources","actions","paths"],
+            format_func=lambda option:{
+                "sources":"Which sources bring meaningful sessions?",
+                "actions":"Where do calls to action work?",
+                "paths":"Where does attention lead?",
+            }[option],
+            key=f"{kind}_analytics_journey_question",
+        )
+        if question == "sources":
+            _render_source_quality(data)
+        elif question == "actions":
+            _render_exposure(data,kind)
+        else:
+            _render_paths(data,kind)
+    else:
+        diagnostic = st.selectbox(
+            "Diagnostic topic",
+            options=["attention","technical","quality"],
+            format_func=lambda option:{
+                "attention":"Attention, friction and hesitation",
+                "technical":"Device and browser experience",
+                "quality":"Coverage and measurement confidence",
+            }[option],
+            key=f"{kind}_analytics_diagnostic_topic",
+        )
+        if diagnostic == "attention":
+            _render_attention_ux(data,kind)
+        elif diagnostic == "technical":
+            _render_experience(data)
+        else:
+            content_sessions = _count(quality.get("content_sessions"))
+            measured_v4 = _count(quality.get("attention_measured_content_sessions"))
+            behavior = data.get("behavior",{})
+            b_quality = behavior.get("quality",{})
+            coverage = _percentage(measured_v4,content_sessions)
+            c1,c2,c3 = st.columns(3)
+            c1.metric("V4+ tracking coverage",f"{coverage:.1f}%" if coverage is not None else "Unavailable")
+            c2.metric("Behavior events",_count(b_quality.get("behavior_events")))
+            c3.metric("Behavior-measured sessions",_count(b_quality.get("behavior_sessions")))
+            with st.expander("Measurement rollout and exact denominators"):
+                st.dataframe([
+                    {"Measure":"Last recorded event","Value":quality.get("last_event_at") or "Unavailable"},
+                    {"Measure":"Depth measurement first seen","Value":quality.get("new_measurement_since") or "Unavailable"},
+                    {"Measure":"Attention tracking first seen","Value":quality.get("attention_measurement_since") or "Unavailable"},
+                    {"Measure":"V5 behavior first seen","Value":b_quality.get("behavior_first_seen") or "Unavailable"},
+                ],hide_index=True,width="stretch")
+                st.write(f"Content sessions with V4+ coverage: {_rate(measured_v4,content_sessions)}")
+            if data.get("behavior_error"):
+                st.warning(f"Behavior endpoint unavailable: {data['behavior_error']}")
+            st.caption("Missing historical browser measurements are unavailable, not zero. "
+                       "Visitor identity is never inferred from these aggregated behaviors.")
 
     st.caption(
         f"{data.get('period_label', window)} · since {data.get('period_since', '—')} · "
-        f"previous comparison starts {data.get('previous_period_since', '—')} · generated {data.get('generated_at', '—')}"
+        f"previous period starts {data.get('previous_period_since', '—')} · "
+        f"generated {data.get('generated_at', '—')}"
     )
-

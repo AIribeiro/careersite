@@ -69,6 +69,99 @@ class HiringPredictorTests(unittest.TestCase):
         self.assertEqual(enriched["sources"]["market_indicator_series"], 8)
         self.assertEqual(enriched["sources"]["qualified_portfolio_sessions_30d"], 123)
 
+    def test_portfolio_growth_and_cv_contact_actions_are_positive_bounded(self):
+        from hiring_forecast_signals import portfolio_adjustment, PORTFOLIO_CAP
+        series = []
+        for elapsed in range(56, 0, -1):
+            first_period = elapsed > 28
+            series.append({
+                "Date": (TODAY - timedelta(days=elapsed)).isoformat(),
+                "sessions": 2 if first_period else 6,
+                "engaged_10s": 1 if first_period else 5,
+                "article_readers": 1 if first_period else 4,
+                "multi_page_visitors": 0 if first_period else 2,
+                "impact_visitors": 0 if first_period else 2,
+                "governance_visitors": 0 if first_period else 2,
+            })
+        action_payload = {
+            "quality_checked": True,
+            "recent_from": (TODAY - timedelta(days=28)).isoformat(),
+            "previous_from": (TODAY - timedelta(days=56)).isoformat(),
+            "through": (TODAY - timedelta(days=1)).isoformat(),
+            "cv_download_sessions": {"recent": 4, "previous": 1},
+            "contact_click_sessions": {"recent": 5, "previous": 0},
+        }
+        p = portfolio_adjustment({"site_daily": series}, action_payload, TODAY)
+        self.assertGreater(p["effect"], 0)
+        self.assertLessEqual(p["effect"], PORTFOLIO_CAP)
+        self.assertEqual(len(p["drivers"]), 5)
+        self.assertTrue(p["qualified_actions_available"])
+        neutral = portfolio_adjustment({"site_daily": series},
+                                       {**action_payload, "quality_checked": False}, TODAY)
+        self.assertLess(neutral["effect"], p["effect"])
+
+    def test_market_can_help_or_hurt_and_avoids_look_ahead(self):
+        from hiring_forecast_signals import market_adjustment, MARKET_CAP
+        def indicator(key, score, published="2026-09-30"):
+            return {
+                "indicator_key": key,
+                "indicator_name": key,
+                "observation_date": "2026-09-29",
+                "published_at": published,
+                "signal_score": score,
+                "confidence_score": 95,
+                "relevance_score": 95,
+                "is_current": True,
+                "source_organization": "Sample source",
+            }
+        upbeat = {"latest": [
+            indicator("employment_outlook_it_tech", .9),
+            indicator("employment_outlook_net_vgr", .8),
+        ]}
+        adverse = {"latest": [
+            indicator("new_vacancies_arbetsformedlingen", -.9),
+            indicator("redundancy_notices", -.8),
+        ]}
+        self.assertGreater(market_adjustment(upbeat, TODAY)["effect"], 0)
+        self.assertLess(market_adjustment(adverse, TODAY)["effect"], 0)
+        self.assertLessEqual(abs(market_adjustment(upbeat, TODAY)["effect"]), MARKET_CAP)
+        future = {"latest": [indicator("employment_outlook_it_tech", 1.0, "2026-10-20")]}
+        self.assertEqual(market_adjustment(future, TODAY)["effect"], 0)
+        expired = {"latest": [{**indicator("employment_outlook_it_tech", 1.0),
+                               "valid_until": "2026-10-01"}]}
+        self.assertEqual(market_adjustment(expired, TODAY)["effect"], 0)
+        # A repeated/same-source indicator cannot stack the same opportunity signal.
+        doubled = {"latest": upbeat["latest"] + [indicator("employment_outlook_it_tech", 1.0)]}
+        self.assertAlmostEqual(market_adjustment(doubled, TODAY)["effect"],
+                               market_adjustment(upbeat, TODAY)["effect"])
+
+    def test_market_positive_or_negative_moves_curve_in_correct_direction(self):
+        jobs = [event(n, days_ago=(n * 3) % 52 + 1) for n in range(1, 37)]
+        base = forecast_hiring(jobs, TODAY)
+        market = lambda score: {"latest": [{
+            "indicator_key":"employment_outlook_it_tech",
+            "observation_date":"2026-09-30",
+            "published_at":"2026-10-02",
+            "signal_score":score,
+            "confidence_score":95,"relevance_score":95,
+        }]}
+        up = forecast_hiring(jobs, TODAY, market_model=market(.9))
+        down = forecast_hiring(jobs, TODAY, market_model=market(-.9))
+        self.assertGreater(up["drivers"]["market"]["effect"], 0)
+        self.assertLess(down["drivers"]["market"]["effect"], 0)
+        self.assertGreaterEqual(up["curve"][-1]["Current pace"],
+                                base["curve"][-1]["Current pace"])
+        self.assertLessEqual(down["curve"][-1]["Current pace"],
+                             base["curve"][-1]["Current pace"])
+        self.assertEqual(up["comparison"]["base"], base["crossings"]["Current pace"])
+
+    def test_missing_or_incomplete_history_keeps_portfolio_neutral(self):
+        from hiring_forecast_signals import portfolio_adjustment
+        partial = {"site_daily":[{"Date":(TODAY-timedelta(days=1)).isoformat(),
+                                  "sessions":10000}]}
+        self.assertEqual(portfolio_adjustment(partial,None,TODAY)["effect"],0)
+        self.assertFalse(portfolio_adjustment(partial,None,TODAY)["daily_history_available"])
+
     def test_source_fingerprint_detects_only_recorded_changes(self):
         previous = {
             "jobs": _evidence_signature([{"id": 1, "status": "applied"}]),

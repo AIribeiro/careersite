@@ -198,32 +198,40 @@ def analyze_market(rows: list[dict], jobs: list[dict], site_payload: dict | None
     # Each x observation is used once. A release date is required for exposure
     # to prevent look-ahead. Different indicators/units are never combined.
     for series, history in groups.items():
-        available = []
-        for row in history:
-            val, published = _num(row.get("metric_value")), _available(row)
-            if val is None or published is None or published > today:
-                continue
-            available.append((_month(published), val))
-        releases = {}
-        for released, val in available:
-            releases[released] = val
-        for outcome in OUTCOMES:
-            if outcome.startswith("portfolio_") and portfolio["complete_months"] == 0:
-                continue
-            for lag in LAGS:
-                paired = [(m, x, monthly[_next_month(m,lag)][outcome])
-                          for m,x in sorted(releases.items())
-                          if _next_month(m,lag) in monthly and
-                          (not outcome.startswith("portfolio_") or
-                           _next_month(m,lag) >= portfolio["first"])]
-                x = [float(a) for _,a,_ in paired]
-                y = [float(b) for _,_,b in paired]
-                result = _screen(x,y)
-                result.update(series_key=series, indicator=history[-1].get("indicator_name") or
-                              history[-1].get("indicator_key"), outcome=outcome,
-                              lag_months=lag, pairs=[p[0].isoformat() for p in paired],
-                              source=history[-1].get("source_organization"))
-                tested.append(result)
+        # Compare the reported source metric AND the distinct subjective score
+        # as separate hypotheses, never as interchangeable units.
+        for value_type, field in (("Source metric", "metric_value"),
+                                  ("Analyst score", "signal_score")):
+            available = []
+            for row in history:
+                val, published = _num(row.get(field)), _available(row)
+                if val is None or published is None or published > today:
+                    continue
+                available.append((_month(published), val))
+            releases = {}
+            for released, val in available:
+                releases[released] = val
+            for outcome in OUTCOMES:
+                if outcome.startswith("portfolio_") and portfolio["complete_months"] == 0:
+                    continue
+                for lag in LAGS:
+                    # Lag 0 is the FIRST WHOLE MONTH after publication. Never
+                    # match an outcome month containing pre-release activity.
+                    target = lambda release: _next_month(release, lag + 1)
+                    paired = [(m, x, monthly[target(m)][outcome])
+                              for m,x in sorted(releases.items())
+                              if target(m) in monthly and
+                              (not outcome.startswith("portfolio_") or
+                               target(m) >= portfolio["first"])]
+                    x = [float(a) for _,a,_ in paired]
+                    y = [float(b) for _,_,b in paired]
+                    result = _screen(x,y)
+                    result.update(series_key=series, indicator=history[-1].get("indicator_name") or
+                                  history[-1].get("indicator_key"), outcome=outcome,
+                                  value_type=value_type, lag_months=lag,
+                                  pairs=[p[0].isoformat() for p in paired],
+                                  source=history[-1].get("source_organization"))
+                    tested.append(result)
     _bh(tested)
     for candidate in tested:
         candidate["status"] = _classify(candidate)

@@ -135,7 +135,8 @@ def render_analytics_dashboard() -> None:
     if str(window) in ("last_hour","today"):
         st.caption("Short windows are useful for monitoring, not for judging hiring or content outcomes.")
     render_content_intelligence(str(kind), str(window))
-    with st.expander("Historical traffic reports & detailed source tables"):
+    if st.toggle("Inspect legacy traffic reports and detailed source tables",
+                 value=False,key="analytics_show_historical"):
         st.caption("Legacy reporting includes unfiltered traffic for continuity. "
                    "It should not replace the qualified-session and behavior measures above.")
         render_reader_sources(str(window), str(kind))

@@ -73,7 +73,7 @@ def render_analytics_dashboard() -> None:
     if _VIEW_STATE_KEY not in st.session_state:
         st.session_state[_VIEW_STATE_KEY] = _url_view()
 
-    nav, account = st.columns([6, 1], vertical_alignment="center")
+    nav, portfolio, account = st.columns([6, 1.6, 1], vertical_alignment="center")
     with nav:
         section = st.segmented_control(
             "Analytics view",
@@ -84,15 +84,16 @@ def render_analytics_dashboard() -> None:
             label_visibility="collapsed",
             width="stretch",
         ) or _url_view()
+    with portfolio:
+        if st.button("Portfolio", key="analytics_back_to_portfolio"):
+            # Stay on the same Streamlit connection so the owner session survives.
+            st.query_params.clear()
+            st.query_params["page"] = "home"
+            st.rerun()
     with account:
         if st.button("Sign out", key="analytics_owner_signout"):
             st.session_state.pop("cms_auth", None)
             st.rerun()
-
-    st.markdown(
-        '<a href="?page=home" target="_self">Back to portfolio</a>',
-        unsafe_allow_html=True,
-    )
     st.divider()
 
     if section == "jobs":

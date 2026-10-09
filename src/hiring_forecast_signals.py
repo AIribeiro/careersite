@@ -13,6 +13,8 @@ import math
 from job_search_metrics import day
 
 PORTFOLIO_CAP = 0.12
+PORTFOLIO_GENERAL_CAP = 0.09
+CV_ATTRIBUTION_CAP = 0.03
 MARKET_CAP = 0.12
 # Each selected topic gets ONE source to avoid double counting similar studies.
 MARKET_TOPICS = (
@@ -146,8 +148,59 @@ def portfolio_adjustment(site_model: dict | None, actions: dict | None,
             _driver("Contact actions", min(0.031,contact_effect), er, ep,
                     "Distinct qualified sessions clicking email or LinkedIn"),
         ])
-    total = min(PORTFOLIO_CAP, sum(d["effect"] for d in drivers))
+    # CV-origin scoring is a reserved part of the existing 12% portfolio
+    # budget, never an additional 12% nor a direct hiring probability.
+    # The SQL counts each qualified CV session once, assigning a single
+    # highest-quality tier: action > role > tag > variant > parent.
+    cv_attribution = (actions or {}).get("cv_attribution") if valid_actions else None
+    tiers = {key: max(0, int(_number((cv_attribution or {}).get(key))))
+             for key in ("parent_recent","parent_previous","base_only",
+                         "variants","roles","tags","actions")}
+    attribution_valid = bool(
+        isinstance(cv_attribution,dict)
+        and cv_attribution.get("classification") == "exclusive_highest_quality_tier"
+        and cv_attribution.get("tracking") == "qualified_engaged_sessions"
+        and sum(tiers[k] for k in ("base_only","variants","roles","tags","actions"))
+        <= tiers["parent_recent"]
+    )
+    if attribution_valid:
+        reach = tiers["parent_recent"]
+        # Two qualified, engaged, CV-sourced sessions are the minimum.
+        # No assumed growth until both periods have adequate V5 history.
+        parent_effect = (min(0.012, 0.004 + 0.001 * reach) if reach >= 2 else 0.0)
+        growth_effect = (min(0.003, 0.003 * _growth(
+            reach, tiers["parent_previous"], threshold=5))
+            if comparison_days == 28 else 0.0)
+        # All tiers below are mutually exclusive counts, already disjoint
+        # from the baseline-only group. A source cannot claim several tier
+        # bonuses through a single CV session.
+        drivers.extend([
+            _driver("Qualified CV parent channel",parent_effect+growth_effect,
+                    tiers["parent_recent"],tiers["parent_previous"],
+                    "Engaged, quality-screened sessions from CV attribution"),
+            _driver("Specific CV source variants",min(0.006,0.003*tiers["variants"]),
+                    tiers["variants"],None,"Explicit CV variant source, e.g. cv_recruiter"),
+            _driver("Target-role CV referrals",min(0.008,0.004*tiers["roles"]),
+                    tiers["roles"],None,"Explicit senior AI/data leadership role attribution"),
+            _driver("Relevant CV campaign tags",min(0.005,0.0025*tiers["tags"]),
+                    tiers["tags"],None,"Explicit AI/data/recruitment-oriented campaign tags"),
+            _driver("CV-origin hiring actions",min(0.005,0.0025*tiers["actions"]),
+                    tiers["actions"],None,"CV-origin sessions with a verified contact/CV action"),
+        ])
+    cv_drivers = drivers[-5:] if attribution_valid else []
+    attribution_effect = (min(CV_ATTRIBUTION_CAP,
+                             sum(d["effect"] for d in cv_drivers))
+                          if attribution_valid else 0.0)
+    general_effect = min(PORTFOLIO_GENERAL_CAP,
+                         sum(d["effect"] for d in drivers[:-5] if attribution_valid)
+                         if attribution_valid else sum(d["effect"] for d in drivers))
+    total = min(PORTFOLIO_CAP, general_effect + attribution_effect)
     return {"effect": round(total,5), "drivers":drivers,
+            "general_effect":round(general_effect,5),
+            "cv_attribution_effect":round(attribution_effect,5),
+            "cv_attribution_available":attribution_valid,
+            "cv_attribution_tiers":tiers if attribution_valid else {},
+            "cv_attribution_cap":CV_ATTRIBUTION_CAP,
             "values":values,"qualified_actions_available":valid_actions,
             "daily_history_available":len(drivers) >= 3,
             "comparison_days":comparison_days,

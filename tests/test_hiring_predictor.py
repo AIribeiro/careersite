@@ -100,6 +100,41 @@ class HiringPredictorTests(unittest.TestCase):
                                        {**action_payload, "quality_checked": False}, TODAY)
         self.assertLess(neutral["effect"], p["effect"])
 
+    def test_live_cv_action_updates_on_current_day(self):
+        from hiring_forecast_signals import portfolio_adjustment
+        actions = {
+            "quality_checked": True,
+            "includes_partial_today": True,
+            "recent_from": (TODAY - timedelta(days=27)).isoformat(),
+            "previous_from": (TODAY - timedelta(days=55)).isoformat(),
+            "through": TODAY.isoformat(),
+            "cv_download_sessions": {"recent": 2, "previous": 0},
+            "contact_click_sessions": {"recent": 1, "previous": 0},
+        }
+        first = portfolio_adjustment(None, actions, TODAY)
+        self.assertTrue(first["qualified_actions_available"])
+        self.assertGreater(first["effect"], 0)
+        changed = portfolio_adjustment(
+            None, {**actions, "cv_download_sessions":{"recent":3,"previous":0}}, TODAY
+        )
+        self.assertGreater(changed["effect"], first["effect"])
+
+    def test_short_complete_periods_get_less_weight(self):
+        from hiring_forecast_signals import portfolio_adjustment
+        def data(num_days):
+            return {"site_daily": [{
+                "Date": (TODAY-timedelta(days=i)).isoformat(),
+                "sessions": 8 if i <= num_days // 2 else 4,
+                "engaged_10s": 5 if i <= num_days // 2 else 3,
+                "article_readers": 6 if i <= num_days // 2 else 3,
+            } for i in range(1,num_days+1)]}
+        short = portfolio_adjustment(data(12),None,TODAY)
+        long = portfolio_adjustment(data(56),None,TODAY)
+        self.assertEqual(short["comparison_days"],6)
+        self.assertEqual(long["comparison_days"],28)
+        self.assertGreater(short["effect"],0)
+        self.assertGreater(long["effect"],short["effect"])
+
     def test_market_can_help_or_hurt_and_avoids_look_ahead(self):
         from hiring_forecast_signals import market_adjustment, MARKET_CAP
         def indicator(key, score, published="2026-09-30"):

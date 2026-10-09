@@ -126,164 +126,252 @@ def _cohort_chart(rows, title):
 
 
 def render_job_report(records):
-    _snapshot(records)
-    st.divider()
+    """Decision-first job analysis with optional evidence inspection."""
     events = canonical_events(records)
     if not events:
-        st.info('No canonical event evidence has been imported yet.')
+        st.info("No canonical job events are available.")
         return
-    today = datetime.now(ZoneInfo('Europe/Stockholm')).date()
-    dates = [day(r.get('event_date')) for r in events if day(r.get('event_date')) and day(r.get('event_date')) <= today]
-    earliest = min(dates) if dates else today
-    st.subheader('Activity and process evidence')
-    a,b,c = st.columns([1,1,2])
-    start = a.date_input('Activity from', earliest, max_value=today, key='job_start')
-    end = b.date_input('Through / status as of', today, max_value=today, key='job_end')
-    employer = c.selectbox('Employer', ['All employers']+sorted({r['employer'] for r in events if r.get('employer')}))
-    undated = st.checkbox('Include undated evidence in counts and process lists', value=True)
+    today = datetime.now(ZoneInfo("Europe/Stockholm")).date()
+    observed = [day(r.get("event_date")) for r in events
+                if day(r.get("event_date")) and day(r.get("event_date")) <= today]
+    earliest = min(observed) if observed else today
+    with st.expander("Refine dates and employer",expanded=False):
+        a,b,c = st.columns([1,1,2])
+        start = a.date_input("Activity from",earliest,max_value=today,key="job_start")
+        end = b.date_input("Through / status as of",today,max_value=today,key="job_end")
+        employer = c.selectbox("Employer",["All employers"]+
+                     sorted({r["employer"] for r in events if r.get("employer")}))
+        undated = st.checkbox("Include undated evidence in process lists",
+                              value=True,key="job_include_undated")
     if start > end:
-        st.warning('Choose an end date on or after the start date.')
+        st.warning("Choose an end date on or after the start date.")
         return
     report = analyze(records,start,end,undated,employer)
-    rows, processes, cohort = report['events'], report['processes'], report['cohort']
-    a,b,c,d = st.columns(4)
-    a.metric('Application event records', report['counts']['Applications'])
-    b.metric('Human interaction events', report['counts']['Human interactions'])
-    c.metric('Completed-interview evidence', sum(completed_interview(r) for r in rows))
-    d.metric('Follow-up events sent', report['counts']['Follow-ups sent'])
-    st.caption('Counts use deduplicated primary event records. They are a partial evidence set, not a reconstruction of the official totals. '
-               'Process matching uses exact employer + role after case/spacing normalization; aliases and repeat vacancies may need reconciliation.')
-    active = [p for p in processes if p['State']=='Active documented']
-    waiting = [p for p in processes if p['Waiting']]
-    due = [p for p in processes if p['Overdue'] or p['Follow-up due']]
-    st.subheader('What needs attention')
-    a,b,c = st.columns(3)
-    a.metric('Documented active processes', len(active))
-    b.metric('Follow-ups awaiting response', len(waiting))
-    c.metric('Overdue / follow-up due', len(due))
-    st.caption('Process state uses available evidence through the end date, including events before the activity start. '
-               'No reply is not a rejection. Status is only as current as the imported evidence.')
-    if due:
-        st.warning(f'{len(due)} process(es) have a documented follow-up requirement or an overdue next step.')
-    elif waiting:
-        st.info(f'{len(waiting)} process(es) are awaiting a recorded response. Check the follow-up view for elapsed time and next steps.')
-    if report['quality']['source_missing']:
-        st.caption(f"Source channel is missing on {report['quality']['source_missing']} of {len(rows)} selected event records; channel success cannot yet be assessed reliably.")
+    rows, processes, cohort = report["events"], report["processes"], report["cohort"]
+    active = [p for p in processes if p["State"]=="Active documented"]
+    waiting = [p for p in processes if p["Waiting"]]
+    due = [p for p in processes if p["Overdue"] or p["Follow-up due"]]
+    inbound = sum(bool(r.get("is_human_interaction")) and
+                  str(r.get("interaction_direction") or "").lower() in ("inbound","two_way")
+                  for r in rows)
 
-    trends, correlations, momentum, conversion, targeting, pipeline, followups, evidence = st.tabs([
-        'Trends & signals','Correlations & insights','Activity trend','Conversion & speed',
-        'Roles & channels','Process health','Follow-ups','Evidence & coverage'])
-    with trends:
-        render_job_search_trends(records, start, end, employer)
-    with correlations:
-        if st.session_state.get("cms_auth"):
-            st.caption("Permanent cross-dataset studies use the full evidence history, not the employer and activity filters above. They refresh while this page is open.")
-            site_tab, market_tab = st.tabs(["Portfolio × recruitment", "Swedish market × search / portfolio"])
-            with site_tab:
-                render_portfolio_job_correlations()
-            with market_tab:
-                render_market_relationships(records)
+    st.caption(f"Selected evidence: {start:%d %b %Y}–{end:%d %b %Y}"
+               + (f" · {employer}" if employer != "All employers" else "")
+               + ". Primary, deduplicated events only; the official snapshot remains separate.")
+    c1,c2,c3,c4 = st.columns(4)
+    c1.metric("Recorded applications",report["counts"]["Applications"],
+              help="Primary application events in the selected window, not the official cumulative count.")
+    c2.metric("Inbound / two-way contacts",inbound,
+              help="Recorded human replies and two-way contacts only; outbound messages are excluded.")
+    c3.metric("Completed interviews",sum(completed_interview(r) for r in rows),
+              help="Invitation and scheduled interviews do not count as completed.")
+    c4.metric("Follow-up actions due",len(due),
+              help="Documented follow-up requirements or overdue next steps, not inferred ATS status.")
+
+    if due:
+        st.warning(f"{len(due)} documented process(es) need a follow-up or overdue-step review. "
+                   "Prioritize these over adding low-fit applications.")
+    elif waiting:
+        st.info(f"{len(waiting)} processes await a recorded response. "
+                "Silence is not a rejection; check elapsed time and the actual next action.")
+    else:
+        st.caption(f"{len(active)} processes are documented as active. "
+                   "No explicit overdue follow-up is recorded in the current evidence.")
+    if report["quality"]["source_missing"]:
+        st.caption(f"Source channel is missing for {report['quality']['source_missing']} "
+                   "selected event records. Channel-level comparisons are incomplete.")
+
+    focus = st.segmented_control(
+        "Analyze",
+        options=["decisions","conversion","correlations","evidence"],
+        default="decisions",
+        format_func=lambda v:{
+            "decisions":"Decisions & momentum",
+            "conversion":"Conversion & targeting",
+            "correlations":"Relationships",
+            "evidence":"Sources & methods",
+        }[v],
+        key="job_analysis_focus",
+        width="stretch",
+    ) or "decisions"
+    st.divider()
+
+    if focus == "decisions":
+        from job_search_trends import analyze_trends, SERIES
+        trend = analyze_trends(records,start,end,employer)
+        recent, prior = trend["recent"], trend["previous"]
+        comparable = bool(prior and trend["coverage"]["previous_dated"] >= 5
+                          and trend["baseline_available"])
+        st.subheader("Are applications turning into conversations?")
+        if comparable:
+            applications_now, applications_before = recent[SERIES[0]], prior[SERIES[0]]
+            contacts_now, contacts_before = recent[SERIES[1]], prior[SERIES[1]]
+            st.markdown(
+                f"**Last 28 days vs previous 28:** {applications_now} applications "
+                f"({applications_now-applications_before:+d}), "
+                f"{contacts_now} inbound/two-way contact processes "
+                f"({contacts_now-contacts_before:+d})."
+            )
+            if applications_now > applications_before and contacts_now <= contacts_before:
+                st.info("Application volume is increasing without stronger observed contact. "
+                        "Review employer access and role match before increasing volume further.")
+            elif contacts_now > contacts_before:
+                st.info("Recorded conversations increased. Follow through on live processes "
+                        "before prioritizing more submissions.")
         else:
-            st.info("Sign in as the portfolio owner to analyze private cross-dataset trends.")
-    with momentum:
-        cadence = st.segmented_control('Group activity by',['Week','Month'],default='Week') or 'Week'
-        data = report['weekly' if cadence=='Week' else 'monthly']
-        st.subheader('Applications, conversations and interview activity')
-        if data:
-            st.altair_chart(alt.Chart(alt.Data(values=data)).mark_bar(cornerRadiusTopLeft=3,cornerRadiusTopRight=3).encode(
-                x=alt.X('Date:T',title=cadence), y=alt.Y('Events:Q',axis=alt.Axis(tickMinStep=1)),
-                color='Measure:N', xOffset='Measure:N',tooltip=['Date:T','Measure:N','Events:Q']).properties(height=340),width='stretch')
+            st.info("Too little comparable dated evidence for a credible 28-day trend. "
+                    "The chart shows recorded history, not a complete account of the market.")
+        trend_group = st.segmented_control(
+            "Activity cadence",["Week","Month"],default="Week",
+            key="job_decision_cadence") or "Week"
+        plotted = [r for r in report["weekly" if trend_group=="Week" else "monthly"]
+                   if r["Measure"] in ("Applications","Human interactions","Completed interviews")]
+        if plotted:
+            st.altair_chart(alt.Chart(alt.Data(values=plotted)).mark_line(point=True).encode(
+                x=alt.X("Date:T",title=trend_group),
+                y=alt.Y("Events:Q",title="Dated primary events",
+                        axis=alt.Axis(tickMinStep=1)),
+                color="Measure:N",tooltip=["Date:T","Measure:N","Events:Q"]
+            ).properties(height=300),width="stretch")
         else:
-            st.info('No dated events in this window.')
-        st.caption('Undated records are omitted. Rejection activity uses dated decision evidence, not a later status attached to an application.')
-        bar([{'Type':k,'Events':v} for k,v in report['counts'].items()], 'Type','Events')
-        directions = Counter(r.get('interaction_direction') or 'unknown' for r in rows if r.get('is_human_interaction'))
-        bar([{'Direction':k,'Interactions':v} for k,v in directions.items()], 'Direction','Interactions',color='#22b8b0')
-    with conversion:
-        st.subheader('Observed application cohort')
-        st.caption('Applications dated within the activity window; subsequent evidence followed through the end date. '
-                   'Each process counts once. Ordered stages allow same-day evidence because exact event times are not consistently available. '
-                   'Interview completion requires explicit completion/held evidence; invitations do not qualify.')
-        bar(report['funnel'],'Stage','Processes',preserve_order=True)
-        n = len(cohort)
-        human = sum(bool(p['Human']) for p in cohort)
-        interviewed = sum(bool(p['Interview']) for p in cohort)
-        progressed = sum(bool(p['Progressed']) for p in cohort)
-        a,b,c = st.columns(3)
-        a.metric('Application → human contact',rate_label(human,n))
-        b.metric('Human → completed interview',rate_label(interviewed,human))
-        c.metric('Interview → explicit next stage',rate_label(progressed,interviewed))
-        st.caption('Next-stage/offer reporting needs explicit stage records or reference checks. No documented progression does not establish failure. '
-                   'Follow-ups are shown separately because they are not a mandatory hiring stage.')
-        st.metric('Applications per human-contact process',f'{n/human:.1f}' if human else 'Unavailable')
-        st.caption('A human-contact process is not automatically a qualified conversation. These observed-cohort rates do not describe all applications in the official snapshot.')
-        a,b = st.columns(2)
-        for column,key,title in [(a,'contact_latency','Application → first human contact'),(b,'rejection_latency','Application → dated rejection')]:
-            values=report[key]
-            column.metric(title, f"{values['median']} days" if values['n'] else 'Unavailable', help='Median elapsed calendar days for matched, dated processes.')
-            column.caption(f"Mean: {values['mean']} days · {values['n']} matched processes" if values['n'] else 'No matched date pairs; missing dates are never replaced with zero.')
-        details('Matched cohort evidence',[{k:p[k] for k in ['Employer','Role','Applied','Human','Interview','Progressed','Offered','Contact days','Rejection days']} for p in cohort])
-    with targeting:
-        st.subheader('Role families with completed-interview evidence')
-        reached=Counter(p['Family'] for p in processes if p['Completed interview'])
-        bar([{'Family':k,'Processes':v} for k,v in reached.items()], 'Family','Processes',color='#22b8b0')
-        st.caption('All matched process histories through the end date, including processes without an imported application date. The cohort comparisons below require a dated application.')
-        _cohort_chart(report['family'],'Role-family outcomes')
-        _cohort_chart(report['seniority'],'Seniority outcomes')
-        st.caption('Family and seniority are title-based categories, not a manual assessment of mandate or job fit. Small cohorts are descriptive, not rankings of future success.')
-        if any(r['Group']!='Unrecorded' for r in report['channel']):
-            _cohort_chart(report['channel'],'Recorded application channels')
-        else:
-            st.info('ATS vs LinkedIn conversion is unavailable: application source channels are not recorded. Outlook evidence alone does not identify the application channel.')
-        _cohort_chart([dict(r,Group='Recruiter involved' if r['Group']=='True' else 'No recruiter flag recorded') for r in report['recruiter']], 'Recruiter involvement')
-        st.caption('Recruiter involvement may happen after application. This is not proof of a recruiter-led acquisition route.')
-        engagements = defaultdict(lambda: {'Human events':0,'Processes':0})
-        for p in processes:
-            if p['Human events']:
-                engagements[p['Employer']]['Human events']+=p['Human events']
-                engagements[p['Employer']]['Processes']+=1
-        bar([dict(Employer=k,**v) for k,v in engagements.items()], 'Employer','Human events',color='#22b8b0')
-        st.caption('Repeat company engagement counts recorded human events, including outbound follow-ups; it does not imply multiple hiring teams.')
-    with pipeline:
-        states=Counter(p['State'] for p in processes)
-        bar([{'State':k,'Processes':v} for k,v in states.items()],'State','Processes')
-        aging=[{'Process':p['Employer']+' · '+p['Role'],'Days since event':p['Days since event']} for p in active if p['Days since event'] is not None]
-        st.subheader('Active-process silence')
-        bar(aging,'Process','Days since event',color='#b98a45')
-        st.caption('Elapsed days since the last recorded event, not proof that the employer has gone silent. Imported evidence may lag.')
-        details('All documented process states',[{k:p[k] for k in ['Employer','Role','State','Documented status','Status as of','Last event','Days since event','Days since application']} for p in processes])
-    with followups:
-        sent=[p for p in processes if p['Follow-up sent']]
-        replied=sum(p['Response'] for p in sent)
-        st.metric('Response to latest recorded follow-up',rate_label(replied,len(sent)))
-        st.caption('One latest sent follow-up per linked process; only explicit response evidence on or after it qualifies. '
-                   'Closed processes are excluded from the waiting queue but remain in the response denominator.')
-        bar([{'Process':p['Employer']+' · '+p['Role'],'Days waiting':p['Waiting days']} for p in waiting if p['Waiting days'] is not None], 'Process','Days waiting',color='#b98a45')
-        action_rows=[{k:p[k] for k in ['Employer','Role','Contact','Follow-up status','Waiting days','Next step','Due','Overdue','Follow-up due']} for p in processes if p['Waiting'] or p['Follow-up due'] or p['Overdue'] or p['Follow-up status']!='Unrecorded']
-        st.subheader('Next actions')
+            st.caption("No dated events are available for the selected interval.")
+        st.subheader("Next recruitment actions")
+        action_rows = sorted(
+            (p for p in processes if p["Overdue"] or p["Follow-up due"] or p["Waiting"]),
+            key=lambda p:(not (p["Overdue"] or p["Follow-up due"]),
+                          -(p["Days since event"] or 0)),
+        )
         if action_rows:
-            st.dataframe(action_rows,hide_index=True,width='stretch')
+            st.dataframe([{
+                "Employer":p["Employer"],"Role":p["Role"],
+                "Action":"Review follow-up" if p["Overdue"] or p["Follow-up due"] else "Awaiting response",
+                "Days since last event":p["Days since event"],
+                "Next step":p["Next step"],
+                "Due":p["Due"],
+            } for p in action_rows[:10]],hide_index=True,width="stretch")
+            st.caption("Process status is based on imported evidence, not a live employer workflow.")
         else:
-            st.info('No documented follow-up requirements in this scope.')
-    with evidence:
-        q=report['quality']
-        bar([{'Measure':'Canonical event records','Records':q['canonical']},
-             {'Measure':'Undated event records','Records':q['undated']},
-             {'Measure':'Unlinkable process rows through end date','Records':q['unlinked']},
-             {'Measure':'Selected rows missing source channel','Records':q['source_missing']}], 'Measure','Records')
-        st.caption(f"{q['mixed_application_negative']} selected rows carry both application and negative-decision flags. Their dates are not treated as rejection dates. "
-                   'Snapshot, narrative and secondary workbook representations are excluded from event counts. Logical event keys remove duplicate primary representations.')
-        columns={'Date':'event_date','Employer':'employer','Role':'role','Activity':'activity','Status':'status','Date basis':'date_basis',
-                 'Type':'record_type','Event key':'logical_event_key','File':'source_file','Sheet':'source_sheet','Row':'source_row'}
-        audit=[{k:r.get(v) for k,v in columns.items()} for r in sorted(rows,key=lambda r:str(r.get('event_date') or ''),reverse=True)]
-        details('Canonical evidence with provenance',audit)
-        if audit:
-            output=io.StringIO(); writer=csv.DictWriter(output,fieldnames=list(columns));writer.writeheader()
-            for row in audit:
-                writer.writerow({k: "'"+v if isinstance(v,str) and v.startswith(('=','+','-','@')) else v for k,v in row.items()})
-            st.download_button('Download filtered evidence CSV',output.getvalue(),'job-search-evidence.csv','text/csv')
-        details('Imported methodology',[{'Method':r.get('interpretation') or r.get('activity')} for r in records if r.get('record_type')=='methodology'])
-    st.caption('This dashboard reads the imported table; it does not automatically scan email or add applications.')
+            st.caption("No outstanding next step is explicitly documented.")
+        st.markdown("**Pipeline health:** "
+                    f"{len(active)} active documented processes, {len(waiting)} awaiting a reply, "
+                    f"{len(due)} with next steps due. These categories can overlap.")
+        if st.toggle("Explore response time and full follow-up history",
+                     key="job_expand_followups",value=False):
+            sent=[p for p in processes if p['Follow-up sent']]
+            replied=sum(p['Response'] for p in sent)
+            st.metric('Response to latest recorded follow-up',rate_label(replied,len(sent)))
+            st.caption('One latest sent follow-up per linked process; only explicit response evidence on or after it qualifies. '
+                       'Closed processes are excluded from the waiting queue but remain in the response denominator.')
+            bar([{'Process':p['Employer']+' · '+p['Role'],'Days waiting':p['Waiting days']} for p in waiting if p['Waiting days'] is not None], 'Process','Days waiting',color='#b98a45')
+            action_rows=[{k:p[k] for k in ['Employer','Role','Contact','Follow-up status','Waiting days','Next step','Due','Overdue','Follow-up due']} for p in processes if p['Waiting'] or p['Follow-up due'] or p['Overdue'] or p['Follow-up status']!='Unrecorded']
+            st.subheader('Next actions')
+            if action_rows:
+                st.dataframe(action_rows,hide_index=True,width='stretch')
+            else:
+                st.info('No documented follow-up requirements in this scope.')    elif focus == "conversion":
+        detail = st.selectbox("Performance question",
+            ["funnel","targeting","pipeline"],
+            format_func=lambda x:{
+                "funnel":"Where do processes stop progressing?",
+                "targeting":"Which role families and channels are producing engagement?",
+                "pipeline":"Which processes are still active or aging?",
+            }[x],key="job_performance_detail")
+        if detail == "funnel":
+            st.subheader('Observed application cohort')
+            st.caption('Applications dated within the activity window; subsequent evidence followed through the end date. '
+                       'Each process counts once. Ordered stages allow same-day evidence because exact event times are not consistently available. '
+                       'Interview completion requires explicit completion/held evidence; invitations do not qualify.')
+            bar(report['funnel'],'Stage','Processes',preserve_order=True)
+            n = len(cohort)
+            human = sum(bool(p['Human']) for p in cohort)
+            interviewed = sum(bool(p['Interview']) for p in cohort)
+            progressed = sum(bool(p['Progressed']) for p in cohort)
+            a,b,c = st.columns(3)
+            a.metric('Application → human contact',rate_label(human,n))
+            b.metric('Human → completed interview',rate_label(interviewed,human))
+            c.metric('Interview → explicit next stage',rate_label(progressed,interviewed))
+            st.caption('Next-stage/offer reporting needs explicit stage records or reference checks. No documented progression does not establish failure. '
+                       'Follow-ups are shown separately because they are not a mandatory hiring stage.')
+            st.metric('Applications per human-contact process',f'{n/human:.1f}' if human else 'Unavailable')
+            st.caption('A human-contact process is not automatically a qualified conversation. These observed-cohort rates do not describe all applications in the official snapshot.')
+            a,b = st.columns(2)
+            for column,key,title in [(a,'contact_latency','Application → first human contact'),(b,'rejection_latency','Application → dated rejection')]:
+                values=report[key]
+                column.metric(title, f"{values['median']} days" if values['n'] else 'Unavailable', help='Median elapsed calendar days for matched, dated processes.')
+                column.caption(f"Mean: {values['mean']} days · {values['n']} matched processes" if values['n'] else 'No matched date pairs; missing dates are never replaced with zero.')
+            details('Matched cohort evidence',[{k:p[k] for k in ['Employer','Role','Applied','Human','Interview','Progressed','Offered','Contact days','Rejection days']} for p in cohort])
+        elif detail == "targeting":
+            st.subheader('Role families with completed-interview evidence')
+            reached=Counter(p['Family'] for p in processes if p['Completed interview'])
+            bar([{'Family':k,'Processes':v} for k,v in reached.items()], 'Family','Processes',color='#22b8b0')
+            st.caption('All matched process histories through the end date, including processes without an imported application date. The cohort comparisons below require a dated application.')
+            _cohort_chart(report['family'],'Role-family outcomes')
+            _cohort_chart(report['seniority'],'Seniority outcomes')
+            st.caption('Family and seniority are title-based categories, not a manual assessment of mandate or job fit. Small cohorts are descriptive, not rankings of future success.')
+            if any(r['Group']!='Unrecorded' for r in report['channel']):
+                _cohort_chart(report['channel'],'Recorded application channels')
+            else:
+                st.info('ATS vs LinkedIn conversion is unavailable: application source channels are not recorded. Outlook evidence alone does not identify the application channel.')
+            _cohort_chart([dict(r,Group='Recruiter involved' if r['Group']=='True' else 'No recruiter flag recorded') for r in report['recruiter']], 'Recruiter involvement')
+            st.caption('Recruiter involvement may happen after application. This is not proof of a recruiter-led acquisition route.')
+            engagements = defaultdict(lambda: {'Human events':0,'Processes':0})
+            for p in processes:
+                if p['Human events']:
+                    engagements[p['Employer']]['Human events']+=p['Human events']
+                    engagements[p['Employer']]['Processes']+=1
+            bar([dict(Employer=k,**v) for k,v in engagements.items()], 'Employer','Human events',color='#22b8b0')
+            st.caption('Repeat company engagement counts recorded human events, including outbound follow-ups; it does not imply multiple hiring teams.')
+        else:
+            states=Counter(p['State'] for p in processes)
+            bar([{'State':k,'Processes':v} for k,v in states.items()],'State','Processes')
+            aging=[{'Process':p['Employer']+' · '+p['Role'],'Days since event':p['Days since event']} for p in active if p['Days since event'] is not None]
+            st.subheader('Active-process silence')
+            bar(aging,'Process','Days since event',color='#b98a45')
+            st.caption('Elapsed days since the last recorded event, not proof that the employer has gone silent. Imported evidence may lag.')
+            details('All documented process states',[{k:p[k] for k in ['Employer','Role','State','Documented status','Status as of','Last event','Days since event','Days since application']} for p in processes])
+    elif focus == "correlations":
+        st.caption("Connections are automatically recalculated from full observation histories; "
+                   "date and employer filters above do not restrict the cross-dataset tests.")
+        relationship = st.selectbox("Relationship to examine",
+            ["portfolio","market"],
+            format_func=lambda x:"Portfolio behavior ↔ recruitment" if x=="portfolio"
+                else "Swedish market ↔ recruitment & portfolio",
+            key="job_relationship_detail")
+        if relationship == "portfolio":
+            render_portfolio_job_correlations()
+        else:
+            render_market_relationships(records)
+    else:
+        source = st.selectbox("Evidence view",
+            ["official","trends","events"],
+            format_func=lambda x:{
+                "official":"Official job-search snapshot",
+                "trends":"Matured cohorts and comparison method",
+                "events":"Event provenance and quality",
+            }[x],key="job_evidence_detail")
+        if source == "official":
+            _snapshot(records)
+        elif source == "trends":
+            render_job_search_trends(records,start,end,employer)
+        else:
+            q=report['quality']
+            bar([{'Measure':'Canonical event records','Records':q['canonical']},
+                 {'Measure':'Undated event records','Records':q['undated']},
+                 {'Measure':'Unlinkable process rows through end date','Records':q['unlinked']},
+                 {'Measure':'Selected rows missing source channel','Records':q['source_missing']}], 'Measure','Records')
+            st.caption(f"{q['mixed_application_negative']} selected rows carry both application and negative-decision flags. Their dates are not treated as rejection dates. "
+                       'Snapshot, narrative and secondary workbook representations are excluded from event counts. Logical event keys remove duplicate primary representations.')
+            columns={'Date':'event_date','Employer':'employer','Role':'role','Activity':'activity','Status':'status','Date basis':'date_basis',
+                     'Type':'record_type','Event key':'logical_event_key','File':'source_file','Sheet':'source_sheet','Row':'source_row'}
+            audit=[{k:r.get(v) for k,v in columns.items()} for r in sorted(rows,key=lambda r:str(r.get('event_date') or ''),reverse=True)]
+            details('Canonical evidence with provenance',audit)
+            if audit:
+                output=io.StringIO(); writer=csv.DictWriter(output,fieldnames=list(columns));writer.writeheader()
+                for row in audit:
+                    writer.writerow({k: "'"+v if isinstance(v,str) and v.startswith(('=','+','-','@')) else v for k,v in row.items()})
+                st.download_button('Download filtered evidence CSV',output.getvalue(),'job-search-evidence.csv','text/csv')
+            details('Imported methodology',[{'Method':r.get('interpretation') or r.get('activity')} for r in records if r.get('record_type')=='methodology'])    st.caption("Source records are imported; the dashboard does not scan private email "
+               "or create applications by itself.")
 
 
 def render_job_search_analytics(session: dict | None = None) -> None:

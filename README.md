@@ -261,7 +261,7 @@ The hidden site-owner dashboard remains at:
 
 `https://jairribeiro-ai.streamlit.app/?page=analytics`
 
-It is not part of public navigation and is marked noindex.
+It is not part of public navigation and is marked noindex. All three reports — Page Views, Article Views, and Job Search Analytics — require the same Supabase CMS owner session (`cms_auth`). Switching reports uses native Streamlit controls rather than full-page links, so signing in once keeps the owner authenticated across analytics views within the active Streamlit session. Job-search records remain behind the owner bearer token; neither the table nor its rows should be exposed through public analytics RPCs. A fresh browser/Streamlit session still requires owner sign-in.
 
 ## Final content filter
 

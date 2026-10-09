@@ -32,14 +32,15 @@ def _shift(last: str | None, current: str | None) -> str | None:
 def render_hiring_predictor(
     jobs: list[dict], market_model: dict | None,
     site_correlation: dict | None, hiring: dict | None,
-    today: date,
+    today: date, *, portfolio_actions: dict | None = None,
 ) -> None:
     st.subheader("When might I get a job?")
     st.caption("Hiring Predictor · Beta · a guide for planning, not a promise.")
 
     result = forecast_hiring(jobs, today, market_model=market_model,
                              portfolio_correlation=site_correlation,
-                             hiring_quality=hiring)
+                             hiring_quality=hiring,
+                             portfolio_actions=portfolio_actions)
     sources = result["sources"]
     if result["status"] == "offer_recorded":
         st.info("A job offer is already documented. Your next milestone is a confirmed "
@@ -111,11 +112,47 @@ def render_hiring_predictor(
         f"It uses a restrained pace of about {sources['assumed_weekly_pace']:.1f} "
         "applications per week in its future-search scenario."
     )
-    st.caption(
-        "Portfolio visits and Swedish job-market indicators are checked as context, "
-        "but do not push the estimated date earlier unless a reliable link to "
-        "actual hiring outcomes is established."
-    )
+    adjusted = result["drivers"]
+    portfolio = adjusted["portfolio"]
+    market = adjusted["market"]
+    impact = result.get("comparison") or {}
+    pc, mc = st.columns(2)
+    with pc:
+        st.metric("Portfolio contribution", f"{portfolio['effect']:+.1%}",
+                  help="Heuristic change to the future-opportunities part of the model, "
+                       "not an observed increase in your likelihood of being hired.")
+        leaders = sorted((r for r in portfolio["drivers"] if r["effect"] > 0),
+                         key=lambda r: r["effect"], reverse=True)
+        if leaders:
+            st.caption("Main signals: " + ", ".join(r["label"].lower() for r in leaders[:2]) + ".")
+        else:
+            st.caption("Not enough reliable growth or qualified actions to award a boost yet.")
+    with mc:
+        st.metric("Swedish market contribution", f"{market['effect']:+.1%}",
+                  help="Signed, capped adjustment to future opportunities from selected "
+                       "external signals. This is a planning assumption.")
+        supportive = [r for r in market["drivers"] if r["effect"] > 0]
+        adverse = [r for r in market["drivers"] if r["effect"] < 0]
+        st.caption(
+            f"{len(supportive)} supportive and {len(adverse)} adverse indicators. "
+            "Both affect the model."
+        )
+    movement = impact.get("combined_days")
+    if movement is not None:
+        if abs(movement) >= 7:
+            st.caption(
+                f"**Net effect on planning date:** about {abs(movement)} days "
+                + ("earlier" if movement < 0 else "later")
+                + " compared with using job-search data alone."
+            )
+        else:
+            st.caption("**Net effect on planning date:** under one week compared with "
+                       "using job-search data alone. Small model changes can still matter later.")
+    else:
+        st.caption("The assumptions changed the forecast curve, but a comparable "
+                   "offer date could not yet be calculated.")
+    st.caption("These contributions are deliberately limited and affect **future leads**, "
+               "not hiring decisions already in progress.")
 
     with st.expander("What if things move faster or slower?"):
         if faster:
@@ -168,9 +205,32 @@ def render_hiring_predictor(
             "treated as rejection or zero conversion."
         )
         st.markdown(
-            "**Market and portfolio:** Current indicators and anonymous activity are "
-            "reviewed, but not treated as direct predictors of an offer."
+            "**Portfolio:** Quality-screened visits, engaged and deeper readers, "
+            "CV downloads and contact clicks can add up to +12% to the future "
+            "opportunity rate. This is a positive heuristic, not employer attribution."
         )
+        if not portfolio["daily_history_available"]:
+            st.caption("Visitor growth awaits comparable historical periods with "
+                       "quality-screened tracking; no missing days are treated as zero.")
+        if not portfolio["qualified_actions_available"]:
+            st.caption("Distinct qualified CV-download and contact-click counts are "
+                       "unavailable or incomplete; those drivers are neutral.")
+        for driver in portfolio["drivers"]:
+            if driver["effect"]:
+                st.caption(f"• {driver['label']}: {driver['current']} recent vs "
+                           f"{driver['previous']} previous; planning adjustment "
+                           f"{driver['effect']:+.1%}.")
+        st.markdown(
+            "**Swedish market:** Specific published indicators can add or subtract "
+            "up to 12% from future opportunity rates, after quality and age checks. "
+            "Overlapping reports count only once per topic."
+        )
+        for driver in market["drivers"][:8]:
+            st.caption(f"• {driver['label']}: {driver['effect']:+.1%}; "
+                       f"{driver['source']} · released {driver['release_date']}.")
+        st.caption("The two adjustments are combined and capped to avoid letting "
+                   "website traffic or a single market report overpower the personal pipeline.")
+
         st.markdown(
             "**Assumptions:** The model combines stage-specific offer assumptions "
             "with a smoothed contact rate from older tracked applications. It reduces "

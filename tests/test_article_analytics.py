@@ -74,7 +74,10 @@ class ArticleAnalyticsTests(unittest.TestCase):
         self.assertIn("confirmed_duration_sessions", article_dashboard)
         self.assertIn("render_site_analytics_dashboard()", wrapper)
         self.assertIn("render_article_analytics()", wrapper)
-        self.assertNotIn("st.dataframe", article_dashboard)
+        # The main report stays visual-first; attribution details are optional.
+        main_report = article_dashboard.split("def render_article_analytics()", 1)[1]
+        self.assertNotIn("st.dataframe", main_report)
+        self.assertIn('with st.expander("Exact source counts", expanded=False):', article_dashboard)
 
 
 if __name__ == "__main__":

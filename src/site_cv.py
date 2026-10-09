@@ -317,6 +317,7 @@ def build_public_cv() -> bytes:
         line=3.85,
     )
     pdf.ln(0.4)
+    # Keep the compact CV selection sourced from the canonical credential list.
     selected_credentials = (
         f"{SELECTED_CREDENTIALS[0]} | {SELECTED_CREDENTIALS[1]} - Microsoft | "
         f"{SELECTED_CREDENTIALS[2]} - University of Michigan"

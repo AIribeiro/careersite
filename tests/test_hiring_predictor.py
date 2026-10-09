@@ -174,6 +174,23 @@ class HiringPredictorTests(unittest.TestCase):
         self.assertEqual(forecast_hiring(now, TODAY)["curve"],
                          forecast_hiring(now + [future], TODAY)["curve"])
 
+    def test_old_closed_offer_does_not_stop_a_new_search(self):
+        jobs = [event(n, n % 27 + 1) for n in range(1, 19)]
+        jobs.append(event(
+            100, 40, employer="Previous employer", is_application=False,
+            event_type="offer_received", stage_outcome="offer_received",
+            activity="Offer received",
+        ))
+        jobs.append(event(
+            101, 5, employer="Previous employer", is_application=False,
+            is_active=False, is_closed_or_paused=True,
+            is_negative_decision=True, status="Declined and closed",
+            activity="Offer declined",
+        ))
+        result = forecast_hiring(jobs, TODAY)
+        self.assertNotEqual(result["status"], "offer_recorded")
+        self.assertEqual(result["sources"]["recorded_offer_events"], 1)
+
     def test_confirmed_offer_supersedes_a_first_offer_forecast(self):
         jobs = [event(1, 30), event(
             2, 1, employer="Employer 1", is_application=False,

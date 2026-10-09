@@ -116,9 +116,12 @@ class ContentIntelligenceTests(unittest.TestCase):
                 at.run()
                 self.assertFalse(at.exception)
                 self.assertEqual(len(at.selectbox), 1)
-                self.assertEqual(pages.call_count, int(section == 'pages'))
-                self.assertEqual(articles.call_count, int(section == 'articles'))
+                # Legacy page/article bookmarks now land in one Portfolio
+                # workspace. Costly historical raw dashboards are opt-in.
+                pages.assert_not_called()
+                articles.assert_not_called()
                 self.assertEqual(content.call_args.args[0], 'page' if section == 'pages' else 'article')
+                self.assertIn('Portfolio performance',[t.value for t in at.title])
 
 
 if __name__ == '__main__':

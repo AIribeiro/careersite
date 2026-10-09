@@ -65,8 +65,12 @@ def seniority(role):
 
 def completed_interview(row):
     # Status may describe a later snapshot, so never use it to date completion.
-    text = norm(row.get('activity'))
-    return norm(row.get('event_type')) == 'interview_completed' or bool(re.search(r'interview (?:held|completed)|interview.*\bcompleted\b', text))
+    # Completion can be stored in either activity or stage_outcome depending on
+    # which canonical evidence row produced the event.
+    text = norm(' '.join(str(row.get(field) or '') for field in ('activity', 'stage_outcome')))
+    return norm(row.get('event_type')) == 'interview_completed' or bool(
+        re.search(r'interview (?:held|completed)|interview.*\\bcompleted\\b|\\bcompleted interview\\b', text)
+    )
 
 
 def progression(row):

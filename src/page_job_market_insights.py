@@ -81,23 +81,25 @@ def _market_pulse(model: dict) -> None:
     first = [by_key[k] for k in HIGHLIGHTS if k in by_key]
     if first:
         cols = st.columns(min(3, len(first)))
-        for index, item in enumerate(first):
+        for index, item in enumerate(first[:3]):
             with cols[index % len(cols)]:
                 st.metric(str(item.get("indicator_name") or "Employment outlook"), _format_value(item),
                           help=f"Source: {item.get('source_organization') or 'Unrecorded'}. "
                                f"Observed {item.get('period_label') or item.get('observation_date')}. "
                                "Net employment outlook is not the percentage of vacancies or the chance of an offer.")
-        points = [{"Segment": r.get("indicator_name"), "Net outlook": float(r["metric_value"]),
-                   "Period": r.get("period_label") or r.get("observation_date")}
-                  for r in first if r.get("metric_value") is not None]
-        if points:
-            st.altair_chart(
-                alt.Chart(alt.Data(values=points)).mark_bar(cornerRadiusEnd=5).encode(
-                    x=alt.X("Net outlook:Q", title="Net employment outlook (percentage points)"),
-                    y=alt.Y("Segment:N", sort="-x", title=None, axis=alt.Axis(labelLimit=350)),
-                    tooltip=["Segment:N", "Net outlook:Q", "Period:N"],
-                ).properties(height=max(195, len(points)*42)), width="stretch")
-            st.caption("These outlook estimates share one survey family and period; they are cross-sectional comparisons, not a time trend.")
+        if st.toggle("Compare all employment-outlook segments",
+                     value=False,key="market_all_segments"):
+            points = [{"Segment": r.get("indicator_name"), "Net outlook": float(r["metric_value"]),
+                       "Period": r.get("period_label") or r.get("observation_date")}
+                      for r in first if r.get("metric_value") is not None]
+            if points:
+                st.altair_chart(
+                    alt.Chart(alt.Data(values=points)).mark_bar(cornerRadiusEnd=5).encode(
+                        x=alt.X("Net outlook:Q", title="Net employment outlook (percentage points)"),
+                        y=alt.Y("Segment:N", sort="-x", title=None, axis=alt.Axis(labelLimit=350)),
+                        tooltip=["Segment:N", "Net outlook:Q", "Period:N"],
+                    ).properties(height=max(195, len(points)*42)), width="stretch")
+                st.caption("These outlook estimates share one survey family and period; they are cross-sectional comparisons, not a time trend.")
     for item in _readouts(by_key):
         st.markdown(f"**{item[0]}** — {item[1]}")
 
@@ -317,15 +319,28 @@ def render_swedish_job_market(session: dict | None) -> None:
     st.caption(f"Checked {now:%d %b %Y, %H:%M} Stockholm · {c['observations']} distinct observations · "
                f"{c['indicators']} indicator series · latest observed {newest}. "
                "Automatic recomputation uses the existing Analytics sign-in.")
-    _market_pulse(model)
+    focus = st.segmented_control(
+        "Market question",
+        options=["direction","relationships","evidence"],
+        default="direction",
+        format_func=lambda key: {
+            "direction":"What is changing?",
+            "relationships":"What connects to my search?",
+            "evidence":"Sources & measurement",
+        }[key],
+        key="market_analysis_focus",width="stretch",
+    ) or "direction"
     st.divider()
-    _market_history(model)
-    st.divider()
-    _relationship_screen(model,compact=False)
-    st.divider()
-    _portfolio_context(site,jobs)
-    st.divider()
-    _evidence(model)
+    if focus == "direction":
+        _market_pulse(model)
+        st.divider()
+        _market_history(model)
+    elif focus == "relationships":
+        _relationship_screen(model,compact=False)
+        st.divider()
+        _portfolio_context(site,jobs)
+    else:
+        _evidence(model)
     if st.button("Recalculate market analysis",key="market_refresh"):
         st.rerun(scope="fragment")
 

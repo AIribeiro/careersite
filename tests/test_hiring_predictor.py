@@ -44,7 +44,7 @@ class HiringPredictorTests(unittest.TestCase):
                           is_interview=True))
         result = forecast_hiring(jobs, TODAY)
         self.assertEqual(result["status"], "scenario")
-        self.assertEqual(result["confidence"], "Low — uncalibrated")
+        self.assertEqual(result["confidence"], "Early estimate")
         for row in result["curve"]:
             self.assertLessEqual(row["Conservative"], row["Current pace"])
             self.assertLessEqual(row["Current pace"], row["Faster conversion"])
@@ -91,6 +91,81 @@ class HiringPredictorTests(unittest.TestCase):
             _evidence_signature({"a": 1, "b": 2}),
             _evidence_signature({"b": 2, "a": 1}),
         )
+
+    def test_outbound_follow_up_does_not_count_as_employer_reply(self):
+        jobs = [event(n, 20 + n, employer=f"Employer {n}")
+                for n in range(1, 12)]
+        outbound = event(
+            50, 2, employer="Employer 1", is_application=False,
+            is_human_interaction=True, interaction_direction="outbound",
+            interaction_type="follow_up", activity="I followed up",
+        )
+        forecast = forecast_hiring(jobs + [outbound], TODAY)
+        first = next(p for p in forecast["active_stages"]
+                     if p["stage"] == "application")
+        self.assertEqual(first["stage"], "application")
+        self.assertFalse(any(p["stage"] == "conversation"
+                             for p in forecast["active_stages"]))
+
+    def test_interview_invitation_is_not_treated_as_completed_interview(self):
+        jobs = [event(n, 4 + n) for n in range(1, 12)]
+        jobs.append(event(
+            80, 1, employer="Employer 1", is_application=False,
+            is_interview=True, activity="Interview scheduled",
+            status="Interview scheduled", is_human_interaction=False,
+        ))
+        result = forecast_hiring(jobs, TODAY)
+        self.assertFalse(any(p["stage"] == "interview"
+                             for p in result["active_stages"]))
+
+    def test_completed_interview_status_is_counted_without_guessing_on_invitation(self):
+        jobs = [event(n, 4 + n) for n in range(1, 12)]
+        jobs.append(event(
+            80, 2, employer="Employer 1", is_application=False,
+            is_interview=True, activity="Recruiter conversation",
+            status="Interview completed / awaiting feedback",
+            interaction_direction="two_way", is_human_interaction=True,
+        ))
+        result = forecast_hiring(jobs, TODAY)
+        self.assertTrue(any(p["stage"] == "interview"
+                            for p in result["active_stages"]))
+
+    def test_follow_up_does_not_reset_interview_clock(self):
+        jobs = [event(n, 30 + n) for n in range(1, 14)]
+        jobs.append(event(
+            80, 30, employer="Employer 1", is_application=False,
+            is_interview=True, activity="Interview held",
+            status="Interview completed", interaction_direction="two_way",
+            is_human_interaction=True,
+        ))
+        jobs.append(event(
+            81, 1, employer="Employer 1", is_application=False,
+            is_human_interaction=True, interaction_direction="outbound",
+            activity="Follow-up message sent",
+        ))
+        r = forecast_hiring(jobs, TODAY)
+        self.assertTrue(any(p["stage"] == "interview" and p["age"] == 30
+                            for p in r["active_stages"]))
+
+    def test_official_snapshot_is_not_miscounted_as_linked_event(self):
+        jobs = [event(n, n + 10) for n in range(1, 12)]
+        jobs.append({
+            "id": 200, "record_type": "snapshot_metric",
+            "snapshot_date": TODAY.isoformat(),
+            "metric_name": "Confirmed application submissions",
+            "metric_value": 228,
+        })
+        r = forecast_hiring(jobs, TODAY)
+        self.assertEqual(r["sources"]["official_application_total"], 228)
+        self.assertEqual(r["sources"]["linked_application_processes"], 11)
+        self.assertLess(r["sources"]["event_coverage"], .1)
+        self.assertEqual(r["sources"]["applications_last_28d"], 11)
+
+    def test_no_offer_input_never_becomes_observed_conversion(self):
+        jobs = [event(n, n % 48 + 1) for n in range(1, 28)]
+        result = forecast_hiring(jobs, TODAY)
+        self.assertEqual(result["sources"]["recorded_offer_events"], 0)
+        self.assertLessEqual(result["sources"]["new_application_offer_assumption"], .035)
 
     def test_future_events_are_not_used_to_predict_today(self):
         now = [event(n, n % 24 + 1) for n in range(1, 20)]

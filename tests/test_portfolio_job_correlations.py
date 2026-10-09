@@ -107,6 +107,21 @@ class PortfolioJobCorrelationTests(unittest.TestCase):
         self.assertTrue(all(result["q"] is None or 0<=result["q"]<=1
                             for result in out["results"]))
 
+    def test_authenticated_live_fragment_renders_with_aggregate_data(self):
+        from unittest.mock import patch
+        from streamlit.testing.v1 import AppTest
+        site,jobs=fake_data()
+        code="from page_portfolio_job_correlations import render_portfolio_job_correlations\\nrender_portfolio_job_correlations()"
+        with patch("page_portfolio_job_correlations.ensure_owner_session",
+                   return_value={"access_token":"test-owner"}), \\
+             patch("page_portfolio_job_correlations._fetch_rpc",return_value=site), \\
+             patch("page_job_search_analytics.fetch_job_records",return_value=jobs):
+            at=AppTest.from_string(code)
+            at.session_state["cms_auth"]={"access_token":"test-owner"}
+            at.run(timeout=15)
+            self.assertFalse(at.exception)
+            self.assertGreaterEqual(len(at.metric),2)
+
     def test_never_infers_visitor_to_company_identity(self):
         site,jobs=fake_data(13)
         report=analyze_portfolio_job_correlations(site,jobs)

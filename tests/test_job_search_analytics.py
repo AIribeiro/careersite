@@ -71,5 +71,6 @@ class JobAnalyticsTests(unittest.TestCase):
         at=AppTest.from_string(code).run(timeout=15)
         self.assertFalse(at.exception)
         self.assertGreater(len(at.get('vega_lite_chart')),3)
-        self.assertEqual(len(at.tabs),7)
+        self.assertEqual(len(at.tabs),8)
+        self.assertEqual(at.tabs[1].label,'Portfolio correlations')
         self.assertEqual(at.tabs[0].label,'Trends & signals')

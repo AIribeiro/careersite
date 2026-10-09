@@ -73,14 +73,23 @@ def portfolio_adjustment(site_model: dict | None, actions: dict | None,
     per_day = {day(r.get("Date")): r for r in series
                if day(r.get("Date")) and day(r["Date"]) < as_of}
     end = as_of - timedelta(days=1)
-    recent_days = [end - timedelta(days=i) for i in range(27, -1, -1)]
-    previous_days = [end - timedelta(days=i) for i in range(55, 27, -1)]
+    # Compare equal, complete periods only. Early V5 tracking can start
+    # with short 6–7-day comparisons but gets proportionally less weight.
+    comparison_days = next(
+        (n for n in (28, 14, 7, 6)
+         if all(end - timedelta(days=i) in per_day for i in range(2 * n))),
+        0,
+    )
+    recent_days = [end - timedelta(days=i) for i in range(comparison_days - 1, -1, -1)]
+    previous_days = [end - timedelta(days=i) for i in range(
+        2 * comparison_days - 1, comparison_days - 1, -1)]
+    reliability = math.sqrt(comparison_days / 28.0) if comparison_days else 0.0
     drivers = []
     values = {
         "qualified": (0, 0), "engaged": (0, 0), "readers": (0, 0),
         "cv_downloads": (0, 0), "contact_clicks": (0, 0),
     }
-    if all(d in per_day for d in recent_days + previous_days):
+    if comparison_days and all(d in per_day for d in recent_days + previous_days):
         recent = [per_day[d] for d in recent_days]
         before = [per_day[d] for d in previous_days]
         keys = ("sessions", "engaged_10s", "article_readers",
@@ -94,11 +103,14 @@ def portfolio_adjustment(site_model: dict | None, actions: dict | None,
         # These are a directional index, not a visitor headcount.
         values["readers"] = (deep_r, deep_p)
         drivers.extend([
-            _driver("Qualified visitors", 0.035 * _growth(r["sessions"],p["sessions"],threshold=12),
+            _driver("Qualified visitors", reliability * 0.035 * _growth(
+                r["sessions"],p["sessions"],threshold=max(4,round(12*comparison_days/28))),
                     r["sessions"],p["sessions"],"Change in quality-filtered visits"),
-            _driver("Engaged readers", 0.025 * _growth(r["engaged_10s"],p["engaged_10s"],threshold=8),
+            _driver("Engaged readers", reliability * 0.025 * _growth(
+                r["engaged_10s"],p["engaged_10s"],threshold=max(3,round(8*comparison_days/28))),
                     r["engaged_10s"],p["engaged_10s"],"Engaged visitor sessions"),
-            _driver("Deeper exploration", 0.025 * _growth(deep_r,deep_p,threshold=6),
+            _driver("Deeper exploration", reliability * 0.025 * _growth(
+                deep_r,deep_p,threshold=max(3,round(6*comparison_days/28))),
                     deep_r,deep_p,"Article, evidence and multi-page interest (overlapping sessions)"),
         ])
 
@@ -117,10 +129,13 @@ def portfolio_adjustment(site_model: dict | None, actions: dict | None,
         values["cv_downloads"], values["contact_clicks"] = (cr,cp), (er,ep)
         # Small, quality-filtered actions are stronger than generic reach,
         # yet cannot create a large forecast shift from one isolated click.
+        full_actions_baseline = all(
+            end - timedelta(days=i) in per_day for i in range(56)
+        )
         cv_effect = 0.0 if cr == 0 else min(0.025, 0.006 * cr) + (
-            0.006 if cr >= 2 and cr > cp else 0.0)
+            0.006 if full_actions_baseline and cr >= 2 and cr > cp else 0.0)
         contact_effect = 0.0 if er == 0 else min(0.025, 0.006 * er) + (
-            0.006 if er >= 2 and er > ep else 0.0)
+            0.006 if full_actions_baseline and er >= 2 and er > ep else 0.0)
         drivers.extend([
             _driver("CV downloads", min(0.031,cv_effect), cr, cp,
                     "Distinct qualified sessions with CV downloads"),
@@ -131,6 +146,8 @@ def portfolio_adjustment(site_model: dict | None, actions: dict | None,
     return {"effect": round(total,5), "drivers":drivers,
             "values":values,"qualified_actions_available":valid_actions,
             "daily_history_available":len(drivers) >= 3,
+            "comparison_days":comparison_days,
+            "full_action_baseline":comparison_days == 28,
             "category":"portfolio","cap":PORTFOLIO_CAP}
 
 

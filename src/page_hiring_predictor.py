@@ -212,14 +212,21 @@ def render_hiring_predictor(
         if not portfolio["daily_history_available"]:
             st.caption("Visitor growth awaits comparable historical periods with "
                        "quality-screened tracking; no missing days are treated as zero.")
+        elif portfolio["comparison_days"] < 28:
+            st.caption(f"Visitor trends compare two complete {portfolio['comparison_days']}-day "
+                       "periods. Shorter early history receives a smaller weight.")
         if not portfolio["qualified_actions_available"]:
             st.caption("Distinct qualified CV-download and contact-click counts are "
                        "unavailable or incomplete; those drivers are neutral.")
         for driver in portfolio["drivers"]:
             if driver["effect"]:
-                st.caption(f"• {driver['label']}: {driver['current']} recent vs "
-                           f"{driver['previous']} previous; planning adjustment "
-                           f"{driver['effect']:+.1%}.")
+                is_action = driver["label"] in ("CV downloads", "Contact actions")
+                if is_action and not portfolio["full_action_baseline"]:
+                    evidence = f"{driver['current']} recorded recently; previous tracking is incomplete"
+                else:
+                    evidence = f"{driver['current']} recent vs {driver['previous']} previous"
+                st.caption(f"• {driver['label']}: {evidence}; "
+                           f"planning adjustment {driver['effect']:+.1%}.")
         st.markdown(
             "**Swedish market:** Specific published indicators can add or subtract "
             "up to 12% from future opportunity rates, after quality and age checks. "

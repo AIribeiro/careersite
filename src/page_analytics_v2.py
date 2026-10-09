@@ -11,13 +11,14 @@ from page_article_analytics import render_article_analytics, render_reader_sourc
 from page_content_intelligence import render_content_intelligence
 from page_job_search_analytics import render_job_search_analytics
 from page_job_market_insights import render_swedish_job_market
+from page_analytics_overview import render_analytics_overview
 
 
 _VIEWS = {
-    "pages": "Page Views",
-    "articles": "Article Views",
-    "jobs": "Job Search Analytics",
-    "market": "Swedish Job Market",
+    "overview": "Overview",
+    "portfolio": "Portfolio",
+    "jobs": "Job search",
+    "market": "Swedish market",
 }
 _VIEW_STATE_KEY = "careersite_analytics_view"
 
@@ -34,7 +35,7 @@ def _owner_session() -> dict | None:
 
 def _owner_login() -> None:
     st.title("Portfolio Analytics")
-    st.caption("Private owner reporting. One sign-in covers every private analytics view, including the Swedish Job Market.")
+    st.caption("Private evidence for your portfolio, recruitment progress and the Swedish market. One sign-in covers all sections.")
     with st.form("analytics_owner_signin", clear_on_submit=True):
         password = st.text_input("Owner password", type="password")
         submitted = st.form_submit_button("Sign in", type="primary")
@@ -47,8 +48,12 @@ def _owner_login() -> None:
 
 
 def _url_view() -> str:
-    view = str(st.query_params.get("view", "pages"))
-    return view if view in _VIEWS else "pages"
+    raw = str(st.query_params.get("view", "overview"))
+    # Older bookmarks remain valid after unifying Page and Article views.
+    if raw in ("pages", "articles"):
+        st.session_state["analytics_portfolio_kind"] = "article" if raw == "articles" else "page"
+        return "portfolio"
+    return raw if raw in _VIEWS else "overview"
 
 
 def _update_view_url() -> None:
@@ -75,7 +80,7 @@ def render_analytics_dashboard() -> None:
     if _VIEW_STATE_KEY not in st.session_state:
         st.session_state[_VIEW_STATE_KEY] = _url_view()
 
-    nav, portfolio, account = st.columns([6, 1.6, 1], vertical_alignment="center")
+    nav, portfolio, account = st.columns([7, 1.5, 1.2], vertical_alignment="center")
     with nav:
         section = st.segmented_control(
             "Analytics view",
@@ -96,8 +101,12 @@ def render_analytics_dashboard() -> None:
         if st.button("Sign out", key="analytics_owner_signout"):
             st.session_state.pop("cms_auth", None)
             st.rerun()
+    st.caption("Overview → direction and actions  ·  Portfolio → reach and behavior  ·  Job search → conversion and pipeline  ·  Market → external context")
     st.divider()
 
+    if section == "overview":
+        render_analytics_overview(session)
+        return
     if section == "jobs":
         render_job_search_analytics(session)
         return
@@ -105,18 +114,32 @@ def render_analytics_dashboard() -> None:
         render_swedish_job_market(session)
         return
 
-    st.title(_VIEWS[section])
+    st.title("Portfolio performance")
+    st.caption("Understand which content earns qualified attention and what visitors do next. "
+               "A recorded visit is not a person or a recruiter identification.")
+    kind = st.segmented_control(
+        "Portfolio focus", options=["page","article"],
+        default="page",
+        format_func=lambda value: "Pages & profile" if value == "page" else "Articles & thinking",
+        key="analytics_portfolio_kind", width="stretch",
+    ) or "page"
+    window_options = [key for key, _ in REPORTING_WINDOWS]
     window = st.selectbox(
-        "Reporting window",
-        [key for key, _ in REPORTING_WINDOWS],
-        index=0,
+        "Reporting period",
+        window_options,
+        index=window_options.index("30d"),
         format_func=lambda key: REPORTING_WINDOW_LABELS[key],
         key="careersite_analytics_reporting_window",
+        help="Choose a complete enough window for interpretation. Hourly and daily views are primarily operational checks.",
     )
-    render_reader_sources(str(window), "page" if section == "pages" else "article")
-    render_content_intelligence("page" if section == "pages" else "article", str(window))
-    st.divider()
-    if section == "pages":
-        render_site_analytics_dashboard()
-    else:
-        render_article_analytics()
+    if str(window) in ("last_hour","today"):
+        st.caption("Short windows are useful for monitoring, not for judging hiring or content outcomes.")
+    render_content_intelligence(str(kind), str(window))
+    with st.expander("Historical traffic reports & detailed source tables"):
+        st.caption("Legacy reporting includes unfiltered traffic for continuity. "
+                   "It should not replace the qualified-session and behavior measures above.")
+        render_reader_sources(str(window), str(kind))
+        if kind == "page":
+            render_site_analytics_dashboard()
+        else:
+            render_article_analytics()

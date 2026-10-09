@@ -155,18 +155,50 @@ def render_job_report(records):
                   str(r.get("interaction_direction") or "").lower() in ("inbound","two_way")
                   for r in rows)
 
+    snapshots = [r for r in records
+                 if r.get("record_type") == "snapshot_metric" and r.get("snapshot_date")]
+    snapshot_dates = sorted({r["snapshot_date"] for r in snapshots}, reverse=True)
+    latest_snapshot_date = snapshot_dates[0] if snapshot_dates else None
+    latest_snapshot = {
+        r.get("metric_name"): r
+        for r in snapshots
+        if latest_snapshot_date and r.get("snapshot_date") == latest_snapshot_date
+    }
+    official_application_row = latest_snapshot.get("Confirmed application submissions", {})
+    official_application_raw = official_application_row.get("metric_value")
+    try:
+        official_applications = int(float(official_application_raw))
+    except (TypeError, ValueError):
+        official_applications = report["counts"]["Applications"]
+
     st.caption(f"Selected evidence: {start:%d %b %Y}–{end:%d %b %Y}"
                + (f" · {employer}" if employer != "All employers" else "")
-               + ". Primary, deduplicated events only; the official snapshot remains separate.")
+               + ". Event-level filters apply to contacts, interviews and follow-ups. "
+                 "The documented application total comes from the latest official snapshot.")
     c1,c2,c3,c4 = st.columns(4)
-    c1.metric("Recorded applications",report["counts"]["Applications"],
-              help="Primary application events in the selected window, not the official cumulative count.")
+    c1.metric("Documented applications",official_applications,
+              help=(official_application_row.get("interpretation")
+                    or "Latest official cumulative application total; independent of event filters."))
     c2.metric("Inbound / two-way contacts",inbound,
               help="Recorded human replies and two-way contacts only; outbound messages are excluded.")
     c3.metric("Completed interviews",sum(completed_interview(r) for r in rows),
               help="Invitation and scheduled interviews do not count as completed.")
     c4.metric("Follow-up actions due",len(due),
               help="Documented follow-up requirements or overdue next steps, not inferred ATS status.")
+
+    event_mapped_applications = report["counts"]["Applications"]
+    if official_applications:
+        coverage = event_mapped_applications / official_applications
+        st.caption(
+            f"Event-mapped applications in the selected evidence window: "
+            f"{event_mapped_applications} of {official_applications} ({coverage:.0%}). "
+            "This is event-level analytics coverage, not a second application total."
+        )
+    else:
+        st.caption(
+            f"Event-mapped applications in the selected evidence window: "
+            f"{event_mapped_applications}. No official cumulative snapshot is available."
+        )
 
     if due:
         st.warning(f"{len(due)} documented process(es) need a follow-up or overdue-step review. "

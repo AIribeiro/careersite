@@ -2,9 +2,10 @@
 
 No personal offer probabilities are calibrated: this individual's history has no
 observed offers. Dates are conditional illustrations, never statistical forecasts.
-An observed contact rate affects *future application funnel* assumptions; public
-market releases and anonymous portfolio traffic are reviewed but never treated
-as evidence that a particular employer will hire this individual.
+An observed contact rate affects future application-funnel assumptions.
+Selected portfolio engagement and independent Swedish labour-market indicators
+pragmatically shift future opportunities using capped, disclosed heuristic
+weights; these are not proof of causality.
 """
 from __future__ import annotations
 
@@ -17,8 +18,9 @@ from job_search_metrics import (
     analyze, canonical_events, completed_interview, day, offer, process_key,
     progression,
 )
+from hiring_forecast_signals import forecast_drivers
 
-MODEL_VERSION = "hiring-beta-2"
+MODEL_VERSION = "hiring-beta-3"
 HORIZON_DAYS = 364
 SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5}
 # Purely illustrative offer propensity *given each hiring stage*, NOT observed
@@ -127,6 +129,7 @@ def forecast_hiring(
     market_model: dict | None = None,
     portfolio_correlation: dict | None = None,
     hiring_quality: dict | None = None,
+    portfolio_actions: dict | None = None,
 ) -> dict:
     events = _as_of_events(jobs, as_of)
     dates = [day(r["event_date"]) for r in events]
@@ -194,6 +197,7 @@ def forecast_hiring(
                         if r.get("status") == "Repeated association"
                         and r.get("outcome") in ("responses", "interviews", "progression")]
     quality = (hiring_quality or {}).get("quality_summary") or {}
+    drivers = forecast_drivers(portfolio_correlation, portfolio_actions, market_model, as_of)
     official = _official_application_total(jobs, as_of)
     event_coverage = (len(applied) / official) if official else None
     sources = {
@@ -224,11 +228,12 @@ def forecast_hiring(
         "version": MODEL_VERSION, "as_of": as_of.isoformat(), "sources": sources,
         "active_stages": open_stages, "curve": [], "crossings": {},
         "confidence": "Early estimate", "status": "insufficient",
+        "drivers": drivers,
         "limitations": [
-            "Offer rates and decision times are planning assumptions, not validated individual probabilities.",
-            "Only dated, linked application events can support conversion and future search-pace estimates.",
-            "Anonymous portfolio visits do not identify hiring decision-makers.",
-            "Market indicators have no proven link to a personal job offer and do not alter the date.",
+            "The portfolio's qualified traffic, CV downloads and contact actions are positive planning signals, not identified recruiters.",
+            "Specific Swedish job-market signals can help or hurt future opportunity estimates; their weights are heuristic, not proven effects.",
+            "Only new opportunities—not hiring decisions already under way—receive portfolio/market adjustments.",
+            "Offer rates and decision times remain assumptions, not calibrated personal probabilities.",
             "A formal offer and a first day of work are different events.",
         ],
     }
@@ -249,31 +254,58 @@ def forecast_hiring(
     if len(events) < 8 or not first or (not open_stages and last28 + prior28 < 3):
         return result
 
-    curve = []
-    for t in range(0, HORIZON_DAYS + 1, 7):
-        row = {"Date": (as_of + timedelta(days=t)).isoformat(), "Days": t}
-        for label, multiplier in SCENARIOS.items():
-            no_offer = 1.0
-            for p in open_stages:
-                p_offer, scale = STAGES[p["stage"]]
-                chance = p["weight"] * _remaining_offer_chance(
-                    _bounded(p_offer * multiplier, 0.0, 0.95),
-                    p["age"], t, scale,
-                )
-                no_offer *= 1 - chance
-            expected_new_offers = 0.0
-            # New processes arise uniformly during the horizon, then wait
-            # through their own hiring cycle; no time travel or immediate
-            # application-to-offer conversion.
-            for elapsed in range(7, t + 1, 7):
-                expected_new_offers += (
-                    7 * daily_rate * new_application_offer_rate * multiplier
-                    * _cdf(elapsed, STAGES["application"][1])
-                )
-            no_offer *= exp(-expected_new_offers)
-            row[label] = round(_bounded(1 - no_offer, 0.0, 1.0), 4)
-        curve.append(row)
+    def _scenario_curve(portfolio_effect: float, market_effect: float) -> list[dict]:
+        """Same base model, independently switching heuristics on and off."""
+        opportunity_factor = _bounded(1.0 + portfolio_effect + market_effect, 0.82, 1.24)
+        curve = []
+        for t in range(0, HORIZON_DAYS + 1, 7):
+            row = {"Date": (as_of + timedelta(days=t)).isoformat(), "Days": t}
+            for label, multiplier in SCENARIOS.items():
+                no_offer = 1.0
+                for p in open_stages:
+                    p_offer, scale = STAGES[p["stage"]]
+                    chance = p["weight"] * _remaining_offer_chance(
+                        _bounded(p_offer * multiplier, 0.0, 0.95),
+                        p["age"], t, scale,
+                    )
+                    no_offer *= 1 - chance
+                expected_new_offers = 0.0
+                for elapsed in range(7, t + 1, 7):
+                    expected_new_offers += (
+                        7 * daily_rate * new_application_offer_rate * multiplier
+                        * opportunity_factor
+                        * _cdf(elapsed, STAGES["application"][1])
+                    )
+                no_offer *= exp(-expected_new_offers)
+                row[label] = round(_bounded(1 - no_offer, 0.0, 1.0), 4)
+            curve.append(row)
+        return curve
 
+    port = drivers["portfolio"]["effect"]
+    market = drivers["market"]["effect"]
+    curve = _scenario_curve(port, market)
+    baseline_curve = _scenario_curve(0.0, 0.0)
+    portfolio_curve = _scenario_curve(port, 0.0)
+    market_curve = _scenario_curve(0.0, market)
+    reference = {
+        "base": _crossing(baseline_curve, "Current pace"),
+        "portfolio_only": _crossing(portfolio_curve, "Current pace"),
+        "market_only": _crossing(market_curve, "Current pace"),
+        "combined": _crossing(curve, "Current pace"),
+    }
+    reference["portfolio_days"] = (
+        (day(reference["portfolio_only"]) - day(reference["base"])).days
+        if reference["portfolio_only"] and reference["base"] else None
+    )
+    reference["market_days"] = (
+        (day(reference["market_only"]) - day(reference["base"])).days
+        if reference["market_only"] and reference["base"] else None
+    )
+    reference["combined_days"] = (
+        (day(reference["combined"]) - day(reference["base"])).days
+        if reference["combined"] and reference["base"] else None
+    )
+    result["comparison"] = reference
     result["curve"] = curve
     result["crossings"] = {label: _crossing(curve, label) for label in SCENARIOS}
     result["status"] = "scenario" if result["crossings"]["Current pace"] else "no_median"

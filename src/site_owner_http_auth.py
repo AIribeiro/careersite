@@ -72,7 +72,10 @@ def _same_origin_post(request) -> bool:
         return False
     origin = request.headers.get("origin") or request.headers.get("referer") or ""
     if not origin:
-        return False
+        # Some mobile browsers suppress Origin/Referer on form submissions;
+        # the browser-generated Fetch Metadata header still authenticates
+        # same-origin navigation. Never permit missing source headers blindly.
+        return request.headers.get("sec-fetch-site","") == "same-origin"
     p = urlsplit(origin)
     hostname = (p.hostname or "").lower()
     return hostname == str(request.url.hostname or "").lower() and p.scheme == "https"
@@ -201,6 +204,18 @@ async def owner_auth_route(request) -> Response:
             return _clear(RedirectResponse(f"/owner-auth/login?next={dest}",status_code=303))
 
     if action == "logout":
+        if request.method == "GET":
+            response = HTMLResponse(
+                '<!doctype html><html><head><meta charset="utf-8">'
+                '<meta name="robots" content="noindex,nofollow">'
+                '<title>Sign out | Portfolio</title></head>'
+                '<body style="font:16px system-ui;padding:3em;background:#f4f0e8">'
+                '<h1>Sign out</h1><p>Revoke this browser session?</p>'
+                '<form method="post" action="/owner-auth/logout">'
+                '<button type="submit" style="padding:12px 20px">Sign out</button>'
+                '</form></body></html>'
+            )
+            return _no_store(response)
         if request.method != "POST" or not _same_origin_post(request):
             return _no_store(Response("Forbidden",status_code=403))
         access = str(request.cookies.get(ACCESS_COOKIE) or "")
@@ -227,6 +242,6 @@ async def owner_auth_route(request) -> Response:
                         )
                     except (RuntimeError,ValueError,KeyError,TimeoutError):
                         pass
-        return _clear(Response(status_code=204))
+        return _clear(RedirectResponse("/?page=analytics",status_code=303))
 
     return _no_store(Response("Not found",status_code=404))

@@ -195,6 +195,28 @@ def _campaign_rows(rows: object) -> list[dict]:
     return prepared
 
 
+
+def _campaign_label_totals(rows: object) -> list[dict]:
+    """Campaign comparison counts session cohorts once, across source variants.
+
+    Input is already one row per (source, campaign) first-touch cohort from
+    the owner RPC. It must not be combined with the source-channel totals.
+    """
+    by_label: dict[str, dict] = {}
+    for item in _campaign_rows(rows):
+        label = item["campaign_label"]
+        if label not in by_label:
+            by_label[label] = {
+                "campaign_label": label, "sessions": 0,
+                "engaged_sessions": 0, "evidence_verified_sessions": 0,
+                "hiring_intent_sessions": 0,
+            }
+        for field in ("sessions","engaged_sessions","evidence_verified_sessions","hiring_intent_sessions"):
+            by_label[label][field] += int(item.get(field,0) or 0)
+    return sorted(by_label.values(),key=lambda row:(-row["sessions"],row["campaign_label"]))
+
+
+
 def _build_attribution_link(source: str, role: str, destination: str) -> str:
     params: list[tuple[str, str]] = []
     if destination and destination != "home":
@@ -1076,7 +1098,7 @@ def render_analytics_dashboard() -> None:
                     "Tagged activity is shown separately from the parent channel. For example, role=dailyquote is displayed as Daily Quotes while the stored attribution remains unchanged.",
                 )
                 _bar_chart(
-                    _campaign_rows(hiring.get("campaigns", [])),
+                    _campaign_label_totals(hiring.get("campaigns", [])),
                     "campaign_label",
                     value="sessions",
                     limit=12,

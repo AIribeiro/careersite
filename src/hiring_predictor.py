@@ -19,8 +19,9 @@ from job_search_metrics import (
     progression,
 )
 from hiring_forecast_signals import forecast_drivers
+from hiring_forecast_windows import peak_weeks, reliability_index
 
-MODEL_VERSION = "hiring-beta-3.1"
+MODEL_VERSION = "hiring-beta-3.2"
 HORIZON_DAYS = 364
 SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5}
 # Purely illustrative offer propensity *given each hiring stage*, NOT observed
@@ -224,9 +225,12 @@ def forecast_hiring(
         "market_observations": int(coverage.get("observations") or 0),
         "market_repeated_associations": len(stable_market),
     }
+    evidence = reliability_index(sources, open_stages, drivers)
     result = {
         "version": MODEL_VERSION, "as_of": as_of.isoformat(), "sources": sources,
         "active_stages": open_stages, "curve": [], "crossings": {},
+        "reliability": evidence,
+        "windows": {"offers": [], "starts": [], "offer_weeks": [], "start_weeks": []},
         "confidence": "Early estimate", "status": "insufficient",
         "drivers": drivers,
         "limitations": [
@@ -307,6 +311,7 @@ def forecast_hiring(
     )
     result["comparison"] = reference
     result["curve"] = curve
+    result["windows"] = peak_weeks(curve, as_of)
     result["crossings"] = {label: _crossing(curve, label) for label in SCENARIOS}
     result["status"] = "scenario" if result["crossings"]["Current pace"] else "no_median"
     central = result["crossings"].get("Current pace")

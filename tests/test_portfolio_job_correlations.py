@@ -113,7 +113,7 @@ class PortfolioJobCorrelationTests(unittest.TestCase):
         site,jobs=fake_data()
         code="from page_portfolio_job_correlations import render_portfolio_job_correlations\nrender_portfolio_job_correlations()"
         with (
-            patch("page_portfolio_job_correlations.ensure_owner_session",
+            patch("page_portfolio_job_correlations.persistent_owner_session",
                   return_value={"access_token":"test-owner"}),
             patch("page_portfolio_job_correlations._fetch_rpc",return_value=site),
             patch("page_job_search_analytics.fetch_job_records",return_value=jobs),

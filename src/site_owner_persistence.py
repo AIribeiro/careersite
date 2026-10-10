@@ -123,6 +123,13 @@ def _persist_browser_cookies_if_requested() -> None:
     if status in ("saved", "unavailable"):
         st.session_state.pop("owner_cookie_attach_ticket", None)
         st.session_state["owner_cookie_attach_status"] = status
+        if status == "saved":
+            st.toast("Secure browser session saved.")
+        else:
+            st.toast(
+                "Signed in successfully. Browser remembering is not available "
+                "on this deployment; normal in-page login remains usable."
+            )
 
 
 def _logout_component(**kwargs):

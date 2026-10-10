@@ -273,14 +273,22 @@ Starlette app exposes `/owner-auth/login`, `/owner-auth/refresh`, and
 `/owner-auth/logout`. Login and refresh credentials are stored only in
 same-origin, Secure, HttpOnly, SameSite=Lax cookies; never in URL parameters,
 front-end localStorage, public JavaScript, or first-party analytics events.
-On a new Streamlit connection, the app reads the HttpOnly cookies and
-verifies the Supabase access token against `/auth/v1/user`, checking the owner
-email. As access expires, a browser redirect to the same-origin refresh
-endpoint rotates both the Supabase refresh token and the browser cookie.
-Explicit **Sign out** calls the authenticated logout endpoint, revokes the
-Supabase session where possible, removes all three cookies and clears local
-Streamlit state. These cookies last up to 365 days of inactivity; provider
-expiration, revocation or manual sign-out can require reauthentication.
+On a new Streamlit connection, the app first checks its cookie context and
+independently verifies the Supabase access token at `/auth/v1/user`. On
+Streamlit Community Cloud, proxy filtering can remove custom cookies from
+WebSocket handshakes. The trusted Streamlit v2 component therefore also calls
+the same-origin `/owner-auth/bootstrap` HTTP endpoint. Only the short-lived
+**access** token enters the browser component/Streamlit widget state; the
+rotating **refresh** token remains in an HttpOnly cookie and is never placed
+in localStorage or URLs. Supabase verifies the owner before allowing private
+reads. The component is registered inside the Streamlit script to work with
+the Starlette startup lifecycle. When the cookie expires, the browser HTTP
+bootstrap route renews it atomically. The original in-app password form is
+available if restoration fails, but this form alone does not create browser
+persistence; use **Sign in and stay signed in** for that. Explicit Sign out
+revokes the Supabase session where possible, clears browser cookies and
+Streamlit state. Cookies last for at most 365 days, subject to provider
+expiration, revocation and manual sign-out.
 
 This design depends on running the **Starlette `app.py` entrypoint** so its
 auth routes share the same host as the Streamlit UI. Running `streamlit run

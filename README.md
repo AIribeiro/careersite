@@ -263,6 +263,29 @@ The hidden site-owner dashboard remains at:
 
 It is not part of public navigation and is marked noindex. All three reports — Page Views, Article Views, and Job Search Analytics — require the same Supabase CMS owner session (`cms_auth`). Switching reports uses native Streamlit controls rather than full-page links, so signing in once keeps the owner authenticated across analytics views within the active Streamlit session. Job-search records remain behind the owner bearer token; neither the table nor its rows should be exposed through public analytics RPCs. A fresh browser/Streamlit session still requires owner sign-in.
 
+### CV source / role attribution reconciliation (Page Views)
+
+The Page Views **Acquisition** section contains an owner-only CV/role audit.
+It distinguishes one `page_view` event from a tagged source, a UTM label, a
+role/campaign, and a browser-tab session. A visit with `source=cv` and
+`utm_source=cv` is counted **once**, not twice. Source and role are orthogonal
+dimensions; do not sum their totals as separate traffic.
+
+A second owner-only Supabase RPC, `careersite_cv_attribution_audit_v1`, returns
+raw CV-tagged views, distinct session IDs, overlap with UTM/role tags, role
+breakdowns and *suspected link preview / automated fetch bursts*. Detection is
+conservative: at least three different site pages within ±30 seconds, all
+with different session IDs but an identical coarse browser/device signature.
+Those events stay in the raw event log and all raw page-view totals, but they
+are shown separately from other CV-tagged views; *other* does not mean
+confirmed human or recruiter. Counts reconcile to the same raw rows.
+
+The job-search correlation RPC separately excludes flagged CV scan bursts so
+batch checks cannot inflate the supposed association between CV referrals and
+recruitment responses. Role/campaign charts sum disjoint first-touch session
+cohorts across channels when the same campaign label appears in several
+channels, instead of plotting multiple overlapping bars under one label.
+
 ### Private Job Search Analytics — adaptive portfolio correlations
 
 The **Portfolio correlations** tab compares two *independently collected* datasets,

@@ -79,8 +79,8 @@ def peak_weeks(curve: list[dict], as_of: date, limit: int = 3) -> dict:
 def reliability_index(sources: dict, stages: list[dict], drivers: dict) -> dict:
     """Transparent 0–100 evidence-coverage index, never 'chance of offer'.
 
-    Without a validated series of completed hiring outcomes, cap at 55%.
-    No number here estimates real-world forecasting accuracy.
+    Until an independently backtested validation exists, cap the score at 55%.
+    Offer counts alone do not establish accuracy.
     """
     def num(field: str) -> float:
         try:
@@ -108,7 +108,7 @@ def reliability_index(sources: dict, stages: list[dict], drivers: dict) -> dict:
         "Market data coverage": 4 if (drivers.get("market") or {}).get("indicators_reviewed", 0) >= 3 else 0,
         "Historical offer outcomes": 10 * min(1., observed_offers / 5),
     }
-    score = round(min(sum(detail.values()), 55 if observed_offers < 5 else 100))
+    score = round(min(sum(detail.values()), 55))
     grade = "Limited evidence" if score < 35 else ("Developing evidence" if score < 55 else "Useful evidence; not validated")
     return {"score_pct": score, "grade": grade,
             "components": {k: round(v, 1) for k, v in detail.items()},

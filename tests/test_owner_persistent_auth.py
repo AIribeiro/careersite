@@ -243,6 +243,41 @@ class PersistentAuthTests(unittest.TestCase):
         self.assertIn("method=\"post\"",response.body.decode())
         revoke.assert_not_called()
 
+    def test_login_cookie_bootstrap_streamlit_restore_then_logout(self):
+        """End-to-end auth transitions with Cloud-filtered WebSocket cookies."""
+        from http.cookies import SimpleCookie
+        login = FakeRequest(method="POST",action="login",
+                            data={"password":"correct-password"})
+        with patch.object(httpauth,"owner_signin",return_value=self.good_session):
+            response=asyncio.run(httpauth.owner_auth_route(login))
+        self.assertEqual(response.status_code,303)
+        jar=SimpleCookie()
+        for value in response.headers.getlist("set-cookie"):
+            jar.load(value)
+        cookies={name:item.value for name,item in jar.items()}
+        bootstrap=FakeRequest(method="POST",action="bootstrap",cookies=cookies)
+        with patch.object(httpauth,"_request_json",return_value={"email":httpauth.OWNER_EMAIL}):
+            issued=asyncio.run(httpauth.owner_auth_route(bootstrap))
+        self.assertEqual(issued.status_code,200)
+        payload=__import__("json").loads(issued.body)
+        self.assertEqual(payload["access_token"],self.good_session["access_token"])
+        with (
+            patch.object(persist,"_cookies",return_value={}),
+            patch.object(persist.st,"session_state",{}),
+            patch.object(persist,"_restore_component",
+                         return_value=SimpleNamespace(session=payload)),
+            patch.object(persist,"_request_json",return_value={"email":persist.OWNER_EMAIL}),
+        ):
+            restored=persist.persistent_owner_session()
+        self.assertEqual(restored["access_token"],self.good_session["access_token"])
+        with patch.object(httpauth,"_request_json",return_value=None):
+            logged_out=asyncio.run(httpauth.owner_auth_route(
+                FakeRequest(method="POST",action="logout",cookies=cookies)))
+        self.assertEqual(logged_out.status_code,303)
+        self.assertEqual(len(logged_out.headers.getlist("set-cookie")),3)
+        self.assertTrue(all("max-age=0" in h.lower() for h in
+                            logged_out.headers.getlist("set-cookie")))
+
     def test_unrecognized_destination_cannot_open_redirect(self):
         req=FakeRequest(action="login",destination="https://outside.example")
         response=asyncio.run(httpauth.owner_auth_route(req))

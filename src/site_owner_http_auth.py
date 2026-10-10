@@ -18,6 +18,7 @@ from site_owner_persistence import (
     ACCESS_COOKIE, EXPIRY_COOKIE, REFRESH_COOKIE, ALLOWED_DESTINATIONS,
 )
 from site_analytics import ANALYTICS_URL
+from site_owner_tickets import redeem_owner_cookie_ticket
 
 # Expires after 365 days without renewing; signing in again remains possible.
 # Supabase revocation/refresh-token expiration takes precedence.
@@ -143,6 +144,35 @@ async def owner_auth_route(request) -> Response:
             return _set_session(response,session)
         except (RuntimeError,ValueError,TimeoutError):
             return _signin_html(dest,failed=True)
+
+    if action == "attach":
+        # Browser cookie attachment for the proven in-app password form.
+        # The refresh token stays on the SERVER; JS sends only an unguessable
+        # one-time ticket. POST must come from this app's own HTTPS origin.
+        if request.method != "POST" or not _same_origin_post(request):
+            return _no_store(Response("Forbidden",status_code=403))
+        if int(request.headers.get("content-length") or "0") > 1024:
+            return _no_store(Response("Invalid request",status_code=413))
+        body = await request.body()
+        if len(body)>1024:
+            return _no_store(Response("Invalid request",status_code=413))
+        payload=parse_qs(body.decode("utf-8",errors="replace"))
+        ticket=str((payload.get("ticket") or [""])[0])
+        session=redeem_owner_cookie_ticket(ticket)
+        if session is None:
+            return _no_store(JSONResponse({"saved":False},status_code=401))
+        try:
+            # Supabase owner access is validated again before issuing cookies.
+            actual=await run_in_threadpool(
+                _request_json,"GET",
+                f"{ANALYTICS_URL.rstrip('/')}/auth/v1/user",
+                token=str(session.get("access_token") or ""),
+            )
+            if not isinstance(actual,dict) or str(actual.get("email") or "").lower() != OWNER_EMAIL:
+                raise RuntimeError("Owner identity mismatch")
+            return _set_session(JSONResponse({"saved":True}),session)
+        except (RuntimeError,ValueError,KeyError,TimeoutError):
+            return _no_store(JSONResponse({"saved":False},status_code=401))
 
     if action == "bootstrap":
         # Streamlit Community Cloud can omit custom cookies from WebSocket

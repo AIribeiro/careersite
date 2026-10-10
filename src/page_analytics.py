@@ -870,7 +870,8 @@ def render_analytics_dashboard() -> None:
     o1.metric("Reached Impact", _pct(impact_sessions, sessions), f"{impact_sessions} sessions")
     o2.metric("Opened a lens", _pct(lens_sessions, sessions), f"{lens_sessions} sessions")
     o3.metric("CV conversion", _pct(cv_sessions, sessions), f"{cv_sessions} downloading sessions")
-    o4.metric("Contact channel sessions", email_sessions + linkedin_sessions, "email + LinkedIn; overlap possible")
+    o4.metric("Contact channel sessions", _count(totals.get("contact_channel_sessions")),
+              "distinct sessions · email or LinkedIn")
     o5.metric("Single-page", _pct(single_page_sessions, sessions), f"{single_page_sessions} sessions")
 
     overview_tab, quality_tab, audience_tab, acquisition_tab, engagement_tab, tools_tab = st.tabs(
@@ -1034,7 +1035,8 @@ def render_analytics_dashboard() -> None:
                 f"{_count(rule.get('minimum_repeated_signature_sessions'))} sessions, "
                 "zero recorded interactions, zero recorded actions, and cohort average active time below "
                 f"{_seconds(float(rule.get('maximum_signature_average_engaged_ms') or 0) / 1000)}. "
-                "The rule is intentionally narrow to avoid misclassifying legitimate visitors."
+                "Coordinated multi-session previews of three different pages within 30 seconds "
+                "are also excluded. Both checks are conservative heuristics, not verified bot identities."
             )
 
     with audience_tab:

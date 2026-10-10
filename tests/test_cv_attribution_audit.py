@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"src"))
 
-from page_analytics import _campaign_label_totals
+from page_analytics import _campaign_label_totals, _attribution_rows
 from page_cv_attribution_audit import fetch_cv_attribution_audit
 
 AUDIT = {
@@ -41,6 +41,20 @@ class CvAttributionTests(unittest.TestCase):
         self.assertEqual(next(x for x in grouped if x["campaign_label"]=="Daily Quotes")["sessions"],7)
         self.assertEqual(sum(x["sessions"] for x in grouped),13)
         self.assertEqual(next(x for x in grouped if x["campaign_label"]=="Daily Quotes")["engaged_sessions"],3)
+
+    def test_source_rollup_does_not_duplicate_normalized_labels(self):
+        records=[
+            {"attribution_source":"linkedin","attribution_role":None,"sessions":7,"engaged_sessions":4},
+            {"attribution_source":"linkedin","attribution_role":"dailyquote","sessions":3,"engaged_sessions":2},
+            {"attribution_source":"linkedin?role=dailyquote","attribution_role":None,"sessions":1,"engaged_sessions":0},
+            {"attribution_source":"cv","sessions":5,"engaged_sessions":2},
+        ]
+        result=_attribution_rows(records)
+        self.assertEqual(len(result),2)
+        linkedin=next(x for x in result if x["attribution_source"]=="linkedin")
+        self.assertEqual(linkedin["sessions"],11)
+        self.assertEqual(linkedin["engaged_sessions"],6)
+        self.assertEqual(sum(x["sessions"] for x in result),16)
 
     def test_request_uses_owner_token_and_window(self):
         from unittest.mock import MagicMock

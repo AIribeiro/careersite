@@ -11,6 +11,9 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from cms_header_generator import background_palette_for, configured_image_model, generate_templated_ai_header
+from site_owner_persistence import (
+    persistent_owner_session, show_owner_login_or_refresh, browser_owner_signout,
+)
 
 from site_cms import (
     OWNER_EMAIL,
@@ -22,7 +25,7 @@ from site_cms import (
     delete_article,
     delete_header_image,
     duplicate_article,
-    ensure_owner_session,
+    # Session restored from verified same-site HttpOnly cookies.
     generate_metadata,
     normalize_header_image,
     owner_signin,
@@ -88,12 +91,7 @@ def _css() -> None:
 
 
 def _session() -> dict | None:
-    session = ensure_owner_session(st.session_state.get("cms_auth"))
-    if session:
-        st.session_state["cms_auth"] = session
-    else:
-        st.session_state.pop("cms_auth", None)
-    return session
+    return persistent_owner_session()
 
 
 def _login() -> None:
@@ -108,17 +106,7 @@ def _login() -> None:
         unsafe_allow_html=True,
     )
 
-    with st.form("cms_signin"):
-        st.text_input("Email", value=OWNER_EMAIL, disabled=True)
-        password = st.text_input("Password", type="password")
-        submitted = st.form_submit_button("Sign in", type="primary")
-    if submitted:
-        try:
-            st.session_state["cms_auth"] = owner_signin(password)
-            st.success("Signed in.")
-            st.rerun()
-        except Exception as exc:
-            st.error(str(exc))
+    show_owner_login_or_refresh("admin")
 
 
 def _split_csv(value: str) -> tuple[str, ...]:
@@ -817,9 +805,8 @@ def _dashboard(session: dict) -> None:
     with top_b:
         st.caption(email_value)
         if st.button("Sign out", use_container_width=True):
-            st.session_state.pop("cms_auth", None)
-            st.session_state.pop("cms_edit_id", None)
-            st.rerun()
+            browser_owner_signout()
+            return
 
     try:
         articles = admin_list_articles(token)

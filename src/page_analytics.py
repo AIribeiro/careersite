@@ -176,6 +176,8 @@ def _attribution_rows(rows: object) -> list[dict]:
             continue
         source, _ = _split_composite_source(row.get("attribution_source"))
         source = source.strip().lower() or "direct/unknown"
+        if source == "direct/unknown":
+            source = "Unattributed / unknown"
         if source not in combined:
             combined[source] = {"attribution_source": source}
             for field in additive:

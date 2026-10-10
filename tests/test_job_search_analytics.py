@@ -62,7 +62,7 @@ class JobAnalyticsTests(unittest.TestCase):
             self.assertFalse(at.exception)
             fetch.assert_not_called()
             self.assertEqual(at.title[0].value,'Portfolio Analytics')
-            self.assertEqual(len(at.text_input),0)
+            self.assertEqual(len(at.text_input),1)  # Native password fallback remains available.
             self.assertEqual(len(at.metric),0)
             self.assertEqual(len(at.metric),0)
 

@@ -156,19 +156,34 @@ def _split_composite_source(value: object) -> tuple[str, str | None]:
 
 
 def _attribution_rows(rows: object) -> list[dict]:
-    """Normalize display-only source labels while retaining raw database history."""
+    """Roll up first-touch, disjoint source+role cohorts by canonical source.
+
+    The RPC returns one row per source/role session cohort. After normalizing
+    historic composite tags, summing the cohort metrics is safe; plotting
+    duplicate normalized labels as separate bars is misleading.
+    Role-level detail remains available in the separate campaign breakdown.
+    """
     if not isinstance(rows, list):
         return []
-    prepared: list[dict] = []
+    additive = (
+        "sessions", "engaged_sessions", "cv_sessions", "home_sessions",
+        "lens_sessions", "email_sessions", "impact_sessions",
+        "article_sessions", "linkedin_sessions",
+    )
+    combined: dict[str, dict] = {}
     for row in rows:
         if not isinstance(row, dict):
             continue
-        item = dict(row)
-        source, _ = _split_composite_source(item.get("attribution_source"))
-        item["attribution_source"] = source or str(item.get("attribution_source") or "direct/unknown")
-        prepared.append(item)
-    return prepared
-
+        source, _ = _split_composite_source(row.get("attribution_source"))
+        source = source.strip().lower() or "direct/unknown"
+        if source not in combined:
+            combined[source] = {"attribution_source": source}
+            for field in additive:
+                combined[source][field] = 0
+        for field in additive:
+            combined[source][field] += _count(row.get(field))
+    return sorted(combined.values(),
+                  key=lambda r:(-r.get("sessions",0),r["attribution_source"]))
 
 def _campaign_rows(rows: object) -> list[dict]:
     """Prepare campaign/role attribution for display without changing stored values."""

@@ -142,13 +142,17 @@ def persistent_owner_session() -> dict | None:
             st.session_state["cms_auth"] = session
             return session
 
-    restored = _restore_component(
-        key="owner_http_cookie_bridge",
-        data={"enabled": True, "nonce": int(st.session_state.get("owner_restore_nonce",0))},
-        default={"session": None, "status": None},
-        on_session_change=lambda: None,
-        on_status_change=lambda: None,
-    )
+    try:
+        restored = _restore_component(
+            key="owner_http_cookie_bridge",
+            data={"enabled": True, "nonce": int(st.session_state.get("owner_restore_nonce",0))},
+            default={"session": None, "status": None},
+            on_session_change=lambda: None,
+            on_status_change=lambda: None,
+        )
+    except Exception:
+        # Optional persistence must never block normal password sign-in.
+        return None
     candidate = restored.session if isinstance(restored.session, dict) else None
     if not candidate:
         return None

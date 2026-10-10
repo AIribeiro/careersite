@@ -113,6 +113,26 @@ class PersistentAuthTests(unittest.TestCase):
                             response.headers.getlist("set-cookie")))
         self.assertIn("/auth/v1/logout",revoke.call_args.args[1])
 
+    def test_expired_access_still_revokes_refresh_session_on_logout(self):
+        req=FakeRequest(method="POST",action="logout",cookies={
+            persist.ACCESS_COOKIE:"expired-access",
+            persist.REFRESH_COOKIE:"working-refresh",
+        })
+        calls=[]
+        def revoke(method,url,*,token=None,payload=None):
+            calls.append((method,url,token))
+            if len(calls)==1:
+                raise RuntimeError("expired")
+            return None
+        with patch.object(httpauth,"_request_json",side_effect=revoke), \\
+             patch.object(httpauth,"owner_refresh",return_value=self.good_session) as refresh:
+            response=asyncio.run(httpauth.owner_auth_route(req))
+        self.assertEqual(response.status_code,204)
+        refresh.assert_called_once_with("working-refresh")
+        self.assertEqual(calls[0][2],"expired-access")
+        self.assertEqual(calls[1][2],"test-access-token")
+        self.assertEqual(len(response.headers.getlist("set-cookie")),3)
+
     def test_restoration_validates_owner_identity(self):
         cookies={
             persist.ACCESS_COOKIE:"known-access",

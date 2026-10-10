@@ -103,7 +103,8 @@ def _source_rows(rows: object, slug: str) -> list[dict]:
         if not isinstance(row, dict) or str(row.get("article_slug") or "") != slug:
             continue
         item = dict(row)
-        item["source"] = str(item.get("attribution_source") or "direct/unknown")
+        raw = str(item.get("attribution_source") or "direct/unknown")
+        item["source"] = "Unattributed / unknown" if raw.casefold() == "direct/unknown" else raw
         prepared.append(item)
     return prepared
 
@@ -169,7 +170,7 @@ def _reader_source_rows(rows: list[dict], slug: str = "") -> list[dict]:
     """Sum article-session visits, never claim cross-article unique readers."""
     labels = {"kpmg": "KPMG", "linkedin": "LinkedIn", "x": "X", "twitter": "Twitter",
               "facebook": "Facebook", "whatsapp": "WhatsApp", "email": "Email",
-              "direct/unknown": "Direct / untagged"}
+              "direct/unknown": "Unattributed / unknown"}
     counts: dict[str, int] = {}
     originals: dict[str, str] = {}
     for row in rows:

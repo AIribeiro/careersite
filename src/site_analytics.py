@@ -111,6 +111,10 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     win.sessionStorage.setItem(engagedKey, '0');
     win.sessionStorage.setItem(lastActiveKey, String(lastActiveAt));
     win.sessionStorage.removeItem('jair_hq_last_view_v1');
+    // A source is a session-level first-touch label, not a permanent tab identity.
+    // Never carry source=cv (or any other campaign) into a fresh session after
+    // inactivity. If the current URL still has an explicit tag, it is re-read.
+    win.sessionStorage.removeItem('jair_hq_attribution_v1');
     // A fresh session on the same document must be allowed to emit a new
     // page_view. Without clearing this document-level guard, background
     // telemetry can become the first (and only) event in the new session.
@@ -452,8 +456,22 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   win.__jairAnalyticsEnsureFreshSession = ensureFreshSession;
 
   win.__jairAnalyticsSend = (eventName, extra = {{}}) => {{
-    if (!allowed.has(eventName) || isExcludedTestTraffic()) return;
-    ensureFreshSession();
+    if (!allowed.has(eventName)) return;
+    if (ensureFreshSession()) {{
+      // The document may stay mounted while the tab is idle. Reset its local
+      // attribution as well as storage so background telemetry cannot reuse
+      // the previous session's CV/referral source.
+      attribution = {{
+        source: incomingSource || null,
+        role: incomingRole || null,
+        utm_source: incomingUtmSource || null,
+        utm_campaign: incomingCampaign || null,
+      }};
+      if (attribution.source || attribution.role || attribution.utm_source || attribution.utm_campaign) {{
+        win.sessionStorage.setItem(attributionKey, JSON.stringify(attribution));
+      }}
+    }}
+    if (isExcludedTestTraffic()) return;
     updateEngagement();
     const context = win.__jairAnalyticsContext || {{ page: 'home', source: 'streamlit' }};
     const elapsedMs = Math.min(86400000, Math.max(0, Date.now() - startedAt));

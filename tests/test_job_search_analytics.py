@@ -62,7 +62,8 @@ class JobAnalyticsTests(unittest.TestCase):
             self.assertFalse(at.exception)
             fetch.assert_not_called()
             self.assertEqual(at.title[0].value,'Portfolio Analytics')
-            self.assertEqual(len(at.text_input),1)
+            self.assertEqual(len(at.text_input),0)
+            self.assertTrue(any('Sign in securely' in x.value for x in at.markdown))
             self.assertEqual(len(at.metric),0)
 
     def test_private_report_renders_graphs_and_empty_metrics(self):

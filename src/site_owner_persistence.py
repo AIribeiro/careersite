@@ -12,7 +12,7 @@ import time
 
 import streamlit as st
 
-from site_cms import OWNER_EMAIL, _request_json, owner_signin
+from site_cms import OWNER_EMAIL, _request_json, owner_signin, ensure_owner_session
 from site_analytics import ANALYTICS_URL
 from site_owner_tickets import issue_owner_cookie_ticket
 
@@ -174,6 +174,20 @@ def persistent_owner_session() -> dict | None:
         if expires > time.time() + REFRESH_HEADROOM_SECONDS:
             _persist_browser_cookies_if_requested()
             return current
+        # Preserve the original working Streamlit flow: renew in-memory
+        # sessions when Cloud does not support the browser cookie endpoint.
+        if current.get("refresh_token"):
+            renewed = ensure_owner_session(current)
+            if renewed and renewed.get("access_token"):
+                st.session_state["cms_auth"] = renewed
+                try:
+                    st.session_state["owner_cookie_attach_ticket"] = (
+                        issue_owner_cookie_ticket(renewed)
+                    )
+                except ValueError:
+                    pass
+                _persist_browser_cookies_if_requested()
+                return renewed
         st.session_state.pop("cms_auth",None)
         st.session_state["owner_restore_nonce"] = (
             int(st.session_state.get("owner_restore_nonce",0)) + 1
@@ -256,6 +270,19 @@ def show_owner_login_or_refresh(destination: str) -> None:
 
 def browser_owner_signout() -> None:
     """Browser POST clears cookies and revokes tokens; never store JWT in URLs."""
+    current = st.session_state.get("cms_auth")
+    if isinstance(current, dict) and current.get("access_token"):
+        # Important when the cookie endpoint is unavailable: revoke the
+        # in-memory fallback's refreshable Supabase session from Python.
+        try:
+            usable = ensure_owner_session(current)
+            if usable and usable.get("access_token"):
+                _request_json(
+                    "POST",f"{ANALYTICS_URL.rstrip('/')}/auth/v1/logout",
+                    token=str(usable["access_token"]),payload={}
+                )
+        except (RuntimeError,ValueError,TimeoutError):
+            pass
     st.session_state.pop("cms_auth",None)
     st.session_state.pop("cms_edit_id",None)
     st.session_state.pop("owner_cookie_attach_ticket",None)

@@ -14,7 +14,7 @@ AUDIT = {
     "overview":{
         "all_page_views":970,"page_view_sessions":778,
         "cv_page_views":64,"cv_sessions":64,
-        "cv_utm_source_same_view":40,"cv_with_role":0,"role_tagged_views":35,
+        "cv_utm_source_same_view":40,"cv_with_role":0,"role_tagged_views":36,
         "suspect_scan_views":51,"suspect_scan_sessions":51,
     },
     "cv_pages":[
@@ -23,7 +23,7 @@ AUDIT = {
         {"page":"presence","raw_views":20,"suspect_scan_views":17,"other_views":3},
     ],
     "roles":[
-        {"role":"dailyquote","page_views":27,"sessions":24},
+        {"role":"dailyquote","page_views":28,"sessions":25},
         {"role":"article","page_views":2,"sessions":2},
     ]
 }
@@ -58,6 +58,11 @@ class CvAttributionTests(unittest.TestCase):
             self.assertIn("Bearer owner-test",req.headers.values())
             self.assertEqual(json.loads(req.data)["p_days"],30)
             self.assertEqual(json.loads(req.data)["p_window"],"days")
+
+    def test_legacy_composite_role_is_a_dimension_not_a_new_view(self):
+        self.assertEqual(AUDIT["overview"]["role_tagged_views"],36)
+        self.assertEqual(AUDIT["roles"][0]["page_views"],28)
+        self.assertEqual(AUDIT["overview"]["cv_with_role"],0)
 
     def test_invariants_source_utm_overlap_is_not_added(self):
         raw=AUDIT["overview"]["cv_page_views"]

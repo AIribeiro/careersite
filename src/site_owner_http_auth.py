@@ -164,7 +164,8 @@ async def owner_auth_route(request) -> Response:
         if request.method != "POST" or not _same_origin_post(request):
             return _no_store(Response("Forbidden",status_code=403))
         access = str(request.cookies.get(ACCESS_COOKIE) or "")
-        if access:
+        refresh = str(request.cookies.get(REFRESH_COOKIE) or "")
+        if access or refresh:
             try:
                 await run_in_threadpool(
                     _request_json,"POST",
@@ -173,9 +174,19 @@ async def owner_auth_route(request) -> Response:
                     payload={},
                 )
             except (RuntimeError,TimeoutError):
-                # Clear cookies even when GoTrue is unavailable; never trap users
-                # in an authenticated browser after they click Sign out.
-                pass
+                # An expired access token cannot revoke the refresh session.
+                # Try a one-time refresh and log out the resulting access token.
+                if refresh:
+                    try:
+                        newer = await run_in_threadpool(owner_refresh,refresh)
+                        await run_in_threadpool(
+                            _request_json,"POST",
+                            f"{ANALYTICS_URL.rstrip('/')}/auth/v1/logout",
+                            token=str(newer["access_token"]),
+                            payload={},
+                        )
+                    except (RuntimeError,ValueError,KeyError,TimeoutError):
+                        pass
         return _clear(Response(status_code=204))
 
     return _no_store(Response("Not found",status_code=404))

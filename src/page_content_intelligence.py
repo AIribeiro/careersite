@@ -312,6 +312,8 @@ def _campaign_visual_rows(data: dict) -> list[dict]:
     for row in data.get("campaigns", []):
         sessions = _count(row.get("sessions"))
         source = row.get("channel") or "direct/unknown"
+        if str(source).casefold() in ("direct/unknown", "direct / unknown"):
+            source = "Unattributed / unknown"
         campaign = row.get("campaign") or "untagged"
         rows.append({
             "Source / campaign": f"{source} · {campaign}",

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import streamlit as st
 
-from site_cms import ensure_owner_session, owner_signin
+from site_owner_persistence import (persistent_owner_session, show_owner_login_or_refresh,
+                                    browser_owner_signout)
 from page_analytics import (
     render_analytics_dashboard as render_site_analytics_dashboard,
     _noindex, _dashboard_css, REPORTING_WINDOWS, REPORTING_WINDOW_LABELS,
@@ -24,27 +25,14 @@ _VIEW_STATE_KEY = "careersite_analytics_view"
 
 
 def _owner_session() -> dict | None:
-    """Share the CMS owner session across every private analytics view."""
-    session = ensure_owner_session(st.session_state.get("cms_auth"))
-    if session:
-        st.session_state["cms_auth"] = session
-    else:
-        st.session_state.pop("cms_auth", None)
-    return session
+    """Share a verified, persistently restorable owner session with the CMS."""
+    return persistent_owner_session()
 
 
 def _owner_login() -> None:
     st.title("Portfolio Analytics")
     st.caption("Private evidence for your portfolio, recruitment progress and the Swedish market. One sign-in covers all sections.")
-    with st.form("analytics_owner_signin", clear_on_submit=True):
-        password = st.text_input("Owner password", type="password")
-        submitted = st.form_submit_button("Sign in", type="primary")
-    if submitted:
-        try:
-            st.session_state["cms_auth"] = owner_signin(password)
-            st.rerun()
-        except (RuntimeError, ValueError, TimeoutError):
-            st.error("Sign-in failed. Check your owner password and try again.")
+    show_owner_login_or_refresh("analytics")
 
 
 def _url_view() -> str:
@@ -99,8 +87,8 @@ def render_analytics_dashboard() -> None:
             st.rerun()
     with account:
         if st.button("Sign out", key="analytics_owner_signout"):
-            st.session_state.pop("cms_auth", None)
-            st.rerun()
+            browser_owner_signout()
+            return
     st.caption("Overview → direction and actions  ·  Portfolio → reach and behavior  ·  Job search → conversion and pipeline  ·  Market → external context")
     st.divider()
 
@@ -127,7 +115,7 @@ def render_analytics_dashboard() -> None:
     window = st.selectbox(
         "Reporting period",
         window_options,
-        index=window_options.index("30d"),
+        index=window_options.index("last_hour"),
         format_func=lambda key: REPORTING_WINDOW_LABELS[key],
         key="careersite_analytics_reporting_window",
         help="Choose a complete enough window for interpretation. Hourly and daily views are primarily operational checks.",

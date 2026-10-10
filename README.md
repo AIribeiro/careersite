@@ -263,6 +263,29 @@ The hidden site-owner dashboard remains at:
 
 It is not part of public navigation and is marked noindex. All three reports — Page Views, Article Views, and Job Search Analytics — require the same Supabase CMS owner session (`cms_auth`). Switching reports uses native Streamlit controls rather than full-page links, so signing in once keeps the owner authenticated across analytics views within the active Streamlit session. Job-search records remain behind the owner bearer token; neither the table nor its rows should be exposed through public analytics RPCs. A fresh browser/Streamlit session still requires owner sign-in.
 
+### Analytics reporting window and durable owner login
+
+Analytics → Portfolio opens with **Last hour** selected by default. Longer
+windows remain available for meaningful trend and recruitment analysis.
+
+Analytics and the Article CMS use **one shared owner sign-in**. The production
+Starlette app exposes `/owner-auth/login`, `/owner-auth/refresh`, and
+`/owner-auth/logout`. Login and refresh credentials are stored only in
+same-origin, Secure, HttpOnly, SameSite=Lax cookies; never in URL parameters,
+front-end localStorage, public JavaScript, or first-party analytics events.
+On a new Streamlit connection, the app reads the HttpOnly cookies and
+verifies the Supabase access token against `/auth/v1/user`, checking the owner
+email. As access expires, a browser redirect to the same-origin refresh
+endpoint rotates both the Supabase refresh token and the browser cookie.
+Explicit **Sign out** calls the authenticated logout endpoint, revokes the
+Supabase session where possible, removes all three cookies and clears local
+Streamlit state. These cookies last up to 365 days of inactivity; provider
+expiration, revocation or manual sign-out can require reauthentication.
+
+This design depends on running the **Starlette `app.py` entrypoint** so its
+auth routes share the same host as the Streamlit UI. Running `streamlit run
+main.py` alone does not provide durable sign-in endpoints.
+
 ### Full-channel attribution integrity (Page Views → Acquisition)
 
 An owner-only, dynamic **Attribution integrity · all channels** audit now

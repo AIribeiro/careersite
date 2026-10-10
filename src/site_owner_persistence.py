@@ -7,8 +7,6 @@ Supabase validates each newly restored access token.
 """
 from __future__ import annotations
 
-from datetime import datetime
-from html import escape
 import time
 
 import streamlit as st

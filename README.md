@@ -263,6 +263,41 @@ The hidden site-owner dashboard remains at:
 
 It is not part of public navigation and is marked noindex. All three reports — Page Views, Article Views, and Job Search Analytics — require the same Supabase CMS owner session (`cms_auth`). Switching reports uses native Streamlit controls rather than full-page links, so signing in once keeps the owner authenticated across analytics views within the active Streamlit session. Job-search records remain behind the owner bearer token; neither the table nor its rows should be exposed through public analytics RPCs. A fresh browser/Streamlit session still requires owner sign-in.
 
+### Full-channel attribution integrity (Page Views → Acquisition)
+
+An owner-only, dynamic **Attribution integrity · all channels** audit now
+reconciles CV, LinkedIn/LinkedIn Launch, WhatsApp, Facebook, X, unspecified
+social, tagged ChatGPT, and unattributed sessions from Supabase.
+
+**Authoritative counting rules:** one first-touch parent channel and one
+campaign/role label per session; source, UTM source, UTM campaign and role are
+metadata dimensions, not additional visits. Campaign and channel tables
+independently sum to the same content-session denominator. A browser session
+is **not** a unique person. `direct/unknown` is explicitly labeled
+**Unattributed / unknown** because there is no evidence that the visitor typed
+the URL. External referrers on untagged visits remain annotated but are not
+reassigned to another channel without evidence.
+
+**Distinct event types:** Navigation page-view figures exclude
+`page_view` article wrappers; article reads are measured using
+`article_view` events. The canonical page catalogue includes the
+`ai-data-governance` page, and the contact-channel KPI counts the union of
+sessions clicking email *or* LinkedIn rather than adding overlapping metrics.
+
+**Traffic quality:** Explicit tests and telemetry-only sessions are separated.
+Pre-V5 sessions are marked **legacy / ungraded**, not retroactively
+classified as human. Recent V5 sessions use the same historical
+signature-based quality rule as the hiring-funnel dashboard, plus the
+three-distinct-pages/three-distinct-session-IDs/30-second preview-burst screen.
+The same cross-channel burst exclusions also apply to the automatic
+portfolio/job-search correlation feed. Source conflicts, campaign conflicts,
+unknown source strings, untagged sessions with referrers and article wrappers
+are reported as aggregate diagnostics.
+
+These are owner-only RPCs, not public traffic logs. No historical events were
+deleted or relabeled, and the SQL response does not contain identifiable
+visitor or client fingerprints.
+
 ### CV source / role attribution reconciliation (Page Views)
 
 The Page Views **Acquisition** section contains an owner-only CV/role audit.

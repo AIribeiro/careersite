@@ -124,8 +124,10 @@ class PersistentAuthTests(unittest.TestCase):
             if len(calls)==1:
                 raise RuntimeError("expired")
             return None
-        with patch.object(httpauth,"_request_json",side_effect=revoke), \\
-             patch.object(httpauth,"owner_refresh",return_value=self.good_session) as refresh:
+        with (
+            patch.object(httpauth,"_request_json",side_effect=revoke),
+            patch.object(httpauth,"owner_refresh",return_value=self.good_session) as refresh,
+        ):
             response=asyncio.run(httpauth.owner_auth_route(req))
         self.assertEqual(response.status_code,204)
         refresh.assert_called_once_with("working-refresh")

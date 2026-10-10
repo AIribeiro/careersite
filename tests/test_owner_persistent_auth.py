@@ -107,7 +107,7 @@ class PersistentAuthTests(unittest.TestCase):
         })
         with patch.object(httpauth,"_request_json",return_value=None) as revoke:
             response=asyncio.run(httpauth.owner_auth_route(req))
-        self.assertEqual(response.status_code,204)
+        self.assertEqual(response.status_code,303)
         self.assertEqual(len(response.headers.getlist("set-cookie")),3)
         self.assertTrue(all("Max-Age=0" in c or "max-age=0" in c for c in
                             response.headers.getlist("set-cookie")))
@@ -129,7 +129,7 @@ class PersistentAuthTests(unittest.TestCase):
             patch.object(httpauth,"owner_refresh",return_value=self.good_session) as refresh,
         ):
             response=asyncio.run(httpauth.owner_auth_route(req))
-        self.assertEqual(response.status_code,204)
+        self.assertEqual(response.status_code,303)
         refresh.assert_called_once_with("working-refresh")
         self.assertEqual(calls[0][2],"expired-access")
         self.assertEqual(calls[1][2],"test-access-token")
@@ -161,14 +161,87 @@ class PersistentAuthTests(unittest.TestCase):
              patch.object(persist.st,"session_state",{}), \
              patch.object(persist,"_request_json",return_value={
                  "email":"different@example.org"
-             }):
+             }), patch.object(persist,"_restore_component",return_value=SimpleNamespace(session=None)):
             self.assertIsNone(persist.persistent_owner_session())
         cookies[persist.EXPIRY_COOKIE]=str(int(time.time())-30)
         with patch.object(persist,"_cookies",return_value=cookies), \
              patch.object(persist.st,"session_state",{}), \
+             patch.object(persist,"_restore_component",return_value=SimpleNamespace(session=None)), \
              patch.object(persist,"_request_json") as user:
             self.assertIsNone(persist.persistent_owner_session())
             user.assert_not_called()
+
+    def test_bootstrap_validates_browser_cookie_and_supabase_owner(self):
+        req=FakeRequest(method="POST",action="bootstrap",cookies={
+            persist.ACCESS_COOKIE:"known-access",
+            persist.REFRESH_COOKIE:"known-refresh",
+            persist.EXPIRY_COOKIE:str(int(time.time())+3600),
+        })
+        with patch.object(httpauth,"_request_json",return_value={"email":httpauth.OWNER_EMAIL}):
+            response=asyncio.run(httpauth.owner_auth_route(req))
+        self.assertEqual(response.status_code,200)
+        result=__import__("json").loads(response.body)
+        self.assertTrue(result["authenticated"])
+        self.assertEqual(result["access_token"],"known-access")
+        self.assertNotIn("refresh_token",result)
+        self.assertEqual(response.headers.getlist("set-cookie"),[])
+        self.assertIn("no-store",response.headers["cache-control"])
+
+    def test_bootstrap_refresh_rotates_cookies(self):
+        req=FakeRequest(method="POST",action="bootstrap",cookies={
+            persist.ACCESS_COOKIE:"expired",
+            persist.REFRESH_COOKIE:"old-refresh",
+            persist.EXPIRY_COOKIE:str(int(time.time())-100),
+        })
+        with patch.object(httpauth,"owner_refresh",return_value=self.good_session):
+            response=asyncio.run(httpauth.owner_auth_route(req))
+        self.assertEqual(response.status_code,200)
+        result=__import__("json").loads(response.body)
+        self.assertEqual(result["access_token"],"test-access-token")
+        self.assertEqual(len(response.headers.getlist("set-cookie")),3)
+        self.assertNotIn("refresh_token",result)
+
+    def test_bootstrap_rejects_nonowner_and_cross_site(self):
+        req=FakeRequest(method="POST",action="bootstrap",cookies={
+            persist.ACCESS_COOKIE:"other",
+            persist.REFRESH_COOKIE:"refresh",
+            persist.EXPIRY_COOKIE:str(int(time.time())+3600),
+        })
+        with patch.object(httpauth,"_request_json",return_value={"email":"other@example.org"}):
+            response=asyncio.run(httpauth.owner_auth_route(req))
+        self.assertEqual(response.status_code,401)
+        forbidden=asyncio.run(httpauth.owner_auth_route(FakeRequest(
+            method="POST",action="bootstrap",origin="https://attacker.example",
+            cookies={persist.REFRESH_COOKIE:"stolen"})))
+        self.assertEqual(forbidden.status_code,403)
+
+    def test_bridge_restores_owner_even_without_websocket_cookies(self):
+        candidate={"access_token":"bridged-access","expires_at":int(time.time())+3600}
+        with patch.object(persist,"_cookies",return_value={}), \
+             patch.object(persist.st,"session_state",{}), \
+             patch.object(persist,"_restore_component",
+                          return_value=SimpleNamespace(session=candidate)), \
+             patch.object(persist,"_request_json",return_value={"email":persist.OWNER_EMAIL}):
+            restored=persist.persistent_owner_session()
+        self.assertEqual(restored["access_token"],"bridged-access")
+        self.assertNotIn("refresh_token",restored)
+
+    def test_bridge_does_not_accept_forged_access(self):
+        candidate={"access_token":"attacker-token","expires_at":int(time.time())+3600}
+        with patch.object(persist,"_cookies",return_value={}), \
+             patch.object(persist.st,"session_state",{}), \
+             patch.object(persist,"_restore_component",
+                          return_value=SimpleNamespace(session=candidate)), \
+             patch.object(persist,"_request_json",return_value={"email":"attacker@example.org"}):
+            self.assertIsNone(persist.persistent_owner_session())
+
+    def test_logout_confirmation_does_not_revoke_on_get(self):
+        with patch.object(httpauth,"_request_json") as revoke:
+            response=asyncio.run(httpauth.owner_auth_route(FakeRequest(
+                method="GET",action="logout")))
+        self.assertEqual(response.status_code,200)
+        self.assertIn("method=\"post\"",response.body.decode())
+        revoke.assert_not_called()
 
     def test_unrecognized_destination_cannot_open_redirect(self):
         req=FakeRequest(action="login",destination="https://outside.example")

@@ -20,6 +20,26 @@ def _months(start: str | None, end: str | None) -> str:
     return a if a == b else f"{a} – {b}"
 
 
+def _week_label(window: dict | None) -> str:
+    """Compact calendar week, with year displayed when it differs."""
+    if not window:
+        return "Not available"
+    a = date.fromisoformat(window["from"])
+    b = date.fromisoformat(window["to"])
+    if a.year != b.year:
+        return f"{a:%d %b %Y} – {b:%d %b %Y}"
+    if a.month == b.month:
+        return f"{a.day}–{b.day} {b:%b %Y}"
+    return f"{a:%d %b} – {b:%d %b %Y}"
+
+
+def _week_probability(window: dict | None) -> str:
+    if not window:
+        return "Not enough dated evidence for a weekly ranking."
+    return (f"{window['model_week_pct']:.1f}% scenario-derived weight in "
+            "this week (not a calibrated personal probability).")
+
+
 def _shift(last: str | None, current: str | None) -> str | None:
     if not last or not current:
         return None
@@ -34,7 +54,7 @@ def render_hiring_predictor(
     site_correlation: dict | None, hiring: dict | None,
     today: date, *, portfolio_actions: dict | None = None,
 ) -> None:
-    st.subheader("When might I get a job?")
+    st.subheader("When might I get an offer?")
     st.caption("Hiring Predictor · Beta · a guide for planning, not a promise.")
 
     result = forecast_hiring(jobs, today, market_model=market_model,
@@ -54,43 +74,75 @@ def render_hiring_predictor(
     central = result["crossings"].get("Current pace")
     faster = result["crossings"].get("Faster conversion")
     slower = result["crossings"].get("Conservative")
-    start_window = result.get("start_window") or {}
+    weeks = result["windows"]
+    offers = weeks["offers"]
+    starts = weeks["starts"]
+    evidence = result["reliability"]
+    strongest_offer = offers[0] if offers else None
+    strongest_start = starts[0] if starts else None
 
-    first, second, third = st.columns([1.2, 1.3, 1])
-    first.metric("Possible job offer", _month(central),
-                 help="The model's middle planning scenario. It is not a statistically "
-                      "validated likelihood or a confirmed employer decision.")
-    second.metric("Possible first day", _months(start_window.get("from"),
-                                                start_window.get("to")),
-                  help="Assumes roughly 3–8 weeks from offer to start. Actual notice, "
-                       "contract and onboarding dates may differ.")
-    third.metric("How reliable?", "Early estimate",
-                 help="The data describes activity, not enough actual job offers to "
-                      "measure personal offer conversion.")
+    # Two generous columns, not the previous three over-large st.metric values
+    # which cut off dates on iPad/mobile.
+    st.markdown("**The strongest weeks in the current scenario**")
+    first, second = st.columns(2)
+    with first:
+        with st.container(border=True):
+            st.caption("Most likely offer week")
+            st.markdown(f"### {_week_label(strongest_offer)}")
+            st.caption(_week_probability(strongest_offer))
+    with second:
+        with st.container(border=True):
+            st.caption("Most likely first day at work")
+            st.markdown(f"### {_week_label(strongest_start)}")
+            st.caption(_week_probability(strongest_start))
 
-    if central:
+    st.markdown(f"**Reliability of the evidence: {evidence['score_pct']}%**"
+                f" · {evidence['grade'].lower()}")
+    st.progress(evidence["score_pct"] / 100)
+    st.caption("This percentage scores the coverage and quality of recorded evidence. "
+               "It is **not** independently measured forecast accuracy or your "
+               "chance of getting a job.")
+
+    if strongest_offer:
         st.markdown(
-            f"**Current outlook:** If the job search continues at roughly its recent "
-            f"recorded pace, **{_month(central)}** is a reasonable month to use for "
-            "planning discussions—not a deadline or guaranteed outcome."
+            f"**Current outlook:** The model places its highest weekly offer "
+            f"weight on **{_week_label(strongest_offer)}**. "
+            "These are planning priorities, not promised employer decisions."
         )
     else:
-        st.markdown(
-            "**Current outlook:** The available evidence does not support a useful "
-            "central month within the next year. This does **not** mean an offer "
-            "cannot arrive sooner."
-        )
+        st.markdown("**Current outlook:** A strongest week could not be estimated "
+                    "from the current recruitment history.")
+
+    # Showing actual rankings prevents a median scenario date from being
+    # mistaken for the single most likely hiring week.
+    left, right = st.columns(2)
+    with left:
+        st.markdown("**Top offer weeks**")
+        for rank, item in enumerate(offers, 1):
+            st.caption(f"{rank}. {_week_label(item)} · "
+                       f"{item['model_week_pct']:.1f}% model weight")
+    with right:
+        st.markdown("**Top start weeks**")
+        for rank, item in enumerate(starts, 1):
+            st.caption(f"{rank}. {_week_label(item)} · "
+                       f"{item['model_week_pct']:.1f}% model weight")
+    st.caption("These weekly percentages are calculated from the model's "
+               "illustrative scenario, not from measured hiring outcomes. "
+               "The predicted start weeks assume roughly 3–8 weeks after an offer. "
+               "There is no evidence to identify a particular weekday reliably.")
 
     # Changes are compared within the current browser session only; no personal
     # forecasts are written to the analytics event ledger.
     previous = st.session_state.get("hiring_predictor_last_forecast")
     if previous and previous.get("as_of") <= today.isoformat():
-        movement = _shift(previous.get("central"), central)
+        movement = _shift(previous.get("peak_week"),
+                          strongest_offer.get("from") if strongest_offer else None)
         if movement:
-            st.caption(f"Since the previous check, the planning month moved {movement}. "
+            st.caption(f"Since the previous check, the strongest offer week moved {movement}. "
                        "This is a model update, not a change confirmed by an employer.")
     st.session_state["hiring_predictor_last_forecast"] = {
-        "central": central, "as_of": today.isoformat(),
+        "central": central, "peak_week": strongest_offer.get("from") if strongest_offer else None,
+        "as_of": today.isoformat(),
     }
 
     stages = result["active_stages"]
@@ -270,5 +322,12 @@ def render_hiring_predictor(
         )
         for note in result["limitations"]:
             st.caption("• " + note)
+        st.markdown("**How the reliability percentage is scored**")
+        for label, pts in evidence["components"].items():
+            st.caption(f"• {label}: {pts:.1f} evidence points")
+        st.caption("Because the recorded history does not yet contain enough confirmed "
+                   "offer outcomes for validation, the reliability index is capped at "
+                   "55%. This is an internal evidence-quality rubric, not an externally "
+                   "validated forecast-accuracy percentage.")
         st.caption(f"Model {MODEL_VERSION} · refreshed {today:%d %B %Y} when new "
                    "data is available on the Analytics Overview.")

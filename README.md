@@ -263,36 +263,40 @@ The hidden site-owner dashboard remains at:
 
 It is not part of public navigation and is marked noindex. All three reports — Page Views, Article Views, and Job Search Analytics — require the same Supabase CMS owner session (`cms_auth`). Switching reports uses native Streamlit controls rather than full-page links, so signing in once keeps the owner authenticated across analytics views within the active Streamlit session. Job-search records remain behind the owner bearer token; neither the table nor its rows should be exposed through public analytics RPCs. A fresh browser/Streamlit session still requires owner sign-in.
 
-### Analytics reporting window and durable owner login
+### Analytics reporting window and owner sign-in
 
-Analytics → Portfolio opens with **Last hour** selected by default. Longer
-windows remain available for meaningful trend and recruitment analysis.
+Analytics → Portfolio defaults to **Last hour**. The other reporting windows
+remain available.
 
-Analytics and the Article CMS use **one shared owner sign-in**. The production
-Starlette app exposes `/owner-auth/login`, `/owner-auth/refresh`, and
-`/owner-auth/logout`. Login and refresh credentials are stored only in
-same-origin, Secure, HttpOnly, SameSite=Lax cookies; never in URL parameters,
-front-end localStorage, public JavaScript, or first-party analytics events.
-On a new Streamlit connection, the app first checks its cookie context and
-independently verifies the Supabase access token at `/auth/v1/user`. On
-Streamlit Community Cloud, proxy filtering can remove custom cookies from
-WebSocket handshakes. The trusted Streamlit v2 component therefore also calls
-the same-origin `/owner-auth/bootstrap` HTTP endpoint. Only the short-lived
-**access** token enters the browser component/Streamlit widget state; the
-rotating **refresh** token remains in an HttpOnly cookie and is never placed
-in localStorage or URLs. Supabase verifies the owner before allowing private
-reads. The component is registered inside the Streamlit script to work with
-the Starlette startup lifecycle. When the cookie expires, the browser HTTP
-bootstrap route renews it atomically. The original in-app password form is
-available if restoration fails, but this form alone does not create browser
-persistence; use **Sign in and stay signed in** for that. Explicit Sign out
-revokes the Supabase session where possible, clears browser cookies and
-Streamlit state. Cookies last for at most 365 days, subject to provider
-expiration, revocation and manual sign-out.
+Analytics and Article CMS share **one native Streamlit password form**. This
+is the proven primary authentication path; no login via an external link is
+required. Supabase checks the owner identity. The normal in-memory session is
+refreshable using the verified Supabase refresh token and remains usable even
+if browser cookie persistence is not available on the hosting platform.
 
-This design depends on running the **Starlette `app.py` entrypoint** so its
-auth routes share the same host as the Streamlit UI. Running `streamlit run
-main.py` alone does not provide durable sign-in endpoints.
+After a successful password login, the server issues a **random, single-use
+60-second ticket**. The Streamlit browser component sends only that ticket to
+the same-origin `POST /owner-auth/attach` Starlette endpoint. The endpoint
+redeems the server-held session, independently verifies owner access and
+sets Secure, HttpOnly, SameSite=Lax cookies without exposing the Supabase
+refresh token to browser JavaScript, URLs or analytics. A new Streamlit
+connection can restore the short-lived access token via the same-origin
+`/owner-auth/bootstrap` route and verify its owner identity in Python.
+`/owner-auth/refresh` rotates expired credentials when available.
+
+**Deployment limitation:** Persistent cookies require the Cloud deployment to
+run the `app.py` Starlette entrypoint and expose its custom routes. If the
+hosting proxy blocks those routes, the ticket attachment fails closed while
+**the in-page login still works**; persistent login across browser restarts
+cannot be guaranteed until the deployment is configured correctly. A browser
+may also block cookies. Native Streamlit OIDC login would require a separately
+configured identity provider.
+
+Sign-out revokes the in-memory Supabase session and attempts to clear saved
+browser cookies; the fallback form remains available after sign-out.
+Browser cookie lifetime is at most 365 days, subject to server expiration and
+revocation. No private analytics or CMS data is accessible without a current,
+validated owner session.
 
 ### Full-channel attribution integrity (Page Views → Acquisition)
 

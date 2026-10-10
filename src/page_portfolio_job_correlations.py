@@ -12,7 +12,7 @@ from portfolio_job_correlations import (
     ANCHORS, FEATURES, LAGS, OUTCOMES, _aligned_values, _site_features,
     analyze_portfolio_job_correlations,
 )
-from site_cms import ensure_owner_session
+from site_owner_persistence import persistent_owner_session
 
 
 def _description(row: dict, model: dict) -> str:
@@ -152,7 +152,7 @@ def render_portfolio_job_correlations() -> None:
         "New page and referral-source signals enter the screening pool once sufficiently observed."
     )
     try:
-        session = ensure_owner_session(st.session_state.get("cms_auth"))
+        session = persistent_owner_session()
         if not session or not session.get("access_token"):
             st.warning("Portfolio owner sign-in is required.")
             return

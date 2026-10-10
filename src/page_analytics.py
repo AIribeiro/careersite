@@ -1075,7 +1075,10 @@ def render_analytics_dashboard() -> None:
         )
 
     with acquisition_tab:
-        # Owner-only reconciliation: do not add source, role and UTM counts.
+        # Reporting hierarchy: mutually exclusive first-touch channels, then CV drilldown.
+        from page_attribution_integrity import render_attribution_integrity
+        render_attribution_integrity(str(window))
+        st.divider()
         from page_cv_attribution_audit import render_cv_attribution_audit
         render_cv_attribution_audit(str(window))
         st.divider()

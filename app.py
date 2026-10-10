@@ -18,6 +18,7 @@ from thinking_articles import ARTICLES, BASE_URL, article_app_url, article_url, 
 from thinking_social import ensure_article_share_page, ensure_article_social_image
 from site_cms import bundled_header_bytes, cms_share_document, cms_sitemap_entries, fetch_public_article, render_cms_social_image
 from site_social_preview import PUBLIC_URL as SITE_SOCIAL_IMAGE
+from site_owner_http_auth import owner_auth_route
 
 # Source-level compatibility anchors for the established smoke tests. The
 # executable UI moved to main.py; these strings document that architecture
@@ -241,6 +242,7 @@ async def _sitemap(_request):
 app = App(
     "main.py",
     routes=[
+        Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),
         Route("/ai-data-governance", _ai_data_governance_share, methods=["GET", "HEAD"]),
         Route("/social/{slug}.png", _thinking_social_image, methods=["GET", "HEAD"]),

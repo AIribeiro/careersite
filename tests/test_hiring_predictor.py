@@ -222,6 +222,67 @@ class HiringPredictorTests(unittest.TestCase):
                                      "cv_attribution":bad},TODAY)
         self.assertEqual(r["cv_attribution_effect"],0)
 
+    def test_offer_and_start_weeks_ranked_by_weekly_likelihood(self):
+        jobs = [event(n, days_ago=(n * 3) % 55 + 1) for n in range(1, 45)]
+        jobs.append(event(
+            80, 5, employer="Interview candidate", is_application=False,
+            is_interview=True, activity="Interview held",
+            status="Interview completed", is_human_interaction=True,
+            interaction_direction="two_way",
+        ))
+        r = forecast_hiring(jobs, TODAY)
+        window = r["windows"]
+        self.assertEqual(len(window["offers"]), 3)
+        self.assertEqual(len(window["starts"]), 3)
+        for label in ("offers","starts"):
+            scores = [x["model_week_pct"] for x in window[label]]
+            self.assertEqual(scores, sorted(scores, reverse=True))
+            self.assertGreater(scores[0], 0)
+            for w in window[label]:
+                start = date.fromisoformat(w["from"])
+                finish = date.fromisoformat(w["to"])
+                self.assertEqual(start.weekday(), 0)
+                self.assertEqual((finish-start).days,6)
+        # Calendar aggregation conserves the model's cumulative offer mass.
+        total_offers = sum(x["model_week_pct"] for x in window["offer_weeks"])/100
+        self.assertAlmostEqual(total_offers, r["curve"][-1]["Current pace"], places=2)
+        total_starts = sum(x["model_week_pct"] for x in window["start_weeks"])/100
+        self.assertAlmostEqual(total_offers,total_starts,places=2)
+        earliest_start = min(date.fromisoformat(w["from"]) for w in window["start_weeks"])
+        self.assertGreaterEqual(earliest_start,
+                                TODAY + timedelta(days=21-6))
+
+    def test_more_documented_evidence_raises_index_but_not_to_certainty(self):
+        from hiring_forecast_windows import reliability_index, peak_weeks
+        empty = reliability_index({}, [], {})
+        self.assertEqual(empty["score_pct"],0)
+        full = reliability_index({
+            "primary_events":100,"job_history_days":150,
+            "event_coverage":1.0,"mature_with_human_contact":20,
+            "recorded_offer_events":0,
+        },[{"stage":"interview","age":10}]*8,
+          {"portfolio":{"qualified_actions_available":True},
+           "market":{"indicators_reviewed":10}})
+        self.assertGreater(full["score_pct"], empty["score_pct"])
+        self.assertLessEqual(full["score_pct"],55)
+        self.assertFalse(full["calibrated"])
+        self.assertEqual(peak_weeks([],TODAY)["offers"],[])
+
+    def test_model_week_mass_changes_when_market_evidence_changes(self):
+        jobs = [event(n, days_ago=n%45 + 1) for n in range(1,40)]
+        base = forecast_hiring(jobs,TODAY)
+        up = forecast_hiring(jobs,TODAY,market_model={"latest":[{
+            "indicator_key":"employment_outlook_it_tech",
+            "observation_date":"2026-09-30",
+            "published_at":"2026-10-01",
+            "signal_score":1,
+            "confidence_score":99,"relevance_score":99,
+        }]})
+        self.assertNotEqual(
+            [w["model_week_pct"] for w in up["windows"]["offer_weeks"]],
+            [w["model_week_pct"] for w in base["windows"]["offer_weeks"]],
+        )
+
     def test_market_can_help_or_hurt_and_avoids_look_ahead(self):
         from hiring_forecast_signals import market_adjustment, MARKET_CAP
         def indicator(key, score, published="2026-09-30"):

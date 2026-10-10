@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hiring_predictor import forecast_hiring
@@ -32,6 +33,50 @@ def event(n: int, days_ago: int, *, employer: str | None = None,
 
 
 class HiringPredictorTests(unittest.TestCase):
+    def test_hiring_overview_renders_reliability_breakdown_with_portfolio_drivers(self):
+        """Regression: nonzero portfolio driver descriptions must not overwrite
+        the dictionary used by the reliability score and detailed breakdown.
+        Previous implementation crashed after the two expanders were drawn.
+        """
+        from page_hiring_predictor import render_hiring_predictor
+
+        jobs = [event(n, days_ago=(n * 3) % 52 + 1)
+                for n in range(1, 37)]
+        actions = {
+            "quality_checked": True,
+            "includes_partial_today": True,
+            "recent_from": (TODAY - timedelta(days=27)).isoformat(),
+            "previous_from": (TODAY - timedelta(days=55)).isoformat(),
+            "through": TODAY.isoformat(),
+            "cv_download_sessions": {"recent": 3, "previous": 0},
+            "contact_click_sessions": {"recent": 2, "previous": 0},
+            "cv_attribution": {
+                "classification": "exclusive_highest_quality_tier",
+                "tracking": "qualified_engaged_sessions",
+                "parent_recent": 12, "parent_previous": 0,
+                "base_only": 12, "variants": 0, "roles": 0,
+                "tags": 0, "actions": 0,
+            },
+        }
+        ui = MagicMock()
+        ui.session_state = {}
+        ui.columns.side_effect = lambda size: [MagicMock() for _ in range(size)]
+        with patch("page_hiring_predictor.st", ui):
+            render_hiring_predictor(
+                jobs, market_model=None, site_correlation=None,
+                hiring=None, today=TODAY, portfolio_actions=actions,
+            )
+        captions = [str(call.args[0]) for call in ui.caption.call_args_list
+                    if call.args]
+        self.assertTrue(
+            any("evidence points" in value for value in captions),
+            "Reliability details must render after the portfolio driver breakdown",
+        )
+        self.assertTrue(
+            any("planning adjustment" in value for value in captions),
+            "The scenario needs a nonzero portfolio driver to exercise the bug",
+        )
+
     def test_no_evidence_never_fabricates_date(self):
         result = forecast_hiring([], TODAY)
         self.assertEqual(result["status"], "insufficient")

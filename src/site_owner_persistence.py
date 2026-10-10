@@ -66,12 +66,21 @@ export default function({ data, setTriggerValue }) {
 }
 """
 
-_restore_component = st.components.v2.component(
-    "careersite_owner_session_restore", js=_RESTORE_JS
-)
-_logout_component = st.components.v2.component(
-    "careersite_owner_session_logout", js=_LOGOUT_JS
-)
+def _restore_component(**kwargs):
+    # The module is imported by Starlette before the Streamlit script starts.
+    # Register the component inside the executing Streamlit script, not at
+    # module-import time (which leaves it absent from Streamlit's registry).
+    component = st.components.v2.component(
+        "careersite_owner_session_restore", js=_RESTORE_JS
+    )
+    return component(**kwargs)
+
+
+def _logout_component(**kwargs):
+    component = st.components.v2.component(
+        "careersite_owner_session_logout", js=_LOGOUT_JS
+    )
+    return component(**kwargs)
 
 
 def _verify_owner_access(access: str) -> dict | None:

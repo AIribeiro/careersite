@@ -81,6 +81,11 @@ def show_owner_login_or_refresh(destination: str) -> None:
             height=0,
         )
         st.caption("Restoring your authenticated session…")
+        st.markdown(
+            f'<a href="/owner-auth/refresh?next={target}" target="_self">'
+            'Continue securely if the page does not reload</a>',
+            unsafe_allow_html=True,
+        )
     else:
         st.markdown(
             f'<a href="/owner-auth/login?next={target}" target="_self">'
@@ -112,3 +117,4 @@ def browser_owner_signout() -> None:
         height=0,
     )
     st.caption("Signing out…")
+    st.caption("If this page does not redirect, close and reopen the Analytics page.")

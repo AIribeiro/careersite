@@ -10,7 +10,7 @@ from html import escape
 import time
 from urllib.parse import parse_qs, urlsplit
 
-from starlette.responses import HTMLResponse, RedirectResponse, Response
+from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from starlette.concurrency import run_in_threadpool
 
 from site_cms import OWNER_EMAIL, _request_json, owner_refresh, owner_signin
@@ -137,6 +137,46 @@ async def owner_auth_route(request) -> Response:
             return _set_session(response,session)
         except (RuntimeError,ValueError,TimeoutError):
             return _signin_html(dest,failed=True)
+
+    if action == "bootstrap":
+        # Streamlit Community Cloud can omit custom cookies from WebSocket
+        # handshakes. A same-origin HTTP request still receives HttpOnly cookies.
+        # Return only a short-lived Supabase *access* token to the trusted
+        # in-page component; the refresh token stays strictly HttpOnly.
+        if request.method != "POST" or not _same_origin_post(request):
+            return _no_store(Response("Forbidden",status_code=403))
+        access = str(request.cookies.get(ACCESS_COOKIE) or "")
+        refresh = str(request.cookies.get(REFRESH_COOKIE) or "")
+        try:
+            expiry = int(request.cookies.get(EXPIRY_COOKIE) or "0")
+        except (ValueError,TypeError):
+            expiry = 0
+        if not refresh:
+            return _no_store(JSONResponse({"authenticated":False},status_code=401))
+        try:
+            if not access or expiry <= time.time()+75:
+                fresh = await run_in_threadpool(owner_refresh,refresh)
+                identity = fresh.get("user") if isinstance(fresh,dict) else None
+                if not isinstance(identity,dict) or str(identity.get("email") or "").lower() != OWNER_EMAIL:
+                    raise RuntimeError("Owner identity mismatch")
+                response = JSONResponse({
+                    "authenticated":True,
+                    "access_token":fresh["access_token"],
+                    "expires_at":int(fresh.get("expires_at") or
+                                     (time.time()+int(fresh.get("expires_in") or 0))),
+                })
+                return _set_session(response,fresh)
+            actual = await run_in_threadpool(
+                _request_json,"GET",
+                f"{ANALYTICS_URL.rstrip('/')}/auth/v1/user",token=access,
+            )
+            if not isinstance(actual,dict) or str(actual.get("email") or "").lower() != OWNER_EMAIL:
+                raise RuntimeError("Owner identity mismatch")
+            return _no_store(JSONResponse({
+                "authenticated":True,"access_token":access,"expires_at":expiry,
+            }))
+        except (RuntimeError,ValueError,KeyError,TimeoutError):
+            return _clear(JSONResponse({"authenticated":False},status_code=401))
 
     if action == "refresh":
         if request.method != "GET":

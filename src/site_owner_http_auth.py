@@ -49,9 +49,7 @@ def _no_store(response: Response) -> Response:
 
 def _clear(response: Response) -> Response:
     for name in (ACCESS_COOKIE, REFRESH_COOKIE, EXPIRY_COOKIE):
-        response.delete_cookie(name,key=None) if False else response.delete_cookie(
-            name,path="/",secure=True,httponly=True,samesite="lax"
-        )
+        response.delete_cookie(name,path="/",secure=True,httponly=True,samesite="lax")
     return _no_store(response)
 
 

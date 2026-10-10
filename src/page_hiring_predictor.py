@@ -77,7 +77,7 @@ def render_hiring_predictor(
     weeks = result["windows"]
     offers = weeks["offers"]
     starts = weeks["starts"]
-    evidence = result["reliability"]
+    reliability = result["reliability"]
     strongest_offer = offers[0] if offers else None
     strongest_start = starts[0] if starts else None
 
@@ -96,9 +96,9 @@ def render_hiring_predictor(
             st.markdown(f"### {_week_label(strongest_start)}")
             st.caption(_week_probability(strongest_start))
 
-    st.markdown(f"**Reliability of the evidence: {evidence['score_pct']}%**"
-                f" · {evidence['grade'].lower()}")
-    st.progress(evidence["score_pct"] / 100)
+    st.markdown(f"**Reliability of the evidence: {reliability['score_pct']}%**"
+                f" · {reliability['grade'].lower()}")
+    st.progress(reliability["score_pct"] / 100)
     st.caption("This percentage scores the coverage and quality of recorded evidence. "
                "It is **not** independently measured forecast accuracy or your "
                "chance of getting a job.")
@@ -294,14 +294,14 @@ def render_hiring_predictor(
                                        "Target-role CV referrals",
                                        "Relevant CV campaign tags",
                                        "CV-origin hiring actions"):
-                    evidence = f"{driver['current']} qualified CV sessions in the highest relevant tier"
+                    driver_detail = f"{driver['current']} qualified CV sessions in the highest relevant tier"
                 elif driver["label"] == "Qualified CV parent channel":
-                    evidence = f"{driver['current']} engaged CV-origin sessions"
+                    driver_detail = f"{driver['current']} engaged CV-origin sessions"
                 elif is_action and not portfolio["full_action_baseline"]:
-                    evidence = f"{driver['current']} recorded recently; previous tracking is incomplete"
+                    driver_detail = f"{driver['current']} recorded recently; previous tracking is incomplete"
                 else:
-                    evidence = f"{driver['current']} recent vs {driver['previous']} previous"
-                st.caption(f"• {driver['label']}: {evidence}; "
+                    driver_detail = f"{driver['current']} recent vs {driver['previous']} previous"
+                st.caption(f"• {driver['label']}: {driver_detail}; "
                            f"planning adjustment {driver['effect']:+.1%}.")
         st.markdown(
             "**Swedish market:** Specific published indicators can add or subtract "
@@ -323,7 +323,7 @@ def render_hiring_predictor(
         for note in result["limitations"]:
             st.caption("• " + note)
         st.markdown("**How the reliability percentage is scored**")
-        for label, pts in evidence["components"].items():
+        for label, pts in reliability["components"].items():
             st.caption(f"• {label}: {pts:.1f} evidence points")
         st.caption("Because the recorded history does not yet contain enough confirmed "
                    "offer outcomes for validation, the reliability index is capped at "

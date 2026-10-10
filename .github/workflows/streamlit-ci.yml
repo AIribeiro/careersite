@@ -60,6 +60,25 @@ jobs:
           cat /tmp/streamlit.log
           exit 1
 
+      - name: Verify owner login and refresh routes are mounted
+        run: |
+          curl --fail --silent --show-error \
+            --dump-header /tmp/owner-login-headers.txt \
+            --output /tmp/owner-login.html \
+            "http://127.0.0.1:8501/owner-auth/login?next=analytics"
+          grep 'Portfolio owner sign-in' /tmp/owner-login.html
+          grep -i '^cache-control:.*no-store' /tmp/owner-login-headers.txt
+          curl --silent --show-error --dump-header /tmp/owner-refresh-headers.txt \
+            --output /dev/null \
+            "http://127.0.0.1:8501/owner-auth/refresh?next=analytics"
+          grep -E '^HTTP/.* 303' /tmp/owner-refresh-headers.txt
+          grep -i '^location:.*owner-auth/login' /tmp/owner-refresh-headers.txt
+          curl --silent --show-error --dump-header /tmp/owner-forbidden-headers.txt \
+            --output /dev/null \
+            --request POST --header 'Origin: https://attacker.invalid' \
+            "http://127.0.0.1:8501/owner-auth/logout"
+          grep -E '^HTTP/.* 403' /tmp/owner-forbidden-headers.txt
+
       - name: Verify public CV endpoint serves PDF bytes
         run: |
           CV="Jair_Ribeiro_CV.pdf"

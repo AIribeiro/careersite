@@ -14,6 +14,7 @@ import streamlit as st
 
 from site_cms import OWNER_EMAIL, _request_json, owner_signin
 from site_analytics import ANALYTICS_URL
+from site_owner_tickets import issue_owner_cookie_ticket
 
 ACCESS_COOKIE = "__Host-jair_owner_access"
 REFRESH_COOKIE = "__Host-jair_owner_refresh"
@@ -48,6 +49,25 @@ export default function({ data, setStateValue }) {
 }
 """
 
+_ATTACH_JS = """
+export default function({data, setStateValue}) {
+  if (!data || !data.ticket) return;
+  const key = String(data.ticket);
+  if (window.__jairOwnerAttachTicket === key) return;
+  window.__jairOwnerAttachTicket = key;
+  fetch('/owner-auth/attach', {
+    method: 'POST', credentials: 'same-origin', cache: 'no-store',
+    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({ticket: key}).toString()
+  }).then(async response => {
+    if (!response.ok) throw new Error('attach_unavailable');
+    const result = await response.json();
+    if (!result.saved) throw new Error('attach_unsaved');
+    setStateValue('status', 'saved');
+  }).catch(() => { setStateValue('status', 'unavailable'); });
+}
+"""
+
 _LOGOUT_JS = """
 export default function({ data, setTriggerValue }) {
   if (!data || !data.requested || window.__jairLogoutStarted) return;
@@ -74,6 +94,35 @@ def _restore_component(**kwargs):
         "careersite_owner_session_restore", js=_RESTORE_JS
     )
     return component(**kwargs)
+
+
+def _attach_component(**kwargs):
+    component = st.components.v2.component(
+        "careersite_owner_session_attach", js=_ATTACH_JS
+    )
+    return component(**kwargs)
+
+
+def _persist_browser_cookies_if_requested() -> None:
+    """Best-effort credential persistence; never affect an authenticated view."""
+    ticket = st.session_state.get("owner_cookie_attach_ticket")
+    if not ticket:
+        return
+    try:
+        result = _attach_component(
+            key="owner_http_cookie_attach",
+            data={"ticket": ticket},
+            default={"status": None},
+            on_status_change=lambda: None,
+        )
+    except Exception:
+        st.session_state.pop("owner_cookie_attach_ticket", None)
+        st.session_state["owner_cookie_attach_status"] = "unavailable"
+        return
+    status = getattr(result, "status", None)
+    if status in ("saved", "unavailable"):
+        st.session_state.pop("owner_cookie_attach_ticket", None)
+        st.session_state["owner_cookie_attach_status"] = status
 
 
 def _logout_component(**kwargs):
@@ -123,6 +172,7 @@ def persistent_owner_session() -> dict | None:
         except (ValueError,TypeError):
             expires = 0
         if expires > time.time() + REFRESH_HEADROOM_SECONDS:
+            _persist_browser_cookies_if_requested()
             return current
         st.session_state.pop("cms_auth",None)
         st.session_state["owner_restore_nonce"] = (
@@ -172,35 +222,43 @@ def persistent_owner_session() -> dict | None:
 
 
 def show_owner_login_or_refresh(destination: str) -> None:
-    """Accessible login button plus proven in-app form fallback."""
+    """One native sign-in form. Optional cookie persistence runs automatically.
+
+    Link-based external login caused blocked navigation on mobile Streamlit
+    deployment. The confirmed working Streamlit form is the sole primary path.
+    """
     target = destination if destination in ALLOWED_DESTINATIONS else "analytics"
-    if has_persistent_session():
-        st.caption("Checking your existing browser session. If it does not restore, sign in below.")
-    st.markdown(
-        f'<a href="/owner-auth/login?next={target}" target="_self">'
-        'Sign in and stay signed in</a>',
-        unsafe_allow_html=True,
-    )
-    with st.form(f"owner_fallback_login_{target}",clear_on_submit=True):
-        password = st.text_input("Owner password",type="password")
-        submitted = st.form_submit_button("Sign in here instead")
+    st.caption("Sign in once to access Analytics and the CMS.")
+    with st.form(f"owner_primary_login_{target}", clear_on_submit=True):
+        password = st.text_input("Owner password", type="password")
+        submitted = st.form_submit_button("Sign in", type="primary")
     if submitted:
         try:
             session = owner_signin(password)
             st.session_state["cms_auth"] = session
+            # A one-use ticket makes the browser save server-held refresh
+            # credentials as HttpOnly cookies, without another login page.
+            try:
+                st.session_state["owner_cookie_attach_ticket"] = (
+                    issue_owner_cookie_ticket(session)
+                )
+                st.session_state.pop("owner_cookie_attach_status", None)
+            except ValueError:
+                # Successful login always takes precedence over persistence.
+                st.session_state.pop("owner_cookie_attach_ticket", None)
             st.rerun()
         except (RuntimeError,ValueError,TimeoutError):
             st.error("Sign-in failed. Check your owner password and try again.")
     st.caption(
-        "The first option remembers this browser; the password form is a "
-        "fallback if your browser blocks persistent authentication."
+        "Your access is immediate. Browser session remembering is attempted "
+        "automatically where the hosting environment supports secure cookies."
     )
-
 
 def browser_owner_signout() -> None:
     """Browser POST clears cookies and revokes tokens; never store JWT in URLs."""
     st.session_state.pop("cms_auth",None)
     st.session_state.pop("cms_edit_id",None)
+    st.session_state.pop("owner_cookie_attach_ticket",None)
     result = _logout_component(
         key="owner_http_logout",
         data={"requested":True},

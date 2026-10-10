@@ -78,7 +78,10 @@ def _same_origin_post(request) -> bool:
         return request.headers.get("sec-fetch-site","") == "same-origin"
     p = urlsplit(origin)
     hostname = (p.hostname or "").lower()
-    return hostname == str(request.url.hostname or "").lower() and p.scheme == "https"
+    # Cloud proxies can present an internal host on the upstream request.
+    # The only additional accepted hostname is this app's canonical domain.
+    expected = {"jairribeiro-ai.streamlit.app",str(request.url.hostname or "").lower()}
+    return hostname in expected and p.scheme == "https"
 
 
 def _signin_html(destination: str, *, failed: bool = False) -> HTMLResponse:

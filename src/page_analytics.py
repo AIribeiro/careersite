@@ -1038,6 +1038,10 @@ def render_analytics_dashboard() -> None:
         )
 
     with acquisition_tab:
+        # Owner-only reconciliation: do not add source, role and UTM counts.
+        from page_cv_attribution_audit import render_cv_attribution_audit
+        render_cv_attribution_audit(str(window))
+        st.divider()
         left, right = st.columns([1.35, 1])
         with left:
             with st.container(border=True):

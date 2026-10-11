@@ -108,12 +108,28 @@ def inject_weekly_audio_telemetry() -> None:
     if (item) sync(item.audio, item.slug, true);
   }, true);
 
-  for (const name of ['seeking', 'seeked', 'pause', 'ratechange']) {
+  for (const name of ['seeking', 'seeked', 'ratechange']) {
     doc.addEventListener(name, event => {
       const item = mediaFor(event);
       if (item) sync(item.audio, item.slug, false);
     }, true);
   }
+
+  // A single checkpoint after a meaningful partial listen keeps listening
+  // minutes accurate even when a visitor stops between quarter milestones.
+  doc.addEventListener('pause', event => {
+    const item = mediaFor(event);
+    if (!item) return;
+    const state = sync(item.audio, item.slug, false);
+    if (!item.audio.ended && state.started &&
+        state.listenedMs - (state.lastCheckpointMs || 0) >= 5000) {
+      state.lastCheckpointMs = state.listenedMs;
+      const store = getStore();
+      store.editions[item.slug] = state;
+      persist(store);
+      record(item.slug, 'audio_progress', 'checkpoint', state.listenedMs);
+    }
+  }, true);
 
   doc.addEventListener('ended', event => {
     const item = mediaFor(event);
@@ -128,6 +144,8 @@ def inject_weekly_audio_telemetry() -> None:
       store.editions[item.slug] = state;
       persist(store);
       record(item.slug, 'audio_complete', 'ended', state.listenedMs);
+    } else if (state.started && !state.completed && state.listenedMs > 0) {
+      record(item.slug, 'audio_progress', 'checkpoint', state.listenedMs);
     }
   }, true);
 })();

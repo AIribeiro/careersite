@@ -368,7 +368,7 @@ def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str
         + '<main><section class="section paper" data-analytics-section="weekly-ai-reader"><div class="container">'
         '<div class="weekly-ai-reader">'
         '<a class="weekly-ai-back" href="?page=thinking#weekly-ai" target="_self">← Back to Thinking</a>'
-        '<div class="weekly-ai-label">WEEKLY AI · WEEK ' + str(week) + ' · ' + str(year) + '</div>'
+        '<div class="weekly-ai-label">WEEKLY AI · Week ' + str(week) + ' · ' + str(year) + '</div>'
         '<h1>' + escape(_headline(article)) + '</h1>'
         '<p class="weekly-ai-subtitle">' + escape(article.subtitle or article.excerpt) + '</p>'
         '<div class="weekly-ai-bylines">' + escape(_swedish_range(start, end))

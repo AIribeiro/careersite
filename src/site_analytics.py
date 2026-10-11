@@ -46,6 +46,9 @@ ALLOWED_EVENTS = (
     "ux_signal",
     "first_interaction",
     "behavior_summary",
+    "audio_start",
+    "audio_progress",
+    "audio_complete",
 )
 LENS_PAGES = ("enterprise", "transformation", "governance", "consulting")
 RECOMMENDED_ATTRIBUTION_SOURCES = (

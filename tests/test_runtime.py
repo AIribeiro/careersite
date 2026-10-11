@@ -230,6 +230,9 @@ class RuntimeSmokeTests(unittest.TestCase):
                 "ux_signal",
                 "first_interaction",
                 "behavior_summary",
+                "audio_start",
+                "audio_progress",
+                "audio_complete",
             },
         )
         self.assertEqual(set(LENS_PAGES), {"enterprise", "transformation", "governance", "consulting"})

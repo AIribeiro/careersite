@@ -11,7 +11,8 @@ from urllib.parse import urlencode
 import altair as alt
 import streamlit as st
 
-from page_content_intelligence import fetch_intelligence
+from page_analytics import _dashboard_payload
+from page_content_intelligence import _fetch_rpc, fetch_intelligence
 from site_cms import fetch_published_articles
 from thinking_weekly_brief import edition_week, is_weekly_brief, sorted_editions
 
@@ -29,7 +30,7 @@ def _pct(a: int, b: int) -> str:
     return f"{100 * a / b:.1f}%" if b else "—"
 
 
-def weekly_ai_report(data: dict, editions: list[object]) -> dict:
+def weekly_ai_report(data: dict, editions: list[object], audio: dict | None = None) -> dict:
     """Deterministic aggregate-only metrics from the established owner RPC.
 
     A section reached by a session and an edition opened by that session are
@@ -59,6 +60,10 @@ def weekly_ai_report(data: dict, editions: list[object]) -> dict:
         if str(row.get("element_key") or "") == "weekly_ai_archive_open"
         and str(row.get("placement") or "").endswith(":weekly-ai-feature")
     ]
+    audio_by_slug = {
+        str(item.get("slug") or ""): item
+        for item in (audio or {}).get("editions", [])
+    }
     weekly_cards = [
         row for row in cards
         if str(row.get("element_key") or "").startswith("weekly-ai-")
@@ -72,6 +77,9 @@ def weekly_ai_report(data: dict, editions: list[object]) -> dict:
     for article in ordered:
         year, week, start, end = edition_week(article)
         row = performance.get(article.slug, {})
+        audio_row = audio_by_slug.get(article.slug, {})
+        audio_starts = _n(audio_row.get("starts"))
+        audio_completions = _n(audio_row.get("completions"))
         sessions = _n(row.get("sessions"))
         rows.append({
             "Week": f"Vecka {week} · {year}",
@@ -80,6 +88,13 @@ def weekly_ai_report(data: dict, editions: list[object]) -> dict:
             "Headline": article.title,
             "Slug": article.slug,
             "Views": _n(row.get("views")),
+            "Audio starts": audio_starts,
+            "Audio reached 25%": _n(audio_row.get("progress_25")),
+            "Audio reached 50%": _n(audio_row.get("progress_50")),
+            "Audio reached 75%": _n(audio_row.get("progress_75")),
+            "Audio completions": audio_completions,
+            "Audio completion rate": _pct(audio_completions, audio_starts),
+            "Estimated listening (min)": round(float(audio_row.get("estimated_listened_seconds") or 0) / 60, 1),
             "Edition sessions": sessions,
             "Engaged ≥10s": _n(row.get("engaged_sessions")),
             "Engaged rate": _pct(_n(row.get("engaged_sessions")), sessions),
@@ -94,6 +109,12 @@ def weekly_ai_report(data: dict, editions: list[object]) -> dict:
     return {
         "rows": rows,
         "issue_count": len(rows),
+        "audio_available": audio is not None,
+        "audio_listening_sessions": _n((audio or {}).get("started_sessions")),
+        "audio_completed_sessions": _n((audio or {}).get("completed_sessions")),
+        "audio_edition_starts": _n((audio or {}).get("edition_starts")),
+        "audio_edition_completions": _n((audio or {}).get("edition_completions")),
+        "audio_estimated_minutes": round(float((audio or {}).get("estimated_listened_seconds") or 0) / 60, 1),
         "feature_sessions": _n(feature.get("reached_sessions")),
         "feature_page_sessions": _n(feature.get("page_sessions")),
         "archive_sessions": _n(archive.get("reached_sessions")),
@@ -138,7 +159,14 @@ def render_weekly_ai_analytics(window: str) -> None:
         st.warning("The Weekly AI edition catalogue is unavailable; counts are not shown without verified issue metadata.")
         return
 
-    report = weekly_ai_report(data, editions)
+    audio_data = None
+    audio_error = None
+    try:
+        audio_data = _fetch_rpc("careersite_weekly_audio_analytics_v1", _dashboard_payload(window))
+    except RuntimeError as exc:
+        audio_error = str(exc)
+
+    report = weekly_ai_report(data, editions, audio_data)
     if not report["issue_count"]:
         st.info("There are no published Weekly AI editions yet.")
         return
@@ -178,6 +206,28 @@ def render_weekly_ai_analytics(window: str) -> None:
             f"({report['archive_link_clicks']} of {report['archive_link_exposures']} exposed sessions)."
         )
 
+    st.markdown("#### Audio listening")
+    if not report["audio_available"]:
+        st.warning(
+            "Audio listening metrics are temporarily unavailable; written-reading metrics remain valid. "
+            + (audio_error or "")
+        )
+    else:
+        p, q, r, t = st.columns(4)
+        p.metric("Audio listening sessions", report["audio_listening_sessions"],
+                 help="Distinct anonymous sessions with an observed MP3 playback start, across all weeks.")
+        q.metric("Completed listening sessions", report["audio_completed_sessions"],
+                 help="Sessions with an observed natural playback end after at least 85% cumulative playback.")
+        r.metric("Audio completion rate", _pct(report["audio_edition_completions"], report["audio_edition_starts"]),
+                 help="Completed edition-sessions / started edition-sessions; distinct by session and week.")
+        t.metric("Estimated audio minutes", report["audio_estimated_minutes"],
+                 help="Sum of estimated actual played seconds, capped at each edition duration per session; not server MP3 requests.")
+        st.caption(
+            "Play starts and 25/50/75% milestones count once per browser session and weekly edition. "
+            "Dragging to the end does not count as completed listening. Audio sessions are not extra "
+            "website visitors or article views; replays within a session do not add starts."
+        )
+
     st.markdown("#### Weekly edition history")
     weekly_rows = report["rows"]
     if len(weekly_rows) > 1:
@@ -203,6 +253,11 @@ def render_weekly_ai_analytics(window: str) -> None:
         "Engaged rate": r["Engaged rate"],
         "Avg confirmed seconds": r["Confirmed read time (s)"] if r["Confirmed read time (s)"] is not None else "—",
         "Shares": r["Share sessions"],
+        "Audio starts": r["Audio starts"] if report["audio_available"] else "—",
+        "Heard ≥50%": r["Audio reached 50%"] if report["audio_available"] else "—",
+        "Audio completed": r["Audio completions"] if report["audio_available"] else "—",
+        "Audio completion rate": r["Audio completion rate"] if report["audio_available"] else "—",
+        "Audio minutes": r["Estimated listening (min)"] if report["audio_available"] else "—",
         "Reached 75%": r["Reached 75%"],
         "Later CV": r["Later CV sessions"],
         "Later contact": r["Later contact sessions"],

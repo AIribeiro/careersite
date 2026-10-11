@@ -4,7 +4,8 @@
 Google Cloud TTS is preferred when GOOGLE_TTS_SERVICE_ACCOUNT_JSON is set.
 Otherwise use the free edge-tts neural voice, clearly identified in the build log.
 Runs AFTER the portfolio's weekly article publishing task. Generates once per
-edition and commits an MP3 plus the exact narration transcript.
+edition, unless the editor-reviewed script override is explicitly revised.
+Commits the MP3 and exact narration transcript together.
 """
 from __future__ import annotations
 
@@ -98,13 +99,25 @@ def publish(article: dict, *, dry_run: bool) -> bool:
     slug = str(article["slug"])
     dest = AUDIO_DIR / (slug + ".mp3")
     transcript = AUDIO_DIR / (slug + ".txt")
-    if dest.exists() and dest.stat().st_size > 1024:
-        print("Audio already exists:", slug)
-        return False
     week, year = _issue_week(slug)
     script = prepare_spoken_script(slug, str(article.get("content_html") or ""), week=week, iso_year=year)
     if not 95 <= len(script.split()) <= 260:
         raise ValueError("Narration length outside safe spoken brief range: " + slug)
+
+    # Re-record only when an explicitly maintained editorial override changes.
+    # Changes to the underlying news article never rewrite historical audio.
+    # The old MP3 stays published until the new MP3 is validated and committed.
+    if dest.exists() and dest.stat().st_size > 1024:
+        editorial_override = ROOT / "data" / "weekly_ai_audio_scripts" / (slug + ".txt")
+        approved_revision = (
+            editorial_override.is_file()
+            and transcript.is_file()
+            and transcript.read_text(encoding="utf-8").strip() != script.strip()
+        )
+        if not approved_revision:
+            print("Audio already exists; editorial narration unchanged:", slug)
+            return False
+        print("Editorial narration revised; replacing recording:", slug)
     print("Preparing", slug, "with", len(script.split()), "words")
     if dry_run:
         print(script)
@@ -139,7 +152,7 @@ def main() -> int:
     if not editions:
         print("No published weekly articles; nothing to produce")
         return 0
-    # Each weekly edition has one stable file. Reruns never regenerate existing audio.
+    # Existing audio is stable unless an approved editorial override changed.
     added = 0
     for article in editions:
         if publish(article, dry_run=args.dry_run):

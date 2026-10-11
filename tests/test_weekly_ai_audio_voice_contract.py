@@ -52,7 +52,7 @@ class WeeklyAudioVoiceContractTests(unittest.TestCase):
             with patch.object(generator, "ROOT", root):
                 missing_personality = " ".join(["AI is changing business workflows"] * 37)
                 (editorial / (slug + ".txt")).write_text(missing_personality)
-                with self.assertRaisesRegex(ValueError, "portfolio once"):
+                with self.assertRaisesRegex(ValueError, "Portfolio once"):
                     generator.publish(article, dry_run=True)
 
                 text = _episode_script()

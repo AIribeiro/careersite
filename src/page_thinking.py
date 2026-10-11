@@ -146,6 +146,15 @@ def _decorate_landing(document: str) -> str:
 
 
 def thinking() -> str:
+    if query_value("weekly_ai") == "archive":
+        from site_cms import fetch_published_articles
+        from thinking_weekly_brief import render_weekly_brief_archive
+        try:
+            editions = list(fetch_published_articles())
+        except RuntimeError:
+            editions = []
+        return VISUAL_CSS + render_weekly_brief_archive(editions)
+
     slug = query_value("article")
     if slug:
         try:

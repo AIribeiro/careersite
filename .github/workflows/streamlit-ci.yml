@@ -60,6 +60,34 @@ jobs:
           cat /tmp/streamlit.log
           exit 1
 
+      - name: Verify Weekly AI MP3 playback endpoint and byte-range support
+        run: |
+          AUDIO_URL="http://127.0.0.1:8501/weekly-ai-audio/weekly-ai-2026-10-11.mp3"
+          curl --fail --silent --show-error --dump-header /tmp/weekly-ai-headers.txt \
+            --output /tmp/weekly-ai-served.mp3 "$AUDIO_URL"
+          grep -i '^content-type:.*audio/mpeg' /tmp/weekly-ai-headers.txt
+          python - <<'PY'
+          from pathlib import Path
+          received=Path('/tmp/weekly-ai-served.mp3').read_bytes()
+          expected=Path('static/weekly-ai/weekly-ai-2026-10-11.mp3').read_bytes()
+          assert received == expected, "The website did not serve the original MP3 bytes"
+          assert len(received) > 10000
+          print(f'Audio endpoint correctly served {len(received)} MP3 bytes')
+          PY
+
+          curl --fail --silent --show-error --dump-header /tmp/weekly-ai-range-headers.txt \
+            --header 'Range: bytes=0-4095' --output /tmp/weekly-ai-partial.mp3 "$AUDIO_URL"
+          grep -E '^HTTP/.* 206' /tmp/weekly-ai-range-headers.txt
+          grep -i '^content-range:.*bytes 0-4095/' /tmp/weekly-ai-range-headers.txt
+          python - <<'PY'
+          from pathlib import Path
+          received=Path('/tmp/weekly-ai-partial.mp3').read_bytes()
+          expected=Path('static/weekly-ai/weekly-ai-2026-10-11.mp3').read_bytes()
+          assert len(received)==4096, len(received)
+          assert received==expected[:4096], "Incorrect media bytes in Safari range request"
+          print('Mobile range request passed')
+          PY
+
       - name: Verify owner login and refresh routes are mounted
         run: |
           curl --fail --silent --show-error \

@@ -17,6 +17,7 @@ from site_cms import fetch_public_article, inject_cms_article_metadata
 from site_analytics import inject_analytics
 from site_article_analytics import inject_article_analytics
 from site_behavior_telemetry_v2 import mount_behavior_telemetry
+from site_weekly_audio_telemetry import inject_weekly_audio_telemetry
 from site_share_guard import inject_share_guard
 from thinking_articles import resolve_article
 from thinking_social import ensure_all_article_social_assets

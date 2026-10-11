@@ -49,7 +49,7 @@ const emit = name => {
   const callbacks = listeners.get(name) || [];
   for (const callback of callbacks) callback({target: audio});
 };
-const state = () => JSON.parse(storage.get('jair_hq_weekly_audio_v1')).editions['weekly-ai-2026-10-11'];
+const state = () => JSON.parse(storage.get('jair_hq_weekly_audio_v2')).editions['weekly-ai-2026-10-11'];
 const tick = async (time) => {
   clock = 1000 + time * 1000;
   audio.currentTime = time;

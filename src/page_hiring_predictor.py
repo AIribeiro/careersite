@@ -190,7 +190,8 @@ def render_hiring_predictor(
             "Both affect the model."
         )
     jobtech = market.get("jobtech") or {}
-    if jobtech.get("latest_month") and jobtech.get("families", {}).get("tier_a"):
+    if (jobtech.get("latest_month") and jobtech.get("families", {}).get("tier_a")
+            and jobtech.get("families", {}).get("national")):
         tier = jobtech["families"]["tier_a"]
         target = jobtech["families"]["national"]
         st.markdown(

@@ -73,7 +73,7 @@ class WeeklyAiAudioTests(unittest.TestCase):
                 self.assertIn("/weekly-ai-audio/weekly-ai-2026-10-11.mp3", player)
                 self.assertEqual(player.count("<audio "), 1)
                 page = render_weekly_brief_article(weekly_article(), "")
-                self.assertIn("Listen to this week's", page.upper().title())
+                self.assertIn("Listen to the Weekly AI news briefing", page)
                 self.assertEqual(page.count("<audio controls"), 1)
                 landing = inject_weekly_brief_landing("<main>Thinking</main>", [weekly_article()])
                 self.assertIn("Listen · audio", landing)

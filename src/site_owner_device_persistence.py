@@ -24,7 +24,9 @@ export default function({data, setStateValue}) {
     const mode = String(data.mode);
     // Component V2 remounts on reruns. Skip repeat callbacks for an
     // unchanged mode and refresh token to avoid an infinite rerun loop.
-    const action = mode + ':' + String(data.refresh_token || '');
+    const action = mode + ':' + String(data.refresh_token || '')
+                 + ':' + String(data.expires_at || 0)
+                 + ':' + String(Boolean(data.force));
     if (window.__jairOwnerStorageAction === action) return;
     window.__jairOwnerStorageAction = action;
     try {
@@ -41,14 +43,26 @@ export default function({data, setStateValue}) {
             }
             const previous = window.localStorage.getItem(DEVICE_KEY);
             let oldToken = '';
+            let oldExpires = 0;
             try {
                 const parsed = previous ? JSON.parse(previous) : null;
                 oldToken = String(parsed?.refresh_token || '');
+                oldExpires = Number(parsed?.expires_at || 0);
             } catch (_) {}
-            if (oldToken !== refresh) {
+            const expires = Number(data.expires_at || 0);
+            // A second tab may have just refreshed this Supabase session.
+            // Never overwrite that newer rotating token with an older one.
+            if (oldToken !== refresh && !data.force
+                && (oldExpires > expires ||
+                    (oldExpires === expires && oldExpires > 0))) {
+                setStateValue('status', 'newer_saved_session');
+                return;
+            }
+            if (oldToken !== refresh || oldExpires !== expires) {
                 window.localStorage.setItem(DEVICE_KEY, JSON.stringify({
                     version: 1,
                     refresh_token: refresh,
+                    expires_at: expires,
                     saved_at: Date.now()
                 }));
             }

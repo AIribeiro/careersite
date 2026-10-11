@@ -2,14 +2,14 @@
 
 ## Editorial contract
 
-The dedicated **Weekly AI** feature is the first editorial section immediately below the Thinking navigation, above the regular essays and page introduction. It uses a distinct navy/copper treatment with a large **Vecka** identifier, a prominent one-minute reading link and a permanent **Browse all weeks** link. It must never appear as a regular "Latest articles" card. The all-weeks page groups every published edition by Swedish ISO week-year; any new issue is automatically discoverable without modifying the page or making a separate archive record.
+The dedicated **Weekly AI** feature is the first editorial section immediately below the Thinking navigation, above the regular essays and page introduction. It uses a distinct navy/copper treatment with a large **Week** identifier, a prominent one-minute reading link and a permanent **Browse all weeks** link. It must never appear as a regular "Latest articles" card. The all-weeks page groups every published edition by Swedish ISO week-year; any new issue is automatically discoverable without modifying the page or making a separate archive record.
 
 ### Issue format
 - **Kind:** \`Weekly Brief\`
 - **Category:** \`Weekly AI\`
 - **Slug:** `weekly-ai-YYYY-MM-DD` using the local Stockholm publication date.
-- **Week identity:** Swedish **ISO 8601** week (Monday–Sunday), for the **covered news period**, not the Monday publication week. Display **Vecka N · YYYY** and a Swedish-date week range in the feature, reader and archive. Compute the week-year with `date.isocalendar()`; do not assume publication year equals ISO week-year at New Year.
-- **Weekly scheduling:** Monday issue date refers to the just-completed Monday–Sunday week. For example, publication 2026-10-19 covers `Vecka 42 · 2026` (12–18 oktober 2026). The Sunday pilot publication 2026-10-11 covers `Vecka 41 · 2026` (5–11 oktober 2026).
+- **Week identity:** Swedish **ISO 8601** week (Monday–Sunday), for the **covered news period**, not the Monday publication week. Display **Week N · YYYY** and a Swedish-date week range in the feature, reader and archive. Compute the week-year with `date.isocalendar()`; do not assume publication year equals ISO week-year at New Year.
+- **Weekly scheduling:** Monday issue date refers to the just-completed Monday–Sunday week. For example, publication 2026-10-19 covers `Week 42 · 2026` (12–18 oktober 2026). The Sunday pilot publication 2026-10-11 covers `Week 41 · 2026` (5–11 oktober 2026).
 - **Length:** 110–165 body words, excluding source URLs; \`read_minutes=1\`.
 - **Items:** 3–5 verified items, each a title-like clause, one explanatory sentence and one publisher link.
 - **Closing:** one synthesis labeled **Leadership signal**, distinguishing interpretation from reporting.
@@ -24,7 +24,7 @@ The dedicated **Weekly AI** feature is the first editorial section immediately b
 4. Open the direct source; verify reported claims, publication date, company names and figures. Identify opinion/marketing as such. Do not turn correlation into causation.
 5. Summarize independently in 110–165 words. Link each item to the original publication; add a distinct, grounded leadership implication.
 6. Check the CMS for an existing issue slug, **covered ISO week-year** and reused story URLs. Be idempotent: never create two issues for the same Swedish week, even if the slug differs, and do not duplicate the previous issue.
-7. Scheduled editions may publish automatically after passing every editorial check. Use the existing `public.careersite_articles` table and its publishing status, not a new parallel CMS. Draft any issue that cannot pass verification.
+7. Recurring preparation can assemble research candidates and a draft, but publication requires Jair's explicit editorial review and approval; no new edition should be described as personally curated before this review. Use the existing `public.careersite_articles` table and its publishing status, not a new parallel CMS. Draft any issue that cannot pass verification.
 8. Verify that the saved row has 3–5 links, correct word count, correct classification, distinct sources, and publication state. After publication, verify the public article URL and Thinking rail; if any check fails, report it and do not claim success.
 
 ### Failure handling
@@ -36,10 +36,10 @@ The dedicated **Weekly AI** feature is the first editorial section immediately b
 - Do not add visitor tracking beyond the site's approved analytics event taxonomy. \`weekly_ai_open\` is a UI click identifier; measured visits must use the existing canonical event logic.
 
 ### Pilot
-- Edition: 2026-10-11, **Vecka 41 · 2026**, with a source window of October 6–11 and a displayed calendar week of 5–11 October.
+- Edition: 2026-10-11, **Week 41 · 2026**, with a source window of October 6–11 and a displayed calendar week of 5–11 October.
 - Five original publisher links, independently checked.
 - Published through the existing CMS; it now receives prominent feature placement and an archive entry without manual duplication.
-- Weekly task starts Monday 2026-10-19 and reports **Vecka 42**, the completed October 12–18 news week.
+- Weekly task starts Monday 2026-10-19 and reports **Week 42**, the completed October 12–18 news week.
 
 ### First-party analytics
 
@@ -76,6 +76,9 @@ A spoken-first audio version is generated **once per published issue**, not on e
 - GitHub CI verifies the first-party route returns the exact MP3 bytes, `Content-Type: audio/mpeg`, and correct HTTP 206 byte-range responses. This protects Safari seeks and metadata playback.
 - If the visitor still cannot play, inspect the browser's failed media request, CSP, MIME type and mobile decoder before changing the TTS content.
 
-#### Narration voice and personalization (from Vecka 42 onward)
+#### Narration voice and personalization (from Week 42 onward)
 
-Future generated narrations are concise, sourced and recognizably curated through Jair Ribeiro's **AI & Data Portfolio**, with natural first-person statements restricted to the author's interpretation. Mention the portfolio **once**, normally in a short introduction, without spelling out a URL. The synthesis can briefly use "From my experience leading enterprise AI and data initiatives..." to make the leadership perspective explicit without turning the bulletin into a biography. Never imply Jair conducted the cited research, spoke with the reporters, worked at the companies in the news, or personally witnessed events without explicit supporting evidence. First person is for analysis and experience-backed judgment, not invented achievements or attribution. Keep the author's enterprise AI leadership perspective practical and measured, without sales language. The Vecka 41 recording is deliberately not regenerated; immutable MP3s and editorial overrides remain authoritative for past editions.
+Future generated narrations are concise, sourced and recognizably curated through Jair Ribeiro's **AI & Data Portfolio**, with natural first-person statements restricted to the author's interpretation. Mention the portfolio **once**, normally in a short introduction, without spelling out a URL. The synthesis can briefly use "From my experience leading enterprise AI and data initiatives..." to make the leadership perspective explicit without turning the bulletin into a biography. Never imply Jair conducted the cited research, spoke with the reporters, worked at the companies in the news, or personally witnessed events without explicit supporting evidence. First person is for analysis and experience-backed judgment, not invented achievements or attribution. Keep the author's enterprise AI leadership perspective practical and measured, without sales language. The Week 41 recording is deliberately not regenerated; immutable MP3s and editorial overrides remain authoritative for past editions.
+
+### Personal editorial note
+The reader displays: *Personally curated by Jair Ribeiro. I review the reporting, choose the developments I consider most relevant, and add my own perspective on what they mean for enterprise AI leadership. Original reporting remains credited to its publishers.* To preserve this claim, future editions must not publish automatically without the author's explicit sign-off. Research discovery tools may help prepare a candidate list, but editorial selection and publication accountability remain with the author.

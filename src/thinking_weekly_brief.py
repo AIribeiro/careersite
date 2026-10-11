@@ -166,6 +166,10 @@ WEEKLY_CSS = """
 .weekly-ai-history a:hover{text-decoration:underline!important}
 .weekly-ai-history a span{color:#bfc9d0}
 .weekly-ai-history .weekly-ai-history-empty{color:#c0c9d0;font-size:12px;line-height:1.55;margin:0}
+.weekly-ai-audio{margin:12px 0 30px;padding:22px;border:1px solid #d8c7b6;border-left:4px solid #b9794c;background:#fcfaf7}
+.weekly-ai-audio-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#7d553d;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:13px}
+.weekly-ai-audio audio{width:100%;min-height:45px}
+.weekly-ai-audio p{font-size:12px!important;color:#5a6975!important;line-height:1.45!important;margin:12px 0 0!important}
 .weekly-ai-reader{max-width:840px;margin:auto;padding:40px 0 60px}
 .weekly-ai-back{font-size:12px;color:#506073!important;text-decoration:none!important}
 .weekly-ai-label{margin:27px 0 11px;color:#9d643e;font-size:12px;font-weight:850;
@@ -348,6 +352,7 @@ def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str
     """Source-first reader, with the same Swedish ISO week label as its archive entry."""
     from site_components import footer, nav
     from thinking_core import THINKING_CSS
+    from weekly_ai_audio import audio_player_html
 
     year, week, start, end = edition_week(article)
     return (
@@ -360,7 +365,8 @@ def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str
         '<p class="weekly-ai-subtitle">' + escape(article.subtitle or article.excerpt) + '</p>'
         '<div class="weekly-ai-bylines">' + escape(_swedish_range(start, end))
         + ' · 1 min read · Curated by ' + escape(article.author_name) + '</div>'
-        '<article class="weekly-ai-body">' + article.content_html
+        + audio_player_html(article.slug)
+        + '<article class="weekly-ai-body">' + article.content_html
         + '<p class="weekly-ai-source-note">Selected from Google Alerts and checked against linked publishers. '
         'External reporting is attributed to its original source.</p></article>'
         '<p><a class="weekly-ai-back" href="' + escape(WEEKLY_ARCHIVE_URL, quote=True)

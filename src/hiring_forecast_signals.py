@@ -276,7 +276,7 @@ def market_adjustment(market_model: dict | None, as_of: date,
         drivers.append(_driver(
             "JobTech target-role hiring demand", jobtech["effect"],
             detail=jobtech["status"], key="jobtech_high_signal_target_ads_v1",
-            topic="target_role_demand", release_date=as_of.isoformat(),
+            topic="target_role_demand", release_date=jobtech["first_recorded_at"],
             observed_date=jobtech["latest_month"],
             source="Arbetsförmedlingen JobTech", source_url="",
         ))

@@ -77,7 +77,7 @@ class WeeklyAiAnalyticsTests(unittest.TestCase):
         self.assertEqual(result["share_sessions"], 1)
         self.assertEqual(result["archive_link_clicks"], 2)
         self.assertEqual(result["source_click_sessions"], 3)
-        self.assertEqual(result["rows"][0]["Week"], "Vecka 41 · 2026")
+        self.assertEqual(result["rows"][0]["Week"], "Week 41 · 2026")
         self.assertEqual(result["rows"][0]["Reached 75%"], "50.0%")
         self.assertEqual(result["issue_ctrs"][0]["Click sessions"], 3)
 
@@ -86,7 +86,7 @@ class WeeklyAiAnalyticsTests(unittest.TestCase):
             {"performance": [], "section_reach": [], "article_cards": [], "cta_placements": []},
             [issue(slug="weekly-ai-2026-10-19", published_at="2026-10-19T08:00:00Z")],
         )
-        self.assertEqual(result["rows"][0]["Week"], "Vecka 42 · 2026")
+        self.assertEqual(result["rows"][0]["Week"], "Week 42 · 2026")
         self.assertEqual(result["rows"][0]["Edition sessions"], 0)
         self.assertEqual(result["feature_sessions"], 0)
 

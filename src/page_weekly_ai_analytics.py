@@ -237,7 +237,7 @@ def render_weekly_ai_analytics(window: str) -> None:
         } for r in weekly_rows]))
         st.altair_chart(
             alt.Chart(alt.Data(values=graph_rows)).mark_bar(cornerRadiusEnd=4).encode(
-                x=alt.X("Week:N", title="Swedish ISO week", sort=None),
+                x=alt.X("Week:N", title="ISO week", sort=None),
                 y=alt.Y("Reads:Q", title="Edition-session reads", axis=alt.Axis(tickMinStep=1)),
                 tooltip=["Week:N", alt.Tooltip("Reads:Q"), alt.Tooltip("Engaged:Q"), alt.Tooltip("Shares:Q")],
             ).properties(height=260),

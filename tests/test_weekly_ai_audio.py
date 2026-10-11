@@ -38,7 +38,7 @@ class WeeklyAiAudioTests(unittest.TestCase):
     def test_spoken_script_drops_publisher_links_not_facts(self):
         script = prepare_spoken_script("weekly-ai-2026-10-19", PUBLISHED_HTML, week=42, iso_year=2026)
         self.assertIn("Welcome to Weekly A I", script)
-        self.assertIn("Swedish week 42", script)
+        self.assertIn("Week 42", script)
         self.assertIn("Research found changing jobs", script)
         self.assertIn("governance determines accountability", script.lower())
         self.assertIn("my A I and Data Portfolio", script)

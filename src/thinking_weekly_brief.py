@@ -14,9 +14,9 @@ if TYPE_CHECKING:
 
 BRIEF_KIND = "Weekly Brief"
 BRIEF_CATEGORY = "Weekly AI"
-SWEDISH_MONTHS = (
-    "", "januari", "februari", "mars", "april", "maj", "juni",
-    "juli", "augusti", "september", "oktober", "november", "december",
+ENGLISH_MONTHS = (
+    "", "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
 )
 WEEKLY_ARCHIVE_URL = "?page=thinking&weekly_ai=archive"
 WEEKLY_IMAGE_FILE = Path(__file__).resolve().parents[1] / "assets" / "weekly_ai_evergreen_visual.webp"
@@ -55,7 +55,7 @@ def _issue_date(article: "CmsArticle") -> date:
 
 
 def edition_week(article: "CmsArticle") -> tuple[int, int, date, date]:
-    """Swedish ISO week *covered* by the briefing.
+    """ISO 8601 week *covered* by the briefing.
 
     Monday publications report the completed previous week. The pilot was
     published on Sunday 2026-10-11 and therefore covers ISO week 41 itself.
@@ -68,18 +68,18 @@ def edition_week(article: "CmsArticle") -> tuple[int, int, date, date]:
     return iso_year, iso_week, monday, monday + timedelta(days=6)
 
 
-def _swedish_range(start: date, end: date, *, include_year: bool = True) -> str:
+def _english_range(start: date, end: date, *, include_year: bool = True) -> str:
     if start.year == end.year and start.month == end.month:
-        dates = f"{start.day}–{end.day} {SWEDISH_MONTHS[end.month]}"
+        dates = f"{start.day}–{end.day} {ENGLISH_MONTHS[end.month]}"
     elif start.year == end.year:
         dates = (
-            f"{start.day} {SWEDISH_MONTHS[start.month]}–"
-            f"{end.day} {SWEDISH_MONTHS[end.month]}"
+            f"{start.day} {ENGLISH_MONTHS[start.month]}–"
+            f"{end.day} {ENGLISH_MONTHS[end.month]}"
         )
     else:
         dates = (
-            f"{start.day} {SWEDISH_MONTHS[start.month]} {start.year}–"
-            f"{end.day} {SWEDISH_MONTHS[end.month]} {end.year}"
+            f"{start.day} {ENGLISH_MONTHS[start.month]} {start.year}–"
+            f"{end.day} {ENGLISH_MONTHS[end.month]} {end.year}"
         )
         include_year = False
     return dates + (f" {end.year}" if include_year else "")
@@ -292,9 +292,9 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
         + '" target="_self" data-hq-event="weekly_ai_archive_open">'
         'Browse all weeks (' + str(count) + ') →</a></div></div>'
         '<div class="weekly-ai-side">'
-        '<div class="weekly-ai-side-label">Swedish calendar week</div>'
+        '<div class="weekly-ai-side-label">Calendar week</div>'
         '<div class="weekly-ai-number">' + str(week) + '<small>Week · ' + str(year) + '</small></div>'
-        '<div class="weekly-ai-dates">' + escape(_swedish_range(start, end)) + '<br>1 min read</div>'
+        '<div class="weekly-ai-dates">' + escape(_english_range(start, end)) + '<br>1 min read</div>'
         '<div class="weekly-ai-history"><p>Previous editions</p>' + recent_items + '</div>'
         '</div></div></div></section>'
     )
@@ -306,7 +306,7 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
 
 
 def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
-    """A permanent, fully populated public archive grouped by Swedish ISO week-year."""
+    """A permanent, fully populated public archive grouped by ISO week-year."""
     from site_cms import article_relative_url
     from site_components import footer, nav
     from thinking_core import THINKING_CSS
@@ -327,7 +327,7 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
                 '<a class="weekly-ai-issue" href="' + link + '" target="_self"'
                 ' data-hq-content-slug="' + escape(article.slug, quote=True) + '" data-hq-event="weekly_ai_archive_issue_open">'
                 '<span class="weekly-ai-issue-week">Week ' + str(week) + ' · ' + str(year) + '</span>'
-                '<span class="weekly-ai-issue-dates">' + escape(_swedish_range(start, end)) + '</span>'
+                '<span class="weekly-ai-issue-dates">' + escape(_english_range(start, end)) + '</span>'
                 '<h3>' + escape(_headline(article)) + '</h3>'
                 '<p>' + escape(article.excerpt or article.subtitle) + '</p>'
                 '<span class="weekly-ai-issue-cta">Read · 1 min →</span></a>'
@@ -351,13 +351,13 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
         '<div class="weekly-ai-label">WEEKLY AI · EVERY EDITION</div>'
         '<h1>The weekly archive.</h1>'
         '<p>One-minute briefings on the most consequential AI developments for enterprise leaders. '
-        'Each edition is labeled by the Swedish week it covers, with direct links to the original sources.</p>'
+        'Each edition is labeled by the calendar week it covers, with direct links to the original sources.</p>'
         '</div>' + ''.join(sections) + '</div></section></main>' + footer()
     )
 
 
 def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str:
-    """Source-first reader, with the same Swedish ISO week label as its archive entry."""
+    """Source-first reader, with the same ISO week label as its archive entry."""
     from site_components import footer, nav
     from thinking_core import THINKING_CSS
     from weekly_ai_audio import audio_player_html
@@ -371,7 +371,7 @@ def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str
         '<div class="weekly-ai-label">WEEKLY AI · Week ' + str(week) + ' · ' + str(year) + '</div>'
         '<h1>' + escape(_headline(article)) + '</h1>'
         '<p class="weekly-ai-subtitle">' + escape(article.subtitle or article.excerpt) + '</p>'
-        '<div class="weekly-ai-bylines">' + escape(_swedish_range(start, end))
+        '<div class="weekly-ai-bylines">' + escape(_english_range(start, end))
         + ' · 1 min read · Curated by ' + escape(article.author_name) + '</div>'
         + audio_player_html(article.slug)
         + '<article class="weekly-ai-body">' + article.content_html

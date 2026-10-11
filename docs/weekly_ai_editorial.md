@@ -2,19 +2,19 @@
 
 ## Editorial contract
 
-The dedicated **Weekly AI** feature is the first editorial section immediately below the Thinking navigation, above the regular essays and page introduction. It uses a distinct navy/copper treatment with a large **Week** identifier, a prominent one-minute reading link and a permanent **Browse all weeks** link. It must never appear as a regular "Latest articles" card. The all-weeks page groups every published edition by Swedish ISO week-year; any new issue is automatically discoverable without modifying the page or making a separate archive record.
+The dedicated **Weekly AI** feature is the first editorial section immediately below the Thinking navigation, above the regular essays and page introduction. It uses a distinct navy/copper treatment with a large **Week** identifier, a prominent one-minute reading link and a permanent **Browse all weeks** link. It must never appear as a regular "Latest articles" card. The all-weeks page groups every published edition by ISO 8601 week-year; any new issue is automatically discoverable without modifying the page or making a separate archive record.
 
 ### Issue format
 - **Kind:** \`Weekly Brief\`
 - **Category:** \`Weekly AI\`
 - **Slug:** `weekly-ai-YYYY-MM-DD` using the local Stockholm publication date.
-- **Week identity:** Swedish **ISO 8601** week (Monday–Sunday), for the **covered news period**, not the Monday publication week. Display **Week N · YYYY** and a Swedish-date week range in the feature, reader and archive. Compute the week-year with `date.isocalendar()`; do not assume publication year equals ISO week-year at New Year.
-- **Weekly scheduling:** Monday issue date refers to the just-completed Monday–Sunday week. For example, publication 2026-10-19 covers `Week 42 · 2026` (12–18 oktober 2026). The Sunday pilot publication 2026-10-11 covers `Week 41 · 2026` (5–11 oktober 2026).
+- **Week identity:** **ISO 8601** calendar week (Monday–Sunday), for the **covered news period**, not the Monday publication week. Display **Week N · YYYY** and an English-language date range in the feature, reader and archive. Compute the week-year with `date.isocalendar()`; do not assume publication year equals ISO week-year at New Year.
+- **Weekly scheduling:** Monday issue date refers to the just-completed Monday–Sunday week. For example, publication 2026-10-19 covers `Week 42 · 2026` (12–18 October 2026). The Sunday pilot publication 2026-10-11 covers `Week 41 · 2026` (5–11 October 2026).
 - **Length:** 110–165 body words, excluding source URLs; \`read_minutes=1\`.
 - **Items:** 3–5 verified items, each a title-like clause, one explanatory sentence and one publisher link.
 - **Closing:** one synthesis labeled **Leadership signal**, distinguishing interpretation from reporting.
 - **Author:** \`Jair Ribeiro\` as curator, not author of the linked reporting.
-- **Metadata:** include the covered Swedish week number/year in the social and SEO title, as well as a descriptive topic headline; do not manufacture a bespoke header image.
+- **Metadata:** include the covered ISO week number/year in the social and SEO title, as well as a descriptive topic headline; do not manufacture a bespoke header image.
 - **Source links:** canonical direct publisher URLs, not Google redirect, tracking or Gmail links.
 
 ### Weekly editorial workflow
@@ -23,8 +23,8 @@ The dedicated **Weekly AI** feature is the first editorial section immediately b
 3. Evaluate candidates for freshness, source reliability, enterprise leadership significance, governing/operating implications, and topic diversity. Prefer primary source research and substantiated business reporting. Include 3–5 only; if fewer than 3 pass the verification gate, do not publish.
 4. Open the direct source; verify reported claims, publication date, company names and figures. Identify opinion/marketing as such. Do not turn correlation into causation.
 5. Summarize independently in 110–165 words. Link each item to the original publication; add a distinct, grounded leadership implication.
-6. Check the CMS for an existing issue slug, **covered ISO week-year** and reused story URLs. Be idempotent: never create two issues for the same Swedish week, even if the slug differs, and do not duplicate the previous issue.
-7. Recurring preparation can assemble research candidates and a draft, but publication requires Jair's explicit editorial review and approval; no new edition should be described as personally curated before this review. Use the existing `public.careersite_articles` table and its publishing status, not a new parallel CMS. Draft any issue that cannot pass verification.
+6. Check the CMS for an existing issue slug, **covered ISO week-year** and reused story URLs. Be idempotent: never create two issues for the same ISO calendar week, even if the slug differs, and do not duplicate the previous issue.
+7. Weekly publication is automated under Jair's established editorial framework: after independently verifying 3–5 substantial stories, preparing an original synthesis, and passing the source, duplicate and formatting checks, publish through the existing `public.careersite_articles` CMS. No per-issue manual approval is required. If a verification or reliability gate fails, do not publish and report the blocker. Do not falsely claim that Jair personally reviewed a particular edition when no such review occurred.
 8. Verify that the saved row has 3–5 links, correct word count, correct classification, distinct sources, and publication state. After publication, verify the public article URL and Thinking rail; if any check fails, report it and do not claim success.
 
 ### Failure handling
@@ -43,7 +43,7 @@ The dedicated **Weekly AI** feature is the first editorial section immediately b
 
 ### First-party analytics
 
-WEEKLY AI is an **editorial subset** of normal Thinking/article traffic, not a second visitor counter. The Analytics > Portfolio > WEEKLY AI focus reuses the owner's existing `careersite_content_intelligence_v2` and behavioral event data, grouped by published CMS edition and **covered Swedish ISO week**.
+WEEKLY AI is an **editorial subset** of normal Thinking/article traffic, not a second visitor counter. The Analytics > Portfolio > WEEKLY AI focus reuses the owner's existing `careersite_content_intelligence_v2` and behavioral event data, grouped by published CMS edition and **covered ISO calendar week**.
 
 - `section_view` at `thinking:weekly-ai-feature` records feature reach (at least 15% visibility); `thinking:weekly-ai-archive` separately records archive section reach. Both use stable `data-analytics-section` identifiers.
 - `element_impression` and `article_card_click` identify one weekly edition via `data-hq-content-slug`, with placement distinguishing the feature from archive entries; weekly links pointing to clean `/thinking/<slug>` paths must not be ignored by the descriptor.
@@ -54,7 +54,7 @@ WEEKLY AI is an **editorial subset** of normal Thinking/article traffic, not a s
 - The dedicated Analytics focus is also usable for historic weeks, including issues with zero measured traffic. The weekly panel is a subset of the site's article totals: **never add** the counts together.
 
 ### Evergreen visual header
-The Thinking landing-page WEEKLY AI section uses the same photographic artwork as the campaign image: an optimized, cropped visual of the laptop/digital globe is stored as `assets/weekly_ai_evergreen_visual.webp`. Text ("WEEKLY AI", "A one-minute briefing") is **native HTML**, not embedded image lettering, so it remains sharp, selectable and readable on small screens. The image never contains a hardcoded week number. The real current issue, Swedish ISO week, archive count and links remain derived from published CMS editions. The visual introduces the existing feature block and does not generate a separate page-view/click event.
+The Thinking landing-page WEEKLY AI section uses the same photographic artwork as the campaign image: an optimized, cropped visual of the laptop/digital globe is stored as `assets/weekly_ai_evergreen_visual.webp`. Text ("WEEKLY AI", "A one-minute briefing") is **native HTML**, not embedded image lettering, so it remains sharp, selectable and readable on small screens. The image never contains a hardcoded week number. The real current issue, ISO calendar week, archive count and links remain derived from published CMS editions. The visual introduces the existing feature block and does not generate a separate page-view/click event.
 
 ### Audio briefing (MP3)
 
@@ -81,4 +81,9 @@ A spoken-first audio version is generated **once per published issue**, not on e
 Future generated narrations are concise, sourced and recognizably curated through Jair Ribeiro's **AI & Data Portfolio**, with natural first-person statements restricted to the author's interpretation. Mention the portfolio **once**, normally in a short introduction, without spelling out a URL. The synthesis can briefly use "From my experience leading enterprise AI and data initiatives..." to make the leadership perspective explicit without turning the bulletin into a biography. Never imply Jair conducted the cited research, spoke with the reporters, worked at the companies in the news, or personally witnessed events without explicit supporting evidence. First person is for analysis and experience-backed judgment, not invented achievements or attribution. Keep the author's enterprise AI leadership perspective practical and measured, without sales language. The Week 41 recording is deliberately not regenerated; immutable MP3s and editorial overrides remain authoritative for past editions.
 
 ### Personal editorial note
-The reader displays: *Personally curated by Jair Ribeiro. I review the reporting, choose the developments I consider most relevant, and add my own perspective on what they mean for enterprise AI leadership. Original reporting remains credited to its publishers.* To preserve this claim, future editions must not publish automatically without the author's explicit sign-off. Research discovery tools may help prepare a candidate list, but editorial selection and publication accountability remain with the author.
+
+The existing public editorial statement must remain exactly as authored by Jair Ribeiro. Automated production is directed by Jair's editorial framework and strategic leadership perspective; it does not establish that he personally inspected a specific week's inputs or final text. Automation reports and provenance records must distinguish machine-assisted verification and drafting from any actual human review and must never fabricate personal review. The user explicitly requested automatic weekly publication without changing the public statement. The existing statement is therefore preserved verbatim.
+
+### International display language
+
+Every visitor-facing Weekly AI date, week label and narrated week identifier is in English. Display **Calendar week** (not a country-specific label), followed by the ISO week number and **Week · YYYY** in the hero. For example: **Calendar week / 41 / Week · 2026 / 5–11 October 2026 / 1 min read**. Keep ISO 8601 Monday–Sunday week calculation and the existing publication schedule unchanged. Historical MP3 files are archival recordings and are not rewritten to remove legacy references. The CMS issue subtitle and social previews should also use English date words and never claim national coverage; this is an international enterprise-AI editorial series.

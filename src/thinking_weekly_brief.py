@@ -246,6 +246,13 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
     year, week, start, end = edition_week(latest)
     link = escape(article_relative_url(latest), quote=True)
     newest_link = escape(WEEKLY_ARCHIVE_URL, quote=True)
+    from weekly_ai_audio import audio_url
+    listen_cta = (
+        '<a class="weekly-ai-archive-link" href="' + link + '#weekly-ai-audio" '
+        'target="_self" data-hq-content-slug="' + escape(latest.slug, quote=True) + '" '
+        'data-hq-event="weekly_ai_listen_open">Listen · audio →</a>'
+        if audio_url(latest.slug) else ''
+    )
     count = len(editions)
     if older:
         recent_items = "".join(
@@ -280,7 +287,8 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
         '<div class="weekly-ai-actions">'
         '<a class="weekly-ai-action" href="' + link + '" target="_self" data-hq-content-slug="' + escape(latest.slug, quote=True) + '" data-hq-event="weekly_ai_open">'
         'Start reading · 1 min →</a>'
-        '<a class="weekly-ai-archive-link" href="' + newest_link
+        + listen_cta
+        + '<a class="weekly-ai-archive-link" href="' + newest_link
         + '" target="_self" data-hq-event="weekly_ai_archive_open">'
         'Browse all weeks (' + str(count) + ') →</a></div></div>'
         '<div class="weekly-ai-side">'

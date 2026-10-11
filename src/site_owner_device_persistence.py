@@ -26,7 +26,8 @@ export default function({data, setStateValue}) {
     // unchanged mode and refresh token to avoid an infinite rerun loop.
     const action = mode + ':' + String(data.refresh_token || '')
                  + ':' + String(data.expires_at || 0)
-                 + ':' + String(Boolean(data.force));
+                 + ':' + String(Boolean(data.force))
+                 + ':' + String(data.read_nonce || 0);
     if (window.__jairOwnerStorageAction === action) return;
     window.__jairOwnerStorageAction = action;
     try {
@@ -86,7 +87,8 @@ export default function({data, setStateValue}) {
             }
             setStateValue('restored', {
                 refresh_token: saved.refresh_token,
-                saved_at: Number(saved.saved_at || 0)
+                saved_at: Number(saved.saved_at || 0),
+                read_nonce: Number(data.read_nonce || 0)
             });
             setStateValue('status', 'available');
         }

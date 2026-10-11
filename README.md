@@ -263,40 +263,39 @@ The hidden site-owner dashboard remains at:
 
 It is not part of public navigation and is marked noindex. All three reports — Page Views, Article Views, and Job Search Analytics — require the same Supabase CMS owner session (`cms_auth`). Switching reports uses native Streamlit controls rather than full-page links, so signing in once keeps the owner authenticated across analytics views within the active Streamlit session. Job-search records remain behind the owner bearer token; neither the table nor its rows should be exposed through public analytics RPCs. A fresh browser/Streamlit session still requires owner sign-in.
 
-### Analytics reporting window and owner sign-in
+### Analytics reporting window and durable owner sign-in
 
-Analytics → Portfolio defaults to **Last hour**. The other reporting windows
-remain available.
+Analytics → Portfolio defaults to **Last hour**, and longer reporting windows
+remain selectable.
 
-Analytics and Article CMS share **one native Streamlit password form**. This
-is the proven primary authentication path; no login via an external link is
-required. Supabase checks the owner identity. The normal in-memory session is
-refreshable using the verified Supabase refresh token and remains usable even
-if browser cookie persistence is not available on the hosting platform.
+Analytics and Article CMS share **one Streamlit password form**. Supabase
+verifies the owner. During the active Streamlit session, access is automatically
+renewed from the authenticated Supabase refresh token.
 
-After a successful password login, the server issues a **random, single-use
-60-second ticket**. The Streamlit browser component sends only that ticket to
-the same-origin `POST /owner-auth/attach` Starlette endpoint. The endpoint
-redeems the server-held session, independently verifies owner access and
-sets Secure, HttpOnly, SameSite=Lax cookies without exposing the Supabase
-refresh token to browser JavaScript, URLs or analytics. A new Streamlit
-connection can restore the short-lived access token via the same-origin
-`/owner-auth/bootstrap` route and verify its owner identity in Python.
-`/owner-auth/refresh` rotates expired credentials when available.
+**Browser reopen:** A same-origin Streamlit Components v2 helper persists the
+rotating Supabase **refresh token** in origin-scoped browser `localStorage`,
+similar to the standard Supabase browser client. On reopening Analytics or
+the CMS, Python receives that credential through the trusted Streamlit
+component, exchanges it with Supabase and independently checks the owner's
+identity before serving private data. The new token is saved immediately
+after rotation. Invalid or revoked tokens are cleared instead of repeatedly
+retried. Storage is removed on **Sign out**, and Supabase revocation is
+requested server-side. No password or access JWT is stored in localStorage.
 
-**Deployment limitation:** Persistent cookies require the Cloud deployment to
-run the `app.py` Starlette entrypoint and expose its custom routes. If the
-hosting proxy blocks those routes, the ticket attachment fails closed while
-**the in-page login still works**; persistent login across browser restarts
-cannot be guaranteed until the deployment is configured correctly. A browser
-may also block cookies. Native Streamlit OIDC login would require a separately
-configured identity provider.
+**Security trade-off:** Unlike Secure, HttpOnly cookies, origin-scoped
+localStorage can be accessed by same-origin JavaScript. This device fallback
+is appropriate only for a trusted personal browser and depends on keeping
+the site free of untrusted or injectable scripts. Public/local shared devices
+should be signed out after use. The existing preferred cookie design remains
+enabled when the Streamlit Cloud proxy supports the Starlette endpoints, but
+persistent owner access no longer *depends* on those endpoints.
 
-Sign-out revokes the in-memory Supabase session and attempts to clear saved
-browser cookies; the fallback form remains available after sign-out.
-Browser cookie lifetime is at most 365 days, subject to server expiration and
-revocation. No private analytics or CMS data is accessible without a current,
-validated owner session.
+If a browser runs in private mode, blocks device storage, or Supabase has
+revoked the refresh token, the normal in-page password form remains available.
+The server always validates Supabase authorization independently of the
+browser data; a remembered token is never interpreted as owner identity by
+itself. Credential refresh and cookie attachments do not use URLs, telemetry,
+or analytics logs.
 
 ### Full-channel attribution integrity (Page Views → Acquisition)
 

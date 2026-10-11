@@ -129,7 +129,7 @@ def audio_player_html(slug: str) -> str:
         'aria-label="Audio edition">'
         '<div class="weekly-ai-audio-head"><span>LISTEN TO THIS WEEK</span>'
         '<span>Audio briefing · English</span></div>'
-        '<audio controls preload="metadata" playsinline '
+        '<audio controls preload="metadata" playsinline data-weekly-ai-audio="' + escape(slug, quote=True) + '" '
         'aria-label="Listen to the Weekly AI news briefing">'
         '<source src="' + local + '" type="audio/mpeg">'
         '<source src="' + backup + '" type="audio/mpeg">'

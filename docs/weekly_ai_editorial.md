@@ -68,3 +68,10 @@ A spoken-first audio version is generated **once per published issue**, not on e
 - UI: show the **Listen · audio** link and native audio player only after an MP3 is present in the deployed artifact. Otherwise preserve the existing one-minute written article with no broken player. The archive retains every edition and its audio once generated.
 - Duration: intended roughly 60–90 seconds. A content validation gate limits scripts to 95–260 words and requires at least three credited items for automatically adapted editions. Keep original sources in the written article; do not read URLs aloud.
 - Counts: playing the embedded recording must not create a second `article_view`. Any future audio starts/completions analytics need dedicated events and testing before activation.
+
+#### Mobile playback reliability (11 October 2026)
+- Some neural TTS voices produce MPEG-2 Layer III at 24 kHz. The weekly audio workflow converts recordings to mono 44.1 kHz MPEG-1 Layer III with ffmpeg, including previously generated files; output is reused without repeated conversions.
+- Embedded players use a fully qualified first-party `https://jairribeiro-ai.streamlit.app/weekly-ai-audio/<slug>.mp3` URL, avoiding Streamlit `/~/+/` path resolution. A second playable source and explicit **Open MP3 directly** link point to the canonical public GitHub raw MP3 if the embedded site's routing or a mobile browser fails.
+- Streamlit's generic `/app/static` endpoint must **not** be used for MP3 playback because unsupported media extensions may be served as `text/plain` with `nosniff`.
+- GitHub CI verifies the first-party route returns the exact MP3 bytes, `Content-Type: audio/mpeg`, and correct HTTP 206 byte-range responses. This protects Safari seeks and metadata playback.
+- If the visitor still cannot play, inspect the browser's failed media request, CSP, MIME type and mobile decoder before changing the TTS content.

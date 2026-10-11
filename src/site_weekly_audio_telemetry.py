@@ -21,6 +21,10 @@ def inject_weekly_audio_telemetry() -> None:
   const STORAGE_KEY = 'jair_hq_weekly_audio_v1';
   const SESSION_KEY = 'jair_hq_session_v1';
   const mediaState = new WeakMap();
+  // Keep retries in memory; accepted milestones alone are saved in the current
+  // browser session. This prevents failed requests being mistaken for listens.
+  const pending = new Set();
+  const retryAfter = new Map();
   const validSlug = /^weekly-ai-\d{4}-\d{2}-\d{2}$/;
   const mediaFor = (event) => {
     const audio = event.target;
@@ -39,23 +43,58 @@ def inject_weekly_audio_telemetry() -> None:
     try { win.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch (_) {}
   };
   const record = (slug, name, milestone, listenedMs) => {
-    if (!win.__jairAnalyticsSend) return;
-    win.__jairAnalyticsSend(name, {
+    if (typeof win.__jairAnalyticsSend !== 'function') return Promise.resolve(false);
+    return Promise.resolve(win.__jairAnalyticsSend(name, {
       element_key: milestone || null,
       element_placement: 'thinking:weekly-ai-audio',
       element_label: 'WEEKLY AI audio · ' + slug,
       attention_ms: Math.max(0, Math.min(86400000, Math.round(listenedMs || 0)))
-    });
+    })).then(ok => ok === true).catch(() => false);
   };
   const now = () => (win.performance ? win.performance.now() : Date.now());
+  const freshState = () => ({
+    started: false, listenedMs: 0, milestones: {}, completed: false
+  });
+  const recordOnce = (slug, marker, name, milestone, listenedMs) => {
+    const key = slug + ':' + marker;
+    if (pending.has(key) || now() < (retryAfter.get(key) || 0)) return;
+    if (typeof win.__jairAnalyticsSend !== 'function') {
+      retryAfter.set(key, now() + 1000);
+      return;
+    }
+    const session = getStore().session;
+    pending.add(key);
+    record(slug, name, milestone, listenedMs).then(ok => {
+      pending.delete(key);
+      if (!ok) {
+        retryAfter.set(key, now() + 5000);
+        return;
+      }
+      const store = getStore();
+      if (store.session !== session) return;
+      const state = store.editions[slug] || freshState();
+      if (marker === 'started') state.started = true;
+      else if (marker === 'completed') state.completed = true;
+      else if (marker === 'checkpoint') {
+        state.lastCheckpointMs = Math.max(state.lastCheckpointMs || 0, listenedMs);
+      } else if (marker.startsWith('milestone:')) {
+        state.milestones[Number(milestone)] = true;
+      }
+      store.editions[slug] = state;
+      persist(store);
+    });
+  };
+  const tryStart = (audio, slug) => {
+    if (audio.paused || audio.ended) return;
+    const state = getStore().editions[slug] || freshState();
+    if (!state.started) recordOnce(slug, 'started', 'audio_start', 'start', state.listenedMs);
+  };
   const sync = (audio, slug, countMedia) => {
     const live = mediaState.get(audio) || { lastPosition: null, lastTick: null };
     const clock = now();
     const position = Number(audio.currentTime);
     const store = getStore();
-    const state = store.editions[slug] || {
-      started: false, listenedMs: 0, milestones: {}, completed: false
-    };
+    const state = store.editions[slug] || freshState();
     if (countMedia && live.lastPosition !== null && live.lastTick !== null
         && Number.isFinite(position) && !audio.seeking && !audio.paused) {
       const elapsed = Math.max(0, (clock - live.lastTick) / 1000);
@@ -80,8 +119,8 @@ def inject_weekly_audio_telemetry() -> None:
     if (durationMs > 0 && state.started) {
       [25, 50, 75].forEach(percent => {
         if (!state.milestones[percent] && state.listenedMs >= durationMs * percent / 100) {
-          state.milestones[percent] = true;
-          record(slug, 'audio_progress', String(percent), state.listenedMs);
+          recordOnce(slug, 'milestone:' + percent, 'audio_progress',
+            String(percent), state.listenedMs);
         }
       });
     }
@@ -93,19 +132,18 @@ def inject_weekly_audio_telemetry() -> None:
   doc.addEventListener('playing', event => {
     const item = mediaFor(event);
     if (!item) return;
-    const state = sync(item.audio, item.slug, false);
-    if (!state.started) {
-      state.started = true;
-      const store = getStore();
-      store.editions[item.slug] = state;
-      persist(store);
-      record(item.slug, 'audio_start', 'start', state.listenedMs);
-    }
+    sync(item.audio, item.slug, false);
+    tryStart(item.audio, item.slug);
   }, true);
 
   doc.addEventListener('timeupdate', event => {
     const item = mediaFor(event);
-    if (item) sync(item.audio, item.slug, true);
+    if (item) {
+      sync(item.audio, item.slug, true);
+      // Also recover a start when playback began before the analytics sender
+      // was mounted, or the previous collector request failed.
+      tryStart(item.audio, item.slug);
+    }
   }, true);
 
   for (const name of ['seeking', 'seeked', 'ratechange']) {
@@ -123,11 +161,8 @@ def inject_weekly_audio_telemetry() -> None:
     const state = sync(item.audio, item.slug, false);
     if (!item.audio.ended && state.started &&
         state.listenedMs - (state.lastCheckpointMs || 0) >= 5000) {
-      state.lastCheckpointMs = state.listenedMs;
-      const store = getStore();
-      store.editions[item.slug] = state;
-      persist(store);
-      record(item.slug, 'audio_progress', 'checkpoint', state.listenedMs);
+      recordOnce(item.slug, 'checkpoint', 'audio_progress',
+        'checkpoint', state.listenedMs);
     }
   }, true);
 
@@ -139,13 +174,11 @@ def inject_weekly_audio_telemetry() -> None:
     // Completion requires both natural 'ended' and substantial measured playback.
     if (state.started && !state.completed && durationMs > 0
         && state.listenedMs >= durationMs * 0.85) {
-      state.completed = true;
-      const store = getStore();
-      store.editions[item.slug] = state;
-      persist(store);
-      record(item.slug, 'audio_complete', 'ended', state.listenedMs);
-    } else if (state.started && !state.completed && state.listenedMs > 0) {
-      record(item.slug, 'audio_progress', 'checkpoint', state.listenedMs);
+      recordOnce(item.slug, 'completed', 'audio_complete', 'ended', state.listenedMs);
+    } else if (state.started && !state.completed && state.listenedMs > 0 &&
+               state.listenedMs - (state.lastCheckpointMs || 0) >= 5000) {
+      recordOnce(item.slug, 'checkpoint', 'audio_progress',
+        'checkpoint', state.listenedMs);
     }
   }, true);
 })();

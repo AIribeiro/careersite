@@ -24,7 +24,7 @@ def _episode_script() -> str:
         "the takeaway is that reliable progress depends on ownership, adoption "
         "and measurable value. Original sources are linked in the written edition."
     )
-    return intro + story * 10 + outro
+    return intro + story * 9 + outro
 
 
 class WeeklyAudioVoiceContractTests(unittest.TestCase):

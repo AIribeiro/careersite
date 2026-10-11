@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import re
 from html import escape
+import hashlib
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -30,7 +31,10 @@ def audio_url(slug: str) -> str | None:
     path = mp3_path(slug)
     if path is None or not path.is_file() or path.stat().st_size < 1024:
         return None
-    return "https://jairribeiro-ai.streamlit.app/weekly-ai-audio/" + slug + ".mp3"
+    # A revised narrated edition reuses its canonical slug. Its MP3 content
+    # fingerprint avoids Safari/Streamlit/CDN returning the old cached file.
+    revision = hashlib.sha256(path.read_bytes()).hexdigest()[:12]
+    return "https://jairribeiro-ai.streamlit.app/weekly-ai-audio/" + slug + ".mp3?v=" + revision
 
 
 class ParagraphReader(HTMLParser):
@@ -120,9 +124,10 @@ def audio_player_html(slug: str) -> str:
     if not url:
         return ""
     local = escape(url, quote=True)
+    revision = url.split("?v=", 1)[-1]
     backup = escape(
         "https://raw.githubusercontent.com/AIribeiro/careersite/main/static/weekly-ai/"
-        + slug + ".mp3", quote=True
+        + slug + ".mp3?v=" + revision, quote=True
     )
     return (
         '<aside class="weekly-ai-audio" id="weekly-ai-audio" data-analytics-section="weekly-ai-audio" '

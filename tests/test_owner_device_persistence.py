@@ -152,6 +152,24 @@ class OwnerDevicePersistenceTests(unittest.TestCase):
         ):
             self.assertEqual(owner.persistent_owner_session()["access_token"],current["access_token"])
 
+    def test_stale_component_generation_does_not_rotate(self):
+        state={"owner_device_read_nonce":2}
+        cached=SimpleNamespace(
+            restored={"refresh_token":"older-device-credential",
+                      "read_nonce":1},
+            status="available"
+        )
+        with (
+            patch.object(owner.st,"session_state",state),
+            patch.object(owner,"_cookies",return_value={}),
+            patch.object(owner,"_restore_component",return_value=SimpleNamespace(session=None)),
+            patch.object(owner,"_device_component",return_value=cached),
+            patch.object(owner,"owner_refresh") as rotate,
+        ):
+            self.assertIsNone(owner.persistent_owner_session())
+            rotate.assert_not_called()
+            self.assertNotIn("owner_device_clear_pending",state)
+
     def test_client_storage_never_contains_access_token_or_password(self):
         self.assertIn("localStorage.setItem",_DEVICE_JS)
         self.assertIn("localStorage.removeItem",_DEVICE_JS)

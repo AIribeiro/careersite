@@ -143,10 +143,15 @@ def weekly_ai_report(data: dict, editions: list[object], audio: dict | None = No
 
 def render_weekly_ai_analytics(window: str) -> None:
     st.subheader("WEEKLY AI · Content performance")
+    period = {
+        "last_hour": "Last hour", "today": "Today",
+        "7d": "Last 7 days", "14d": "Last 14 days", "30d": "Last 30 days",
+        "60d": "Last 60 days", "90d": "Last 90 days",
+    }.get(window, window)
     st.caption(
-        "Source: the existing first-party analytics events and published CMS editions. "
-        "All counts are anonymous browser sessions, not identified readers or recruiters. "
-        "This view is a subset of Thinking / article activity, never an additional site total."
+        f"Reporting window: **{period}**. Source: first-party analytics and published CMS editions. "
+        "Counts are anonymous browser sessions, not identified people. "
+        "WEEKLY AI is a subset of Thinking, never an additional site total."
     )
     try:
         data = fetch_intelligence(window)
@@ -181,9 +186,9 @@ def render_weekly_ai_analytics(window: str) -> None:
     a.metric("Feature reached", feature_exposures, help="Distinct page sessions with ≥15% of the Weekly AI feature visible.")
     b.metric("Feature reach", _pct(feature_exposures, page_sessions),
              help="Feature reached / Thinking landing-page sessions. Not all Thinking visits use the landing page.")
-    c.metric("Weekly edition reads", reader_sessions,
+    c.metric("Edition reads", reader_sessions,
              help="Sum of distinct edition-session reads. Reading two editions in one session counts twice.")
-    d.metric("Engaged edition reads", _pct(engagement, reader_sessions),
+    d.metric("Engaged reads", _pct(engagement, reader_sessions),
              help="Edition sessions with ≥10 seconds measured active reading time; not a completion rate.")
 
     st.caption(
@@ -206,6 +211,12 @@ def render_weekly_ai_analytics(window: str) -> None:
             f"({report['archive_link_clicks']} of {report['archive_link_exposures']} exposed sessions)."
         )
 
+    if report["archive_sessions"] > 0 and not report["feature_sessions"]:
+        st.caption(
+            "The archive was reached without recorded impressions of the Thinking feature. "
+            "Direct links to the archive can produce this pattern; the two metrics are not a sequential funnel."
+        )
+
     st.markdown("#### Audio listening")
     if not report["audio_available"]:
         st.warning(
@@ -214,18 +225,24 @@ def render_weekly_ai_analytics(window: str) -> None:
         )
     else:
         p, q, r, t = st.columns(4)
-        p.metric("Audio listening sessions", report["audio_listening_sessions"],
+        p.metric("Audio starts", report["audio_listening_sessions"],
                  help="Distinct anonymous sessions with an observed MP3 playback start, across all weeks.")
-        q.metric("Completed listening sessions", report["audio_completed_sessions"],
+        q.metric("Audio completed", report["audio_completed_sessions"],
                  help="Sessions with an observed natural playback end after at least 85% cumulative playback.")
-        r.metric("Audio completion rate", _pct(report["audio_edition_completions"], report["audio_edition_starts"]),
+        r.metric("Completion rate", _pct(report["audio_edition_completions"], report["audio_edition_starts"]),
                  help="Completed edition-sessions / started edition-sessions; distinct by session and week.")
-        t.metric("Estimated audio minutes", report["audio_estimated_minutes"],
+        t.metric("Audio minutes", report["audio_estimated_minutes"],
                  help="Sum of estimated actual played seconds, capped at each edition duration per session; not server MP3 requests.")
+        if not report["audio_edition_starts"]:
+            st.caption(
+                "No instrumented embedded-audio playback starts were recorded in this window. "
+                "This does not establish that nobody listened: direct MP3 links, external players "
+                "and activity before tracking began are not measurable here."
+            )
         st.caption(
-            "Play starts and 25/50/75% milestones count once per browser session and weekly edition. "
-            "Dragging to the end does not count as completed listening. Audio sessions are not extra "
-            "website visitors or article views; replays within a session do not add starts."
+            "Embedded playback starts and 25/50/75% milestones count once per browser session and edition. "
+            "Seeking to the end is not a completion. Listening counts are not additional article views "
+            "or unique people; multiple weeks may be listened to in the same session."
         )
 
     st.markdown("#### Weekly edition history")

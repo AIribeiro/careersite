@@ -405,6 +405,18 @@ def browser_owner_signout() -> None:
     st.session_state.pop("owner_device_clear_pending",None)
     st.session_state.pop("owner_device_save_status",None)
     st.session_state.pop("owner_device_force_write",None)
+    # An independent device-clear component protects sign-out even if the
+    # Cloud HTTP logout route is unavailable. Do not reuse the same key
+    # mounted for session synchronization earlier in this script run.
+    try:
+        _device_component(
+            key="owner_device_explicit_signout_clear",
+            data={"mode": "clear"},
+            default={"status": None},
+            on_status_change=lambda: None,
+        )
+    except Exception:
+        pass
     result = _logout_component(
         key="owner_http_logout",
         data={"requested":True},

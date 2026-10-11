@@ -7,8 +7,8 @@ only in the publishing workflow, not for each visitor.
 """
 from __future__ import annotations
 
-import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -17,16 +17,27 @@ AUDIO_DIR = ROOT / "static" / "weekly-ai"
 
 
 def _probe(path: Path) -> dict:
-    p = subprocess.run(
-        ["ffprobe", "-v", "error", "-select_streams", "a:0",
-         "-show_entries", "stream=codec_name,sample_rate,channels",
-         "-of", "json", str(path)],
-        check=True, capture_output=True, text=True,
+    """Read audio stream metadata with ffmpeg; ffprobe is not installed on all runners.
+
+    The command intentionally specifies no output. ffmpeg prints stream details
+    to stderr and exits nonzero; that is expected for metadata inspection.
+    """
+    result = subprocess.run(
+        ["ffmpeg", "-hide_banner", "-i", str(path)],
+        capture_output=True, text=True, check=False,
     )
-    streams = json.loads(p.stdout).get("streams") or []
-    if len(streams) != 1:
-        raise ValueError(f"Expected one audio stream: {path.name}")
-    return streams[0]
+    match = re.search(
+        r"Audio:\s*([a-z0-9_]+)(?:\s*\([^)]*\))?,\s*(\d+) Hz,\s*(mono|stereo)",
+        result.stderr, flags=re.I,
+    )
+    if match is None:
+        raise ValueError(f"Could not read MP3 metadata for {path.name}: {result.stderr[-250:]}")
+    codec, rate, layout = match.groups()
+    return {
+        "codec_name": codec.lower(),
+        "sample_rate": rate,
+        "channels": 1 if layout.lower() == "mono" else 2,
+    }
 
 
 def normalize_audio(path: Path) -> bool:

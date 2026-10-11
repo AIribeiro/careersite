@@ -46,8 +46,6 @@ jobs:
         run: python scripts/generate_weekly_ai_audio.py
       - name: Normalize MPEG audio for Safari and other mobile browsers
         run: |
-          ffmpeg -version | head -n 1
-          ffprobe -version | head -n 1
           python scripts/normalize_weekly_ai_audio.py
       - name: Commit validated recordings and transcripts
         run: |

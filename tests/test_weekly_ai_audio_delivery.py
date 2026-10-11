@@ -29,7 +29,7 @@ class WeeklyAiAudioDeliveryTests(unittest.TestCase):
                 self.assertEqual(html.count("<audio "), 1)
                 self.assertEqual(html.count("<source "), 2)
 
-    @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "ffmpeg tools not available")
+    @unittest.skipUnless(shutil.which("ffmpeg"), "ffmpeg not available")
     def test_mp3_is_normalized_to_mpeg_one_and_is_idempotent(self):
         with tempfile.TemporaryDirectory() as folder:
             dest = Path(folder) / "weekly-ai-2026-10-11.mp3"

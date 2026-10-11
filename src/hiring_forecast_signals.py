@@ -11,6 +11,7 @@ from datetime import date, timedelta
 import math
 
 from job_search_metrics import day
+from jobtech_demand_forecast import analyze_jobtech_demand, jobtech_lag_diagnostics
 
 PORTFOLIO_CAP = 0.12
 PORTFOLIO_GENERAL_CAP = 0.09
@@ -208,8 +209,10 @@ def portfolio_adjustment(site_model: dict | None, actions: dict | None,
             "category":"portfolio","cap":PORTFOLIO_CAP}
 
 
-def market_adjustment(market_model: dict | None, as_of: date) -> dict:
-    """Directional score per distinct, relevant, independently released topic."""
+def market_adjustment(market_model: dict | None, as_of: date,
+                      *, job_records: list[dict] | None = None,
+                      jobtech_config: dict | None = None) -> dict:
+    """De-duplicated market factors plus bounded target-role JobTech demand."""
     rows = (market_model or {}).get("latest") or []
     by_key = {}
     for r in rows:
@@ -226,6 +229,8 @@ def market_adjustment(market_model: dict | None, as_of: date) -> dict:
         existing = by_key.get(key)
         if existing is None or observed > day(existing["observation_date"]):
             by_key[key] = r
+    jobtech = analyze_jobtech_demand(market_model, as_of, jobtech_config)
+    jobtech["lag_screen"] = jobtech_lag_diagnostics(market_model, job_records or [], as_of)
     drivers = []
     for topic, keys, max_weight, description in MARKET_TOPICS:
         # Priority list: one specific indicator per topic, never stack
@@ -251,6 +256,13 @@ def market_adjustment(market_model: dict | None, as_of: date) -> dict:
         # fades rather than influencing the forecast indefinitely.
         freshness = math.exp(-max(0, age - 35) / 180.0)
         effect = max_weight * score * reliability * freshness
+        # JobTech replaces some of the generic positive AI/tech-demand proxy,
+        # while genuine negative employment pressures remain untouched.
+        # Its four nested series already share ONE combined JobTech factor.
+        if jobtech["effect"] and effect > 0 and topic in (
+            "it_tech_demand", "tech_hiring", "regional_outlook"
+        ):
+            effect *= 0.50
         if abs(effect) < 0.0001:
             continue
         drivers.append(_driver(description, effect,
@@ -260,16 +272,28 @@ def market_adjustment(market_model: dict | None, as_of: date) -> dict:
                                observed_date=str(signal.get("observation_date")),
                                source=signal.get("source_organization") or "",
                                source_url=signal.get("source_url") or ""))
+    if jobtech["effect"]:
+        drivers.append(_driver(
+            "JobTech target-role hiring demand", jobtech["effect"],
+            detail=jobtech["status"], key="jobtech_high_signal_target_ads_v1",
+            topic="target_role_demand", release_date=as_of.isoformat(),
+            observed_date=jobtech["latest_month"],
+            source="Arbetsförmedlingen JobTech", source_url="",
+        ))
     total = _bounded(sum(d["effect"] for d in drivers),-MARKET_CAP, MARKET_CAP)
     drivers.sort(key=lambda d:abs(d["effect"]),reverse=True)
     return {"effect":round(total,5),"drivers":drivers,"category":"market",
-            "cap":MARKET_CAP,"indicators_reviewed":len(by_key)}
+            "cap":MARKET_CAP,"indicators_reviewed":len(by_key),
+            "jobtech":jobtech}
 
 
 def forecast_drivers(site_model: dict | None, actions: dict | None,
-                     market_model: dict | None, as_of: date) -> dict:
+                     market_model: dict | None, as_of: date, *,
+                     jobs: list[dict] | None = None,
+                     jobtech_config: dict | None = None) -> dict:
     portfolio = portfolio_adjustment(site_model, actions, as_of)
-    market = market_adjustment(market_model, as_of)
+    market = market_adjustment(market_model, as_of, job_records=jobs,
+                               jobtech_config=jobtech_config)
     return {
         "portfolio":portfolio, "market":market,
         "combined_multiplier":round(

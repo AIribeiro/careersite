@@ -137,3 +137,5 @@ else:
     inject_share_guard()
     inject_analytics(PAGE, source="streamlit")
     mount_behavior_telemetry(PAGE, CMS_ARTICLE_META or ARTICLE_META)
+    if PAGE == "thinking" and CMS_ARTICLE_META is not None and CMS_ARTICLE_META.slug.startswith("weekly-ai-"):
+        inject_weekly_audio_telemetry()

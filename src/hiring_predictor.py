@@ -21,7 +21,7 @@ from job_search_metrics import (
 from hiring_forecast_signals import forecast_drivers
 from hiring_forecast_windows import peak_weeks, reliability_index
 
-MODEL_VERSION = "hiring-beta-3.2"
+MODEL_VERSION = "hiring-beta-3.3"
 HORIZON_DAYS = 364
 SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5}
 # Purely illustrative offer propensity *given each hiring stage*, NOT observed
@@ -131,6 +131,7 @@ def forecast_hiring(
     portfolio_correlation: dict | None = None,
     hiring_quality: dict | None = None,
     portfolio_actions: dict | None = None,
+    jobtech_config: dict | None = None,
 ) -> dict:
     events = _as_of_events(jobs, as_of)
     dates = [day(r["event_date"]) for r in events]
@@ -198,7 +199,8 @@ def forecast_hiring(
                         if r.get("status") == "Repeated association"
                         and r.get("outcome") in ("responses", "interviews", "progression")]
     quality = (hiring_quality or {}).get("quality_summary") or {}
-    drivers = forecast_drivers(portfolio_correlation, portfolio_actions, market_model, as_of)
+    drivers = forecast_drivers(portfolio_correlation, portfolio_actions, market_model, as_of,
+                               jobs=jobs, jobtech_config=jobtech_config)
     official = _official_application_total(jobs, as_of)
     event_coverage = (len(applied) / official) if official else None
     sources = {
@@ -235,6 +237,7 @@ def forecast_hiring(
         "drivers": drivers,
         "limitations": [
             "Qualified CV-origin traffic, source variants, target-role tags and associated recruitment campaigns receive bounded positive planning weights; they do not identify visitors.",
+            "JobTech v1 title-matched demand modifies only future opportunities; September is a small, unconfirmed positive factor until October and personal responses provide stronger evidence.",
             "Specific Swedish job-market signals can help or hurt future opportunity estimates; their weights are heuristic, not proven effects.",
             "Only new opportunities—not hiring decisions already under way—receive portfolio/market adjustments.",
             "Offer rates and decision times remain assumptions, not calibrated personal probabilities.",

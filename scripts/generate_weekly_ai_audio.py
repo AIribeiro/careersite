@@ -3,6 +3,8 @@
 
 Google Cloud TTS is preferred when GOOGLE_TTS_SERVICE_ACCOUNT_JSON is set.
 Otherwise use the free edge-tts neural voice, clearly identified in the build log.
+From Week 42 onward, refuse to synthesize if the required personalized,
+source-checked spoken script has not been saved to the editorial override path.
 Runs AFTER the portfolio's weekly article publishing task. Generates once per
 edition, unless the editor-reviewed script override is explicitly revised.
 Commits the MP3 and exact narration transcript together.
@@ -99,16 +101,44 @@ def publish(article: dict, *, dry_run: bool) -> bool:
     slug = str(article["slug"])
     dest = AUDIO_DIR / (slug + ".mp3")
     transcript = AUDIO_DIR / (slug + ".txt")
+    # Starting with Week 42, the reader-first Week 41 editorial voice is a
+    # publishing contract: never synthesize generic article-to-speech fallback
+    # if the bespoke, source-checked weekly narration was not persisted.
+    editorial_override = ROOT / "data" / "weekly_ai_audio_scripts" / (slug + ".txt")
+    if slug >= "weekly-ai-2026-10-19":
+        if not editorial_override.is_file():
+            raise ValueError(
+                "Editorial audio script missing for " + slug
+                + ". Write and verify a Week 41-style spoken script before synthesis."
+            )
+        editorial_text = editorial_override.read_text(encoding="utf-8").strip()
+        word_count = len(editorial_text.split())
+        portfolio_mentions = editorial_text.casefold().count("my a i and data portfolio")
+        grounded_first_person = any(
+            phrase in editorial_text.casefold()
+            for phrase in (
+                "from my experience", "my leadership takeaway", "my takeaway",
+                "i see ", "i believe ", "i find ", "i would ",
+            )
+        )
+        if not 145 <= word_count <= 210:
+            raise ValueError("Narration needs approximately 60–90 seconds: " + slug)
+        if portfolio_mentions != 1 or not grounded_first_person:
+            raise ValueError(
+                "Narration must mention the AI & Data Portfolio once and include"
+                " a grounded first-person leadership takeaway: " + slug
+            )
     week, year = _issue_week(slug)
     script = prepare_spoken_script(slug, str(article.get("content_html") or ""), week=week, iso_year=year)
     if not 95 <= len(script.split()) <= 260:
         raise ValueError("Narration length outside safe spoken brief range: " + slug)
+    if slug >= "weekly-ai-2026-10-19" and script.strip() != editorial_text:
+        raise ValueError("Synthesized source does not match approved weekly narration: " + slug)
 
     # Re-record only when an explicitly maintained editorial override changes.
     # Changes to the underlying news article never rewrite historical audio.
     # The old MP3 stays published until the new MP3 is validated and committed.
     if dest.exists() and dest.stat().st_size > 1024:
-        editorial_override = ROOT / "data" / "weekly_ai_audio_scripts" / (slug + ".txt")
         approved_revision = (
             editorial_override.is_file()
             and transcript.is_file()

@@ -34,7 +34,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install synthesis dependencies
-        run: python -m pip install --disable-pip-version-check edge-tts google-auth requests
+        run: python -m pip install --disable-pip-version-check edge-tts google-auth requests imageio-ffmpeg
       - name: Generate missing weekly recordings
         env:
           SUPABASE_URL: https://rnqweoxtynelfirffmlr.supabase.co

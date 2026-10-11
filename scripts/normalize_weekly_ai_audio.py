@@ -8,12 +8,30 @@ only in the publishing workflow, not for each visitor.
 from __future__ import annotations
 
 from pathlib import Path
+from functools import lru_cache
 import re
+import shutil
 import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 AUDIO_DIR = ROOT / "static" / "weekly-ai"
+
+
+@lru_cache(maxsize=1)
+def ffmpeg_binary() -> str:
+    """Use the wheel's bundled executable on minimal GitHub runners."""
+    try:
+        import imageio_ffmpeg
+    except ImportError:
+        system_ffmpeg = shutil.which("ffmpeg")
+        if not system_ffmpeg:
+            raise RuntimeError(
+                "Audio normalization needs imageio-ffmpeg (bundled binary) "
+                "or an installed ffmpeg executable."
+            )
+        return system_ffmpeg
+    return imageio_ffmpeg.get_ffmpeg_exe()
 
 
 def _probe(path: Path) -> dict:
@@ -23,7 +41,7 @@ def _probe(path: Path) -> dict:
     to stderr and exits nonzero; that is expected for metadata inspection.
     """
     result = subprocess.run(
-        ["ffmpeg", "-hide_banner", "-i", str(path)],
+        [ffmpeg_binary(), "-hide_banner", "-i", str(path)],
         capture_output=True, text=True, check=False,
     )
     match = re.search(
@@ -54,7 +72,7 @@ def normalize_audio(path: Path) -> bool:
     temp.unlink(missing_ok=True)
     try:
         subprocess.run(
-            ["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+            [ffmpeg_binary(), "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
              "-i", str(path), "-vn", "-ac", "1", "-ar", "44100",
              "-c:a", "libmp3lame", "-b:a", "96k", str(temp)],
             check=True,

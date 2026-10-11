@@ -82,7 +82,7 @@ def weekly_ai_report(data: dict, editions: list[object], audio: dict | None = No
         audio_completions = _n(audio_row.get("completions"))
         sessions = _n(row.get("sessions"))
         rows.append({
-            "Week": f"Vecka {week} · {year}",
+            "Week": f"Week {week} · {year}",
             "Week start": start.isoformat(),
             "Coverage": f"{start.strftime('%d %b')}–{end.strftime('%d %b %Y')}",
             "Headline": article.title,

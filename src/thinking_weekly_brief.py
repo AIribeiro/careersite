@@ -87,7 +87,7 @@ def _swedish_range(start: date, end: date, *, include_year: bool = True) -> str:
 
 def edition_label(article: "CmsArticle") -> str:
     year, week, _, _ = edition_week(article)
-    return f"Vecka {week} · {year}"
+    return f"Week {week} · {year}"
 
 
 def _headline(article: "CmsArticle") -> str:
@@ -293,7 +293,7 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
         'Browse all weeks (' + str(count) + ') →</a></div></div>'
         '<div class="weekly-ai-side">'
         '<div class="weekly-ai-side-label">Swedish calendar week</div>'
-        '<div class="weekly-ai-number">' + str(week) + '<small>Vecka · ' + str(year) + '</small></div>'
+        '<div class="weekly-ai-number">' + str(week) + '<small>Week · ' + str(year) + '</small></div>'
         '<div class="weekly-ai-dates">' + escape(_swedish_range(start, end)) + '<br>1 min read</div>'
         '<div class="weekly-ai-history"><p>Previous editions</p>' + recent_items + '</div>'
         '</div></div></div></section>'
@@ -326,7 +326,7 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
             links.append(
                 '<a class="weekly-ai-issue" href="' + link + '" target="_self"'
                 ' data-hq-content-slug="' + escape(article.slug, quote=True) + '" data-hq-event="weekly_ai_archive_issue_open">'
-                '<span class="weekly-ai-issue-week">Vecka ' + str(week) + ' · ' + str(year) + '</span>'
+                '<span class="weekly-ai-issue-week">Week ' + str(week) + ' · ' + str(year) + '</span>'
                 '<span class="weekly-ai-issue-dates">' + escape(_swedish_range(start, end)) + '</span>'
                 '<h3>' + escape(_headline(article)) + '</h3>'
                 '<p>' + escape(article.excerpt or article.subtitle) + '</p>'
@@ -368,15 +368,16 @@ def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str
         + '<main><section class="section paper" data-analytics-section="weekly-ai-reader"><div class="container">'
         '<div class="weekly-ai-reader">'
         '<a class="weekly-ai-back" href="?page=thinking#weekly-ai" target="_self">← Back to Thinking</a>'
-        '<div class="weekly-ai-label">WEEKLY AI · VECKA ' + str(week) + ' · ' + str(year) + '</div>'
+        '<div class="weekly-ai-label">WEEKLY AI · Week ' + str(week) + ' · ' + str(year) + '</div>'
         '<h1>' + escape(_headline(article)) + '</h1>'
         '<p class="weekly-ai-subtitle">' + escape(article.subtitle or article.excerpt) + '</p>'
         '<div class="weekly-ai-bylines">' + escape(_swedish_range(start, end))
         + ' · 1 min read · Curated by ' + escape(article.author_name) + '</div>'
         + audio_player_html(article.slug)
         + '<article class="weekly-ai-body">' + article.content_html
-        + '<p class="weekly-ai-source-note">Selected from Google Alerts and checked against linked publishers. '
-        'External reporting is attributed to its original source.</p></article>'
+        + '<p class="weekly-ai-source-note">Personally curated by Jair Ribeiro. I review the reporting, choose the developments '
+        'I consider most relevant, and add my own perspective on what they mean for enterprise AI '
+        'leadership. Original reporting remains credited to its publishers.</p></article>'
         '<p><a class="weekly-ai-back" href="' + escape(WEEKLY_ARCHIVE_URL, quote=True)
         + '" target="_self">← Browse all Weekly AI editions</a></p>'
         + share_footer + '</div></div></section></main>' + footer()

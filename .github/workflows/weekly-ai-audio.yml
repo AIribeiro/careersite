@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/weekly_ai_audio.py'
       - 'scripts/generate_weekly_ai_audio.py'
+      - 'data/weekly_ai_audio_scripts/**'
       - 'scripts/normalize_weekly_ai_audio.py'
       - '.github/workflows/weekly-ai-audio.yml'
   schedule:

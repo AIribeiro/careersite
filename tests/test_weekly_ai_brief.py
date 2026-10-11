@@ -41,7 +41,7 @@ class WeeklyAiBriefingTests(unittest.TestCase):
         self.assertEqual((year, week), (2026, 41))
         self.assertEqual(start, date(2026, 10, 5))
         self.assertEqual(end, date(2026, 10, 11))
-        self.assertEqual(edition_label(brief()), "Vecka 41 · 2026")
+        self.assertEqual(edition_label(brief()), "Week 41 · 2026")
 
     def test_monday_release_labels_previous_covered_week(self):
         monday = brief(slug="weekly-ai-2026-10-19")
@@ -51,7 +51,7 @@ class WeeklyAiBriefingTests(unittest.TestCase):
         first_monday = brief(slug="weekly-ai-2027-01-04")
         self.assertEqual(edition_week(first_monday), (2026, 53, date(2026, 12, 28), date(2027, 1, 3)))
         archive = render_weekly_brief_archive([first_monday])
-        self.assertIn("Vecka 53 · 2026", archive)
+        self.assertIn("Week 53 · 2026", archive)
         self.assertIn("28 december 2026–3 januari 2027", archive)
 
     def test_missing_edition_does_not_add_blank_section(self):
@@ -62,7 +62,7 @@ class WeeklyAiBriefingTests(unittest.TestCase):
         html = inject_weekly_brief_landing(original, [brief()])
         self.assertLess(html.index('id="weekly-ai"'), html.index('class="pagehero"'))
         self.assertIn("Swedish calendar week", html)
-        self.assertIn("Vecka · 2026", html)
+        self.assertIn("Week · 2026", html)
         self.assertIn("5–11 oktober 2026", html)
         self.assertIn("Start reading · 1 min", html)
         self.assertIn("Browse all weeks (1)", html)
@@ -77,14 +77,14 @@ class WeeklyAiBriefingTests(unittest.TestCase):
         ])
         self.assertIn('id="weekly-ai"', html)
         self.assertIn("Previous editions", html)
-        self.assertIn("Vecka 40 · 2026", html)
+        self.assertIn("Week 40 · 2026", html)
         self.assertIn("weekly-ai-2026-10-11", html)
         self.assertIn("weekly-ai-2026-10-04", html)
 
     def test_archive_contains_current_issue_even_if_no_previous_weeks(self):
         archive = render_weekly_brief_archive([brief()])
         self.assertIn("The weekly archive", archive)
-        self.assertIn("Vecka 41 · 2026", archive)
+        self.assertIn("Week 41 · 2026", archive)
         self.assertIn("5–11 oktober 2026", archive)
         self.assertIn("weekly-ai-2026-10-11", archive)
         self.assertIn("From Adoption to Accountable Action", archive)
@@ -95,8 +95,8 @@ class WeeklyAiBriefingTests(unittest.TestCase):
         archive = render_weekly_brief_archive([first, second])
         self.assertIn('<h2>2026</h2>', archive)
         self.assertIn('<h2>2027</h2>', archive)
-        self.assertIn("Vecka 53 · 2026", archive)
-        self.assertIn("Vecka 1 · 2027", archive)
+        self.assertIn("Week 53 · 2026", archive)
+        self.assertIn("Week 1 · 2027", archive)
 
     def test_identical_iso_weeks_are_not_repeated_and_drafts_are_excluded(self):
         editions = sorted_editions([
@@ -109,9 +109,11 @@ class WeeklyAiBriefingTests(unittest.TestCase):
     def test_reader_contains_iso_week_direct_publisher_and_archive_link(self):
         html = render_weekly_brief_article(brief(), "<footer>Share</footer>")
         self.assertIn("Curated by Jair Ribeiro", html)
-        self.assertIn("VECKA 41 · 2026", html)
+        self.assertIn("Week 41 · 2026", html)
         self.assertIn("Publisher", html)
-        self.assertIn("checked against linked publishers", html)
+        self.assertIn("Personally curated by Jair Ribeiro", html)
+        self.assertIn("add my own perspective", html)
+        self.assertNotIn("Selected from Google Alerts", html)
         self.assertIn("Browse all Weekly AI editions", html)
         self.assertNotIn("cms-article-image", html)
 

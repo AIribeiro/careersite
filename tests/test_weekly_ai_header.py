@@ -41,7 +41,7 @@ class WeeklyAiEvergreenHeroTests(unittest.TestCase):
             self.assertIn("data:image/webp;base64,", html)
             self.assertIn("Browse all weeks (1)", html)
             self.assertLess(html.index("weekly-ai-brand"), html.index("weekly-ai-feature"))
-        self.assertIn("Vecka · 2026", first)
+        self.assertIn("Week · 2026", first)
         self.assertIn('class="weekly-ai-number">41', first)
         self.assertIn('class="weekly-ai-number">42', next_week)
 

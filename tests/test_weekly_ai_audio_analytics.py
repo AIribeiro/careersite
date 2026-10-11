@@ -43,7 +43,7 @@ class WeeklyAudioAnalyticsTests(unittest.TestCase):
         self.assertEqual(report["audio_edition_starts"], 6)
         self.assertEqual(report["audio_edition_completions"], 4)
         self.assertEqual(report["audio_estimated_minutes"], 5.8)
-        self.assertEqual(row["Week"], "Vecka 41 · 2026")
+        self.assertEqual(row["Week"], "Week 41 · 2026")
         self.assertEqual(row["Audio starts"], 6)
         self.assertEqual(row["Audio reached 50%"], 5)
         self.assertEqual(row["Audio completions"], 4)

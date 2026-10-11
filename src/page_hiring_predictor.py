@@ -189,6 +189,24 @@ def render_hiring_predictor(
             f"{len(supportive)} supportive and {len(adverse)} adverse indicators. "
             "Both affect the model."
         )
+    jobtech = market.get("jobtech") or {}
+    if jobtech.get("latest_month") and jobtech.get("families", {}).get("tier_a"):
+        tier = jobtech["families"]["tier_a"]
+        target = jobtech["families"]["national"]
+        st.markdown(
+            f"**JobTech target-role demand: {jobtech['effect']:+.1%}** within the "
+            "Swedish market contribution."
+        )
+        st.caption(
+            f"{tier['month']}: Tier A AI leadership ads {tier['previous']} → "
+            f"{tier['value']}; all target-role ads {target['previous']} → "
+            f"{target['value']}. {jobtech['status']}. "
+            "The influence is deliberately small until a complete October "
+            "observation confirms demand and/or your recruitment progress improves."
+        )
+    elif jobtech:
+        st.caption("**JobTech target-role demand:** waiting for enough "
+                   "comparable, date-verified monthly observations.")
     if portfolio.get("cv_attribution_available"):
         tiers = portfolio["cv_attribution_tiers"]
         st.caption(
@@ -308,6 +326,45 @@ def render_hiring_predictor(
             "up to 12% from future opportunity rates, after quality and age checks. "
             "Overlapping reports count only once per topic."
         )
+        if jobtech.get("latest_month"):
+            st.markdown("**JobTech: high-signal AI/Data leadership demand**")
+            st.caption(
+                f"Latest complete month: {jobtech['latest_month']}; "
+                f"weighted momentum score {jobtech['score']:+.2f}; "
+                f"planning contribution {jobtech['effect']:+.2%}. "
+                f"{jobtech['status']}."
+            )
+            families = jobtech.get("families") or {}
+            for key, name in (
+                ("tier_a", "Tier A · Sweden"),
+                ("national", "All target roles · Sweden"),
+                ("stockholm", "Stockholm"),
+                ("vgr", "Västra Götaland"),
+            ):
+                signal = families.get(key)
+                if signal:
+                    st.caption(
+                        f"• {name}: {signal['previous']} → {signal['value']} ads; "
+                        f"momentum {signal['momentum']:+.2f}, "
+                        f"quality weight {signal['quality']:.2f}."
+                    )
+            st.caption(
+                "Momentum uses month-on-month change, three-month movement and "
+                "level versus the trailing baseline. Four overlapping series "
+                "produce ONE factor; old months are immutable and partial months "
+                "are excluded. Until the next complete month confirms the rebound, "
+                "the factor's absolute adjustment is capped at 1.2% of future "
+                "opportunity volume. It is not a personal offer probability."
+            )
+            lag = jobtech.get("lag_screen") or {}
+            st.caption(
+                "Forward hiring lags (discovery 0–14d; applications 0–21d; "
+                "employer contacts 7–30d; interviews 14–45d; offers 30–75d): "
+                f"{lag.get('status','Not evaluated')}. "
+                "Historical JobTech observations first entered the database "
+                "in October; earlier personal outcomes cannot be backtested "
+                "as if the series were available then."
+            )
         for driver in market["drivers"][:8]:
             st.caption(f"• {driver['label']}: {driver['effect']:+.1%}; "
                        f"{driver['source']} · released {driver['release_date']}.")

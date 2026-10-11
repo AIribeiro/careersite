@@ -10,6 +10,7 @@ from page_analytics import (
 )
 from page_article_analytics import render_article_analytics, render_reader_sources
 from page_content_intelligence import render_content_intelligence
+from page_weekly_ai_analytics import render_weekly_ai_analytics
 from page_job_search_analytics import render_job_search_analytics
 from page_job_market_insights import render_swedish_job_market
 from page_analytics_overview import render_analytics_overview
@@ -106,9 +107,9 @@ def render_analytics_dashboard() -> None:
     st.caption("Understand which content earns qualified attention and what visitors do next. "
                "A recorded visit is not a person or a recruiter identification.")
     kind = st.segmented_control(
-        "Portfolio focus", options=["page","article"],
+        "Portfolio focus", options=["page","article","weekly_ai"],
         default="page",
-        format_func=lambda value: "Pages & profile" if value == "page" else "Articles & thinking",
+        format_func=lambda value: {"page": "Pages & profile", "article": "Articles & thinking", "weekly_ai": "WEEKLY AI"}[value],
         key="analytics_portfolio_kind", width="stretch",
     ) or "page"
     window_options = [key for key, _ in REPORTING_WINDOWS]
@@ -122,6 +123,9 @@ def render_analytics_dashboard() -> None:
     )
     if str(window) in ("last_hour","today"):
         st.caption("Short windows are useful for monitoring, not for judging hiring or content outcomes.")
+    if kind == "weekly_ai":
+        render_weekly_ai_analytics(str(window))
+        return
     render_content_intelligence(str(kind), str(window))
     if st.toggle("Inspect legacy traffic reports and detailed source tables",
                  value=False,key="analytics_show_historical"):

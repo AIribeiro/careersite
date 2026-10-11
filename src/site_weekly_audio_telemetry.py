@@ -18,7 +18,8 @@ def inject_weekly_audio_telemetry() -> None:
   if (win.__jairWeeklyAudioTelemetryBound) return;
   win.__jairWeeklyAudioTelemetryBound = true;
 
-  const STORAGE_KEY = 'jair_hq_weekly_audio_v1';
+  // Version 2 discards optimistic flags from the pre-acknowledgement client.
+  const STORAGE_KEY = 'jair_hq_weekly_audio_v2';
   const SESSION_KEY = 'jair_hq_session_v1';
   const mediaState = new WeakMap();
   // Keep retries in memory; accepted milestones alone are saved in the current

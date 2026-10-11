@@ -102,7 +102,7 @@ def prepare_spoken_script(slug: str, html: str, *, week: int, iso_year: int) -> 
     if len(stories) < 3:
         raise ValueError("Cannot narrate fewer than three credited news items")
     connectors = ("First, ", "Next, ", "Also this week, ", "Another development: ", "Finally, ")
-    intro = f"{INTRO} For Swedish week {week}, {iso_year}, here are the developments I found most relevant."
+    intro = f"{INTRO} For Week {week}, {iso_year}, here are the developments I found most relevant."
     segments = [intro] + [connectors[i] + s for i, s in enumerate(stories)]
     if signal:
         segments.append("From my experience leading enterprise A I and data initiatives, the takeaway is this: " + _spoken(signal))

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import base64
 import re
 from datetime import date, timedelta
+from functools import lru_cache
 from html import escape
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -16,6 +19,19 @@ SWEDISH_MONTHS = (
     "juli", "augusti", "september", "oktober", "november", "december",
 )
 WEEKLY_ARCHIVE_URL = "?page=thinking&weekly_ai=archive"
+WEEKLY_IMAGE_FILE = Path(__file__).resolve().parents[1] / "assets" / "weekly_ai_evergreen_visual.webp"
+
+
+@lru_cache(maxsize=1)
+def _weekly_header_image_uri() -> str:
+    """Embed the original evergreen artwork crop without external hosting or stale week text."""
+    try:
+        payload = WEEKLY_IMAGE_FILE.read_bytes()
+    except OSError:
+        return ""
+    return "data:image/webp;base64," + base64.b64encode(payload).decode("ascii")
+
+
 
 
 def is_weekly_brief(article: "CmsArticle") -> bool:
@@ -100,6 +116,21 @@ WEEKLY_CSS = """
 <style>
 /* A standalone editorial feature, deliberately separate from regular article tiles. */
 .weekly-ai-section{padding:28px 0 42px!important;background:#f8f5ef!important}
+.weekly-ai-brand{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(230px,.7fr);
+  min-height:260px;overflow:hidden;background:#0c1829;color:#f9f5ef;border:1px solid #233b50;
+  box-shadow:0 10px 25px rgba(13,29,48,.10)}
+.weekly-ai-brand-copy{padding:clamp(25px,3.2vw,46px);display:flex;flex-direction:column;justify-content:center}
+.weekly-ai-brand-eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#e2a278;margin:0 0 9px}
+.weekly-ai-brand h2{font:500 clamp(44px,6vw,86px)/.97 Georgia,serif;
+  letter-spacing:-.045em;color:#fff;margin:0 0 14px}
+.weekly-ai-brand h2 span{color:#d99669}
+.weekly-ai-brand-strap{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.21em;color:#f3c29c;margin:0 0 14px}
+.weekly-ai-brand-intro{font-size:15px;line-height:1.65;color:#d2d9e0;max-width:600px;margin:0}
+.weekly-ai-brand-art{width:100%;height:100%;min-height:260px;max-height:340px;object-fit:cover;object-position:center 53%;display:block;filter:saturate(.9)}
+.weekly-ai-brand-placeholder{background:radial-gradient(circle at 60% 35%,#366280,#0d2237 60%,#091421 100%)}
+.weekly-ai-feature{margin-top:0}
+.weekly-ai-feature h3{font:500 clamp(31px,3.4vw,44px)/1.12 Georgia,serif;letter-spacing:-.02em;
+  color:#fff;margin:15px 0 14px}
 .weekly-ai-feature{position:relative;isolation:isolate;overflow:hidden;background:#142437;color:#faf8f4;
   border-top:4px solid #b9794c;box-shadow:0 24px 46px rgba(13,29,48,.16);
   display:grid;grid-template-columns:minmax(0,1.5fr) minmax(230px,.65fr);gap:0}
@@ -173,6 +204,12 @@ WEEKLY_CSS = """
 @media(max-width:1020px){.weekly-ai-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){
   .weekly-ai-section{padding:14px 0 28px!important}
+  .weekly-ai-brand{grid-template-columns:1fr;min-height:0}
+  .weekly-ai-brand-copy{padding:26px 24px}
+  .weekly-ai-brand h2{font-size:clamp(42px,12vw,65px)}
+  .weekly-ai-brand-strap{font-size:11px;letter-spacing:.13em}
+  .weekly-ai-brand-intro{font-size:14px}
+  .weekly-ai-brand-art{max-height:120px;min-height:120px;object-position:center 44%}
   .weekly-ai-feature{grid-template-columns:minmax(0,1fr)}
   .weekly-ai-main{padding:27px 24px 26px}
   .weekly-ai-feature h2{font-size:42px;margin:13px 0}
@@ -218,10 +255,22 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
         recent_items = '<p class="weekly-ai-history-empty">The archive begins with this edition. New weeks will appear here automatically.</p>'
     feature = (
         '<section class="section weekly-ai-section" id="weekly-ai" data-analytics-section="weekly-ai-feature" aria-label="Weekly AI briefing">'
-        '<div class="container"><div class="weekly-ai-feature">'
+        '<div class="container">'
+        '<div class="weekly-ai-brand">'
+        '<div class="weekly-ai-brand-copy">'
+        '<div class="weekly-ai-brand-eyebrow">THINKING · QUICK CONTEXT</div>'
+        '<h2>WEEKLY <span>AI</span></h2>'
+        '<p class="weekly-ai-brand-strap">A one-minute briefing</p>'
+        '<p class="weekly-ai-brand-intro">Selected AI developments, original sources and practical leadership context. A new edition every week.</p>'
+        '</div>'
+        + ('<img class="weekly-ai-brand-art" src="' + _weekly_header_image_uri() 
+           + '" alt="AI briefing artwork: digital globe and modern laptop in a workplace" loading="eager" decoding="async">'
+           if _weekly_header_image_uri() else '<div class="weekly-ai-brand-art weekly-ai-brand-placeholder" aria-hidden="true"></div>')
+        + '</div>'
+        '<div class="weekly-ai-feature">'
         '<div class="weekly-ai-main">'
         '<div class="weekly-ai-overline"><span aria-hidden="true"></span> WEEKLY AI · QUICK CONTEXT</div>'
-        '<h2>AI in one minute.</h2>'
+        '<h3>Latest edition.</h3>'
         '<p class="weekly-ai-headline">' + escape(_headline(latest)) + '</p>'
         '<p class="weekly-ai-description">' + escape(latest.excerpt or latest.subtitle) + '</p>'
         '<div class="weekly-ai-actions">'

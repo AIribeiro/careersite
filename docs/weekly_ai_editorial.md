@@ -52,3 +52,6 @@ WEEKLY AI is an **editorial subset** of normal Thinking/article traffic, not a s
 - All analytics retain the existing first-touch session attribution, test-traffic exclusion and authenticated owner dashboard; no new analytics tables, persistent IDs, cookies, IPs, or URLs in event payloads.
 - CTR must only compare matched observed exposures and click sessions. Do not infer missing pre-launch measurements, or equate a clicked link with a successful off-site reading.
 - The dedicated Analytics focus is also usable for historic weeks, including issues with zero measured traffic. The weekly panel is a subset of the site's article totals: **never add** the counts together.
+
+### Evergreen visual header
+The Thinking landing-page WEEKLY AI section uses the same photographic artwork as the campaign image: an optimized, cropped visual of the laptop/digital globe is stored as `assets/weekly_ai_evergreen_visual.webp`. Text ("WEEKLY AI", "A one-minute briefing") is **native HTML**, not embedded image lettering, so it remains sharp, selectable and readable on small screens. The image never contains a hardcoded week number. The real current issue, Swedish ISO week, archive count and links remain derived from published CMS editions. The visual introduces the existing feature block and does not generate a separate page-view/click event.

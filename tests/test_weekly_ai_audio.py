@@ -52,7 +52,10 @@ class WeeklyAiAudioTests(unittest.TestCase):
         script = prepare_spoken_script(
             "weekly-ai-2026-10-11", PUBLISHED_HTML, week=41, iso_year=2026
         )
-        self.assertIn("Swedish week forty-one", script)
+        self.assertIn("Week forty-one", script)
+        self.assertIn("my A I and Data Portfolio", script)
+        self.assertIn("what matters beyond the headlines", script)
+        self.assertIn("From my experience leading enterprise A I and data initiatives", script)
         self.assertIn("Harvard Business Review", script)
         self.assertGreaterEqual(len(script.split()), 95)
         self.assertLessEqual(len(script.split()), 260)

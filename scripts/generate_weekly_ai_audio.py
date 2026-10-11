@@ -120,7 +120,8 @@ def publish(article: dict, *, dry_run: bool) -> bool:
             print("Using free edge-tts neural voice:", VOICE_FREE)
             asyncio.run(_edge_audio(script, temp))
         payload = temp.read_bytes()
-        if len(payload) < 4000 or payload[:2] != b"\xff\xfb" and payload[:3] != b"ID3":
+        valid_frame = len(payload) >= 2 and payload[0] == 0xFF and (payload[1] & 0xE0) == 0xE0
+        if len(payload) < 4000 or not (payload.startswith(b"ID3") or valid_frame):
             raise RuntimeError("Synthesizer returned an invalid or empty MP3")
         temp.replace(dest)
         transcript.write_text(script + "\n", encoding="utf-8")

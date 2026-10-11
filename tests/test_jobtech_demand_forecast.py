@@ -42,7 +42,11 @@ def _market(counts=None, seen="2026-10-11", *, version="v1"):
                 "first_seen_at": seen if month < 10 else "2026-11-05",
                 "source_accessed_at":seen if month < 10 else "2026-11-05",
                 "raw_data":{"methodology_version":version,
-                            "date_semantics":"publication month"},
+                            "date_semantics":"publication month",
+                            "query_sources":["Historical Ads","JobSearch"] if key=="national" else None},
+                "methodology_note":("Historical Ads and active JobSearch "
+                                    "are unioned and deduplicated")
+                                    if key=="national" else "Same JobTech target-title basket v1",
                 "source_organization":"Arbetsförmedlingen JobTech",
                 "confidence_score":90 if key not in ("vgr","stockholm") else 78,
                 "relevance_score":100,
@@ -103,6 +107,21 @@ class JobTechDemandTests(unittest.TestCase):
         self.assertEqual(result["cap"],.04)
         self.assertGreater(result["effect"],0)
         self.assertLessEqual(result["effect"],.04)
+
+    def test_missing_union_or_dedup_provenance_disables_jobtech_signal(self):
+        model=_market()
+        for record in model["groups"][JOBTECH_KEYS["national"]]:
+            record["raw_data"]["query_sources"]=["Historical Ads"]
+        r=analyze_jobtech_demand(model,date(2026,10,11))
+        self.assertEqual(r["effect"],0)
+        self.assertTrue(any("union/dedup" in w for w in r["alerts"]))
+
+    def test_tier_a_cannot_exceed_its_national_parent_total(self):
+        model=_market()
+        model["groups"][JOBTECH_KEYS["tier_a"]][-1]["metric_value"]="30"
+        r=analyze_jobtech_demand(model,date(2026,10,11))
+        self.assertEqual(r["effect"],0)
+        self.assertTrue(any("exceeds national" in w for w in r["alerts"]))
 
     def test_negative_reversal_yields_negative_momentum(self):
         data={key:[30,22,14,5] for key in COUNTS}

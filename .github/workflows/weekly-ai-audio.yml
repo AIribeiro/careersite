@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/weekly_ai_audio.py'
       - 'scripts/generate_weekly_ai_audio.py'
+      - 'scripts/normalize_weekly_ai_audio.py'
       - '.github/workflows/weekly-ai-audio.yml'
   schedule:
     # Run after the Monday editorial automation and retry Tuesday.
@@ -43,6 +44,11 @@ jobs:
           GOOGLE_TTS_VOICE: en-US-Neural2-D
           EDGE_TTS_VOICE: en-US-AndrewNeural
         run: python scripts/generate_weekly_ai_audio.py
+      - name: Normalize MPEG audio for Safari and other mobile browsers
+        run: |
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+          python scripts/normalize_weekly_ai_audio.py
       - name: Commit validated recordings and transcripts
         run: |
           git config user.name "github-actions[bot]"

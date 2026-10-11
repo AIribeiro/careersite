@@ -30,7 +30,7 @@ def audio_url(slug: str) -> str | None:
     path = mp3_path(slug)
     if path is None or not path.is_file() or path.stat().st_size < 1024:
         return None
-    return "/weekly-ai-audio/" + slug + ".mp3"
+    return "https://jairribeiro-ai.streamlit.app/weekly-ai-audio/" + slug + ".mp3"
 
 
 class ParagraphReader(HTMLParser):
@@ -111,20 +111,32 @@ def prepare_spoken_script(slug: str, html: str, *, week: int, iso_year: int) -> 
 
 
 def audio_player_html(slug: str) -> str:
-    """Render only a tested existing MP3. Never display a broken audio widget."""
+    """Offer local range-capable audio, a second CDN source and a direct-open fallback.
+
+    Host-qualified URLs avoid Streamlit's /~/+/ page-prefix ambiguity on mobile.
+    A visible open-audio link remains usable if an embedded browser blocks media.
+    """
     url = audio_url(slug)
     if not url:
         return ""
-    clean_url = escape(url, quote=True)
+    local = escape(url, quote=True)
+    backup = escape(
+        "https://raw.githubusercontent.com/AIribeiro/careersite/main/static/weekly-ai/"
+        + slug + ".mp3", quote=True
+    )
     return (
         '<aside class="weekly-ai-audio" id="weekly-ai-audio" data-analytics-section="weekly-ai-audio" '
         'aria-label="Audio edition">'
         '<div class="weekly-ai-audio-head"><span>LISTEN TO THIS WEEK</span>'
         '<span>Audio briefing · English</span></div>'
-        '<audio controls preload="none" controlslist="nodownload" '
+        '<audio controls preload="metadata" playsinline '
         'aria-label="Listen to the Weekly AI news briefing">'
-        '<source src="' + clean_url + '" type="audio/mpeg">'
+        '<source src="' + local + '" type="audio/mpeg">'
+        '<source src="' + backup + '" type="audio/mpeg">'
         'Your browser does not support audio playback.</audio>'
         '<p>Approximately one minute. The written edition below contains the original sources.</p>'
+        '<p><a class="weekly-ai-audio-backup" href="' + backup + '" target="_blank" '
+        'rel="noopener noreferrer" data-hq-event="weekly_ai_audio_direct_open">'
+        'Audio not playing? Open the MP3 directly ↗</a></p>'
         '</aside>'
     )

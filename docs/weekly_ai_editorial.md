@@ -40,3 +40,15 @@ The dedicated **Weekly AI** feature is the first editorial section immediately b
 - Five original publisher links, independently checked.
 - Published through the existing CMS; it now receives prominent feature placement and an archive entry without manual duplication.
 - Weekly task starts Monday 2026-10-19 and reports **Vecka 42**, the completed October 12–18 news week.
+
+### First-party analytics
+
+WEEKLY AI is an **editorial subset** of normal Thinking/article traffic, not a second visitor counter. The Analytics > Portfolio > WEEKLY AI focus reuses the owner's existing `careersite_content_intelligence_v2` and behavioral event data, grouped by published CMS edition and **covered Swedish ISO week**.
+
+- `section_view` at `thinking:weekly-ai-feature` records feature reach (at least 15% visibility); `thinking:weekly-ai-archive` separately records archive section reach. Both use stable `data-analytics-section` identifiers.
+- `element_impression` and `article_card_click` identify one weekly edition via `data-hq-content-slug`, with placement distinguishing the feature from archive entries; weekly links pointing to clean `/thinking/<slug>` paths must not be ignored by the descriptor.
+- `element_impression` / `cta_click` measure the Browse all weeks action and per-publisher external reading links. The existing `article_view`, `article_share` and article engagement observations remain authoritative for individual briefing readership, sharing, active time and downstream visits.
+- Metrics count **distinct anonymous sessions per content and placement** rather than arbitrary event rows. A browser session viewing two weeks counts as two *edition-session reads*, never two unique people; publisher source clicks are per publisher and also non-additive to visitor totals.
+- All analytics retain the existing first-touch session attribution, test-traffic exclusion and authenticated owner dashboard; no new analytics tables, persistent IDs, cookies, IPs, or URLs in event payloads.
+- CTR must only compare matched observed exposures and click sessions. Do not infer missing pre-launch measurements, or equate a clicked link with a successful off-site reading.
+- The dedicated Analytics focus is also usable for historic weeks, including issues with zero measured traffic. The weekly panel is a subset of the site's article totals: **never add** the counts together.

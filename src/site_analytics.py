@@ -324,8 +324,17 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     const raw = String((el.dataset && el.dataset.hqEvent) || '').toLowerCase();
     if (raw.startsWith('article_share_')) return null;
     const href = String(el.getAttribute('href') || '');
-    let slug = '';
-    try {{ slug = new URL(href, win.location.href).searchParams.get('article') || ''; }} catch (_) {{}}
+    let slug = safeText(el.getAttribute('data-hq-content-slug'), 160);
+    if (!slug) {{
+      try {{
+        const target = new URL(href, win.location.href);
+        slug = target.searchParams.get('article') || '';
+        if (!slug) {{
+          const match = target.pathname.match(/^\/thinking\/(weekly-ai-\d{{4}}-\d{{2}}-\d{{2}})\/?$/);
+          slug = match ? match[1] : '';
+        }}
+      }} catch (_) {{}}
+    }}
     let isCard = Boolean(slug);
     try {{
       isCard = isCard || el.matches('a.recent-card, a.article') ||
@@ -352,9 +361,17 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     const href = String(el.getAttribute('href') || '');
     let qualifies = false;
     try {{ qualifies = el.matches('a.btn, a.contactlink, footer a[data-hq-event]'); }} catch (_) {{}}
-    qualifies = qualifies || /^(cv_download|contact_|email_|linkedin_|impact_|medium_)/.test(raw);
+    qualifies = qualifies || /^(cv_download|contact_|email_|linkedin_|impact_|medium_|weekly_ai_archive_open)/.test(raw);
+    const isWeeklySource = Boolean(el.closest('.weekly-ai-body')) && /^https?:\/\//i.test(href);
+    qualifies = qualifies || isWeeklySource;
     if (!qualifies) return null;
     let key = raw || keyify(el.textContent) || 'cta';
+    if (isWeeklySource) {{
+      let publisher = 'external';
+      try {{ publisher = new URL(href, win.location.href).hostname.toLowerCase().slice(0,90); }} catch (_) {{}}
+      return {{ element_kind: 'cta', element_key: 'weekly-ai-source:' + publisher,
+        element_label: 'Original publisher · ' + publisher, element_placement: placementFor(el) }};
+    }}
     if (raw.startsWith('cv_download')) key = 'cv';
     else if (raw.startsWith('contact_') || raw.startsWith('email_') || href.toLowerCase().startsWith('mailto:')) key = 'contact';
     else if (raw.startsWith('linkedin_') || href.toLowerCase().includes('linkedin.com')) key = 'linkedin';
@@ -420,7 +437,8 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
 
     const candidates = doc.querySelectorAll(
       'a[href*="article="], a.recent-card, a.article, .featured-thinking a, .decision-note a, ' +
-      'a.btn, a.contactlink, footer a[data-hq-event], a[data-hq-event^="cv_download"], ' +
+      'a.btn, a.contactlink, footer a[data-hq-event], .weekly-ai-body a[href^="https://"], .weekly-ai-body a[href^="http://"], ' +
+      'a[data-hq-event^="weekly_ai_"], a[data-hq-event^="cv_download"], ' +
       'a[data-hq-event^="contact_"], a[data-hq-event^="email_"], a[data-hq-event^="linkedin_"], a[data-hq-event^="impact_"]'
     );
     for (const el of candidates) {{
@@ -697,7 +715,8 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       }} else if (ctaDescriptor && win.__jairAnalyticsSend) {{
         win.__jairAnalyticsSend('cta_click', ctaDescriptor);
       }}
-      if (raw.startsWith('article_share_')) return;
+      if (raw.startsWith('article_share_') || raw.startsWith('weekly_ai_') ||
+          Boolean(el.closest('.weekly-ai-body'))) return;
       try {{
         if (new URL(el.getAttribute('href') || '', win.location.href).searchParams.has('article')) return;
       }} catch (_) {{}}

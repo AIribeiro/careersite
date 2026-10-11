@@ -14,8 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 AUDIO_DIR = ROOT / "static" / "weekly-ai"
 SCRIPT_OVERRIDES = ROOT / "data" / "weekly_ai_audio_scripts"
 SLUG_PATTERN = re.compile(r"weekly-ai-\d{4}-\d{2}-\d{2}\Z")
-INTRO = "Welcome to Weekly A I."
-OUTRO = "Find links to all the original reporting in the written edition."
+INTRO = "Welcome to Weekly A I, a one-minute briefing from my A I and Data Portfolio."
+OUTRO = "The original sources are linked in the written edition."
 
 
 def valid_slug(slug: str) -> bool:
@@ -102,10 +102,10 @@ def prepare_spoken_script(slug: str, html: str, *, week: int, iso_year: int) -> 
     if len(stories) < 3:
         raise ValueError("Cannot narrate fewer than three credited news items")
     connectors = ("First, ", "Next, ", "Also this week, ", "Another development: ", "Finally, ")
-    intro = f"{INTRO} Here's what mattered in Swedish week {week}, {iso_year}."
+    intro = f"{INTRO} For Swedish week {week}, {iso_year}, here are the developments I found most relevant."
     segments = [intro] + [connectors[i] + s for i, s in enumerate(stories)]
     if signal:
-        segments.append("The leadership signal? " + _spoken(signal))
+        segments.append("My leadership takeaway? " + _spoken(signal))
     segments.append(OUTRO)
     return " ".join(segments)
 

@@ -18,7 +18,8 @@ MARKET_FIELDS = (
     "metric_value_text,metric_unit,comparison_value,change_value,signal_score,confidence_score,"
     "relevance_score,is_leading_indicator,expected_lag_days,insight_summary,"
     "job_search_implication,methodology_note,source_organization,source_title,source_url,"
-    "is_current,valid_until,is_quantitative,first_seen_at,last_confirmed_at,updated_at"
+    "is_current,valid_until,is_quantitative,first_seen_at,last_confirmed_at,updated_at,"
+    "source_registry_key,raw_data,source_accessed_at"
 )
 HIGHLIGHTS = (
     "employment_outlook_net", "employment_outlook_net_vgr",

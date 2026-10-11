@@ -538,7 +538,11 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       error_type: extra.error_type ? safeText(extra.error_type, 64) : null,
     }};
 
-    fetch(endpoint, {{
+    // Most analytics callers are fire-and-forget. Audio listening needs to
+    // know whether the event actually reached the collector before persisting
+    // a session-unique "start" or "completed" acknowledgement. Returning a
+    // promise is backward compatible with callers that ignore the result.
+    const delivery = fetch(endpoint, {{
       method: 'POST',
       mode: 'cors',
       keepalive: true,
@@ -548,11 +552,12 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
         'Prefer': 'return=minimal'
       }},
       body: JSON.stringify(payload)
-    }}).catch(() => {{}});
+    }}).then(response => response.ok).catch(() => false);
 
     win.dispatchEvent(new CustomEvent('hq-conversion', {{
       detail: {{ event: eventName, page: payload.page, lens: payload.lens, target: payload.target }}
     }}));
+    return delivery;
   }};
 
   // Streamlit can rerun a page without a genuine navigation. Suppress only

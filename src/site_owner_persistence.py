@@ -190,10 +190,11 @@ def _restore_saved_browser_session() -> dict | None:
     Invalid/revoked device tokens are wiped rather than repeatedly retried.
     """
     clear = bool(st.session_state.get("owner_device_clear_pending"))
+    nonce = int(st.session_state.get("owner_device_read_nonce", 0))
     try:
         result = _device_component(
             key="owner_device_session_storage",
-            data={"mode": "clear" if clear else "read"},
+            data={"mode": "clear" if clear else "read", "read_nonce": nonce},
             default={"restored": None, "status": None},
             on_restored_change=lambda: None,
             on_status_change=lambda: None,
@@ -206,6 +207,11 @@ def _restore_saved_browser_session() -> dict | None:
         return None
     cached = getattr(result, "restored", None)
     if not isinstance(cached, dict):
+        return None
+    # The same component key is used by read/write modes. The frontend may
+    # initially return stale state from the previous mode; never refresh a
+    # token from another read generation.
+    if int(cached.get("read_nonce", -1)) != nonce:
         return None
     refresh = str(cached.get("refresh_token") or "")
     if len(refresh) < 16:
@@ -279,6 +285,9 @@ def persistent_owner_session() -> dict | None:
             # Another browser tab has rotated the shared token. Read the
             # latest saved token rather than retrying this tab's stale copy.
             st.session_state.pop("cms_auth", None)
+            st.session_state["owner_device_read_nonce"] = (
+                int(st.session_state.get("owner_device_read_nonce", 0)) + 1
+            )
             return _restore_saved_browser_session()
         if current.get("refresh_token"):
             renewed = ensure_owner_session(current)

@@ -12,7 +12,8 @@ import time
 
 import streamlit as st
 
-from site_cms import OWNER_EMAIL, _request_json, owner_signin, ensure_owner_session
+from site_cms import OWNER_EMAIL, _request_json, owner_signin, owner_refresh, ensure_owner_session
+from site_owner_device_persistence import device_session_component
 from site_analytics import ANALYTICS_URL
 from site_owner_tickets import issue_owner_cookie_ticket
 
@@ -72,6 +73,10 @@ _LOGOUT_JS = """
 export default function({ data, setTriggerValue }) {
   if (!data || !data.requested || window.__jairLogoutStarted) return;
   window.__jairLogoutStarted = true;
+  // Wipe the durable Cloud fallback synchronously, even when the HTTP route
+  // cannot be reached. This is independent from Supabase token revocation.
+  try { window.localStorage.removeItem('jair_portfolio_owner_supabase_v1'); }
+  catch (_) {}
   fetch('/owner-auth/logout', {
     method: 'POST', credentials: 'same-origin', cache: 'no-store',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -139,6 +144,82 @@ def _logout_component(**kwargs):
     return component(**kwargs)
 
 
+def _device_component(**kwargs):
+    return device_session_component(**kwargs)
+
+
+def _sync_saved_browser_session(session: dict) -> None:
+    """Persist the rotating refresh token for browser reopen on Cloud.
+
+    HttpOnly cookies remain the preferred route when available; the
+    origin-scoped device fallback uses the same approach as Supabase's
+    browser client and never stores passwords or access JWTs.
+    """
+    refresh = str(session.get("refresh_token") or "")
+    if not refresh:
+        return
+    try:
+        result = _device_component(
+            key="owner_device_session_storage",
+            data={"mode": "write", "refresh_token": refresh},
+            default={"restored": None, "status": None},
+            on_status_change=lambda: None,
+            on_restored_change=lambda: None,
+        )
+        status = getattr(result, "status", None)
+        if status in ("stored", "unavailable", "invalid"):
+            st.session_state["owner_device_save_status"] = status
+    except Exception:
+        # A browser with blocked storage still has a valid in-page session.
+        st.session_state["owner_device_save_status"] = "unavailable"
+
+
+def _restore_saved_browser_session() -> dict | None:
+    """Rotate device's refresh token and validate the owner with Supabase.
+
+    This runs only when no valid in-memory or HttpOnly-cookie session exists.
+    Invalid/revoked device tokens are wiped rather than repeatedly retried.
+    """
+    clear = bool(st.session_state.get("owner_device_clear_pending"))
+    try:
+        result = _device_component(
+            key="owner_device_session_storage",
+            data={"mode": "clear" if clear else "read"},
+            default={"restored": None, "status": None},
+            on_restored_change=lambda: None,
+            on_status_change=lambda: None,
+        )
+    except Exception:
+        return None
+    if clear:
+        if getattr(result, "status", None) == "cleared":
+            st.session_state.pop("owner_device_clear_pending", None)
+        return None
+    cached = getattr(result, "restored", None)
+    if not isinstance(cached, dict):
+        return None
+    refresh = str(cached.get("refresh_token") or "")
+    if len(refresh) < 16:
+        return None
+    try:
+        session = owner_refresh(refresh)
+    except (RuntimeError, TimeoutError):
+        st.session_state["owner_device_clear_pending"] = True
+        st.rerun()
+        return None
+    identity = _verify_owner_access(str(session.get("access_token") or ""))
+    if not identity:
+        st.session_state["owner_device_clear_pending"] = True
+        st.rerun()
+        return None
+    session["user"] = identity
+    st.session_state["cms_auth"] = session
+    # Supabase rotates refresh tokens. Save the NEW token before this
+    # browser session can be closed or reopened.
+    st.rerun()
+    return session
+
+
 def _verify_owner_access(access: str) -> dict | None:
     if not access:
         return None
@@ -180,6 +261,7 @@ def persistent_owner_session() -> dict | None:
             expires = 0
         if expires > time.time() + REFRESH_HEADROOM_SECONDS:
             _persist_browser_cookies_if_requested()
+            _sync_saved_browser_session(current)
             return current
         # Preserve the original working Streamlit flow: renew in-memory
         # sessions when Cloud does not support the browser cookie endpoint.
@@ -194,6 +276,7 @@ def persistent_owner_session() -> dict | None:
                 except ValueError:
                     pass
                 _persist_browser_cookies_if_requested()
+                _sync_saved_browser_session(renewed)
                 return renewed
         st.session_state.pop("cms_auth",None)
         st.session_state["owner_restore_nonce"] = (
@@ -226,17 +309,17 @@ def persistent_owner_session() -> dict | None:
         return None
     candidate = restored.session if isinstance(restored.session, dict) else None
     if not candidate:
-        return None
+        return _restore_saved_browser_session()
     try:
         expires_at = int(candidate.get("expires_at") or 0)
     except (ValueError,TypeError):
         return None
     if expires_at <= time.time() + REFRESH_HEADROOM_SECONDS:
-        return None
+        return _restore_saved_browser_session()
     access = str(candidate.get("access_token") or "")
     identity = _verify_owner_access(access)
     if not identity:
-        return None
+        return _restore_saved_browser_session()
     session = {"access_token":access,"expires_at":expires_at,"user":identity}
     st.session_state["cms_auth"] = session
     return session
@@ -293,6 +376,8 @@ def browser_owner_signout() -> None:
     st.session_state.pop("cms_auth",None)
     st.session_state.pop("cms_edit_id",None)
     st.session_state.pop("owner_cookie_attach_ticket",None)
+    st.session_state.pop("owner_device_clear_pending",None)
+    st.session_state.pop("owner_device_save_status",None)
     result = _logout_component(
         key="owner_http_logout",
         data={"requested":True},

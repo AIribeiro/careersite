@@ -314,6 +314,13 @@ def jobtech_lag_diagnostics(market_model: dict | None, jobs: list[dict],
             result["status"] = ("Worth monitoring (unadjusted exploratory)" if not stable
                                 else "Repeated direction; needs external validation")
         checks.append(result)
-    return {"status": "Waiting for prospective outcome history",
+    repeated = [r for r in checks
+                if r["status"] == "Repeated direction; needs external validation"
+                and r["correlation"] is not None]
+    strongest = max(repeated, key=lambda row: abs(row["correlation"]), default=None)
+    status = ("Repeated exploratory lag: " + strongest["outcome"]
+              if strongest else "Waiting for prospective outcome history")
+    return {"status": status,
             "eligible_months": len(clean), "tests": checks,
-            "note": "No JobTech-to-personal-outcome multiplier is learned without stable, leak-free monthly observations."}
+            "strongest_lag": strongest,
+            "note": "Prospectively strongest lag is descriptive only; no JobTech-to-personal-offer causal multiplier is learned without independent validation."}

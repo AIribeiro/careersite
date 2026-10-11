@@ -177,7 +177,8 @@ class JobTechDemandTests(unittest.TestCase):
         displayed = " ".join(str(call.args[0])
                              for call in ui.markdown.call_args_list if call.args)
         self.assertIn("JobTech target-role demand",displayed)
-        self.assertIn("Tier A",displayed)
+        captions = " ".join(str(call.args[0]) for call in ui.caption.call_args_list if call.args)
+        self.assertIn("Tier A",captions)
 
     def test_jobtech_joins_existing_market_budget_without_double_counting(self):
         moment=date(2026,10,11)

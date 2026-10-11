@@ -31,7 +31,7 @@ class OwnerDevicePersistenceTests(unittest.TestCase):
     def test_browser_reopen_uses_saved_token_when_cookies_are_absent(self):
         state = {}
         stored = SimpleNamespace(
-            restored={"refresh_token":"saved-refresh-token","saved_at":1234},
+            restored={"refresh_token":"saved-refresh-token","saved_at":1234,"read_nonce":0},
             status="available"
         )
         fresh = session("rotated-refresh-token")
@@ -73,7 +73,7 @@ class OwnerDevicePersistenceTests(unittest.TestCase):
 
     def test_revoked_refresh_token_is_cleared_not_retried(self):
         state={}
-        cached=SimpleNamespace(restored={"refresh_token":"revoked-long-refresh-token"},status="available")
+        cached=SimpleNamespace(restored={"refresh_token":"revoked-long-refresh-token","read_nonce":0},status="available")
         with (
             patch.object(owner.st,"session_state",state),
             patch.object(owner,"_cookies",return_value={}),
@@ -100,7 +100,7 @@ class OwnerDevicePersistenceTests(unittest.TestCase):
 
     def test_non_owner_token_is_rejected_on_browser_restore(self):
         state={}
-        cached=SimpleNamespace(restored={"refresh_token":"not-the-owner-long-token"},status="available")
+        cached=SimpleNamespace(restored={"refresh_token":"not-the-owner-long-token","read_nonce":0},status="available")
         with (
             patch.object(owner.st,"session_state",state),
             patch.object(owner,"_cookies",return_value={}),
@@ -116,7 +116,7 @@ class OwnerDevicePersistenceTests(unittest.TestCase):
 
     def test_failed_cookie_bridge_does_not_disable_device_restoration(self):
         state={}
-        cached=SimpleNamespace(restored={"refresh_token":"saved-device-refresh-token"},status="available")
+        cached=SimpleNamespace(restored={"refresh_token":"saved-device-refresh-token","read_nonce":0},status="available")
         with (
             patch.object(owner.st,"session_state",state),
             patch.object(owner,"_cookies",return_value={}),

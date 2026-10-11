@@ -305,8 +305,9 @@ def persistent_owner_session() -> dict | None:
             on_status_change=lambda: None,
         )
     except Exception:
-        # Optional persistence must never block normal password sign-in.
-        return None
+        # Cloud cookie bridge can be unavailable even when local device
+        # storage is healthy. Never let that block the fallback or login.
+        return _restore_saved_browser_session()
     candidate = restored.session if isinstance(restored.session, dict) else None
     if not candidate:
         return _restore_saved_browser_session()

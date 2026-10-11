@@ -170,7 +170,7 @@ class JobTechDemandTests(unittest.TestCase):
         } for n in range(1,38)]
         ui=MagicMock()
         ui.session_state={}
-        ui.columns.side_effect=lambda sizes: [MagicMock() for _ in sizes]
+        ui.columns.side_effect=lambda sizes: [MagicMock() for _ in range(sizes if isinstance(sizes, int) else len(sizes))]
         with patch("page_hiring_predictor.st",ui):
             render_hiring_predictor(jobs,_market(),None,None,
                                    date(2026,10,11))

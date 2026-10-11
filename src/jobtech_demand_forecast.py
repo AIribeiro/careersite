@@ -116,6 +116,8 @@ def _profile(market_model: dict | None, as_of: date, config: dict) -> tuple[dict
         # silently replace history, or fabricate growth from a revision.
         if slot in selected:
             before = selected[slot]
+            if before.get("conflict"):
+                continue
             if count != before["count"]:
                 alerts.append(f"Conflicting JobTech snapshots: {key} {start:%Y-%m}")
                 selected[slot] = {"conflict": True}
@@ -247,18 +249,27 @@ def jobtech_lag_diagnostics(market_model: dict | None, jobs: list[dict],
     # Eligibility requires data actually known before the outcome window.
     # Last outcome day must also have elapsed; missing outcomes are not zeros
     # when the candidate's tracking history is incomplete.
-    clean = [r for r in months if r["period_end"] >= _date(r["first_seen_at"])]
+    # Only genuinely observed monthly releases (not a multi-month backfill)
+    # enter prospective tests. Late first-seen dates make the historical
+    # observation unavailable for contemporaneous hiring-outcome validation.
+    clean = [r for r in months
+             if r["period_end"] <= _date(r["first_seen_at"])
+             <= r["period_end"] + timedelta(days=15)]
     checks = []
     events = [r for r in canonical_events(jobs) if day(r.get("event_date")) and
               day(r["event_date"]) <= as_of]
     for name, (begin, finish) in LAG_WINDOWS.items():
-        eligible = [r for r in clean if (r["period_end"] + timedelta(days=finish)) <= as_of]
+        eligible = [r for r in clean
+                    if (_date(r["first_seen_at"]) + timedelta(days=finish)) <= as_of]
         outcome_days = []
         series = []
         if len(eligible) >= MIN_LAG_PAIRS:
             for obs in eligible:
-                start = obs["period_end"] + timedelta(days=begin)
-                end = obs["period_end"] + timedelta(days=finish)
+                # Date the completed count became observable is the earliest
+                # valid start of its prospective predictor/outcome window.
+                anchor = _date(obs["first_seen_at"])
+                start = anchor + timedelta(days=begin)
+                end = anchor + timedelta(days=finish)
                 observed = set()
                 for e in events:
                     timestamp = day(e["event_date"])

@@ -19,6 +19,7 @@ from thinking_social import ensure_article_share_page, ensure_article_social_ima
 from site_cms import bundled_header_bytes, cms_share_document, cms_sitemap_entries, fetch_public_article, render_cms_social_image
 from site_social_preview import PUBLIC_URL as SITE_SOCIAL_IMAGE
 from site_owner_http_auth import owner_auth_route
+from weekly_ai_audio import mp3_path
 
 # Source-level compatibility anchors for the established smoke tests. The
 # executable UI moved to main.py; these strings document that architecture
@@ -202,6 +203,20 @@ async def _cms_social_image(request):
     )
 
 
+async def _weekly_ai_audio_file(request):
+    """Serve only validated, committed Weekly AI audio with HTTP range support."""
+    slug = str(request.path_params.get("slug") or "").strip().lower()
+    file = mp3_path(slug)
+    if file is None or not file.is_file() or file.stat().st_size < 1024:
+        return PlainTextResponse("Audio not available", status_code=404)
+    return FileResponse(
+        file, media_type="audio/mpeg", filename=file.name,
+        content_disposition_type="inline",
+        headers={"Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+                 "X-Content-Type-Options": "nosniff"},
+    )
+
+
 async def _robots(_request):
     return PlainTextResponse(
         f"User-agent: *\nAllow: /\n\nUser-agent: LinkedInBot\nAllow: /thinking/\nAllow: /social/\nAllow: /cms-header/\n\nSitemap: {BASE_URL}/sitemap.xml\n",
@@ -244,6 +259,7 @@ app = App(
     routes=[
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),
+        Route("/weekly-ai-audio/{slug}.mp3", _weekly_ai_audio_file, methods=["GET", "HEAD"]),
         Route("/ai-data-governance", _ai_data_governance_share, methods=["GET", "HEAD"]),
         Route("/social/{slug}.png", _thinking_social_image, methods=["GET", "HEAD"]),
         Route("/cms-header/{slug}.webp", _cms_header_image, methods=["GET", "HEAD"]),

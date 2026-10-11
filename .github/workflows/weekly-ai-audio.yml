@@ -1,0 +1,58 @@
+name: Weekly AI audio
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/weekly_ai_audio.py'
+      - 'scripts/generate_weekly_ai_audio.py'
+      - '.github/workflows/weekly-ai-audio.yml'
+  schedule:
+    # Run after the Monday editorial automation and retry Tuesday.
+    - cron: '25 12 * * 1,2'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-ai-audio-production
+  cancel-in-progress: false
+
+jobs:
+  synthesize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install synthesis dependencies
+        run: python -m pip install --disable-pip-version-check edge-tts google-auth requests
+      - name: Generate missing weekly recordings
+        env:
+          SUPABASE_URL: https://rnqweoxtynelfirffmlr.supabase.co
+          # Publishable public read key, not a service role secret.
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_Hd24EkrnXK4kxb_VJ1KH-w_SN77LYkI
+          GOOGLE_TTS_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_TTS_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_TTS_VOICE: en-US-Neural2-D
+          EDGE_TTS_VOICE: en-US-AndrewNeural
+        run: python scripts/generate_weekly_ai_audio.py
+      - name: Commit validated recordings and transcripts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -d static/weekly-ai ]; then
+            git add -- static/weekly-ai/
+          fi
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish WEEKLY AI MP3 audio editions"
+            git push
+          else
+            echo "No new audio editions to commit"
+          fi

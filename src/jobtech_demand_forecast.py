@@ -111,6 +111,15 @@ def _profile(market_model: dict | None, as_of: date, config: dict) -> tuple[dict
         if raw.get("date_semantics") not in (None, "publication month"):
             alerts.append(f"Excluded non-publication-month record: {key}")
             continue
+        if key == JOBTECH_KEYS["national"]:
+            sources = {str(item).casefold() for item in
+                       (raw.get("query_sources") or [])}
+            methodology = str(row.get("methodology_note") or "").casefold()
+            if (not {"historical ads", "jobsearch"}.issubset(sources)
+                    or "deduplicat" not in methodology):
+                alerts.append("National JobTech v1 lacks verified active + "
+                              "historical union/dedup provenance")
+                continue
         slot = (key, start)
         # Duplicate monthly observations with conflicting totals: do not
         # silently replace history, or fabricate growth from a revision.
@@ -193,6 +202,16 @@ def analyze_jobtech_demand(market_model: dict | None, as_of: date,
     # If the primary Tier A national or the broader national basket is absent,
     # do not extrapolate from Stockholm/VGR as though it were national demand.
     sufficient = bool(families["tier_a"] and families["national"])
+    if sufficient:
+        nation = {r["month"]:r["count"] for r in
+                  groups.get(JOBTECH_KEYS["national"], [])}
+        for family in ("tier_a", "stockholm", "vgr"):
+            for observation in groups.get(JOBTECH_KEYS[family], []):
+                national_count = nation.get(observation["month"])
+                if national_count is not None and observation["count"] > national_count:
+                    sufficient = False
+                    alerts.append("JobTech v1 subset exceeds national total: "
+                                  + family + " " + observation["month"].isoformat())
     score = sum(cfg["weights"][name] * row["momentum"] * row["quality"]
                 for name, row in available.items()) if sufficient else 0.
     # Require October (or later) *completed*, consecutive-month confirmation

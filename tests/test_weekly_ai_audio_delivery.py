@@ -17,10 +17,14 @@ class WeeklyAiAudioDeliveryTests(unittest.TestCase):
             slug = "weekly-ai-2026-10-11"
             (Path(folder) / (slug + ".mp3")).write_bytes(b"ID3" + b"0" * 5000)
             with patch("weekly_ai_audio.AUDIO_DIR", Path(folder)):
-                self.assertEqual(
-                    audio_url(slug),
-                    f"https://jairribeiro-ai.streamlit.app/weekly-ai-audio/{slug}.mp3",
+                self.assertTrue(
+                    audio_url(slug).startswith(
+                        f"https://jairribeiro-ai.streamlit.app/weekly-ai-audio/{slug}.mp3?v="
+                    )
                 )
+                previous_url = audio_url(slug)
+                (Path(folder) / (slug + ".mp3")).write_bytes(b"ID3" + b"1" * 5000)
+                self.assertNotEqual(previous_url, audio_url(slug), "Changed MP3 must bypass old browser cache")
                 html = audio_player_html(slug)
                 self.assertIn('preload="metadata"', html)
                 self.assertIn("https://jairribeiro-ai.streamlit.app/weekly-ai-audio/", html)

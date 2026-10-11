@@ -96,7 +96,9 @@ class WeeklyAudioAnalyticsTests(unittest.TestCase):
         self.assertIn("from my A I and Data Portfolio", src)
         self.assertIn("From my experience leading enterprise A I and data initiatives", src)
         pilot = (ROOT / "data" / "weekly_ai_audio_scripts" / "weekly-ai-2026-10-11.txt").read_text()
-        self.assertNotIn("from my A I and Data Portfolio", pilot)
+        self.assertIn("from my A I and Data Portfolio", pilot)
+        self.assertEqual(pilot.count("from my A I and Data Portfolio"), 1)
+        self.assertIn("what matters beyond the headlines", pilot)
 
 
 if __name__ == "__main__":

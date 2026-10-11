@@ -1099,6 +1099,9 @@ def _share_footer(article: CmsArticle) -> str:
 
 
 def render_cms_article(article: CmsArticle) -> str:
+    from thinking_weekly_brief import is_weekly_brief, render_weekly_brief_article
+    if is_weekly_brief(article):
+        return render_weekly_brief_article(article, _share_footer(article))
     from site_components import footer, nav, opportunity
     from thinking_core import THINKING_CSS
 
@@ -1139,6 +1142,10 @@ def render_cms_article(article: CmsArticle) -> str:
 def inject_cms_landing(document: str) -> str:
     published = list(fetch_published_articles())
     cms_articles = [article for article in published if not article.legacy_key]
+    from thinking_weekly_brief import is_weekly_brief, inject_weekly_brief_landing
+    weekly_briefs = [article for article in cms_articles if is_weekly_brief(article)]
+    cms_articles = [article for article in cms_articles if not is_weekly_brief(article)]
+    document = inject_weekly_brief_landing(document, weekly_briefs)
     featured = next((article for article in cms_articles if article.featured), None)
 
     if featured is not None:

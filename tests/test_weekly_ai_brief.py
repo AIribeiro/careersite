@@ -36,7 +36,7 @@ class WeeklyAiBriefingTests(unittest.TestCase):
         self.assertFalse(is_weekly_brief(brief(kind="Article")))
         self.assertFalse(is_weekly_brief(brief(category="AI Governance")))
 
-    def test_swedish_week_number_for_sunday_pilot(self):
+    def test_iso_week_number_for_sunday_pilot(self):
         year, week, start, end = edition_week(brief())
         self.assertEqual((year, week), (2026, 41))
         self.assertEqual(start, date(2026, 10, 5))
@@ -47,12 +47,12 @@ class WeeklyAiBriefingTests(unittest.TestCase):
         monday = brief(slug="weekly-ai-2026-10-19")
         self.assertEqual(edition_week(monday), (2026, 42, date(2026, 10, 12), date(2026, 10, 18)))
 
-    def test_swedish_iso_year_handles_new_year_boundary(self):
+    def test_iso_year_handles_new_year_boundary(self):
         first_monday = brief(slug="weekly-ai-2027-01-04")
         self.assertEqual(edition_week(first_monday), (2026, 53, date(2026, 12, 28), date(2027, 1, 3)))
         archive = render_weekly_brief_archive([first_monday])
         self.assertIn("Week 53 · 2026", archive)
-        self.assertIn("28 december 2026–3 januari 2027", archive)
+        self.assertIn("28 December 2026–3 January 2027", archive)
 
     def test_missing_edition_does_not_add_blank_section(self):
         self.assertEqual(inject_weekly_brief_landing("<main>Content</main>", []), "<main>Content</main>")
@@ -61,9 +61,11 @@ class WeeklyAiBriefingTests(unittest.TestCase):
         original = '<nav>Navigation</nav><main><section class="pagehero">Essays</section></main>'
         html = inject_weekly_brief_landing(original, [brief()])
         self.assertLess(html.index('id="weekly-ai"'), html.index('class="pagehero"'))
-        self.assertIn("Swedish calendar week", html)
+        self.assertIn("Calendar week", html)
+        self.assertNotIn("Swedish", html)
+        self.assertNotIn("oktober", html)
         self.assertIn("Week · 2026", html)
-        self.assertIn("5–11 oktober 2026", html)
+        self.assertIn("5–11 October 2026", html)
         self.assertIn("Start reading · 1 min", html)
         self.assertIn("Browse all weeks (1)", html)
         self.assertIn("Previous editions", html)
@@ -85,7 +87,8 @@ class WeeklyAiBriefingTests(unittest.TestCase):
         archive = render_weekly_brief_archive([brief()])
         self.assertIn("The weekly archive", archive)
         self.assertIn("Week 41 · 2026", archive)
-        self.assertIn("5–11 oktober 2026", archive)
+        self.assertIn("5–11 October 2026", archive)
+        self.assertNotIn("Swedish", archive)
         self.assertIn("weekly-ai-2026-10-11", archive)
         self.assertIn("From Adoption to Accountable Action", archive)
 

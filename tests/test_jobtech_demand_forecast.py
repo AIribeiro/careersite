@@ -154,6 +154,31 @@ class JobTechDemandTests(unittest.TestCase):
              "offers":[30,75]},
         )
 
+    def test_full_overview_hiring_widget_renders_jobtech_section(self):
+        from unittest.mock import MagicMock, patch
+        from page_hiring_predictor import render_hiring_predictor
+        jobs = [{
+            "id":n, "record_type":"evidence_event",
+            "is_primary_analytics_record":True,
+            "logical_event_key":str(n),
+            "event_date":(date(2026,10,11)-timedelta(days=n%45+1)).isoformat(),
+            "employer":f"Employer {n}", "role":"AI Strategy Lead",
+            "activity":"Application submitted",
+            "is_application":True, "is_active":True,
+            "is_closed_or_paused":False, "is_negative_decision":False,
+            "is_human_interaction":False, "is_interview":False,
+        } for n in range(1,38)]
+        ui=MagicMock()
+        ui.session_state={}
+        ui.columns.side_effect=lambda sizes: [MagicMock() for _ in sizes]
+        with patch("page_hiring_predictor.st",ui):
+            render_hiring_predictor(jobs,_market(),None,None,
+                                   date(2026,10,11))
+        displayed = " ".join(str(call.args[0])
+                             for call in ui.markdown.call_args_list if call.args)
+        self.assertIn("JobTech target-role demand",displayed)
+        self.assertIn("Tier A",displayed)
+
     def test_jobtech_joins_existing_market_budget_without_double_counting(self):
         moment=date(2026,10,11)
         jobtech_only=market_adjustment(_market(),moment)

@@ -30,7 +30,7 @@ def audio_url(slug: str) -> str | None:
     path = mp3_path(slug)
     if path is None or not path.is_file() or path.stat().st_size < 1024:
         return None
-    return "/app/static/weekly-ai/" + slug + ".mp3"
+    return "/weekly-ai-audio/" + slug + ".mp3"
 
 
 class ParagraphReader(HTMLParser):

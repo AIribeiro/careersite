@@ -47,7 +47,6 @@ class WeeklyAiBriefingTests(unittest.TestCase):
         html = render_weekly_brief_article(brief(), "<footer>Share</footer>")
         self.assertIn("Curated by Jair Ribeiro", html)
         self.assertIn("Publisher", html)
-        self.assertIn("Original", html) if False else None
         self.assertIn("checked against linked publishers", html)
         self.assertNotIn("cms-article-image", html)
 

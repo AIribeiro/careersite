@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+from datetime import date, timedelta
 from html import escape
 from typing import TYPE_CHECKING
 
@@ -9,107 +11,310 @@ if TYPE_CHECKING:
 
 BRIEF_KIND = "Weekly Brief"
 BRIEF_CATEGORY = "Weekly AI"
+SWEDISH_MONTHS = (
+    "", "januari", "februari", "mars", "april", "maj", "juni",
+    "juli", "augusti", "september", "oktober", "november", "december",
+)
+WEEKLY_ARCHIVE_URL = "?page=thinking&weekly_ai=archive"
 
 
 def is_weekly_brief(article: "CmsArticle") -> bool:
-    """A separate editorial type; it should never displace a Thinking essay."""
-    return (article.kind or "").strip().casefold() == BRIEF_KIND.casefold() and (
-        article.category or ""
-    ).strip().casefold() == BRIEF_CATEGORY.casefold()
+    """Only the dedicated weekly news format is lifted from the regular essay feed."""
+    return (
+        (article.kind or "").strip().casefold() == BRIEF_KIND.casefold()
+        and (article.category or "").strip().casefold() == BRIEF_CATEGORY.casefold()
+    )
+
+
+def _issue_date(article: "CmsArticle") -> date:
+    """Issue date, not email arrival time or last-edited CMS timestamp."""
+    found = re.fullmatch(r"weekly-ai-(\d{4}-\d{2}-\d{2})", article.slug or "")
+    raw = found.group(1) if found else (
+        article.published_at or article.created_at or article.updated_at or ""
+    )[:10]
+    try:
+        return date.fromisoformat(raw)
+    except ValueError:
+        return date.today()
+
+
+def edition_week(article: "CmsArticle") -> tuple[int, int, date, date]:
+    """Swedish ISO week *covered* by the briefing.
+
+    Monday publications report the completed previous week. The pilot was
+    published on Sunday 2026-10-11 and therefore covers ISO week 41 itself.
+    ISO week-year is distinct from Gregorian publication year near New Year.
+    """
+    publication_date = _issue_date(article)
+    covered = publication_date - timedelta(days=1) if publication_date.weekday() == 0 else publication_date
+    monday = covered - timedelta(days=covered.weekday())
+    iso_year, iso_week, _ = monday.isocalendar()
+    return iso_year, iso_week, monday, monday + timedelta(days=6)
+
+
+def _swedish_range(start: date, end: date, *, include_year: bool = True) -> str:
+    if start.year == end.year and start.month == end.month:
+        dates = f"{start.day}–{end.day} {SWEDISH_MONTHS[end.month]}"
+    elif start.year == end.year:
+        dates = (
+            f"{start.day} {SWEDISH_MONTHS[start.month]}–"
+            f"{end.day} {SWEDISH_MONTHS[end.month]}"
+        )
+    else:
+        dates = (
+            f"{start.day} {SWEDISH_MONTHS[start.month]} {start.year}–"
+            f"{end.day} {SWEDISH_MONTHS[end.month]} {end.year}"
+        )
+        include_year = False
+    return dates + (f" {end.year}" if include_year else "")
+
+
+def edition_label(article: "CmsArticle") -> str:
+    year, week, _, _ = edition_week(article)
+    return f"Vecka {week} · {year}"
+
+
+def _headline(article: "CmsArticle") -> str:
+    return re.sub(r"^\s*weekly\s+ai\s*[—–:\-]\s*", "", article.title or "", flags=re.I).strip()
+
+
+def sorted_editions(briefs: list["CmsArticle"]) -> list["CmsArticle"]:
+    """One public edition per ISO week in descending covered-week order."""
+    published = [brief for brief in briefs if brief.status == "published" and is_weekly_brief(brief)]
+    ordered = sorted(
+        published,
+        key=lambda brief: (edition_week(brief)[2], brief.published_at or brief.updated_at or ""),
+        reverse=True,
+    )
+    seen: set[tuple[int, int]] = set()
+    unique = []
+    for brief in ordered:
+        year, week, _, _ = edition_week(brief)
+        if (year, week) not in seen:
+            unique.append(brief)
+            seen.add((year, week))
+    return unique
 
 
 WEEKLY_CSS = """
 <style>
-.weekly-ai-section{padding-top:46px;padding-bottom:46px}
-.weekly-ai-panel{border:1px solid #d9d3ca;border-top:3px solid var(--copper);padding:clamp(25px,4vw,46px);background:#fff;box-shadow:0 18px 38px rgba(15,29,45,.055)}
-.weekly-ai-top{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
-.weekly-ai-top span{color:#616b73;font-size:11px;font-weight:700;letter-spacing:.10em;text-transform:uppercase}
-.weekly-ai-panel h2{margin:13px 0;font:500 clamp(34px,4vw,50px)/1.09 Georgia,serif;color:#142439;letter-spacing:-.025em}
-.weekly-ai-panel p{max-width:760px;color:#47515b;font-size:16px;line-height:1.6;margin:0 0 19px}
-.weekly-ai-action{display:inline-block;padding:11px 18px;background:#182e46;color:#fff!important;font-size:12px;font-weight:800;text-decoration:none;border-radius:2px}
-.weekly-ai-action:hover{background:#294866}
-.weekly-ai-archive{margin:20px 0 0;border-top:1px solid #ebe6dd;padding-top:14px}
-.weekly-ai-archive summary{cursor:pointer;color:#4b5560;font-weight:700;font-size:12px}
-.weekly-ai-archive ul{list-style:none;padding:9px 0 0;margin:0}
-.weekly-ai-archive li{padding:6px 0;font-size:13px}
-.weekly-ai-archive li a{color:#1e3b59;text-decoration:none}
-.weekly-ai-reader{max-width:880px;margin:auto;padding:45px 0 62px}
-.weekly-ai-reader .weekly-ai-back{font-size:12px;color:#506073;text-decoration:none}
-.weekly-ai-reader .weekly-ai-label{margin:26px 0 10px;color:#a16a42;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.10em}
-.weekly-ai-reader h1{font:500 clamp(34px,5vw,57px)/1.09 Georgia,serif;color:#172a40;margin:0 0 17px}
-.weekly-ai-reader .weekly-ai-subtitle{font-size:18px;line-height:1.5;color:#57616c;max-width:780px}
-.weekly-ai-reader .weekly-ai-bylines{font-size:12px;color:#7a8086;margin:14px 0 30px}
-.weekly-ai-reader .weekly-ai-body{background:#fff;border:1px solid #e5ded4;border-top:3px solid var(--copper);padding:clamp(20px,4vw,42px)}
-.weekly-ai-reader .weekly-ai-body p{font-size:16px;line-height:1.7;color:#283540;margin:0 0 17px}
-.weekly-ai-reader .weekly-ai-body strong{color:#162b42}
-.weekly-ai-reader .weekly-ai-body a{color:#905e3b;font-weight:650}
-.weekly-ai-reader .weekly-ai-source-note{font-size:12px!important;color:#66717b!important;margin:20px 0!important;padding-top:13px;border-top:1px solid #eee7dd}
+/* A standalone editorial feature, deliberately separate from regular article tiles. */
+.weekly-ai-section{padding:28px 0 42px!important;background:#f8f5ef!important}
+.weekly-ai-feature{position:relative;isolation:isolate;overflow:hidden;background:#142437;color:#faf8f4;
+  border-top:4px solid #b9794c;box-shadow:0 24px 46px rgba(13,29,48,.16);
+  display:grid;grid-template-columns:minmax(0,1.5fr) minmax(230px,.65fr);gap:0}
+.weekly-ai-main{padding:clamp(27px,4vw,58px);min-width:0}
+.weekly-ai-overline{display:flex;align-items:center;gap:11px;flex-wrap:wrap;
+  font-size:11px;font-weight:750;letter-spacing:.15em;color:#e8b68d;text-transform:uppercase}
+.weekly-ai-overline span{width:26px;height:2px;display:inline-block;background:#c18b5f}
+.weekly-ai-feature h2{font:500 clamp(34px,4.3vw,59px)/1.05 Georgia,serif;
+  letter-spacing:-.025em;margin:17px 0 15px;color:#fff}
+.weekly-ai-feature .weekly-ai-headline{max-width:680px;margin:0 0 12px;
+  font:500 clamp(19px,2.25vw,29px)/1.24 Georgia,serif;color:#f0e1d1}
+.weekly-ai-feature .weekly-ai-description{max-width:730px;font-size:15px;line-height:1.67;
+  color:#d0d8df;margin:0 0 25px}
+.weekly-ai-actions{display:flex;gap:17px;align-items:center;flex-wrap:wrap}
+.weekly-ai-action{background:#e8c5a3;color:#16273a!important;padding:13px 19px;
+  border-radius:2px;text-decoration:none!important;font-size:12px;font-weight:850;
+  display:inline-flex;align-items:center;min-height:44px}
+.weekly-ai-action:hover,.weekly-ai-action:focus-visible{background:#fff0df}
+.weekly-ai-archive-link{color:#f2dcc5!important;text-decoration:underline;text-underline-offset:5px;
+  font-weight:750;font-size:12px;min-height:44px;display:inline-flex;align-items:center}
+.weekly-ai-side{border-left:1px solid rgba(255,255,255,.16);padding:clamp(26px,3.5vw,50px) clamp(22px,3vw,42px);
+  background:rgba(255,255,255,.045);display:flex;flex-direction:column;justify-content:center}
+.weekly-ai-side-label{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:#bac5ce}
+.weekly-ai-number{font:500 clamp(79px,11vw,143px)/.97 Georgia,serif;letter-spacing:-.055em;color:#fff;margin:5px 0 9px}
+.weekly-ai-number small{font:800 12px/1.2 system-ui,sans-serif;letter-spacing:.13em;
+  text-transform:uppercase;display:block;color:#ecc3a0;margin:11px 0 0}
+.weekly-ai-dates{font-size:13px;line-height:1.65;color:#d8dfe5;margin-bottom:22px}
+.weekly-ai-history{border-top:1px solid rgba(255,255,255,.19);padding-top:17px}
+.weekly-ai-history p{font-size:11px;text-transform:uppercase;font-weight:800;letter-spacing:.11em;
+  color:#ecc3a0;margin:0 0 9px}
+.weekly-ai-history a{display:block;color:#f4f0ed!important;font-size:12px;padding:6px 0;
+  text-decoration:none!important;line-height:1.45}
+.weekly-ai-history a:hover{text-decoration:underline!important}
+.weekly-ai-history a span{color:#bfc9d0}
+.weekly-ai-history .weekly-ai-history-empty{color:#c0c9d0;font-size:12px;line-height:1.55;margin:0}
+.weekly-ai-reader{max-width:840px;margin:auto;padding:40px 0 60px}
+.weekly-ai-back{font-size:12px;color:#506073!important;text-decoration:none!important}
+.weekly-ai-label{margin:27px 0 11px;color:#9d643e;font-size:12px;font-weight:850;
+  letter-spacing:.11em;text-transform:uppercase}
+.weekly-ai-reader h1{font:500 clamp(34px,5vw,58px)/1.12 Georgia,serif;color:#172a40;margin:0 0 15px}
+.weekly-ai-subtitle{font-size:18px;line-height:1.5;color:#57616c;max-width:780px}
+.weekly-ai-bylines{font-size:12px;color:#66717d;margin:16px 0 27px}
+.weekly-ai-body{background:#fff;border:1px solid #e5ded4;border-top:3px solid #b9794c;
+  padding:clamp(22px,4vw,41px)}
+.weekly-ai-body p{font-size:16px;line-height:1.7;color:#283540;margin:0 0 17px}
+.weekly-ai-body strong{color:#162b42}
+.weekly-ai-body a{color:#905e3b;font-weight:650}
+.weekly-ai-source-note{font-size:12px!important;color:#66717b!important;
+  margin:20px 0!important;padding-top:14px;border-top:1px solid #eee7dd}
 .weekly-ai-reader .article-share{margin-top:30px}
-@media(max-width:700px){.weekly-ai-section{padding-top:25px;padding-bottom:25px}.weekly-ai-reader{padding:20px 0 44px}}
+.weekly-ai-archive-page{padding-top:34px!important}
+.weekly-ai-archive-heading{max-width:860px;padding-bottom:25px}
+.weekly-ai-archive-heading h1{font:500 clamp(38px,5vw,60px)/1.11 Georgia,serif;
+  color:#172a40;margin:20px 0 13px}
+.weekly-ai-archive-heading p{font-size:16px;color:#58636c;line-height:1.7;max-width:670px}
+.weekly-ai-year{margin:22px 0 40px}
+.weekly-ai-year-heading{display:flex;align-items:baseline;gap:15px;border-bottom:1px solid #d9d3ca;
+  padding-bottom:10px;margin-bottom:18px}
+.weekly-ai-year-heading h2{font:500 30px/1.1 Georgia,serif;margin:0;color:#172a40}
+.weekly-ai-year-heading span{font-size:12px;color:#63717b}
+.weekly-ai-archive-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.weekly-ai-issue{display:block;background:#fff;border:1px solid #ded7cd;padding:23px;
+  min-width:0;text-decoration:none!important;transition:border-color .12s}
+.weekly-ai-issue:hover,.weekly-ai-issue:focus-visible{border-color:#b9794c}
+.weekly-ai-issue .weekly-ai-issue-week{display:block;color:#aa663b;letter-spacing:.1em;
+  text-transform:uppercase;font-weight:850;font-size:11px}
+.weekly-ai-issue .weekly-ai-issue-dates{display:block;color:#64717b;font-size:12px;margin:7px 0 16px}
+.weekly-ai-issue h3{color:#172a40;font:500 23px/1.18 Georgia,serif;margin:0 0 12px}
+.weekly-ai-issue p{color:#5b6570;font-size:13px;line-height:1.55;margin:0 0 16px}
+.weekly-ai-issue .weekly-ai-issue-cta{font-size:12px;color:#31506d;font-weight:800}
+@media(max-width:1020px){.weekly-ai-archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+  .weekly-ai-section{padding:14px 0 28px!important}
+  .weekly-ai-feature{grid-template-columns:minmax(0,1fr)}
+  .weekly-ai-main{padding:27px 24px 26px}
+  .weekly-ai-feature h2{font-size:42px;margin:13px 0}
+  .weekly-ai-feature .weekly-ai-headline{font-size:23px}
+  .weekly-ai-side{border-left:0;border-top:1px solid rgba(255,255,255,.16);
+    padding:17px 24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);column-gap:15px;align-items:start}
+  .weekly-ai-side-label{grid-column:1}
+  .weekly-ai-number{grid-column:1;font-size:68px;line-height:1;margin:4px 0 0}
+  .weekly-ai-number small{font-size:10px;margin:2px 0 0}
+  .weekly-ai-dates{grid-column:2;grid-row:2;margin:6px 0 0;font-size:12px}
+  .weekly-ai-history{grid-column:1/-1;margin-top:13px;padding-top:12px}
+  .weekly-ai-actions{gap:11px}
+  .weekly-ai-reader{padding:24px 0 42px}
+  .weekly-ai-archive-grid{grid-template-columns:minmax(0,1fr)}
+  .weekly-ai-archive-page{padding-top:22px!important}
+}
 </style>
 """
 
 
 def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> str:
-    """Add a compact editorial rail only when at least one edition is published."""
-    if not briefs:
+    """Position the latest issue first, immediately under Thinking navigation."""
+    editions = sorted_editions(briefs)
+    if not editions:
         return document
 
     from site_cms import article_relative_url
 
-    editions = sorted(
-        briefs,
-        key=lambda item: item.published_at or item.updated_at or item.created_at,
-        reverse=True,
-    )
     latest, *older = editions
+    year, week, start, end = edition_week(latest)
     link = escape(article_relative_url(latest), quote=True)
-    archive = ""
+    newest_link = escape(WEEKLY_ARCHIVE_URL, quote=True)
+    count = len(editions)
     if older:
-        items = "".join(
-            '<li><a href="' + escape(article_relative_url(item), quote=True) + '" target="_self">'
-            + escape(item.published_label) + " · " + escape(item.title) + "</a></li>"
-            for item in older[:8]
+        recent_items = "".join(
+            '<a href="' + escape(article_relative_url(item), quote=True)
+            + '" target="_self" data-hq-event="weekly_ai_previous_open">'
+            + escape(edition_label(item))
+            + ' <span>· ' + escape(_headline(item)) + '</span></a>'
+            for item in older[:2]
         )
-        archive = (
-            '<details class="weekly-ai-archive"><summary>Previous editions</summary><ul>'
-            + items + "</ul></details>"
-        )
-    section = (
-        '<section class="section paper weekly-ai-section" id="weekly-ai">'
-        '<div class="container"><div class="weekly-ai-panel">'
-        '<div class="weekly-ai-top"><span>WEEKLY AI · QUICK CONTEXT</span><span>'
-        + escape(latest.published_label)
-        + ' · 1 min read</span></div>'
+    else:
+        recent_items = '<p class="weekly-ai-history-empty">The archive begins with this edition. New weeks will appear here automatically.</p>'
+    feature = (
+        '<section class="section weekly-ai-section" id="weekly-ai" aria-label="Weekly AI briefing">'
+        '<div class="container"><div class="weekly-ai-feature">'
+        '<div class="weekly-ai-main">'
+        '<div class="weekly-ai-overline"><span aria-hidden="true"></span> WEEKLY AI · QUICK CONTEXT</div>'
         '<h2>AI in one minute.</h2>'
-        '<p>' + escape(latest.excerpt or latest.subtitle) + '</p>'
+        '<p class="weekly-ai-headline">' + escape(_headline(latest)) + '</p>'
+        '<p class="weekly-ai-description">' + escape(latest.excerpt or latest.subtitle) + '</p>'
+        '<div class="weekly-ai-actions">'
         '<a class="weekly-ai-action" href="' + link + '" target="_self" data-hq-event="weekly_ai_open">'
         'Start reading · 1 min →</a>'
-        + archive + '</div></div></section>'
+        '<a class="weekly-ai-archive-link" href="' + newest_link
+        + '" target="_self" data-hq-event="weekly_ai_archive_open">'
+        'Browse all weeks (' + str(count) + ') →</a></div></div>'
+        '<div class="weekly-ai-side">'
+        '<div class="weekly-ai-side-label">Swedish calendar week</div>'
+        '<div class="weekly-ai-number">' + str(week) + '<small>Vecka · ' + str(year) + '</small></div>'
+        '<div class="weekly-ai-dates">' + escape(_swedish_range(start, end)) + '<br>1 min read</div>'
+        '<div class="weekly-ai-history"><p>Previous editions</p>' + recent_items + '</div>'
+        '</div></div></div></section>'
     )
-    anchor = '<section class="section paper"><div class="container"><div class="head"><div><p class="eyebrow">Current questions</p>'
+    # The feature must be seen before the essay introduction, not buried below Latest articles.
+    anchor = "<main>"
     if anchor in document:
-        return WEEKLY_CSS + document.replace(anchor, section + anchor, 1)
-    return WEEKLY_CSS + section + document
+        return WEEKLY_CSS + document.replace(anchor, anchor + feature, 1)
+    return WEEKLY_CSS + feature + document
 
 
-def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str:
-    """Source-first reading view without a large essay cover or invented attribution."""
+def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
+    """A permanent, fully populated public archive grouped by Swedish ISO week-year."""
+    from site_cms import article_relative_url
     from site_components import footer, nav
     from thinking_core import THINKING_CSS
 
+    editions = sorted_editions(briefs)
+    years: dict[int, list["CmsArticle"]] = {}
+    for article in editions:
+        year, _, _, _ = edition_week(article)
+        years.setdefault(year, []).append(article)
+
+    sections = []
+    for year, items in years.items():
+        links = []
+        for article in items:
+            _, week, start, end = edition_week(article)
+            link = escape(article_relative_url(article), quote=True)
+            links.append(
+                '<a class="weekly-ai-issue" href="' + link + '" target="_self"'
+                ' data-hq-event="weekly_ai_archive_issue_open">'
+                '<span class="weekly-ai-issue-week">Vecka ' + str(week) + ' · ' + str(year) + '</span>'
+                '<span class="weekly-ai-issue-dates">' + escape(_swedish_range(start, end)) + '</span>'
+                '<h3>' + escape(_headline(article)) + '</h3>'
+                '<p>' + escape(article.excerpt or article.subtitle) + '</p>'
+                '<span class="weekly-ai-issue-cta">Read · 1 min →</span></a>'
+            )
+        sections.append(
+            '<section class="weekly-ai-year" aria-label="Weekly AI ' + str(year) + '">'
+            '<div class="weekly-ai-year-heading"><h2>' + str(year) + '</h2><span>'
+            + str(len(items)) + ' ' + ('week' if len(items) == 1 else 'weeks')
+            + '</span></div><div class="weekly-ai-archive-grid">'
+            + ''.join(links) + '</div></section>'
+        )
+    if not editions:
+        sections.append(
+            '<p>The first weekly edition has not been published yet.</p>'
+        )
+    return (
+        THINKING_CSS + WEEKLY_CSS + nav("thinking")
+        + '<main><section class="section paper weekly-ai-archive-page">'
+        '<div class="container"><div class="weekly-ai-archive-heading">'
+        '<a class="weekly-ai-back" href="?page=thinking#weekly-ai" target="_self">← Back to Thinking</a>'
+        '<div class="weekly-ai-label">WEEKLY AI · EVERY EDITION</div>'
+        '<h1>The weekly archive.</h1>'
+        '<p>One-minute briefings on the most consequential AI developments for enterprise leaders. '
+        'Each edition is labeled by the Swedish week it covers, with direct links to the original sources.</p>'
+        '</div>' + ''.join(sections) + '</div></section></main>' + footer()
+    )
+
+
+def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str:
+    """Source-first reader, with the same Swedish ISO week label as its archive entry."""
+    from site_components import footer, nav
+    from thinking_core import THINKING_CSS
+
+    year, week, start, end = edition_week(article)
     return (
         THINKING_CSS + WEEKLY_CSS + nav("thinking")
         + '<main><section class="section paper"><div class="container">'
         '<div class="weekly-ai-reader">'
         '<a class="weekly-ai-back" href="?page=thinking#weekly-ai" target="_self">← Back to Thinking</a>'
-        '<div class="weekly-ai-label">WEEKLY AI · QUICK CONTEXT</div>'
-        '<h1>' + escape(article.title) + '</h1>'
+        '<div class="weekly-ai-label">WEEKLY AI · VECKA ' + str(week) + ' · ' + str(year) + '</div>'
+        '<h1>' + escape(_headline(article)) + '</h1>'
         '<p class="weekly-ai-subtitle">' + escape(article.subtitle or article.excerpt) + '</p>'
-        '<div class="weekly-ai-bylines">' + escape(article.published_label)
+        '<div class="weekly-ai-bylines">' + escape(_swedish_range(start, end))
         + ' · 1 min read · Curated by ' + escape(article.author_name) + '</div>'
         '<article class="weekly-ai-body">' + article.content_html
         + '<p class="weekly-ai-source-note">Selected from Google Alerts and checked against linked publishers. '
         'External reporting is attributed to its original source.</p></article>'
+        '<p><a class="weekly-ai-back" href="' + escape(WEEKLY_ARCHIVE_URL, quote=True)
+        + '" target="_self">← Browse all Weekly AI editions</a></p>'
         + share_footer + '</div></div></section></main>' + footer()
     )

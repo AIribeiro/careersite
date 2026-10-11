@@ -22,6 +22,11 @@ const DEVICE_KEY = 'jair_portfolio_owner_supabase_v1';
 export default function({data, setStateValue}) {
     if (!data || !data.mode) return;
     const mode = String(data.mode);
+    // Component V2 remounts on reruns. Skip repeat callbacks for an
+    // unchanged mode and refresh token to avoid an infinite rerun loop.
+    const action = mode + ':' + String(data.refresh_token || '');
+    if (window.__jairOwnerStorageAction === action) return;
+    window.__jairOwnerStorageAction = action;
     try {
         if (mode === 'clear') {
             window.localStorage.removeItem(DEVICE_KEY);

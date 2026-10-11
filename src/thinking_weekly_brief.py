@@ -209,7 +209,7 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
     if older:
         recent_items = "".join(
             '<a href="' + escape(article_relative_url(item), quote=True)
-            + '" target="_self" data-hq-event="weekly_ai_previous_open">'
+            + '" target="_self" data-hq-content-slug="' + escape(item.slug, quote=True) + '" data-hq-event="weekly_ai_previous_open">'
             + escape(edition_label(item))
             + ' <span>· ' + escape(_headline(item)) + '</span></a>'
             for item in older[:2]
@@ -217,7 +217,7 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
     else:
         recent_items = '<p class="weekly-ai-history-empty">The archive begins with this edition. New weeks will appear here automatically.</p>'
     feature = (
-        '<section class="section weekly-ai-section" id="weekly-ai" aria-label="Weekly AI briefing">'
+        '<section class="section weekly-ai-section" id="weekly-ai" data-analytics-section="weekly-ai-feature" aria-label="Weekly AI briefing">'
         '<div class="container"><div class="weekly-ai-feature">'
         '<div class="weekly-ai-main">'
         '<div class="weekly-ai-overline"><span aria-hidden="true"></span> WEEKLY AI · QUICK CONTEXT</div>'
@@ -225,7 +225,7 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
         '<p class="weekly-ai-headline">' + escape(_headline(latest)) + '</p>'
         '<p class="weekly-ai-description">' + escape(latest.excerpt or latest.subtitle) + '</p>'
         '<div class="weekly-ai-actions">'
-        '<a class="weekly-ai-action" href="' + link + '" target="_self" data-hq-event="weekly_ai_open">'
+        '<a class="weekly-ai-action" href="' + link + '" target="_self" data-hq-content-slug="' + escape(latest.slug, quote=True) + '" data-hq-event="weekly_ai_open">'
         'Start reading · 1 min →</a>'
         '<a class="weekly-ai-archive-link" href="' + newest_link
         + '" target="_self" data-hq-event="weekly_ai_archive_open">'
@@ -264,7 +264,7 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
             link = escape(article_relative_url(article), quote=True)
             links.append(
                 '<a class="weekly-ai-issue" href="' + link + '" target="_self"'
-                ' data-hq-event="weekly_ai_archive_issue_open">'
+                ' data-hq-content-slug="' + escape(article.slug, quote=True) + '" data-hq-event="weekly_ai_archive_issue_open">'
                 '<span class="weekly-ai-issue-week">Vecka ' + str(week) + ' · ' + str(year) + '</span>'
                 '<span class="weekly-ai-issue-dates">' + escape(_swedish_range(start, end)) + '</span>'
                 '<h3>' + escape(_headline(article)) + '</h3>'
@@ -284,7 +284,7 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
         )
     return (
         THINKING_CSS + WEEKLY_CSS + nav("thinking")
-        + '<main><section class="section paper weekly-ai-archive-page">'
+        + '<main><section class="section paper weekly-ai-archive-page" data-analytics-section="weekly-ai-archive">'
         '<div class="container"><div class="weekly-ai-archive-heading">'
         '<a class="weekly-ai-back" href="?page=thinking#weekly-ai" target="_self">← Back to Thinking</a>'
         '<div class="weekly-ai-label">WEEKLY AI · EVERY EDITION</div>'
@@ -303,7 +303,7 @@ def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str
     year, week, start, end = edition_week(article)
     return (
         THINKING_CSS + WEEKLY_CSS + nav("thinking")
-        + '<main><section class="section paper"><div class="container">'
+        + '<main><section class="section paper" data-analytics-section="weekly-ai-reader"><div class="container">'
         '<div class="weekly-ai-reader">'
         '<a class="weekly-ai-back" href="?page=thinking#weekly-ai" target="_self">← Back to Thinking</a>'
         '<div class="weekly-ai-label">WEEKLY AI · VECKA ' + str(week) + ' · ' + str(year) + '</div>'

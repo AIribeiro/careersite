@@ -170,6 +170,22 @@ class OwnerDevicePersistenceTests(unittest.TestCase):
             rotate.assert_not_called()
             self.assertNotIn("owner_device_clear_pending",state)
 
+    def test_signout_clears_device_even_without_http_logout(self):
+        current=session("signout-session-credential")
+        state={"cms_auth":current}
+        with (
+            patch.object(owner.st,"session_state",state),
+            patch.object(owner,"ensure_owner_session",return_value=current),
+            patch.object(owner,"_request_json",return_value=None),
+            patch.object(owner,"_device_component",return_value=SimpleNamespace(status="cleared")) as browser,
+            patch.object(owner,"_logout_component",return_value=SimpleNamespace(failed=False)),
+            patch.object(owner.st,"caption"),
+            patch.object(owner.st,"markdown"),
+        ):
+            owner.browser_owner_signout()
+        self.assertNotIn("cms_auth",state)
+        self.assertEqual(browser.call_args.kwargs["data"]["mode"],"clear")
+
     def test_client_storage_never_contains_access_token_or_password(self):
         self.assertIn("localStorage.setItem",_DEVICE_JS)
         self.assertIn("localStorage.removeItem",_DEVICE_JS)

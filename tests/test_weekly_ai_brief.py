@@ -109,7 +109,7 @@ class WeeklyAiBriefingTests(unittest.TestCase):
     def test_reader_contains_iso_week_direct_publisher_and_archive_link(self):
         html = render_weekly_brief_article(brief(), "<footer>Share</footer>")
         self.assertIn("Curated by Jair Ribeiro", html)
-        self.assertIn("WEEK 41 · 2026", html)
+        self.assertIn("Week 41 · 2026", html)
         self.assertIn("Publisher", html)
         self.assertIn("Personally curated by Jair Ribeiro", html)
         self.assertIn("add my own perspective", html)

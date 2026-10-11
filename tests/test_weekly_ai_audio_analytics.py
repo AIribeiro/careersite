@@ -94,7 +94,7 @@ class WeeklyAudioAnalyticsTests(unittest.TestCase):
     def test_future_narration_has_portfolio_credit_and_first_person_leadership(self):
         src = (ROOT / "src" / "weekly_ai_audio.py").read_text()
         self.assertIn("from my A I and Data Portfolio", src)
-        self.assertIn("My leadership takeaway?", src)
+        self.assertIn("From my experience leading enterprise A I and data initiatives", src)
         pilot = (ROOT / "data" / "weekly_ai_audio_scripts" / "weekly-ai-2026-10-11.txt").read_text()
         self.assertNotIn("from my A I and Data Portfolio", pilot)
 

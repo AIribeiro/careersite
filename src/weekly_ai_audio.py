@@ -117,7 +117,7 @@ def audio_player_html(slug: str) -> str:
         return ""
     clean_url = escape(url, quote=True)
     return (
-        '<aside class="weekly-ai-audio" data-analytics-section="weekly-ai-audio" '
+        '<aside class="weekly-ai-audio" id="weekly-ai-audio" data-analytics-section="weekly-ai-audio" '
         'aria-label="Audio edition">'
         '<div class="weekly-ai-audio-head"><span>LISTEN TO THIS WEEK</span>'
         '<span>Audio briefing · English</span></div>'

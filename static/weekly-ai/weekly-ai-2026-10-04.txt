@@ -1,0 +1,15 @@
+Welcome to Weekly AI, from my AI and Data Portfolio. This is Week forty of twenty twenty-six, covering September twenty-eighth through October fourth. Here are five developments I think matter for enterprise leaders.
+
+First, WIRED examines AI agents entering workplace teams, raising important questions about digital coworkers, human responsibilities and oversight.
+
+Second, Reuters reports attempted AI-agent intrusions targeting a Canadian government website. Officials reported no detected compromise, but agent access clearly demands strong controls.
+
+Third, Mastercard introduced AI-powered business-to-business analytics designed to help identify supplier payment opportunities.
+
+Fourth, OpenAI announced a partnership with America's Small Business Development Centers to expand practical AI training for smaller businesses.
+
+And finally, the World Economic Forum outlined child-safety practices across privacy, system design, accountability and assurance.
+
+My leadership takeaway? From experience leading enterprise AI and data initiatives, I see the same challenge repeatedly: moving from interesting technology to dependable operating capability takes clear ownership, human oversight and people prepared to use it responsibly.
+
+You can find every original source in this week's written briefing.

@@ -161,14 +161,23 @@ def _sync_saved_browser_session(session: dict) -> None:
     try:
         result = _device_component(
             key="owner_device_session_storage",
-            data={"mode": "write", "refresh_token": refresh},
+            data={"mode": "write", "refresh_token": refresh,
+                  "expires_at": int(session.get("expires_at") or 0),
+                  "force": bool(st.session_state.get("owner_device_force_write"))},
             default={"restored": None, "status": None},
             on_status_change=lambda: None,
             on_restored_change=lambda: None,
         )
         status = getattr(result, "status", None)
-        if status in ("stored", "unavailable", "invalid"):
+        if status in ("stored", "unavailable", "invalid", "newer_saved_session"):
+            previous = st.session_state.get("owner_device_save_status")
             st.session_state["owner_device_save_status"] = status
+            if status == "stored":
+                st.session_state.pop("owner_device_force_write", None)
+                if previous != "stored":
+                    st.toast("This device will remember your sign-in.")
+            elif status == "unavailable" and previous != "unavailable":
+                st.caption("Browser remembering is unavailable in this browser.")
     except Exception:
         # A browser with blocked storage still has a valid in-page session.
         st.session_state["owner_device_save_status"] = "unavailable"
@@ -214,6 +223,7 @@ def _restore_saved_browser_session() -> dict | None:
         return None
     session["user"] = identity
     st.session_state["cms_auth"] = session
+    st.session_state["owner_device_force_write"] = True
     # Supabase rotates refresh tokens. Save the NEW token before this
     # browser session can be closed or reopened.
     st.rerun()
@@ -265,6 +275,11 @@ def persistent_owner_session() -> dict | None:
             return current
         # Preserve the original working Streamlit flow: renew in-memory
         # sessions when Cloud does not support the browser cookie endpoint.
+        if current.get("refresh_token") and st.session_state.get("owner_device_save_status") == "newer_saved_session":
+            # Another browser tab has rotated the shared token. Read the
+            # latest saved token rather than retrying this tab's stale copy.
+            st.session_state.pop("cms_auth", None)
+            return _restore_saved_browser_session()
         if current.get("refresh_token"):
             renewed = ensure_owner_session(current)
             if renewed and renewed.get("access_token"):
@@ -341,6 +356,7 @@ def show_owner_login_or_refresh(destination: str) -> None:
         try:
             session = owner_signin(password)
             st.session_state["cms_auth"] = session
+            st.session_state["owner_device_force_write"] = True
             # A one-use ticket makes the browser save server-held refresh
             # credentials as HttpOnly cookies, without another login page.
             try:
@@ -379,6 +395,7 @@ def browser_owner_signout() -> None:
     st.session_state.pop("owner_cookie_attach_ticket",None)
     st.session_state.pop("owner_device_clear_pending",None)
     st.session_state.pop("owner_device_save_status",None)
+    st.session_state.pop("owner_device_force_write",None)
     result = _logout_component(
         key="owner_http_logout",
         data={"requested":True},

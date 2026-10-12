@@ -16,7 +16,10 @@ from jobtech_demand_forecast import analyze_jobtech_demand, jobtech_lag_diagnost
 PORTFOLIO_CAP = 0.12
 PORTFOLIO_GENERAL_CAP = 0.09
 CV_ATTRIBUTION_CAP = 0.03
-MARKET_CAP = 0.12
+MARKET_CAP = 0.18
+MARKET_NOWCAST_CAP = 0.035
+COMBINED_MIN = 0.78
+COMBINED_MAX = 1.28
 # Each selected topic gets ONE source to avoid double counting similar studies.
 MARKET_TOPICS = (
     ("it_tech_demand", ("employment_outlook_it_tech",), 0.050, "IT and technology hiring outlook"),
@@ -28,7 +31,29 @@ MARKET_TOPICS = (
                              "services_employment_expectations_3m"), 0.040, "Services employment plans"),
     ("regional_redundancy", ("redundancy_notices",), 0.035, "Regional redundancy notices"),
     ("large_employers", ("large_employer_staff_replacement_stance",), 0.025, "Large employers' hiring stance"),
-    ("regional_recovery", ("vgr_recovery_timing",), 0.025, "Regional recovery outlook"),
+    ("regional_recovery", ("vgr_recovery_timing", "labour_market_recovery_regime"), 0.030, "Regional recovery outlook"),
+    ("target_data_it_demand", ("data_it_active_job_ads",), 0.045, "Active Data/IT vacancy demand"),
+    ("employment_expectations", ("employment_expectations_3m",
+                                  "manufacturing_employment_expectations_3m"), 0.045,
+     "Near-term employment expectations"),
+    ("services_cycle", ("services_confidence", "services_pmi"), 0.035,
+     "Services business-cycle conditions"),
+    ("macro_growth", ("gdp_growth_forecast", "gdp_growth_qoq"), 0.025,
+     "Swedish growth outlook"),
+    ("unemployment_outlook", ("unemployment_rate_forecast",
+                              "harmonised_unemployment_rate"), 0.030,
+     "Swedish unemployment outlook"),
+)
+
+JOBTECH_MTD_PAIRS = (
+    ("jobtech_tier_a_ai_leadership_ads_mtd_v1",
+     "jobtech_tier_a_ai_leadership_ads_v1", .45),
+    ("jobtech_high_signal_target_ads_mtd_v1",
+     "jobtech_high_signal_target_ads_v1", .30),
+    ("jobtech_high_signal_target_ads_stockholm_mtd_v1",
+     "jobtech_high_signal_target_ads_stockholm_v1", .15),
+    ("jobtech_high_signal_target_ads_vgr_mtd_v1",
+     "jobtech_high_signal_target_ads_vgr_v1", .10),
 )
 
 
@@ -209,6 +234,71 @@ def portfolio_adjustment(site_model: dict | None, actions: dict | None,
             "category":"portfolio","cap":PORTFOLIO_CAP}
 
 
+def _days_in_month(d: date) -> int:
+    next_month = (d.replace(day=28) + timedelta(days=4)).replace(day=1)
+    return (next_month - timedelta(days=1)).day
+
+
+def _jobtech_mtd_nowcast(by_key: dict[str, dict], as_of: date) -> dict:
+    """Pro-rate current-month official target-role demand against last month.
+
+    This is deliberately a small nowcast. It reacts before month-end without
+    pretending that a partial month is a completed observation.
+    """
+    components = []
+    weighted = 0.0
+    weight_used = 0.0
+    for mtd_key, prior_key, weight in JOBTECH_MTD_PAIRS:
+        mtd = by_key.get(mtd_key)
+        prior = by_key.get(prior_key)
+        if not mtd or not prior:
+            continue
+        observed = day(mtd.get("observation_date"))
+        prior_observed = day(prior.get("observation_date"))
+        if not observed or not prior_observed or observed.year != as_of.year or observed.month != as_of.month:
+            continue
+        previous_month = (as_of.replace(day=1) - timedelta(days=1))
+        if prior_observed.year != previous_month.year or prior_observed.month != previous_month.month:
+            continue
+        cur = _number(mtd.get("metric_value"), -1)
+        prev = _number(prior.get("metric_value"), -1)
+        if cur < 0 or prev <= 0:
+            continue
+        elapsed_fraction = _bounded(observed.day / _days_in_month(observed), .05, 1.0)
+        expected_to_date = prev * elapsed_fraction
+        # +2 shrinkage stabilizes small-count regional baskets.
+        pace_score = math.tanh(math.log((cur + 2) / (expected_to_date + 2)) / math.log(2))
+        confidence = _bounded(_number(mtd.get("confidence_score"), 70) / 100, 0, 1)
+        relevance = _bounded(_number(mtd.get("relevance_score"), 80) / 100, 0, 1)
+        sample_quality = min(1.0, math.sqrt((cur + expected_to_date) / 12.0))
+        maturity = math.sqrt(elapsed_fraction)
+        quality = confidence * relevance * sample_quality * maturity
+        contribution = weight * pace_score * quality
+        weighted += contribution
+        weight_used += weight
+        components.append({
+            "key": mtd_key,
+            "current_mtd": int(cur),
+            "previous_month": int(prev),
+            "expected_to_date": round(expected_to_date, 2),
+            "pace_score": round(pace_score, 4),
+            "quality": round(quality, 4),
+            "weight": weight,
+        })
+    score = weighted / weight_used if weight_used else 0.0
+    effect = _bounded(score * .055, -MARKET_NOWCAST_CAP, MARKET_NOWCAST_CAP)
+    if abs(effect) < .0001:
+        effect = 0.0
+    return {
+        "effect": round(effect, 5),
+        "score": round(score, 5),
+        "cap": MARKET_NOWCAST_CAP,
+        "components": components,
+        "status": ("Active current-month JobTech nowcast" if components
+                   else "No eligible current-month JobTech nowcast"),
+    }
+
+
 def market_adjustment(market_model: dict | None, as_of: date,
                       *, job_records: list[dict] | None = None,
                       jobtech_config: dict | None = None) -> dict:
@@ -252,10 +342,26 @@ def market_adjustment(market_model: dict | None, as_of: date,
         reliability = _bounded(confidence / 100, 0, 1) * _bounded(relevance / 100, 0, 1)
         published = day(signal.get("published_at")) or day(signal.get("first_seen_at"))
         age = (as_of - published).days
-        # Fresh monthly and quarterly releases contribute more; old material
-        # fades rather than influencing the forecast indefinitely.
-        freshness = math.exp(-max(0, age - 35) / 180.0)
-        effect = max_weight * score * reliability * freshness
+        # React immediately to fresh releases and fade old observations faster.
+        freshness = math.exp(-max(0, age) / 75.0)
+        leading = bool(signal.get("is_leading_indicator"))
+        lag = int(_number(signal.get("expected_lag_days"), 0))
+        lead_boost = 1.0
+        if leading and 0 < lag <= 45:
+            lead_boost = 1.25
+        elif leading and lag <= 90:
+            lead_boost = 1.12
+        region = str(signal.get("region") or "").casefold()
+        sector = str(signal.get("sector") or "").casefold()
+        role_family = str(signal.get("role_family") or "").casefold()
+        specificity = 1.0
+        if "enterprise_ai_data_leadership" in role_family:
+            specificity *= 1.08
+        if "västra götaland" in region or "stockholm" in region:
+            specificity *= 1.08
+        if "ai/data" in sector or "ai leadership" in sector or "data/it" in sector:
+            specificity *= 1.10
+        effect = max_weight * score * reliability * freshness * lead_boost * specificity
         # JobTech replaces some of the generic positive AI/tech-demand proxy,
         # while genuine negative employment pressures remain untouched.
         # Its four nested series already share ONE combined JobTech factor.
@@ -271,7 +377,10 @@ def market_adjustment(market_model: dict | None, as_of: date,
                                release_date=published.isoformat(),
                                observed_date=str(signal.get("observation_date")),
                                source=signal.get("source_organization") or "",
-                               source_url=signal.get("source_url") or ""))
+                               source_url=signal.get("source_url") or "",
+                               freshness=round(freshness,4),
+                               leading=leading, expected_lag_days=lag,
+                               specificity=round(specificity,4)))
     if jobtech["effect"]:
         drivers.append(_driver(
             "JobTech target-role hiring demand", jobtech["effect"],
@@ -280,11 +389,31 @@ def market_adjustment(market_model: dict | None, as_of: date,
             observed_date=jobtech["latest_month"],
             source="Arbetsförmedlingen JobTech", source_url="",
         ))
-    total = _bounded(sum(d["effect"] for d in drivers),-MARKET_CAP, MARKET_CAP)
+    nowcast = _jobtech_mtd_nowcast(by_key, as_of)
+    if nowcast["effect"]:
+        drivers.append(_driver(
+            "JobTech current-month target-role nowcast", nowcast["effect"],
+            detail=nowcast["status"], key="jobtech_target_role_mtd_nowcast_v1",
+            topic="target_role_nowcast", release_date=as_of.isoformat(),
+            observed_date=as_of.isoformat(), source="Arbetsförmedlingen JobTech",
+            source_url="", components=nowcast["components"],
+        ))
+
+    raw_total = sum(d["effect"] for d in drivers)
+    positive_topics = sum(d["effect"] > .002 for d in drivers)
+    negative_topics = sum(d["effect"] < -.002 for d in drivers)
+    dominant = max(positive_topics, negative_topics)
+    opposing = min(positive_topics, negative_topics)
+    corroboration = 1.0
+    if dominant >= 3 and dominant - opposing >= 2:
+        corroboration = min(1.18, 1.0 + .04 * (dominant - 2))
+    total = _bounded(raw_total * corroboration, -MARKET_CAP, MARKET_CAP)
     drivers.sort(key=lambda d:abs(d["effect"]),reverse=True)
     return {"effect":round(total,5),"drivers":drivers,"category":"market",
             "cap":MARKET_CAP,"indicators_reviewed":len(by_key),
-            "jobtech":jobtech}
+            "jobtech":jobtech,"nowcast":nowcast,
+            "corroboration_multiplier":round(corroboration,4),
+            "raw_effect":round(raw_total,5)}
 
 
 def forecast_drivers(site_model: dict | None, actions: dict | None,
@@ -297,5 +426,5 @@ def forecast_drivers(site_model: dict | None, actions: dict | None,
     return {
         "portfolio":portfolio, "market":market,
         "combined_multiplier":round(
-            _bounded(1 + portfolio["effect"] + market["effect"], 0.82, 1.24), 5),
+            _bounded(1 + portfolio["effect"] + market["effect"], COMBINED_MIN, COMBINED_MAX), 5),
     }

@@ -92,6 +92,54 @@ def _as_of_events(jobs: list[dict], as_of: date) -> list[dict]:
             if day(r.get("event_date")) and day(r["event_date"]) <= as_of]
 
 
+def _strategy_context(jobs: list[dict], as_of: date) -> dict:
+    """Read current strategic job-search context without turning it into fake probability.
+
+    These records are deliberately non-primary: they guide interpretation and
+    model guardrails, but never increment applications, contacts, interviews or
+    offers. Numeric forecast effects remain zero until enough outcome history
+    exists to calibrate them.
+    """
+    rows = []
+    for row in jobs:
+        if row.get("record_type") != "snapshot_note":
+            continue
+        if row.get("activity") != "strategic_insight" or row.get("status") != "current":
+            continue
+        if row.get("source_file") != "chatgpt_job_hunting_analysis":
+            continue
+        when = day(row.get("snapshot_date"))
+        if when and when > as_of:
+            continue
+        raw = row.get("raw_data")
+        raw = raw if isinstance(raw, dict) else {}
+        rows.append(raw)
+
+    categories = sorted({str(r.get("category") or "uncategorized") for r in rows})
+    priorities = [str(r.get("priority") or "unspecified") for r in rows]
+    category_set = set(categories)
+    return {
+        "records_used": len(rows),
+        "categories": categories,
+        "critical_records": sum(p == "critical" for p in priorities),
+        "high_records": sum(p == "high" for p in priorities),
+        "features": {
+            "conversion_funnel_focus": "funnel_diagnosis" in category_set,
+            "human_access_priority": "channel_effectiveness" in category_set,
+            "role_positioning_calibrated": "positioning" in category_set,
+            "seniority_calibrated": "seniority" in category_set,
+            "interview_compression_risk_tracked": "interview_performance" in category_set,
+            "evidence_quality_control": "evidence_quality" in category_set,
+            "targeted_application_strategy": "search_execution" in category_set,
+        },
+        "effect": 0.0,
+        "usage": (
+            "qualitative calibration and guardrails only; no direct probability "
+            "multiplier until outcome history supports calibration"
+        ),
+    }
+
+
 def _official_application_total(jobs: list[dict], as_of: date) -> int | None:
     snapshots = [r for r in jobs if r.get("record_type") == "snapshot_metric"
                  and r.get("metric_name") == "Confirmed application submissions"
@@ -133,6 +181,7 @@ def forecast_hiring(
     portfolio_actions: dict | None = None,
     jobtech_config: dict | None = None,
 ) -> dict:
+    strategy_context = _strategy_context(jobs, as_of)
     events = _as_of_events(jobs, as_of)
     dates = [day(r["event_date"]) for r in events]
     first = min(dates) if dates else None
@@ -204,6 +253,7 @@ def forecast_hiring(
     official = _official_application_total(jobs, as_of)
     event_coverage = (len(applied) / official) if official else None
     sources = {
+        "strategy_records_used": strategy_context["records_used"],
         "primary_events": len(events),
         "recorded_offer_events": recorded_offers,
         "tracked_processes": len(processes),
@@ -227,6 +277,7 @@ def forecast_hiring(
         "market_observations": int(coverage.get("observations") or 0),
         "market_repeated_associations": len(stable_market),
     }
+    drivers["strategy"] = strategy_context
     evidence = reliability_index(sources, open_stages, drivers)
     result = {
         "version": MODEL_VERSION, "as_of": as_of.isoformat(), "sources": sources,
@@ -235,7 +286,9 @@ def forecast_hiring(
         "windows": {"offers": [], "starts": [], "offer_weeks": [], "start_weeks": []},
         "confidence": "Early estimate", "status": "insufficient",
         "drivers": drivers,
+        "strategy_context": strategy_context,
         "limitations": [
+            "Current job-search strategy records from job_search_analytics are consumed as qualitative calibration and guardrails; they do not receive an unvalidated numeric offer-probability weight.",
             "Qualified CV-origin traffic, source variants, target-role tags and associated recruitment campaigns receive bounded positive planning weights; they do not identify visitors.",
             "JobTech v1 title-matched demand modifies only future opportunities; September is a small, unconfirmed positive factor until October and personal responses provide stronger evidence.",
             "Specific Swedish job-market signals can help or hurt future opportunity estimates; their weights are heuristic, not proven effects.",

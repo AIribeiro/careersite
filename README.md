@@ -261,41 +261,34 @@ The hidden site-owner dashboard remains at:
 
 `https://jairribeiro-ai.streamlit.app/?page=analytics`
 
-It is not part of public navigation and is marked noindex. All three reports — Page Views, Article Views, and Job Search Analytics — require the same Supabase CMS owner session (`cms_auth`). Switching reports uses native Streamlit controls rather than full-page links, so signing in once keeps the owner authenticated across analytics views within the active Streamlit session. Job-search records remain behind the owner bearer token; neither the table nor its rows should be exposed through public analytics RPCs. A fresh browser/Streamlit session still requires owner sign-in.
+The Analytics page is **public, read-only and does not require login**.
+It remains unlisted from primary navigation and noindex by default. Its four
+top-level views are **Overview**, **Portfolio**, **Job search** and
+**Swedish market**. Portfolio shows existing page, article and WEEKLY AI
+statistics using anonymous aggregate reporting RPCs. The default window
+remains **Last hour**; 7/30/90/365-day comparisons can be selected.
 
-### Analytics reporting window and durable owner sign-in
+**Public job statistics** are derived in the database and only expose
+deduplicated daily/weekly application, interaction, interview and decision
+counts, plus aggregate portfolio/job correlations. Public Swedish market
+signals include source citations. Individual employers, recruiter names,
+correspondence, imported source records, action queues and other private
+job-search evidence are **not** exposed by these reports. The historical
+owner-only drilldown code remains internal and is no longer routed from
+Analytics.
 
-Analytics → Portfolio defaults to **Last hour**, and longer reporting windows
-remain selectable.
+**Security boundary:** Only explicitly allowlisted aggregate Supabase RPCs
+are callable as `anon`. Anonymous visitors are not granted SELECT access
+to either private job-search or market source tables, nor CMS write rights,
+nor permission for analytics reset or owner hiring-predictor action
+functions. CMS / article editing remains separately authenticated using
+Supabase. No owner credentials, refresh tokens, or service-role secrets are
+sent from the public Analytics page.
 
-Analytics and Article CMS share **one Streamlit password form**. Supabase
-verifies the owner. During the active Streamlit session, access is automatically
-renewed from the authenticated Supabase refresh token.
-
-**Browser reopen:** A same-origin Streamlit Components v2 helper persists the
-rotating Supabase **refresh token** in origin-scoped browser `localStorage`,
-similar to the standard Supabase browser client. On reopening Analytics or
-the CMS, Python receives that credential through the trusted Streamlit
-component, exchanges it with Supabase and independently checks the owner's
-identity before serving private data. The new token is saved immediately
-after rotation. Invalid or revoked tokens are cleared instead of repeatedly
-retried. Storage is removed on **Sign out**, and Supabase revocation is
-requested server-side. No password or access JWT is stored in localStorage.
-
-**Security trade-off:** Unlike Secure, HttpOnly cookies, origin-scoped
-localStorage can be accessed by same-origin JavaScript. This device fallback
-is appropriate only for a trusted personal browser and depends on keeping
-the site free of untrusted or injectable scripts. Public/local shared devices
-should be signed out after use. The existing preferred cookie design remains
-enabled when the Streamlit Cloud proxy supports the Starlette endpoints, but
-persistent owner access no longer *depends* on those endpoints.
-
-If a browser runs in private mode, blocks device storage, or Supabase has
-revoked the refresh token, the normal in-page password form remains available.
-The server always validates Supabase authorization independently of the
-browser data; a remembered token is never interpreted as owner identity by
-itself. Credential refresh and cookie attachments do not use URLs, telemetry,
-or analytics logs.
+The server-side aggregate functions use the existing first-party event
+taxonomy and deduplication screens; a session is not a person and a
+correlation is not a causal recruiter attribution. The public page never
+opens a privileged owner session or triggers user authentication.
 
 ### Full-channel attribution integrity (Page Views → Acquisition)
 

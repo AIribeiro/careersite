@@ -522,5 +522,28 @@ class HiringPredictorTests(unittest.TestCase):
         self.assertEqual(result["sources"]["recorded_offer_events"], 1)
 
 
+    def test_current_strategy_context_is_consumed_without_fake_probability_weight(self):
+        jobs = [event(n, n % 24 + 1) for n in range(1, 20)]
+        strategy = {
+            "id": 900,
+            "record_type": "snapshot_note",
+            "source_file": "chatgpt_job_hunting_analysis",
+            "snapshot_date": TODAY.isoformat(),
+            "activity": "strategic_insight",
+            "status": "current",
+            "raw_data": {
+                "category": "funnel_diagnosis",
+                "priority": "critical",
+            },
+        }
+        baseline = forecast_hiring(jobs, TODAY)
+        informed = forecast_hiring(jobs + [strategy], TODAY)
+        self.assertEqual(informed["sources"]["strategy_records_used"], 1)
+        self.assertTrue(informed["strategy_context"]["features"]["conversion_funnel_focus"])
+        self.assertEqual(informed["drivers"]["strategy"]["effect"], 0.0)
+        self.assertEqual(baseline["curve"], informed["curve"])
+
+
+
 if __name__ == "__main__":
     unittest.main()

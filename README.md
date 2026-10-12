@@ -262,11 +262,28 @@ The hidden site-owner dashboard remains at:
 `https://jairribeiro-ai.streamlit.app/?page=analytics`
 
 The Analytics page is **public, read-only and does not require login**.
-It remains unlisted from primary navigation and noindex by default. Its four
-top-level views are **Overview**, **Portfolio**, **Job search** and
-**Swedish market**. Portfolio shows existing page, article and WEEKLY AI
-statistics using anonymous aggregate reporting RPCs. The default window
-remains **Last hour**; 7/30/90/365-day comparisons can be selected.
+It remains unlisted from primary navigation and noindex by default. Its five
+top-level views are **Overview**, **Portfolio**, **Job search**,
+**Job predictions** and **Swedish market**. Portfolio shows existing page,
+article and WEEKLY AI statistics using anonymous aggregate reporting RPCs.
+The Portfolio reporting window defaults to **Last hour**.
+The Job Search activity selector offers **Today, 7, 30, 90, 180, 365 and
+730 days**, defaulting to 30 days.
+
+**Job predictions** reintroduces a public, privacy-preserving version of
+the Hiring Predictor Beta. The server exposes only an anonymized distribution
+of active recruitment stages in 30-day age bands, deduplicated application
+counts and mature response counts—no company, person, role, ATS status, note
+or identifying process ID. The public Python engine reuses the detailed
+Beta's stage-specific offer-timing assumptions, scenario conversion
+multipliers and weekly offer/start-window calculations, with bounded
+independent public market and quality-filtered portfolio drivers.
+The public model excludes sensitive CV/contact-action breakdowns and
+therefore can differ from the **authoritative, personalized Hiring
+Predictor** in the protected Admin → Decision overview. Both are
+illustrative planning scenarios, not validated offer probabilities.
+Predictions use the full dated historical evidence, irrespective of the
+selected short Job Search activity period.
 
 **Public job statistics** are derived in the database and only expose
 deduplicated daily/weekly application, interaction, interview and decision

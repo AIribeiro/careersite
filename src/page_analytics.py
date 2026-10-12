@@ -7,7 +7,7 @@ from urllib import error, parse, request
 import streamlit as st
 import streamlit.components.v1 as components
 
-from site_analytics_owner import owner_rpc_headers
+from site_analytics_public import public_analytics_rpc_headers
 from site_analytics import (
     ANALYTICS_PUBLISHABLE_KEY,
     ANALYTICS_URL,
@@ -78,7 +78,7 @@ def _fetch_dashboard(window: str) -> dict:
         endpoint,
         data=payload,
         method="POST",
-        headers=owner_rpc_headers(),
+        headers=public_analytics_rpc_headers(),
     )
     try:
         with request.urlopen(req, timeout=12) as response:
@@ -108,7 +108,7 @@ def _fetch_hiring_intelligence(window: str) -> dict:
         endpoint,
         data=payload,
         method="POST",
-        headers=owner_rpc_headers(),
+        headers=public_analytics_rpc_headers(),
     )
     try:
         with request.urlopen(req, timeout=12) as response:

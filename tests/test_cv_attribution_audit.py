@@ -62,14 +62,14 @@ class CvAttributionTests(unittest.TestCase):
         response=MagicMock()
         response.__enter__.return_value=response
         response.read.return_value=json.dumps(AUDIT).encode("utf-8")
-        with patch("page_cv_attribution_audit.owner_rpc_headers",return_value={
-            "Authorization":"Bearer owner-test",
+        with patch("page_cv_attribution_audit.public_analytics_rpc_headers",return_value={
+            "apikey":"mock-public-key",
             "apikey":"mock-public-key",
         }), patch("page_cv_attribution_audit.request.urlopen",return_value=response) as request:
             result=fetch_cv_attribution_audit("30d")
             self.assertEqual(result["overview"]["cv_page_views"],64)
             req=request.call_args.args[0]
-            self.assertIn("Bearer owner-test",req.headers.values())
+            self.assertNotIn("Authorization",req.headers)
             self.assertEqual(json.loads(req.data)["p_days"],30)
             self.assertEqual(json.loads(req.data)["p_window"],"days")
 

@@ -10,19 +10,16 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1] / "src"))
 
 
 class DecisionExperienceTests(unittest.TestCase):
-    def test_owner_landing_is_summary_not_four_expanded_reports(self):
+    def test_public_landing_is_summary_not_four_expanded_reports(self):
         from streamlit.testing.v1 import AppTest
         source=("from page_analytics_v2 import render_analytics_dashboard\n"
                 "render_analytics_dashboard()")
-        with patch("page_analytics_v2._owner_session",
-                   return_value={"access_token":"owner"}) as owner, \
-             patch("page_analytics_v2.render_analytics_overview") as brief, \
+        with patch("page_analytics_v2.render_public_analytics_overview") as brief, \
              patch("page_analytics_v2.render_content_intelligence") as portfolio, \
-             patch("page_analytics_v2.render_job_search_analytics") as jobs, \
-             patch("page_analytics_v2.render_swedish_job_market") as market:
+             patch("page_analytics_v2.render_public_job_search") as jobs, \
+             patch("page_analytics_v2.render_public_swedish_market") as market:
             page=AppTest.from_string(source).run(timeout=15)
             self.assertFalse(page.exception)
-            owner.assert_called()
             brief.assert_called_once()
             portfolio.assert_not_called()
             jobs.assert_not_called()

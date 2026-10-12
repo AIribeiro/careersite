@@ -151,9 +151,10 @@ def render_public_job_search() -> None:
     st.title("Job Search Analytics")
     st.caption("Aggregate recruitment outcomes without private applicant records or names.")
     period=st.segmented_control(
-        "Reporting horizon",[90,180,365,730],default=365,
-        format_func=lambda x:f"{x} days",key="public_job_days",
-    ) or 365
+        "Reporting horizon",[1,7,30,90,180,365,730],default=30,
+        format_func=lambda x:"Today" if x==1 else f"{x} days",
+        key="public_job_days",
+    ) or 30
     try:
         report=_job_summary(int(period))
     except (RuntimeError,ValueError,PermissionError):

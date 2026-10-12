@@ -12,7 +12,7 @@ import streamlit as st
 from page_analytics import _bar_chart, _dashboard_payload, _seconds
 from page_article_analytics import _article_title
 from site_analytics import ANALYTICS_URL
-from site_analytics_owner import owner_rpc_headers
+from site_analytics_public import public_analytics_rpc_headers
 from site_cms import fetch_published_articles
 from thinking_articles import ARTICLES
 
@@ -46,7 +46,7 @@ def _fetch_rpc(name: str, payload: dict[str, object]) -> dict:
         f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{name}",
         data=json.dumps(payload).encode(),
         method="POST",
-        headers=owner_rpc_headers(),
+        headers=public_analytics_rpc_headers(),
     )
     try:
         with request.urlopen(req, timeout=20) as response:

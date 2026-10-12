@@ -205,40 +205,6 @@ def render_public_job_search() -> None:
 
 @st.fragment(run_every="15m")
 def render_public_swedish_market() -> None:
-    st.title("Swedish market intelligence")
-    st.caption("Official and attributed external-market observations used to contextualize the search.")
-    try:
-        data=_market_summary()
-    except (RuntimeError,ValueError,PermissionError):
-        st.warning("Public Swedish market intelligence is temporarily unavailable.")
-        return
-    rows=data.get("signals") or []
-    if not rows:
-        st.info("No current observations are available.")
-        return
-    regions=sorted({str(r.get("region") or "") for r in rows if r.get("region")})
-    chosen=st.selectbox("Geography",["All geographies"]+regions,key="public_market_region")
-    if chosen!="All geographies":
-        rows=[r for r in rows if r.get("region")==chosen]
-    st.metric("Current source-backed signals",len(rows))
-    st.caption("These are observations, not guaranteed job openings or predictions of an offer.")
-    st.dataframe([{
-        "Indicator":r.get("indicator_name") or r.get("indicator_key"),
-        "Observed":r.get("observation_date"),
-        "Region":r.get("region"),
-        "Value":r.get("metric_value"),
-        "Unit":r.get("metric_unit"),
-        "Change":r.get("change_value"),
-        "Source":r.get("source_organization"),
-        "Source URL":r.get("source_url"),
-    } for r in rows],hide_index=True,width="stretch")
-    selected=st.selectbox(
-        "Interpretation",list(range(len(rows))),
-        format_func=lambda i:str(rows[i].get("indicator_name") or rows[i].get("indicator_key")),
-        key="public_market_signal_select",
-    )
-    item=rows[selected]
-    st.markdown(f"**{item.get('indicator_name') or item.get('indicator_key')}**")
-    st.write(item.get("insight_summary") or "No interpretation provided.")
-    if item.get("source_url"):
-        st.markdown(f"[Read source]({item['source_url']})")
+    """Full historical market dashboard, not the reduced latest-row table."""
+    from page_public_market_restored import render_public_market_restored
+    render_public_market_restored()

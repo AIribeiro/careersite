@@ -128,5 +128,11 @@ def forecast_public_hiring(
         "strategy_context":strategy_context,
         "site_history_days":site_history_days,
         "market_indicators":market_drivers.get("indicators_reviewed",0),
+        "market_context":{
+            "nowcast":market_drivers.get("nowcast") or {},
+            "corroboration_multiplier":market_drivers.get("corroboration_multiplier",1.0),
+            "raw_effect":market_drivers.get("raw_effect",market_effect),
+            "cap":market_drivers.get("cap"),
+        },
         "evidence":"Limited: no personally validated offer probabilities; stage ages grouped in 30-day buckets. Current strategy records are used qualitatively, not as an uncalibrated probability multiplier.",
     }

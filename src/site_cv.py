@@ -222,10 +222,10 @@ def build_public_cv() -> bytes:
         MSX_PUBLIC_DATES,
         "Gothenburg, Sweden",
         [
-            "Established and led the foundations of MSXi's AI & Data Center of Excellence, connecting AI and data strategy, governance, adoption and business value across strategy, operations and technology.",
-            "Introduced portfolio and lifecycle governance with clearer stages, decision rights, ownership and scale-readiness criteria.",
-            f"Connected maturity assessment to a pragmatic {MSX_ROADMAP} roadmap and advanced data-governance foundations covering ownership, stewardship, data quality and trusted-data practices.",
-            "Worked with business and technology leaders to move AI opportunities from isolated experimentation toward managed enterprise capability.",
+            "Established the foundations of MSXi's AI & Data Center of Excellence, bringing AI and data strategy, governance, adoption and business value into one working model across business and technology.",
+            "Created a clearer portfolio and lifecycle process for AI initiatives, defining the stages, decision owners and evidence needed before moving toward scale.",
+            f"Turned the maturity assessment into a practical {MSX_ROADMAP} roadmap, while putting the first data ownership, stewardship and quality practices in place.",
+            "Brought business and technology leaders together to move AI opportunities beyond isolated experiments and toward a more managed enterprise capability.",
         ],
         company_context=MSX_CONTEXT,
     )
@@ -236,10 +236,10 @@ def build_public_cv() -> bytes:
         VOLVO_CURRENT_DATES,
         "Greater Gothenburg Metropolitan Area, Sweden",
         [
-            f"Led enterprise AI adoption across commercial operations, including Microsoft 365 Copilot and agent initiatives alongside AI solutions introduced into {VOLVO_WORKFLOW_SCOPE} workflows and business teams engaged in day-to-day use.",
-            "Applied Generative AI to translation, summarization, structured analysis, communications and commercial operations, with human review and responsible-use practices.",
-            "Led cross-functional AI use-case and PoC work across warranty, sales, aftermarket, legal, compliance and sustainability, connecting business problems with practical AI solutions.",
-            "Designed AI innovation and literacy programs reaching thousands of employees worldwide, strengthening responsible use and the quality of business demand.",
+            f"Led AI adoption across commercial operations, including Microsoft 365 Copilot and agent initiatives and AI solutions introduced into {VOLVO_WORKFLOW_SCOPE} workflows, helping business teams bring them into day-to-day work.",
+            "Applied Generative AI to translation, summarization, structured analysis and communications, with human review and responsible-use practices built into the way the work was done.",
+            "Led AI use cases and PoCs across warranty, sales, aftermarket, legal, compliance and sustainability, starting from the business problem and shaping practical AI solutions around it.",
+            "Built AI innovation and literacy programs that reached thousands of employees worldwide, helping strengthen responsible use and the quality of business demand.",
         ],
     )
 
@@ -249,8 +249,8 @@ def build_public_cv() -> bytes:
         KIMBERLY_DATES,
         "Krakow Metropolitan Area, Poland",
         [
-            "Led value discovery and realization for AI and Data Science opportunities across EMEA in a global role reporting directly to the Chief Data & Analytics Officer.",
-            f"Partnered with {KIMBERLY_SCOPE} to frame business problems, value hypotheses, feasibility and readiness before technical solutioning.",
+            "Led AI and Data Science value discovery across EMEA, reporting directly to the Chief Data & Analytics Officer and helping business teams decide which opportunities were worth pursuing.",
+            f"Worked with {KIMBERLY_SCOPE} to define the business problem, expected value, feasibility and readiness before moving into technical solutioning.",
         ],
     )
 

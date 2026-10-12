@@ -316,7 +316,7 @@ def forecast_hiring(
 
     def _scenario_curve(portfolio_effect: float, market_effect: float) -> list[dict]:
         """Same base model, independently switching heuristics on and off."""
-        opportunity_factor = _bounded(1.0 + portfolio_effect + market_effect, 0.82, 1.24)
+        opportunity_factor = _bounded(1.0 + portfolio_effect + market_effect, 0.78, 1.28)
         curve = []
         for t in range(0, HORIZON_DAYS + 1, 7):
             row = {"Date": (as_of + timedelta(days=t)).isoformat(), "Days": t}

@@ -12,7 +12,7 @@ class HomeGridLayoutTests(unittest.TestCase):
 
         focus = home.split('<p class="eyebrow">Leadership focus</p>', 1)[1]
         focus = focus.split('<p class="eyebrow">Selected experience</p>', 1)[0]
-        self.assertIn('<div class="grid3">', focus)
+        self.assertIn('<div class="grid3 home-focus-grid">', focus)
         self.assertEqual(focus.count('<article class="card">'), 3)
         self.assertIn("Enterprise AI strategy &amp; scaling", focus)
         self.assertIn("Data &amp; Analytics leadership", focus)

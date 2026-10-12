@@ -71,13 +71,21 @@ class PublicAnalyticsTests(unittest.TestCase):
 
     def test_public_market_renders_cited_aggregates(self):
         from streamlit.testing.v1 import AppTest
-        with patch("page_public_analytics._market_summary",return_value=MARKET):
+        with patch("page_public_market_restored._load_public_market",return_value=(
+            {"history":[{"indicator_key":"pmi","indicator_name":"PMI",
+              "series_key":"pmi|sweden","observation_date":"2026-10-01",
+              "period_end":"2026-10-01","published_at":"2026-10-02",
+              "region":"Sweden","metric_value":53.2,"metric_unit":"index",
+              "source_organization":"Official source",
+              "source_url":"https://example.org"}]},
+            JOBS,None
+        )):
             at=AppTest.from_string(
                 "from page_public_analytics import render_public_swedish_market\n"
                 "render_public_swedish_market()").run(timeout=15)
             self.assertFalse(at.exception)
             self.assertEqual(len(at.text_input),0)
-            self.assertIn("Swedish market intelligence",[x.value for x in at.title])
+            self.assertIn("Swedish Job Market",[x.value for x in at.title])
 
 
 if __name__=="__main__":

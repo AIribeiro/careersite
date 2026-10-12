@@ -158,6 +158,14 @@ def render_hiring_predictor(
         key_message = ("Most of the tracked activity has not reached a confirmed "
                        "employer conversation. New replies are the key next signal.")
     st.markdown(f"**Why the model says this:** {key_message}")
+    strategy = result.get("strategy_context") or {}
+    if strategy.get("records_used"):
+        st.caption(
+            f"Strategy calibration: {strategy['records_used']} current records from "
+            "job_search_analytics are used as qualitative model guardrails. "
+            "They do not receive a direct probability weight until calibrated "
+            "against observed outcomes."
+        )
     st.caption(
         f"The model sees {sources['applications_last_28d']} linked applications in "
         f"the past 28 days, versus {sources['applications_previous_28d']} previously. "

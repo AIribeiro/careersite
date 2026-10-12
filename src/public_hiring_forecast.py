@@ -28,6 +28,30 @@ def forecast_public_hiring(
     today=date.fromisoformat(str(aggregate["as_of"]))
     stats=aggregate.get("summary") or {}
     entries=aggregate.get("stage_buckets") or []
+    strategy=aggregate.get("strategy_context") or {}
+    strategy_features=strategy.get("features") or {}
+    strategy_context={
+        "records_used": max(0,int(strategy.get("records_used") or 0)),
+        "critical_records": max(0,int(strategy.get("critical_records") or 0)),
+        "high_records": max(0,int(strategy.get("high_records") or 0)),
+        "features": {
+            key: bool(strategy_features.get(key))
+            for key in (
+                "conversion_funnel_focus",
+                "human_access_priority",
+                "role_positioning_calibrated",
+                "seniority_calibrated",
+                "interview_compression_risk_tracked",
+                "evidence_quality_control",
+                "targeted_application_strategy",
+            )
+        },
+        "effect": 0.0,
+        "usage": (
+            "qualitative calibration and guardrails only; no direct probability "
+            "multiplier until outcome history supports calibration"
+        ),
+    }
     if stats.get("currently_offered"):
         return {"status":"offer_recorded","as_of":today.isoformat()}
     recent=max(0,int(stats.get("recent_applications") or 0))
@@ -100,7 +124,9 @@ def forecast_public_hiring(
         "stage_sessions":sum(x["n"] for x in binned),
         "market_effect":market_effect,
         "portfolio_effect":site_effect,
+        "strategy_effect":0.0,
+        "strategy_context":strategy_context,
         "site_history_days":site_history_days,
         "market_indicators":market_drivers.get("indicators_reviewed",0),
-        "evidence":"Limited: no personally validated offer probabilities; stage ages grouped in 30-day buckets.",
+        "evidence":"Limited: no personally validated offer probabilities; stage ages grouped in 30-day buckets. Current strategy records are used qualitatively, not as an uncalibrated probability multiplier.",
     }

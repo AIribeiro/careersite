@@ -111,11 +111,11 @@ class WeeklyAiAnalyticsTests(unittest.TestCase):
         self.assertIn("'cta_click'", source)
         self.assertIn("Boolean(el.closest('.weekly-ai-body'))", source)
 
-    def test_analytics_focus_is_owner_protected_and_explicit(self):
+    def test_analytics_focus_is_public_and_explicit(self):
         source = (ROOT / "src" / "page_analytics_v2.py").read_text()
         self.assertIn('options=["page","article","weekly_ai"]', source)
         self.assertIn("render_weekly_ai_analytics(str(window))", source)
-        self.assertLess(source.index("session = _owner_session()"), source.index("render_weekly_ai_analytics(str(window))"))
+        self.assertNotIn("_owner_session()", source)
 
 
 if __name__ == "__main__":

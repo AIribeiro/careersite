@@ -22,7 +22,8 @@ def public_analytics_rpc_headers() -> dict[str,str]:
 def fetch_public_analytics_rpc(name: str, payload: dict | None = None) -> dict:
     if name not in ("careersite_public_job_summary_v1",
                     "careersite_public_market_summary_v1",
-                    "careersite_public_hiring_inputs_v1"):
+                    "careersite_public_hiring_inputs_v1",
+                    "careersite_public_market_history_v1"):
         raise ValueError("Not an approved public summary.")
     req = request.Request(
         f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{name}",

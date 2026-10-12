@@ -149,7 +149,10 @@ def _portfolio_job_relationships(job_report: dict) -> None:
 @st.fragment(run_every="10m")
 def render_public_job_search() -> None:
     st.title("Job Search Analytics")
-    st.caption("Aggregate recruitment outcomes without private applicant records or names.")
+    st.caption(
+        "Recruitment funnel, timing, trends, portfolio relationships and "
+        "Swedish market comparisons—without publishing private employer records."
+    )
     period=st.segmented_control(
         "Reporting horizon",[1,7,30,90,180,365,730],default=30,
         format_func=lambda x:"Today" if x==1 else f"{x} days",
@@ -167,40 +170,166 @@ def render_public_job_search() -> None:
     c.metric("Completed interviews",_n(totals.get("interviews")))
     d.metric("Explicit rejections",_n(totals.get("rejections")))
     st.caption(
-        "Recorded primary employer-role events, deduplicated per day. "
-        "An application and a subsequent response are separate events; "
-        "these totals are not a cohort conversion rate."
+        "Events are deduplicated per dated employer–role process. "
+        "These measures belong to different stages and cannot be divided "
+        "to infer a valid cohort conversion rate."
     )
-    weeks=report.get("weekly") or []
-    if weeks:
-        points=[{"Week":w["week"],"Event":name,"Count":_n(w.get(key))}
-                for w in weeks
-                for key,name in (("applications","Applications"),
-                                 ("responses","Responses"),
-                                 ("interviews","Completed interviews"),
-                                 ("rejections","Negative decisions"))]
-        plot=alt.Chart(alt.Data(values=points)).mark_line(point=True).encode(
-            x=alt.X("Week:T",title=None),
-            y=alt.Y("Count:Q",title="Distinct dated process events",
-                    axis=alt.Axis(tickMinStep=1)),
-            color="Event:N",tooltip=["Week:T","Event:N","Count:Q"]
-        ).properties(height=330)
-        st.altair_chart(plot,width="stretch")
-    _portfolio_job_relationships(report)
+    focus=st.segmented_control(
+        "Recruitment question",
+        options=["activity","conversion","trends","portfolio","market","evidence"],
+        default="activity",
+        format_func=lambda x:{
+            "activity":"Activity",
+            "conversion":"Funnel & conversion",
+            "trends":"Time trends",
+            "portfolio":"Portfolio correlations",
+            "market":"Market relationships",
+            "evidence":"Data quality & definitions",
+        }[x],
+        key="public_job_focus",width="stretch",
+    ) or "activity"
     st.divider()
-    st.markdown("**Where are the job predictions?**")
+    if focus=="activity":
+        st.subheader("Dated recruitment activity")
+        days=report.get("daily") or []
+        if days:
+            points=[{"Date":r["d"],"Event":name,"Count":_n(r.get(key))}
+                    for r in days
+                    for key,name in (("applications","Applications"),
+                                     ("responses","Responses"),
+                                     ("interviews","Completed interviews"),
+                                     ("rejections","Negative decisions"))]
+            plot=alt.Chart(alt.Data(values=points)).mark_bar().encode(
+                x=alt.X("Date:T",title="Event date"),
+                y=alt.Y("Count:Q",title="Recorded events",axis=alt.Axis(tickMinStep=1)),
+                color="Event:N",tooltip=["Date:T","Event:N","Count:Q"],
+            ).properties(height=290)
+            st.altair_chart(plot,width="stretch")
+        else:
+            st.info("No dated recruitment events have been recorded in this window.")
+        st.caption(
+            "An empty short window means no recorded event, not a failed application "
+            "or an absence of recruiter interest."
+        )
+    elif focus=="conversion":
+        st.subheader("Funnel stages and conversion maturity")
+        try:
+            stage=fetch_public_analytics_rpc("careersite_public_hiring_inputs_v1")
+        except (RuntimeError,ValueError,PermissionError):
+            stage={}
+        summary=stage.get("summary") or {}
+        maturity=_n(summary.get("matured_applications"))
+        contact=_n(summary.get("mature_contacts"))
+        p,q,z=st.columns(3)
+        p.metric("Applications old enough to assess",maturity,
+                 help="Applications at least 35 days old, identified from primary records.")
+        q.metric("Mature application processes with contact",contact,
+                 help="Processes with recorded contact after the application.")
+        z.metric("Observed mature cohort contact share",
+                 f"{contact/maturity:.0%}" if maturity else "Not enough data",
+                 help="Descriptive observed sample, not a forecast or a standardized rate.")
+        buckets=stage.get("stage_buckets") or []
+        ordered=("application","conversation","interview","progression")
+        label={"application":"Application","conversation":"Conversation",
+               "interview":"Interview","progression":"Progression"}
+        counts={k:sum(_n(b.get("n")) for b in buckets if b.get("stage")==k)
+                for k in ordered}
+        if any(counts.values()):
+            st.altair_chart(
+                alt.Chart(alt.Data(values=[{"Stage":label[k],"Processes":counts[k],
+                                            "Order":i}
+                                           for i,k in enumerate(ordered)]))
+                  .mark_bar(cornerRadiusEnd=3)
+                  .encode(x=alt.X("Processes:Q",title="Recorded active/reviewable processes",
+                                  axis=alt.Axis(tickMinStep=1)),
+                          y=alt.Y("Stage:N",sort=[label[k] for k in ordered],title=None),
+                          tooltip=["Stage:N","Processes:Q"]).properties(height=240),
+                width="stretch",
+            )
+        else:
+            st.info("No supported current-stage distribution available.")
+        st.caption(
+            "Stage counts represent mutually exclusive latest recorded stages, "
+            "not funnel conversions. Some processes are stale or provisionally "
+            "active; status is not continuously synchronized with employers."
+        )
+    elif focus=="trends":
+        st.subheader("Weekly activity and directional movement")
+        weeks=report.get("weekly") or []
+        if weeks:
+            points=[{"Week":w["week"],"Event":name,"Count":_n(w.get(key))}
+                    for w in weeks
+                    for key,name in (("applications","Applications"),
+                                     ("responses","Responses"),
+                                     ("interviews","Completed interviews"),
+                                     ("rejections","Negative decisions"))]
+            plot=alt.Chart(alt.Data(values=points)).mark_line(point=True).encode(
+                x=alt.X("Week:T",title=None),
+                y=alt.Y("Count:Q",title="Dated event count",axis=alt.Axis(tickMinStep=1)),
+                color="Event:N",tooltip=["Week:T","Event:N","Count:Q"],
+            ).properties(height=310)
+            st.altair_chart(plot,width="stretch")
+        else:
+            st.info("No weekly trend observations are available.")
+        if int(period)<30:
+            st.caption(
+                "Short windows do not contain enough comparable weeks to infer "
+                "progress. Select 90 or 365 days for a more meaningful trend."
+            )
+    elif focus=="portfolio":
+        # Statistical screening always uses historical outcomes, irrespective
+        # of the current activity reporting selector (even Today).
+        try:
+            history=_job_summary(365)
+        except (RuntimeError,ValueError,PermissionError):
+            history=report if int(period)>=365 else {"daily":[]}
+        _portfolio_job_relationships(history)
+    elif focus=="market":
+        st.subheader("Market ↔ recruitment relationships")
+        try:
+            from page_public_market_restored import _load_public_market
+            from job_market_correlations import analyze_market
+            from page_job_market_insights import _relationship_screen
+            market,jobs,portfolio=_load_public_market()
+            model=analyze_market(
+                market.get("history") or [],[],portfolio,
+                datetime.now(ZoneInfo("Europe/Stockholm")).date(),
+                public_job_summary=jobs,
+            )
+            _relationship_screen(model,compact=True)
+        except (RuntimeError,ValueError,PermissionError,TypeError,KeyError):
+            st.warning("Live market relationships are temporarily unavailable.")
+        if st.button("Open full Swedish Market dashboard",key="job_market_link"):
+            st.session_state["careersite_analytics_view"]="market"
+            st.query_params["view"]="market"
+            st.rerun()
+    else:
+        st.subheader("Evidence quality and privacy")
+        st.write(
+            "The canonical job-search table is event-based. Event counts use "
+            "primary records and deduplicate each employer–role process within "
+            "each date. Applications, conversations and interviews are different "
+            "events; their headline totals are not a common application cohort."
+        )
+        st.write(
+            "The public dashboard contains no individual employers, recruiter "
+            "contacts, case notes, follow-up tasks, source workbooks or employer "
+            "links. The detailed process tables, decisions and individualized "
+            "predictor remain in the authenticated Admin/CMS owner workspace."
+        )
+        st.caption(f"Reporting through {report.get('through') or 'the latest available date'} "
+                   f"· {report.get('method') or 'deduplicated evidence'}.")
+
+    st.divider()
+    st.markdown("**Job predictions**")
     st.caption(
         "The Hiring Predictor is in its own Job predictions section. "
-        "Its scenario uses the full dated history, not only the selected 7- or 30-day report."
+        "It uses historical evidence independently of this reporting window."
     )
     if st.button("Open Job predictions",key="public_jobs_open_predictions"):
-        st.session_state["careersite_analytics_view"] = "predictions"
-        st.query_params["view"] = "predictions"
+        st.session_state["careersite_analytics_view"]="predictions"
+        st.query_params["view"]="predictions"
         st.rerun()
-    st.caption(
-        "Company names, contacts, follow-up tasks, event notes, imported "
-        "documents and detailed evidence downloads remain private."
-    )
 
 
 @st.fragment(run_every="15m")

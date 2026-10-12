@@ -24,7 +24,7 @@ class HomeGridLayoutTests(unittest.TestCase):
         cases = home.split('<p class="eyebrow">Selected experience</p>', 1)[1]
         cases = cases.split('{framework_teaser()}', 1)[0]
         self.assertIn(
-            'grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px',
+            '<div class="thoughts home-case-grid">',
             cases,
         )
         self.assertEqual(cases.count('<article class="card">'), 3)

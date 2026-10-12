@@ -273,9 +273,10 @@ deduplicated daily/weekly application, interaction, interview and decision
 counts, plus aggregate portfolio/job correlations. Public Swedish market
 signals include source citations. Individual employers, recruiter names,
 correspondence, imported source records, action queues and other private
-job-search evidence are **not** exposed by these reports. The historical
-owner-only drilldown code remains internal and is no longer routed from
-Analytics.
+job-search evidence are **not** exposed by these reports. The detailed employer-level job-search dashboards and market
+interpretations remain available inside the **authenticated Admin/CMS owner
+workspace**, under the "Detailed job analytics", "Hiring market" and
+"Decision overview" sections. They are no longer routed from public Analytics.
 
 **Security boundary:** Only explicitly allowlisted aggregate Supabase RPCs
 are callable as `anon`. Anonymous visitors are not granted SELECT access

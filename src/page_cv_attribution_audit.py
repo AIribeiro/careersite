@@ -7,7 +7,7 @@ from urllib import error, request
 import streamlit as st
 
 from site_analytics import ANALYTICS_URL
-from site_analytics_owner import owner_rpc_headers
+from site_analytics_public import public_analytics_rpc_headers
 
 
 def fetch_cv_attribution_audit(window: str) -> dict:
@@ -23,7 +23,7 @@ def fetch_cv_attribution_audit(window: str) -> dict:
         f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/careersite_cv_attribution_audit_v1",
         data=json.dumps(payload).encode("utf-8"),
         method="POST",
-        headers=owner_rpc_headers(),
+        headers=public_analytics_rpc_headers(),
     )
     try:
         with request.urlopen(req,timeout=20) as response:

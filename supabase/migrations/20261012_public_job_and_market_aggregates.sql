@@ -73,15 +73,21 @@ AS $fn$
   )
   FROM (
     SELECT DISTINCT ON (indicator_key)
-      indicator_key,indicator_name,observation_date,period_label,
-      region,sector,metric_value,metric_unit,change_value,
-      signal_score,confidence_score,insight_summary,
-      source_organization,source_url
+      indicator_key,indicator_name,observation_date,period_start,period_end,period_label,
+      frequency,region,sector,role_family,
+      metric_value,metric_value_text,metric_unit,change_value,
+      signal_score,confidence_score,relevance_score,
+      is_leading_indicator,expected_lag_days,
+      insight_summary,job_search_implication,
+      source_organization,source_url,published_at,first_seen_at,valid_until,is_current
     FROM public.job_market_insights
     WHERE coalesce(is_current,true)
       AND indicator_key IS NOT NULL
       AND observation_date IS NOT NULL
-    ORDER BY indicator_key,observation_date DESC
+      AND observation_date <= (now() AT TIME ZONE 'Europe/Stockholm')::date
+    ORDER BY indicator_key,observation_date DESC,
+             coalesce(last_confirmed_at,updated_at) DESC NULLS LAST,
+             updated_at DESC NULLS LAST,id DESC
     LIMIT 200
   ) x;
 $fn$;

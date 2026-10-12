@@ -26,6 +26,20 @@ AGGREGATE={
         {"stage":"conversation","age_month_index":1,"stage_weight":.35,"n":3},
         {"stage":"application","age_month_index":0,"stage_weight":1.0,"n":6},
     ],
+    "strategy_context":{
+        "records_used":12,
+        "critical_records":6,
+        "high_records":6,
+        "features":{
+            "conversion_funnel_focus":True,
+            "human_access_priority":True,
+            "role_positioning_calibrated":True,
+            "seniority_calibrated":True,
+            "interview_compression_risk_tracked":True,
+            "evidence_quality_control":True,
+            "targeted_application_strategy":True,
+        },
+    },
 }
 
 
@@ -57,6 +71,10 @@ class PublicHiringPredictionTests(unittest.TestCase):
         self.assertEqual(len(result["curve"]),53)
         self.assertEqual(result["market_effect"],0.0)
         self.assertEqual(result["portfolio_effect"],0.0)
+        self.assertEqual(result["strategy_effect"],0.0)
+        self.assertEqual(result["strategy_context"]["records_used"],12)
+        self.assertTrue(result["strategy_context"]["features"]["conversion_funnel_focus"])
+        self.assertTrue(result["strategy_context"]["features"]["human_access_priority"])
         import json
         returned=json.dumps(result)
         self.assertNotIn("employer",returned)

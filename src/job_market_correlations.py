@@ -96,6 +96,38 @@ def _full_job_months(jobs: list[dict], today: date) -> tuple[dict[date,dict], li
     return by_month, all_months
 
 
+def _full_job_months_public(
+    report: dict, today: date
+) -> tuple[dict[date,dict], list[date]]:
+    """Rebuild calendar outcomes from safe, pre-deduplicated daily aggregates.
+
+    No synthetic candidate records, fake employers or process identities.
+    As with owner data, the earliest partial import month and current incomplete
+    month are excluded. A missing observation is not an individual rejection.
+    """
+    records = []
+    for row in (report or {}).get("daily") or []:
+        d = day(row.get("d"))
+        if d is not None and d < today:
+            records.append((d,row))
+    if not records:
+        return {}, []
+    first = min(d for d,_ in records)
+    month = _next_month(_month(first))
+    end = _month(today)
+    months = []
+    while month < end:
+        months.append(month)
+        month = _next_month(month)
+    grouped = {m:{key:0 for key in OUTCOMES} for m in months}
+    for d,row in records:
+        if _month(d) not in grouped:
+            continue
+        for key in ("applications","responses","interviews","rejections"):
+            grouped[_month(d)][key] += max(0,int(row.get(key) or 0))
+    return grouped,months
+
+
 def _add_portfolio(monthly: dict[date,dict], site_payload: dict | None) -> dict:
     if not site_payload:
         return {"first": None, "end": None, "complete_months": 0, "complete_days": 0}
@@ -176,12 +208,16 @@ def _classify(row: dict) -> str:
 
 
 def analyze_market(rows: list[dict], jobs: list[dict], site_payload: dict | None,
-                   today: date | None = None) -> dict:
+                   today: date | None = None, *,
+                   public_job_summary: dict | None = None) -> dict:
     today = today or date.today()
     groups = _deduplicate_market(rows, today)
     latest = [g[-1] for g in groups.values() if g]
     latest.sort(key=lambda r: (_num(r.get("relevance_score")) or 0), reverse=True)
-    monthly, complete_months = _full_job_months(jobs, today)
+    monthly, complete_months = (
+        _full_job_months_public(public_job_summary, today)
+        if public_job_summary is not None else _full_job_months(jobs,today)
+    )
     portfolio = _add_portfolio(monthly, site_payload)
     trends = []
     for series, history in groups.items():
@@ -212,6 +248,11 @@ def analyze_market(rows: list[dict], jobs: list[dict], site_payload: dict | None
             for released, val in available:
                 releases[released] = val
             for outcome in OUTCOMES:
+                # The public reporting RPC deliberately does not expose
+                # employer-level progression evidence. Do not silently
+                # interpret an unavailable measure as a zero time series.
+                if public_job_summary is not None and outcome == "progression":
+                    continue
                 if outcome.startswith("portfolio_") and portfolio["complete_months"] == 0:
                     continue
                 for lag in LAGS:

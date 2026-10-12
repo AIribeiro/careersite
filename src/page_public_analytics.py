@@ -36,56 +36,189 @@ def _market_summary() -> dict:
     return fetch_public_analytics_rpc("careersite_public_market_summary_v1")
 
 
+def _navigate_public_analytics(view: str) -> None:
+    if view not in ("portfolio","jobs","predictions","market"):
+        return
+    st.session_state["careersite_analytics_view"]=view
+    st.query_params["view"]=view
+    st.rerun()
+
+
 @st.fragment(run_every="10m")
 def render_public_analytics_overview() -> None:
     st.title("Analytics overview")
-    st.caption("Open, read-only evidence about portfolio activity, recruitment progress and Swedish hiring conditions.")
-    try:
-        hiring = _fetch_hiring_intelligence("30d")
-        jobs = _job_summary()
-        market = _market_summary()
-    except (RuntimeError,ValueError,PermissionError):
-        st.warning("The public analytics summaries are temporarily unavailable.")
-        return
-    q = hiring.get("quality_summary") or {}
-    totals = jobs.get("totals") or {}
-    signals = market.get("signals") or []
-    a,b,c,d = st.columns(4)
-    a.metric("Qualified portfolio sessions · 30d", _n(q.get("analysis_eligible_sessions")))
-    b.metric("Dated applications · 365d", _n(totals.get("applications")))
-    c.metric("Inbound interactions · 365d", _n(totals.get("responses")))
-    d.metric("Completed interviews · 365d", _n(totals.get("interviews")))
     st.caption(
-        "A session is not a unique visitor; job-search measures are dated, "
-        "deduplicated employer-and-role events, not necessarily independent "
-        "hiring processes. No recruiter, employer or private correspondence is published."
+        "Decision overview · recruitment progress, portfolio attention, "
+        "hiring predictions and Swedish labour-market evidence in one place."
+    )
+    now=datetime.now(ZoneInfo("Europe/Stockholm"))
+    results={}
+    unavailable=[]
+    sources={
+        "hiring":lambda:_fetch_hiring_intelligence("30d"),
+        "jobs":lambda:_job_summary(365),
+        "market":_market_summary,
+        "forecast":lambda:fetch_public_analytics_rpc("careersite_public_hiring_inputs_v1"),
+    }
+    for name,loader in sources.items():
+        try:
+            results[name]=loader()
+        except (RuntimeError,ValueError,PermissionError,TimeoutError):
+            unavailable.append(name)
+    st.caption(
+        f"Checked {now:%d %b %Y, %H:%M} Stockholm · "
+        "automatic read-only refresh every 10 minutes while this view is open."
+    )
+    if unavailable:
+        st.warning(
+            "Some evidence is temporarily unavailable: "+
+            ", ".join(unavailable)+". The remaining sections stay usable."
+        )
+    hiring=results.get("hiring") or {}
+    jobs=results.get("jobs") or {}
+    market=results.get("market") or {}
+    overview=(jobs.get("totals") or {})
+    quality=(hiring.get("quality_summary") or {})
+    metrics=st.columns(4)
+    metrics[0].metric("Qualified portfolio sessions · 30d",
+                      _n(quality.get("analysis_eligible_sessions")))
+    metrics[1].metric("Applications · dated history",_n(overview.get("applications")))
+    metrics[2].metric("Employer conversations · dated history",_n(overview.get("responses")))
+    metrics[3].metric("Completed interviews · dated history",_n(overview.get("interviews")))
+    st.caption(
+        "Job counts are distinct dated process events, not a cohort funnel "
+        "or offer probabilities. Session totals do not identify people."
     )
 
-    st.subheader("Recruitment activity")
-    rows=jobs.get("weekly") or []
-    if rows:
-        chart_rows=[{"Week":r["week"],"Stage":stage,
-                     "Events":_n(r.get(key))}
-                    for r in rows
-                    for key,stage in (("applications","Applications"),
-                                      ("responses","Inbound / two-way"),
-                                      ("interviews","Interviews"))]
-        chart=(alt.Chart(alt.Data(values=chart_rows)).mark_line(point=True)
-             .encode(x=alt.X("Week:T",title="Week"),
-                     y=alt.Y("Events:Q",title="Recorded events",axis=alt.Axis(tickMinStep=1)),
-                     color="Stage:N",tooltip=["Week:T","Stage:N","Events:Q"])
-             .properties(height=280))
-        st.altair_chart(chart,width="stretch")
-    st.subheader("External market context")
+    st.divider()
+    st.subheader("Hiring predictor")
+    forecast=results.get("forecast")
+    if forecast:
+        try:
+            from public_hiring_forecast import forecast_public_hiring
+            from page_public_predictions import _week
+            # Overview omits optional data sources rather than silently
+            # inventing an employer interaction or a market signal.
+            projection=forecast_public_hiring(
+                forecast,None,market.get("signals") or [],
+            )
+            if projection["status"]=="scenario":
+                offer=(projection.get("windows",{}).get("offers") or [None])[0]
+                start=(projection.get("windows",{}).get("starts") or [None])[0]
+                a,b=st.columns(2)
+                a.metric("Leading offer week",_week(offer))
+                b.metric("Leading potential start week",_week(start))
+                st.caption(
+                    "These dates are scenario planning periods, not guaranteed "
+                    "interviews, offers or employment starts."
+                )
+            else:
+                st.info("A prediction is not presently supported by the recorded evidence.")
+        except (ValueError,TypeError,KeyError,RuntimeError):
+            st.warning("The hiring scenario could not be recalculated.")
+    else:
+        st.info("Hiring scenario inputs are temporarily unavailable.")
+    if st.button("Explore Job predictions",key="public_overview_predictions"):
+        _navigate_public_analytics("predictions")
+
+    st.divider()
+    st.subheader("Where your search stands")
+    if jobs:
+        dated=[]
+        for row in jobs.get("daily") or []:
+            try:
+                d=date.fromisoformat(str(row["d"]))
+            except (KeyError,ValueError,TypeError):
+                continue
+            if d<=now.date():
+                dated.append((d,row))
+        recent=[r for d,r in dated if 0 <=(now.date()-d).days <28]
+        prior=[r for d,r in dated if 28 <=(now.date()-d).days <56]
+        a,b,c=st.columns(3)
+        for column,key,label in (
+            (a,"applications","Applications · last 28 days"),
+            (b,"responses","Responses · last 28 days"),
+            (c,"interviews","Interviews · last 28 days"),
+        ):
+            new=sum(_n(x.get(key)) for x in recent)
+            old=sum(_n(x.get(key)) for x in prior)
+            column.metric(label,new,delta=f"{new-old:+d} vs prior 28d",
+                          delta_color="off")
+        if sum(_n(x.get("applications")) for x in recent) > sum(
+            _n(x.get("applications")) for x in prior
+        ) and sum(_n(x.get("responses")) for x in recent) <= sum(
+            _n(x.get("responses")) for x in prior
+        ):
+            st.info(
+                "Recorded applications increased without an accompanying rise "
+                "in inbound or two-way contacts. Review targeting and response "
+                "latency rather than assuming greater volume means progress."
+            )
+        st.caption(
+            "Dated recruitment events reflect recorded evidence, not live "
+            "employer ATS statuses. Individual follow-ups remain private."
+        )
+    else:
+        st.caption("Public recruitment summary is temporarily unavailable.")
+    if st.button("Explore recruitment funnel and trends",key="public_overview_jobs"):
+        _navigate_public_analytics("jobs")
+
+    st.divider()
+    st.subheader("Portfolio contribution")
+    if hiring:
+        verified=_n(quality.get("evidence_verified_sessions"))
+        qualified=_n(quality.get("analysis_eligible_sessions"))
+        intent=_n(quality.get("hiring_intent_sessions"))
+        a,b,c=st.columns(3)
+        a.metric("Qualified visitor sessions",qualified)
+        b.metric("Evidence-verified sessions",verified,
+                 f"{verified/qualified:.0%} of qualified" if qualified else None,
+                 delta_color="off")
+        c.metric("Hiring-intent session signals",intent,
+                 f"{intent/qualified:.0%} of qualified" if qualified else None,
+                 delta_color="off")
+        st.caption(
+            "Portfolio behavior indicates attention, not a confirmed employer "
+            "or recruiter identity. Hiring intent is an on-site event proxy."
+        )
+    else:
+        st.caption("Portfolio behavior metrics are temporarily unavailable.")
+    if st.button("Explore portfolio performance",key="public_overview_portfolio"):
+        _navigate_public_analytics("portfolio")
+
+    st.divider()
+    st.subheader("What the Swedish market is telling you")
+    signals=market.get("signals") or []
     if signals:
-        for row in signals[:5]:
-            name = row.get("indicator_name") or row.get("indicator_key") or "Market signal"
-            value = row.get("metric_value")
-            description = row.get("insight_summary") or "No interpretation recorded."
-            st.markdown(f"**{name}** — {value if value is not None else 'not quantified'}"
-                        f" {row.get('metric_unit') or ''}")
-            st.caption(str(description)[:280])
-    st.caption("Select the Portfolio, Job search and Swedish market sections for detailed evidence.")
+        from page_job_market_insights import _latest_by_indicator, _readouts, _format_value
+        latest=_latest_by_indicator(signals)
+        highlights=[latest[x] for x in (
+            "employment_outlook_net_vgr",
+            "employment_outlook_it_tech",
+            "employment_outlook_services_consulting",
+        ) if x in latest]
+        if highlights:
+            columns=st.columns(min(3,len(highlights)))
+            for col,entry in zip(columns,highlights):
+                col.metric(entry.get("indicator_name") or "Employment outlook",
+                           _format_value(entry),
+                           help=f"Published source observation: {entry.get('observation_date')}. "
+                                "Survey outlook is not a personal probability.")
+        for label,statement in _readouts(latest)[:2]:
+            st.markdown(f"**{label}** — {statement}")
+        if not highlights:
+            st.caption(
+                "Latest market observations are available, but there are no "
+                "matching regional outlook snapshots in this release."
+            )
+    else:
+        st.caption("External market observations are temporarily unavailable.")
+    if st.button("Explore complete Swedish market history",key="public_overview_market"):
+        _navigate_public_analytics("market")
+    st.caption(
+        "No causal relationship between anonymous visits and recruitment "
+        "outcomes is assumed. Detailed job processes remain private."
+    )
 
 
 def _portfolio_job_relationships(job_report: dict) -> None:

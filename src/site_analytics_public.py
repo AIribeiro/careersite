@@ -37,4 +37,25 @@ def fetch_public_analytics_rpc(name: str, payload: dict | None = None) -> dict:
         raise RuntimeError(f"{name} is temporarily unavailable.") from exc
     if not isinstance(result,dict):
         raise RuntimeError("Unexpected anonymous reporting response.")
+    if name == "careersite_public_job_summary_v1":
+        # Both Swedish Market correlations and Job Search charts require
+        # date+metric OBJECTS. An earlier SQL alias collision returned date
+        # strings and crashed both dashboards.
+        required=("applications","responses","interviews","rejections")
+        for grain,date_key in (("daily","d"),("weekly","week")):
+            rows=result.get(grain)
+            if not isinstance(rows,list) or any(
+                not isinstance(row,dict)
+                or not isinstance(row.get(date_key),str)
+                or any(
+                    not isinstance(row.get(metric),(int,float))
+                    or isinstance(row.get(metric),bool)
+                    for metric in required
+                )
+                for row in rows
+            ):
+                raise RuntimeError(
+                    f"Invalid public job-search {grain} response schema. "
+                    "The source report is temporarily unavailable."
+                )
     return result

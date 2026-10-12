@@ -105,6 +105,20 @@ def render_public_hiring_predictions() -> None:
     m1.metric("Future application pace assumed",f"{result['weekly_application_pace']:.1f}/week")
     m2.metric("Portfolio scenario contribution",f"{result['portfolio_effect']:+.1%}")
     m3.metric("Swedish market contribution",f"{result['market_effect']:+.1%}")
+    market_context=result.get("market_context") or {}
+    nowcast=market_context.get("nowcast") or {}
+    if nowcast.get("components"):
+        st.caption(
+            f"Current-month JobTech nowcast: {nowcast.get('effect',0):+.1%}. "
+            "Partial-month AI/Data leadership ad pace is compared with the "
+            "previous completed month and damped for sample size and month completeness."
+        )
+    corroboration=float(market_context.get("corroboration_multiplier") or 1.0)
+    if corroboration>1.001:
+        st.caption(
+            f"Cross-signal confirmation: ×{corroboration:.2f}, still bounded by "
+            "the Swedish-market cap."
+        )
     strategy=result.get("strategy_context") or {}
     if strategy.get("records_used"):
         st.caption(

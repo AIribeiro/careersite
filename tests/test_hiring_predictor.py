@@ -363,6 +363,62 @@ class HiringPredictorTests(unittest.TestCase):
         self.assertAlmostEqual(market_adjustment(doubled, TODAY)["effect"],
                                market_adjustment(upbeat, TODAY)["effect"])
 
+
+    def test_market_reactivity_nowcasts_current_month_jobtech_demand(self):
+        from hiring_forecast_signals import market_adjustment
+        rows = [
+            {
+                "indicator_key":"jobtech_tier_a_ai_leadership_ads_mtd_v1",
+                "observation_date":"2026-10-09","first_seen_at":"2026-10-09",
+                "metric_value":9,"confidence_score":90,"relevance_score":100,
+                "is_current":True,
+            },
+            {
+                "indicator_key":"jobtech_tier_a_ai_leadership_ads_v1",
+                "observation_date":"2026-09-30","first_seen_at":"2026-10-01",
+                "metric_value":18,"confidence_score":90,"relevance_score":100,
+                "is_current":True,
+            },
+            {
+                "indicator_key":"jobtech_high_signal_target_ads_mtd_v1",
+                "observation_date":"2026-10-09","first_seen_at":"2026-10-09",
+                "metric_value":12,"confidence_score":90,"relevance_score":100,
+                "is_current":True,
+            },
+            {
+                "indicator_key":"jobtech_high_signal_target_ads_v1",
+                "observation_date":"2026-09-30","first_seen_at":"2026-10-01",
+                "metric_value":19,"confidence_score":90,"relevance_score":100,
+                "is_current":True,
+            },
+        ]
+        result = market_adjustment({"latest":rows}, TODAY)
+        self.assertGreater(result["nowcast"]["effect"], 0)
+        self.assertEqual(result["nowcast"]["status"],
+                         "Active current-month JobTech nowcast")
+        self.assertLessEqual(abs(result["effect"]), result["cap"])
+
+    def test_fresh_leading_market_signal_counts_more_than_stale_equivalent(self):
+        from hiring_forecast_signals import market_adjustment
+        def signal(published):
+            return {
+                "indicator_key":"employment_expectations_3m",
+                "indicator_name":"Expected employment",
+                "observation_date":"2026-09-30",
+                "published_at":published,
+                "signal_score":0.7,
+                "confidence_score":95,
+                "relevance_score":95,
+                "is_leading_indicator":True,
+                "expected_lag_days":30,
+                "role_family":"enterprise_ai_data_leadership",
+                "is_current":True,
+            }
+        fresh = market_adjustment({"latest":[signal("2026-10-08")]}, TODAY)
+        stale = market_adjustment({"latest":[signal("2026-07-01")]}, TODAY)
+        self.assertGreater(fresh["effect"], stale["effect"])
+
+
     def test_market_positive_or_negative_moves_curve_in_correct_direction(self):
         jobs = [event(n, days_ago=(n * 3) % 52 + 1) for n in range(1, 37)]
         base = forecast_hiring(jobs, TODAY)

@@ -9,6 +9,7 @@ from page_analytics import (
 from page_article_analytics import render_article_analytics, render_reader_sources
 from page_content_intelligence import render_content_intelligence
 from page_weekly_ai_analytics import render_weekly_ai_analytics
+from page_public_predictions import render_public_hiring_predictions
 from page_public_analytics import (
     render_public_analytics_overview, render_public_job_search,
     render_public_swedish_market,
@@ -19,6 +20,7 @@ _VIEWS = {
     "overview": "Overview",
     "portfolio": "Portfolio",
     "jobs": "Job search",
+    "predictions": "Job predictions",
     "market": "Swedish market",
 }
 _VIEW_STATE_KEY = "careersite_analytics_view"
@@ -66,7 +68,7 @@ def render_analytics_dashboard() -> None:
             st.query_params.clear()
             st.query_params["page"] = "home"
             st.rerun()
-    st.caption("Overview → direction and actions  ·  Portfolio → reach and behavior  ·  Job search → conversion and pipeline  ·  Market → external context")
+    st.caption("Overview → key indicators · Portfolio → audience and content · Job search → activity · Job predictions → future scenarios · Market → conditions")
     st.divider()
 
     if section == "overview":
@@ -77,6 +79,9 @@ def render_analytics_dashboard() -> None:
         return
     if section == "market":
         render_public_swedish_market()
+        return
+    if section == "predictions":
+        render_public_hiring_predictions()
         return
 
     st.title("Portfolio performance")

@@ -60,5 +60,13 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .leadership-graphic2 .lv-tagline{margin-top:8px;padding-top:14px;font-size:clamp(9px,2.7vw,11px);line-height:1.45;letter-spacing:.08em}
 }
 
+
+/* Home: balance three evidence cards with authentic high-resolution photography. */
+.site .home-focus-grid,.site .home-case-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:stretch}
+.site .home-photo{position:relative;margin:0;min-height:330px;overflow:hidden;background:#e9e2d6;border:1px solid var(--line)}
+.site .home-photo img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%}
+.site .home-photo--workshop img{object-position:85% center}
+.site .home-photo figcaption{position:absolute;left:0;right:0;bottom:0;padding:36px 20px 17px;background:linear-gradient(0deg,rgba(11,18,32,.82),rgba(11,18,32,0));color:#fff;font-size:11px;font-weight:750;line-height:1.45;letter-spacing:.025em;text-shadow:0 1px 2px rgba(0,0,0,.18)}
+@media(max-width:700px){.site .home-focus-grid,.site .home-case-grid{grid-template-columns:minmax(0,1fr)}.site .home-photo{height:330px;min-height:0}}
 </style>
 """

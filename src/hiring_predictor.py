@@ -21,7 +21,7 @@ from job_search_metrics import (
 from hiring_forecast_signals import forecast_drivers
 from hiring_forecast_windows import peak_weeks, reliability_index
 
-MODEL_VERSION = "hiring-beta-3.3"
+MODEL_VERSION = "hiring-beta-3.4"
 HORIZON_DAYS = 364
 SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5}
 # Purely illustrative offer propensity *given each hiring stage*, NOT observed

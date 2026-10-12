@@ -187,6 +187,16 @@ def render_public_job_search() -> None:
         ).properties(height=330)
         st.altair_chart(plot,width="stretch")
     _portfolio_job_relationships(report)
+    st.divider()
+    st.markdown("**Where are the job predictions?**")
+    st.caption(
+        "The Hiring Predictor is in its own Job predictions section. "
+        "Its scenario uses the full dated history, not only the selected 7- or 30-day report."
+    )
+    if st.button("Open Job predictions",key="public_jobs_open_predictions"):
+        st.session_state["careersite_analytics_view"] = "predictions"
+        st.query_params["view"] = "predictions"
+        st.rerun()
     st.caption(
         "Company names, contacts, follow-up tasks, event notes, imported "
         "documents and detailed evidence downloads remain private."

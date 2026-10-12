@@ -65,14 +65,14 @@ class IntegrityTests(unittest.TestCase):
         response=MagicMock()
         response.__enter__.return_value=response
         response.read.return_value=json.dumps(EXAMPLE).encode()
-        with patch("page_attribution_integrity.owner_rpc_headers",return_value={
-            "Authorization":"Bearer owner-test","apikey":"mock",
+        with patch("page_attribution_integrity.public_analytics_rpc_headers",return_value={
+            "apikey":"mock-public-key","apikey":"mock",
         }), patch("page_attribution_integrity.request.urlopen",return_value=response) as opened:
             data=fetch_attribution_integrity("7d")
             self.assertEqual(data["overview"]["content_sessions"],9)
             req=opened.call_args.args[0]
             self.assertEqual(json.loads(req.data),{"p_days":7,"p_window":"days"})
-            self.assertIn("Bearer owner-test",req.headers.values())
+            self.assertNotIn("Authorization",req.headers)
 
     def test_unknown_reporting_window_rejected(self):
         with self.assertRaises(ValueError):

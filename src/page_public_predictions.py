@@ -105,6 +105,13 @@ def render_public_hiring_predictions() -> None:
     m1.metric("Future application pace assumed",f"{result['weekly_application_pace']:.1f}/week")
     m2.metric("Portfolio scenario contribution",f"{result['portfolio_effect']:+.1%}")
     m3.metric("Swedish market contribution",f"{result['market_effect']:+.1%}")
+    strategy=result.get("strategy_context") or {}
+    if strategy.get("records_used"):
+        st.caption(
+            f"Strategy calibration: {strategy['records_used']} current job-search "
+            "strategy records are consumed as qualitative guardrails. They do not "
+            "receive an unvalidated probability multiplier."
+        )
     with st.expander("How this edition differs from the detailed Hiring Predictor"):
         st.write(
             "This is a privacy-preserving approximation of the existing "

@@ -808,6 +808,26 @@ def _dashboard(session: dict) -> None:
             browser_owner_signout()
             return
 
+    workspace = st.segmented_control(
+        "Private owner workspace",
+        options=["CMS","Detailed job analytics","Hiring market","Decision overview"],
+        default="CMS",
+        key="admin_private_workspace",
+        width="stretch",
+    )
+    if workspace == "Detailed job analytics":
+        from page_job_search_analytics import render_job_search_analytics
+        render_job_search_analytics(session)
+        return
+    if workspace == "Hiring market":
+        from page_job_market_insights import render_swedish_job_market
+        render_swedish_job_market(session)
+        return
+    if workspace == "Decision overview":
+        from page_analytics_overview import render_analytics_overview
+        render_analytics_overview(session)
+        return
+
     try:
         articles = admin_list_articles(token)
     except Exception as exc:

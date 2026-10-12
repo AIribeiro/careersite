@@ -87,7 +87,7 @@ def forecast_public_hiring(
             site_effect=portfolio_adjustment(model,None,today)["effect"]
     market_drivers=market_adjustment({"latest":market_signals or []},today)
     market_effect=market_drivers["effect"]
-    opportunity_factor=_bounded(1+site_effect+market_effect,.82,1.24)
+    opportunity_factor=_bounded(1+site_effect+market_effect,.78,1.28)
     curve=[]
     for t in range(0,HORIZON_DAYS+1,7):
         line={"Date":(today+timedelta(days=t)).isoformat(),"Days":t}

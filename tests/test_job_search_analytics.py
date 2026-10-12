@@ -53,18 +53,31 @@ class JobAnalyticsTests(unittest.TestCase):
         r=analyze([event(1,is_active=True,status='Active'),event(2,'2026-09-10',is_closed_or_paused=True,status='Closed')],START,END)
         self.assertEqual(r['processes'][0]['State'],'Closed / paused')
 
-    def test_signed_out_route_never_fetches_private_data(self):
+    def test_public_analytics_renders_without_owner_and_never_fetches_private_rows(self):
         from streamlit.testing.v1 import AppTest
-        with patch('page_job_search_analytics.fetch_job_records') as fetch:
-            at=AppTest.from_string('from page_analytics_v2 import render_analytics_dashboard\nrender_analytics_dashboard()')
-            at.query_params['view']='jobs'
-            at.run(timeout=15)
-            self.assertFalse(at.exception)
-            fetch.assert_not_called()
-            self.assertEqual(at.title[0].value,'Portfolio Analytics')
-            self.assertEqual(len(at.text_input),1)  # Native password fallback remains available.
-            self.assertEqual(len(at.metric),0)
-            self.assertEqual(len(at.metric),0)
+        public_summary={
+            "totals":{"applications":12,"responses":3,"interviews":1,"rejections":0},
+            "weekly":[{"week":"2026-10-05","applications":12,"responses":3,
+                       "interviews":1,"rejections":0}],
+            "daily":[],
+        }
+        with (
+            patch("page_job_search_analytics.fetch_job_records") as private_fetch,
+            patch("page_public_analytics._job_summary",return_value=public_summary),
+            patch("page_public_analytics._portfolio_job_relationships"),
+        ):
+            app=AppTest.from_string(
+                "from page_analytics_v2 import render_analytics_dashboard\n"
+                "render_analytics_dashboard()"
+            )
+            app.query_params["view"]="jobs"
+            app.run(timeout=15)
+            self.assertFalse(app.exception)
+            private_fetch.assert_not_called()
+            self.assertEqual(app.title[0].value,"Job Search Analytics")
+            self.assertEqual(len(app.text_input),0)
+            self.assertEqual(len(app.metric),4)
+
 
     def test_private_report_renders_graphs_and_empty_metrics(self):
         from streamlit.testing.v1 import AppTest

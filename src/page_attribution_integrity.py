@@ -6,7 +6,7 @@ from urllib import error,request
 import streamlit as st
 
 from site_analytics import ANALYTICS_URL
-from site_analytics_owner import owner_rpc_headers
+from site_analytics_public import public_analytics_rpc_headers
 
 
 def fetch_attribution_integrity(window: str) -> dict:
@@ -19,7 +19,7 @@ def fetch_attribution_integrity(window: str) -> dict:
     req=request.Request(
         f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/careersite_attribution_integrity_v1",
         data=json.dumps(args).encode("utf-8"),
-        method="POST",headers=owner_rpc_headers())
+        method="POST",headers=public_analytics_rpc_headers())
     try:
         with request.urlopen(req,timeout=25) as response:
             data=json.load(response)

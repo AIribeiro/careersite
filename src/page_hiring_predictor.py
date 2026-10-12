@@ -197,6 +197,23 @@ def render_hiring_predictor(
             f"{len(supportive)} supportive and {len(adverse)} adverse indicators. "
             "Both affect the model."
         )
+    nowcast = market.get("nowcast") or {}
+    if nowcast.get("components"):
+        direction = "supportive" if nowcast.get("effect",0) > 0 else (
+            "adverse" if nowcast.get("effect",0) < 0 else "neutral"
+        )
+        st.caption(
+            f"**Current-month JobTech nowcast:** {nowcast.get('effect',0):+.1%} "
+            f"({direction}). Uses partial-month target-role ad pace versus the "
+            "previous completed month, with small-sample and month-completion damping."
+        )
+    corroboration = float(market.get("corroboration_multiplier") or 1.0)
+    if corroboration > 1.001:
+        st.caption(
+            f"**Cross-signal confirmation:** ×{corroboration:.2f}. "
+            "Several independent market topics point in the same direction; "
+            "the amplification remains inside the hard market cap."
+        )
     jobtech = market.get("jobtech") or {}
     if (jobtech.get("latest_month") and jobtech.get("families", {}).get("tier_a")
             and jobtech.get("families", {}).get("national")):

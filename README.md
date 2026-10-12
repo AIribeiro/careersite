@@ -270,6 +270,29 @@ The Portfolio reporting window defaults to **Last hour**.
 The Job Search activity selector offers **Today, 7, 30, 90, 180, 365 and
 730 days**, defaulting to 30 days.
 
+**Feature parity after removing the Analytics sign-in:** The public dashboard
+retains the substantive original analyses rather than replacing them with
+static KPI cards:
+
+- **Overview** again combines the hiring predictor, 28-day recruitment
+  momentum, qualified portfolio attention and interpreted Swedish outlooks.
+- **Job search** includes Activity, Funnel & conversion, Time trends,
+  Portfolio correlations, Market relationships and Data quality sections.
+  Source-level recruiter identities and private follow-up lists are not public.
+- **Swedish market** uses a revision-deduplicated, read-only history feed,
+  not a latest-indicator-only projection. It exposes the original
+  **What is changing?**, **What connects to my search?** and
+  **Sources & measurement** views, with genuine independent-source trend
+  charts, market↔recruitment↔portfolio hypothesis screening, and the full
+  referenced source ledger. Correlation tests use monthly *aggregate*
+  recruitment records without manufacturing employer identities. The
+  original methodological guards against spurious relationships remain.
+
+`careersite_public_market_history_v1` projects only sourced external
+indicator fields and explicitly prevents anon access to the underlying
+market table, raw payloads or private application records. Future dashboard
+redesigns should preserve these views and analytical grain.
+
 **Job predictions** reintroduces a public, privacy-preserving version of
 the Hiring Predictor Beta. The server exposes only an anonymized distribution
 of active recruitment stages in 30-day age bands, deduplicated application

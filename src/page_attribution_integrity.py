@@ -187,7 +187,7 @@ def _render_source_charts(channels: list[dict]) -> None:
             tooltip=["Channel:N", "Classification:N",
                      alt.Tooltip("sum(Sessions):Q", title="Sessions", format=",")],
         ).properties(height=max(210, len(order) * 43))
-        st.altair_chart(chart, use_container_width=True)
+        st.altair_chart(chart, width="stretch")
     with right:
         st.caption("Share of sessions meeting V5 quality rules")
         rates = alt.Chart(alt.Data(values=quality_rows)).mark_bar(
@@ -228,7 +228,7 @@ def _render_campaign_chart(campaigns: list[dict]) -> None:
                  alt.Tooltip("Content sessions:Q", format=","),
                  alt.Tooltip("Quality share:Q", format=".1f", title="Share (%)")],
     ).properties(height=max(190, len(displayed) * 37))
-    st.altair_chart(chart, use_container_width=True)
+    st.altair_chart(chart, width="stretch")
 
 
 def _attribution_quality_chart(channels: list[dict]) -> None:
@@ -286,7 +286,7 @@ def _attribution_quality_chart(channels: list[dict]) -> None:
             alt.Tooltip("Share:Q", title="Within-channel share (%)", format=".1f"),
         ],
     ).properties(height=max(235, len(order) * 46))
-    st.altair_chart(chart, use_container_width=True)
+    st.altair_chart(chart, width="stretch")
 
 
 def _attribution_campaign_chart(campaigns: list[dict]) -> None:
@@ -324,7 +324,7 @@ def _attribution_campaign_chart(campaigns: list[dict]) -> None:
             alt.Tooltip("Content sessions:Q", format=","),
         ],
     ).properties(height=max(210, len(rows) * 34))
-    st.altair_chart(chart, use_container_width=True)
+    st.altair_chart(chart, width="stretch")
 
 
 def render_attribution_integrity(window: str) -> None:
@@ -359,8 +359,9 @@ def render_attribution_integrity(window: str) -> None:
         else:
             finding = "Quality-eligible and suspected-automation volumes are similar."
         st.markdown(
-            f"**{finding}** {eligible:,} of {content:,} content sessions "
-            f"({qualified_share:.0f}%) qualify for behavioral analysis, while "
+            f"**Qualified attention:** {eligible:,} of {content:,} content sessions "
+            f"({qualified_share:.0f}%) qualify for behavioral analysis. "
+            f"**Interpretation:** {finding} "
             f"{suspicious:,} ({suspected_share:.0f}%) are classified as suspected "
             "preview or other automation activity. These labels are diagnostic, not verified identities."
         )
@@ -399,15 +400,13 @@ def render_attribution_integrity(window: str) -> None:
     )
 
     with st.expander("Inspect exact counts, attribution labels and counting checks", expanded=False):
-        k1, k2, k3, k4 = st.columns(4)
-        k1.metric("Recorded content sessions", content,
-                  help="Browser-tab sessions with content events; not unique people.")
-        k2.metric("Quality-eligible V5", eligible,
-                  help="Valid content sessions excluding test and suspected automation cohorts.")
-        k3.metric("Suspected preview batches V5", bursts,
-                  help="Independent-session burst heuristic, not confirmed bots.")
-        k4.metric("Legacy / ungraded", _n(o, "legacy_ungraded"),
-                  help="Cannot retroactively assign V5-quality labels.")
+        st.markdown("**Reconciliation snapshot**")
+        st.dataframe([{
+            "Content sessions": content,
+            "Quality-eligible V5": eligible,
+            "Suspected previews V5": bursts,
+            "Legacy / ungraded": _n(o, "legacy_ungraded"),
+        }], hide_index=True, width="stretch")
 
         st.caption(
             f"Also excluded: {_n(o, 'telemetry_only'):,} telemetry-only sessions and "
@@ -473,4 +472,18 @@ def render_attribution_integrity(window: str) -> None:
             "V5-quality tracking cannot be imputed to historic sessions. "
             "Suspicious bursts use coarse temporary technical signatures; no raw IPs, "
             "persistent visitor identifiers or browser signatures are exposed."
+        )
+
+    with st.expander("How to interpret quality classifications", expanded=False):
+        st.markdown(
+            "**Eligible is not a confirmed human visitor.** The quality filter removes "
+            "explicit tests, telemetry-only activity and conservative suspected automation "
+            "patterns. A qualifying session may still be a preview, a candidate, an "
+            "unrelated reader or a recruiter; first-party event data does not identify them."
+        )
+        st.caption(
+            "Browser-tab sessions are not unique people. Campaign/role tags and first-touch "
+            "source classifications are different dimensions of the same events. "
+            "Compare patterns using longer windows rather than inferring employer interest from "
+            "small counts or short-lived spikes."
         )

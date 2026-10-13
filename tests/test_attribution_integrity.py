@@ -8,7 +8,10 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from page_attribution_integrity import fetch_attribution_integrity
+from page_attribution_integrity import (
+    fetch_attribution_integrity, _source_quality_rows,
+    _source_classifications, _campaign_quality_rows,
+)
 
 EXAMPLE={
     "overview":{
@@ -78,15 +81,37 @@ class IntegrityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             fetch_attribution_integrity("unbounded")
 
-    def test_render_exposes_disjoint_counts_without_doublecounting(self):
+    def test_source_quality_breakdown_preserves_exact_denominators(self):
+        rows = _source_quality_rows(EXAMPLE["channels"])
+        self.assertEqual(sum(row["Content sessions"] for row in rows), 9)
+        self.assertEqual(sum(row["Quality-eligible"] for row in rows), 4)
+        unknown = next(row for row in rows if row["Channel"] == "Unattributed / unknown")
+        self.assertEqual(unknown["Suspected"], 2)
+        self.assertAlmostEqual(unknown["Quality share"], 100 / 3)
+
+        classifications = _source_classifications(EXAMPLE["channels"])
+        self.assertEqual(sum(row["Sessions"] for row in classifications), 9)
+        self.assertEqual(sum(row["Sessions"] for row in classifications
+                             if row["Classification"] == "Quality-eligible"), 4)
+        self.assertEqual(sum(row["Sessions"] for row in classifications
+                             if row["Classification"] == "Legacy / ungraded"), 3)
+
+    def test_campaign_cohorts_are_not_added_to_source_cohorts(self):
+        rows = _campaign_quality_rows(EXAMPLE["campaigns"])
+        self.assertEqual(sum(row["Content sessions"] for row in rows), 9)
+        self.assertEqual(sum(row["Quality-eligible"] for row in rows), 4)
+        self.assertEqual(rows[0]["Quality-eligible"], 1)
+
+    def test_render_prioritizes_insights_and_keeps_audit_tables_collapsed(self):
         from streamlit.testing.v1 import AppTest
         program="from page_attribution_integrity import render_attribution_integrity\nrender_attribution_integrity('30d')"
         with patch("page_attribution_integrity.fetch_attribution_integrity",return_value=EXAMPLE):
             app=AppTest.from_string(program).run(timeout=15)
             self.assertFalse(app.exception)
-            self.assertEqual(len(app.metric),4)
-            self.assertEqual(app.metric[0].value,"9")
-            self.assertEqual(app.metric[1].value,"4")
+            self.assertEqual(len(app.metric), 0)
+            self.assertGreaterEqual(len(app.expander), 2)
+            self.assertTrue(any("Qualified attention:" in str(item.value)
+                                for item in app.markdown))
 
 
 if __name__=="__main__":

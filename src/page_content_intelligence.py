@@ -343,6 +343,25 @@ def _render_source_quality(data: dict) -> None:
         st.info("No source activity in this window.")
         return
 
+    substantial = [row for row in visual_rows
+                   if row["Sessions"] >= 5 and row.get("Engaged") is not None]
+    if substantial:
+        leader = max(substantial, key=lambda row: (
+            row.get("Engaged") if row.get("Engaged") is not None else -1,
+            row["Engaged sessions"],
+        ))
+        st.markdown(
+            f"**Observed engagement leader:** {leader['Source / campaign']} has "
+            f"{leader['Engaged']:.0f}% engaged sessions "
+            f"({leader['Engaged sessions']} of {leader['Sessions']}) among cohorts "
+            "with at least five recorded sessions. This shows engagement, not recruiter identity."
+        )
+    else:
+        st.caption(
+            "All source/campaign cohorts have fewer than five sessions; "
+            "comparative conversion claims would be premature."
+        )
+
     bubble_rows = [row for row in visual_rows if row.get("Engaged") is not None]
     if bubble_rows:
         bubble = (
@@ -1529,17 +1548,6 @@ def render_content_intelligence(kind: str, window: str) -> None:
     visits = _count(quality.get(prefix + "_views"))
     sessions = _count(quality.get(prefix + "_sessions"))
     contact_sessions = _count(quality.get("contact_sessions"))
-    a, b, c = st.columns(3)
-    a.metric("Article reading views" if kind == "article" else "Portfolio page views", visits,
-             help="Counted views; repeat viewing can increase this number.")
-    b.metric("Reader sessions" if kind == "article" else "Page sessions", sessions,
-             help="Anonymous browser sessions, not identified people.")
-    c.metric("Whole-site contact intent", contact_sessions,
-             help="Sessions showing an email or LinkedIn contact action anywhere on the site. "
-                  "Not attributed to an article or verified as a hiring enquiry.")
-    st.caption("Views measure exposure, sessions measure recorded browsing, and contact intent is only an "
-               "on-site behavioral signal. Do not treat them as unique recruiters or completed conversations.")
-
     if kind == "page" and quality.get("legacy_thinking_views"):
         st.caption(f"{quality['legacy_thinking_views']} historical Thinking views were not precisely "
                    "classified. They remain available in legacy reporting.")
@@ -1562,6 +1570,19 @@ def render_content_intelligence(kind: str, window: str) -> None:
         )
     else:
         st.info("No classified content views are available in this reporting period.")
+
+    with st.expander("Exact traffic totals and interpretation boundaries", expanded=False):
+        a, b, c = st.columns(3)
+        a.metric("Article reading views" if kind == "article" else "Portfolio page views", visits,
+                 help="Counted views; repeat viewing can increase this number.")
+        b.metric("Reader sessions" if kind == "article" else "Page sessions", sessions,
+                 help="Anonymous browser sessions, not identified people.")
+        c.metric("Whole-site contact intent", contact_sessions,
+                 help="Email or LinkedIn actions anywhere on the site; not attributable to a specific article.")
+        st.caption(
+            "Views measure exposure, sessions measure browsing and on-site contact intent "
+            "does not prove a hiring inquiry. None of these totals identifies individual recruiters."
+        )
 
     focus = st.segmented_control(
         "Question to explore",

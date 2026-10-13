@@ -68,7 +68,7 @@ def render_analytics_dashboard() -> None:
             st.query_params.clear()
             st.query_params["page"] = "home"
             st.rerun()
-    st.caption("Overview → key indicators · Portfolio → audience and content · Job search → activity · Job predictions → future scenarios · Market → conditions")
+    st.caption("Start with interpreted findings and visual comparisons. Exact counts and reconciliation checks remain available as drill-downs.")
     st.divider()
 
     if section == "overview":
@@ -97,7 +97,7 @@ def render_analytics_dashboard() -> None:
     window = st.selectbox(
         "Reporting period",
         window_options,
-        index=window_options.index("last_hour"),
+        index=window_options.index("7d"),
         format_func=lambda key: REPORTING_WINDOW_LABELS[key],
         key="careersite_analytics_reporting_window",
         help="Choose a complete enough window for interpretation. Hourly and daily views are primarily operational checks.",

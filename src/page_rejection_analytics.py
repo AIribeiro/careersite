@@ -315,6 +315,24 @@ def render_rejection_analytics(session: dict | None) -> None:
     if unknown > n // 2:
         st.info(f"Most causes remain unknown ({unknown}/{n}). This measures limited employer feedback, not demonstrated weaknesses in your profile.")
 
+    try:
+        events = fetch_job_records(str(valid["access_token"]))
+        momentum30 = _momentum(events, today, 30)
+        momentum90 = _momentum(events, today, 90)
+    except (RuntimeError, TimeoutError, ValueError):
+        events = []
+        momentum30 = momentum90 = None
+    st.subheader("Are credible employer conversations still happening?")
+    if momentum90 is not None:
+        st.write(
+            f"Last 30 days: **{momentum30['qualified']}** documented employer-role groups with "
+            f"human recruiter or interview interaction. Last 90 days: **{momentum90['qualified']}**. "
+            "These are observed engagement signals—not current open opportunities, "
+            "offer probabilities or distinct requisition counts."
+        )
+    else:
+        st.caption("Current momentum cannot be assessed until operational job-search events are available.")
+
     overview, reasons, stages, evidence = st.tabs(
         ["Decision overview", "Reasons and patterns", "Pipeline and timing", "Evidence and next actions"]
     )
@@ -371,13 +389,7 @@ def render_rejection_analytics(session: dict | None) -> None:
         unknown_stage = stage_counts.get("unknown", 0)
         st.caption(f"{unknown_stage}/{n} stages explicitly unknown. No stage is imputed from rejection wording.")
         st.subheader("Credible opportunity momentum")
-        try:
-            events = fetch_job_records(str(valid["access_token"]))
-            momentum30 = _momentum(events, today, 30)
-            momentum90 = _momentum(events, today, 90)
-        except (RuntimeError, ValueError, TimeoutError):
-            events = []
-            momentum30 = momentum90 = None
+        if momentum30 is None or momentum90 is None:
             st.warning("Operational application events unavailable. Momentum, conversion and latency are not estimated.")
         if momentum30 and momentum90:
             a,b,c = st.columns(3)
@@ -402,12 +414,7 @@ def render_rejection_analytics(session: dict | None) -> None:
                                      "No direct mailbox reference")):
             col.metric(label, f"{q[label]}/{n}")
         st.caption("Partially matched JDs cannot substantiate a skills-gap claim. Mailbox evidence stays owner-only.")
-        try:
-            if "events" not in locals():
-                events = fetch_job_records(str(valid["access_token"]))
-            mom = _momentum(events, today, 90)
-        except (RuntimeError, TimeoutError, ValueError):
-            mom = None
+        mom = momentum90
         st.subheader("Recommendations generated from current evidence")
         recs = _recommendations(scoped, today, mom)
         for r in recs:

@@ -35,6 +35,8 @@ class DecisionExperienceTests(unittest.TestCase):
              patch("page_analytics_overview.fetch_job_records",return_value=[]), \
              patch("page_analytics_overview.fetch_market_records",return_value=[]), \
              patch("page_analytics_overview._fetch_rpc",return_value=None), \
+             patch("page_analytics_overview._fetch_owner_portfolio_actions",
+                   return_value={"quality_checked":True}) as owner_actions, \
              patch("page_analytics_overview._fetch_hiring_intelligence",
                    return_value={"quality_summary":{
                        "analysis_eligible_sessions":10,"evidence_verified_sessions":3,
@@ -44,6 +46,30 @@ class DecisionExperienceTests(unittest.TestCase):
             self.assertIn("Decision overview",[x.value for x in page.title])
             self.assertGreaterEqual(len(page.metric),3)
             self.assertEqual(len(page.tabs),0)
+            owner_actions.assert_called_once_with("owner")
+
+    def test_qualified_actions_use_owner_token(self):
+        from page_analytics_overview import _fetch_owner_portfolio_actions
+        from site_cms import _rest_url
+
+        response={"quality_checked":True,"cv_download_sessions":{
+            "recent":2,"previous":1},"contact_click_sessions":{
+            "recent":1,"previous":0}}
+        with patch("page_analytics_overview._request_json",
+                   return_value=response) as rpc:
+            self.assertEqual(_fetch_owner_portfolio_actions("owner-access-token"),response)
+            rpc.assert_called_once_with(
+                "POST",_rest_url("rpc/careersite_hiring_predictor_actions_v1"),
+                token="owner-access-token",payload={},timeout=20,
+            )
+        with patch("page_analytics_overview._request_json") as rpc:
+            with self.assertRaises(ValueError):
+                _fetch_owner_portfolio_actions("")
+            rpc.assert_not_called()
+        with patch("page_analytics_overview._request_json",return_value=[]) as rpc:
+            with self.assertRaises(RuntimeError):
+                _fetch_owner_portfolio_actions("owner-access-token")
+            rpc.assert_called_once()
 
     def test_market_page_does_not_present_single_release_as_time_trend(self):
         from streamlit.testing.v1 import AppTest

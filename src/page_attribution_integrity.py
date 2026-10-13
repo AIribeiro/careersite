@@ -231,11 +231,108 @@ def _render_campaign_chart(campaigns: list[dict]) -> None:
     st.altair_chart(chart, use_container_width=True)
 
 
+def _attribution_quality_chart(channels: list[dict]) -> None:
+    """Compare source quality without treating suspected automation as verified bots."""
+    import altair as alt
+
+    plot = []
+    rank = []
+    palette = {
+        "Quality-eligible": "#517a62",
+        "Suspected previews": "#c56f3d",
+        "Other suspected": "#bd9b7e",
+        "Legacy / ungraded": "#60758a",
+        "Other / unclassified": "#cbc5be",
+    }
+    for item in channels:
+        total = _n(item, "content_sessions")
+        if not total:
+            continue
+        name = str(item.get("channel") or "Unattributed / unknown")
+        buckets = [
+            ("Quality-eligible", _n(item, "quality_eligible")),
+            ("Suspected previews", _n(item, "preview_burst_sessions")),
+            ("Other suspected", _n(item, "other_suspected_automation")),
+            ("Legacy / ungraded", _n(item, "legacy_ungraded")),
+        ]
+        other = max(0, total - sum(count for _, count in buckets))
+        buckets.append(("Other / unclassified", other))
+        rank.append((name, _n(item, "quality_eligible"), total))
+        for label, count in buckets:
+            if count:
+                plot.append({
+                    "Channel": name, "Classification": label, "Sessions": count,
+                    "Share": 100 * count / total,
+                })
+
+    if not plot:
+        st.info("No content-session channel data for this period.")
+        return
+    # Quality-first ordering keeps large suspected-automation cohorts from hiding useful sources.
+    order = [item[0] for item in sorted(rank, key=lambda row: (-row[1], -row[2], row[0]))]
+    chart = alt.Chart(alt.Data(values=plot)).mark_bar(cornerRadiusEnd=3).encode(
+        y=alt.Y("Channel:N", sort=order, title=None),
+        x=alt.X("sum(Sessions):Q", title="Content sessions",
+                axis=alt.Axis(tickMinStep=1)),
+        color=alt.Color(
+            "Classification:N",
+            scale=alt.Scale(domain=list(palette), range=list(palette.values())),
+            legend=alt.Legend(title=None, orient="bottom", columns=2),
+        ),
+        tooltip=[
+            alt.Tooltip("Channel:N"),
+            alt.Tooltip("Classification:N"),
+            alt.Tooltip("Sessions:Q", format=","),
+            alt.Tooltip("Share:Q", title="Within-channel share (%)", format=".1f"),
+        ],
+    ).properties(height=max(235, len(order) * 46))
+    st.altair_chart(chart, use_container_width=True)
+
+
+def _attribution_campaign_chart(campaigns: list[dict]) -> None:
+    """Show qualified campaign cohorts without double-counting parent channels."""
+    import altair as alt
+
+    rows = []
+    for item in campaigns:
+        qualified = _n(item, "quality_eligible")
+        if not qualified:
+            continue
+        rows.append({
+            "Campaign / source": (
+                f"{str(item.get('campaign') or 'untagged')} · "
+                f"{str(item.get('channel') or 'unknown')}"
+            ),
+            "Qualified": qualified,
+            "Content sessions": _n(item, "content_sessions"),
+        })
+    if not rows:
+        st.info("No quality-eligible campaign cohorts in this period.")
+        return
+    rows = sorted(rows, key=lambda row: (-row["Qualified"], row["Campaign / source"]))[:10]
+    order = [row["Campaign / source"] for row in rows]
+    chart = alt.Chart(alt.Data(values=rows)).mark_bar(
+        color="#60758a", cornerRadiusEnd=5
+    ).encode(
+        y=alt.Y("Campaign / source:N", sort=order, title=None,
+                axis=alt.Axis(labelLimit=230)),
+        x=alt.X("Qualified:Q", title="Quality-eligible sessions",
+                axis=alt.Axis(tickMinStep=1)),
+        tooltip=[
+            alt.Tooltip("Campaign / source:N"),
+            alt.Tooltip("Qualified:Q", format=","),
+            alt.Tooltip("Content sessions:Q", format=","),
+        ],
+    ).properties(height=max(210, len(rows) * 34))
+    st.altair_chart(chart, use_container_width=True)
+
+
 def render_attribution_integrity(window: str) -> None:
-    st.subheader("Acquisition quality · all channels")
+    st.subheader("Where meaningful portfolio attention comes from")
     st.caption(
-        "First-touch browser sessions are reconciled once across sources. "
-        "Campaign and role are attributes of these same sessions, not extra visits."
+        "First-touch browser sessions are assigned to one parent channel. "
+        "Quality-eligible is a tracking classification, not a verified person. "
+        "Campaign tags describe the same sessions and are never added to channel totals."
     )
     try:
         data = fetch_attribution_integrity(window)
@@ -243,78 +340,137 @@ def render_attribution_integrity(window: str) -> None:
         st.warning("Cross-channel reconciliation is temporarily unavailable; other analytics remain available.")
         return
 
-    overview = data["overview"]
-    channels = [x for x in (data.get("channels") or []) if _n(x, "recorded_sessions")]
+    o = data["overview"]
+    channels = [item for item in (data.get("channels") or []) if _n(item, "recorded_sessions")]
     campaigns = data.get("campaigns") or []
-    _attribution_readout(overview, channels, campaigns)
-    _render_source_charts(channels)
-    _render_campaign_chart(campaigns)
+    content = _n(o, "content_sessions")
+    eligible = _n(o, "quality_eligible")
+    bursts = _n(o, "suspected_preview_bursts")
+    other_suspected = _n(o, "suspected_automation_other")
+    suspicious = bursts + other_suspected
 
-    # Keep auditability, but make the decision-making content the default view.
-    with st.expander("Inspect exact source and campaign counts", expanded=False):
-        st.markdown("**Reconciled first-touch sources**")
-        source_rows = [{
-            "First-touch channel": p.get("channel"),
-            "Content sessions": _n(p, "content_sessions"),
-            "Quality-eligible": _n(p, "quality_eligible"),
-            "Legacy / ungraded": _n(p, "legacy_ungraded"),
-            "Suspected bursts": _n(p, "preview_burst_sessions"),
-            "Other suspected": _n(p, "other_suspected_automation"),
-            "Navigation views": _n(p, "navigation_page_views"),
-            "Article views": _n(p, "article_views"),
-            "Telemetry only": _n(p, "telemetry_only"),
-        } for p in channels]
-        if source_rows:
-            st.dataframe(source_rows, hide_index=True, width="stretch")
+    if content:
+        qualified_share = 100 * eligible / content
+        suspected_share = 100 * suspicious / content
+        if suspicious > eligible:
+            finding = "Suspected automation currently exceeds quality-eligible attention."
+        elif eligible > suspicious:
+            finding = "Quality-eligible attention exceeds suspected automation."
         else:
-            st.info("No recorded traffic in this reporting window.")
-        st.markdown("**Campaign and role detail**")
+            finding = "Quality-eligible and suspected-automation volumes are similar."
+        st.markdown(
+            f"**{finding}** {eligible:,} of {content:,} content sessions "
+            f"({qualified_share:.0f}%) qualify for behavioral analysis, while "
+            f"{suspicious:,} ({suspected_share:.0f}%) are classified as suspected "
+            "preview or other automation activity. These labels are diagnostic, not verified identities."
+        )
+        named = [
+            item for item in channels
+            if _n(item, "quality_eligible") > 0 and
+            str(item.get("channel") or "").strip().casefold()
+            not in {"unattributed / unknown", "direct/unknown", "direct / unknown"}
+        ]
+        if named:
+            top = max(named, key=lambda item: _n(item, "quality_eligible"))
+            name = str(top.get("channel"))
+            n = _n(top, "quality_eligible")
+            st.caption(
+                f"**Strongest tagged channel by qualified volume:** {name} "
+                f"({n:,} eligible sessions, {100 * n / eligible:.0f}% of the eligible total). "
+                "This is a directional signal; small channel cohorts should not be treated as reliable rankings."
+            )
+        if content < 100:
+            st.caption("Small sample: compare longer reporting windows before changing distribution strategy.")
+    else:
+        st.info("No content sessions in this reporting period.")
+
+    st.markdown("**Channel quality · volume and classification**")
+    _attribution_quality_chart(channels)
+    st.caption(
+        "Every bar represents mutually exclusive first-touch sessions within its channel. "
+        "The suspected categories exclude those sessions from the quality-eligible count."
+    )
+
+    st.markdown("**Campaigns contributing quality-eligible sessions**")
+    _attribution_campaign_chart(campaigns)
+    st.caption(
+        "Campaign and channel breakdowns describe overlapping dimensions of the same sessions; "
+        "do not sum the two charts."
+    )
+
+    with st.expander("Inspect exact counts, attribution labels and counting checks", expanded=False):
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric("Recorded content sessions", content,
+                  help="Browser-tab sessions with content events; not unique people.")
+        k2.metric("Quality-eligible V5", eligible,
+                  help="Valid content sessions excluding test and suspected automation cohorts.")
+        k3.metric("Suspected preview batches V5", bursts,
+                  help="Independent-session burst heuristic, not confirmed bots.")
+        k4.metric("Legacy / ungraded", _n(o, "legacy_ungraded"),
+                  help="Cannot retroactively assign V5-quality labels.")
+
+        st.caption(
+            f"Also excluded: {_n(o, 'telemetry_only'):,} telemetry-only sessions and "
+            f"{other_suspected:,} other suspected-automation sessions. "
+            "No recorded events are removed; classification affects reporting."
+        )
+        st.markdown("**Reconciled first-touch sources**")
+        if channels:
+            st.dataframe([{
+                "First-touch channel": p.get("channel"),
+                "Content sessions": _n(p, "content_sessions"),
+                "Quality-eligible": _n(p, "quality_eligible"),
+                "Legacy / ungraded": _n(p, "legacy_ungraded"),
+                "Suspected bursts": _n(p, "preview_burst_sessions"),
+                "Other suspected": _n(p, "other_suspected_automation"),
+                "Navigation views": _n(p, "navigation_page_views"),
+                "Article views": _n(p, "article_views"),
+                "Telemetry only": _n(p, "telemetry_only"),
+            } for p in channels], hide_index=True, width="stretch")
+        st.caption(
+            "Navigation views exclude article-page wrapper events. "
+            "Article reads are counted using their own event type."
+        )
         if campaigns:
+            st.markdown("**Campaign and role detail**")
             st.dataframe([{
                 "Parent channel": x.get("channel"),
-                "Campaign / role label": x.get("campaign"),
+                "Campaign / role": x.get("campaign"),
                 "Content sessions": _n(x, "content_sessions"),
                 "Quality-eligible": _n(x, "quality_eligible"),
                 "Legacy / ungraded": _n(x, "legacy_ungraded"),
                 "Suspected automation": _n(x, "flagged_sessions"),
             } for x in campaigns], hide_index=True, width="stretch")
         st.caption(
-            "Article reading events and navigation page views are different event "
-            "types. UTM campaign takes precedence over the legacy role label. "
-            "Source and campaign tables contain the same first-touch sessions "
-            "and must never be summed together."
+            "UTM campaign takes precedence over the older 'role' parameter for campaign labels. "
+            "Campaign and channel totals are non-additive."
         )
-        st.caption(
-            f"Other reporting exclusions: {_n(overview, 'telemetry_only')} telemetry-only "
-            f"sessions; {_n(overview, 'legacy_ungraded')} legacy/ungraded content "
-            "sessions are not classified as human or automation."
-        )
-
-    with st.expander("Measurement integrity and reconciliation checks", expanded=False):
         checks = [
-            ("Unattributed sessions with an external referrer", _n(overview, "untagged_with_referrer"),
-             "Unknown tag does not prove direct navigation."),
-            ("Explicit source / UTM source conflicts", _n(overview, "source_conflicts"),
-             "Explicitly tagged source wins; not a second visit."),
-            ("Role / UTM campaign conflicts", _n(overview, "campaign_conflicts"),
-             "Conflicting labels still describe one session."),
-            ("Article page-wrapper events", _n(overview, "article_page_wrappers"),
-             "Excluded from navigation views, because article_view counts the read."),
-            ("Excluded explicit test sessions", _n(overview, "test_sessions"),
-             "Source=application and role=Test are excluded."),
+            ("Unattributed sessions with an external referrer", _n(o, "untagged_with_referrer"),
+             "An untagged referral is not proof of direct navigation."),
+            ("Explicit source vs UTM source conflicts", _n(o, "source_conflicts"),
+             "The explicitly tagged source wins; one session is counted."),
+            ("Role vs UTM campaign conflicts", _n(o, "campaign_conflicts"),
+             "Conflicting labels describe the same session."),
+            ("Article page-wrapper events", _n(o, "article_page_wrappers"),
+             "Excluded from navigation view counts to prevent overlap."),
+            ("Excluded explicit test sessions", _n(o, "test_sessions"),
+             "Source=application + role=Test is excluded."),
         ]
-        st.dataframe([{"Check": label, "Observed": n, "Meaning": explanation}
-                      for label, n, explanation in checks],
+        st.markdown("**Counting and tag checks**")
+        st.dataframe([{"Check": label, "Observed": count, "Interpretation": note}
+                      for label, count, note in checks],
                      hide_index=True, width="stretch")
         unexpected = data.get("unexpected_tags") or []
         if unexpected:
             st.markdown("**Unrecognized source strings**")
-            st.dataframe([{"Recorded tag": str(x.get("raw_first_source"))[:100],
-                           "Sessions": _n(x, "sessions")} for x in unexpected],
-                         hide_index=True, width="stretch")
+            st.dataframe([
+                {"Recorded tag": str(x.get("raw_first_source"))[:100],
+                 "Session IDs": _n(x, "sessions")}
+                for x in unexpected
+            ], hide_index=True, width="stretch")
         st.caption(
-            "V5 quality classification applies only after V5 tracking exists. "
-            "Automation indicators use cohort-level heuristics and do not "
-            "verify a bot or a person's identity. No IPs, signatures or "
-            "visitor IDs are returned from the aggregation query."
+            "V5-quality tracking cannot be imputed to historic sessions. "
+            "Suspicious bursts use coarse temporary technical signatures; no raw IPs, "
+            "persistent visitor identifiers or browser signatures are exposed."
         )

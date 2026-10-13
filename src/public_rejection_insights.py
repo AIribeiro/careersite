@@ -62,6 +62,21 @@ def rejection_overview_readout(report: dict) -> dict:
         cautions.append(f"{dates_missing} decisions have no verified date")
     if verified_jds == 0:
         cautions.append("no job descriptions pass strict verification")
+    # The selection category measures disclosed relative outcomes, not a verified
+    # explanation of the selected candidate's advantage.
+    comparison = max(0, int(report.get("comparative_selection_count") or 0))
+    comparison_readout = (
+        f"{comparison} employers selected other candidates; their distinguishing "
+        "requirements remain unverified."
+        if comparison >= 10 else None
+    )
+    rate = report.get("minimum_documented_rejection_share_pct")
+    application_pairs = report.get("matched_cohort_application_pairs")
+    linked_pairs = report.get("matched_cohort_negative_pairs")
+    try:
+        cohort_minimum = float(rate) if rate is not None and application_pairs and linked_pairs else None
+    except (TypeError, ValueError):
+        cohort_minimum = None
     return {
         "status": "ok",
         "interpretation": interpretation,
@@ -70,5 +85,10 @@ def rejection_overview_readout(report: dict) -> dict:
         "cautions": cautions,
         "unknown_share": unknown_share,
         "confirmed_share": confirmed_share,
+        "comparison_readout": comparison_readout,
+        "cohort_minimum_pct": cohort_minimum,
+        "cohort_applications": int(application_pairs or 0),
+        "cohort_matched_negative": int(linked_pairs or 0),
+        "previous_decisions_30d": report.get("previous_decisions_30d"),
         "total": total,
     }

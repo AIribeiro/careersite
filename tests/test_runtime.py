@@ -26,8 +26,12 @@ class RuntimeSmokeTests(unittest.TestCase):
         reader = PdfReader(BytesIO(committed), strict=True)
         self.assertGreaterEqual(len(reader.pages), 1)
         self.assertIsNotNone(reader.trailer.get("/Root"))
-        self.assertIn(b"/Subtype /Link", committed)
-        self.assertIn(b"https://jairribeiro-ai.streamlit.app/?source=cv", committed)
+        links = {
+            str(annotation.get_object().get("/A", {}).get("/URI", ""))
+            for page in reader.pages
+            for annotation in page.get("/Annots", [])
+        }
+        self.assertIn("https://jairribeiro-ai.streamlit.app/?source=cv", links)
 
         tracked = subprocess.run(
             ["git", "ls-files", "--error-unmatch", f"static/{filename}"],
@@ -61,8 +65,8 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertEqual(site_cv.CV_FILENAME, filename)
         self.assertEqual(site_cv.CV_SITE_DISPLAY, "AI & Data Portfolio")
         self.assertEqual(site_cv.CV_SITE_URL, "https://jairribeiro-ai.streamlit.app/?source=cv")
-        self.assertIn(b"/Subtype /Link", generated)
-        self.assertIn(site_cv.CV_SITE_URL.encode("latin-1"), generated)
+        self.assertEqual(generated, committed)
+        self.assertIn(site_cv.CV_SITE_URL, links)
         source = (ROOT / "src/site_cv.py").read_text(encoding="utf-8")
         self.assertIn("Enterprise AI & Data Leader", source)
         self.assertIn("Enterprise AI & Data Leader | Strategy - Operating Models - Governance - Adoption - Business Value", source)

@@ -219,6 +219,43 @@ def _linked_application_days(rejections: list[dict], events: list[dict]) -> list
     return elapsed
 
 
+def _matched_application_cohort(records: list[dict], events: list[dict],
+                                today: date) -> dict[str, int | float | None]:
+    """A documented minimum, never a complete job-search rejection rate.
+
+    The denominator consists only of dated, deduplicated employer/role
+    application groups in the operational table since June. A rejection
+    counts only when its employer and role match exactly and its decision
+    follows that application. Different requisitions with the same title
+    can still be conflated, so expose the sample size and its limitations.
+    """
+    applications: dict[tuple[str, str], date] = {}
+    for event in canonical_events(events):
+        if event.get("is_application") is not True:
+            continue
+        applied = day(event.get("event_date"))
+        key = process_key(event)
+        if not applied or not date(2026, 6, 1) <= applied <= today or not key:
+            continue
+        if key not in applications or applied < applications[key]:
+            applications[key] = applied
+    linked: set[tuple[str, str]] = set()
+    for decision in records:
+        if str(decision.get("decision_outcome") or "").lower() not in OUTCOMES:
+            continue
+        key = process_key(decision)
+        when = _date(decision)
+        if key in applications and when and applications[key] <= when <= today:
+            linked.add(key)
+    n = len(applications)
+    return {"application_pairs": n, "linked_negative": len(linked),
+            "minimum_pct": round(100 * len(linked) / n, 1) if n else None,
+            "unmatched_decisions": sum(
+                bool(_date(d) and date(2026, 6, 1) <= _date(d) <= today
+                     and process_key(d) not in linked)
+                for d in records)}
+
+
 def _recommendations(records: list[dict], today: date,
                      momentum90: dict | None) -> list[dict]:
     total = len(records)
@@ -349,6 +386,29 @@ def render_rejection_analytics(session: dict | None) -> None:
     else:
         st.caption("Current momentum cannot be assessed until operational job-search events are available.")
 
+    st.subheader("Observed rejection share · matched application cohort")
+    if events:
+        linked = _matched_application_cohort(records, events, today)
+        cells = st.columns(3)
+        pct = linked["minimum_pct"]
+        cells[0].metric("Minimum documented share",
+                        f"{pct:.1f}%" if pct is not None else "—")
+        cells[1].metric("Matched negative outcomes",
+                        f"{linked['linked_negative']} / {linked['application_pairs']}")
+        cells[2].metric("Unmatched dated decisions",
+                        linked["unmatched_decisions"])
+        st.caption(
+            "For tracked applications dated from June 2026: one employer+role "
+            "group per application and a matching dated negative decision on or "
+            "after submission. This is a lower bound **within the matched tracker**, "
+            "not your actual rejection rate. Missing application links, multiple "
+            "requisitions, undated rejections and recent unresolved applications "
+            "prevent a complete cohort outcome rate. Never divide all rejection "
+            "records by application event-row counts."
+        )
+    else:
+        st.caption("A linked rejection rate cannot be calculated because the application evidence is unavailable.")
+
     overview, reasons, stages, evidence = st.tabs(
         ["Decision overview", "Reasons and patterns", "Pipeline and timing", "Evidence and next actions"]
     )
@@ -373,7 +433,45 @@ def render_rejection_analytics(session: dict | None) -> None:
         _chart([{"Month": month, "Processes": monthly[month]} for month in months],
                "Month", "Processes")
         st.caption("The Undated bar is excluded from monthly trend inference. Incomplete current months are not compared with full prior months as if equivalent.")
+        recent_30 = sum(bool(_date(r) and today - timedelta(days=29) <= _date(r) <= today)
+                        for r in records)
+        prior_30 = sum(bool(_date(r) and today - timedelta(days=59) <= _date(r) < today - timedelta(days=29))
+                       for r in records)
+        if prior_30 >= 10 and recent_30 >= 10:
+            st.metric("Decision volume · latest 30d vs previous 30d",
+                      f"{recent_30} vs {prior_30}",
+                      help="Recorded decision counts in two equally long windows, not a comparison of application rejection rates.")
+            st.caption(
+                "More recorded decisions can result from application volume, "
+                "reporting coverage or employers processing older applications. "
+                "Do not interpret the difference as worsening job-market fit."
+            )
     with reasons:
+        explained = [r for r in scoped
+                     if str(r.get("reason_basis") or "") in
+                        ("employer_relative", "employer_stated")]
+        supported = Counter(str(r.get("reason_code") or "") for r in explained)
+        leading_code, leading_n = supported.most_common(1)[0] if supported else (None, 0)
+        cause_cols = st.columns(3)
+        cause_cols[0].metric(
+            "Most frequent explained category",
+            LABELS.get(leading_code, leading_code or "Unavailable"),
+            help="Category among employer-relative or employer-stated outcomes, not a verified individual skill deficiency."
+        )
+        cause_cols[1].metric("Decisions in that category", f"{leading_n}/{n}")
+        cause_cols[2].metric("Employer-stated explanations",
+                             f"{stated}/{n}")
+        if leading_code == "PROCESS_COMPETITION":
+            st.info(
+                "Comparative selection is the leading explained category. "
+                "It means the employer advanced other candidates; it does not "
+                "identify a specific missing qualification."
+            )
+        if supported.get("ROLE_BELOW_SENIORITY", 0) == 1:
+            st.caption(
+                "One employer explicitly described a seniority mismatch. "
+                "One case cannot justify broad CV or role-targeting changes."
+            )
         st.subheader("Reason by evidence basis")
         st.caption("Reason basis says what supports the explanation. Confidence is not a job-offer probability.")
         _chart(_reasons(scoped), "Reason", "Processes", color="Basis", height=315)

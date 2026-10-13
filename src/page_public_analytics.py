@@ -79,6 +79,8 @@ def render_public_analytics_overview() -> None:
     market=results.get("market") or {}
     overview=(jobs.get("totals") or {})
     quality=(hiring.get("quality_summary") or {})
+    from job_search_outlook import render_search_outlook
+    render_search_outlook(results.get("jobs"), results.get("forecast"), now.date())
     metrics=st.columns(4)
     metrics[0].metric("Qualified portfolio sessions · 30d",
                       _n(quality.get("analysis_eligible_sessions")))

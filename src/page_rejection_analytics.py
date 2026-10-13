@@ -409,8 +409,8 @@ def render_rejection_analytics(session: dict | None) -> None:
     else:
         st.caption("A linked rejection rate cannot be calculated because the application evidence is unavailable.")
 
-    overview, reasons, stages, evidence = st.tabs(
-        ["Decision overview", "Reasons and patterns", "Pipeline and timing", "Evidence and next actions"]
+    overview, reasons, stages, evidence, research = st.tabs(
+        ["Decision overview", "Reasons and patterns", "Pipeline and timing", "Evidence and next actions", "Research & hypotheses"]
     )
     with overview:
         st.subheader("What actually happened")
@@ -552,3 +552,7 @@ def render_rejection_analytics(session: dict | None) -> None:
                 "Evidence": "Referenced" if _source_ref(r) else "Needs source link",
             } for r in review], hide_index=True, width="stretch")
         st.caption("No background mailbox monitoring is implied: this dashboard reflects the latest saved Rejection Analyzer results. The analyzer itself runs when invoked.")
+
+    with research:
+        from page_rejection_inference import render_rejection_inference
+        render_rejection_inference(valid, scoped)

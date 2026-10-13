@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import sys
 import unittest
+from unittest.mock import patch
 from datetime import date
 from pathlib import Path
 
@@ -10,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from page_rejection_analytics import (
     _canonical, _in_window, _quality, _source_ref, _recommendations,
-    _momentum, _linked_application_days,
+    _momentum, _linked_application_days, _chart,
 )
 
 
@@ -83,6 +84,38 @@ class RejectionAnalyticsTests(unittest.TestCase):
         ]
         counts = _momentum(events, date(2026, 10, 13), 30)
         self.assertEqual(counts, {"human": 1, "interview": 1, "qualified": 1})
+
+    def test_chart_with_inline_values_serializes_without_tooltip_inference(self):
+        # Reproduces the Streamlit Cloud / Altair failure on Decision overview.
+        rows = [
+            {"Outcome": "Rejected", "Processes": 58},
+            {"Outcome": "Not Selected", "Processes": 2},
+        ]
+        seen = []
+        def validate_chart(chart, **kwargs):
+            spec = chart.to_dict(validate=True)
+            self.assertEqual(spec["encoding"]["tooltip"][0]["type"], "nominal")
+            self.assertEqual(spec["encoding"]["tooltip"][1]["type"], "quantitative")
+            seen.append(True)
+        with patch("page_rejection_analytics.st.altair_chart", side_effect=validate_chart), \
+             patch("page_rejection_analytics.st.dataframe") as fallback:
+            _chart(rows, "Outcome", "Processes")
+        self.assertTrue(seen)
+        fallback.assert_not_called()
+
+    def test_reason_chart_color_is_also_explicitly_typed(self):
+        rows = [{"Reason": "Cause unknown", "Basis": "Insufficient evidence", "Processes": 52}]
+        seen = []
+        def validate_chart(chart, **kwargs):
+            spec = chart.to_dict(validate=True)
+            self.assertEqual(spec["encoding"]["color"]["type"], "nominal")
+            self.assertEqual(spec["encoding"]["tooltip"][2]["type"], "nominal")
+            seen.append(True)
+        with patch("page_rejection_analytics.st.altair_chart", side_effect=validate_chart), \
+             patch("page_rejection_analytics.st.dataframe") as fallback:
+            _chart(rows, "Reason", "Processes", color="Basis")
+        self.assertTrue(seen)
+        fallback.assert_not_called()
 
     def test_latency_needs_direct_link_and_one_application_date(self):
         event = {"id": 11, "logical_event_key": "applied-11",

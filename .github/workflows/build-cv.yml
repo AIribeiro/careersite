@@ -1,4 +1,4 @@
-name: Build canonical CV
+name: Validate approved canonical CV
 
 on:
   push:
@@ -15,7 +15,7 @@ permissions:
   contents: write
 
 jobs:
-  build-cv:
+  validate-cv:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -36,11 +36,6 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq qpdf poppler-utils
 
-      - name: Generate canonical PDF
-        env:
-          PYTHONPATH: src
-        run: python -c "import site_cv"
-
       - name: Validate PDF structure
         env:
           PYTHONPATH: src
@@ -58,10 +53,17 @@ jobs:
           reader = PdfReader(BytesIO(data), strict=True)
           assert len(reader.pages) >= 1, "PDF has no pages"
           assert reader.trailer.get("/Root") is not None, "PDF catalog missing"
-          assert b"/Subtype /Link" in data, "Expected hyperlinks are missing"
-          assert site_cv.CV_SITE_URL.encode("latin-1") in data, "Portfolio hyperlink missing"
-          assert site_cv.CERTIFICATIONS_URL.encode("latin-1") in data, "Certifications hyperlink missing"
-          assert site_cv.PRESENCE_URL.encode("latin-1") in data, "Speaking/thought-leadership hyperlink missing"
+          uris = set()
+          for page in reader.pages:
+              for annotation in page.get("/Annots", []):
+                  action = annotation.get_object().get("/A")
+                  if action is not None and action.get("/URI"):
+                      uris.add(str(action["/URI"]))
+          for link in (site_cv.CV_SITE_URL, site_cv.CERTIFICATIONS_URL, site_cv.PRESENCE_URL):
+              assert link in uris, f"Approved CV missing hyperlink: {link}"
+          text = " ".join(page.extract_text() or "" for page in reader.pages).replace("–", "-")
+          for period in ("Dec 2025 - Sep 2026", "Jul 2016 - Jul 2017", "Jan 2013 - Jul 2016"):
+              assert period in text, f"Approved LinkedIn-aligned career period missing: {period}"
           print(f"Strict parser validated {path}: {len(data)} bytes, {len(reader.pages)} page(s)")
           PY
 
@@ -77,19 +79,5 @@ jobs:
           test -s /tmp/cv-render/page.png
           file /tmp/cv-render/page.png
 
-      - name: Commit generated PDF when changed
-        env:
-          PYTHONPATH: src
-        run: |
-          CV="$(python -c 'import site_cv; print(site_cv.CV_FILENAME)')"
-          find static -maxdepth 1 -type f -name 'Jair_Ribeiro_*_CV_2026.pdf' ! -name "$CV" -delete
-          git add -A static
-          if git diff --cached --quiet; then
-            echo "Canonical PDF already current."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Update canonical public CV PDF"
-          git pull --rebase origin main
-          git push origin HEAD:main
+      - name: Ensure approved CV stays unchanged during checks
+        run: git diff --exit-code -- static/Jair_Ribeiro_CV.pdf

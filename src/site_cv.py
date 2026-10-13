@@ -388,11 +388,15 @@ def build_public_cv() -> bytes:
     return bytes(pdf.output())
 
 
-CV_BYTES = build_public_cv()
+# Serve only the approved, LinkedIn-date-aligned PDF checked into /static.
+# The old drawing template remains for archival reference; importing this
+# module must never regenerate and overwrite the approved downloadable CV.
 ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = ROOT / "static"
-STATIC_DIR.mkdir(exist_ok=True)
-(STATIC_DIR / CV_FILENAME).write_bytes(CV_BYTES)
+CV_PATH = STATIC_DIR / CV_FILENAME
+if not CV_PATH.is_file():
+    raise FileNotFoundError(f"Approved public CV is missing: {CV_PATH}")
+CV_BYTES = CV_PATH.read_bytes()
 
 site_assets.CV_BYTES = CV_BYTES
 site_assets.CV_URI = f"app/static/{CV_FILENAME}"

@@ -17,6 +17,7 @@ from portfolio_job_correlations import (
     ANCHORS, LAGS, _site_features, _test_one, _bh_pvalues, _classify,
 )
 from site_analytics_public import fetch_public_analytics_rpc
+from public_rejection_insights import rejection_overview_readout
 
 
 def _n(x: object) -> int:
@@ -59,6 +60,7 @@ def render_public_analytics_overview() -> None:
         "jobs":lambda:_job_summary(365),
         "market":_market_summary,
         "forecast":lambda:fetch_public_analytics_rpc("careersite_public_hiring_inputs_v1"),
+        "rejections":lambda:fetch_public_analytics_rpc("careersite_public_rejection_summary_v1"),
     }
     for name,loader in sources.items():
         try:
@@ -164,6 +166,46 @@ def render_public_analytics_overview() -> None:
         st.caption("Public recruitment summary is temporarily unavailable.")
     if st.button("Explore recruitment funnel and trends",key="public_overview_jobs"):
         _navigate_public_analytics("jobs")
+
+    st.divider()
+    st.subheader("Rejection intelligence")
+    st.caption("What negative decisions explain, what remains unknown, and what to do next.")
+    rejection_report=results.get("rejections") or {}
+    rejection_readout=rejection_overview_readout(rejection_report)
+    if rejection_readout["status"]=="ok":
+        total=rejection_readout["total"]
+        unknown=_n(rejection_report.get("unknown_causes"))
+        confirmed=_n(rejection_report.get("confirmed_explanations"))
+        recent=rejection_report.get("recent_decisions_30d")
+        cols=st.columns(3)
+        cols[0].metric(
+            "Employer decisions · last 30d",
+            str(recent) if recent is not None else "—",
+            help="Dated negative hiring decisions per canonical process. Suppressed when fewer than 10; not an application rejection rate.",
+        )
+        cols[1].metric(
+            "Cause remains unknown",
+            f"{rejection_readout['unknown_share']:.1%}",
+            help=f"{unknown} of {total} distinct negative hiring processes. Unknown is not evidence of a candidate skill gap.",
+        )
+        cols[2].metric(
+            "Confirmed explanations",
+            f"{confirmed} / {total}",
+            help="Confidence in the recorded explanation, not an employer offer probability. May include a confirmed relative candidate comparison.",
+        )
+        st.markdown(f"**{rejection_readout['evidence_status']}** — {rejection_readout['interpretation']}")
+        st.markdown(f"**Evidence-based next move:** {rejection_readout['action']}")
+        if rejection_readout["cautions"]:
+            st.caption("Evidence gaps: "+" · ".join(rejection_readout["cautions"])+".")
+        st.caption(
+            "Employer decision date, not the date an email was analyzed. "
+            "These counts cannot be divided by applications from a different cohort. "
+            "Detailed reasons and correspondence remain in owner-only Admin → Rejection Analytics."
+        )
+    elif rejection_report:
+        st.caption(rejection_readout["message"])
+    else:
+        st.caption("The aggregate rejection signal is temporarily unavailable; private records are never loaded by public Analytics.")
 
     st.divider()
     st.subheader("Portfolio contribution")

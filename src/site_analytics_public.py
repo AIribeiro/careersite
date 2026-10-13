@@ -60,32 +60,72 @@ def fetch_public_analytics_rpc(name: str, payload: dict | None = None) -> dict:
                     "The source report is temporarily unavailable."
                 )
     if name == "careersite_public_rejection_summary_v1":
-        # Defense in depth: reject future schema changes that might accidentally
-        # expose company names, correspondence or unaggregated decision rows.
-        approved = {
-            "available", "method", "as_of", "notice",
+        # Strict anonymous-data contract, updated alongside SQL aggregate v2.
+        # Never allow recruiter correspondence, company names, individual
+        # records, source identifiers or requisition details into public pages.
+        baseline_counts = {
             "analyzed_processes", "unknown_causes", "confirmed_explanations",
-            "employer_stated_explanations", "dated_decisions",
-            "undated_decisions", "unknown_stages", "verified_jds",
-            "recent_decisions_30d",
+            "employer_stated_explanations", "dated_decisions", "undated_decisions",
+            "unknown_stages", "verified_jds",
+        }
+        v2_counts = {
+            "comparative_selection_count", "employer_specific_reasons_count",
+            "matched_cohort_application_pairs", "matched_cohort_negative_pairs",
+            "previous_decisions_30d",
+        }
+        approved = baseline_counts | v2_counts | {
+            "available", "method", "as_of", "notice", "recent_decisions_30d",
+            "most_frequent_explained_category", "cohort_since",
+            "minimum_documented_rejection_share_pct", "rejection_share_method",
         }
         if set(result) - approved:
             raise RuntimeError("Unexpected public rejection-summary fields.")
         if result.get("available") is True:
-            required = approved - {"available", "notice", "recent_decisions_30d"}
-            if not required.issubset(result):
+            if not (baseline_counts | {"method", "as_of"}).issubset(result):
                 raise RuntimeError("Incomplete public rejection-summary schema.")
-            count_keys = required - {"method", "as_of"}
-            if any(type(result[k]) is not int or result[k] < 0 for k in count_keys):
+            if any(type(result[k]) is not int or result[k] < 0
+                   for k in baseline_counts):
                 raise RuntimeError("Invalid public rejection-summary counts.")
-            recent = result.get("recent_decisions_30d")
-            if recent is not None and (type(recent) is not int or recent < 10):
-                raise RuntimeError("Invalid thresholded recent rejection count.")
             n = result["analyzed_processes"]
-            if n < 20 or any(result[k] > n for k in count_keys - {"analyzed_processes"}):
+            if n < 20 or any(result[k] > n for k in baseline_counts - {"analyzed_processes"}):
                 raise RuntimeError("Invalid public rejection aggregation.")
             if result["dated_decisions"] + result["undated_decisions"] != n:
                 raise RuntimeError("Inconsistent public rejection-date coverage.")
+            for key in v2_counts | {"recent_decisions_30d"}:
+                value = result.get(key)
+                if value is not None and (type(value) is not int or value < 0):
+                    raise RuntimeError("Invalid public rejection metric.")
+            for key in ("recent_decisions_30d", "previous_decisions_30d",
+                        "comparative_selection_count"):
+                value = result.get(key)
+                if value is not None and not 10 <= value <= n:
+                    raise RuntimeError("Invalid privacy-thresholded rejection count.")
+            if result.get("matched_cohort_application_pairs") is not None and (
+                    result["matched_cohort_application_pairs"] < 20):
+                raise RuntimeError("Invalid cohort privacy threshold.")
+            if result.get("matched_cohort_negative_pairs") is not None and (
+                    result["matched_cohort_negative_pairs"] < 10 or
+                    result["matched_cohort_negative_pairs"] >
+                    (result.get("matched_cohort_application_pairs") or 0)):
+                raise RuntimeError("Invalid cohort outcome count.")
+            if result.get("employer_specific_reasons_count") is not None and (
+                    result["employer_specific_reasons_count"] !=
+                    result["employer_stated_explanations"]):
+                raise RuntimeError("Inconsistent employer-reason aggregate.")
+            if result.get("most_frequent_explained_category") not in (
+                    None, "Comparative selection (underlying differentiator unverified)"):
+                raise RuntimeError("Unexpected public rejection category.")
+            if result.get("cohort_since") not in (None, "2026-06-01"):
+                raise RuntimeError("Unexpected cohort reporting period.")
+            if result.get("rejection_share_method") not in (
+                    None, "lower-bound-exact-employer-role-match-not-final-outcome-rate"):
+                raise RuntimeError("Unexpected cohort reporting method.")
+            rate = result.get("minimum_documented_rejection_share_pct")
+            if rate is not None:
+                if (type(rate) not in (int, float) or not 0 <= rate <= 100 or
+                        result.get("matched_cohort_negative_pairs") is None or
+                        result.get("matched_cohort_application_pairs") is None):
+                    raise RuntimeError("Invalid public rejection-cohort rate.")
         elif result.get("available") is not False:
             raise RuntimeError("Invalid public rejection-summary availability flag.")
     return result

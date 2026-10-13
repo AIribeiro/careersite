@@ -796,8 +796,8 @@ def _dashboard(session: dict) -> None:
             """
 <div class="cms-hero">
   <div class="cms-kicker">Private authoring</div>
-  <h1>Portfolio article CMS</h1>
-  <p>Create, edit, publish and maintain articles without changing application code.</p>
+  <h1>Owner workspace</h1>
+  <p>Private reporting, job-search evidence and portfolio publishing in one place.</p>
 </div>
 """,
             unsafe_allow_html=True,
@@ -810,7 +810,7 @@ def _dashboard(session: dict) -> None:
 
     workspace = st.segmented_control(
         "Private owner workspace",
-        options=["CMS","Detailed job analytics","Hiring market","Decision overview"],
+        options=["CMS","Detailed job analytics","Rejection Analytics","Hiring market","Decision overview"],
         default="CMS",
         key="admin_private_workspace",
         width="stretch",
@@ -818,6 +818,10 @@ def _dashboard(session: dict) -> None:
     if workspace == "Detailed job analytics":
         from page_job_search_analytics import render_job_search_analytics
         render_job_search_analytics(session)
+        return
+    if workspace == "Rejection Analytics":
+        from page_rejection_analytics import render_rejection_analytics
+        render_rejection_analytics(session)
         return
     if workspace == "Hiring market":
         from page_job_market_insights import render_swedish_job_market

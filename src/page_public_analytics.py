@@ -193,6 +193,51 @@ def render_public_analytics_overview() -> None:
             f"{confirmed} / {total}",
             help="Confidence in the recorded explanation, not an employer offer probability. May include a confirmed relative candidate comparison.",
         )
+        # Separate observation volume from a real rejection rate. A matched
+        # application/decision pair is a documented minimum, not cohort closure.
+        reason_count=rejection_report.get("comparative_selection_count")
+        cohort_pct=rejection_readout.get("cohort_minimum_pct")
+        stage_cols=st.columns(3)
+        stage_cols[0].metric(
+            "Leading explained pattern",
+            f"Comparative selection · {reason_count}" if reason_count is not None else "Unverified",
+            help="Employers selected other candidates; no recurring capability gap is established by these messages.",
+        )
+        stage_cols[1].metric(
+            "Minimum linked rejection share",
+            f"{cohort_pct:.1f}%" if cohort_pct is not None else "—",
+            help="Only exact employer-and-role matches between dated applications and negative decisions since June 2026. Lower bound for the matched tracked cohort; not a final rejection rate.",
+        )
+        stage_cols[2].metric(
+            "Application pairs assessed",
+            str(rejection_readout.get("cohort_applications") or "—"),
+            help="Unique employer-and-role groups with dated application evidence since 1 June 2026; grouping can combine distinct requisitions.",
+        )
+        if cohort_pct is not None:
+            st.caption(
+                f"**Rate interpretation:** {rejection_readout['cohort_matched_negative']} of "
+                f"{rejection_readout['cohort_applications']} tracked application pairs have a "
+                "matching negative decision. This is a **documented minimum**, not your "
+                "overall rejection rate: missing application links, repeat requisitions and "
+                "recent unresolved applications prevent a complete denominator."
+            )
+        previous=rejection_readout.get("previous_decisions_30d")
+        if previous is not None and recent is not None:
+            st.markdown("**Decision-volume trend · two adjacent 30-day periods**")
+            volume=[
+                {"Period":"Previous 30 days","Decisions":_n(previous)},
+                {"Period":"Latest 30 days","Decisions":_n(recent)},
+            ]
+            st.altair_chart(
+                alt.Chart(alt.Data(values=volume)).mark_bar(cornerRadiusEnd=6).encode(
+                    x=alt.X("Period:N",sort=["Previous 30 days","Latest 30 days"],title=None),
+                    y=alt.Y("Decisions:Q",title="Recorded negative decisions",axis=alt.Axis(tickMinStep=1)),
+                    tooltip=[alt.Tooltip("Period:N"),alt.Tooltip("Decisions:Q",format=",d")],
+                ).properties(height=155), width="stretch"
+            )
+            st.caption("Counts reflect both recruitment activity and evidence coverage. Rising decision volume does not, by itself, mean a rising rejection rate.")
+        if rejection_readout.get("comparison_readout"):
+            st.caption(rejection_readout["comparison_readout"])
         st.markdown(f"**{rejection_readout['evidence_status']}** — {rejection_readout['interpretation']}")
         st.markdown(f"**Evidence-based next move:** {rejection_readout['action']}")
         if rejection_readout["cautions"]:

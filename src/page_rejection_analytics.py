@@ -119,13 +119,27 @@ def _chart(rows: list[dict], x: str, y: str, *, color: str | None = None, height
     if not rows:
         st.caption("No qualifying evidence in this selection.")
         return
-    chart = alt.Chart(alt.Data(values=rows)).mark_bar(cornerRadiusEnd=5).encode(
-        x=alt.X(f"{x}:N", title=None, sort=None, axis=alt.Axis(labelLimit=180)),
-        y=alt.Y(f"{y}:Q", title="Processes", axis=alt.Axis(tickMinStep=1)),
-        tooltip=list(rows[0].keys()),
-        **({"color": alt.Color(f"{color}:N", title="Evidence basis")} if color else {}),
-    )
-    st.altair_chart(chart.properties(height=height), width="stretch")
+    # Inline Altair data has no Pandas dtype metadata. Vega-Lite v6 cannot
+    # infer shorthand tooltip field types from alt.Data(values=rows).
+    # Explicitly type every tooltip to prevent the Streamlit ValueError.
+    tooltips = [
+        alt.Tooltip(f"{x}:N", title=x),
+        alt.Tooltip(f"{y}:Q", title=y, format=",d"),
+    ]
+    if color:
+        tooltips.append(alt.Tooltip(f"{color}:N", title=color))
+    try:
+        chart = alt.Chart(alt.Data(values=rows)).mark_bar(cornerRadiusEnd=5).encode(
+            x=alt.X(f"{x}:N", title=None, sort=None, axis=alt.Axis(labelLimit=180)),
+            y=alt.Y(f"{y}:Q", title="Processes", axis=alt.Axis(tickMinStep=1)),
+            tooltip=tooltips,
+            **({"color": alt.Color(f"{color}:N", title="Evidence basis")} if color else {}),
+        )
+        st.altair_chart(chart.properties(height=height), width="stretch")
+    except (ValueError, TypeError, KeyError) as exc:
+        # Prefer an accessible exact-count table over a broken Analytics tab.
+        st.dataframe(rows, hide_index=True, width="stretch")
+        st.caption("Chart unavailable in this display; exact counts are shown above.")
 
 
 def _reasons(records: list[dict]) -> list[dict]:

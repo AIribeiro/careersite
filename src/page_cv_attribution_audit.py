@@ -35,73 +35,174 @@ def fetch_cv_attribution_audit(window: str) -> dict:
     return data
 
 
+def _count(item: dict, key: str) -> int:
+    """Read a non-negative aggregate count without implying visitor identity."""
+    try:
+        return max(0, int(item.get(key) or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _cv_page_quality_chart(pages: list[dict]) -> None:
+    """Show suspected previews alongside other recorded views, by page."""
+    import altair as alt
+
+    rows = []
+    for item in pages:
+        name = str(item.get("page") or "Unknown page").replace("_", " ").title()
+        raw = _count(item, "raw_views")
+        suspected = min(raw, _count(item, "suspect_scan_views"))
+        other = max(0, raw - suspected)
+        if not raw:
+            continue
+        rows.extend([
+            {"Page": name, "Classification": "Suspected preview", "Views": suspected,
+             "Share": 100 * suspected / raw},
+            {"Page": name, "Classification": "Other recorded", "Views": other,
+             "Share": 100 * other / raw},
+        ])
+    if not rows:
+        st.info("No CV-tagged page views in this period.")
+        return
+    order = sorted({row["Page"] for row in rows},
+                   key=lambda name: -sum(row["Views"] for row in rows if row["Page"] == name))
+    chart = alt.Chart(alt.Data(values=rows)).mark_bar(cornerRadiusEnd=3).encode(
+        y=alt.Y("Page:N", sort=order, title=None),
+        x=alt.X("sum(Views):Q", title="CV-tagged page views",
+                axis=alt.Axis(tickMinStep=1)),
+        color=alt.Color(
+            "Classification:N",
+            scale=alt.Scale(
+                domain=["Suspected preview", "Other recorded"],
+                range=["#c56f3d", "#517a62"],
+            ),
+            legend=alt.Legend(title=None, orient="bottom"),
+        ),
+        tooltip=[
+            alt.Tooltip("Page:N"),
+            alt.Tooltip("Classification:N"),
+            alt.Tooltip("Views:Q", format=","),
+            alt.Tooltip("Share:Q", title="Share within page (%)", format=".1f"),
+        ],
+    ).properties(height=max(170, len(order) * 44))
+    st.altair_chart(chart, use_container_width=True)
+
+
+def _role_attribution_chart(roles: list[dict]) -> None:
+    """Role traffic is a different breakdown; never add it to CV source views."""
+    import altair as alt
+
+    rows = [
+        {"Role / campaign": str(item.get("role") or "Untagged"),
+         "Views": _count(item, "page_views")}
+        for item in roles if _count(item, "page_views")
+    ]
+    if not rows:
+        st.info("No role-attributed page views in this period.")
+        return
+    rows = sorted(rows, key=lambda item: -item["Views"])[:10]
+    order = [item["Role / campaign"] for item in rows]
+    chart = alt.Chart(alt.Data(values=rows)).mark_bar(
+        color="#60758a", cornerRadiusEnd=5
+    ).encode(
+        y=alt.Y("Role / campaign:N", sort=order, title=None,
+                axis=alt.Axis(labelLimit=220)),
+        x=alt.X("Views:Q", title="Page views (all sources)",
+                axis=alt.Axis(tickMinStep=1)),
+        tooltip=[alt.Tooltip("Role / campaign:N"),
+                 alt.Tooltip("Views:Q", format=",")],
+    ).properties(height=max(180, len(rows) * 38))
+    st.altair_chart(chart, use_container_width=True)
+
+
 def render_cv_attribution_audit(window: str) -> None:
-    st.subheader("CV & role attribution audit")
+    st.subheader("CV-linked traffic · evidence, not just volume")
     st.caption(
-        "One page-view event belongs to one source. Role and UTM labels are dimensions "
-        "of the same event, not additional views. Recorded views are not necessarily people."
+        "Source=cv marks tracked page-view events, not CV file downloads or identified recruiters. "
+        "Role and UTM tags describe those same events, not additional visitors."
     )
     try:
-        audit=fetch_cv_attribution_audit(window)
-    except (RuntimeError,PermissionError,ValueError):
-        st.warning("Attribution reconciliation is temporarily unavailable; other reports remain accessible.")
+        audit = fetch_cv_attribution_audit(window)
+    except (RuntimeError, PermissionError, ValueError):
+        st.warning("CV attribution is temporarily unavailable; other reports remain accessible.")
         return
 
-    overview=audit["overview"]
-    raw=int(overview.get("cv_page_views") or 0)
-    suspect=int(overview.get("suspect_scan_views") or 0)
-    residual=max(0,raw-suspect)
-    cv_sessions=int(overview.get("cv_sessions") or 0)
-    overlap=int(overview.get("cv_utm_source_same_view") or 0)
-    role_overlap=int(overview.get("cv_with_role") or 0)
+    overview = audit["overview"]
+    raw = _count(overview, "cv_page_views")
+    suspect = _count(overview, "suspect_scan_views")
+    residual = max(0, raw - suspect)
+    cv_sessions = _count(overview, "cv_sessions")
+    overlap = _count(overview, "cv_utm_source_same_view")
+    role_overlap = _count(overview, "cv_with_role")
+    pages = audit.get("cv_pages") or []
+    roles = audit.get("roles") or []
 
-    a,b,c,d=st.columns(4)
-    a.metric("CV-tagged page views",raw,help="Recorded events with canonical source=cv. Not CV file downloads.")
-    b.metric("Distinct CV session IDs",cv_sessions,help="A browser may create many session IDs. This is not a count of people.")
-    c.metric("Suspected preview / scan views",suspect,help="Three different pages and session IDs from the same coarse browser signature within 30 seconds.")
-    d.metric("Other CV-tagged views",residual,help="Not matched by the three-page burst screen; these are not verified human visits.")
     if raw:
-        st.caption(
-            f"{suspect} of {raw} CV-tagged views ({suspect/raw:.0%}) match a repeated "
-            "Home–Certifications–Presence-like independent-session burst. "
-            "Raw page-view totals remain unchanged; the flagged events should not be counted as verified recruiter attention."
-        )
-    if overlap:
-        st.info(
-            f"{overlap} of the CV page views also carry utm_source=cv. "
-            "They are the SAME events—not another source of visits. "
-            "CV source and role tables must never be added together."
-        )
-    if role_overlap:
-        st.caption(f"{role_overlap} CV-tagged page views also have a role label. They remain one view each.")
-    else:
-        st.caption("No CV-tagged page-view event in this reporting window has a separate role label.")
-
-    left,right=st.columns(2)
-    with left:
-        pages=audit.get("cv_pages") or []
-        if pages:
-            st.markdown("**CV-tagged pages · raw versus suspected preview activity**")
-            st.dataframe([
-                {"Page":p.get("page"),"Raw views":int(p.get("raw_views") or 0),
-                 "Suspected preview":int(p.get("suspect_scan_views") or 0),
-                 "Other recorded views":int(p.get("other_views") or 0)}
-                for p in pages
-            ],hide_index=True,width="stretch")
-    with right:
-        roles=audit.get("roles") or []
-        st.markdown("**Role-attributed views · across all sources**")
-        if roles:
-            st.dataframe([
-                {"Role / campaign":p.get("role"),"Page views":int(p.get("page_views") or 0),
-                 "Distinct session IDs":int(p.get("sessions") or 0)}
-                for p in roles
-            ],hide_index=True,width="stretch")
+        share = 100 * suspect / raw
+        if share >= 80:
+            headline = "Most CV-linked page activity matches a suspected preview pattern."
+        elif share >= 50:
+            headline = "A substantial share of CV-linked activity matches suspected previews."
+        elif suspect:
+            headline = "Some CV-linked activity matches a suspected preview pattern."
         else:
-            st.caption("No separately tagged roles in the selected window.")
-    st.caption(
-        "The role table is a different breakdown of page views, not an incremental "
-        "audience. Explicit source=application + role=Test traffic is excluded. "
-        "Suspected preview classification is based on correlated timestamps, pages and "
-        "browser properties; it is a conservative diagnostic, not proof of automation."
-    )
+            headline = "No CV-linked views matched the specific preview-burst rule."
+
+        st.markdown(
+            f"**{headline}** {suspect:,} of {raw:,} recorded CV-tagged page views "
+            f"({share:.0f}%) are flagged. The remaining {residual:,} "
+            "views are *unclassified*, not confirmed people or recruiter interest."
+        )
+        if suspect:
+            st.caption(
+                "The rule identifies correlated Home–Certifications–Presence-style visits "
+                "across separate session IDs. It suggests link-preview or automated "
+                "scanning activity but does not prove any session is a bot."
+            )
+        if raw < 100:
+            st.caption("Small sample: one burst can materially change the proportions.")
+    else:
+        st.info("No CV-tagged page views in this reporting period.")
+
+    left, right = st.columns(2)
+    with left:
+        st.markdown("**Where CV-linked views occurred**")
+        st.caption("Suspected previews vs other recorded views; not confirmed people.")
+        _cv_page_quality_chart(pages)
+    with right:
+        st.markdown("**Which role or campaign tags appear?**")
+        st.caption("Page views across all sources. This is a separate breakdown, not extra traffic.")
+        _role_attribution_chart(roles)
+
+    if overlap:
+        st.caption(
+            f"**Attribution check:** {overlap:,} CV-tagged page views also use "
+            "utm_source=cv. These are the same events, counted once."
+        )
+
+    with st.expander("Inspect exact counts, source overlaps and reconciliation", expanded=False):
+        a, b, c, d = st.columns(4)
+        a.metric("CV-tagged page views", raw, help="Events tagged source=cv; not CV downloads.")
+        b.metric("Distinct session IDs", cv_sessions, help="IDs are not unique people.")
+        c.metric("Suspected preview views", suspect, help="Conservative burst classifier, not proven bots.")
+        d.metric("Other recorded views", residual, help="Not verified human visits.")
+        if pages:
+            st.markdown("**CV-tagged page breakdown**")
+            st.dataframe([
+                {"Page": p.get("page"), "Raw views": _count(p, "raw_views"),
+                 "Suspected preview": _count(p, "suspect_scan_views"),
+                 "Other recorded views": _count(p, "other_views")}
+                for p in pages
+            ], hide_index=True, width="stretch")
+        if roles:
+            st.markdown("**Role-attributed views across all sources**")
+            st.dataframe([
+                {"Role / campaign": p.get("role"), "Page views": _count(p, "page_views"),
+                 "Distinct session IDs": _count(p, "sessions")}
+                for p in roles
+            ], hide_index=True, width="stretch")
+        st.caption(
+            f"Role-labelled CV views: {role_overlap:,}. CV/UTM source overlap: {overlap:,}. "
+            "Role and source totals are non-additive. Explicit source=application + role=Test "
+            "traffic is excluded. View counts are preserved; classifications apply only to analysis."
+        )

@@ -105,12 +105,14 @@ def inject_article_analytics(
   const incomingRole = (params.get('role') || '').trim().slice(0, 120) || null;
   const incomingUtmSource = (params.get('utm_source') || params.get('src') || '').trim().slice(0, 100) || null;
   const incomingCampaign = (params.get('utm_campaign') || '').trim().slice(0, 100) || null;
-  if (incomingSource || incomingRole || incomingUtmSource || incomingCampaign) {{
+  const incomingContent = (params.get('utm_content') || '').trim().slice(0, 100) || null;
+  if (incomingSource || incomingRole || incomingUtmSource || incomingCampaign || incomingContent) {{
     attribution = {{
       source: incomingSource || attribution.source || null,
       role: incomingRole || attribution.role || null,
       utm_source: incomingUtmSource || attribution.utm_source || null,
       utm_campaign: incomingCampaign || attribution.utm_campaign || null,
+      utm_content: incomingContent,
     }};
     win.sessionStorage.setItem(attributionKey, JSON.stringify(attribution));
   }}
@@ -186,6 +188,7 @@ def inject_article_analytics(
       attribution_role: attribution.role,
       utm_source: attribution.utm_source,
       utm_campaign: attribution.utm_campaign,
+      utm_content: attribution.utm_content || null,
       session_elapsed_ms: Math.round(Math.min(86400000, Math.max(0, Date.now() - startedAt))),
       engaged_ms: Math.round(Math.min(86400000, sessionEngagedMs)),
       article_slug: effectiveSlug ? String(effectiveSlug).slice(0, 160) : null,

@@ -164,6 +164,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   const incomingRole = (params.get('role') || compositeRole || '').trim().slice(0, 120) || null;
   const incomingUtmSource = (params.get('utm_source') || params.get('src') || '').trim().slice(0, 100) || null;
   const incomingCampaign = (params.get('utm_campaign') || '').trim().slice(0, 100) || null;
+  const incomingContent = (params.get('utm_content') || '').trim().slice(0, 100) || null;
 
   // Repair an older malformed composite source kept in this tab's session
   // storage, e.g. "linkedin?role=dailyquote". Raw database history remains
@@ -177,12 +178,13 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     }}
   }}
 
-  if (incomingSource || incomingRole || incomingUtmSource || incomingCampaign) {{
+  if (incomingSource || incomingRole || incomingUtmSource || incomingCampaign || incomingContent) {{
     attribution = {{
       source: incomingSource || attribution.source || null,
       role: incomingRole || attribution.role || null,
       utm_source: incomingUtmSource || attribution.utm_source || null,
       utm_campaign: incomingCampaign || attribution.utm_campaign || null,
+      utm_content: incomingContent,
     }};
     win.sessionStorage.setItem(attributionKey, JSON.stringify(attribution));
   }}
@@ -487,6 +489,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
         role: incomingRole || null,
         utm_source: incomingUtmSource || null,
         utm_campaign: incomingCampaign || null,
+        utm_content: incomingContent || null,
       }};
       if (attribution.source || attribution.role || attribution.utm_source || attribution.utm_campaign) {{
         win.sessionStorage.setItem(attributionKey, JSON.stringify(attribution));
@@ -508,6 +511,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       attribution_role: attribution.role,
       utm_source: attribution.utm_source,
       utm_campaign: attribution.utm_campaign,
+      utm_content: attribution.utm_content || null,
       session_elapsed_ms: Math.round(elapsedMs),
       engaged_ms: Math.round(Math.min(86400000, Math.max(0, engagedMs))),
       ...clientContext(),

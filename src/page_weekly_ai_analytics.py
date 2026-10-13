@@ -19,6 +19,47 @@ from thinking_weekly_brief import edition_week, is_weekly_brief, sorted_editions
 BASE_URL = "https://jairribeiro-ai.streamlit.app"
 
 
+def render_weekly_campaigns(audio: dict | None, editions: list[object]) -> None:
+    st.markdown("#### Where Weekly AI readers come from")
+    if audio is None or "campaigns" not in audio:
+        st.info("Campaign breakdown is temporarily unavailable.")
+        return
+    catalogue = {a.slug: a.title for a in sorted_editions(editions)}
+    rows = [r for r in audio["campaigns"] if r.get("article_slug") in catalogue]
+    if not rows:
+        st.info("No Weekly AI reading visits in this reporting window.")
+        return
+    selected = st.selectbox("Weekly edition", [""] + list(catalogue),
+                           format_func=lambda s: catalogue.get(s, "All editions"), key="weekly_campaign_edition")
+    rows = [r for r in rows if not selected or r["article_slug"] == selected]
+    campaign = st.selectbox("Campaign", [""] + sorted({r["campaign"] for r in rows}),
+                            format_func=lambda c: c or "All campaigns", key="weekly_campaign_filter")
+    rows = [r for r in rows if not campaign or r["campaign"] == campaign]
+    chart = [{"Source": "X" if r["channel"] == "x" else r["channel"],
+              "Campaign": r["campaign"], "Content tag": r["content"],
+              "Role": "Weekly AI" if r["role"] == "weeklyai" else r["role"],
+              "Edition": catalogue[r["article_slug"]], "Reads": r["reads"],
+              "Engaged reads": r["engaged_reads"], "Audio starts": r["audio_starts"],
+              "Share sessions": r["share_sessions"]} for r in rows]
+    a, b, c = st.columns(3)
+    a.metric("Campaign reading visits", sum(r["Reads"] for r in chart))
+    b.metric("Engaged reading visits", sum(r["Engaged reads"] for r in chart))
+    c.metric("Reading visits with audio", sum(r["Audio starts"] for r in chart))
+    st.altair_chart(alt.Chart(alt.Data(values=chart)).mark_bar(cornerRadiusEnd=5).encode(
+        y=alt.Y("Source:N", sort="-x", title=None),
+        x=alt.X("sum(Reads):Q", title="Edition-session reads", axis=alt.Axis(tickMinStep=1)),
+        color=alt.Color("Content tag:N"),
+        tooltip=["Source:N", "Content tag:N", alt.Tooltip("sum(Reads):Q", title="Reads")],
+    ).properties(height=240), use_container_width=True)
+    with st.expander("Campaign and content details"):
+        st.dataframe(chart, hide_index=True, use_container_width=True)
+    st.caption("Each edition/session belongs to its first recorded article-view attribution in this window. "
+               "Repeat views, heartbeats and audio events do not create extra reading visits. "
+               "These are a subset of edition reads, not additional visitors. 'work' is a content tag, not a reader identity.")
+    st.caption("Content tags are measured from this update onward. Earlier visits without utm_content remain unrecorded; "
+               "direct or untagged traffic stays visible.")
+
+
 def _n(value: object) -> int:
     try:
         return max(0, int(value or 0))
@@ -175,6 +216,8 @@ def render_weekly_ai_analytics(window: str) -> None:
     if not report["issue_count"]:
         st.info("There are no published Weekly AI editions yet.")
         return
+
+    render_weekly_campaigns(audio_data, editions)
 
     feature_exposures = report["feature_sessions"]
     page_sessions = report["feature_page_sessions"]

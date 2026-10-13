@@ -287,7 +287,9 @@ def render_rejection_analytics(session: dict | None) -> None:
     with right:
         if st.button("Refresh evidence", width="stretch", key="rejection_refresh"):
             st.rerun(scope="fragment")
+    latest_analysis = max((str(r.get("analyzed_at") or "") for r in records), default="")
     st.caption(f"Live database read · checked {now:%d %b %Y, %H:%M} Stockholm · "
+               f"latest saved analyzer timestamp: {latest_analysis[:19].replace('T', ' ') or 'unknown'} (source timezone) · "
                "auto-refreshes every five minutes while open. New analyzer writes appear on the next refresh.")
     if dropped:
         st.warning(f"{dropped} source rows lack canonical process identifiers and are excluded.")

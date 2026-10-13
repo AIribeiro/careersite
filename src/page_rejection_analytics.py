@@ -18,7 +18,7 @@ FIELDS = (
     "decision_outcome,hiring_stage,one_line_explanation,reason_code,reason_basis,"
     "confidence,evidence_summary,employer_feedback_excerpt,jd_match_status,"
     "source_event_ids,mailbox_evidence,mailbox_coverage,cv_version,"
-    "analysis_version,analyzed_at,last_checked_at,updated_at"
+    "analysis_version,decision_date_basis,analyzed_at,last_checked_at,updated_at"
 )
 OUTCOMES = {"rejected", "not_selected", "position_filled", "role_cancelled", "position_cancelled"}
 LABELS = {
@@ -317,7 +317,7 @@ def _recommendations(records: list[dict], today: date,
 @st.fragment(run_every="5m")
 def render_rejection_analytics(session: dict | None) -> None:
     st.title("Rejection Analytics")
-    st.caption("Owner-only · canonical hiring processes · evidence first. Decisions are dated by employer action, never analyzer refresh time.")
+    st.caption("Owner-only · one record per hiring process · evidence first. Dates reflect observed negative outcomes where sources are verified; they do not necessarily identify the employer\'s internal decision date.")
     valid = ensure_owner_session(session)
     if not valid or not valid.get("access_token"):
         st.warning("Owner authentication is required to access private hiring correspondence.")
@@ -361,10 +361,13 @@ def render_rejection_analytics(session: dict | None) -> None:
         cell.metric(title, value)
     if WINDOWS[choice] is not None:
         missing = len(records) - dated_global
-        st.caption(f"Time filter uses employer decision dates only. {missing} undated historical decisions are excluded from this window, never reassigned to the analyzer run date.")
+        st.caption(f"Time filter uses recorded negative-outcome dates, not necessarily internal employer decision dates. {missing} undated outcomes are excluded; older dates without verified provenance remain marked legacy-unclassified.")
     if not scoped:
         st.info("No dated employer decisions in this window. Switch to All history to inspect undated processes.")
         return
+    unresolved_date_basis = sum(str(r.get("decision_date_basis") or "") == "legacy_unclassified" for r in scoped)
+    if unresolved_date_basis:
+        st.caption(f"Date evidence: {unresolved_date_basis}/{n} outcomes still use historical dates with unverified source provenance. Treat fine-grained daily trends cautiously.")
     if unknown > n // 2:
         st.info(f"Most causes remain unknown ({unknown}/{n}). This measures limited employer feedback, not demonstrated weaknesses in your profile.")
 

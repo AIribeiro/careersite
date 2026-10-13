@@ -343,7 +343,8 @@ def _render_source_quality(data: dict) -> None:
         st.info("No source activity in this window.")
         return
 
-    substantial = [row for row in visual_rows if row["Sessions"] >= 5]
+    substantial = [row for row in visual_rows
+                   if row["Sessions"] >= 5 and row.get("Engaged") is not None]
     if substantial:
         leader = max(substantial, key=lambda row: (
             row.get("Engaged") if row.get("Engaged") is not None else -1,

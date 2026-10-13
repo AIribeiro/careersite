@@ -17,7 +17,7 @@ from page_content_intelligence import _fetch_rpc
 from page_job_market_insights import fetch_market_records, _latest_by_indicator, _format_value, _readouts
 from page_job_search_analytics import fetch_job_records
 from page_hiring_predictor import render_hiring_predictor
-from site_cms import ensure_owner_session
+from site_cms import ensure_owner_session, _request_json, _rest_url
 
 
 _REFRESH_INTERVAL = "5m"
@@ -91,6 +91,23 @@ def _action_queue(search: dict) -> list[dict]:
     return sorted(queue,key=lambda r:(r["_sort"],-(r["Days since event"] or 0)))[:5]
 
 
+def _fetch_owner_portfolio_actions(access_token: str) -> dict:
+    """Use the verified owner session for the private hiring-action RPC.
+
+    Never relax this function's Supabase RLS/EXECUTE grants or send its
+    data through the public analytics client.
+    """
+    if not access_token:
+        raise ValueError("Owner session required for portfolio action detail.")
+    data = _request_json(
+        "POST", _rest_url("rpc/careersite_hiring_predictor_actions_v1"),
+        token=access_token, payload={}, timeout=20,
+    )
+    if not isinstance(data, dict):
+        raise RuntimeError("Unexpected private portfolio action response.")
+    return data
+
+
 @st.fragment(run_every=_REFRESH_INTERVAL)
 def render_analytics_overview(session: dict | None) -> None:
     st.title("Decision overview")
@@ -123,7 +140,7 @@ def render_analytics_overview(session: dict | None) -> None:
             errors.append("portfolio correlation")
         hiring = _fetch_hiring_intelligence("30d")
         try:
-            actions = _fetch_rpc("careersite_hiring_predictor_actions_v1", {})
+            actions = _fetch_owner_portfolio_actions(str(valid["access_token"]))
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             errors.append("portfolio action detail")
     current_signatures = {}

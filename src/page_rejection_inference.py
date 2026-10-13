@@ -14,7 +14,7 @@ from site_cms import _request_json, _rest_url, ensure_owner_session
 EVIDENCE_FIELDS = (
     "id,rejection_id,source_key,evidence_type,source_title,source_url,"
     "source_published_at,match_strength,matched_requisition,evidence_claim,"
-    "limitations,review_status,observed_at"
+    "limitations,review_status,observed_at,raw_context"
 )
 HYPOTHESIS_FIELDS = (
     "id,rejection_id,hypothesis_code,explanation,assessment_state,"
@@ -64,6 +64,11 @@ def render_rejection_inference(session: dict, scoped: list[dict]) -> None:
     exact = {int(e["rejection_id"]) for e in source_rows
              if e.get("review_status") == "reviewed" and
              e.get("match_strength") in ("exact_requisition", "verified_original_role")}
+    before_decision = {int(e["rejection_id"]) for e in source_rows
+        if e.get("review_status") == "reviewed"
+        and isinstance(e.get("raw_context"), dict)
+        and e["raw_context"].get("temporal_status") == "before_decision"
+        and e.get("match_strength") in ("exact_requisition", "verified_original_role")}
     confirmed = sum(r.get("reason_basis") == "employer_stated" for r in scoped)
     medium_or_higher = {int(h["rejection_id"]) for h in hyp_rows
                         if h.get("assessment_state") == "supported_possible"
@@ -78,15 +83,18 @@ def render_rejection_inference(session: dict, scoped: list[dict]) -> None:
         "establish what motivated an undisclosed employer decision. "
         "Confidence means evidential strength, never a probability of employer motive."
     )
-    cols = st.columns(5)
+    cols = st.columns(6)
     cols[0].metric("Employer-stated reasons", f"{confirmed}/{len(scoped)}")
-    cols[1].metric("Exact-requisition research", len(exact))
-    cols[2].metric("Supported hypotheses", len(medium_or_higher))
-    cols[3].metric("Low-confidence leads", len(weak))
-    cols[4].metric("Reasons still unknown", unknown)
+    cols[1].metric("Exact role / ID match", len(exact))
+    cols[2].metric("Pre-decision sources", len(before_decision))
+    cols[3].metric("Supported hypotheses", len(medium_or_higher))
+    cols[4].metric("Low-confidence leads", len(weak))
+    cols[5].metric("Reasons still unknown", unknown)
     st.caption(
-        "All metrics use distinct hiring-process counts within the decision reporting "
-        "window selected above. Low-confidence leads are excluded from supported hypotheses."
+        "All metrics use distinct hiring-process counts within the selected window. "
+        "Pre-decision sources explicitly document a prior posting; a later copy, exact "
+        "requisition ID or unverified publication date is not proof of historic wording. "
+        "Low-confidence leads do not count as supported explanations."
     )
 
     tab_sources, tab_hypotheses, tab_queue = st.tabs(
@@ -104,6 +112,7 @@ def render_rejection_inference(session: dict, scoped: list[dict]) -> None:
                     "Source match": str(s.get("match_strength") or "").replace("_", " "),
                     "Evidence claim": s.get("evidence_claim"),
                     "Published": s.get("source_published_at") or "Not verified",
+                    "Source timing": (s.get("raw_context") or {}).get("temporal_status", "Not verified"),
                     "Limitation": s.get("limitations"), "Original source": s.get("source_url"),
                 })
             st.dataframe(

@@ -1,10 +1,39 @@
 import unittest
 from datetime import date
-from job_search_outlook import outlook
+from job_search_outlook import outlook, preparation_plan
 
 TODAY = date(2026, 10, 13)
 
 class OutlookTests(unittest.TestCase):
+    def test_plan_changes_after_recent_engagement(self):
+        stages={'as_of':'2026-10-13','stage_buckets':[]}
+        quiet={'daily':[{'d':'2026-09-01','responses':1}]}
+        self.assertIn('forward', preparation_plan(quiet,stages,TODAY)['priority'])
+        stages['stage_buckets']=[{'stage':'interview','stage_weight':1,'age_month_index':0,'n':1}]
+        current={'daily':[{'d':'2026-10-12','interviews':1}]}
+        self.assertIn('Protect', preparation_plan(current,stages,TODAY)['priority'])
+
+    def test_review_date_anchored_to_observed_cadence(self):
+        jobs={'daily':[{'d':f'2026-10-{d:02d}','responses':1} for d in (1,4,7,10)]}
+        stages={'as_of':'2026-10-13','stage_buckets':[]}
+        result=preparation_plan(jobs,stages,TODAY)
+        self.assertEqual(result['typical_gap'],3)
+        self.assertEqual(result['interval'],5)
+        self.assertEqual(result['review_date'],date(2026,10,15))
+        stages['as_of']='2026-10-14'
+        self.assertEqual(preparation_plan(jobs,stages,date(2026,10,14))['review_date'],result['review_date'])
+
+    def test_missing_inputs_do_not_trigger_escalation(self):
+        result=preparation_plan(None,None,TODAY)
+        self.assertIn('Verify',result['priority'])
+        self.assertIsNone(result['typical_gap'])
+
+    def test_decline_changes_advice(self):
+        jobs={'daily':[{'d':'2026-09-10','responses':5},{'d':'2026-10-12','responses':1}]}
+        stages={'as_of':'2026-10-13','stage_buckets':[]}
+        result=preparation_plan(jobs,stages,TODAY)
+        self.assertIn('slowing',result['priority'])
+
     def test_panel_renders_missing_and_recent_evidence(self):
         from streamlit.testing.v1 import AppTest
         for jobs in (None, {'daily':[{'d':'2026-10-07','interviews':1}]}):

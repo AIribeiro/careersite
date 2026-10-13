@@ -243,6 +243,34 @@ Runtime:
 
 ## Analytics and attribution
 
+### Analytics presentation contract — insight before raw counts
+
+Every public Analytics view should start with a concise, evidence-based answer
+to a decision question, then a chart showing the comparison, trend, funnel or
+distribution behind it. A small headline KPI is acceptable only when it adds
+context to the finding. Do not build new views as grids of raw counters or
+large tables.
+
+- Prefer ranked visual comparisons, time movement and conversion rates with
+  their denominators available in tooltips or optional details.
+- Describe the strongest and weakest observed signal, what changed (when a
+  comparable prior period exists), sample size and uncertainty.
+- Derive narrative findings from the selected live reporting window and
+  documented metric definitions; do not insert generic AI summaries.
+- Preserve mutually exclusive session cohorts and avoid adding overlapping
+  source/campaign totals. Treat suspected automation as heuristic, never an
+  identified bot, and do not equate browser sessions with unique visitors or
+  recruiters.
+- Put exact source/campaign counts, SQL reconciliation, event-level checks,
+  measurement diagnostics and legacy counts behind collapsed expanders.
+- Provide graceful empty states, and do not manufacture rates for zero
+  denominators. Warn when small samples make rankings unstable.
+- Keep filters intuitive; default Portfolio comparisons to seven days rather
+  than a noisy one-hour snapshot. Short windows remain available for checks.
+
+This is the default for future changes to Overview, Portfolio, Job search,
+Job predictions and Swedish market, not only the Acquisition panel.
+
 Behavioral analytics remain invisible to normal visitors. The approved event taxonomy is:
 
 - `page_view`
@@ -266,7 +294,7 @@ It remains unlisted from primary navigation and noindex by default. Its five
 top-level views are **Overview**, **Portfolio**, **Job search**,
 **Job predictions** and **Swedish market**. Portfolio shows existing page,
 article and WEEKLY AI statistics using anonymous aggregate reporting RPCs.
-The Portfolio reporting window defaults to **Last hour**.
+The Portfolio reporting window defaults to **Last 7 days**.
 The Job Search activity selector offers **Today, 7, 30, 90, 180, 365 and
 730 days**, defaulting to 30 days.
 

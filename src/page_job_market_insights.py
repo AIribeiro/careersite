@@ -8,6 +8,7 @@ import altair as alt
 import streamlit as st
 
 from job_market_correlations import OUTCOMES, analyze_market
+from market_trend_dashboard import render_market_trends
 from portfolio_job_correlations import analyze_portfolio_job_correlations
 from page_content_intelligence import _fetch_rpc
 from site_cms import _request_json, _rest_url, ensure_owner_session
@@ -101,8 +102,13 @@ def _market_pulse(model: dict) -> None:
                         tooltip=["Segment:N", "Net outlook:Q", "Period:N"],
                     ).properties(height=max(195, len(points)*42)), width="stretch")
                 st.caption("These outlook estimates share one survey family and period; they are cross-sectional comparisons, not a time trend.")
-    for item in _readouts(by_key):
-        st.markdown(f"**{item[0]}** — {item[1]}")
+    readouts = _readouts(by_key)
+    if readouts:
+        st.markdown("### What this means for your search")
+        for title, explanation in readouts:
+            with st.container(border=True):
+                st.markdown(f"**{title}**")
+                st.write(explanation)
 
 
 def _readouts(by_key: dict) -> list[tuple[str,str]]:
@@ -132,27 +138,7 @@ def _readouts(by_key: dict) -> list[tuple[str,str]]:
 
 
 def _market_history(model: dict) -> None:
-    st.subheader("Market trends: independent releases only")
-    if not model["trends"]:
-        st.info("Every indicator currently has one independently observed period. "
-                "The engine cannot show a genuine indicator time series until the same series is updated for new periods.")
-    else:
-        st.dataframe(model["trends"], hide_index=True, width="stretch")
-        eligible = [r for g in model["groups"].values() if len(g) >= 2 for r in g
-                    if r.get("metric_value") is not None]
-        if eligible:
-            options = {key: g for key,g in model["groups"].items() if
-                       sum(r.get("metric_value") is not None for r in g) >= 2}
-            if options:
-                selected = st.selectbox("Historical series",list(options),
-                    format_func=lambda k: str(options[k][-1].get("indicator_name") or k),
-                    key="job_market_history_series")
-                chart = [{"Date":r.get("period_end") or r.get("observation_date"),
-                          "Metric":float(r["metric_value"])} for r in options[selected]
-                         if r.get("metric_value") is not None]
-                st.altair_chart(alt.Chart(alt.Data(values=chart)).mark_line(point=True).encode(
-                    x="Date:T",y=alt.Y("Metric:Q",title=options[selected][-1].get("metric_unit")),
-                    tooltip=["Date:T","Metric:Q"]).properties(height=260),width="stretch")
+    render_market_trends(model)
 
 
 def _relationship_screen(model: dict, *, compact: bool) -> None:

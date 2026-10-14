@@ -42,7 +42,10 @@ class PublicFeatureParityTests(unittest.TestCase):
             "Sources & measurement",
         ):
             self.assertIn(label,market)
-        self.assertIn("Market trends: independent releases only",original)
+        self.assertIn("render_market_trends(model)",original)
+        dashboard=(ROOT/"src/market_trend_dashboard.py").read_text()
+        self.assertIn("Market trends at a glance",dashboard)
+        self.assertIn('st.expander("Exact figures"',dashboard)
         self.assertIn("Automatic market ↔ job-search ↔ portfolio correlations",original)
         self.assertIn("Source ledger",original)
         self.assertNotIn("fetch_job_records",market)

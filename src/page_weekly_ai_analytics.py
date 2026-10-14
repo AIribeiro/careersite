@@ -35,7 +35,7 @@ def render_weekly_campaigns(audio: dict | None, editions: list[object]) -> None:
     campaign = st.selectbox("Campaign", [""] + sorted({r["campaign"] for r in rows}),
                             format_func=lambda c: c or "All campaigns", key="weekly_campaign_filter")
     rows = [r for r in rows if not campaign or r["campaign"] == campaign]
-    chart = [{"Source": "X" if r["channel"] == "x" else r["channel"],
+    chart = [{"Source": {"x": "X", "threads": "Threads", "thre": "Threads"}.get(r["channel"], r["channel"]),
               "Campaign": r["campaign"], "Content tag": r["content"],
               "Role": "Weekly AI" if r["role"] == "weeklyai" else r["role"],
               "Edition": catalogue[r["article_slug"]], "Reads": r["reads"],

@@ -169,7 +169,7 @@ def _article_daily_chart(rows: object) -> None:
 def _reader_source_rows(rows: list[dict], slug: str = "") -> list[dict]:
     """Sum article-session visits, never claim cross-article unique readers."""
     labels = {"kpmg": "KPMG", "linkedin": "LinkedIn", "x": "X", "twitter": "Twitter",
-              "facebook": "Facebook", "whatsapp": "WhatsApp", "email": "Email",
+              "facebook": "Facebook", "whatsapp": "WhatsApp", "email": "Email", "threads": "Threads",
               "direct/unknown": "Unattributed / unknown"}
     counts: dict[str, int] = {}
     originals: dict[str, str] = {}
@@ -178,6 +178,8 @@ def _reader_source_rows(rows: list[dict], slug: str = "") -> list[dict]:
             continue
         raw = str(row.get("attribution_source") or "direct/unknown").strip() or "direct/unknown"
         key = raw.casefold()
+        if key == "thre":
+            key = "threads"
         count = max(0, int(row.get("sessions") or 0))
         counts[key] = counts.get(key, 0) + count
         originals.setdefault(key, raw)

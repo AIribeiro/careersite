@@ -64,7 +64,7 @@ ARTICLE_META = None if CMS_ARTICLE_META is not None else (
 TITLES = {
     "home": "Jair Ribeiro | Enterprise AI & Data Leader",
     "impact": "Selected Experience | Jair Ribeiro",
-    "thinking": "Selected Thinking | Jair Ribeiro",
+    "thinking": "Articles & Perspectives | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
     "certifications": "Credentials & Certifications | Jair Ribeiro",
     "presence": "Speaking & Publications | Jair Ribeiro",

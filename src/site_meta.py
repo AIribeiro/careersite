@@ -16,7 +16,7 @@ except OSError:
 DESCRIPTIONS = {
     "home": "Selected experience and writing from Jair Ribeiro across enterprise AI, Data & Analytics, governance, adoption and operating models.",
     "impact": "Selected enterprise AI and Data experience showing responsibilities, trade-offs, cross-functional work and what changed.",
-    "thinking": "Notes on enterprise AI strategy, value, operating models, governance, data readiness, adoption and portfolio decisions.",
+    "thinking": "Articles by Jair Ribeiro on enterprise AI and data leadership, governance, adoption, portfolio decisions, operating models and business value.",
     "about": "The professional story of Jair Ribeiro: from enterprise technology foundations into business-facing AI, Data and Analytics leadership across international organizations.",
     "certifications": "Selected AI, data and leadership credentials covering agentic AI, Responsible AI, GenAI strategy, data platforms, product and technical foundations.",
     "presence": "Selected speaking, publications and externally documented contributions across enterprise AI, Data, responsible adoption and governance.",

@@ -29,6 +29,7 @@ _SOURCE_NAMES = {
     "hiring": "qualified portfolio behavior",
     "actions": "CV downloads and contact clicks",
     "geo": "matched vacancy locations",
+    "employers": "verified employer vacancy status",
 }
 
 
@@ -127,6 +128,17 @@ def _fetch_owner_geography_locations(access_token: str) -> dict:
     return payload
 
 
+def _fetch_employer_vacancy_activity(token: str) -> dict:
+    if not token:
+        raise ValueError("Owner session required for employer vacancy checks.")
+    data=_request_json("POST",
+                       _rest_url("rpc/careersite_hiring_employer_activity_v1"),
+                       token=token,payload={},timeout=20)
+    if not isinstance(data,dict):
+        raise RuntimeError("Unexpected employer vacancy evidence.")
+    return data
+
+
 @st.fragment(run_every=_REFRESH_INTERVAL)
 def render_analytics_overview(session: dict | None) -> None:
     st.title("Decision overview")
@@ -144,6 +156,7 @@ def render_analytics_overview(session: dict | None) -> None:
     hiring = {}
     actions = None
     geography_locations = None
+    employer_activity = None
     errors = []
     with st.spinner("Comparing current evidence…"):
         try:
@@ -169,12 +182,19 @@ def render_analytics_overview(session: dict | None) -> None:
             )
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             errors.append("job location enrichment")
+        try:
+            employer_activity = _fetch_employer_vacancy_activity(
+                str(valid["access_token"])
+            )
+        except (RuntimeError,TimeoutError,PermissionError,ValueError):
+            errors.append("employer vacancy status")
     current_signatures = {}
     failed_sources = {"jobs": "job search", "market": "market",
                       "site": "portfolio correlation"}
     for key, payload in (("jobs", jobs), ("market", market),
                          ("site", site), ("hiring", hiring), ("actions", actions),
-                         ("geo", geography_locations)):
+                         ("geo", geography_locations),
+                         ("employers", employer_activity)):
         # Unavailable sources must not be mistaken for newly deleted data.
         if payload is None or failed_sources.get(key) in errors:
             continue
@@ -208,6 +228,7 @@ def render_analytics_overview(session: dict | None) -> None:
         forecast = render_hiring_predictor(
             jobs,market_model,site_corr,hiring,now.date(),
             portfolio_actions=actions,geography_locations=geography_locations,
+            employer_activity=employer_activity,
         )
         if forecast and forecast.get("status") in ("scenario","no_median"):
             if market and site and actions is not None and not errors:

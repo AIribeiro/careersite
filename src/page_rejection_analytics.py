@@ -424,6 +424,215 @@ def _render_inferred_barrier_snapshot(session: dict, scoped: list[dict]) -> None
         )
 
 
+# Candidate-side barrier categories, deliberately distinct from the employer's motive.
+# The classification is one family per hypothesis; per-process deduplication prevents
+# repeated synonyms inflating the count for a family.
+BARRIER_FAMILIES = {
+    "LANGUAGE_REQUIREMENT": "Swedish-language requirements",
+    "WORK_MODEL_LOCATION": "Location and workplace model",
+    "GEOGRAPHY_LANGUAGE": "Location or language (unclear)",
+    "GEOGRAPHY_ELIGIBILITY": "Work-country eligibility",
+    "POLICY_CLEARANCE": "Clearance and role eligibility",
+    "WORK_AUTHORIZATION": "Clearance and role eligibility",
+    "CRAFT_ENGINEERING": "Technical engineering depth",
+    "PLATFORM_ENGINEERING_MANDATE": "Technical engineering depth",
+    "CRAFT_AI_PRODUCT": "Product ownership",
+    "CRAFT_PRODUCT": "Product ownership",
+    "CRAFT_PRODUCT_OWNER": "Product ownership",
+    "CRAFT_PRODUCT_ANALYTICS": "Specialist analytics craft",
+    "CRAFT_ANALYTICS": "Specialist analytics craft",
+    "CRAFT_ANALYST": "Specialist analytics craft",
+    "CRAFT_DIGITAL_ANALYTICS": "Specialist analytics craft",
+    "CONSULTING_DELIVERY": "Consulting and commercial scope",
+    "COMMERCIAL_MANDATE_FIT": "Consulting and commercial scope",
+    "GENAI_VENDOR_COMMERCIAL": "Consulting and commercial scope",
+    "DOMAIN_SPECIALISM": "Industry / functional specialism",
+    "DOMAIN_COMPETITION": "Industry / functional specialism",
+    "REGULATED_INDUSTRY": "Industry / functional specialism",
+    "REGULATED_AI_COMPLIANCE_SPECIALISM": "Regulated compliance depth",
+    "REGULATED_DATA_GOVERNANCE": "Regulated compliance depth",
+    "INSIGHTS_METHOD_SPECIALISM": "Industry / functional specialism",
+    "LEADERSHIP_SCALE": "Seniority and mandate scope",
+    "ROLE_BELOW_SENIORITY": "Seniority and mandate scope",
+    "SENIORITY_UP": "Seniority and mandate scope",
+    "ROLE_SCOPE_FIT": "Seniority and mandate scope",
+    "PROGRAM_EXECUTION_MANDATE": "Execution-focused mandate",
+    "PROCESS_IMPROVEMENT_MANDATE": "Execution-focused mandate",
+    "COMPENSATION": "Compensation expectations",
+    "EMPLOYMENT_MODEL": "Employment arrangement",
+    "ASSESSMENT_INTERVIEW": "Interview / assessment evidence",
+}
+
+
+def _render_hiring_barrier_patterns(session: dict, scoped: list[dict]) -> None:
+    """Read owner-only hypotheses; chart distinct rejected processes per barrier."""
+    unknown = {
+        int(r["id"]): r for r in scoped
+        if r.get("id") is not None
+        and str(r.get("reason_code") or "").upper() == "UNKNOWN"
+    }
+    if not unknown:
+        st.caption("No cases with undisclosed causes in this window.")
+        return
+    try:
+        from page_rejection_inference import _private_rows, HYPOTHESIS_FIELDS
+        rows = _private_rows(
+            str(session["access_token"]), "job_rejection_hypotheses", HYPOTHESIS_FIELDS
+        )
+    except (RuntimeError, TimeoutError, ValueError, KeyError) as exc:
+        st.warning(
+            "The private hypothesis evidence is temporarily unavailable; "
+            "the employer-stated view remains available below. "
+            f"Details: {exc}"
+        )
+        return
+
+    # Rank per process *and* family. A supported hypothesis supersedes tentative
+    # hypotheses in the same family; others remain independent possible barriers.
+    ranked: dict[tuple[int, str], tuple[int, dict]] = {}
+    process_level: dict[int, int] = {rid: 0 for rid in unknown}
+    for row in rows:
+        try:
+            rid = int(row.get("rejection_id") or -1)
+        except (TypeError, ValueError):
+            continue
+        code = str(row.get("hypothesis_code") or "").upper()
+        family_label = BARRIER_FAMILIES.get(code)
+        state = str(row.get("assessment_state") or "").lower()
+        level = (2 if state == "supported_possible"
+                 else 1 if state in ("weak_possible", "investigating") else 0)
+        if rid not in unknown or not family_label or not level:
+            continue
+        key = (rid, family_label)
+        if level > ranked.get(key, (0, {}))[0]:
+            ranked[key] = level, row
+        process_level[rid] = max(process_level[rid], level)
+
+    strong = sum(level == 2 for level in process_level.values())
+    tentative = sum(level == 1 for level in process_level.values())
+    unestablished = sum(level == 0 for level in process_level.values())
+    st.caption(
+        "Distinct rejected processes with undisclosed employer motives. "
+        "Supported = verified candidate–role mismatch; tentative = a weaker, "
+        "investigable lead. Neither tier confirms the employer's decision criterion."
+    )
+    left, right = st.columns([1.8, 1], vertical_alignment="top")
+    with left:
+        groups: dict[str, dict[str, int]] = {}
+        for (_, family_label), (level, _) in ranked.items():
+            totals = groups.setdefault(
+                family_label, {"Supported": 0, "Tentative": 0}
+            )
+            totals["Supported" if level == 2 else "Tentative"] += 1
+        ordered = sorted(
+            groups, key=lambda key: (
+                -(groups[key]["Supported"] + groups[key]["Tentative"]),
+                -groups[key]["Supported"], key,
+            )
+        )
+        if ordered:
+            chart_rows = [
+                {"Barrier": name, "Evidence": tier, "Processes": groups[name][tier]}
+                for name in ordered for tier in ("Supported", "Tentative")
+                if groups[name][tier]
+            ]
+            bars = alt.Chart(alt.Data(values=chart_rows)).mark_bar().encode(
+                y=alt.Y(
+                    "Barrier:N", sort=ordered, title=None,
+                    axis=alt.Axis(labelLimit=225, labelFontSize=12),
+                ),
+                x=alt.X(
+                    "Processes:Q", title="Distinct hiring processes",
+                    axis=alt.Axis(tickMinStep=1),
+                ),
+                color=alt.Color(
+                    "Evidence:N", title="Evidence strength",
+                    scale=alt.Scale(
+                        domain=["Supported", "Tentative"],
+                        range=["#39796B", "#BD9464"],
+                    ),
+                    legend=alt.Legend(orient="top"),
+                ),
+                order=alt.Order("Evidence:N", sort="ascending"),
+                tooltip=[
+                    alt.Tooltip("Barrier:N", title="Potential barrier"),
+                    alt.Tooltip("Evidence:N", title="Strength"),
+                    alt.Tooltip("Processes:Q", title="Distinct processes"),
+                ],
+            ).properties(height=max(250, min(560, len(ordered) * 38)))
+            st.altair_chart(bars, use_container_width=True)
+            st.caption(
+                "A process may have more than one different barrier; "
+                "bars should not be summed to calculate the rejected-process total."
+            )
+        else:
+            st.info("No supported or tentative barrier hypotheses in the selected window.")
+    with right:
+        st.markdown(
+            f"**{strong + tentative} of {len(unknown)}** cases have a "
+            "specific, evidence-linked question worth investigating."
+        )
+        st.write(
+            f"{strong} have at least one supported candidate–role mismatch. "
+            f"{tentative} have tentative leads only; "
+            f"{unestablished} still lack a grounded explanation."
+        )
+        if ranked:
+            leading = sorted(
+                groups,
+                key=lambda key: (-groups[key]["Supported"],
+                                 -(groups[key]["Supported"] + groups[key]["Tentative"]),
+                                 key)
+            )[0]
+            lead_n = groups[leading]["Supported"]
+            if lead_n:
+                st.markdown(
+                    f"**Strongest recurring signal:** {leading} "
+                    f"({lead_n} supported process"
+                    f"{'es' if lead_n != 1 else ''})."
+                )
+            else:
+                st.caption(
+                    "Current evidence is too tentative to identify "
+                    "a recurring supported hiring barrier."
+                )
+        st.caption(
+            "These are evidence-strength classifications, not employer-motive "
+            "probabilities or statistically proven drivers of rejection."
+        )
+
+    if ranked:
+        with st.expander("Inspect roles and evidence behind each barrier", expanded=False):
+            chosen = st.selectbox(
+                "Potential hiring barrier", options=ordered,
+                key="rejection_barrier_category",
+            )
+            selected = [
+                (rid, level, row)
+                for (rid, label), (level, row) in ranked.items()
+                if label == chosen
+            ]
+            selected.sort(
+                key=lambda v: (-v[1], str(unknown[v[0]].get("employer") or ""))
+            )
+            st.dataframe([
+                {
+                    "Employer": unknown[rid].get("employer"),
+                    "Role": unknown[rid].get("role"),
+                    "Evidence strength": "Supported" if level == 2 else "Tentative",
+                    "Potential mismatch": h.get("explanation"),
+                    "Counterevidence": h.get("counterargument"),
+                    "Limitation": h.get("limitation"),
+                }
+                for rid, level, h in selected
+            ], hide_index=True, width="stretch")
+            st.caption(
+                "Original vacancy references and detailed research remain "
+                "under Research & hypotheses. These observations do not "
+                "identify why the employer rejected an application."
+            )
+
+
 def render_rejection_analytics(session: dict | None) -> None:
     st.title("Rejection Analytics")
     st.caption("Owner-only · one record per hiring process · evidence first. Dates reflect observed negative outcomes where sources are verified; they do not necessarily identify the employer\'s internal decision date.")
@@ -560,6 +769,10 @@ def render_rejection_analytics(session: dict | None) -> None:
                 "Do not interpret the difference as worsening job-market fit."
             )
     with reasons:
+        st.subheader("Which hiring barriers appear repeatedly?")
+        _render_hiring_barrier_patterns(valid, scoped)
+        st.divider()
+        st.subheader("What employers actually disclosed")
         explained = [r for r in scoped
                      if str(r.get("reason_basis") or "") in
                         ("employer_relative", "employer_stated")]
@@ -585,22 +798,49 @@ def render_rejection_analytics(session: dict | None) -> None:
                 "One employer explicitly described a seniority mismatch. "
                 "One case cannot justify broad CV or role-targeting changes."
             )
-        st.subheader("Reason by evidence basis")
-        st.caption("Reason basis says what supports the explanation. Confidence is not a job-offer probability.")
-        _chart(_reasons(scoped), "Reason", "Processes", color="Basis", height=315)
-        c1, c2 = st.columns(2)
-        with c1:
-            st.subheader("Confidence")
-            conf = Counter(str(r.get("confidence") or "unknown") for r in scoped)
-            _chart([{"Confidence": k, "Processes": v} for k,v in sorted(conf.items())],
-                   "Confidence", "Processes")
-        with c2:
-            st.subheader("Where outcomes cluster")
-            fam = Counter(family(str(r.get("role") or "")) for r in scoped)
-            _chart([{"Role family": k, "Processes": v} for k,v in fam.most_common()],
-                   "Role family", "Processes")
-        st.caption("Role-family categories come from title heuristics, not verified vacancy JDs. Counts alone are not rejection rates: application denominators differ.")
-        with st.expander("Employer-specific findings and supporting interpretation", expanded=True):
+        with st.expander(
+            "Employer-reported causes and evidence-basis diagnostics",
+            expanded=False,
+        ):
+            st.caption(
+                "This historical view measures what employers disclosed or "
+                "what was independently confirmed; UNKNOWN is not a barrier category."
+            )
+            # Exclude UNKNOWN from cause chart; disclose its count separately.
+            disclosed = [
+                r for r in scoped
+                if str(r.get("reason_code") or "").upper() != "UNKNOWN"
+            ]
+            if disclosed:
+                _chart(_reasons(disclosed), "Reason", "Processes",
+                       color="Basis", height=260)
+            else:
+                st.caption("No specific recorded causes in this reporting window.")
+            st.caption(
+                f"{unknown} of {n} processes still have undisclosed employer motives. "
+                "The barrier chart above assesses independent candidate–role evidence."
+            )
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown("**Recorded reason confidence**")
+                conf = Counter(str(r.get("confidence") or "unknown") for r in scoped)
+                _chart([
+                    {"Confidence": k, "Processes": v}
+                    for k, v in sorted(conf.items())
+                ], "Confidence", "Processes")
+            with c2:
+                st.markdown("**Where negative decisions cluster**")
+                fam = Counter(family(str(r.get("role") or "")) for r in scoped)
+                _chart([
+                    {"Role family": k, "Processes": v}
+                    for k, v in fam.most_common()
+                ], "Role family", "Processes")
+            st.caption(
+                "Role family is inferred from titles, not original vacancy "
+                "requirements. Counts are not application rejection rates."
+            )
+        with st.expander("Employer-specific findings and supporting interpretation",
+                         expanded=False):
             shown = [r for r in scoped if str(r.get("reason_code") or "").upper() != "UNKNOWN"]
             st.dataframe([{"Employer": r.get("employer"), "Role": r.get("role"),
                            "Decision": str(_date(r) or "Undated"), "Reason": LABELS.get(r.get("reason_code"), r.get("reason_code")),

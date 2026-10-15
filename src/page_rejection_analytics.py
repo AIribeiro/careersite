@@ -314,7 +314,6 @@ def _recommendations(records: list[dict], today: date,
     return sorted(results, key=lambda r: (r["Priority"], r["Area"]))
 
 
-@st.fragment(run_every="5m")
 def _render_inferred_barrier_snapshot(session: dict, scoped: list[dict], hypotheses: list[dict] | None = None) -> None:
     """Summarize private role-fit hypotheses separately from actual employer reasons.
 
@@ -646,6 +645,7 @@ def _render_hiring_barrier_patterns(session: dict, scoped: list[dict], hypothese
             )
 
 
+@st.fragment(run_every="5m")
 def render_rejection_analytics(session: dict | None) -> None:
     st.title("Rejection Analytics")
     st.caption("Owner-only · one record per hiring process · evidence first. Dates reflect observed negative outcomes where sources are verified; they do not necessarily identify the employer\'s internal decision date.")

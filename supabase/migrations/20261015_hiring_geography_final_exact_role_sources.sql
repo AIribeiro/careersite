@@ -1,0 +1,9 @@
+INSERT INTO public.hiring_geography_external_evidence (employer_key,role_key,advertised_location,work_model,country,source_url,source_type,checked_on,source_note) VALUES
+('ai4i academy','call for ai trainers & experts','Turin, Piedmont','Location not confirmed as mandatory on-site','Italy','https://www.linkedin.com/company/ai4industry/','verified_job_board','2026-10-15','Recruiter''s exact call advertised Turin; onsite requirement not established'),
+('global steel manufacturer','head of digital & ai acceleration','Luxembourg',NULL,'Luxembourg','https://lu.linkedin.com/jobs/view/head-of-digital-ai-acceleration-4470331024','verified_job_board','2026-10-15','Exact applied LinkedIn posting ID 4470331024'),
+('husky technologies','director, data & ai','Luxembourg',NULL,'Luxembourg','https://www.husky.co/en/careers/portal/?page=7','official_employer','2026-10-15','Employer career portal lists Director Data & AI requisition 21331 Luxembourg'),
+('ifindtech ltd','chief technology officer','Stockholm',NULL,'Sweden','https://se.linkedin.com/jobs/view/chief-technology-officer-at-ifindtech-ltd-4468971967','verified_job_board','2026-10-15','Exact applied job ID and in-description Stockholm office'),
+('ncs','#eg ai tech lead','Singapore',NULL,'Singapore','https://jobs.smartrecruiters.com/NCS3/6000000001417434--eg-ai-tech-lead','official_employer','2026-10-15','Exact SmartRecruiters role and Singapore base'),
+('volvo group','digitalization lead (35808)','Gothenburg',NULL,'Sweden','https://vakanser.se/jobb/digitalization%2Blead%2B2/','verified_job_board','2026-10-15','Exact req 35808-44484220 employer Volvo Göteborg'),
+('crosslake technologies llc','head of data practitioner','Remote (Europe)','Remote',NULL,'https://jobs.lever.co/crosslaketech/99bb83b2-1f12-473c-b850-d63d1431b3b3','official_employer','2026-10-15','Official Head of Data Consultant job references Head of Data Practitioner; Europe remote')
+ON CONFLICT DO NOTHING;

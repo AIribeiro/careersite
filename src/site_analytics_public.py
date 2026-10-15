@@ -25,7 +25,8 @@ def fetch_public_analytics_rpc(name: str, payload: dict | None = None) -> dict:
                     "careersite_public_hiring_inputs_v1",
                     "careersite_public_market_history_v1",
                     "careersite_public_rejection_summary_v1",
-                    "careersite_public_pipeline_health_v1"):
+                    "careersite_public_pipeline_health_v1",
+                    "careersite_public_conversion_quality_v1"):
         raise ValueError("Not an approved public summary.")
     req = request.Request(
         f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{name}",

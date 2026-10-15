@@ -767,38 +767,100 @@ def render_rejection_analytics(session: dict | None) -> None:
         ["Decision overview", "Reasons and patterns", "Pipeline and timing", "Evidence and next actions", "Research & hypotheses"]
     )
     with overview:
-        st.subheader("What actually happened")
-        outcomes = Counter(str(r.get("decision_outcome") or "unclassified") for r in scoped)
-        c1, c2 = st.columns([1, 1.2])
-        with c1:
-            _chart([{"Outcome": k.replace("_", " ").title(), "Processes": v}
-                    for k, v in sorted(outcomes.items())], "Outcome", "Processes")
-        with c2:
-            st.markdown("**Interpretation**")
-            st.write(f"{confirmed} of {n} processes have a confirmed explanation; "
-                     f"{stated} contain an employer-stated reason. A comparative selection "
-                     "can be confirmed even when the precise distinguishing requirement remains unknown.")
-        st.subheader("Decision timeline")
-        monthly = Counter(_date(r).strftime("%Y-%m") if _date(r) else "Undated"
-                          for r in scoped)
-        months = sorted(x for x in monthly if x != "Undated")
-        if "Undated" in monthly:
-            months.append("Undated")
-        _chart([{"Month": month, "Processes": monthly[month]} for month in months],
-               "Month", "Processes")
-        st.caption("The Undated bar is excluded from monthly trend inference. Incomplete current months are not compared with full prior months as if equivalent.")
-        recent_30 = sum(bool(_date(r) and today - timedelta(days=29) <= _date(r) <= today)
-                        for r in records)
-        prior_30 = sum(bool(_date(r) and today - timedelta(days=59) <= _date(r) < today - timedelta(days=29))
-                       for r in records)
-        if prior_30 >= 10 and recent_30 >= 10:
-            st.metric("Decision volume · latest 30d vs previous 30d",
-                      f"{recent_30} vs {prior_30}",
-                      help="Recorded decision counts in two equally long windows, not a comparison of application rejection rates.")
+        st.subheader("What happened in the recorded decisions?")
+        counts = Counter(str(r.get("decision_outcome") or "unclassified").lower()
+                         for r in scoped)
+        candidate_not_selected = counts["rejected"] + counts["not_selected"]
+        filled_or_cancelled = (counts["position_filled"] + counts["role_cancelled"]
+                               + counts["position_cancelled"])
+        a, b = st.columns([1.6, 1], vertical_alignment="center")
+        with a:
+            summary = [
+                {"Outcome": "Candidate not selected", "Processes": candidate_not_selected},
+                {"Outcome": "Position filled", "Processes": counts["position_filled"]},
+                {"Outcome": "Recruitment cancelled", "Processes":
+                 counts["role_cancelled"] + counts["position_cancelled"]},
+            ]
+            summary = [row for row in summary if row["Processes"]]
+            overview_chart = alt.Chart(alt.Data(values=summary)).mark_bar(
+                cornerRadiusEnd=4
+            ).encode(
+                x=alt.X("Processes:Q", title="Hiring processes",
+                        axis=alt.Axis(tickMinStep=1)),
+                y=alt.Y("Outcome:N", sort="-x", title=None,
+                        axis=alt.Axis(labelLimit=200)),
+                tooltip=[
+                    alt.Tooltip("Outcome:N"),
+                    alt.Tooltip("Processes:Q", format=",d"),
+                ],
+            ).properties(height=155)
+            st.altair_chart(overview_chart, use_container_width=True)
+        with b:
+            st.markdown(
+                f"**{candidate_not_selected} of {n}** were recorded as "
+                "candidate-not-selected outcomes."
+            )
+            st.write(
+                f"**{filled_or_cancelled}** explicitly indicate the position "
+                "was filled or the process cancelled. These cannot automatically "
+                "be interpreted as missing skills."
+            )
             st.caption(
-                "More recorded decisions can result from application volume, "
-                "reporting coverage or employers processing older applications. "
-                "Do not interpret the difference as worsening job-market fit."
+                f"{unknown} cases lack a disclosed specific reason. "
+                "The inference review examines requirements, not private "
+                "employer decision criteria."
+            )
+
+        st.subheader("When were negative outcomes communicated?")
+        month_counts = Counter(
+            (_date(r).strftime("%Y-%m") if _date(r) else "Undated",
+             "Source date not verified" if
+             str(r.get("decision_date_basis") or "") == "legacy_unclassified"
+             else "Source-backed date")
+            for r in scoped
+        )
+        monthly = [
+            {"Month": month, "Date evidence": evidence, "Processes": count}
+            for (month, evidence), count in month_counts.items()
+        ]
+        months = sorted({entry["Month"] for entry in monthly
+                         if entry["Month"] != "Undated"})
+        if any(entry["Month"] == "Undated" for entry in monthly):
+            months.append("Undated")
+        timeline = alt.Chart(alt.Data(values=monthly)).mark_bar().encode(
+            x=alt.X("Month:N", sort=months, title="Observed / communicated month",
+                    axis=alt.Axis(labelAngle=0)),
+            y=alt.Y("Processes:Q", title="Negative outcomes",
+                    axis=alt.Axis(tickMinStep=1)),
+            color=alt.Color("Date evidence:N", title="Date provenance"),
+            tooltip=["Month:N", "Date evidence:N",
+                     alt.Tooltip("Processes:Q", format=",d")],
+        ).properties(height=220)
+        st.altair_chart(timeline, use_container_width=True)
+        unverifiable = sum(
+            str(r.get("decision_date_basis") or "") == "legacy_unclassified"
+            for r in scoped
+        )
+        st.caption(
+            f"{unverifiable} of {n} outcome dates use legacy, unverified "
+            "date provenance. The chart shows when outcomes were recorded "
+            "or communicated, not when employers internally made their decisions."
+        )
+        recent_30 = sum(
+            bool(_date(r) and today - timedelta(days=29) <= _date(r) <= today)
+            for r in records
+        )
+        prior_30 = sum(
+            bool(_date(r) and today - timedelta(days=59) <= _date(r)
+                 < today - timedelta(days=29))
+            for r in records
+        )
+        if prior_30 >= 10 and recent_30 >= 10:
+            st.write(
+                f"**Recorded decision volume:** {recent_30} in the latest 30 days "
+                f"versus {prior_30} in the preceding 30 days. "
+                "This reflects both applications and reporting coverage, "
+                "not a change in your rejection probability."
             )
     with reasons:
         st.subheader("Which hiring barriers appear repeatedly?")

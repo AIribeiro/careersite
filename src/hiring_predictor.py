@@ -22,7 +22,7 @@ from hiring_forecast_signals import forecast_drivers
 from hiring_forecast_windows import peak_weeks, reliability_index
 from hiring_geography import assess_geographic_pipeline
 
-MODEL_VERSION = "hiring-beta-3.5"
+MODEL_VERSION = "hiring-beta-3.6"
 HORIZON_DAYS = 364
 SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5}
 # Purely illustrative offer propensity *given each hiring stage*, NOT observed
@@ -181,9 +181,12 @@ def forecast_hiring(
     hiring_quality: dict | None = None,
     portfolio_actions: dict | None = None,
     jobtech_config: dict | None = None,
+    geography_locations: dict | None = None,
 ) -> dict:
     strategy_context = _strategy_context(jobs, as_of)
-    geography_context = assess_geographic_pipeline(jobs, as_of)
+    geography_context = assess_geographic_pipeline(
+        jobs, as_of, additional_locations=geography_locations,
+    )
     events = _as_of_events(jobs, as_of)
     dates = [day(r["event_date"]) for r in events]
     first = min(dates) if dates else None

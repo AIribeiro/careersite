@@ -88,5 +88,49 @@ class PublicAnalyticsTests(unittest.TestCase):
             self.assertIn("Swedish Job Market",[x.value for x in at.title])
 
 
+    def test_portfolio_relationships_show_dashboards_not_main_table(self):
+        from datetime import date, timedelta
+        from streamlit.testing.v1 import AppTest
+        from page_public_analytics import (
+            _portfolio_recruitment_trends, _portfolio_signal_explanation,
+        )
+        start=date(2026,9,26)
+        days=[start+timedelta(days=i) for i in range(19)]
+        site={d:{"cv_link_visitors":i%4} for i,d in enumerate(days)}
+        jobs={d:{"applications":1 if i%3==0 else 0,
+                 "responses":1 if i%5==0 else 0}
+              for i,d in enumerate(days)}
+        trends=_portfolio_recruitment_trends(site,jobs)
+        self.assertEqual(len(trends),13)
+        self.assertEqual(trends[-1]["CV-linked sessions"],
+                         sum(i%4 for i in range(12,19)))
+        self.assertIn("sample is too short",_portfolio_signal_explanation({
+            "r":.47,"status":"Early observation","n":19,
+        }))
+        payload={
+            "first_day":"2026-09-25",
+            "tracking_since":"2026-09-25T19:17:18Z",
+            "through":days[-1].isoformat(),
+            "daily":[{"d":d.isoformat(),"sessions":8,
+                      "cv_link_visitors":site[d]["cv_link_visitors"]}
+                     for d in days],
+            "pages":[],"sources":[],
+        }
+        public_jobs={"daily":[{"d":d.isoformat(),**jobs[d]} for d in days]}
+        with patch("page_public_analytics._fetch_rpc",return_value=payload):
+            app=AppTest.from_string(
+                "from page_public_analytics import _portfolio_job_relationships\n"
+                f"_portfolio_job_relationships({public_jobs!r})"
+            ).run(timeout=15)
+        self.assertFalse(app.exception)
+        self.assertIn(
+            "Does portfolio attention accompany recruitment progress?",
+            [h.value for h in app.subheader],
+        )
+        self.assertGreaterEqual(len(app.get("vega_lite_chart")),2)
+        self.assertEqual(len(app.metric),0)
+        self.assertGreaterEqual(len(app.expander),1)
+
+
 if __name__=="__main__":
     unittest.main()

@@ -21,7 +21,7 @@ FIELDS = ('id,record_type,event_date,snapshot_date,employer,role,status,event_ty
           'is_closed_or_paused,is_primary_analytics_record,logical_event_key,interaction_type,'
           'interaction_direction,contact_name,contact_role,follow_up_required,follow_up_sent,follow_up_date,'
           'follow_up_status,response_received,response_date,next_step,next_step_due_date,interaction_notes,'
-          'source_file,source_language,source_sheet,source_row,source_key,date_basis,updated_at')
+          'source_file,source_language,source_sheet,source_row,source_key,date_basis,updated_at,raw_data')
 
 
 def fetch_job_records(token):

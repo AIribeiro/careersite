@@ -882,15 +882,19 @@ def render_rejection_analytics(session: dict | None) -> None:
                         ("employer_relative", "employer_stated")]
         supported = Counter(str(r.get("reason_code") or "") for r in explained)
         leading_code, leading_n = supported.most_common(1)[0] if supported else (None, 0)
-        cause_cols = st.columns(3)
-        cause_cols[0].metric(
-            "Most frequent explained category",
-            LABELS.get(leading_code, leading_code or "Unavailable"),
-            help="Category among employer-relative or employer-stated outcomes, not a verified individual skill deficiency."
-        )
-        cause_cols[1].metric("Decisions in that category", f"{leading_n}/{n}")
-        cause_cols[2].metric("Employer-stated explanations",
-                             f"{stated}/{n}")
+        if leading_code:
+            st.write(
+                f"Among **{len(explained)}** employer-stated or relative outcomes, "
+                f"**{LABELS.get(leading_code, leading_code)}** is the most "
+                f"frequent recorded category ({leading_n} cases). "
+                "This reports selection wording, not a demonstrated "
+                "missing qualification."
+            )
+        else:
+            st.caption(
+                "No employer-stated or relative explanations are recorded "
+                "for this selected period."
+            )
         if leading_code == "PROCESS_COMPETITION":
             st.info(
                 "Comparative selection is the leading explained category. "

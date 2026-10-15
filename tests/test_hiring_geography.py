@@ -170,6 +170,35 @@ class GeographicFeasibilityTests(unittest.TestCase):
         self.assertEqual(p["location_evidence_source"],"job_search_source")
         self.assertEqual(report["advertised_locations_recorded"],2)
 
+    def test_official_role_source_preserves_explicit_hybrid_model(self):
+        jobs=_jobs()
+        jobs[0].pop("raw_data",None)
+        external={
+            "method":"owner_workspace_and_verified_catalog_unique_company_title",
+            "unique_locations":[{
+                "employer_key":"enterprise 1","role_key":"head of ai",
+                "advertised_location":"Stockholm, Sweden",
+                "work_model":"Hybrid","country":"Sweden",
+                "evidence_source":"official_employer_vacancy",
+                "source_url":"https://example.com/official-role",
+                "quality":"exact_company_role_unique_location",
+            },{
+                "employer_key":"enterprise 2","role_key":"head of ai",
+                "advertised_location":"Jönköping","country":"Sweden",
+                "evidence_source":"externally_verified_job_board",
+                "quality":"exact_company_role_unique_location",
+            }]
+        }
+        r=assess_geographic_pipeline(jobs,TODAY,additional_locations=external)
+        self.assertEqual(r["advertised_locations_recorded"],2)
+        self.assertEqual(r["source_counts"]["official_employer_vacancy"],1)
+        self.assertEqual(r["source_counts"]["externally_verified_job_board"],1)
+        item=next(x for x in r["opportunities"] if x["employer"]=="enterprise 1")
+        self.assertEqual(item["work_model"],"hybrid")
+        self.assertTrue(item["arrangement_recorded"])
+        self.assertEqual(item["status"],"conditional")
+        self.assertEqual(item["probability_effect"],0)
+
     def test_ambiguous_or_wrong_enrichment_is_rejected(self):
         jobs=_jobs()
         jobs[0].pop("raw_data",None)

@@ -64,6 +64,8 @@ def render_hiring_predictor(
                              portfolio_actions=portfolio_actions,
                              geography_locations=geography_locations)
     sources = result["sources"]
+    notes = result.get("process_intelligence") or []
+    stage_totals = sources.get("stage_counts") or {}
     if result["status"] == "offer_recorded":
         st.info("A job offer is already documented. Your next milestone is a confirmed "
                 "start date, not another predicted offer.")
@@ -133,6 +135,43 @@ def render_hiring_predictor(
                "The predicted start weeks assume roughly 3–8 weeks after an offer. "
                "There is no evidence to identify a particular weekday reliably.")
 
+    st.markdown("**How healthy is the active hiring pipeline?**")
+    progressed = stage_totals.get("progression",0)
+    scheduled = stage_totals.get("interview_scheduled",0)
+    interviewed = stage_totals.get("interview",0)
+    st.caption(
+        f"{progressed} confirmed advanced-stage processes · "
+        f"{interviewed} with completed interviews · "
+        f"{scheduled} with employer-invited/scheduled interviews. "
+        f"{sources.get('stale_application_count',0)} old application-only "
+        "paths have reduced model influence, without being marked rejected."
+    )
+    if sources.get("application_count_discrepancy"):
+        st.caption(
+            "Application reconciliation pending: "
+            f"{sources['linked_application_processes']} linked employer/role "
+            f"processes versus {sources['official_application_total']} "
+            "official submissions. Linked processes are not substituted "
+            "for the official submission total."
+        )
+    with st.expander("Employer commitment and role fit — evidence only"):
+        advanced = [p for p in notes if p["stage"] in
+                    ("progression","interview","interview_scheduled")]
+        for item in sorted(advanced, key=lambda p:
+                           (p["stage"] != "progression", -date.fromisoformat(
+                               p["stage_date"]).toordinal()))[:7]:
+            st.caption(
+                f"• {item['employer']} — {item['role']}: "
+                f"{item['stage'].replace('_',' ')} "
+                f"({item['stage_date']}); "
+                f"{item['fit']['category'].replace('_',' ')}."
+            )
+        st.caption(
+            "Role categories screen for broad senior AI/Data alignment; "
+            "funding, sponsor support, salary, language and decision urgency "
+            "remain unverified unless explicitly recorded. These categories "
+            "do not introduce a speculative probability bonus."
+        )
     # Changes are compared within the current browser session only; no personal
     # forecasts are written to the analytics event ledger.
     previous = st.session_state.get("hiring_predictor_last_forecast")
@@ -427,7 +466,7 @@ def render_hiring_predictor(
                            f"planning adjustment {driver['effect']:+.1%}.")
         st.markdown(
             "**Swedish market:** Specific published indicators can add or subtract "
-            "up to 12% from future opportunity rates, after quality and age checks. "
+            "up to 18% from future opportunity rates, after quality and age checks. "
             "Overlapping reports count only once per topic."
         )
         if jobtech.get("latest_month"):
@@ -492,3 +531,4 @@ def render_hiring_predictor(
                    "validated forecast-accuracy percentage.")
         st.caption(f"Model {MODEL_VERSION} · refreshed {today:%d %B %Y} when new "
                    "data is available on the Analytics Overview.")
+    return result

@@ -27,6 +27,7 @@ _SOURCE_NAMES = {
     "site": "portfolio activity",
     "hiring": "qualified portfolio behavior",
     "actions": "CV downloads and contact clicks",
+    "geo": "matched vacancy locations",
 }
 
 
@@ -108,6 +109,23 @@ def _fetch_owner_portfolio_actions(access_token: str) -> dict:
     return data
 
 
+def _fetch_owner_geography_locations(access_token: str) -> dict:
+    """Fetch unique Jobwise geography matches, scoped to the owner session.
+
+    Supabase checks owner JWT and derives allowed workspaces from previously
+    reconciled application evidence. No anonymous location access.
+    """
+    if not access_token:
+        raise ValueError("Owner session required for location enrichment.")
+    payload = _request_json(
+        "POST", _rest_url("rpc/careersite_hiring_geography_evidence_v1"),
+        token=access_token, payload={}, timeout=20,
+    )
+    if not isinstance(payload, dict):
+        raise RuntimeError("Unexpected private vacancy location response.")
+    return payload
+
+
 @st.fragment(run_every=_REFRESH_INTERVAL)
 def render_analytics_overview(session: dict | None) -> None:
     st.title("Decision overview")
@@ -124,6 +142,7 @@ def render_analytics_overview(session: dict | None) -> None:
     site = None
     hiring = {}
     actions = None
+    geography_locations = None
     errors = []
     with st.spinner("Comparing current evidence…"):
         try:
@@ -143,11 +162,18 @@ def render_analytics_overview(session: dict | None) -> None:
             actions = _fetch_owner_portfolio_actions(str(valid["access_token"]))
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             errors.append("portfolio action detail")
+        try:
+            geography_locations = _fetch_owner_geography_locations(
+                str(valid["access_token"])
+            )
+        except (RuntimeError, TimeoutError, PermissionError, ValueError):
+            errors.append("job location enrichment")
     current_signatures = {}
     failed_sources = {"jobs": "job search", "market": "market",
                       "site": "portfolio correlation"}
     for key, payload in (("jobs", jobs), ("market", market),
-                         ("site", site), ("hiring", hiring), ("actions", actions)):
+                         ("site", site), ("hiring", hiring), ("actions", actions),
+                         ("geo", geography_locations)):
         # Unavailable sources must not be mistaken for newly deleted data.
         if payload is None or failed_sources.get(key) in errors:
             continue
@@ -179,7 +205,8 @@ def render_analytics_overview(session: dict | None) -> None:
     site_corr = analyze_portfolio_job_correlations(site,jobs) if site and jobs else None
     if jobs:
         render_hiring_predictor(jobs,market_model,site_corr,hiring,now.date(),
-                                portfolio_actions=actions)
+                                portfolio_actions=actions,
+                                geography_locations=geography_locations)
     else:
         st.subheader("Hiring predictor")
         st.info("Forecast unavailable until primary job-search evidence can be loaded.")

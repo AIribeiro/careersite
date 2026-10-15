@@ -249,6 +249,55 @@ class GeographicFeasibilityTests(unittest.TestCase):
         onsite_gbg=assess_opportunity({"advertised_location":"Göteborg (On-site)"})
         self.assertEqual(onsite_gbg["status"],"compatible")
 
+    def test_literal_title_locality_inference_is_labeled_not_verified(self):
+        from hiring_geography import infer_from_role_title
+        self.assertEqual(
+            infer_from_role_title("Digital Engineering Data Lead - Sweden / Gothenburg / Onsite")
+                ["advertised_location"],
+            "Gothenburg, Sweden",
+        )
+        self.assertEqual(
+            infer_from_role_title("Service Delivery Manager Västerås Sweden")
+                ["advertised_location"],
+            "Västerås, Sweden",
+        )
+        self.assertIsNone(infer_from_role_title("Head of AI"))
+        self.assertIsNone(infer_from_role_title("Role not surfaced in LinkedIn receipt"))
+        self.assertEqual(
+            infer_from_role_title("Director Analytics Sweden")["advertised_location"],
+            "Sweden (city not specified)",
+        )
+
+    def test_geographic_assessment_is_complete_without_fake_city(self):
+        jobs=_jobs()
+        jobs[0].pop("raw_data",None)
+        summary=assess_geographic_pipeline(jobs,TODAY)
+        self.assertEqual(summary["assessment_completion_pct"],100)
+        self.assertEqual(summary["source_verified_locations"],0)
+        self.assertEqual(summary["explicit_title_inferences"],0)
+        self.assertEqual(summary["unresolved_locations"],34)
+        self.assertEqual(summary["geographically_assessed"],34)
+        self.assertEqual(len(summary["resolution_queue"]),34)
+        self.assertTrue(all(row["advertised_location"] is None
+                            for row in summary["opportunities"]))
+        self.assertEqual(summary["numeric_effect"],0)
+
+    def test_title_inference_does_not_move_forecast_probabilities(self):
+        jobs=_jobs()
+        jobs[0].pop("raw_data",None)
+        jobs[0]["role"]="Head of AI Stockholm"
+        baseline=forecast_hiring(jobs,TODAY)
+        summary=baseline["geography_context"]
+        self.assertEqual(summary["explicit_title_inferences"],1)
+        self.assertEqual(summary["source_verified_locations"],0)
+        self.assertEqual(summary["assessment_completion_pct"],100)
+        # Merely placing a role geographically cannot make the probability
+        # curve stronger, nor change the reliability score.
+        jobs[0]["role"]="Head of AI"
+        original=forecast_hiring(jobs,TODAY)
+        self.assertEqual(baseline["curve"],original["curve"])
+        self.assertEqual(baseline["reliability"],original["reliability"])
+
     def test_closed_and_future_opportunities_are_not_geographic_evidence(self):
         jobs = _jobs()
         jobs.append({

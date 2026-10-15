@@ -23,7 +23,7 @@ from hiring_forecast_windows import peak_weeks, reliability_index
 from hiring_geography import assess_geographic_pipeline
 from hiring_process_intelligence import process_intelligence
 
-MODEL_VERSION = "hiring-beta-4.1"
+MODEL_VERSION = "hiring-beta-4.2-verified-dormancy"
 HORIZON_DAYS = 364
 SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5}
 # Purely illustrative offer propensity *given each hiring stage*, NOT observed
@@ -187,6 +187,7 @@ def forecast_hiring(
     jobtech_config: dict | None = None,
     geography_locations: dict | None = None,
     employer_activity: dict | None = None,
+    stale_pipeline: list[dict] | None = None,
 ) -> dict:
     strategy_context = _strategy_context(jobs, as_of)
     geography_context = assess_geographic_pipeline(
@@ -230,27 +231,36 @@ def forecast_hiring(
     assumed_weekly_pace = min(MODEL_MAX_APPLICATIONS_PER_WEEK, raw_weekly_pace)
     daily_rate = assumed_weekly_pace / 7
 
+    # Only a current verified-dormancy exclusion can suppress a pending stage.
+    # Silence and age alone never change the active-stage weight.
+    verified_dormancy = {
+        str(r.get("process_key") or "").strip().lower()
+        for r in (stale_pipeline or [])
+        if r.get("health_segment") == "verified_dormant"
+        and r.get("exclude_from_active_forecast") is True
+    }
     open_stages = []
     process_notes = []
     for p in processes:
         if p["State"] == "Closed / paused":
             continue
         key = process_key({"employer": p["Employer"], "role": p["Role"]})
+        stale_key = f'{p["Employer"].strip().lower()}|{p["Role"].strip().lower()}'
+        if stale_key in verified_dormancy:
+            continue
         stage_info = _stage_for_process(grouped.get(key, []))
         if stage_info is None:
             continue
         stage, stage_date = stage_info
         age = (as_of - stage_date).days
-        if age > 180:
-            continue
-        # Stale application-only records progressively lose planning weight
-        # but are never silently classified as rejected.
+        # A stale application is not a rejection and receives no arbitrary
+        # age-only penalty before documented verification.
         group = grouped.get(key, [])
         intelligence = process_intelligence(
             group, as_of, stage, stage_date, p["State"], p["Role"],
         )
         base_weight = 1.0 if p["State"] == "Active documented" else 0.35
-        weight = round(base_weight * intelligence["health"]["freshness_weight"], 5)
+        weight = round(base_weight * (0.2 if intelligence["health"]["documented_pause"] else 1.0), 5)
         if weight:
             open_stages.append({"stage": stage, "age": age,
                                 "weight": weight, "state": p["State"],
@@ -295,6 +305,7 @@ def forecast_hiring(
         "application_reconciliation_needed": reconciliation_needed,
         "stage_counts":{name:sum(p["stage"]==name for p in open_stages)
                         for name in STAGES},
+        "verified_dormancy_exclusions":len(verified_dormancy),
         "stale_application_count":sum(
             p["health"]["status"]=="stale_application" for p in process_notes
         ),
@@ -344,7 +355,7 @@ def forecast_hiring(
     }
     drivers["employer_activity"] = employer_context
     drivers["process_health"] = {
-        "policy":"process-evidence-v1",
+        "policy":"verified-dormancy-gate-v1-no-age-only-weighting",
         "stale_applications":sources["stale_application_count"],
         "employer_contact_processes":sources["employer_contact_processes"],
         "numeric_fit_effect":0,

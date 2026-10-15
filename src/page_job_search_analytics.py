@@ -431,4 +431,8 @@ def render_job_search_analytics(session: dict | None = None) -> None:
     if not records:
         st.info('No accessible job-search records. Check that you are signed in as the portfolio owner.')
         return
-    render_job_report(records, str(session["access_token"]))
+    from page_conversion_quality import render_private_conversion_quality
+    render_private_conversion_quality(str(session["access_token"]))
+    st.divider()
+    with st.expander("Historical activity and reconciliation reports", expanded=False):
+        render_job_report(records, str(session["access_token"]))

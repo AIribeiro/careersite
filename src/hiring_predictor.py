@@ -20,8 +20,9 @@ from job_search_metrics import (
 )
 from hiring_forecast_signals import forecast_drivers
 from hiring_forecast_windows import peak_weeks, reliability_index
+from hiring_geography import assess_geographic_pipeline
 
-MODEL_VERSION = "hiring-beta-3.4"
+MODEL_VERSION = "hiring-beta-3.5"
 HORIZON_DAYS = 364
 SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5}
 # Purely illustrative offer propensity *given each hiring stage*, NOT observed
@@ -182,6 +183,7 @@ def forecast_hiring(
     jobtech_config: dict | None = None,
 ) -> dict:
     strategy_context = _strategy_context(jobs, as_of)
+    geography_context = assess_geographic_pipeline(jobs, as_of)
     events = _as_of_events(jobs, as_of)
     dates = [day(r["event_date"]) for r in events]
     first = min(dates) if dates else None
@@ -278,6 +280,9 @@ def forecast_hiring(
         "market_repeated_associations": len(stable_market),
     }
     drivers["strategy"] = strategy_context
+    # Geographic feasibility remains an opportunity-by-opportunity decision,
+    # never an automatic Stockholm, travel or relocation offer-rate multiplier.
+    drivers["geography"] = geography_context
     evidence = reliability_index(sources, open_stages, drivers)
     result = {
         "version": MODEL_VERSION, "as_of": as_of.isoformat(), "sources": sources,
@@ -287,7 +292,10 @@ def forecast_hiring(
         "confidence": "Early estimate", "status": "insufficient",
         "drivers": drivers,
         "strategy_context": strategy_context,
+        "geography_context": geography_context,
         "limitations": [
+            "Sweden is the primary addressable market and Gothenburg is a preference, not a constraint. Advertised office cities do not predict whether an offer is acceptable.",
+            "Travel and potential relocation are assessed per opportunity using documented work-model and family/mandate conditions; geographic assumptions alone do not change offer probability.",
             "Current job-search strategy records from job_search_analytics are consumed as qualitative calibration and guardrails; they do not receive an unvalidated numeric offer-probability weight.",
             "Qualified CV-origin traffic, source variants, target-role tags and associated recruitment campaigns receive bounded positive planning weights; they do not identify visitors.",
             "JobTech v1 title-matched demand modifies only future opportunities; September is a small, unconfirmed positive factor until October and personal responses provide stronger evidence.",

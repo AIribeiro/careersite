@@ -54,7 +54,8 @@ def render_hiring_predictor(
     site_correlation: dict | None, hiring: dict | None,
     today: date, *, portfolio_actions: dict | None = None,
     geography_locations: dict | None = None,
-) -> None:
+    employer_activity: dict | None = None,
+) -> dict | None:
     st.subheader("When might I get an offer?")
     st.caption("Hiring Predictor · Beta · a guide for planning, not a promise.")
 
@@ -62,7 +63,8 @@ def render_hiring_predictor(
                              portfolio_correlation=site_correlation,
                              hiring_quality=hiring,
                              portfolio_actions=portfolio_actions,
-                             geography_locations=geography_locations)
+                             geography_locations=geography_locations,
+                             employer_activity=employer_activity)
     sources = result["sources"]
     notes = result.get("process_intelligence") or []
     stage_totals = sources.get("stage_counts") or {}
@@ -153,6 +155,16 @@ def render_hiring_predictor(
             f"processes versus {sources['official_application_total']} "
             "official submissions. Linked processes are not substituted "
             "for the official submission total."
+        )
+    employer=result.get("employer_context") or {}
+    if employer.get("source"):
+        st.caption(
+            "**Employer-specific vacancy context:** "
+            f"{employer['verified_matching_role_listings']} tracked employer/role "
+            "pairs also appear in the verified vacancy catalog; "
+            f"{employer['actively_advertised_matching_roles']} have an active "
+            "matching listing. These are title matches, not confirmation that "
+            "your individual requisition is funded or still open."
         )
     with st.expander("Employer commitment and role fit — evidence only"):
         advanced = [p for p in notes if p["stage"] in

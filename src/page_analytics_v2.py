@@ -4,8 +4,9 @@ import streamlit as st
 
 from page_analytics import (
     render_analytics_dashboard as render_site_analytics_dashboard,
-    _noindex, _dashboard_css, REPORTING_WINDOWS, REPORTING_WINDOW_LABELS,
+    _noindex, _dashboard_css, REPORTING_WINDOWS, REPORTING_WINDOW_LABELS, _fetch_dashboard,
 )
+from analytics_reporting_period import initialize_reporting_period, remember_reporting_period
 from page_article_analytics import render_article_analytics, render_reader_sources
 from page_content_intelligence import render_content_intelligence
 from page_weekly_ai_analytics import render_weekly_ai_analytics
@@ -94,13 +95,15 @@ def render_analytics_dashboard() -> None:
         key="analytics_portfolio_kind", width="stretch",
     ) or "page"
     window_options = [key for key, _ in REPORTING_WINDOWS]
+    initialize_reporting_period(st.session_state, _fetch_dashboard)
     window = st.selectbox(
         "Reporting period",
         window_options,
-        index=window_options.index("7d"),
         format_func=lambda key: REPORTING_WINDOW_LABELS[key],
         key="careersite_analytics_reporting_window",
-        help="Choose a complete enough window for interpretation. Hourly and daily views are primarily operational checks.",
+        on_change=remember_reporting_period,
+        args=(st.session_state,),
+        help="Starts with Last hour, or Today when the last hour has zero recorded sessions. Your selection is kept while you use Analytics.",
     )
     if str(window) in ("last_hour","today"):
         st.caption("Short windows are useful for monitoring, not for judging hiring or content outcomes.")

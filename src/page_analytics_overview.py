@@ -16,6 +16,7 @@ from page_analytics import _fetch_hiring_intelligence
 from page_content_intelligence import _fetch_rpc
 from page_job_market_insights import fetch_market_records, _latest_by_indicator, _format_value, _readouts
 from page_job_search_analytics import fetch_job_records
+from page_stale_applications import fetch_private_pipeline, private_summary, render_pipeline_health
 from page_hiring_predictor import render_hiring_predictor
 from hiring_forecast_history import record_daily_first, previous_forecasts, stability_summary
 from site_cms import ensure_owner_session, _request_json, _rest_url
@@ -24,6 +25,7 @@ from site_cms import ensure_owner_session, _request_json, _rest_url
 _REFRESH_INTERVAL = "5m"
 _SOURCE_NAMES = {
     "jobs": "job search",
+    "stale": "application staleness reviews",
     "market": "Swedish market",
     "site": "portfolio activity",
     "hiring": "qualified portfolio behavior",
@@ -157,12 +159,17 @@ def render_analytics_overview(session: dict | None) -> None:
     actions = None
     geography_locations = None
     employer_activity = None
+    stale_pipeline = None
     errors = []
     with st.spinner("Comparing current evidence…"):
         try:
             jobs = fetch_job_records(str(valid["access_token"]))
         except (RuntimeError, TimeoutError, ValueError):
             errors.append("job search")
+        try:
+            stale_pipeline = fetch_private_pipeline(str(valid["access_token"]))
+        except (RuntimeError, TimeoutError, ValueError):
+            errors.append("stale application review")
         try:
             market = fetch_market_records(str(valid["access_token"]))
         except (RuntimeError, TimeoutError, ValueError):
@@ -191,7 +198,7 @@ def render_analytics_overview(session: dict | None) -> None:
     current_signatures = {}
     failed_sources = {"jobs": "job search", "market": "market",
                       "site": "portfolio correlation"}
-    for key, payload in (("jobs", jobs), ("market", market),
+    for key, payload in (("jobs", jobs), ("stale", stale_pipeline), ("market", market),
                          ("site", site), ("hiring", hiring), ("actions", actions),
                          ("geo", geography_locations),
                          ("employers", employer_activity)):
@@ -229,6 +236,7 @@ def render_analytics_overview(session: dict | None) -> None:
             jobs,market_model,site_corr,hiring,now.date(),
             portfolio_actions=actions,geography_locations=geography_locations,
             employer_activity=employer_activity,
+            stale_pipeline=stale_pipeline,
         )
         if forecast and forecast.get("status") in ("scenario","no_median"):
             if market and site and actions is not None and not errors:
@@ -256,6 +264,10 @@ def render_analytics_overview(session: dict | None) -> None:
     st.divider()
 
     st.subheader("Where your search stands")
+    if stale_pipeline is not None:
+        render_pipeline_health(private_summary(stale_pipeline), compact=True)
+    else:
+        st.caption("Pipeline Health is temporarily unavailable; verified exclusions cannot be applied to this private forecast refresh.")
     if search:
         processes = search["processes"]
         due = [p for p in processes if p["Overdue"] or p["Follow-up due"]]

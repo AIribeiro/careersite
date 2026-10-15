@@ -61,6 +61,7 @@ def render_public_analytics_overview() -> None:
         "market":_market_summary,
         "forecast":lambda:fetch_public_analytics_rpc("careersite_public_hiring_inputs_v1"),
         "rejections":lambda:fetch_public_analytics_rpc("careersite_public_rejection_summary_v1"),
+        "pipeline":lambda:fetch_public_analytics_rpc("careersite_public_pipeline_health_v1"),
     }
     for name,loader in sources.items():
         try:
@@ -83,6 +84,9 @@ def render_public_analytics_overview() -> None:
     quality=(hiring.get("quality_summary") or {})
     from job_search_outlook import render_search_outlook
     render_search_outlook(results.get("jobs"), results.get("forecast"), now.date())
+    if results.get("pipeline"):
+        from page_stale_applications import render_pipeline_health
+        render_pipeline_health(results["pipeline"], compact=True)
     metrics=st.columns(4)
     metrics[0].metric("Qualified portfolio sessions · 30d",
                       _n(quality.get("analysis_eligible_sessions")))
@@ -398,10 +402,11 @@ def render_public_job_search() -> None:
     )
     focus=st.segmented_control(
         "Recruitment question",
-        options=["activity","conversion","trends","portfolio","market","evidence"],
+        options=["activity","pipeline","conversion","trends","portfolio","market","evidence"],
         default="activity",
         format_func=lambda x:{
             "activity":"Activity",
+            "pipeline":"Pipeline Health",
             "conversion":"Funnel & conversion",
             "trends":"Time trends",
             "portfolio":"Portfolio correlations",
@@ -433,6 +438,13 @@ def render_public_job_search() -> None:
             "An empty short window means no recorded event, not a failed application "
             "or an absence of recruiter interest."
         )
+    elif focus=="pipeline":
+        try:
+            health=fetch_public_analytics_rpc("careersite_public_pipeline_health_v1")
+        except (RuntimeError,ValueError,PermissionError):
+            health={}
+        from page_stale_applications import render_pipeline_health
+        render_pipeline_health(health)
     elif focus=="conversion":
         st.subheader("Funnel stages and conversion maturity")
         try:

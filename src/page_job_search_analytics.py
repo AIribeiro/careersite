@@ -234,7 +234,7 @@ def render_job_report(records, access_token: str | None = None):
             st.info("Owner access is required for the application review ledger.")
         else:
             from page_stale_applications import render_private_staleness
-            render_private_staleness(access_token)
+            render_private_staleness(access_token, job_records=records)
         return
     if focus == "decisions":
         from job_search_trends import analyze_trends, SERIES

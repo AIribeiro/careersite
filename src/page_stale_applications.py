@@ -138,8 +138,9 @@ def render_pipeline_health(data: dict, *, compact: bool = False) -> None:
         )
     if _number(m.get("undated")):
         st.caption(
-            f"{_number(m.get('undated'))} processes have unresolved application dates. "
-            "They are excluded from age comparisons."
+            f"{_number(m.get('undated'))} processes have missing application dates, "
+            f"including {_number(m.get('undated_unresolved'))} currently classified "
+            "as date-unverified. None enter age-based comparisons."
         )
     if compact:
         return

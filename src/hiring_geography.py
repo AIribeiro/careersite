@@ -222,8 +222,9 @@ def assess_geographic_pipeline(
         if key and key in live:
             rows_by_process[key].append(row)
     extra = {}
-    if additional_locations and additional_locations.get("method") == (
-        "linked_user_workspace_exact_company_title"
+    if additional_locations and additional_locations.get("method") in (
+        "linked_user_workspace_exact_company_title",
+        "owner_workspace_and_verified_catalog_unique_company_title",
     ):
         for r in additional_locations.get("unique_locations") or []:
             if r.get("quality") != "exact_company_role_unique_location":
@@ -261,7 +262,11 @@ def assess_geographic_pipeline(
             values["advertised_location"] = fallback["advertised_location"]
             if fallback.get("country"):
                 values["country"] = fallback["country"]
-            source = "matched_jobwise_application"
+            source = (
+                "verified_jobwise_vacancy_catalog"
+                if fallback.get("evidence_source") == "verified_jobwise_vacancy_catalog"
+                else "matched_jobwise_application"
+            )
         classification = assess_opportunity(values)
         arrangement_recorded = bool(
             values.get("work_model") or values.get("remote_in_sweden") is not None

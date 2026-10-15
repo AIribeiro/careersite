@@ -39,7 +39,8 @@ def fetch_private_pipeline(access_token: str) -> list[dict]:
     fields = ("process_key,employer,role,applied_on,days_since_application,"
               "health_segment,evidence_quality,first_response_on,last_response_on,"
               "next_step,exclude_from_active_forecast,review_expired_or_overridden,"
-              "evidence_scope,verified_at,evidence_notes")
+              "evidence_scope,verified_at,evidence_notes,"
+              "original_applied_on,date_assumed,date_assumption_anchor_date,date_provenance")
     for offset in range(0, 100000, 500):
         batch = _request_json(
             "GET", _rest_url("careersite_stale_application_pipeline_v2?"
@@ -61,7 +62,9 @@ def private_summary(rows: list[dict]) -> dict:
     records = list(unique.values())
     counts = Counter(r.get("health_segment") for r in records)
     dated = [r for r in records if isinstance(r.get("days_since_application"), int)]
-    matured = [r for r in dated if r["days_since_application"] >= 21]
+    matured = [r for r in dated if r["days_since_application"] >= 21
+               and not r.get("date_assumed")]
+    assumed = sum(r.get("date_assumed") is True for r in records)
     return {
         "as_of": datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat(),
         "status": [{"segment": k, "n": counts[k]} for k, _ in STATUS],
@@ -78,6 +81,9 @@ def private_summary(rows: list[dict]) -> dict:
                 r.get("health_segment") == "verified_dormant" and
                 r.get("exclude_from_active_forecast") is True for r in records),
             "undated": sum(r.get("applied_on") is None for r in records),
+            "original_dates_missing": sum(
+                r.get("original_applied_on",r.get("applied_on")) is None for r in records),
+            "assumed_application_dates": assumed,
             "undated_unresolved": counts["date_unverified"],
             "engaged": counts["recruiter_engaged"],
             "matured_denominator": len(matured),
@@ -130,17 +136,26 @@ def render_pipeline_health(data: dict, *, compact: bool = False) -> None:
         f"{_number(m.get('total_processes'))} distinct process rows excluding aliases. "
         "Separate verified requisitions may still need reconciliation."
     )
+    if _number(m.get("assumed_application_dates")):
+        st.caption(
+            f"{_number(m.get('assumed_application_dates'))} previously undated "
+            "applications use an owner-requested 15 Sep 2026 assumed date "
+            "(30 days on 15 Oct 2026). They enter the 21–44-day ageing band "
+            "but are excluded from measured first-response rates, historical "
+            "submission cohorts and verified-dormancy decisions."
+        )
     if denom:
         st.caption(
             f"Matured no-response share: {unanswered/denom:.0%} "
-            f"({unanswered}/{denom}, dated applications at least 21 days old). "
+            f"({unanswered}/{denom}, non-imputed dated applications at least 21 days old). "
             "An unresolved response is not a rejection, and a recent cohort has less observation time."
         )
-    if _number(m.get("undated")):
+    if _number(m.get("original_dates_missing")) or _number(m.get("undated")):
         st.caption(
-            f"{_number(m.get('undated'))} processes have missing application dates, "
-            f"including {_number(m.get('undated_unresolved'))} currently classified "
-            "as date-unverified. None enter age-based comparisons."
+            f"{_number(m.get('original_dates_missing',m.get('undated')))} original "
+            "application dates remain missing in the evidence history. "
+            f"{_number(m.get('assumed_application_dates'))} have a disclosed planning "
+            "assumption; the other missing-date cases cannot be aged."
         )
     if compact:
         return
@@ -244,12 +259,16 @@ def private_review_queue(rows: list[dict], contacts: set[str] | None = None) -> 
                            "date_unverified"):
             continue
         age = r.get("days_since_application")
-        action = ("Review follow-up" if segment == "stale_21_44"
+        action = ("Reconcile assumed submission date" if r.get("date_assumed")
+                  else "Review follow-up" if segment == "stale_21_44"
                   else "Reconcile submission date" if segment == "date_unverified"
                   else "Verify recruiting evidence")
         queue.append({
             "Employer": r.get("employer"), "Role": r.get("role"),
-            "Applied": r.get("applied_on"), "Days waiting": age,
+            "Applied": r.get("applied_on"),
+            "Date basis": ("Assumed (unverified)" if r.get("date_assumed")
+                           else "Original evidence" if r.get("applied_on") else "Missing"),
+            "Days waiting": age,
             "Last employer signal": r.get("last_response_on"),
             "Classification": LABELS.get(segment, segment),
             "Evidence": r.get("evidence_quality") or "unverified",
@@ -310,6 +329,8 @@ def render_private_staleness(access_token: str, *, compact: bool = False,
         st.dataframe([
             {"Employer":r.get("employer"), "Role":r.get("role"),
              "Review verified":r.get("verified_at"), "Sources":r.get("evidence_scope"),
+             "Original applied date":r.get("original_applied_on"),
+             "Assumed date":r.get("applied_on") if r.get("date_assumed") else None,
              "Classification":r.get("health_segment"),
              "Review expired / overridden":r.get("review_expired_or_overridden"),
              "Notes":r.get("evidence_notes")}

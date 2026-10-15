@@ -55,6 +55,7 @@ def render_hiring_predictor(
     today: date, *, portfolio_actions: dict | None = None,
     geography_locations: dict | None = None,
     employer_activity: dict | None = None,
+    stale_pipeline: list[dict] | None = None,
 ) -> dict | None:
     st.subheader("When might I get an offer?")
     st.caption("Hiring Predictor · Beta · a guide for planning, not a promise.")
@@ -64,8 +65,15 @@ def render_hiring_predictor(
                              hiring_quality=hiring,
                              portfolio_actions=portfolio_actions,
                              geography_locations=geography_locations,
-                             employer_activity=employer_activity)
+                             employer_activity=employer_activity,
+                             stale_pipeline=stale_pipeline)
     sources = result["sources"]
+    st.caption(
+        f"{sources.get('verified_dormancy_exclusions', 0)} currently verified dormant "
+        "process(es) excluded from the detailed forecast. Other unanswered "
+        "applications retain stage weight pending evidence review; age alone "
+        "does not imply rejection."
+    )
     notes = result.get("process_intelligence") or []
     stage_totals = sources.get("stage_counts") or {}
     if result["status"] == "offer_recorded":

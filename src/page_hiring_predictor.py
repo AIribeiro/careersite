@@ -264,6 +264,57 @@ def render_hiring_predictor(
                    "offer date could not yet be calculated.")
     st.caption("These contributions are deliberately limited and affect **future leads**, "
                "not hiring decisions already in progress.")
+    geography = result.get("geography_context") or {}
+    if geography:
+        reviewed = geography.get("explicitly_assessed", 0)
+        counts = geography.get("counts") or {}
+        st.caption(
+            "**Geographic reach:** Sweden-wide; Gothenburg is the preferred base, "
+            "not an exclusion rule. Stockholm-based senior roles are not "
+            "automatically penalized. Advertised locations do not change the "
+            "predicted offer dates by themselves."
+        )
+        with st.expander("Opportunity location and travel feasibility"):
+            st.markdown(
+                "**The employer's advertised office is not the same as where "
+                "you must work.** Sweden-wide opportunities remain in scope, "
+                "including multi-office leadership roles and suitable relocation."
+            )
+            st.caption(
+                f"{reviewed} of {geography.get('total_live_processes',0)} "
+                "tracked non-closed processes have explicit location/work "
+                "evidence. Where evidence is missing, feasibility remains unverified."
+            )
+            if reviewed:
+                st.caption(
+                    f"Compatible: {counts.get('compatible',0)} · "
+                    f"Conditional: {counts.get('conditional',0)} · "
+                    f"Needs verification: {counts.get('needs_verification',0)} · "
+                    f"Explicitly impractical: {counts.get('impractical',0)}."
+                )
+                explicit = [p for p in geography.get("opportunities", [])
+                            if p.get("has_explicit_geography")]
+                for opportunity in explicit[:8]:
+                    st.caption(
+                        f"• {opportunity['employer']} — {opportunity['role']}: "
+                        f"{opportunity['status'].replace('_',' ')}; "
+                        f"{opportunity['reason']}."
+                    )
+                if len(explicit) > 8:
+                    st.caption(f"Additional {len(explicit)-8} location-assessed "
+                               "processes omitted for readability.")
+            st.caption(
+                "Business travel is acceptable unless documented requirements "
+                "are impractical. Relocation depends on the role's mandate, "
+                "compensation, executive sponsorship and family feasibility; "
+                "missing details require verification, not rejection."
+            )
+            st.caption(
+                "**Forecast effect: 0%.** These corrections change how the "
+                "addressable market and individual opportunities are interpreted, "
+                "not hiring conversion or the historic forecast."
+            )
+
 
     with st.expander("What if things move faster or slower?"):
         if faster:

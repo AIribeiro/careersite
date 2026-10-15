@@ -291,7 +291,9 @@ def render_hiring_predictor(
                 f"Source evidence: {sources_found.get('job_search_source',0)} "
                 "locations from application and LinkedIn records; "
                 f"{sources_found.get('matched_jobwise_application',0)} "
-                "additional unique matches from your linked Jobwise workspace."
+                "additional unique matches from your linked Jobwise workspace; "
+                f"{sources_found.get('verified_jobwise_vacancy_catalog',0)} "
+                "from uniquely matched verified vacancy listings."
             )
             st.caption(
                 f"{max(0,total-located)} processes still lack a verified "

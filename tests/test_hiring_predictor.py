@@ -77,6 +77,62 @@ class HiringPredictorTests(unittest.TestCase):
             "The scenario needs a nonzero portfolio driver to exercise the bug",
         )
 
+    def test_kpmg_explicit_second_interview_is_real_progression(self):
+        from job_search_metrics import progression
+        from hiring_predictor import _stage_evidence
+        incoming = event(901, 2, employer="KPMG", is_application=False,
+                         is_human_interaction=True,
+                         interaction_direction="inbound",
+                         event_type="Recruiter / hiring-manager update",
+                         stage_outcome="Advanced to second interview",
+                         activity="Invited to second interview after hiring-manager and partner check-in")
+        self.assertTrue(progression(incoming))
+        self.assertEqual(_stage_evidence(incoming),"progression")
+        outgoing = {**incoming,"interaction_direction":"outbound",
+                    "stage_outcome":"Second interview accepted",
+                    "activity":"Candidate accepted second-interview progression"}
+        self.assertFalse(progression(outgoing))
+
+    def test_betsson_interview_invitation_is_scheduled_not_completed(self):
+        from job_search_metrics import scheduled_interview, completed_interview
+        from hiring_predictor import _stage_evidence
+        incoming = event(902, 1, employer="Betsson Group",
+                         is_application=False, is_interview=True,
+                         is_human_interaction=True, interaction_direction="inbound",
+                         interaction_type="interview_invitation",event_type="Interview",
+                         stage_outcome="Invited to next-stage 30-minute video call",
+                         activity="Recruiting interview invitation after CV review")
+        self.assertTrue(scheduled_interview(incoming))
+        self.assertFalse(completed_interview(incoming))
+        self.assertEqual(_stage_evidence(incoming),"interview_scheduled")
+        outgoing = {**incoming,"interaction_direction":"outbound",
+                    "interaction_type":"candidate_response",
+                    "stage_outcome":"Interview confirmation acknowledged"}
+        self.assertFalse(scheduled_interview(outgoing))
+
+    def test_stale_applications_decay_without_becoming_rejections(self):
+        from hiring_process_intelligence import process_health
+        from datetime import date
+        date_now=date(2026,10,15)
+        new=process_health([],date_now,"application",date(2026,10,10),"Active documented")
+        old=process_health([],date_now,"application",date(2026,7,1),"Active documented")
+        self.assertEqual(new["freshness_weight"],1)
+        self.assertLess(old["freshness_weight"],0.5)
+        self.assertEqual(old["status"],"stale_application")
+        interview=process_health([],date_now,"interview",date(2026,7,1),"Active documented")
+        self.assertEqual(interview["freshness_weight"],1)
+
+    def test_role_fit_without_grounded_requirements_has_zero_numeric_effect(self):
+        from hiring_process_intelligence import role_alignment
+        target=role_alignment("Head of AI Strategy and Adoption",[])
+        self.assertEqual(target["category"],"strong_target")
+        self.assertEqual(target["numeric_offer_effect"],0)
+        no=role_alignment("Senior Data Scientist",[])
+        self.assertEqual(no["category"],"outside_primary_target")
+        hard=role_alignment("Head of AI",[{"raw_data":{"compensation_fit":"below_floor"}}])
+        self.assertTrue(hard["explicit_hard_constraint"])
+        self.assertEqual(hard["numeric_offer_effect"],0)
+
     def test_no_evidence_never_fabricates_date(self):
         result = forecast_hiring([], TODAY)
         self.assertEqual(result["status"], "insufficient")

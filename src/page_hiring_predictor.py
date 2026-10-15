@@ -68,6 +68,13 @@ def render_hiring_predictor(
                              employer_activity=employer_activity,
                              stale_pipeline=stale_pipeline)
     sources = result["sources"]
+    if sources.get("provisional_assumed_date_stages", 0):
+        st.caption(
+            f"{sources['provisional_assumed_date_stages']} undated applications "
+            "use the owner-requested 15 Sep 2026 assumed date at the established "
+            "0.35 unresolved-stage weight. These are scenario-only assumptions, "
+            "not verified submission dates or measured conversions."
+        )
     st.caption(
         f"{sources.get('verified_dormancy_exclusions', 0)} currently verified dormant "
         "process(es) excluded from the detailed forecast. Other unanswered "

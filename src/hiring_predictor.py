@@ -186,6 +186,7 @@ def forecast_hiring(
     portfolio_actions: dict | None = None,
     jobtech_config: dict | None = None,
     geography_locations: dict | None = None,
+    employer_activity: dict | None = None,
 ) -> dict:
     strategy_context = _strategy_context(jobs, as_of)
     geography_context = assess_geographic_pipeline(
@@ -309,6 +310,32 @@ def forecast_hiring(
         "market_repeated_associations": len(stable_market),
     }
     drivers["strategy"] = strategy_context
+    # Current vacancy advertising is context, not a funded requisition, and
+    # cannot be silently used as a numerical offer boost.
+    activity = employer_activity if isinstance(employer_activity,dict) else {}
+    live_catalog = {
+        (str(r.get("employer_key") or "").casefold().strip(),
+         str(r.get("role_key") or "").casefold().strip()):r
+        for r in (activity.get("vacancies") or [])
+    }
+    observed_matches = sum(
+        (str(p["employer"]).casefold().strip(),str(p["role"]).casefold().strip())
+        in live_catalog for p in process_notes
+    )
+    current_ads = sum(
+        (live_catalog.get((str(p["employer"]).casefold().strip(),
+                           str(p["role"]).casefold().strip())) or {}
+        ).get("advertised_active",0) > 0 for p in process_notes
+    )
+    employer_context = {
+        "source":activity.get("source"),
+        "verified_matching_role_listings":observed_matches,
+        "actively_advertised_matching_roles":current_ads,
+        "requisition_linkage":"company_and_title_not_confirmed",
+        "numeric_effect":0,
+        "explanation":"Vacancy presence is a hiring-market signal, not proof of a funded or active personal requisition.",
+    }
+    drivers["employer_activity"] = employer_context
     drivers["process_health"] = {
         "policy":"process-evidence-v1",
         "stale_applications":sources["stale_application_count"],
@@ -323,6 +350,7 @@ def forecast_hiring(
         "version": MODEL_VERSION, "as_of": as_of.isoformat(), "sources": sources,
         "active_stages": open_stages, "curve": [], "crossings": {},
         "process_intelligence": process_notes,
+        "employer_context": employer_context,
         "reliability": evidence,
         "windows": {"offers": [], "starts": [], "offer_weeks": [], "start_weeks": []},
         "confidence": "Early estimate", "status": "insufficient",

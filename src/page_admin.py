@@ -810,7 +810,7 @@ def _dashboard(session: dict) -> None:
 
     workspace = st.segmented_control(
         "Private owner workspace",
-        options=["CMS","Detailed job analytics","Rejection Analytics","Hiring market","Decision overview"],
+        options=["CMS","Detailed job analytics","Stale applications","Rejection Analytics","Hiring market","Decision overview"],
         default="CMS",
         key="admin_private_workspace",
         width="stretch",
@@ -818,6 +818,11 @@ def _dashboard(session: dict) -> None:
     if workspace == "Detailed job analytics":
         from page_job_search_analytics import render_job_search_analytics
         render_job_search_analytics(session)
+        return
+    if workspace == "Stale applications":
+        from page_stale_applications import render_private_staleness
+        st.title("Stale applications · evidence review")
+        render_private_staleness(token)
         return
     if workspace == "Rejection Analytics":
         from page_rejection_analytics import render_rejection_analytics

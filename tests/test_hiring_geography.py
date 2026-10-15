@@ -117,6 +117,109 @@ class GeographicFeasibilityTests(unittest.TestCase):
         self.assertEqual(b["geography_context"]["counts"]["needs_verification"],34)
         self.assertEqual(c["geography_context"]["counts"]["impractical"],1)
 
+    def test_location_from_actual_raw_linkedin_payload(self):
+        """Regression: the location field existed but the owner query omitted raw_data."""
+        jobs=_jobs()
+        jobs[0]["raw_data"]={
+            "location":"Stockholm (Hybrid)",
+            "linkedin_job_id":"test-job-identifier",
+        }
+        report=assess_geographic_pipeline(jobs,TODAY)
+        first=next(p for p in report["opportunities"]
+                   if p["employer"]=="enterprise 1")
+        self.assertEqual(first["advertised_location"],"stockholm (hybrid)")
+        self.assertEqual(first["work_model"],"hybrid")
+        self.assertTrue(first["advertised_location_recorded"])
+        self.assertTrue(first["arrangement_recorded"])
+        self.assertEqual(first["location_evidence_source"],"job_search_source")
+        self.assertEqual(report["advertised_locations_recorded"],1)
+        self.assertEqual(report["work_arrangements_recorded"],1)
+
+    def test_exact_owner_jobwise_fallback_without_improper_overrides(self):
+        jobs=_jobs()
+        # No source metadata initially.
+        jobs[0].pop("raw_data",None)
+        enrichment={
+            "method":"linked_user_workspace_exact_company_title",
+            "unique_locations":[{
+                "employer_key":"enterprise 1",
+                "role_key":"head of ai",
+                "advertised_location":"Göteborg, Stockholm",
+                "country":"Sweden",
+                "quality":"exact_company_role_unique_location",
+            },{
+                "employer_key":"enterprise 2",
+                "role_key":"head of ai",
+                "advertised_location":"Malmo",
+                "country":"Sweden",
+                "quality":"exact_company_role_unique_location",
+            }]
+        }
+        report=assess_geographic_pipeline(jobs,TODAY,additional_locations=enrichment)
+        self.assertEqual(report["advertised_locations_recorded"],2)
+        self.assertEqual(report["source_counts"]["matched_jobwise_application"],2)
+        p=next(r for r in report["opportunities"] if r["employer"]=="enterprise 1")
+        self.assertEqual(p["location_evidence_source"],"matched_jobwise_application")
+        self.assertEqual(p["status"],"compatible")
+        # Primary job evidence must win over a Jobwise listing (possibly
+        # changed or a secondary posting).
+        jobs[0]["raw_data"]={"location":"Stockholm (On-site)"}
+        report=assess_geographic_pipeline(jobs,TODAY,additional_locations=enrichment)
+        p=next(r for r in report["opportunities"] if r["employer"]=="enterprise 1")
+        self.assertEqual(p["advertised_location"],"stockholm (on-site)")
+        self.assertEqual(p["location_evidence_source"],"job_search_source")
+        self.assertEqual(report["advertised_locations_recorded"],2)
+
+    def test_ambiguous_or_wrong_enrichment_is_rejected(self):
+        jobs=_jobs()
+        jobs[0].pop("raw_data",None)
+        evidence={"method":"linked_user_workspace_exact_company_title",
+                  "unique_locations":[
+                     {"employer_key":"enterprise 1","role_key":"head of ai",
+                      "advertised_location":"Stockholm",
+                      "quality":"exact_company_role_unique_location"},
+                     {"employer_key":"enterprise 1","role_key":"head of ai",
+                      "advertised_location":"Göteborg",
+                      "quality":"exact_company_role_unique_location"}]}
+        merged=assess_geographic_pipeline(jobs,TODAY,additional_locations=evidence)
+        self.assertEqual(merged["advertised_locations_recorded"],0)
+        wrong=assess_geographic_pipeline(jobs,TODAY,additional_locations={
+            **evidence,"method":"unverified_public_web_lookup",
+        })
+        self.assertEqual(wrong["advertised_locations_recorded"],0)
+
+    def test_no_new_application_or_forecast_boost_from_geography_enrichment(self):
+        jobs=_jobs()
+        for job in jobs:
+            job.pop("raw_data",None)
+        enriched={
+            "method":"linked_user_workspace_exact_company_title",
+            "unique_locations":[{
+                "employer_key":"enterprise 1","role_key":"head of ai",
+                "advertised_location":"Gothenburg","country":"Sweden",
+                "quality":"exact_company_role_unique_location",
+            }]
+        }
+        a=forecast_hiring(jobs,TODAY)
+        b=forecast_hiring(jobs,TODAY,geography_locations=enriched)
+        self.assertEqual(a["curve"],b["curve"])
+        self.assertEqual(a["crossings"],b["crossings"])
+        self.assertEqual(a["reliability"],b["reliability"])
+        self.assertEqual(a["sources"],b["sources"])
+        self.assertGreater(b["geography_context"]["advertised_locations_recorded"],
+                           a["geography_context"]["advertised_locations_recorded"])
+
+    def test_remote_country_is_not_assumed_to_authorize_sweden(self):
+        remote_poland=assess_opportunity({"advertised_location":"Poland (Remote)"})
+        self.assertEqual(remote_poland["status"],"needs_verification")
+        self.assertFalse(remote_poland["advertised_in_sweden"])
+        self.assertEqual(remote_poland["work_model"],"remote")
+        hybrid_stockholm=assess_opportunity({"advertised_location":"Stockholm (Hybrid)"})
+        self.assertEqual(hybrid_stockholm["status"],"conditional")
+        self.assertEqual(hybrid_stockholm["work_model"],"hybrid")
+        onsite_gbg=assess_opportunity({"advertised_location":"Göteborg (On-site)"})
+        self.assertEqual(onsite_gbg["status"],"compatible")
+
     def test_closed_and_future_opportunities_are_not_geographic_evidence(self):
         jobs = _jobs()
         jobs.append({

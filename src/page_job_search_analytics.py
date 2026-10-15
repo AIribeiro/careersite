@@ -434,5 +434,6 @@ def render_job_search_analytics(session: dict | None = None) -> None:
     from page_conversion_quality import render_private_conversion_quality
     render_private_conversion_quality(str(session["access_token"]))
     st.divider()
-    with st.expander("Historical activity and reconciliation reports", expanded=False):
-        render_job_report(records, str(session["access_token"]))
+    st.subheader("Historical activity and reconciliation")
+    st.caption("The sections below document past events; they do not replace cohort conversion measures.")
+    render_job_report(records, str(session["access_token"]))

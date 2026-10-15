@@ -1051,37 +1051,130 @@ def render_rejection_analytics(session: dict | None) -> None:
                     f"currently {len(latency)} qualify."
                 )
     with evidence:
+        st.subheader("What evidence is preventing a clearer diagnosis?")
         q = _quality(scoped)
-        st.subheader("Evidence coverage and unresolved records")
-        cols = st.columns(4)
-        for col, label in zip(cols, ("Undated", "Stage unknown", "JD not verified",
-                                     "No direct mailbox reference")):
-            col.metric(label, f"{q[label]}/{n}")
-        st.caption("Partially matched JDs cannot substantiate a skills-gap claim. Mailbox evidence stays owner-only.")
-        mom = momentum90
-        st.subheader("Recommendations generated from current evidence")
-        recs = _recommendations(scoped, today, mom)
-        for r in recs:
-            with st.container(border=True):
-                st.markdown(f"**{r['Area']}**")
-                st.write(r["Action"])
-                st.caption(f"Evidence: {r['Evidence']}")
-        with st.expander("Inspect processes needing evidence review"):
-            review = sorted((r for r in scoped if (
+        gaps = [
+            {"Gap": "Hiring stage not recorded", "Processes": q["Stage unknown"]},
+            {"Gap": "Original JD not strictly verified", "Processes": q["JD not verified"]},
+            {"Gap": "Decision lacks mailbox reference",
+             "Processes": q["No direct mailbox reference"]},
+            {"Gap": "Decision has no sourced date", "Processes": q["Undated"]},
+        ]
+        gaps = sorted(gaps, key=lambda row: -row["Processes"])
+        col1, col2 = st.columns([1.6, 1], vertical_alignment="top")
+        with col1:
+            gap_chart = alt.Chart(alt.Data(values=gaps)).mark_bar(
+                cornerRadiusEnd=4
+            ).encode(
+                x=alt.X("Processes:Q", title="Hiring processes",
+                        axis=alt.Axis(tickMinStep=1)),
+                y=alt.Y("Gap:N", sort="-x", title=None,
+                        axis=alt.Axis(labelLimit=235)),
+                tooltip=[
+                    alt.Tooltip("Gap:N", title="Evidence gap"),
+                    alt.Tooltip("Processes:Q", format=",d"),
+                ],
+            ).properties(height=210)
+            st.altair_chart(gap_chart, use_container_width=True)
+        with col2:
+            st.markdown(
+                f"**{q['Stage unknown']} of {n}** have no reliable hiring stage."
+            )
+            st.write(
+                "Recovering interviews and screening chronology would make "
+                "stage analysis more reliable than inferring an automatic rejection."
+            )
+            st.caption(
+                f"Only {n - q['JD not verified']} of {n} canonical records "
+                "have an original JD marked strictly verified. External "
+                "vacancy research is tracked separately."
+            )
+        # Externally saved role research is useful but not interchangeable with
+        # confirmation that a historical advertisement was the applied version.
+        if research_sources is not None:
+            scoped_ids = {
+                int(r["id"]) for r in scoped if r.get("id") is not None
+            }
+            researched = {
+                int(row["rejection_id"]) for row in research_sources
+                if int(row.get("rejection_id") or -1) in scoped_ids
+            }
+            exact_research = {
+                int(row["rejection_id"]) for row in research_sources
+                if int(row.get("rejection_id") or -1) in scoped_ids
+                and row.get("review_status") == "reviewed"
+                and row.get("match_strength") in
+                ("exact_requisition", "verified_original_role")
+            }
+            st.caption(
+                f"External source research: {len(researched)} of {n} "
+                "processes have saved evidence; "
+                f"{len(exact_research)} have a reviewed exact-role/ID match. "
+                "This does not automatically validate the original "
+                "application-time JD."
+            )
+        st.caption(
+            "A process can have multiple evidence gaps. The bars cannot "
+            "be added together, and a missing source never proves a skill deficit."
+        )
+
+        st.subheader("Highest-value next actions")
+        recs = _recommendations(scoped, today, momentum90)
+        for index, rec in enumerate(recs[:3], start=1):
+            st.markdown(f"**{index}. {rec['Area']}**")
+            st.write(rec["Action"])
+            st.caption(f"Current evidence: {rec['Evidence']}")
+        if len(recs) > 3:
+            with st.expander(f"Show {len(recs) - 3} further recommendations"):
+                for rec in recs[3:]:
+                    st.markdown(f"**{rec['Area']}**")
+                    st.write(rec["Action"])
+                    st.caption(f"Evidence: {rec['Evidence']}")
+        if not recs:
+            st.caption("No specific action was generated from this selected period.")
+
+        st.subheader("Which cases should be investigated next?")
+        def priority(row: dict) -> tuple:
+            stage = str(row.get("hiring_stage") or "unknown").lower()
+            return (
+                0 if stage in ("first_interview", "second_interview",
+                               "final_interview", "recruiter_screen") else 1,
+                0 if row.get("requisition_id") else 1,
+                0 if str(row.get("reason_code") or "").upper() == "UNKNOWN" else 1,
+                0 if str(row.get("jd_match_status") or "") != "verified" else 1,
+                str(row.get("employer") or ""),
+            )
+        review = sorted(
+            (r for r in scoped if (
                 str(r.get("reason_code") or "").upper() == "UNKNOWN"
-                or not _date(r)
-                or str(r.get("hiring_stage") or "unknown").lower() == "unknown"
-                or str(r.get("jd_match_status") or "") != "verified")),
-                key=lambda r: (bool(_date(r)), str(r.get("employer") or "")))
+                or str(r.get("hiring_stage") or "").lower() in
+                ("unknown", "unavailable", "not_recorded", "")
+                or str(r.get("jd_match_status") or "") != "verified"
+                or not _source_ref(r)
+            )), key=priority
+        )
+        st.write(
+            f"**{len(review)} records** have at least one research gap. "
+            "Interview-stage cases and identifiable requisitions are "
+            "prioritized because their evidence is usually more recoverable."
+        )
+        with st.expander("Inspect prioritized cases and missing evidence", expanded=False):
             st.dataframe([{
-                "Employer": r.get("employer"), "Role": r.get("role"),
-                "Decision": str(_date(r) or "Undated"),
-                "Cause": LABELS.get(r.get("reason_code"), r.get("reason_code")),
+                "Employer": r.get("employer"),
+                "Role": r.get("role"),
+                "Decision observed": str(_date(r) or "Unverified"),
                 "Stage": r.get("hiring_stage") or "Unknown",
                 "JD match": r.get("jd_match_status") or "Not checked",
-                "Evidence": "Referenced" if _source_ref(r) else "Needs source link",
+                "Employer cause": LABELS.get(
+                    r.get("reason_code"), r.get("reason_code")
+                ),
+                "Mailbox": "Linked" if _source_ref(r) else "Not linked",
             } for r in review], hide_index=True, width="stretch")
-        st.caption("No background mailbox monitoring is implied: this dashboard reflects the latest saved Rejection Analyzer results. The analyzer itself runs when invoked.")
+        st.caption(
+            "The Analyzer does not continuously monitor mailboxes. "
+            "This page displays previously saved evidence and refreshes "
+            "its database reads while open."
+        )
 
     with research:
         from page_rejection_inference import render_rejection_inference

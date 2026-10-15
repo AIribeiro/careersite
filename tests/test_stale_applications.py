@@ -93,7 +93,14 @@ class StalePipelineTests(unittest.TestCase):
         weights = [x["weight"] for x in forecast["active_stages"]
                    if x["stage"] == "application"]
         self.assertTrue(weights)
-        self.assertEqual(weights[0], 1.0)
+        # This record has no verified active-process status after canonical
+        # reconciliation, so the established 0.35 fallback still applies.
+        # Age must not introduce an additional discount.
+        self.assertEqual(weights[0], 0.35)
+        younger = forecast_hiring([application(7, 25)], NOW)
+        younger_weight = [x["weight"] for x in younger["active_stages"]
+                          if x["stage"] == "application"]
+        self.assertEqual(younger_weight, weights)
 
     def test_verified_dormancy_removes_only_the_matching_process(self):
         jobs = [application(1, 86), application(2, 70)]

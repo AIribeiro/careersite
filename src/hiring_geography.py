@@ -262,11 +262,13 @@ def assess_geographic_pipeline(
             values["advertised_location"] = fallback["advertised_location"]
             if fallback.get("country"):
                 values["country"] = fallback["country"]
-            source = (
-                "verified_jobwise_vacancy_catalog"
-                if fallback.get("evidence_source") == "verified_jobwise_vacancy_catalog"
-                else "matched_jobwise_application"
-            )
+            if fallback.get("work_model"):
+                values["work_model"] = fallback["work_model"]
+            source = {
+                "verified_jobwise_vacancy_catalog": "verified_jobwise_vacancy_catalog",
+                "official_employer_vacancy": "official_employer_vacancy",
+                "externally_verified_job_board": "externally_verified_job_board",
+            }.get(fallback.get("evidence_source"), "matched_jobwise_application")
         classification = assess_opportunity(values)
         arrangement_recorded = bool(
             values.get("work_model") or values.get("remote_in_sweden") is not None

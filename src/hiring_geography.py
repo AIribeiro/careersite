@@ -76,7 +76,7 @@ def infer_from_role_title(role: str | None) -> dict | None:
         return None
     matches = []
     for pattern, location in _EXPLICIT_TITLE_LOCATIONS:
-        if re.search(r"(?<!\\w)" + re.escape(pattern) + r"(?!\\w)", title):
+        if re.search(r"(?<!\w)" + re.escape(pattern) + r"(?!\w)", title):
             if location not in matches:
                 matches.append(location)
     if not matches:

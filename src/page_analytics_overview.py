@@ -17,6 +17,7 @@ from page_content_intelligence import _fetch_rpc
 from page_job_market_insights import fetch_market_records, _latest_by_indicator, _format_value, _readouts
 from page_job_search_analytics import fetch_job_records
 from page_hiring_predictor import render_hiring_predictor
+from hiring_forecast_history import record_daily_first, previous_forecasts, stability_summary
 from site_cms import ensure_owner_session, _request_json, _rest_url
 
 
@@ -204,9 +205,30 @@ def render_analytics_overview(session: dict | None) -> None:
     market_model = analyze_market(market,jobs,site,now.date()) if market else None
     site_corr = analyze_portfolio_job_correlations(site,jobs) if site and jobs else None
     if jobs:
-        render_hiring_predictor(jobs,market_model,site_corr,hiring,now.date(),
-                                portfolio_actions=actions,
-                                geography_locations=geography_locations)
+        forecast = render_hiring_predictor(
+            jobs,market_model,site_corr,hiring,now.date(),
+            portfolio_actions=actions,geography_locations=geography_locations,
+        )
+        if forecast and forecast.get("status") in ("scenario","no_median"):
+            if market and site and actions is not None and not errors:
+                try:
+                    record_daily_first(str(valid["access_token"]),
+                                       forecast,current_signatures)
+                except (RuntimeError,TimeoutError,PermissionError,ValueError):
+                    st.caption("Daily forecast history temporarily unavailable.")
+            try:
+                archived=previous_forecasts(str(valid["access_token"]))
+            except (RuntimeError,TimeoutError,PermissionError,ValueError):
+                archived=[]
+            comparison=stability_summary(archived)
+            with st.expander("Forecast history and validation"):
+                st.caption(f"{comparison['history_count']} dated forecasts archived.")
+                if comparison.get("shift_days") is not None:
+                    shift=comparison["shift_days"]
+                    st.caption(f"Latest central-date change: {shift:+d} days.")
+                st.caption("Forecast accuracy is not yet validated against "
+                           "confirmed offers. The evidence-quality percentage "
+                           "does not measure predictive accuracy.")
     else:
         st.subheader("Hiring predictor")
         st.info("Forecast unavailable until primary job-search evidence can be loaded.")

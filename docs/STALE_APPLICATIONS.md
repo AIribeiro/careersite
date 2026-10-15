@@ -72,6 +72,34 @@ as date-unverified. There are distinct platform-ID collisions requiring
 reconciliation, so these are provisional process totals, not a final
 unique-requisition census.
 
+### Explicit 30-day assumption · 15 October 2026
+
+The owner directed that the **11 date-unverified, unanswered processes**
+be shown as 30 days old on 15 October. The fixed analytical proxy date is
+**15 September 2026**, not a rolling 30-day reset. This assumption is stored
+in `job_application_staleness_review.analysis_assumed_applied_on`, with
+`analysis_assumption_anchor_date=2026-10-15` and age=30 days.
+`job_search_analytics.event_date` and the original verified application
+date remain unchanged (unknown), so there is no fabricated historical event.
+
+The owner-private `careersite_stale_application_pipeline_v2` uses the
+assumed date for ageing and review, emits `date_assumed=true`, and
+preserves `original_applied_on=NULL`. The 11 processes move from
+`date_unverified` to `stale_21_44`; they remain **unverified** and do
+not qualify for evidence-backed dormant status. The review queue labels
+the assumed date and prioritizes source-date reconciliation.
+
+Both public and owner-only forecasts include these 11 as **provisional
+application-stage inputs at the existing unresolved fallback weight 0.35**.
+They do not count as an observed dated submission for historical
+application totals, recruiter conversion, first-response latency,
+or observed monthly cohorts. A later verified date or actual
+progression supersedes the assumption automatically.
+
+A separate 20 processes remain without an ageable date because they have
+already recorded closed or recruiter-engaged status. The original source
+still has 31 missing submission dates altogether.
+
 Remaining work: full mailbox/source verification of the backlog, canonical
 requisition-ID reconstruction, historical calibration of channel- and
 role-specific first-response curves, and empirical forecasting of personal

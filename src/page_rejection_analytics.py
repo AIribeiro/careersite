@@ -943,30 +943,113 @@ def render_rejection_analytics(session: dict | None) -> None:
                            "Explanation": r.get("one_line_explanation")}
                           for r in shown], hide_index=True, width="stretch")
     with stages:
-        st.subheader("Hiring stages before decisions")
-        stage_counts = Counter(str(r.get("hiring_stage") or "unknown") for r in scoped)
-        _chart([{"Stage": k.replace("_", " ").title(), "Processes": v}
-                for k,v in stage_counts.most_common()], "Stage", "Processes", height=265)
-        unknown_stage = stage_counts.get("unknown", 0)
-        st.caption(f"{unknown_stage}/{n} stages explicitly unknown. No stage is imputed from rejection wording.")
-        st.subheader("Credible opportunity momentum")
-        if momentum30 is None or momentum90 is None:
-            st.warning("Operational application events unavailable. Momentum, conversion and latency are not estimated.")
-        if momentum30 and momentum90:
-            a,b,c = st.columns(3)
-            a.metric("Human-engaged groups · 30d", momentum30["human"])
-            b.metric("Interview-related groups · 30d", momentum30["interview"])
-            c.metric("Human/interview groups · 90d", momentum90["qualified"])
-            st.caption("Derived from deduplicated operational events. Employer+role grouping is provisional where requisition IDs are missing; these are not verified unique hiring rounds.")
-            latency = _linked_application_days(scoped, events)
-            if latency:
-                st.metric("Median verified application-to-decision", f"{median(latency):g} days",
-                          help=f"{len(latency)} processes with directly linked, uniquely dated application source events.")
-            else:
-                st.caption("Time-to-decision unavailable: no unambiguous matched application dates in this selection.")
-            st.caption("Application rejection rate and interview conversion by application cohort require requisition-level reconciliation. They are deliberately not calculated from raw rejection rows.")
+        st.subheader("At which stage did applications stop?")
+        missing_stage = {"unknown", "unavailable", "not_recorded", ""}
+        known_stages = [
+            r for r in scoped
+            if str(r.get("hiring_stage") or "").lower() not in missing_stage
+        ]
+        stage_counts = Counter(
+            str(r.get("hiring_stage") or "").replace("_", " ").title()
+            for r in known_stages
+        )
+        unverified_stages = n - len(known_stages)
+        st.write(
+            f"**{len(known_stages)} of {n}** outcomes have an identifiable "
+            f"recruitment stage; **{unverified_stages}** do not. "
+            "The distribution below covers documented stages only."
+        )
+        if stage_counts:
+            chart_rows = [
+                {"Stage": stage, "Processes": count}
+                for stage, count in stage_counts.most_common()
+            ]
+            stage_chart = alt.Chart(alt.Data(values=chart_rows)).mark_bar(
+                cornerRadiusEnd=4
+            ).encode(
+                y=alt.Y("Stage:N", sort="-x", title=None,
+                        axis=alt.Axis(labelLimit=220)),
+                x=alt.X("Processes:Q", title="Documented decisions",
+                        axis=alt.Axis(tickMinStep=1)),
+                tooltip=["Stage:N", alt.Tooltip("Processes:Q", format=",d")],
+            ).properties(height=max(165, len(stage_counts) * 42))
+            st.altair_chart(stage_chart, use_container_width=True)
         else:
-            st.caption("Human-interaction momentum is unavailable without operational evidence.")
+            st.caption("There are no verified hiring stages in this reporting window.")
+        st.caption(
+            "A missing stage is not an application-stage rejection. "
+            "These data cannot establish screening or interview conversion rates."
+        )
+
+        st.subheader("Are human recruiting conversations continuing?")
+        if momentum30 is None or momentum90 is None:
+            st.warning(
+                "Recruiter and interview events are unavailable. "
+                "No conversation trend or latency estimate can be made."
+            )
+        else:
+            prior_momentum = _momentum(
+                events, today - timedelta(days=30), 30
+            )
+            human_30 = momentum30["qualified"]
+            human_prior = prior_momentum["qualified"]
+            trend_data = [
+                {"Period": "Previous 30 days", "Engaged groups": human_prior},
+                {"Period": "Latest 30 days", "Engaged groups": human_30},
+            ]
+            x, y = st.columns([1.55, 1], vertical_alignment="center")
+            with x:
+                trend_chart = alt.Chart(alt.Data(values=trend_data)).mark_bar(
+                    cornerRadiusEnd=4
+                ).encode(
+                    x=alt.X("Period:N",
+                            sort=["Previous 30 days", "Latest 30 days"],
+                            title=None, axis=alt.Axis(labelAngle=0)),
+                    y=alt.Y("Engaged groups:Q", title="Employer-role groups",
+                            axis=alt.Axis(tickMinStep=1)),
+                    tooltip=["Period:N",
+                             alt.Tooltip("Engaged groups:Q", format=",d")],
+                ).properties(height=210)
+                st.altair_chart(trend_chart, use_container_width=True)
+            with y:
+                delta = human_30 - human_prior
+                change_text = ("more" if delta > 0 else
+                               "fewer" if delta < 0 else "the same number of")
+                st.markdown(
+                    f"**{human_30} documented engaged groups** in the latest "
+                    "30 days."
+                )
+                if delta:
+                    st.write(
+                        f"That is **{abs(delta)} {change_text}** than "
+                        "the preceding 30 days."
+                    )
+                else:
+                    st.write("That matches the previous 30-day period.")
+                st.caption(
+                    f"{momentum90['qualified']} employer-role groups had "
+                    "documented recruiter or interview contact in 90 days. "
+                    "These may include closed processes."
+                )
+            st.caption(
+                "Counts represent observed employer-role groups, not "
+                "verified active requisitions, guaranteed ongoing recruitment "
+                "or offer probabilities. Group identity may be provisional."
+            )
+            latency = _linked_application_days(scoped, events)
+            if len(latency) >= 3:
+                st.write(
+                    f"**Observed response interval:** median "
+                    f"{median(latency):g} days from application to the "
+                    f"communicated negative outcome, based on "
+                    f"{len(latency)} precisely linked applications."
+                )
+            else:
+                st.caption(
+                    "A defensible application-to-decision median requires "
+                    "at least three independently linked and dated processes; "
+                    f"currently {len(latency)} qualify."
+                )
     with evidence:
         q = _quality(scoped)
         st.subheader("Evidence coverage and unresolved records")

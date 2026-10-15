@@ -23,7 +23,7 @@ from hiring_forecast_windows import peak_weeks, reliability_index
 from hiring_geography import assess_geographic_pipeline
 from hiring_process_intelligence import process_intelligence
 
-MODEL_VERSION = "hiring-beta-4.2-verified-dormancy"
+MODEL_VERSION = "hiring-beta-4.3-assumed-date-provisional"
 HORIZON_DAYS = 364
 SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5}
 # Purely illustrative offer propensity *given each hiring stage*, NOT observed
@@ -271,7 +271,52 @@ def forecast_hiring(
                 "weight":weight,**intelligence,
             })
 
-    coverage = (market_model or {}).get("coverage") or {}
+    # The owner explicitly assigned 30-day proxy dates to formerly undated
+    # submissions. Keep this assumption separate from observed application
+    # events and historical response-rate denominators. An assumed date never
+    # qualifies a process for dormancy exclusion or confirmed employer progress.
+    assumed_stage_count = 0
+    for candidate in (stale_pipeline or []):
+        if candidate.get("date_assumed") is not True:
+            continue
+        if candidate.get("exclude_from_active_forecast") is True:
+            continue
+        if candidate.get("health_segment") not in (
+            "stale_21_44", "stale_45_59", "stale_60_plus",
+            "recent_awaiting_response",
+        ):
+            continue
+        assumption = day(candidate.get("applied_on"))
+        if assumption is None:
+            continue
+        candidate_age = (as_of - assumption).days
+        if not 0 <= candidate_age <= 180:
+            continue
+        candidate_employer = str(candidate.get("employer") or "")
+        candidate_role = str(candidate.get("role") or "")
+        key = process_key({"employer": candidate_employer, "role": candidate_role})
+        # A subsequent dated event supersedes the proxy stage.
+        if key in grouped:
+            continue
+        weight = 0.35  # existing unresolved-application fallback
+        intelligence = process_intelligence(
+            [], as_of, "application", assumption,
+            "Assumed submission date, not verified", candidate_role,
+        )
+        open_stages.append({
+            "stage": "application", "age": candidate_age,
+            "weight": weight, "state": "provisional_owner_assumed_date",
+            "stage_date": assumption.isoformat(), "date_assumed": True,
+        })
+        process_notes.append({
+            "employer": candidate_employer, "role": candidate_role,
+            "stage": "application", "stage_date": assumption.isoformat(),
+            "weight": weight, "date_assumed": True,
+            **intelligence,
+        })
+        assumed_stage_count += 1
+
+    coverage = (market_model or {}).get("coverage") or {
     stable_market = [r for r in (market_model or {}).get("findings", [])
                      if r.get("status") == "Repeated association"
                      and r.get("outcome") in ("responses", "interviews", "progression")]
@@ -306,6 +351,7 @@ def forecast_hiring(
         "stage_counts":{name:sum(p["stage"]==name for p in open_stages)
                         for name in STAGES},
         "verified_dormancy_exclusions":len(verified_dormancy),
+        "provisional_assumed_date_stages":assumed_stage_count,
         "stale_application_count":sum(
             p["health"]["status"]=="stale_application" for p in process_notes
         ),

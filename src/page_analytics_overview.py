@@ -231,7 +231,7 @@ def render_analytics_overview(session: dict | None) -> None:
     # Cross-domain relationships are contextual unless independently validated.
     market_model = analyze_market(market,jobs,site,now.date()) if market else None
     site_corr = analyze_portfolio_job_correlations(site,jobs) if site and jobs else None
-    if jobs:
+    if jobs and stale_pipeline is not None:
         forecast = render_hiring_predictor(
             jobs,market_model,site_corr,hiring,now.date(),
             portfolio_actions=actions,geography_locations=geography_locations,
@@ -260,7 +260,11 @@ def render_analytics_overview(session: dict | None) -> None:
                            "does not measure predictive accuracy.")
     else:
         st.subheader("Hiring predictor")
-        st.info("Forecast unavailable until primary job-search evidence can be loaded.")
+        if jobs and stale_pipeline is None:
+            st.warning("Forecast withheld because the verified-dormancy ledger is unavailable. "
+                       "An unknown exclusion must not silently restore old applications to the active pipeline.")
+        else:
+            st.info("Forecast unavailable until primary job-search evidence can be loaded.")
     st.divider()
 
     st.subheader("Where your search stands")

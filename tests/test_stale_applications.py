@@ -120,6 +120,43 @@ class StalePipelineTests(unittest.TestCase):
         reopened = forecast_hiring(jobs, NOW, stale_pipeline=[])
         self.assertEqual(reopened["active_stages"], baseline["active_stages"])
 
+    def test_manual_30_day_date_is_aged_but_not_verified(self):
+        assumed = process("a|Head of AI", "stale_21_44", 30,
+                          applied="2026-09-15")
+        assumed.update(date_assumed=True, original_applied_on=None,
+                       evidence_quality="assumed")
+        ordinary = process("b|Head of AI", "stale_21_44", 30,
+                           applied="2026-09-15")
+        ordinary.update(date_assumed=False, original_applied_on="2026-09-15")
+        summary = private_summary([assumed, ordinary])
+        m = summary["metrics"]
+        self.assertEqual(m["stale"], 2)
+        self.assertEqual(m["assumed_application_dates"], 1)
+        self.assertEqual(m["original_dates_missing"], 1)
+        self.assertEqual(m["matured_denominator"], 1)
+        self.assertEqual(m["matured_unanswered"], 1)
+        queue = private_review_queue([assumed, ordinary])
+        self.assertEqual(queue[0]["Next action"], "Reconcile assumed submission date")
+
+    def test_owner_assumed_date_enters_planning_model_at_fallback_weight(self):
+        historical = [application(1, 17)]
+        baseline = forecast_hiring(historical, NOW, stale_pipeline=[])
+        assumption = {
+            "process_key": "example employer|head of ai",
+            "employer": "Example Employer", "role": "Head of AI",
+            "applied_on": "2026-09-15", "days_since_application": 30,
+            "health_segment": "stale_21_44", "date_assumed": True,
+            "exclude_from_active_forecast": False,
+        }
+        forecast = forecast_hiring(historical, NOW, stale_pipeline=[assumption])
+        assumed_stages = [r for r in forecast["active_stages"] if r.get("date_assumed")]
+        self.assertEqual(len(assumed_stages), 1)
+        self.assertEqual(assumed_stages[0]["age"], 30)
+        self.assertEqual(assumed_stages[0]["weight"], 0.35)
+        self.assertEqual(forecast["sources"]["provisional_assumed_date_stages"], 1)
+        self.assertEqual(forecast["sources"]["linked_application_processes"],
+                         baseline["sources"]["linked_application_processes"])
+
     def test_unverified_silence_does_not_trigger_dormancy(self):
         jobs = [application(1, 90)]
         forecast = forecast_hiring(jobs, NOW, stale_pipeline=[{

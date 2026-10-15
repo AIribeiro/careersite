@@ -23,7 +23,7 @@ from hiring_forecast_windows import peak_weeks, reliability_index
 from hiring_geography import assess_geographic_pipeline
 from hiring_process_intelligence import process_intelligence
 
-MODEL_VERSION = "hiring-beta-4.0"
+MODEL_VERSION = "hiring-beta-4.1"
 HORIZON_DAYS = 364
 SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5}
 # Purely illustrative offer propensity *given each hiring stage*, NOT observed
@@ -203,8 +203,8 @@ def forecast_hiring(
             grouped[key].append(r)
     recorded_offers = sum(offer(r) for r in events)
 
-    # Event-linked application processes are a subset of the official
-    # application snapshot. Never equate the two or synthesize missing events.
+    # Event-linked processes are not necessarily one-to-one with official
+    # submissions. Never equate them or synthesize missing application events.
     processes = report["processes"]
     applied = [p for p in processes if p.get("Applied")]
     recent_start = as_of - timedelta(days=27)
@@ -272,7 +272,13 @@ def forecast_hiring(
     drivers = forecast_drivers(portfolio_correlation, portfolio_actions, market_model, as_of,
                                jobs=jobs, jobtech_config=jobtech_config)
     official = _official_application_total(jobs, as_of)
-    event_coverage = (len(applied) / official) if official else None
+    # A reconstructed process count larger than the official submission
+    # snapshot indicates linkage/definition mismatch, NOT >100% coverage.
+    # Do not improve the evidence score until counts are reconciled.
+    reconciliation_needed = bool(official is not None and len(applied) > official)
+    event_coverage = (
+        len(applied) / official if official and not reconciliation_needed else None
+    )
     sources = {
         "strategy_records_used": strategy_context["records_used"],
         "primary_events": len(events),
@@ -286,6 +292,7 @@ def forecast_hiring(
         "application_count_discrepancy": (
             len(applied)-official if official is not None else None
         ),
+        "application_reconciliation_needed": reconciliation_needed,
         "stage_counts":{name:sum(p["stage"]==name for p in open_stages)
                         for name in STAGES},
         "stale_application_count":sum(

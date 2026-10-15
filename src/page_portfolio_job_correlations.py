@@ -26,19 +26,114 @@ def _value(v: float | None) -> str:
     return f"{v:+.2f}" if v is not None else "—"
 
 
-def _anchor_cards(report: dict) -> None:
-    st.subheader("Two hypotheses under continuous review")
-    st.caption("These were observed in October 2026. Their values are recomputed on every update; no relationship is presumed to persist.")
-    cols = st.columns(2)
-    for col, row in zip(cols, report["anchors"]):
-        with col:
-            st.metric(_description(row,report), _value(row["r"]), help="Pearson r on independent, complete daily observations. Not a measure of causal impact.")
-            st.caption(
-                f"{row['status']} · {row['n']} complete paired days · "
-                f"{row['exposure_days']} exposure days · {row['outcome_days']} outcome days"
-            )
-    st.caption("An observed correlation is a population-level timing pattern. A visitor cannot be linked to an application, employer or recruiter.")
+def _private_signal_readout(row: dict) -> str:
+    if row.get("r") is None:
+        return "Too few recorded events to interpret."
+    if row["status"] == "Repeated association":
+        return "A repeated day-level association passed the screening checks, not a causal link."
+    if row["status"] == "Worth monitoring":
+        return "An emerging association passed initial checks; it needs more validation."
+    if row["status"] == "Unstable / weak":
+        return "The observed relationship is weak or unstable."
+    if abs(row["r"]) < .25:
+        return "Little consistent overlap is visible in the current observations."
+    direction = "positive" if row["r"] > 0 else "negative"
+    return f"Preliminary {direction} same-day overlap; not enough history to validate."
 
+
+def _trend_dashboard(report: dict) -> None:
+    """Display independent trailing-week movements, without visitor attribution."""
+    site = report["site_daily"]
+    jobs = report["job_daily"]
+    if len(site) < 7:
+        st.caption("Trend visuals will appear after seven complete recorded days.")
+        return
+    ordered = sorted(site,key=lambda x:x["Date"])
+    points = []
+    for i in range(6,len(ordered)):
+        window = ordered[i-6:i+1]
+        days = [datetime.fromisoformat(r["Date"]).date() for r in window]
+        points.append({
+            "Date":ordered[i]["Date"],
+            "CV-linked sessions":sum(int(r.get("cv_link_visitors",0)) for r in window),
+            "Applications":sum(jobs.get(d,{}).get("applications",0) for d in days),
+            "Recruitment contacts":sum(jobs.get(d,{}).get("responses",0) for d in days),
+        })
+    points = points[-90:]
+    st.markdown("**How CV attention and recruitment activity are moving**")
+    left,right = st.columns(2)
+    with left:
+        st.caption("CV-linked portfolio sessions")
+        chart = alt.Chart(alt.Data(values=points)).mark_line(
+            point=True,strokeWidth=2,
+        ).encode(
+            x=alt.X("Date:T",title="Day"),
+            y=alt.Y("CV-linked sessions:Q",title="Sessions · trailing 7 days",
+                    scale=alt.Scale(zero=True)),
+            tooltip=["Date:T","CV-linked sessions:Q"],
+        ).properties(height=240)
+        st.altair_chart(chart,width="stretch")
+    with right:
+        st.caption("Applications and inbound recruitment contacts")
+        chart = alt.Chart(alt.Data(values=points)).transform_fold(
+            ["Applications","Recruitment contacts"],as_=["Event","Count"],
+        ).mark_line(point=True,strokeWidth=2).encode(
+            x=alt.X("Date:T",title="Day"),
+            y=alt.Y("Count:Q",title="Events · trailing 7 days",
+                    scale=alt.Scale(zero=True)),
+            color=alt.Color("Event:N",title="Recruitment event"),
+            tooltip=["Date:T","Event:N","Count:Q"],
+        ).properties(height=240)
+        st.altair_chart(chart,width="stretch")
+    st.caption(
+        "Trailing seven-day totals on independent axes. Similar movement does "
+        "not connect a portfolio session to an employer, recruiter or decision."
+    )
+    if len(points) >= 8:
+        current,prior = points[-1],points[-8]
+        def movement(name: str) -> str:
+            now,old = current[name],prior[name]
+            return "increased" if now>old else "decreased" if now<old else "was unchanged"
+        st.markdown(
+            "**Recent movement:** CV-linked sessions "
+            f"{movement('CV-linked sessions')}; inbound recruitment contacts "
+            f"{movement('Recruitment contacts')} versus the preceding seven days. "
+            "This is descriptive activity, not a conversion rate."
+        )
+
+
+def _anchor_cards(report: dict) -> None:
+    st.markdown("**What the two CV-link hypotheses suggest**")
+    pairs = {row["outcome"]:row for row in report["anchors"]}
+    left,right = st.columns(2)
+    with left:
+        st.markdown("**Recruitment conversations**")
+        row = pairs.get("responses")
+        st.write(_private_signal_readout(row) if row else "No comparable events available.")
+    with right:
+        st.markdown("**Applications submitted**")
+        row = pairs.get("applications")
+        st.write(_private_signal_readout(row) if row else "No comparable events available.")
+    if report["coverage"]["coverage"] < 42:
+        st.caption(
+            f"{report['coverage']['coverage']} complete days available; the statistical "
+            "screen requires at least 42, and a repeated association needs a longer "
+            "history plus sufficient independent events."
+        )
+        st.markdown(
+            "**Next step:** Continue collecting qualified sessions and dated employer "
+            "contacts. Do not change portfolio strategy based on these coefficients."
+        )
+    elif report["top_status"] is None:
+        st.markdown(
+            "**Next step:** Track verified hiring conversations rather than "
+            "interpreting raw traffic as progress."
+        )
+    else:
+        st.markdown(
+            "**Next step:** Check whether qualifying patterns remain stable over "
+            "time before drawing a practical conclusion."
+        )
 
 def _ranking(report: dict) -> None:
     st.subheader("Automatically discovered relationships")
@@ -146,10 +241,10 @@ def _scatter(report: dict, site_payload: dict) -> None:
 @st.fragment(run_every="15m")
 def render_portfolio_job_correlations() -> None:
     """Refresh both private datasets while the owner keeps this dashboard open."""
-    st.subheader("Portfolio × Job Search Intelligence")
+    st.subheader("Portfolio attention and recruitment progress")
     st.caption(
-        "Automatic review of changing traffic, reading patterns and recruitment activity. "
-        "New page and referral-source signals enter the screening pool once sufficiently observed."
+        "Visual comparisons of qualified portfolio attention and recorded recruitment "
+        "outcomes. Aggregate timing patterns are not recruiter attribution."
     )
     try:
         session = persistent_owner_session()
@@ -179,13 +274,12 @@ def render_portfolio_job_correlations() -> None:
             "No confirmed portfolio-to-recruitment relationship yet. "
             "The engine is monitoring early patterns but will not present them as hiring impact."
         )
+    _trend_dashboard(report)
     _anchor_cards(report)
-    st.divider()
-    _ranking(report)
-    st.divider()
-    _movement(report,site)
-    st.divider()
-    _scatter(report,site)
+    with st.expander("Evidence & diagnostics · candidate relationships and raw calculations"):
+        _ranking(report)
+        _movement(report,site)
+        _scatter(report,site)
     with st.expander("Methodology, evidence limits and automatic discovery"):
         st.markdown(
             "Daily sessions are quality-filtered using V5 tracking, explicit test exclusions and the "

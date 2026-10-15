@@ -315,6 +315,115 @@ def _recommendations(records: list[dict], today: date,
 
 
 @st.fragment(run_every="5m")
+def _render_inferred_barrier_snapshot(session: dict, scoped: list[dict]) -> None:
+    """Summarize private role-fit hypotheses separately from actual employer reasons.
+
+    The denominator is distinct rejected processes with no verified specific cause.
+    Multiple hypotheses for one application never multiply the process count.
+    """
+    unknown_ids = {
+        int(r["id"]) for r in scoped
+        if r.get("id") is not None
+        and str(r.get("reason_code") or "").upper() == "UNKNOWN"
+    }
+    if not unknown_ids:
+        return
+
+    # Use the same owner-authenticated, RLS-protected read as Research & hypotheses.
+    try:
+        from page_rejection_inference import _private_rows, HYPOTHESIS_FIELDS
+        hypotheses = _private_rows(
+            str(session["access_token"]), "job_rejection_hypotheses", HYPOTHESIS_FIELDS
+        )
+    except (RuntimeError, TimeoutError, ValueError, KeyError) as exc:
+        st.warning(
+            "The latest inference breakdown is temporarily unavailable. "
+            "Employer-reported rejection statistics above are still valid. "
+            f"Details: {exc}"
+        )
+        return
+
+    supported = set()
+    tentative = set()
+    for hypothesis in hypotheses:
+        try:
+            process_id = int(hypothesis.get("rejection_id") or -1)
+        except (TypeError, ValueError):
+            continue
+        if process_id not in unknown_ids:
+            continue
+        state = str(hypothesis.get("assessment_state") or "")
+        if state == "supported_possible":
+            supported.add(process_id)
+        elif state in ("weak_possible", "investigating"):
+            tentative.add(process_id)
+    # Rank mutually exclusive tiers: supported > tentative > no established barrier.
+    tentative -= supported
+    no_barrier = unknown_ids - supported - tentative
+
+    st.subheader("What can we infer beyond the employer's explanation?")
+    st.caption(
+        "Evidence from role requirements and the submitted profile can identify "
+        "potential hiring barriers even when employers do not disclose their reasons."
+    )
+    labels = (
+        "Supported possible barrier",
+        "Tentative lead only",
+        "No supported barrier",
+    )
+    counts = (len(supported), len(tentative), len(no_barrier))
+    observations = [
+        {"Evidence tier": label, "Processes": count}
+        for label, count in zip(labels, counts)
+    ]
+    chart = alt.Chart(alt.Data(values=observations)).mark_bar().encode(
+        x=alt.X("Processes:Q", title="Distinct rejected processes"),
+        y=alt.Y("Evidence tier:N", sort=list(labels), title=None),
+        tooltip=[
+            alt.Tooltip("Evidence tier:N", title="Evidence tier"),
+            alt.Tooltip("Processes:Q", title="Processes"),
+        ],
+    ).properties(height=154)
+    value_labels = alt.Chart(alt.Data(values=observations)).mark_text(
+        align="left", baseline="middle", dx=5
+    ).encode(
+        x="Processes:Q",
+        y=alt.Y("Evidence tier:N", sort=list(labels)),
+        text="Processes:Q",
+    )
+    left, right = st.columns([1.55, 1], vertical_alignment="center")
+    with left:
+        st.altair_chart(chart + value_labels, use_container_width=True)
+    with right:
+        st.markdown(
+            f"**{len(supported) + len(tentative)} of {len(unknown_ids)}** "
+            "unexplained decisions have an evidence-based line of inquiry."
+        )
+        st.write(
+            f"**{len(supported)}** have a supported possible requirement mismatch; "
+            f"**{len(tentative)}** have only tentative leads. "
+            f"**{len(no_barrier)}** cannot yet be meaningfully attributed "
+            "to a candidate–role barrier."
+        )
+    st.caption(
+        "These are overlapping-hypothesis-safe process counts, not "
+        "confirmed rejection causes or estimated probabilities. "
+        "A supported candidate–role mismatch does not establish the employer's motive. "
+        "Open Research & hypotheses below for sources, counterevidence and follow-up."
+    )
+    latest_hypothesis = max(
+        (str(h.get("analyzed_at") or "") for h in hypotheses
+         if int(h.get("rejection_id") or -1) in unknown_ids),
+        default="",
+    )
+    if latest_hypothesis:
+        st.caption(
+            "Latest saved inference review: "
+            f"{latest_hypothesis[:19].replace('T', ' ')} "
+            "(source timezone). The breakdown reads Supabase live."
+        )
+
+
 def render_rejection_analytics(session: dict | None) -> None:
     st.title("Rejection Analytics")
     st.caption("Owner-only · one record per hiring process · evidence first. Dates reflect observed negative outcomes where sources are verified; they do not necessarily identify the employer\'s internal decision date.")
@@ -340,7 +449,7 @@ def render_rejection_analytics(session: dict | None) -> None:
             st.rerun(scope="fragment")
     latest_analysis = max((str(r.get("analyzed_at") or "") for r in records), default="")
     st.caption(f"Live database read · checked {now:%d %b %Y, %H:%M} Stockholm · "
-               f"latest saved analyzer timestamp: {latest_analysis[:19].replace('T', ' ') or 'unknown'} (source timezone) · "
+               f"latest canonical rejection timestamp: {latest_analysis[:19].replace('T', ' ') or 'unknown'} (source timezone) · "
                "auto-refreshes every five minutes while open. New analyzer writes appear on the next refresh.")
     if dropped:
         st.warning(f"{dropped} source rows lack canonical process identifiers and are excluded.")
@@ -369,7 +478,8 @@ def render_rejection_analytics(session: dict | None) -> None:
     if unresolved_date_basis:
         st.caption(f"Date evidence: {unresolved_date_basis}/{n} outcomes still use historical dates with unverified source provenance. Treat fine-grained daily trends cautiously.")
     if unknown > n // 2:
-        st.info(f"Most causes remain unknown ({unknown}/{n}). This measures limited employer feedback, not demonstrated weaknesses in your profile.")
+        st.info(f"{unknown}/{n} employers did not disclose a specific cause. This does not imply that all {unknown} cases lack useful role-fit evidence; see the inference breakdown below.")
+    _render_inferred_barrier_snapshot(valid, scoped)
 
     try:
         events = fetch_job_records(str(valid["access_token"]))

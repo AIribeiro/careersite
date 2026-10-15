@@ -114,7 +114,7 @@ class GeographicFeasibilityTests(unittest.TestCase):
             self.assertEqual(changed["geography_context"]["primary_market"],"Sweden")
         self.assertEqual(a["geography_context"]["policy_version"],GEOGRAPHY_POLICY_VERSION)
         self.assertEqual(a["geography_context"]["counts"]["compatible"],1)
-        self.assertEqual(b["geography_context"]["counts"]["needs_verification"],33)
+        self.assertEqual(b["geography_context"]["counts"]["needs_verification"],34)
         self.assertEqual(c["geography_context"]["counts"]["impractical"],1)
 
     def test_closed_and_future_opportunities_are_not_geographic_evidence(self):
@@ -134,6 +134,7 @@ class GeographicFeasibilityTests(unittest.TestCase):
             "employer":"Enterprise 2","role":"Head of AI",
             "is_application":False,"is_active":False,
             "is_closed_or_paused":True,"is_negative_decision":True,
+            "status":"Rejected / closed",
             "raw_data":{"advertised_location":"Stockholm"}
         })
         result=assess_geographic_pipeline(jobs,TODAY)

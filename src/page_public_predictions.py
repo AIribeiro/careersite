@@ -54,6 +54,13 @@ def render_public_hiring_predictions() -> None:
     except (RuntimeError,ValueError,PermissionError):
         pass
 
+    assumed=int(inputs.get("provisional_date_assumption_stage_count") or 0)
+    if assumed:
+        st.caption(
+            f"{assumed} application-stage inputs use a manually assumed 15 Sep 2026 "
+            "date at the existing 0.35 fallback weight. They are provisional "
+            "planning assumptions, not verified application dates or recruiter responses."
+        )
     result=forecast_public_hiring(inputs, portfolio, market)
     st.caption(
         "Stage inputs exclude only current evidence-verified dormant processes; "

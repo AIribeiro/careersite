@@ -82,7 +82,7 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("Working across business, AI and technology.", about)
         self.assertIn("Separate facts, assumptions and open questions", about)
         self.assertIn("Decision / contribution", impact)
-        self.assertIn("Notes on enterprise AI decisions, operating models, adoption and value.", thinking_landing)
+        self.assertIn("Through these articles, I share how I approach the decisions that shape enterprise AI and data", thinking_landing)
         self.assertIn("Each piece starts from a concrete operating decision.", thinking)
         self.assertIn("Speaking &amp; Publications", presence)
         self.assertIn("Selected AI, data and leadership credentials.", certifications)

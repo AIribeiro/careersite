@@ -315,7 +315,7 @@ def _recommendations(records: list[dict], today: date,
 
 
 @st.fragment(run_every="5m")
-def _render_inferred_barrier_snapshot(session: dict, scoped: list[dict]) -> None:
+def _render_inferred_barrier_snapshot(session: dict, scoped: list[dict], hypotheses: list[dict] | None = None) -> None:
     """Summarize private role-fit hypotheses separately from actual employer reasons.
 
     The denominator is distinct rejected processes with no verified specific cause.
@@ -330,17 +330,8 @@ def _render_inferred_barrier_snapshot(session: dict, scoped: list[dict]) -> None
         return
 
     # Use the same owner-authenticated, RLS-protected read as Research & hypotheses.
-    try:
-        from page_rejection_inference import _private_rows, HYPOTHESIS_FIELDS
-        hypotheses = _private_rows(
-            str(session["access_token"]), "job_rejection_hypotheses", HYPOTHESIS_FIELDS
-        )
-    except (RuntimeError, TimeoutError, ValueError, KeyError) as exc:
-        st.warning(
-            "The latest inference breakdown is temporarily unavailable. "
-            "Employer-reported rejection statistics above are still valid. "
-            f"Details: {exc}"
-        )
+    if hypotheses is None:
+        st.warning("Private hypothesis evidence is temporarily unavailable; employer-reported counts remain usable.")
         return
 
     supported = set()
@@ -464,7 +455,7 @@ BARRIER_FAMILIES = {
 }
 
 
-def _render_hiring_barrier_patterns(session: dict, scoped: list[dict]) -> None:
+def _render_hiring_barrier_patterns(session: dict, scoped: list[dict], hypotheses: list[dict] | None = None) -> None:
     """Read owner-only hypotheses; chart distinct rejected processes per barrier."""
     unknown = {
         int(r["id"]): r for r in scoped
@@ -474,18 +465,10 @@ def _render_hiring_barrier_patterns(session: dict, scoped: list[dict]) -> None:
     if not unknown:
         st.caption("No cases with undisclosed causes in this window.")
         return
-    try:
-        from page_rejection_inference import _private_rows, HYPOTHESIS_FIELDS
-        rows = _private_rows(
-            str(session["access_token"]), "job_rejection_hypotheses", HYPOTHESIS_FIELDS
-        )
-    except (RuntimeError, TimeoutError, ValueError, KeyError) as exc:
-        st.warning(
-            "The private hypothesis evidence is temporarily unavailable; "
-            "the employer-stated view remains available below. "
-            f"Details: {exc}"
-        )
+    if hypotheses is None:
+        st.warning("The saved inference hypotheses could not be read; employer-reported details remain available.")
         return
+    rows = hypotheses
 
     # Rank per process *and* family. A supported hypothesis supersedes tentative
     # hypotheses in the same family; others remain independent possible barriers.
@@ -694,6 +677,25 @@ def render_rejection_analytics(session: dict | None) -> None:
         st.warning(f"{dropped} source rows lack canonical process identifiers and are excluded.")
 
     scoped = [r for r in records if _in_window(r, today, WINDOWS[choice])]
+    # All five tabs share one owner-only read of the external source evidence
+    # and one of the hypotheses. Avoid duplicate network work in every tab.
+    from page_rejection_inference import (
+        _private_rows, EVIDENCE_FIELDS, HYPOTHESIS_FIELDS,
+    )
+    research_sources = None
+    research_hypotheses = None
+    try:
+        research_sources = _private_rows(
+            str(valid["access_token"]), "job_rejection_external_evidence", EVIDENCE_FIELDS
+        )
+    except (RuntimeError, TimeoutError, ValueError) as exc:
+        st.caption(f"External-source research temporarily unavailable: {exc}")
+    try:
+        research_hypotheses = _private_rows(
+            str(valid["access_token"]), "job_rejection_hypotheses", HYPOTHESIS_FIELDS
+        )
+    except (RuntimeError, TimeoutError, ValueError) as exc:
+        st.caption(f"Candidate–role hypothesis review temporarily unavailable: {exc}")
     n = len(scoped)
     unknown = sum(str(r.get("reason_code") or "").upper() == "UNKNOWN" for r in scoped)
     confirmed = sum(str(r.get("confidence") or "").lower() == "confirmed" for r in scoped)
@@ -718,7 +720,7 @@ def render_rejection_analytics(session: dict | None) -> None:
         st.caption(f"Date evidence: {unresolved_date_basis}/{n} outcomes still use historical dates with unverified source provenance. Treat fine-grained daily trends cautiously.")
     if unknown > n // 2:
         st.info(f"{unknown}/{n} employers did not disclose a specific cause. This does not imply that all {unknown} cases lack useful role-fit evidence; see the inference breakdown below.")
-    _render_inferred_barrier_snapshot(valid, scoped)
+    _render_inferred_barrier_snapshot(valid, scoped, research_hypotheses)
 
     try:
         events = fetch_job_records(str(valid["access_token"]))
@@ -800,7 +802,7 @@ def render_rejection_analytics(session: dict | None) -> None:
             )
     with reasons:
         st.subheader("Which hiring barriers appear repeatedly?")
-        _render_hiring_barrier_patterns(valid, scoped)
+        _render_hiring_barrier_patterns(valid, scoped, research_hypotheses)
         st.divider()
         st.subheader("What employers actually disclosed")
         explained = [r for r in scoped
@@ -938,4 +940,6 @@ def render_rejection_analytics(session: dict | None) -> None:
 
     with research:
         from page_rejection_inference import render_rejection_inference
-        render_rejection_inference(valid, scoped)
+        render_rejection_inference(
+            valid, scoped, sources=research_sources, hypotheses=research_hypotheses
+        )

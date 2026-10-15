@@ -1,0 +1,7 @@
+INSERT INTO public.hiring_geography_external_evidence (employer_key,role_key,advertised_location,work_model,country,source_url,source_type,checked_on,source_note) VALUES
+('insight','technical cto','Stockholm County, Sweden','Hybrid/Remote','Sweden','https://se.linkedin.com/jobs/view/technical-cto-at-insight-4470420210','verified_job_board','2026-10-15','Exact applied LinkedIn job id 4470420210, regional posting'),
+('ingrid','vice president of products','Stockholm','Flexible work arrangements','Sweden','https://se.linkedin.com/jobs/view/vice-president-of-products-at-ingrid-%E2%9A%AB%EF%B8%8F-4475013706','verified_job_board','2026-10-15','Exact applied job ID 4475013706'),
+('niit','digital transformation manager','European Union','Remote with occasional travel',NULL,'https://www.linkedin.com/jobs/view/digital-transformation-manager-at-niit-4473235150','verified_job_board','2026-10-15','Exact applied job id; remote anywhere in Europe per description'),
+('edaider','head of ai utbildning','Stockholm','Hybrid','Sweden','https://se.linkedin.com/jobs/view/head-of-ai-utbildning-at-edaider-4466282169','verified_job_board','2026-10-15','Original LinkedIn job id and posting says Stockholm/hybrid'),
+('pencil','ai transformation lead','EMEA','Remote',NULL,'https://jobs.ashbyhq.com/pencil/0ecdec99-60ab-4555-a48c-b6cf4798eada','official_employer','2026-10-15','Official Ashby role: EMEA, remote')
+ON CONFLICT DO NOTHING;

@@ -316,7 +316,7 @@ def forecast_hiring(
         })
         assumed_stage_count += 1
 
-    coverage = (market_model or {}).get("coverage") or {
+    coverage = (market_model or {}).get("coverage") or {}
     stable_market = [r for r in (market_model or {}).get("findings", [])
                      if r.get("status") == "Repeated association"
                      and r.get("outcome") in ("responses", "interviews", "progression")]

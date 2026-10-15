@@ -91,11 +91,11 @@ def progression(row):
     details = norm(' '.join(str(row.get(k) or '') for k in
                             ('stage_outcome', 'activity')))
     return bool(re.search(
-        r'\\b(?:advanced|progressed|selected|invited)\\s+'
-        r'(?:to|for)\\s+(?:(?:the|a)\\s+)?'
-        r'(?:second|third|final)\\s*(?:-| )\\s*interview\\b'
-        r'|\\b(?:invited|advanced)\\s+to\\s+(?:the\\s+)?next\\s+round\\b'
-        r'|\\b(?:passed|cleared)\\s+(?:the\\s+)?(?:first|initial)\\s+interview\\b',
+        r'\b(?:advanced|progressed|selected|invited)\s+'
+        r'(?:to|for)\s+(?:(?:the|a)\s+)?'
+        r'(?:second|third|final)\s*(?:-| )\s*interview\b'
+        r'|\b(?:invited|advanced)\s+to\s+(?:the\s+)?next\s+round\b'
+        r'|\b(?:passed|cleared)\s+(?:the\s+)?(?:first|initial)\s+interview\b',
         details,
     ))
 
@@ -115,11 +115,11 @@ def scheduled_interview(row):
     details = norm(' '.join(str(row.get(k) or '') for k in
                             ('stage_outcome','activity','interaction_type')))
     return bool(re.search(
-        r'\\b(?:interview\\s+scheduled|interview\\s+confirmed|'
-        r'interview\\s+invitation|invited\\s+to\\s+interview|'
-        r'interview\\s+scheduling|recruiting\\s+interview\\s+confirmed|'
-        r'video\\s+call|second[- ]interview\\s+participants\\s+confirmed|'
-        r'confirmed\\s+interview\\s+date)\\b',
+        r'\b(?:interview\s+scheduled|interview\s+confirmed|'
+        r'interview\s+invitation|invited\s+to\s+interview|'
+        r'interview\s+scheduling|recruiting\s+interview\s+confirmed|'
+        r'video\s+call|second[- ]interview\s+participants\s+confirmed|'
+        r'confirmed\s+interview\s+date)\b',
         details,
     ))
 

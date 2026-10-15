@@ -87,15 +87,11 @@ def render_public_analytics_overview() -> None:
     if results.get("pipeline"):
         from page_stale_applications import render_pipeline_health
         render_pipeline_health(results["pipeline"], compact=True)
-    metrics=st.columns(4)
-    metrics[0].metric("Qualified portfolio sessions · 30d",
-                      _n(quality.get("analysis_eligible_sessions")))
-    metrics[1].metric("Applications · dated history",_n(overview.get("applications")))
-    metrics[2].metric("Employer conversations · dated history",_n(overview.get("responses")))
-    metrics[3].metric("Completed interviews · dated history",_n(overview.get("interviews")))
+    from page_conversion_quality import render_public_conversion_quality
+    render_public_conversion_quality(compact=True)
     st.caption(
-        "Job counts are distinct dated process events, not a cohort funnel "
-        "or offer probabilities. Session totals do not identify people."
+        "Portfolio attention and dated recruitment events remain separate indicators. "
+        "No anonymous visit is attributed to a recruiter."
     )
 
     st.divider()
@@ -142,16 +138,10 @@ def render_public_analytics_overview() -> None:
                 dated.append((d,row))
         recent=[r for d,r in dated if 0 <=(now.date()-d).days <28]
         prior=[r for d,r in dated if 28 <=(now.date()-d).days <56]
-        a,b,c=st.columns(3)
-        for column,key,label in (
-            (a,"applications","Applications · last 28 days"),
-            (b,"responses","Responses · last 28 days"),
-            (c,"interviews","Interviews · last 28 days"),
-        ):
-            new=sum(_n(x.get(key)) for x in recent)
-            old=sum(_n(x.get(key)) for x in prior)
-            column.metric(label,new,delta=f"{new-old:+d} vs prior 28d",
-                          delta_color="off")
+        st.caption(
+            "Recent application and contact counts remain available in Job search → Activity. "
+            "The overview emphasizes verified response quality rather than submission volume."
+        )
         if sum(_n(x.get("applications")) for x in recent) > sum(
             _n(x.get("applications")) for x in prior
         ) and sum(_n(x.get("responses")) for x in recent) <= sum(
@@ -537,20 +527,15 @@ def render_public_job_search() -> None:
         st.warning("Public job-search statistics are temporarily unavailable.")
         return
     totals=report.get("totals") or {}
-    a,b,c,d=st.columns(4)
-    a.metric("Applications",_n(totals.get("applications")))
-    b.metric("Inbound / two-way contacts",_n(totals.get("responses")))
-    c.metric("Completed interviews",_n(totals.get("interviews")))
-    d.metric("Explicit rejections",_n(totals.get("rejections")))
     st.caption(
-        "Events are deduplicated per dated employer–role process. "
-        "These measures belong to different stages and cannot be divided "
-        "to infer a valid cohort conversion rate."
+        "Start with evidence-linked cohort conversion. The reporting horizon below "
+        "applies to dated activity only; conversion always uses original dated "
+        "applications since 1 June 2026, not a mismatched event window."
     )
     focus=st.segmented_control(
         "Recruitment question",
         options=["activity","pipeline","conversion","trends","portfolio","market","evidence"],
-        default="activity",
+        default="conversion",
         format_func=lambda x:{
             "activity":"Activity",
             "pipeline":"Pipeline Health",
@@ -593,47 +578,8 @@ def render_public_job_search() -> None:
         from page_stale_applications import render_pipeline_health
         render_pipeline_health(health)
     elif focus=="conversion":
-        st.subheader("Funnel stages and conversion maturity")
-        try:
-            stage=fetch_public_analytics_rpc("careersite_public_hiring_inputs_v1")
-        except (RuntimeError,ValueError,PermissionError):
-            stage={}
-        summary=stage.get("summary") or {}
-        maturity=_n(summary.get("matured_applications"))
-        contact=_n(summary.get("mature_contacts"))
-        p,q,z=st.columns(3)
-        p.metric("Applications old enough to assess",maturity,
-                 help="Applications at least 35 days old, identified from primary records.")
-        q.metric("Mature application processes with contact",contact,
-                 help="Processes with recorded contact after the application.")
-        z.metric("Observed mature cohort contact share",
-                 f"{contact/maturity:.0%}" if maturity else "Not enough data",
-                 help="Descriptive observed sample, not a forecast or a standardized rate.")
-        buckets=stage.get("stage_buckets") or []
-        ordered=("application","conversation","interview","progression")
-        label={"application":"Application","conversation":"Conversation",
-               "interview":"Interview","progression":"Progression"}
-        counts={k:sum(_n(b.get("n")) for b in buckets if b.get("stage")==k)
-                for k in ordered}
-        if any(counts.values()):
-            st.altair_chart(
-                alt.Chart(alt.Data(values=[{"Stage":label[k],"Processes":counts[k],
-                                            "Order":i}
-                                           for i,k in enumerate(ordered)]))
-                  .mark_bar(cornerRadiusEnd=3)
-                  .encode(x=alt.X("Processes:Q",title="Recorded active/reviewable processes",
-                                  axis=alt.Axis(tickMinStep=1)),
-                          y=alt.Y("Stage:N",sort=[label[k] for k in ordered],title=None),
-                          tooltip=["Stage:N","Processes:Q"]).properties(height=240),
-                width="stretch",
-            )
-        else:
-            st.info("No supported current-stage distribution available.")
-        st.caption(
-            "Stage counts represent mutually exclusive latest recorded stages, "
-            "not funnel conversions. Some processes are stale or provisionally "
-            "active; status is not continuously synchronized with employers."
-        )
+        from page_conversion_quality import render_public_conversion_quality
+        render_public_conversion_quality()
     elif focus=="trends":
         st.subheader("Weekly activity and directional movement")
         weeks=report.get("weekly") or []

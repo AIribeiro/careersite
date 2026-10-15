@@ -268,42 +268,50 @@ def render_hiring_predictor(
                "not hiring decisions already in progress.")
     geography = result.get("geography_context") or {}
     if geography:
-        located = geography.get("advertised_locations_recorded", 0)
         total = geography.get("total_live_processes", 0)
+        verified = geography.get("source_verified_locations", 0)
+        inferred = geography.get("explicit_title_inferences", 0)
+        unresolved = geography.get("unresolved_locations", max(0,total-verified-inferred))
         arrangements = geography.get("work_arrangements_recorded", 0)
         sources_found = geography.get("source_counts") or {}
         st.markdown(
-            f"**Advertised locations found: {located} of {total} "
-            f"tracked non-closed processes.**"
+            f"**Geographic assessment complete: {total}/{total} processes.**"
         )
         st.caption(
-            f"Work arrangements documented: {arrangements} of {total}. "
-            "A known advertised location does not automatically establish "
-            "where the job can actually be performed."
+            f"Source-verified locations: {verified} · Explicit title inferences: "
+            f"{inferred} · Still unresolved: {unresolved}. "
+            "**100% assessed is not 100% location verified.**"
         )
         st.caption(
-            "Sweden remains the primary addressable market. Gothenburg is "
-            "a preference, not an exclusion. Stockholm leadership roles "
+            f"Working arrangements documented: {arrangements} of {total}. "
+            "An advertised city or remote label does not automatically establish "
+            "whether you can work from Sweden."
+        )
+        st.caption(
+            "Sweden is the primary addressable market. Gothenburg is a "
+            "preference, not an exclusion. Stockholm leadership roles "
             "and business travel are not automatically penalized."
         )
-        with st.expander("Where can these jobs realistically be performed?"):
+        with st.expander("Geographic evidence and unresolved cases"):
+            st.markdown("**Evidence coverage**")
             st.caption(
-                f"Source evidence: {sources_found.get('job_search_source',0)} "
-                "locations from application and LinkedIn records; "
-                f"{sources_found.get('matched_jobwise_application',0)} "
-                "additional unique matches from your linked Jobwise workspace; "
+                f"{sources_found.get('job_search_source',0)} locations from "
+                "application/LinkedIn source records; "
+                f"{sources_found.get('matched_jobwise_application',0)} unique "
+                "linked Jobwise application matches; "
                 f"{sources_found.get('verified_jobwise_vacancy_catalog',0)} "
-                "from uniquely matched verified vacancy listings; "
-                f"{sources_found.get('official_employer_vacancy',0)} "
-                "from official employer vacancy pages; "
+                "verified vacancy listings; "
+                f"{sources_found.get('official_employer_vacancy',0)} official "
+                "employer postings; "
                 f"{sources_found.get('externally_verified_job_board',0)} "
-                "from a cross-checked job-board posting."
+                "externally verified job-board postings."
             )
-            st.caption(
-                f"{max(0,total-located)} processes still lack a verified "
-                "advertised location; unavailable details are not interpreted "
-                "as geographic rejection."
-            )
+            if inferred:
+                st.caption(
+                    f"{inferred} tentative locations are derived only from "
+                    "place names literally recorded in vacancy titles. "
+                    "These have not been independently verified."
+                )
             counts = geography.get("counts") or {}
             st.caption(
                 f"Compatible: {counts.get('compatible',0)} · "
@@ -311,32 +319,28 @@ def render_hiring_predictor(
                 f"Needs verification: {counts.get('needs_verification',0)} · "
                 f"Explicitly impractical: {counts.get('impractical',0)}."
             )
+            if unresolved:
+                st.markdown("**Unresolved — source verification queue**")
+                st.caption(
+                    "The following records lack a vacancy-specific location. "
+                    "The system does not substitute the recruiter's address, "
+                    "employer HQ, or your home city."
+                )
+                for item in geography.get("resolution_queue", [])[:12]:
+                    st.caption(f"• {item['employer']} — {item['role']}")
+                if unresolved > 12:
+                    st.caption(f"{unresolved-12} further unresolved processes "
+                               "are omitted here for readability.")
             st.caption(
-                "The classifications describe documented location and work "
-                "conditions—not whether an employer will hire you. "
-                "Relocation remains conditional on mandate, compensation, "
-                "sponsorship and family feasibility."
+                "Future records are checked against original application "
+                "metadata, linked Jobwise vacancies and source-verified "
+                "postings; explicit place names in role titles are marked "
+                "as inferences. Unresolved records stay in the queue."
             )
-            # Focus exceptions and real location evidence; omit the previous
-            # long list of unknowns and avoid disclosing all application history.
-            notable = [p for p in geography.get("opportunities", [])
-                       if p.get("advertised_location_recorded")
-                       and p["status"] in ("impractical", "needs_verification")]
-            for opportunity in notable[:8]:
-                st.caption(
-                    f"• {opportunity['employer']} — {opportunity['role']}: "
-                    f"{opportunity['advertised_location']} · "
-                    f"{opportunity['reason']}."
-                )
-            if len(notable) > 8:
-                st.caption(
-                    f"{len(notable)-8} additional cases requiring verification "
-                    "are not shown in this summary."
-                )
             st.caption(
-                "**Numerical effect: 0%.** Geographic metadata improves the "
-                "feasibility assessment; it does not change offer/start dates "
-                "without stronger employer-specific conversion evidence."
+                "**Forecast effect: 0%.** Location inference changes the "
+                "evidence audit and feasibility classification, not the "
+                "probability of an employer's hiring decision."
             )
 
     with st.expander("What if things move faster or slower?"):

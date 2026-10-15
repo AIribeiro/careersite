@@ -122,7 +122,10 @@ class PortfolioJobCorrelationTests(unittest.TestCase):
             at.session_state["cms_auth"]={"access_token":"test-owner"}
             at.run(timeout=15)
             self.assertFalse(at.exception)
-            self.assertGreaterEqual(len(at.metric),2)
+            self.assertIn("Portfolio attention and recruitment progress",
+                          [heading.value for heading in at.subheader])
+            self.assertEqual(len(at.metric),0)
+            self.assertGreaterEqual(len(at.get("vega_lite_chart")),2)
 
     def test_never_infers_visitor_to_company_identity(self):
         site,jobs=fake_data(13)

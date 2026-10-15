@@ -55,6 +55,11 @@ def render_public_hiring_predictions() -> None:
         pass
 
     result=forecast_public_hiring(inputs, portfolio, market)
+    st.caption(
+        "Stage inputs exclude only current evidence-verified dormant processes; "
+        "unverified silence is not rejection. This aggregate planning model "
+        "uses the original dated application history."
+    )
     if result["status"]=="offer_recorded":
         st.info("A current offer is already documented. An additional first-offer scenario is withheld.")
         return

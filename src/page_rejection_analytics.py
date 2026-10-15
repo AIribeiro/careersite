@@ -701,14 +701,24 @@ def render_rejection_analytics(session: dict | None) -> None:
     confirmed = sum(str(r.get("confidence") or "").lower() == "confirmed" for r in scoped)
     stated = sum(r.get("reason_basis") == "employer_stated" for r in scoped)
     dated_global = sum(_date(r) is not None for r in records)
-    m = st.columns(5)
-    for cell, title, value in zip(
-        m,
-        ("Negative decisions", "Unknown causes", "Confirmed reasons", "Employer-stated", "Dated · all history"),
-        (str(n), _pct(unknown, n), _pct(confirmed, n), _pct(stated, n),
-         f"{dated_global}/{len(records)}"),
-    ):
-        cell.metric(title, value)
+    st.write(
+        f"**{n} negative hiring outcomes** are tracked in this selection. "
+        f"{unknown} have no disclosed specific employer cause; "
+        f"{stated} include employer-stated explanations. "
+        "The evidence below distinguishes recorded decisions from "
+        "possible candidate–role barriers."
+    )
+    with st.expander("Dataset counts and completeness checks", expanded=False):
+        metrics = st.columns(3)
+        metrics[0].metric("Employer motives undisclosed", _pct(unknown, n))
+        metrics[1].metric("Confirmed explanations", _pct(confirmed, n))
+        metrics[2].metric("Dated, full history",
+                          f"{dated_global}/{len(records)}")
+        st.caption(
+            "Confirmed explanation does not necessarily reveal which "
+            "qualification differentiated the selected candidate. "
+            "Employer-stated and inferred explanations remain separate."
+        )
     if WINDOWS[choice] is not None:
         missing = len(records) - dated_global
         st.caption(f"Time filter uses recorded negative-outcome dates, not necessarily internal employer decision dates. {missing} undated outcomes are excluded; older dates without verified provenance remain marked legacy-unclassified.")

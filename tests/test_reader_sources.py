@@ -6,6 +6,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 from page_article_analytics import _reader_source_rows
 
 class ReaderSourcesTests(unittest.TestCase):
+    def test_linkedin_sources_merge_without_losing_visits(self):
+        rows = [dict(article_slug='a', attribution_source=source, sessions=1)
+                for source in ('linkedin', 'LinkedIn', ' linkedin_launch ', 'linkedin?role=dailyquote')]
+        result = _reader_source_rows(rows)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['Source'], 'LinkedIn')
+        self.assertEqual(result[0]['Reading visits'], 4)
+        self.assertEqual(result[0]['Share'], 1)
+
     def test_threads_aliases_share_one_display_label(self):
         rows = [dict(article_slug='a', attribution_source=source, sessions=1)
                 for source in ('thre', 'threads', 'Threads', ' THRE ')]

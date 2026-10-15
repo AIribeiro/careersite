@@ -180,6 +180,8 @@ def _reader_source_rows(rows: list[dict], slug: str = "") -> list[dict]:
         key = raw.casefold()
         if key == "thre":
             key = "threads"
+        if key in {"linkedin_launch", "linkedin?role=dailyquote"}:
+            key = "linkedin"
         count = max(0, int(row.get("sessions") or 0))
         counts[key] = counts.get(key, 0) + count
         originals.setdefault(key, raw)

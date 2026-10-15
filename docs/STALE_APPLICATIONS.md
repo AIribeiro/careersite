@@ -65,8 +65,8 @@ response shares only display for 21-day mature month cohorts; closed
 cases can also have received a response. A separate missing-date
 metric includes closed/engaged processes that cannot enter age analysis.
 
-As of 15 October 2026, 295 process rows (excluding four aliases), 194
-unanswered, 157 stale, 156 pending evidence checks, one verified dormant,
+As of 15 October 2026, 295 process rows (excluding four aliases), 195
+unanswered, 158 stale, 157 pending evidence checks, one verified dormant,
 31 missing application dates across all statuses, and 11 currently classified
 as date-unverified. There are distinct platform-ID collisions requiring
 reconciliation, so these are provisional process totals, not a final
@@ -83,3 +83,8 @@ Postgres view and RPC counts were checked against the 15 October snapshot.
 Anonymous users cannot select from the owner-only v2 view. The public RPC
 is read-only and returns no process identities. Streamlit CI runs compile,
 smoke and regression checks on each commit.
+
+Receipt-only application notifications are explicitly excluded from
+substantive employer engagement. The 15 October receipt guard corrected one
+previously misclassified process; the final baseline has seven engaged
+employer–role processes and 33 applications in the 21–44-day stale band.

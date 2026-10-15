@@ -16,7 +16,7 @@ import re
 
 from job_search_metrics import canonical_events, day, norm, process_key
 
-GEOGRAPHY_POLICY_VERSION = "se-national-evidence-v2"
+GEOGRAPHY_POLICY_VERSION = "se-national-multisource-inference-v3"
 HOME_PREFERENCE = "Gothenburg"
 PRIMARY_MARKET = "Sweden"
 EFFECT_ON_OFFER_PROBABILITY = 0.0
@@ -41,6 +41,56 @@ CONFIRMED_TRUE = (True, "true", "yes", "confirmed", "feasible", "possible")
 CONFIRMED_FALSE = (False, "false", "no", "infeasible", "not_feasible", "impractical")
 FAVORABLE = ("true", "strong", "high", "competitive", "confirmed", "suitable",
              "acceptable", "yes", "feasible", "approved", "excellent")
+
+
+# Only locality text *within the recorded vacancy title* can provide a
+# deterministic location inference. Employer head offices are NOT job offices.
+# Country-only signals are useful as market geography but not a city.
+_EXPLICIT_TITLE_LOCATIONS = (
+    ("gothenburg", "Gothenburg, Sweden"),
+    ("göteborg", "Gothenburg, Sweden"),
+    ("västerås", "Västerås, Sweden"),
+    ("vasteras", "Västerås, Sweden"),
+    ("stockholm", "Stockholm, Sweden"),
+    ("malmö", "Malmö, Sweden"),
+    ("malmo", "Malmö, Sweden"),
+    ("uppsala", "Uppsala, Sweden"),
+    ("linköping", "Linköping, Sweden"),
+    ("lund", "Lund, Sweden"),
+    ("jönköping", "Jönköping, Sweden"),
+    ("jonkoping", "Jönköping, Sweden"),
+    ("sweden", "Sweden (city not specified)"),
+    ("sverige", "Sweden (city not specified)"),
+)
+
+
+def infer_from_role_title(role: str | None) -> dict | None:
+    """Evidence-derived inference, never guessed from employer address.
+
+    Explicit city > country-only. Multiple distinct cities are reported as
+    a multi-office candidate, not collapsed to an arbitrary single city.
+    """
+    title = _string(role)
+    if not title or any(x in title for x in
+                        ("role not surfaced", "unknown role", "not specified")):
+        return None
+    matches = []
+    for pattern, location in _EXPLICIT_TITLE_LOCATIONS:
+        if re.search(r"(?<!\\w)" + re.escape(pattern) + r"(?!\\w)", title):
+            if location not in matches:
+                matches.append(location)
+    if not matches:
+        return None
+    cities = [m for m in matches if "(city not specified)" not in m]
+    locations = cities or matches
+    if len(locations) > 3:
+        return None
+    return {
+        "advertised_location": " / ".join(locations),
+        "location_evidence_source": "role_title_explicit_place",
+        "confidence": 0.90 if cities else 0.72,
+        "source_note": "Geographic words explicitly recorded in vacancy title; verify against original posting.",
+    }
 
 
 def _value(row: dict, field: str) -> Any:
@@ -269,6 +319,15 @@ def assess_geographic_pipeline(
                 "official_employer_vacancy": "official_employer_vacancy",
                 "externally_verified_job_board": "externally_verified_job_board",
             }.get(fallback.get("evidence_source"), "matched_jobwise_application")
+        # Strict fallbacks never override actual advertisements or verified
+        # job-vacancy records. Unknowns remain unknown: a company HQ is not
+        # evidence for where the specific vacancy was offered.
+        inferred = None
+        if not next((values.get(k) for k in LOCATION_KEYS if values.get(k)), None):
+            inferred = infer_from_role_title(key[1])
+            if inferred:
+                values["advertised_location"] = inferred["advertised_location"]
+                source = inferred["location_evidence_source"]
         classification = assess_opportunity(values)
         arrangement_recorded = bool(
             values.get("work_model") or values.get("remote_in_sweden") is not None
@@ -283,12 +342,25 @@ def assess_geographic_pipeline(
             "advertised_location_recorded": known,
             "arrangement_recorded": arrangement_recorded,
             "location_evidence_source": source,
+            "location_resolution": (
+                "inferred_from_title" if inferred else
+                "source_verified" if known else "unresolved"
+            ),
+            "location_confidence": (
+                inferred["confidence"] if inferred else 0.95 if known else None
+            ),
             **classification,
         })
     counts = Counter(item["status"] for item in findings)
     source_counts = Counter(item["location_evidence_source"] for item in findings
                             if item.get("advertised_location_recorded"))
     location_count = sum(item["advertised_location_recorded"] for item in findings)
+    inferred_count = sum(item["location_resolution"]=="inferred_from_title"
+                         for item in findings)
+    verified_count = sum(item["location_resolution"]=="source_verified"
+                         for item in findings)
+    unresolved_count = sum(item["location_resolution"]=="unresolved"
+                           for item in findings)
     arrangement_count = sum(item["arrangement_recorded"] for item in findings)
     return {
         "policy_version": GEOGRAPHY_POLICY_VERSION,
@@ -301,8 +373,18 @@ def assess_geographic_pipeline(
         "total_live_processes": len(findings),
         "explicitly_assessed": sum(r["has_explicit_geography"] for r in findings),
         "advertised_locations_recorded": location_count,
+        "source_verified_locations": verified_count,
+        "explicit_title_inferences": inferred_count,
+        "unresolved_locations": unresolved_count,
+        "geographically_assessed": len(findings),
+        "assessment_completion_pct": 100 if findings else 0,
         "work_arrangements_recorded": arrangement_count,
-        "without_location_evidence": len(findings) - location_count,
+        "without_location_evidence": unresolved_count,
+        "resolution_queue": [
+            {"employer":p["employer"],"role":p["role"],
+             "source":"Needs vacancy-specific evidence"}
+            for p in findings if p["location_resolution"]=="unresolved"
+        ],
         "source_counts": dict(source_counts),
         "counts": {status: counts[status] for status in (
             "compatible", "conditional", "needs_verification", "impractical"

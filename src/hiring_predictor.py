@@ -16,13 +16,14 @@ import re
 
 from job_search_metrics import (
     analyze, canonical_events, completed_interview, day, offer, process_key,
-    progression,
+    progression, scheduled_interview,
 )
 from hiring_forecast_signals import forecast_drivers
 from hiring_forecast_windows import peak_weeks, reliability_index
 from hiring_geography import assess_geographic_pipeline
+from hiring_process_intelligence import process_intelligence
 
-MODEL_VERSION = "hiring-beta-3.6"
+MODEL_VERSION = "hiring-beta-4.0"
 HORIZON_DAYS = 364
 SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5}
 # Purely illustrative offer propensity *given each hiring stage*, NOT observed
@@ -30,6 +31,7 @@ SCENARIOS = {"Conservative": 0.55, "Current pace": 1.0, "Faster conversion": 1.5
 STAGES = {
     "progression": (0.32, 42),
     "interview": (0.18, 63),
+    "interview_scheduled": (0.11, 77),
     "conversation": (0.065, 91),
     "application": (0.012, 126),
 }
@@ -62,6 +64,8 @@ def _stage_evidence(row: dict) -> str | None:
             (re.search(r"interview\s+(completed|held|conducted)", status) or
              re.search(r"interview\s+(completed|held|conducted)", activity))):
         return "interview"
+    if scheduled_interview(row):
+        return "interview_scheduled"
     direction = str(row.get("interaction_direction") or "").casefold()
     if row.get("is_human_interaction") and (
         direction in ("inbound", "two_way") or row.get("response_received") is True
@@ -75,7 +79,7 @@ def _stage_evidence(row: dict) -> str | None:
 def _stage_for_process(rows: list[dict]) -> tuple[str, date] | None:
     """Strongest recorded stage, dated at that stage rather than the last follow-up."""
     stage_rank = {stage: rank for rank, stage in
-                  enumerate(("application", "conversation", "interview", "progression"))}
+                  enumerate(("application", "conversation", "interview_scheduled", "interview", "progression"))}
     selected = []
     for row in rows:
         stage = _stage_evidence(row)
@@ -211,7 +215,7 @@ def forecast_hiring(
     contact_count = 0
     for p in mature:
         group = grouped.get(process_key({"employer": p["Employer"], "role": p["Role"]}), [])
-        if any(_stage_evidence(e) in ("conversation", "interview", "progression")
+        if any(_stage_evidence(e) in ("conversation", "interview_scheduled", "interview", "progression")
                and day(e.get("event_date")) >= p["Applied"] for e in group):
             contact_count += 1
     observed_contact_rate = contact_count / len(mature) if len(mature) >= 8 else None
@@ -226,6 +230,7 @@ def forecast_hiring(
     daily_rate = assumed_weekly_pace / 7
 
     open_stages = []
+    process_notes = []
     for p in processes:
         if p["State"] == "Closed / paused":
             continue
@@ -237,13 +242,23 @@ def forecast_hiring(
         age = (as_of - stage_date).days
         if age > 180:
             continue
-        # Unresolved is not verified active; short-lived unknown histories
-        # must contribute less than employer-acknowledged active processes.
-        weight = 1.0 if p["State"] == "Active documented" else 0.35
+        # Stale application-only records progressively lose planning weight
+        # but are never silently classified as rejected.
+        group = grouped.get(key, [])
+        intelligence = process_intelligence(
+            group, as_of, stage, stage_date, p["State"], p["Role"],
+        )
+        base_weight = 1.0 if p["State"] == "Active documented" else 0.35
+        weight = round(base_weight * intelligence["health"]["freshness_weight"], 5)
         if weight:
             open_stages.append({"stage": stage, "age": age,
                                 "weight": weight, "state": p["State"],
                                 "stage_date": stage_date.isoformat()})
+            process_notes.append({
+                "employer":p["Employer"], "role":p["Role"],
+                "stage":stage,"stage_date":stage_date.isoformat(),
+                "weight":weight,**intelligence,
+            })
 
     coverage = (market_model or {}).get("coverage") or {}
     stable_market = [r for r in (market_model or {}).get("findings", [])
@@ -267,6 +282,17 @@ def forecast_hiring(
         "applications_previous_28d": prior28,
         "linked_application_processes": len(applied),
         "official_application_total": official,
+        "application_count_discrepancy": (
+            len(applied)-official if official is not None else None
+        ),
+        "stage_counts":{name:sum(p["stage"]==name for p in open_stages)
+                        for name in STAGES},
+        "stale_application_count":sum(
+            p["health"]["status"]=="stale_application" for p in process_notes
+        ),
+        "employer_contact_processes":sum(
+            p["health"]["last_employer_update"] is not None for p in process_notes
+        ),
         "event_coverage": event_coverage,
         "mature_applied_processes": len(mature),
         "mature_with_human_contact": contact_count,
@@ -283,6 +309,12 @@ def forecast_hiring(
         "market_repeated_associations": len(stable_market),
     }
     drivers["strategy"] = strategy_context
+    drivers["process_health"] = {
+        "policy":"process-evidence-v1",
+        "stale_applications":sources["stale_application_count"],
+        "employer_contact_processes":sources["employer_contact_processes"],
+        "numeric_fit_effect":0,
+    }
     # Geographic feasibility remains an opportunity-by-opportunity decision,
     # never an automatic Stockholm, travel or relocation offer-rate multiplier.
     drivers["geography"] = geography_context
@@ -290,6 +322,7 @@ def forecast_hiring(
     result = {
         "version": MODEL_VERSION, "as_of": as_of.isoformat(), "sources": sources,
         "active_stages": open_stages, "curve": [], "crossings": {},
+        "process_intelligence": process_notes,
         "reliability": evidence,
         "windows": {"offers": [], "starts": [], "offer_weeks": [], "start_weeks": []},
         "confidence": "Early estimate", "status": "insufficient",
@@ -299,6 +332,8 @@ def forecast_hiring(
         "limitations": [
             "Sweden is the primary addressable market and Gothenburg is a preference, not a constraint. Advertised office cities do not predict whether an offer is acceptable.",
             "Travel and potential relocation are assessed per opportunity using documented work-model and family/mandate conditions; geographic assumptions alone do not change offer probability.",
+            "Explicit progression and interview invitations are separate stages; stale application-only paths lose influence without becoming rejections.",
+            "Role alignment and employer financing require documented employer-specific evidence; no invented fit bonus is applied.",
             "Current job-search strategy records from job_search_analytics are consumed as qualitative calibration and guardrails; they do not receive an unvalidated numeric offer-probability weight.",
             "Qualified CV-origin traffic, source variants, target-role tags and associated recruitment campaigns receive bounded positive planning weights; they do not identify visitors.",
             "JobTech v1 title-matched demand modifies only future opportunities; September is a small, unconfirmed positive factor until October and personal responses provide stronger evidence.",

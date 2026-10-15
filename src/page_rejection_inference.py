@@ -44,18 +44,17 @@ def _private_rows(token: str, table: str, fields: str) -> list[dict]:
             raise RuntimeError(f"Unexpectedly large {table} response")
 
 
-def render_rejection_inference(session: dict, scoped: list[dict]) -> None:
+def render_rejection_inference(
+    session: dict, scoped: list[dict], *,
+    sources: list[dict] | None = None, hypotheses: list[dict] | None = None,
+) -> None:
     """Render on the authenticated owner's Rejection Analytics page only."""
     valid = ensure_owner_session(session)
     if not valid or not valid.get("access_token"):
         st.warning("Owner authentication is required for rejection research.")
         return
-    try:
-        token = str(valid["access_token"])
-        sources = _private_rows(token, "job_rejection_external_evidence", EVIDENCE_FIELDS)
-        hypotheses = _private_rows(token, "job_rejection_hypotheses", HYPOTHESIS_FIELDS)
-    except (RuntimeError, TimeoutError, ValueError) as exc:
-        st.warning(f"Rejection v2 research data are temporarily unavailable: {exc}")
+    if sources is None or hypotheses is None:
+        st.warning("Research data are temporarily unavailable. The employer decision statistics remain usable.")
         return
 
     by_id = {int(r["id"]): r for r in scoped if r.get("id") is not None}

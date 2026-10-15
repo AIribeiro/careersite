@@ -125,7 +125,7 @@ def _cohort_chart(rows, title):
     details('Exact counts and conversion percentages · '+title, rows)
 
 
-def render_job_report(records):
+def render_job_report(records, access_token: str | None = None):
     """Decision-first job analysis with optional evidence inspection."""
     events = canonical_events(records)
     if not events:
@@ -215,10 +215,11 @@ def render_job_report(records):
 
     focus = st.segmented_control(
         "Analyze",
-        options=["decisions","conversion","correlations","evidence"],
+        options=["decisions","staleness","conversion","correlations","evidence"],
         default="decisions",
         format_func=lambda v:{
             "decisions":"Decisions & momentum",
+            "staleness":"Stale applications",
             "conversion":"Conversion & targeting",
             "correlations":"Relationships",
             "evidence":"Sources & methods",
@@ -228,6 +229,13 @@ def render_job_report(records):
     ) or "decisions"
     st.divider()
 
+    if focus == "staleness":
+        if not access_token:
+            st.info("Owner access is required for the application review ledger.")
+        else:
+            from page_stale_applications import render_private_staleness
+            render_private_staleness(access_token)
+        return
     if focus == "decisions":
         from job_search_trends import analyze_trends, SERIES
         trend = analyze_trends(records,start,end,employer)
@@ -423,4 +431,4 @@ def render_job_search_analytics(session: dict | None = None) -> None:
     if not records:
         st.info('No accessible job-search records. Check that you are signed in as the portfolio owner.')
         return
-    render_job_report(records)
+    render_job_report(records, str(session["access_token"]))

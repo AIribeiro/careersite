@@ -133,6 +133,38 @@ class HiringPredictorTests(unittest.TestCase):
         self.assertTrue(hard["explicit_hard_constraint"])
         self.assertEqual(hard["numeric_offer_effect"],0)
 
+    def test_matching_vacancy_is_context_not_offer_probability(self):
+        jobs=[event(n, n%25+1) for n in range(1,24)]
+        base=forecast_hiring(jobs,TODAY)
+        activity={
+            "source":"jobwise_verified_vacancy_catalog",
+            "matching":"company_and_title_only_not_unique_requisition",
+            "vacancies":[{
+                "employer_key":"employer 1","role_key":"head of ai",
+                "advertised_active":1,"matched_vacancies":2,
+                "requisition_confirmed":False,
+            }],
+        }
+        tested=forecast_hiring(jobs,TODAY,employer_activity=activity)
+        self.assertEqual(tested["curve"],base["curve"])
+        self.assertEqual(tested["crossings"],base["crossings"])
+        self.assertEqual(tested["employer_context"]["verified_matching_role_listings"],1)
+        self.assertEqual(tested["employer_context"]["actively_advertised_matching_roles"],1)
+        self.assertEqual(tested["employer_context"]["numeric_effect"],0)
+
+    def test_archived_forecast_is_private_aggregate_without_fake_accuracy(self):
+        from hiring_forecast_history import build_snapshot, stability_summary
+        jobs=[event(n, n%25+1) for n in range(1,25)]
+        result=forecast_hiring(jobs,TODAY)
+        record=build_snapshot(result,{"jobs":"a","market":"b","site":"c"})
+        self.assertEqual(record["model_version"],result["version"])
+        self.assertEqual(record["forecast_day"],TODAY.isoformat())
+        self.assertIn("source_signature",record)
+        self.assertNotIn("employer",str(record).lower())
+        self.assertEqual(len(record["source_signature"]),64)
+        self.assertIsNone(stability_summary([record])["historical_accuracy_pct"])
+        self.assertEqual(stability_summary([])["history_count"],0)
+
     def test_no_evidence_never_fabricates_date(self):
         result = forecast_hiring([], TODAY)
         self.assertEqual(result["status"], "insufficient")

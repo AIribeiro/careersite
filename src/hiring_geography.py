@@ -22,7 +22,7 @@ EFFECT_ON_OFFER_PROBABILITY = 0.0
 
 # Only explicit structured vacancy attributes, never free-text job titles,
 # apply geography-specific feasibility screening.
-LOCATION_KEYS = ("advertised_location", "job_location", "office_location", "location", "city")
+LOCATION_KEYS = ("advertised_location", "job_location", "office_location", "location", "city", "region")
 FIELD_KEYS = (
     *LOCATION_KEYS, "country", "country_code", "work_model", "remote_in_sweden",
     "multi_office_employer", "gothenburg_office_option", "travel_required",
@@ -38,7 +38,7 @@ SWEDISH_AREAS = (
 )
 CONFIRMED_TRUE = (True, "true", "yes", "confirmed", "feasible", "possible")
 CONFIRMED_FALSE = (False, "false", "no", "infeasible", "not_feasible", "impractical")
-FAVORABLE = ("strong", "high", "competitive", "confirmed", "suitable",
+FAVORABLE = ("true", "strong", "high", "competitive", "confirmed", "suitable",
              "acceptable", "yes", "feasible", "approved", "excellent")
 
 
@@ -114,7 +114,8 @@ def assess_opportunity(fields: dict) -> dict:
         "probability_effect": EFFECT_ON_OFFER_PROBABILITY,
     }
 
-    if _yes(fields.get("travel_required")) and _no(fields.get("travel_feasible")):
+    if (fields.get("travel_required") not in (None, False, "", "none", "no")
+            and _no(fields.get("travel_feasible"))):
         return {**details, "status": "impractical",
                 "reason": "Required travel explicitly marked impractical"}
     if relocation_required and (

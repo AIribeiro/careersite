@@ -293,7 +293,11 @@ def render_hiring_predictor(
                 f"{sources_found.get('matched_jobwise_application',0)} "
                 "additional unique matches from your linked Jobwise workspace; "
                 f"{sources_found.get('verified_jobwise_vacancy_catalog',0)} "
-                "from uniquely matched verified vacancy listings."
+                "from uniquely matched verified vacancy listings; "
+                f"{sources_found.get('official_employer_vacancy',0)} "
+                "from official employer vacancy pages; "
+                f"{sources_found.get('externally_verified_job_board',0)} "
+                "from a cross-checked job-board posting."
             )
             st.caption(
                 f"{max(0,total-located)} processes still lack a verified "

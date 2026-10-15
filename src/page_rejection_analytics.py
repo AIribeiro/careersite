@@ -513,8 +513,9 @@ def _render_hiring_barrier_patterns(session: dict, scoped: list[dict]) -> None:
     unestablished = sum(level == 0 for level in process_level.values())
     st.caption(
         "Distinct rejected processes with undisclosed employer motives. "
-        "Supported = verified candidate–role mismatch; tentative = a weaker, "
-        "investigable lead. Neither tier confirms the employer's decision criterion."
+        "Supported = a source-backed possible role–profile mismatch; "
+        "tentative = a weaker, investigable lead. "
+        "Neither tier confirms the employer's decision criterion."
     )
     left, right = st.columns([1.8, 1], vertical_alignment="top")
     with left:
@@ -596,6 +597,35 @@ def _render_hiring_barrier_patterns(session: dict, scoped: list[dict]) -> None:
                     "Current evidence is too tentative to identify "
                     "a recurring supported hiring barrier."
                 )
+        if ranked:
+            next_steps = {
+                "Technical engineering depth":
+                    "Prioritize operating-model leadership over roles centred on production engineering.",
+                "Swedish-language requirements":
+                    "Check mandatory professional Swedish before applying; do not confuse preferred with required.",
+                "Consulting and commercial scope":
+                    "Validate account revenue, sales and delivery ownership against your documented experience.",
+                "Product ownership":
+                    "Confirm whether production feature delivery and product P&L are primary hiring criteria.",
+                "Specialist analytics craft":
+                    "Screen for hands-on analytics engineering versus enterprise analytics leadership.",
+                "Location and workplace model":
+                    "Clarify attendance and multi-office flexibility early; travel and relocation remain possible.",
+                "Industry / functional specialism":
+                    "Prove the requested domain depth explicitly or prioritize cross-industry mandates.",
+                "Regulated compliance depth":
+                    "Check whether specialist compliance track record is a hard requirement.",
+            }
+            ranked_supported = sorted(
+                ((name, values["Supported"]) for name, values in groups.items()
+                 if values["Supported"] > 0),
+                key=lambda item: (-item[1], item[0]),
+            )
+            if ranked_supported:
+                st.markdown("**What this suggests for future applications**")
+                for name, number in ranked_supported[:2]:
+                    if name in next_steps:
+                        st.write(next_steps[name])
         st.caption(
             "These are evidence-strength classifications, not employer-motive "
             "probabilities or statistically proven drivers of rejection."

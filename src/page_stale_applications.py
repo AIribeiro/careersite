@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from collections import Counter
 from datetime import datetime
+import re
 from zoneinfo import ZoneInfo
 
 import altair as alt
@@ -72,11 +73,12 @@ def private_summary(rows: list[dict]) -> dict:
             "verified_dormant": counts["verified_dormant"],
             "verification_backlog": sum(counts[k] for k in
                 ("stale_21_44", "stale_45_59", "stale_60_plus")) +
-                sum(bool(r.get("review_expired_or_overridden")) for r in records),
+                0,  # Expired reviews already return to the stale groups.
             "active_forecast_dormant_exclusions": sum(
                 r.get("health_segment") == "verified_dormant" and
                 r.get("exclude_from_active_forecast") is True for r in records),
-            "undated": counts["date_unverified"],
+            "undated": sum(r.get("applied_on") is None for r in records),
+            "undated_unresolved": counts["date_unverified"],
             "engaged": counts["recruiter_engaged"],
             "matured_denominator": len(matured),
             "matured_unanswered": sum(r.get("health_segment") in STALE for r in matured),
@@ -226,16 +228,15 @@ def render_pipeline_health(data: dict, *, compact: bool = False) -> None:
 
 def _role_priority(role: str) -> int:
     value = (role or "").casefold()
-    if "ai" in value or "artificial intelligence" in value or "data" in value:
-        return 0
-    if "analytics" in value or "automation" in value:
-        return 1
-    return 2
+    domain = bool(re.search(r"\bai\b|artificial intelligence|\bdata\b|analytics|automation", value))
+    senior = bool(re.search(r"\bhead\b|\bdirector\b|\blead\b|\bvp\b|\bprincipal\b|\bsenior manager\b", value))
+    return 0 if domain and senior else 1 if domain else 2
 
 
-def private_review_queue(rows: list[dict]) -> list[dict]:
+def private_review_queue(rows: list[dict], contacts: set[str] | None = None) -> list[dict]:
     """Role-fit and actionability precede raw age; avoid a 60+ first bias."""
     queue = []
+    contacts = contacts or set()
     for r in rows:
         segment = r.get("health_segment")
         if segment not in ("stale_21_44", "stale_45_59", "stale_60_plus",
@@ -253,7 +254,9 @@ def private_review_queue(rows: list[dict]) -> list[dict]:
             "Evidence": r.get("evidence_quality") or "unverified",
             "Forecast": "Excluded" if r.get("exclude_from_active_forecast") else "Provisional",
             "Next action": action,
+            "Contact recorded": str(r.get("process_key")) in contacts,
             "_rank": (_role_priority(r.get("role") or ""),
+                      0 if str(r.get("process_key")) in contacts else 1,
                       0 if segment == "stale_21_44" else 1 if segment == "stale_45_59"
                       else 2 if segment == "date_unverified" else 3,
                       -(age or 0)),
@@ -262,13 +265,22 @@ def private_review_queue(rows: list[dict]) -> list[dict]:
     return [{k: v for k, v in r.items() if k != "_rank"} for r in queue]
 
 
-def render_private_staleness(access_token: str, *, compact: bool = False) -> None:
+def render_private_staleness(access_token: str, *, compact: bool = False,
+                             job_records: list[dict] | None = None) -> None:
     try:
         records = fetch_private_pipeline(access_token)
     except (RuntimeError, TimeoutError, ValueError):
         st.warning("The owner-only application review is temporarily unavailable.")
         return
     summary = private_summary(records)
+    if not compact:
+        try:
+            from site_analytics_public import fetch_public_analytics_rpc
+            aggregate = fetch_public_analytics_rpc("careersite_public_pipeline_health_v1")
+            summary["cohorts"] = aggregate.get("cohorts") or []
+            summary["first_response"] = aggregate.get("first_response") or {}
+        except (RuntimeError, PermissionError, ValueError):
+            st.caption("Cohort and response-latency reports are temporarily unavailable.")
     render_pipeline_health(summary, compact=compact)
     if compact:
         return
@@ -278,7 +290,17 @@ def render_private_staleness(access_token: str, *, compact: bool = False) -> Non
         "These are review suggestions, not evidence of an employer decision. "
         "This page reads the evidence ledger but does not mark any case verified."
     )
-    queue = private_review_queue(records)
+    if job_records is None:
+        try:
+            from page_job_search_analytics import fetch_job_records
+            job_records = fetch_job_records(access_token)
+        except (RuntimeError, ValueError, TimeoutError):
+            job_records = []
+    contacts = {
+        f"{str(row.get('employer') or '').lower().strip()}|{str(row.get('role') or '').lower().strip()}"
+        for row in (job_records or []) if row.get("contact_name")
+    }
+    queue = private_review_queue(records, contacts)
     if queue:
         st.dataframe(queue, hide_index=True, width="stretch")
     else:

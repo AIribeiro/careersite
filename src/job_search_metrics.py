@@ -74,8 +74,54 @@ def completed_interview(row):
 
 
 def progression(row):
+    """Explicit employer advancement, not candidate enthusiasm or scheduling.
+
+    Text normalization is conservative; named advanced rounds count only
+    when documented by inbound/employer-side evidence. Existing structured
+    event codes remain authoritative for older snapshots.
+    """
     explicit = norm(row.get('stage_outcome') or row.get('event_type')).replace(' ', '_')
-    return explicit in {'next_stage', 'second_interview', 'final_interview', 'reference_check', 'offer', 'offer_received', 'offer_accepted'} or norm(row.get('interaction_type')) == 'reference_check'
+    if explicit in {'next_stage', 'second_interview', 'final_interview',
+                    'reference_check', 'offer', 'offer_received', 'offer_accepted'}:
+        return True
+    if norm(row.get('interaction_type')) == 'reference_check':
+        return True
+    if norm(row.get('interaction_direction')) not in ('inbound', 'two_way'):
+        return False
+    details = norm(' '.join(str(row.get(k) or '') for k in
+                            ('stage_outcome', 'activity')))
+    return bool(re.search(
+        r'\\b(?:advanced|progressed|selected|invited)\\s+'
+        r'(?:to|for)\\s+(?:(?:the|a)\\s+)?'
+        r'(?:second|third|final)\\s*(?:-| )\\s*interview\\b'
+        r'|\\b(?:invited|advanced)\\s+to\\s+(?:the\\s+)?next\\s+round\\b'
+        r'|\\b(?:passed|cleared)\\s+(?:the\\s+)?(?:first|initial)\\s+interview\\b',
+        details,
+    ))
+
+
+def scheduled_interview(row):
+    """Scheduled/invited but not yet completed, separate from progression."""
+    if progression(row) or completed_interview(row):
+        return False
+    # An explicit employer invitation/confirmation is necessary. An outbound
+    # acceptance, reminder or self-scheduled preparation is not evidence.
+    employer_side = (norm(row.get('interaction_direction')) in ('inbound','two_way')
+                     or norm(row.get('interaction_type')) in
+                     ('interview_invitation','interview_scheduled','recruiter_invitation'))
+    if not employer_side or not (row.get('is_interview') or
+                                  norm(row.get('event_type')) == 'interview'):
+        return False
+    details = norm(' '.join(str(row.get(k) or '') for k in
+                            ('stage_outcome','activity','interaction_type')))
+    return bool(re.search(
+        r'\\b(?:interview\\s+scheduled|interview\\s+confirmed|'
+        r'interview\\s+invitation|invited\\s+to\\s+interview|'
+        r'interview\\s+scheduling|recruiting\\s+interview\\s+confirmed|'
+        r'video\\s+call|second[- ]interview\\s+participants\\s+confirmed|'
+        r'confirmed\\s+interview\\s+date)\\b',
+        details,
+    ))
 
 
 def offer(row):

@@ -247,15 +247,18 @@ def ranked_portfolio_signals(
                   in ("direct/unknown", "direct / unknown", "unknown", "unattributed"))
     if total_attributed >= 30 and unknown / total_attributed >= 0.50:
         add(Signal(
-            "attribution_gap", "Most entry sources remain unclassified",
+            "attribution_gap", "Most incoming channels are not identifiable",
             f"{_pct(unknown, total_attributed)}% of recorded "
             f"source/campaign session observations in the {cadence} "
-            "are marked direct or unknown. Named channels alone therefore "
-            "give an incomplete picture of how readers arrive.",
-            "Standardize source and campaign tags on shared links, then "
-            "reassess channel quality over the next reporting window.",
-            f"{unknown:,} unknown of {total_attributed:,} classified "
-            "source/campaign session observations.",
+            "are labelled direct or unknown. This includes potentially "
+            "direct navigation and visits without usable referral information; "
+            "missing campaign tags are only one possible explanation.",
+            "For new deliberate distributions, generate a channel-tagged "
+            "link in the authenticated CMS. Compare the tagged share "
+            "in subsequent reporting periods. Do not reclassify historical "
+            "unknown sessions without source evidence.",
+            f"{unknown:,} direct/unknown of {total_attributed:,} source/campaign "
+            "session observations; not identified visitors.",
             76 if unknown / total_attributed >= .7 else 66,
         ))
 

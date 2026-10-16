@@ -46,10 +46,9 @@ PAGE = str(PAGE).lower().strip()
 
 # Preserve historical ?page=admin bookmarks, but use one canonical Analytics
 # page with authenticated private reporting and CMS workspaces.
-if PAGE == "admin":
+LEGACY_ADMIN_LINK = PAGE == "admin"
+if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
-    st.query_params["page"] = "analytics"
-    st.query_params["workspace"] = "cms"
 
 PUBLIC_VALID = {"home", "impact", "thinking", "about", "certifications", "presence", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
@@ -107,6 +106,12 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+# Normalize the address after configuring Streamlit, leaving its public
+# render flow untouched. Old Admin bookmarks now open the unified CMS.
+if LEGACY_ADMIN_LINK:
+    st.query_params["page"] = "analytics"
+    st.query_params["workspace"] = "cms"
 
 if PAGE == "analytics":
     render_analytics_dashboard()

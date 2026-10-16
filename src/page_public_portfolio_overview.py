@@ -7,10 +7,13 @@ import streamlit as st
 from analytics_reporting_period import initialize_reporting_period, remember_reporting_period
 from page_analytics import (
     REPORTING_WINDOWS, REPORTING_WINDOW_LABELS, _fetch_dashboard,
+    _dashboard_payload,
 )
 from page_article_analytics import _article_title
-from page_content_intelligence import content_label, fetch_intelligence
-from portfolio_insight_engine import derive_portfolio_insights
+from page_content_intelligence import (
+    _article_metadata, _fetch_rpc, content_label, fetch_intelligence,
+)
+from portfolio_signal_brief import ranked_portfolio_signals
 
 
 def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
@@ -28,6 +31,7 @@ def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
         label = _article_title(content) if kind == "article" else content_label(content)
         values.append({
             "Content": label,
+            "Slug": content,
             "Views": views,
             "Sessions": max(0, int(row.get("sessions") or 0)),
         })
@@ -54,6 +58,18 @@ def _ranking_chart(rows: list[dict]) -> None:
     st.altair_chart(chart, width="stretch")
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def _recent_content_report() -> dict:
+    """Lightweight recent comparison, rechecked within five minutes.
+
+    Only existing anonymous content aggregates are read. Hiring data is never
+    queried in the public page. Behaviour RPC isn't needed for the brief.
+    """
+    payload = _dashboard_payload("7d")
+    payload["p_article_metadata"] = _article_metadata()
+    return _fetch_rpc("careersite_content_intelligence_v2", payload)
+
+
 def render_public_portfolio_overview() -> None:
     """Visits and article reading are the first public evidence, never hiring."""
     st.title("Portfolio visits & reads")
@@ -72,6 +88,9 @@ def render_public_portfolio_overview() -> None:
         help="Starts with the most recent window containing recorded sessions; "
              "a manual selection is retained.",
     )
+    if st.button("Refresh insights", key="portfolio_refresh_insights"):
+        _recent_content_report.clear()
+        st.rerun()
     try:
         report = fetch_intelligence(str(window))
     except (RuntimeError, ValueError, TimeoutError) as exc:
@@ -87,18 +106,38 @@ def render_public_portfolio_overview() -> None:
     page_sessions = max(0, int(quality.get("page_sessions") or 0))
     article_sessions = max(0, int(quality.get("article_sessions") or 0))
 
-    top_insights, deeper_insights = derive_portfolio_insights(report, pages, articles)
-    st.subheader("What stands out")
-    st.caption(
-        "Current-period observations interpreted from recorded portfolio "
-        "activity. Interpretations change with the reporting window."
+    recent_report = None
+    if str(window) in ("14d", "30d", "60d", "90d", "365d"):
+        try:
+            recent_report = _recent_content_report()
+        except (RuntimeError, ValueError, TimeoutError, PermissionError):
+            # A failed background comparator does not make the selected-period
+            # visits/read charts unavailable, nor imply missing activity.
+            recent_report = None
+
+    latest_articles = (portfolio_visit_rows(recent_report, "article")
+                       if recent_report else None)
+    latest_pages = (portfolio_visit_rows(recent_report, "page")
+                    if recent_report else None)
+    top_insights, deeper_insights, limitations = ranked_portfolio_signals(
+        report, pages, articles, window=str(window),
+        recent_report=recent_report, recent_articles=latest_articles,
+        recent_pages=latest_pages,
     )
-    summaries = st.columns(2, gap="large")
+    st.subheader("What changed and why it matters")
+    st.caption(
+        "Highest-signal evidence first. Recent seven-day movements inform the "
+        "interpretation of broad historical reporting windows."
+        if recent_report else
+        "Selected-period findings, ranked by evidence and relevance."
+    )
+    summaries = st.columns(len(top_insights), gap="large")
     for column, insight in zip(summaries, top_insights):
         with column:
-            st.markdown(f"**{insight.heading}**")
-            st.write(insight.interpretation)
-            st.caption(insight.basis)
+            st.markdown(f"**{insight.title}**")
+            st.write(insight.message)
+            st.markdown(f"*Next to examine:* {insight.next_check}")
+            st.caption(insight.evidence)
 
     st.divider()
     left, right = st.columns(2, gap="medium")
@@ -118,18 +157,37 @@ def render_public_portfolio_overview() -> None:
             _ranking_chart(articles)
 
     st.divider()
-    st.subheader("Portfolio intelligence")
+    st.subheader("Other relevant portfolio signals")
     st.caption(
-        "A closer interpretation of exploration, reading depth, continued "
-        "navigation and changes over time. Each finding includes its evidence "
-        "and limits rather than assuming what a visitor intended."
+        "Further evidence appears only when its sample and relevance justify "
+        "a finding. Lower-confidence notes are kept in the evidence drilldown."
     )
-    details = st.columns(2, gap="large")
-    for index, insight in enumerate(deeper_insights):
-        with details[index % 2]:
-            st.markdown(f"**{insight.heading}**")
-            st.write(insight.interpretation)
-            st.caption(insight.basis)
+    if deeper_insights:
+        details = st.columns(min(2, len(deeper_insights)), gap="large")
+        for index, insight in enumerate(deeper_insights):
+            with details[index % len(details)]:
+                st.markdown(f"**{insight.title}**")
+                st.write(insight.message)
+                st.markdown(f"*Next to examine:* {insight.next_check}")
+                st.caption(insight.evidence)
+    else:
+        st.caption("No further high-confidence changes in this period.")
+
+    with st.expander("Evidence, measurement limits and comparison rules", expanded=False):
+        st.caption(
+            "Signals use classified views, article-session observations and "
+            "source/campaign cohorts. These are not unique people or evidence "
+            "of particular readers' intentions."
+        )
+        for limitation in limitations:
+            st.write(limitation)
+        if not limitations:
+            st.write("No additional evidence limitations were flagged for these signals.")
+        if recent_report:
+            st.caption(
+                "Recent comparison refreshes within five minutes. Use Refresh insights "
+                "to request a fresh report."
+            )
 
     st.caption(
         "Page and article sessions are measured independently and must not be "

@@ -10,19 +10,12 @@ from analytics_reporting_period import initialize_reporting_period, remember_rep
 from page_article_analytics import render_article_analytics, render_reader_sources
 from page_content_intelligence import render_content_intelligence
 from page_weekly_ai_analytics import render_weekly_ai_analytics
-from page_public_predictions import render_public_hiring_predictions
-from page_public_analytics import (
-    render_public_analytics_overview, render_public_job_search,
-    render_public_swedish_market,
-)
+from page_public_portfolio_overview import render_public_portfolio_overview
 
 
 _VIEWS = {
-    "overview": "Overview",
-    "portfolio": "Portfolio",
-    "jobs": "Job search",
-    "predictions": "Job predictions",
-    "market": "Swedish market",
+    "overview": "Visits & reads",
+    "portfolio": "Explore content",
 }
 _VIEW_STATE_KEY = "careersite_analytics_view"
 
@@ -46,7 +39,7 @@ def _update_view_url() -> None:
 
 
 def _render_public_analytics() -> None:
-    """The existing five public reports, with their original controls and layout."""
+    """Public content reporting only; no hiring, labour market or forecast."""
     if _VIEW_STATE_KEY not in st.session_state:
         st.session_state[_VIEW_STATE_KEY] = _url_view()
 
@@ -66,20 +59,11 @@ def _render_public_analytics() -> None:
             st.query_params.clear()
             st.query_params["page"] = "home"
             st.rerun()
-    st.caption("Start with interpreted findings and visual comparisons. Exact counts and reconciliation checks remain available as drill-downs.")
+    st.caption("Public portfolio engagement: visits, article reads, content reach and reader journeys.")
     st.divider()
 
     if section == "overview":
-        render_public_analytics_overview()
-        return
-    if section == "jobs":
-        render_public_job_search()
-        return
-    if section == "market":
-        render_public_swedish_market()
-        return
-    if section == "predictions":
-        render_public_hiring_predictions()
+        render_public_portfolio_overview()
         return
 
     st.title("Portfolio performance")
@@ -118,9 +102,8 @@ def _render_public_analytics() -> None:
         else:
             render_article_analytics()
 
-# One Analytics URL contains three clearly separated workspaces. The five
-# public analytics views above continue to work without signing in; owner-only
-# components are imported and invoked only after a verified owner session.
+# One Analytics URL with content-only public reporting and authenticated
+# hiring intelligence / CMS. The full legacy job dashboards are kept private.
 _WORKSPACE_STATE_KEY = "careersite_analytics_workspace"
 _WORKSPACE_LABELS = {
     "public": "Public analytics",
@@ -136,7 +119,13 @@ def _resolve_workspace(requested: object, authenticated: bool) -> str:
 
 
 def _workspace_from_url(authenticated: bool) -> str:
-    return _resolve_workspace(st.query_params.get("workspace", "public"), authenticated)
+    explicit = st.query_params.get("workspace", None)
+    # Pre-migration bookmarks to job reports are private even when the old
+    # link does not carry an explicit workspace parameter.
+    requested = str(st.query_params.get("view", "")).lower().strip()
+    if explicit is None and requested in ("jobs", "market", "predictions", "hiring", "deep"):
+        explicit = "private"
+    return _resolve_workspace(explicit, authenticated)
 
 
 def _update_workspace_url() -> None:
@@ -166,6 +155,10 @@ def render_analytics_dashboard() -> None:
 
     workspace = _workspace_from_url(authenticated=owner is not None)
     st.session_state[_WORKSPACE_STATE_KEY] = workspace
+    # An anonymous browser cannot follow an old job/forecast deep link.
+    # Its public navigation and reporting always fall back to content only.
+    if owner is None and st.session_state.get(_VIEW_STATE_KEY) not in _VIEWS:
+        st.session_state[_VIEW_STATE_KEY] = "overview"
 
     if owner is None:
         # Do not even create a password widget until sign-in is selected:

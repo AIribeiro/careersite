@@ -104,7 +104,7 @@ class AttributionLinkTests(unittest.TestCase):
         bundled = bundled_footer(ARTICLES[0].key)
         self.assertIn("utm_source%3Demail", bundled)
 
-    def test_linkedin_share_offsite_opens_a_real_article_url(self):
+    def test_linkedin_share_offsite_uses_crawlable_cms_article_permalink(self):
         from html import unescape
         import re
         from site_cms import CmsArticle, _share_footer
@@ -113,11 +113,11 @@ class AttributionLinkTests(unittest.TestCase):
         from thinking_core import _share_footer as bundled_footer
 
         slug = "ai-is-entering-the-management-layer-leadership-has-to-catch-up"
-        html = _share_footer(CmsArticle(
+        markup = _share_footer(CmsArticle(
             title="AI Is Entering the Management Layer", slug=slug,
             status="published",
         ))
-        match = re.search(r'href="([^"]+)"[^>]+data-hq-event="article_share_linkedin"', html)
+        match = re.search(r'href="([^"]+)"[^>]+data-hq-event="article_share_linkedin"', markup)
         self.assertIsNotNone(match, "CMS article must render a LinkedIn sharing anchor")
         parsed = urlparse(unescape(match.group(1)))
         self.assertEqual(parsed.scheme, "https")
@@ -126,15 +126,15 @@ class AttributionLinkTests(unittest.TestCase):
         self.assertEqual(set(parse_qs(parsed.query)), {"url"})
         target = urlparse(parse_qs(parsed.query)["url"][0])
         self.assertEqual(target.netloc, "jairribeiro-ai.streamlit.app")
-        self.assertEqual(target.path, "/")
+        self.assertEqual(target.path, f"/thinking/{slug}")
         inner = parse_qs(target.query)
-        self.assertEqual(inner["page"], ["thinking"])
-        self.assertEqual(inner["article"], [slug])
         self.assertEqual(inner["utm_source"], ["linkedin"])
         self.assertEqual(inner["utm_medium"], ["social"])
+        self.assertEqual(inner["utm_campaign"], ["thinking"])
         self.assertEqual(inner["utm_content"], [slug])
-        self.assertNotIn("/feed/", html)
-        self.assertIn('data-copy-url="https://jairribeiro-ai.streamlit.app/?page=thinking', html)
+        self.assertNotIn("/feed/", markup)
+        # Copied links remain clean permalink URLs, not tagged by assumption.
+        self.assertIn(f'data-copy-url="https://jairribeiro-ai.streamlit.app/thinking/{slug}"', markup)
 
         bundled = bundled_footer(ARTICLES[0].key)
         match = re.search(r'href="([^"]+)"[^>]+data-share-target="([^"]+)"[^>]+data-hq-event="article_share_linkedin"', bundled)

@@ -33,15 +33,29 @@ def _start_window(timing: dict) -> str:
 
 
 def render_date_tile(label: str, value: str, *, range_end: str | None = None) -> None:
-    """Render full dates at narrow widths; Streamlit metrics truncate values.
+    """Single-line responsive date, avoiding Streamlit metric ellipsis.
 
-    A date range uses two stacked lines so neither year gets hidden on tablets.
-    All inputs pass through strict ISO-date formatting before display.
+    Dates are parsed from ISO before being rendered, so the date text cannot
+    inject markup. A two-date range uses compact but explicit year notation.
     """
+    first = date.fromisoformat(value)
+    if range_end is None:
+        display = f"{first.day} {first:%b %Y}"
+        size = "clamp(0.9rem, 1.65vw, 1.2rem)"
+    else:
+        last = date.fromisoformat(range_end)
+        display = (
+            f"{first.day} {first:%b} ’{first:%y}"
+            f" – {last.day} {last:%b} ’{last:%y}"
+        )
+        size = "clamp(0.73rem, 1.3vw, 1.02rem)"
     st.caption(label)
-    st.markdown(f"#### {_display_date(value, compact=True)}")
-    if range_end is not None:
-        st.markdown(f"#### → {_display_date(range_end, compact=True)}")
+    st.markdown(
+        '<div style="white-space:nowrap;overflow:visible;'
+        'font-weight:650;line-height:1.5;'
+        f'font-size:{size};letter-spacing:-0.02em;">{display}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def _timing_chart(timing: dict) -> alt.Chart:

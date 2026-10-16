@@ -127,7 +127,11 @@ class PublicVisualOverviewTests(unittest.TestCase):
             self.assertIn(title, titles)
         self.assertGreaterEqual(len(at.get("vega_lite_chart")), 4)
         self.assertGreaterEqual(len(at.expander), 3)
-        self.assertTrue(any("17 Dec 2026" in m.value for m in at.markdown))
+        displayed = [m.value for m in at.markdown]
+        for date_text in ("17 Dec 2026", "19 Nov 2026", "21 Jan 2027"):
+            self.assertTrue(any(date_text in value for value in displayed))
+        # No native st.metric in the narrow hiring columns: it clips dates.
+        self.assertEqual(len(at.metric), 0)
         self.assertEqual(len(at.text_input), 0)
 
 

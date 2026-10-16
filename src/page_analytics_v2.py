@@ -134,6 +134,12 @@ def _update_workspace_url() -> None:
         st.query_params["workspace"] = workspace
     else:
         st.query_params.pop("workspace", None)
+        # A private deep-link marker must not immediately bounce the owner
+        # back into the private workspace after selecting Public analytics.
+        if str(st.query_params.get("view", "")).lower() in (
+            "jobs", "market", "predictions", "hiring", "deep",
+        ):
+            st.query_params["view"] = "overview"
 
 
 def render_analytics_dashboard() -> None:

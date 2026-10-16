@@ -141,7 +141,10 @@ def ranked_portfolio_signals(
     if focus_articles is None:
         focus_articles = []
     meaningful_reads = sum(_n(r.get("Views")) for r in focus_articles)
-    if meaningful_reads >= 20 and focus_articles:
+    source_reads = sum(_n(r.get("views")) for r in _item_rows(focus, "article"))
+    # Never create a popular-content narrative from a stale display list
+    # when the underlying response is missing or belongs to another period.
+    if meaningful_reads >= 20 and meaningful_reads == source_reads and focus_articles:
         leader = max(focus_articles, key=lambda r: _n(r.get("Views")))
         leading_count = _n(leader.get("Views"))
         leading_share = leading_count / meaningful_reads

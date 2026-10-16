@@ -129,14 +129,14 @@ _WORKSPACE_LABELS = {
 }
 
 
+def _resolve_workspace(requested: object, authenticated: bool) -> str:
+    """Never route an anonymous browser to a private analytics/CMS renderer."""
+    value = str(requested or "public").lower().strip()
+    return value if authenticated and value in ("private", "cms") else "public"
+
+
 def _workspace_from_url(authenticated: bool) -> str:
-    requested = str(st.query_params.get("workspace", "public")).lower().strip()
-    if requested == "public":
-        # Accept links created while this was two separate pages.
-        legacy = str(st.query_params.get("view", "")).lower().strip()
-        if legacy in ("private", "cms"):
-            requested = legacy
-    return requested if authenticated and requested in ("private", "cms") else "public"
+    return _resolve_workspace(st.query_params.get("workspace", "public"), authenticated)
 
 
 def _update_workspace_url() -> None:
@@ -195,7 +195,8 @@ def render_analytics_dashboard() -> None:
         ) or "public"
     with portfolio:
         if workspace != "public" and st.button(
-            "Portfolio", key="owner_workspace_back_to_portfolio"
+            "Portfolio", key="owner_workspace_back_to_portfolio",
+            disabled=editing,
         ):
             st.query_params.clear()
             st.query_params["page"] = "home"

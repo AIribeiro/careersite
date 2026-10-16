@@ -10,6 +10,7 @@ from page_analytics import (
 )
 from page_article_analytics import _article_title
 from page_content_intelligence import content_label, fetch_intelligence
+from portfolio_insight_engine import derive_portfolio_insights
 
 
 def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
@@ -86,6 +87,20 @@ def render_public_portfolio_overview() -> None:
     page_sessions = max(0, int(quality.get("page_sessions") or 0))
     article_sessions = max(0, int(quality.get("article_sessions") or 0))
 
+    top_insights, deeper_insights = derive_portfolio_insights(report, pages, articles)
+    st.subheader("What stands out")
+    st.caption(
+        "Current-period observations interpreted from recorded portfolio "
+        "activity. Interpretations change with the reporting window."
+    )
+    summaries = st.columns(2, gap="large")
+    for column, insight in zip(summaries, top_insights):
+        with column:
+            st.markdown(f"**{insight.heading}**")
+            st.write(insight.interpretation)
+            st.caption(insight.basis)
+
+    st.divider()
     left, right = st.columns(2, gap="medium")
     with left:
         with st.container(border=True):
@@ -102,15 +117,20 @@ def render_public_portfolio_overview() -> None:
             st.markdown("**Most-read articles**")
             _ranking_chart(articles)
 
-    observations = []
-    if pages:
-        observations.append(f"The most visited page is **{pages[0]['Content']}** "
-                            f"({pages[0]['Views']:,} views).")
-    if articles:
-        observations.append(f"The most-read article is **{articles[0]['Content']}** "
-                            f"({articles[0]['Views']:,} views).")
-    if observations:
-        st.markdown(" ".join(observations))
+    st.divider()
+    st.subheader("Portfolio intelligence")
+    st.caption(
+        "A closer interpretation of exploration, reading depth, continued "
+        "navigation and changes over time. Each finding includes its evidence "
+        "and limits rather than assuming what a visitor intended."
+    )
+    details = st.columns(2, gap="large")
+    for index, insight in enumerate(deeper_insights):
+        with details[index % 2]:
+            st.markdown(f"**{insight.heading}**")
+            st.write(insight.interpretation)
+            st.caption(insight.basis)
+
     st.caption(
         "Page and article sessions are measured independently and must not be "
         "summed as unique visitors. These are content observations, not evidence "

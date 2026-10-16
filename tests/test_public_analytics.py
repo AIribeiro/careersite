@@ -49,7 +49,11 @@ class PublicAnalyticsTests(unittest.TestCase):
             self.assertFalse(at.exception)
             self.assertEqual(at.title[0].value,"Job Search Analytics")
             self.assertEqual(len(at.text_input),0)
-            self.assertGreaterEqual(len(at.metric),4)
+            self.assertGreaterEqual(len(at.get("segmented_control")), 2)
+            self.assertTrue(any(
+                "conversion always uses original dated" in x.value
+                for x in at.caption
+            ))
             private.assert_not_called()
 
     def test_public_overview_never_fetches_private_job_rows(self):

@@ -45,8 +45,9 @@ AGGREGATE={
 
 class PublicHiringPredictionTests(unittest.TestCase):
     def test_predictor_restored_to_top_level_navigation(self):
-        self.assertIn("predictions",_VIEWS)
-        self.assertEqual(_VIEWS["predictions"],"Job predictions")
+        self.assertNotIn("predictions",_VIEWS)
+        from page_admin import _PRIVATE_VIEW_ROUTES
+        self.assertEqual(_PRIVATE_VIEW_ROUTES["predictions"], "Job predictions")
 
     def test_daily_and_weekly_public_horizons_in_sql(self):
         sql=(Path(__file__).resolve().parents[1]/

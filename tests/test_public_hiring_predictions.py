@@ -100,26 +100,75 @@ class PublicHiringPredictionTests(unittest.TestCase):
     def test_date_label_uses_iso_weeks_and_discloses_year(self):
         self.assertEqual(_week({"from":"2026-10-12","to":"2026-10-18"}),"12–18 Oct 2026")
 
-    def test_public_page_uses_current_v2_language_without_beta_forecast(self):
+    def test_public_page_shows_visual_hiring_date_and_collapsed_details(self):
         from streamlit.testing.v1 import AppTest
+        timing = {
+            "available": True,
+            "model_version": "hiring-v2-stage-evidence-provisional",
+            "as_of": "2026-10-16",
+            "offer_earliest": "2026-11-05",
+            "offer_central": "2026-11-19",
+            "offer_latest": "2026-12-10",
+            "start_earliest": "2026-11-19",
+            "start_central": "2026-12-17",
+            "start_latest": "2027-01-21",
+            "needs_refresh": False,
+        }
         with (
+            patch("page_public_predictions.fetch_public_hiring_timing_v2",
+                  return_value=timing) as public_timing,
             patch("page_public_predictions.fetch_public_analytics_rpc",
-                  return_value={"signals":[]}) as market,
+                  return_value={"signals":[]}),
             patch("page_public_predictions.render_public_conversion_quality") as quality,
             patch("public_hiring_forecast.forecast_public_hiring") as old_forecast,
         ):
             at=AppTest.from_string(
-                "from page_public_predictions import render_public_hiring_predictions\n"
+                "from page_public_predictions import render_public_hiring_predictions\\n"
                 "render_public_hiring_predictions()").run(timeout=20)
             self.assertFalse(at.exception)
             self.assertIn("When could I get my next job?", [v.value for v in at.title])
             self.assertEqual(len(at.text_input), 0)
-            captions = [c.value for c in at.caption]
-            self.assertTrue(any("Hiring Prediction v2" in c for c in captions))
-            self.assertTrue(any("not a verified rejection" in c for c in captions))
+            self.assertTrue(any("17 December 2026" in m.value for m in at.markdown))
+            self.assertEqual(len(at.metric), 3)
+            self.assertEqual(len(at.get("vega_lite_chart")), 1)
+            self.assertEqual(len(at.expander), 2)
+            self.assertTrue(all(not x.expanded for x in at.expander))
+            self.assertFalse(any("From applications to actual hiring progress" in x.value
+                                 for x in at.subheader))
             quality.assert_called_once_with(compact=False)
+            public_timing.assert_called_once()
             old_forecast.assert_not_called()
-            market.assert_called_once_with("careersite_public_market_summary_v1")
+
+    def test_timing_unavailable_does_not_invent_dates(self):
+        from streamlit.testing.v1 import AppTest
+        with (
+            patch("page_public_predictions.fetch_public_hiring_timing_v2",
+                  return_value={"available":False}),
+            patch("page_public_predictions.render_public_conversion_quality"),
+            patch("page_public_predictions.fetch_public_analytics_rpc",
+                  return_value={"signals":[]}),
+        ):
+            at = AppTest.from_string(
+                "from page_public_predictions import render_public_hiring_predictions\\n"
+                "render_public_hiring_predictions()").run(timeout=20)
+        self.assertFalse(at.exception)
+        self.assertTrue(any("No current start-date scenario" in m.value
+                            for m in at.markdown))
+        self.assertEqual(len(at.metric), 0)
+        self.assertEqual(len(at.get("vega_lite_chart")), 0)
+
+    def test_timing_range_chart_contains_only_date_fields(self):
+        from page_public_predictions import _timing_chart
+        timing={
+            "offer_earliest":"2026-11-05","offer_central":"2026-11-19",
+            "offer_latest":"2026-12-10","start_earliest":"2026-11-19",
+            "start_central":"2026-12-17","start_latest":"2027-01-21",
+        }
+        spec=_timing_chart(timing).to_dict()
+        self.assertEqual(len(spec["layer"]),2)
+        self.assertEqual(len(spec["layer"][0]["data"]["values"]),2)
+        self.assertNotIn("Employer",str(spec))
+        self.assertNotIn("recruiter",str(spec))
 
 
 if __name__=="__main__":

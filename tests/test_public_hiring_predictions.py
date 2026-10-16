@@ -123,7 +123,7 @@ class PublicHiringPredictionTests(unittest.TestCase):
             patch("public_hiring_forecast.forecast_public_hiring") as old_forecast,
         ):
             at=AppTest.from_string(
-                "from page_public_predictions import render_public_hiring_predictions\\n"
+                "from page_public_predictions import render_public_hiring_predictions\n"
                 "render_public_hiring_predictions()").run(timeout=20)
             self.assertFalse(at.exception)
             self.assertIn("When could I get my next job?", [v.value for v in at.title])
@@ -149,7 +149,7 @@ class PublicHiringPredictionTests(unittest.TestCase):
                   return_value={"signals":[]}),
         ):
             at = AppTest.from_string(
-                "from page_public_predictions import render_public_hiring_predictions\\n"
+                "from page_public_predictions import render_public_hiring_predictions\n"
                 "render_public_hiring_predictions()").run(timeout=20)
         self.assertFalse(at.exception)
         self.assertTrue(any("No current start-date scenario" in m.value
@@ -166,7 +166,7 @@ class PublicHiringPredictionTests(unittest.TestCase):
         }
         spec=_timing_chart(timing).to_dict()
         self.assertEqual(len(spec["layer"]),2)
-        self.assertEqual(len(spec["layer"][0]["data"]["values"]),2)
+        self.assertEqual(len(spec["data"]["values"]),2)
         self.assertNotIn("Employer",str(spec))
         self.assertNotIn("recruiter",str(spec))
 

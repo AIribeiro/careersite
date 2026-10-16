@@ -17,9 +17,12 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertEqual(page_analytics.REPORTING_WINDOW_LABELS["last_hour"], "Last hour")
         self.assertEqual(page_analytics.REPORTING_WINDOW_LABELS["today"], "Today")
         source = (ROOT / "src/page_analytics_v2.py").read_text(encoding="utf-8")
-        self.assertIn('index=window_options.index("7d")', source)
-        # Short diagnostic windows remain available even though seven days is
-        # the default for meaningful comparison.
+        self.assertIn(
+            "initialize_reporting_period(st.session_state, _fetch_dashboard)", source
+        )
+        self.assertIn("on_change=remember_reporting_period", source)
+        # The current reporting window selects the first period with data
+        # (last hour, Today, then progressively longer) instead of a fixed 7d.
 
         hour_payload = page_analytics._dashboard_payload("last_hour")
         today_payload = page_analytics._dashboard_payload("today")

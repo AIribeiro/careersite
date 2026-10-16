@@ -40,7 +40,15 @@ def _update_view_url() -> None:
 
 def _render_public_analytics() -> None:
     """Public content reporting only; no hiring, labour market or forecast."""
-    if _VIEW_STATE_KEY not in st.session_state:
+    legacy = str(st.query_params.get("view", "")).lower().strip()
+    if legacy in ("pages", "articles"):
+        # Force legacy reader bookmarks onto the detailed content view even
+        # when the current browser had a different Analytics tab selected.
+        st.session_state["analytics_portfolio_kind"] = (
+            "article" if legacy == "articles" else "page"
+        )
+        st.session_state[_VIEW_STATE_KEY] = "portfolio"
+    elif _VIEW_STATE_KEY not in st.session_state:
         st.session_state[_VIEW_STATE_KEY] = _url_view()
 
     nav, portfolio = st.columns([7, 1.5], vertical_alignment="center")

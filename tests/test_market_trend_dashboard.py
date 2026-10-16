@@ -1,6 +1,6 @@
 import unittest
 
-from market_trend_dashboard import trend_cards
+from market_trend_dashboard import trend_cards, default_indicator_keys, is_ai_indicator
 
 
 def row(date, value, unit="people"):
@@ -9,6 +9,30 @@ def row(date, value, unit="people"):
 
 
 class MarketTrendCardsTests(unittest.TestCase):
+    def test_ai_series_after_first_six_are_selected(self):
+        groups = {str(i): [row("2026-08-01", 1), row("2026-09-01", 2)] for i in range(8)}
+        groups["ai"] = [dict(row("2026-08-01", 3), indicator_name="AI/Data leadership ads"),
+                        dict(row("2026-09-01", 4), indicator_name="AI/Data leadership ads")]
+        selected = default_indicator_keys(trend_cards(groups))
+        self.assertEqual(selected, ["ai", "0", "1", "2", "3", "4", "5"])
+
+    def test_audience_role_does_not_make_every_indicator_ai(self):
+        self.assertFalse(is_ai_indicator({"indicator_name": "Business confidence", "role_family": "enterprise_ai_data_leadership"}))
+        self.assertFalse(is_ai_indicator({"indicator_name": "Retail vacancies"}))
+        self.assertTrue(is_ai_indicator({"indicator_key": "ai_occupational_groups"}))
+
+    def test_ai_snapshot_does_not_fabricate_change(self):
+        cards = trend_cards({"ai": [dict(row("2026-09-01", 278), indicator_name="AI mentions growth")]}, include_ai_snapshots=True)
+        self.assertEqual(len(cards), 1)
+        self.assertIsNone(cards[0]["change"])
+        self.assertEqual(len(cards[0]["points"]), 1)
+
+    def test_partial_month_never_compared_as_complete_month(self):
+        cards = trend_cards({"ai": [dict(row(d, n), indicator_name="AI job ads MTD")
+                                   for d, n in (("2026-09-01", 4), ("2026-10-01", 2))]})
+        self.assertEqual(cards[0]["direction"], "Month to date")
+        self.assertIsNone(cards[0]["change"])
+
     def test_chronological_change_and_evidence(self):
         cards = trend_cards({"a": [row("2026-09-01", 90), row("2026-08-01", 100)]})
         self.assertEqual(cards[0]["direction"], "Lower")

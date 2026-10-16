@@ -70,7 +70,7 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
     def test_depth_claims_use_measured_denominator_and_do_not_call_zeros_failures(self):
         _, bottom = derive_portfolio_insights(make_report(), PAGES, ARTICLES)
         reading = next(x for x in bottom if "Reading depth" in x.heading)
-        self.assertIn("43", reading.interpretation)
+        self.assertIn("43 depth-measured", reading.basis)
         self.assertIn("3", reading.interpretation)
         self.assertIn("not be classified as", reading.interpretation)
         self.assertIn("145 article-item", reading.basis)
@@ -115,16 +115,18 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
             patch("page_public_portfolio_overview.initialize_reporting_period",
                   side_effect=lambda state, f: state.setdefault(
                       "careersite_analytics_reporting_window", "30d")),
+            patch("page_public_portfolio_overview._ranking_chart") as chart,
         ):
             app = AppTest.from_string(
                 "from page_public_portfolio_overview import render_public_portfolio_overview\n"
                 "render_public_portfolio_overview()\n"
             ).run(timeout=20)
+            self.assertEqual(chart.call_count, 2)
         self.assertFalse(app.exception)
         self.assertIn("What stands out", [x.value for x in app.subheader])
         self.assertIn("Portfolio intelligence", [x.value for x in app.subheader])
         self.assertEqual(len(app.metric), 2)
-        self.assertEqual(len(app.get("vega_lite_chart")), 2)
+        self.assertEqual(len(app.get("vega_lite_chart")), 0)
 
 
 if __name__ == "__main__":

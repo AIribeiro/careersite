@@ -91,7 +91,7 @@ class ReactivePortfolioSignalTests(unittest.TestCase):
                              for x in top + more))
 
     def test_changes_when_direction_reverses(self):
-        shifted = report(pages_now=45, pages_prior=90,
+        shifted = report(pages_now=60, pages_prior=120,
                          articles_now=70, articles_prior=30,
                          weekly=28, unknown=0)
         top, _, _ = ranked(shifted)

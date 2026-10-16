@@ -39,19 +39,43 @@ def _week(x: dict | None) -> str:
 @st.fragment(run_every="15m")
 def render_public_hiring_predictions() -> None:
     st.title("When could I get my next job?")
-    st.markdown(
-        "**Your indicative offer and start dates are available in "
-        "the [private Decision overview](?page=admin).**"
-    )
+    try:
+        timing = fetch_public_hiring_timing_v2()
+    except (RuntimeError, ValueError, PermissionError, TimeoutError):
+        timing = {"available": False}
+
+    if timing.get("available"):
+        st.markdown(f"## Around {_display_date(timing['start_central'])}")
+        st.markdown("**Indicative first day at work**")
+        st.markdown(
+            f"**Potential job offer: around {_display_date(timing['offer_central'])}.**"
+        )
+        st.caption(
+            "Potential start window: "
+            f"{_display_date(timing['start_earliest'])} – "
+            f"{_display_date(timing['start_latest'])}. "
+            "The timing assumes successful recruiting progression, "
+            "not a confirmed employer decision."
+        )
+        st.caption(
+            f"Hiring Prediction v2 · assessed {_display_date(timing['as_of'])}. "
+            "Dates represent a conditional scenario, not a calibrated "
+            "personal hiring probability."
+        )
+        if timing.get("needs_refresh"):
+            st.warning(
+                "This estimate is more than two weeks old. "
+                "It will update when the owner forecast is refreshed."
+            )
+    else:
+        st.markdown("## No current timing estimate available")
+        st.caption(
+            "A recent versioned hiring forecast has not been published. "
+            "The model requires new verified interview-stage evidence."
+        )
     st.caption(
-        "Hiring Prediction v2 · current model. The public page shows "
-        "privacy-thresholded evidence; personal timing requires private "
-        "verified interview stages."
-    )
-    st.info(
-        "The public data alone cannot support a credible personal date. "
-        "The authenticated forecast gives a conditional offer window and "
-        "potential start date, updated as confirmed interviews progress."
+        "The public display contains offer and start dates only. "
+        "Recruiting details remain in the authenticated Decision overview."
     )
 
     st.markdown("**What the latest evidence can establish**")

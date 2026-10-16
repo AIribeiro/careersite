@@ -21,10 +21,12 @@ FIELDS = (
     "analysis_version,decision_date_basis,analyzed_at,last_checked_at,updated_at"
 )
 OUTCOMES = {"rejected", "not_selected", "position_filled", "role_cancelled", "position_cancelled"}
+CANDIDATE_REJECTION_OUTCOMES = {"rejected", "not_selected"}
 LABELS = {
     "UNKNOWN": "Cause unknown",
     "PROCESS_COMPETITION": "Comparative selection",
     "POSITION_FILLED": "Position filled",
+    "ROLE_CANCELLED": "Vacancy cancelled by employer",
     "INTERNAL_CANDIDATE_SELECTED": "Internal candidate",
     "ROLE_BELOW_SENIORITY": "Mandate below seniority",
     "CRAFT_PRODUCT": "Product craft",
@@ -224,9 +226,10 @@ def _matched_application_cohort(records: list[dict], events: list[dict],
     """A documented minimum, never a complete job-search rejection rate.
 
     The denominator consists only of dated, deduplicated employer/role
-    application groups in the operational table since June. A rejection
+    application groups in the operational table since June. A candidate rejection
     counts only when its employer and role match exactly and its decision
-    follows that application. Different requisitions with the same title
+    follows that application. Employer cancellations and filled vacancies are
+    deliberately not counted as candidate rejections. Different requisitions with the same title
     can still be conflated, so expose the sample size and its limitations.
     """
     applications: dict[tuple[str, str], date] = {}
@@ -241,7 +244,7 @@ def _matched_application_cohort(records: list[dict], events: list[dict],
             applications[key] = applied
     linked: set[tuple[str, str]] = set()
     for decision in records:
-        if str(decision.get("decision_outcome") or "").lower() not in OUTCOMES:
+        if str(decision.get("decision_outcome") or "").lower() not in CANDIDATE_REJECTION_OUTCOMES:
             continue
         key = process_key(decision)
         when = _date(decision)
@@ -252,6 +255,7 @@ def _matched_application_cohort(records: list[dict], events: list[dict],
             "minimum_pct": round(100 * len(linked) / n, 1) if n else None,
             "unmatched_decisions": sum(
                 bool(_date(d) and date(2026, 6, 1) <= _date(d) <= today
+                     and str(d.get("decision_outcome") or "").lower() in CANDIDATE_REJECTION_OUTCOMES
                      and process_key(d) not in linked)
                 for d in records)}
 

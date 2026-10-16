@@ -116,6 +116,8 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
                   side_effect=lambda state, f: state.setdefault(
                       "careersite_analytics_reporting_window", "30d")),
             patch("page_public_portfolio_overview._ranking_chart") as chart,
+            patch("page_public_portfolio_overview._recent_content_report",
+                  return_value=make_report()),
         ):
             app = AppTest.from_string(
                 "from page_public_portfolio_overview import render_public_portfolio_overview\n"
@@ -123,8 +125,8 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
             ).run(timeout=20)
             self.assertEqual(chart.call_count, 2)
         self.assertFalse(app.exception)
-        self.assertIn("What stands out", [x.value for x in app.subheader])
-        self.assertIn("Portfolio intelligence", [x.value for x in app.subheader])
+        self.assertIn("What changed and why it matters", [x.value for x in app.subheader])
+        self.assertIn("Other relevant portfolio signals", [x.value for x in app.subheader])
         self.assertEqual(len(app.metric), 2)
         self.assertEqual(len(app.get("vega_lite_chart")), 0)
 

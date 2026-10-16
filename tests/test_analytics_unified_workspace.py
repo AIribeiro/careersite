@@ -91,7 +91,7 @@ class UnifiedAnalyticsWorkspaceTests(unittest.TestCase):
 
     def test_legacy_admin_link_resolves_to_cms_in_analytics(self):
         source = (ROOT / "main.py").read_text(encoding="utf-8")
-        self.assertIn('if PAGE == "admin":', source)
+        self.assertIn('LEGACY_ADMIN_LINK = PAGE == "admin"', source)
         self.assertIn('st.query_params["page"] = "analytics"', source)
         self.assertIn('st.query_params["workspace"] = "cms"', source)
         self.assertNotIn('elif PAGE == "admin":', source)

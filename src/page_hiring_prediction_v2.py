@@ -76,9 +76,33 @@ def render_hiring_prediction_v2(data: dict) -> dict:
     scenario = data.get("leading_stage_scenario") or {}
     index = float(data["portfolio_credibility_index"])
 
-    st.subheader("When might I get an offer?")
-    st.caption("Hiring Prediction v2 · verified interview stages and employer evidence. "
-               "Dates are conditional planning scenarios, not calibrated hiring probabilities.")
+    # Answer the user's timing question *before* showing diagnostic scores.
+    # This scenario is conditioned on the leading process continuing successfully.
+    st.subheader("When could I get my next job?")
+    if scenario.get("start_central"):
+        st.markdown(
+            f"## Around {_pretty_date(scenario['start_central'])} "
+            "— potential first day at work"
+        )
+        st.markdown(
+            f"**Possible job offer: around "
+            f"{_pretty_date(scenario.get('offer_central'))}.**"
+        )
+        if scenario.get("start_earliest") and scenario.get("start_latest"):
+            st.caption(
+                "Indicative start-date window: "
+                f"{_pretty_date(scenario['start_earliest'])} – "
+                f"{_pretty_date(scenario['start_latest'])}."
+            )
+    else:
+        st.markdown("## No defensible start date yet")
+        st.caption("A timing scenario requires stronger verified interview evidence.")
+    st.caption(
+        "Conditional stage-based planning estimate, **not a confirmed job, "
+        "offer or statistically calibrated hiring probability**. "
+        "The forecast will change as employers confirm or decline next steps."
+    )
+    st.markdown("**Offer and start — separate milestones**")
 
     left, right = st.columns(2)
     with left:

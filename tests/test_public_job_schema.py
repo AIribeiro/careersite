@@ -82,10 +82,13 @@ class PublicJobSchemaTests(unittest.TestCase):
         with patch("page_public_analytics._job_summary",return_value=REPORT):
             app=AppTest.from_string(
                 "from page_public_analytics import render_public_job_search\n"
-                "render_public_job_search()").run(timeout=15)
+                "render_public_job_search()")
+            app.session_state["public_job_focus"] = "activity"
+            app.run(timeout=15)
         self.assertFalse(app.exception)
         self.assertTrue(any("Dated recruitment activity" in x.value
                             for x in app.subheader))
+        self.assertGreaterEqual(len(app.get("vega_lite_chart")), 1)
 
     def test_migration_explicitly_serializes_composite_row(self):
         sql=(Path(__file__).resolve().parents[1]/

@@ -100,21 +100,26 @@ class PublicHiringPredictionTests(unittest.TestCase):
     def test_date_label_uses_iso_weeks_and_discloses_year(self):
         self.assertEqual(_week({"from":"2026-10-12","to":"2026-10-18"}),"12–18 Oct 2026")
 
-    def test_public_page_renders_no_password_or_owner_only_evidence(self):
+    def test_public_page_uses_current_v2_language_without_beta_forecast(self):
         from streamlit.testing.v1 import AppTest
         with (
             patch("page_public_predictions.fetch_public_analytics_rpc",
-                  side_effect=lambda name: AGGREGATE if name.endswith("hiring_inputs_v1")
-                      else {"signals":[]}),
-            patch("page_public_predictions._fetch_rpc",return_value={}),
+                  return_value={"signals":[]}) as market,
+            patch("page_public_predictions.render_public_conversion_quality") as quality,
+            patch("public_hiring_forecast.forecast_public_hiring") as old_forecast,
         ):
             at=AppTest.from_string(
                 "from page_public_predictions import render_public_hiring_predictions\n"
                 "render_public_hiring_predictions()").run(timeout=20)
             self.assertFalse(at.exception)
-            self.assertIn("Job Predictions",[v.value for v in at.title])
-            self.assertEqual(len(at.text_input),0)
-            self.assertTrue(at.subheader)
+            self.assertIn("Job Predictions", [v.value for v in at.title])
+            self.assertEqual(len(at.text_input), 0)
+            captions = [c.value for c in at.caption]
+            self.assertTrue(any("Hiring Prediction v2" in c for c in captions))
+            self.assertTrue(any("not a verified rejection" in c for c in captions))
+            quality.assert_called_once_with(compact=False)
+            old_forecast.assert_not_called()
+            market.assert_called_once_with("careersite_public_market_summary_v1")
 
 
 if __name__=="__main__":

@@ -49,6 +49,53 @@ def record_daily_first(access_token: str, result: dict, signatures: dict[str,str
        prefer="resolution=ignore-duplicates,return=minimal",timeout=20)
     return True
 
+def build_v2_snapshot(result: dict, source_signatures: dict[str, str]) -> dict:
+    """Archive the v2 stage scenario without inventing offer probabilities."""
+    if result.get("model_version") != "hiring-v2-stage-evidence-provisional":
+        raise ValueError("Only a verified stage-model v2 result may be archived.")
+    s = result.get("leading_stage_scenario") or {}
+    cohort = result.get("cohort") or {}
+    return {
+        "forecast_day": result["as_of"],
+        "model_version": result["model_version"],
+        "central_offer_date": s.get("offer_central"),
+        "top_offer_week": s.get("offer_central"),
+        "top_start_week": s.get("start_central"),
+        "evidence_index": round(float(result.get("portfolio_credibility_index") or 0)),
+        "official_application_total": None,
+        "linked_application_processes": cohort.get("total"),
+        "process_stage_counts": {
+            "stages": result.get("stage_breakdown") or {},
+            "cohort": cohort,
+            "model_notes": "Uncalibrated interview-stage credibility; not hiring probability",
+        },
+        "opportunity_market_effect": None,
+        "opportunity_portfolio_effect": None,
+        "modelled_90d": None,
+        "expected_start_days": {
+            "from": s.get("start_earliest"),
+            "central": s.get("start_central"),
+            "to": s.get("start_latest"),
+            "conditional_scenario": True,
+        },
+        "source_signature": sha256(json.dumps(
+            source_signatures, sort_keys=True, default=str).encode()).hexdigest(),
+    }
+
+
+def record_v2_daily_first(access_token: str, result: dict,
+                          signatures: dict[str, str]) -> bool:
+    """Keep the first owner-only v2 snapshot for each day, without overwriting beta."""
+    if not access_token or not signatures.get("v2"):
+        return False
+    payload = build_v2_snapshot(result, signatures)
+    _request_json("POST", _rest_url(
+        TABLE + "?on_conflict=owner_user_id,forecast_day,model_version"
+    ), token=access_token, payload=payload,
+       prefer="resolution=ignore-duplicates,return=minimal", timeout=20)
+    return True
+
+
 def previous_forecasts(access_token: str, limit: int=15) -> list[dict]:
     if not access_token:
         return []
@@ -56,23 +103,49 @@ def previous_forecasts(access_token: str, limit: int=15) -> list[dict]:
     data=_request_json("GET",_rest_url(
         f"{TABLE}?select=forecast_day,model_version,central_offer_date,"
         "top_offer_week,top_start_week,evidence_index,observed_at"
-        f"&order=forecast_day.desc&limit={n}"
+        f"&order=observed_at.desc&limit={n}"
     ),token=access_token,timeout=15)
     return data if isinstance(data,list) else []
 
-def stability_summary(history: list[dict]) -> dict:
-    """No actual offer labels => do not report a fake backtest accuracy."""
-    rows=[r for r in history if r.get("central_offer_date") and r.get("forecast_day")]
-    if len(rows)<2:
-        return {"status":"Awaiting comparable forecast history",
-                "historical_accuracy_pct":None,"shift_days":None,
-                "history_count":len(history)}
-    rows=sorted(rows,key=lambda r:r["forecast_day"])
-    last=rows[-1]; prior=rows[-2]
-    shift=(date.fromisoformat(last["central_offer_date"])-
-           date.fromisoformat(prior["central_offer_date"])).days
-    return {"status":"Forecast stability only, accuracy not validated",
-            "historical_accuracy_pct":None,"shift_days":shift,
-            "history_count":len(history),
-            "latest_day":last["forecast_day"],
-            "previous_day":prior["forecast_day"]}
+def stability_summary(history: list[dict],
+                      model_version: str | None = None) -> dict:
+    """Compare comparable dates *within* a single model version.
+
+    Switching from beta 4.3 to stage-v2 is not a forecast-date movement.
+    """
+    versions = sorted({r.get("model_version") for r in history
+                       if r.get("model_version")})
+    selected = model_version or (
+        "hiring-v2-stage-evidence-provisional"
+        if "hiring-v2-stage-evidence-provisional" in versions
+        else (versions[-1] if versions else None)
+    )
+    rows = [r for r in history
+            if r.get("central_offer_date") and r.get("forecast_day")
+            and r.get("model_version") == selected]
+    # Multiple versions recorded on one day may not be compared.
+    dated = {}
+    for r in sorted(rows, key=lambda x: x.get("observed_at") or ""):
+        dated.setdefault(r["forecast_day"], r)
+    rows = sorted(dated.values(), key=lambda x: x["forecast_day"])
+    base = {
+        "historical_accuracy_pct": None,
+        "history_count": len(history),
+        "model_version": selected,
+        "comparable_count": len(rows),
+        "model_versions": len(versions),
+    }
+    if len(rows) < 2:
+        return {
+            **base, "status": "Awaiting two dates from the same model",
+            "shift_days": None,
+        }
+    last, prior = rows[-1], rows[-2]
+    shift = (date.fromisoformat(last["central_offer_date"]) -
+             date.fromisoformat(prior["central_offer_date"])).days
+    return {
+        **base, "status": "Within-model forecast stability; accuracy not validated",
+        "shift_days": shift,
+        "latest_day": last["forecast_day"],
+        "previous_day": prior["forecast_day"],
+    }

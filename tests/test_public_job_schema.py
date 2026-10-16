@@ -45,7 +45,9 @@ MARKET=[
 
 class PublicJobSchemaTests(unittest.TestCase):
     def _fetch(self,payload):
-        with patch("site_analytics_public.request.urlopen") as opener:
+        with patch("site_analytics_public.owner_hiring_headers",
+                   return_value={"Authorization": "Bearer test-owner-token"}), \
+             patch("site_analytics_public.request.urlopen") as opener:
             response=opener.return_value.__enter__.return_value
             response.read.return_value=json.dumps(payload).encode()
             return fetch_public_analytics_rpc(

@@ -17,7 +17,7 @@ from portfolio_job_correlations import (
     ANCHORS, LAGS, _site_features, _test_one, _bh_pvalues, _classify,
 )
 from site_analytics_public import fetch_public_analytics_rpc, fetch_public_hiring_timing_v2
-from page_public_predictions import _display_date, _start_window
+from page_public_overview_dashboard import render_public_overview_dashboard
 from public_rejection_insights import rejection_overview_readout
 
 
@@ -48,268 +48,29 @@ def _navigate_public_analytics(view: str) -> None:
 
 @st.fragment(run_every="10m")
 def render_public_analytics_overview() -> None:
-    st.title("Analytics overview")
-    st.caption(
-        "Decision overview · recruitment progress, portfolio attention, "
-        "hiring predictions and Swedish labour-market evidence in one place."
-    )
-    now=datetime.now(ZoneInfo("Europe/Stockholm"))
-    results={}
-    unavailable=[]
-    sources={
-        "hiring":lambda:_fetch_hiring_intelligence("30d"),
-        "jobs":lambda:_job_summary(365),
-        "market":_market_summary,
-        "forecast":lambda:fetch_public_analytics_rpc("careersite_public_hiring_inputs_v1"),
-        "rejections":lambda:fetch_public_analytics_rpc("careersite_public_rejection_summary_v1"),
-        "pipeline":lambda:fetch_public_analytics_rpc("careersite_public_pipeline_health_v1"),
+    """Public, decision-first visual overview of read-only evidence."""
+    now = datetime.now(ZoneInfo("Europe/Stockholm"))
+    results = {}
+    unavailable = []
+    sources = {
+        "hiring": lambda: _fetch_hiring_intelligence("30d"),
+        "jobs": lambda: _job_summary(365),
+        "market": _market_summary,
+        "conversion": lambda: fetch_public_analytics_rpc(
+            "careersite_public_conversion_quality_v1"),
+        "rejections": lambda: fetch_public_analytics_rpc(
+            "careersite_public_rejection_summary_v1"),
+        "pipeline": lambda: fetch_public_analytics_rpc(
+            "careersite_public_pipeline_health_v1"),
+        "timing": fetch_public_hiring_timing_v2,
     }
-    for name,loader in sources.items():
+    for name, loader in sources.items():
         try:
-            results[name]=loader()
-        except (RuntimeError,ValueError,PermissionError,TimeoutError):
+            results[name] = loader()
+        except (RuntimeError, ValueError, PermissionError, TimeoutError, KeyError):
             unavailable.append(name)
-    st.caption(
-        f"Checked {now:%d %b %Y, %H:%M} Stockholm · "
-        "automatic read-only refresh every 10 minutes while this view is open."
-    )
-    if unavailable:
-        st.warning(
-            "Some evidence is temporarily unavailable: "+
-            ", ".join(unavailable)+". The remaining sections stay usable."
-        )
-    hiring=results.get("hiring") or {}
-    jobs=results.get("jobs") or {}
-    market=results.get("market") or {}
-    overview=(jobs.get("totals") or {})
-    quality=(hiring.get("quality_summary") or {})
-    from job_search_outlook import render_search_outlook
-    render_search_outlook(results.get("jobs"), results.get("forecast"), now.date())
-    if results.get("pipeline"):
-        from page_stale_applications import render_pipeline_health
-        render_pipeline_health(results["pipeline"], compact=True)
-    from page_conversion_quality import render_public_conversion_quality
-    render_public_conversion_quality(compact=True)
-    st.caption(
-        "Portfolio attention and dated recruitment events remain separate indicators. "
-        "No anonymous visit is attributed to a recruiter."
-    )
-
-    st.divider()
-    st.subheader("Hiring predictor")
-    try:
-        timing = fetch_public_hiring_timing_v2()
-    except (RuntimeError, ValueError, PermissionError, TimeoutError):
-        timing = {"available": False}
-
-    if timing.get("available"):
-        start_col, offer_col, window_col = st.columns(3, gap="small")
-        with start_col:
-            with st.container(border=True):
-                st.metric("Indicative start", _display_date(
-                    timing["start_central"], compact=True))
-        with offer_col:
-            with st.container(border=True):
-                st.metric("Potential offer", _display_date(
-                    timing["offer_central"], compact=True))
-        with window_col:
-            with st.container(border=True):
-                st.metric("Possible start range", _start_window(timing))
-                st.caption(
-                    "2026–2027" if timing["start_earliest"][:4] !=
-                    timing["start_latest"][:4] else timing["start_earliest"][:4]
-                )
-        st.caption(
-            f"Conditional v2 scenario · assessed "
-            f"{_display_date(timing['as_of'], compact=True)}. "
-            "Not a confirmed offer or start date."
-        )
-        if timing.get("needs_refresh"):
-            st.caption("Timing estimate is over 14 days old; awaiting verified refresh.")
-    else:
-        with st.container(border=True):
-            st.markdown("**No current start-date estimate**")
-            st.caption("A recent verified v2 timing scenario is not available.")
-
-    if st.button("Explore Job predictions",key="public_overview_predictions"):
-        _navigate_public_analytics("predictions")
-
-    st.divider()
-    st.subheader("Where your search stands")
-    if jobs:
-        dated=[]
-        for row in jobs.get("daily") or []:
-            try:
-                d=date.fromisoformat(str(row["d"]))
-            except (KeyError,ValueError,TypeError):
-                continue
-            if d<=now.date():
-                dated.append((d,row))
-        recent=[r for d,r in dated if 0 <=(now.date()-d).days <28]
-        prior=[r for d,r in dated if 28 <=(now.date()-d).days <56]
-        st.caption(
-            "Recent application and contact counts remain available in Job search → Activity. "
-            "The overview emphasizes verified response quality rather than submission volume."
-        )
-        if sum(_n(x.get("applications")) for x in recent) > sum(
-            _n(x.get("applications")) for x in prior
-        ) and sum(_n(x.get("responses")) for x in recent) <= sum(
-            _n(x.get("responses")) for x in prior
-        ):
-            st.info(
-                "Recorded applications increased without an accompanying rise "
-                "in inbound or two-way contacts. Review targeting and response "
-                "latency rather than assuming greater volume means progress."
-            )
-        st.caption(
-            "Dated recruitment events reflect recorded evidence, not live "
-            "employer ATS statuses. Individual follow-ups remain private."
-        )
-    else:
-        st.caption("Public recruitment summary is temporarily unavailable.")
-    if st.button("Explore recruitment funnel and trends",key="public_overview_jobs"):
-        _navigate_public_analytics("jobs")
-
-    st.divider()
-    st.subheader("Rejection intelligence")
-    st.caption("What negative decisions explain, what remains unknown, and what to do next.")
-    rejection_report=results.get("rejections") or {}
-    rejection_readout=rejection_overview_readout(rejection_report)
-    if rejection_readout["status"]=="ok":
-        total=rejection_readout["total"]
-        unknown=_n(rejection_report.get("unknown_causes"))
-        confirmed=_n(rejection_report.get("confirmed_explanations"))
-        recent=rejection_report.get("recent_decisions_30d")
-        cols=st.columns(3)
-        cols[0].metric(
-            "Employer decisions · last 30d",
-            str(recent) if recent is not None else "—",
-            help="Dated negative hiring decisions per canonical process. Suppressed when fewer than 10; not an application rejection rate.",
-        )
-        cols[1].metric(
-            "Cause remains unknown",
-            f"{rejection_readout['unknown_share']:.1%}",
-            help=f"{unknown} of {total} distinct negative hiring processes. Unknown is not evidence of a candidate skill gap.",
-        )
-        cols[2].metric(
-            "Confirmed explanations",
-            f"{confirmed} / {total}",
-            help="Confidence in the recorded explanation, not an employer offer probability. May include a confirmed relative candidate comparison.",
-        )
-        # Separate observation volume from a real rejection rate. A matched
-        # application/decision pair is a documented minimum, not cohort closure.
-        reason_count=rejection_report.get("comparative_selection_count")
-        cohort_pct=rejection_readout.get("cohort_minimum_pct")
-        stage_cols=st.columns(3)
-        stage_cols[0].metric(
-            "Leading explained pattern",
-            f"Comparative selection · {reason_count}" if reason_count is not None else "Unverified",
-            help="Employers selected other candidates; no recurring capability gap is established by these messages.",
-        )
-        stage_cols[1].metric(
-            "Minimum linked rejection share",
-            f"{cohort_pct:.1f}%" if cohort_pct is not None else "—",
-            help="Only exact employer-and-role matches between dated applications and negative decisions since June 2026. Lower bound for the matched tracked cohort; not a final rejection rate.",
-        )
-        stage_cols[2].metric(
-            "Application pairs assessed",
-            str(rejection_readout.get("cohort_applications") or "—"),
-            help="Unique employer-and-role groups with dated application evidence since 1 June 2026; grouping can combine distinct requisitions.",
-        )
-        if cohort_pct is not None:
-            st.caption(
-                f"**Rate interpretation:** {rejection_readout['cohort_matched_negative']} of "
-                f"{rejection_readout['cohort_applications']} tracked application pairs have a "
-                "matching negative decision. This is a **documented minimum**, not your "
-                "overall rejection rate: missing application links, repeat requisitions and "
-                "recent unresolved applications prevent a complete denominator."
-            )
-        previous=rejection_readout.get("previous_decisions_30d")
-        if previous is not None and recent is not None:
-            st.markdown("**Decision-volume trend · two adjacent 30-day periods**")
-            volume=[
-                {"Period":"Previous 30 days","Decisions":_n(previous)},
-                {"Period":"Latest 30 days","Decisions":_n(recent)},
-            ]
-            st.altair_chart(
-                alt.Chart(alt.Data(values=volume)).mark_bar(cornerRadiusEnd=6).encode(
-                    x=alt.X("Period:N",sort=["Previous 30 days","Latest 30 days"],title=None),
-                    y=alt.Y("Decisions:Q",title="Recorded negative decisions",axis=alt.Axis(tickMinStep=1)),
-                    tooltip=[alt.Tooltip("Period:N"),alt.Tooltip("Decisions:Q",format=",d")],
-                ).properties(height=155), width="stretch"
-            )
-            st.caption("Counts reflect both recruitment activity and evidence coverage. Rising decision volume does not, by itself, mean a rising rejection rate.")
-        if rejection_readout.get("comparison_readout"):
-            st.caption(rejection_readout["comparison_readout"])
-        st.markdown(f"**{rejection_readout['evidence_status']}** — {rejection_readout['interpretation']}")
-        st.markdown(f"**Evidence-based next move:** {rejection_readout['action']}")
-        if rejection_readout["cautions"]:
-            st.caption("Evidence gaps: "+" · ".join(rejection_readout["cautions"])+".")
-        st.caption(
-            "Employer decision date, not the date an email was analyzed. "
-            "These counts cannot be divided by applications from a different cohort. "
-            "Detailed reasons and correspondence remain in owner-only Admin → Rejection Analytics."
-        )
-    elif rejection_report:
-        st.caption(rejection_readout["message"])
-    else:
-        st.caption("The aggregate rejection signal is temporarily unavailable; private records are never loaded by public Analytics.")
-
-    st.divider()
-    st.subheader("Portfolio contribution")
-    if hiring:
-        verified=_n(quality.get("evidence_verified_sessions"))
-        qualified=_n(quality.get("analysis_eligible_sessions"))
-        intent=_n(quality.get("hiring_intent_sessions"))
-        a,b,c=st.columns(3)
-        a.metric("Qualified visitor sessions",qualified)
-        b.metric("Evidence-verified sessions",verified,
-                 f"{verified/qualified:.0%} of qualified" if qualified else None,
-                 delta_color="off")
-        c.metric("Hiring-intent session signals",intent,
-                 f"{intent/qualified:.0%} of qualified" if qualified else None,
-                 delta_color="off")
-        st.caption(
-            "Portfolio behavior indicates attention, not a confirmed employer "
-            "or recruiter identity. Hiring intent is an on-site event proxy."
-        )
-    else:
-        st.caption("Portfolio behavior metrics are temporarily unavailable.")
-    if st.button("Explore portfolio performance",key="public_overview_portfolio"):
-        _navigate_public_analytics("portfolio")
-
-    st.divider()
-    st.subheader("What the Swedish market is telling you")
-    signals=market.get("signals") or []
-    if signals:
-        from page_job_market_insights import _latest_by_indicator, _readouts, _format_value
-        latest=_latest_by_indicator(signals)
-        highlights=[latest[x] for x in (
-            "employment_outlook_net_vgr",
-            "employment_outlook_it_tech",
-            "employment_outlook_services_consulting",
-        ) if x in latest]
-        if highlights:
-            columns=st.columns(min(3,len(highlights)))
-            for col,entry in zip(columns,highlights):
-                col.metric(entry.get("indicator_name") or "Employment outlook",
-                           _format_value(entry),
-                           help=f"Published source observation: {entry.get('observation_date')}. "
-                                "Survey outlook is not a personal probability.")
-        for label,statement in _readouts(latest)[:2]:
-            st.markdown(f"**{label}** — {statement}")
-        if not highlights:
-            st.caption(
-                "Latest market observations are available, but there are no "
-                "matching regional outlook snapshots in this release."
-            )
-    else:
-        st.caption("External market observations are temporarily unavailable.")
-    if st.button("Explore complete Swedish market history",key="public_overview_market"):
-        _navigate_public_analytics("market")
-    st.caption(
-        "No causal relationship between anonymous visits and recruitment "
-        "outcomes is assumed. Detailed job processes remain private."
+    render_public_overview_dashboard(
+        results, now, unavailable, _navigate_public_analytics
     )
 
 

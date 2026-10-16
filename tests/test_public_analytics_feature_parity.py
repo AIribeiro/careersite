@@ -62,16 +62,19 @@ class PublicFeatureParityTests(unittest.TestCase):
         self.assertIn("history=_job_summary(365)",source)
 
     def test_decision_overview_composes_three_source_families_and_predictor(self):
-        source=(ROOT/"src/page_public_analytics.py").read_text()
+        source=(ROOT/"src/page_public_overview_dashboard.py").read_text()
+        route=(ROOT/"src/page_public_analytics.py").read_text()
         for label in (
             "Where your search stands",
             "Portfolio contribution",
             "What the Swedish market is telling you",
             "Hiring predictor",
+            "Recruitment momentum",
         ):
             self.assertIn(label,source)
         self.assertIn("render_public_conversion_quality",source)
-        self.assertNotIn("forecast_public_hiring(",source)
+        self.assertIn("render_public_overview_dashboard(",route)
+        self.assertNotIn("forecast_public_hiring(",route)
 
     def test_anon_rpc_projects_no_personal_or_raw_market_content(self):
         sql=(ROOT/"supabase/migrations/20261012_public_market_history_restore.sql").read_text()

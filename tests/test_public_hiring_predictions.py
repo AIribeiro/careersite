@@ -112,7 +112,7 @@ class PublicHiringPredictionTests(unittest.TestCase):
                 "from page_public_predictions import render_public_hiring_predictions\n"
                 "render_public_hiring_predictions()").run(timeout=20)
             self.assertFalse(at.exception)
-            self.assertIn("Job Predictions", [v.value for v in at.title])
+            self.assertIn("When could I get my next job?", [v.value for v in at.title])
             self.assertEqual(len(at.text_input), 0)
             captions = [c.value for c in at.caption]
             self.assertTrue(any("Hiring Prediction v2" in c for c in captions))

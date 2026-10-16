@@ -20,7 +20,8 @@ from page_stale_applications import fetch_private_pipeline, private_summary, ren
 from page_hiring_prediction_v2 import (
     fetch_hiring_prediction_v2, render_hiring_prediction_v2, VERSION as HIRING_V2_VERSION,
 )
-from hiring_forecast_history import record_v2_daily_first, previous_forecasts, stability_summary
+from hiring_forecast_history import (record_v2_daily_first, publish_v2_timing,
+                                     previous_forecasts, stability_summary)
 from site_cms import ensure_owner_session, _request_json, _rest_url
 
 
@@ -249,6 +250,11 @@ def render_analytics_overview(session: dict | None) -> None:
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             st.caption("Today's stage-based forecast was calculated, but the "
                        "historical archive could not be updated.")
+        try:
+            publish_v2_timing(str(valid["access_token"]), v2_prediction)
+        except (RuntimeError, TimeoutError, PermissionError, ValueError):
+            st.caption("The private forecast is current, but its public date-only "
+                       "projection could not be refreshed.")
         try:
             archived = previous_forecasts(str(valid["access_token"]))
         except (RuntimeError, TimeoutError, PermissionError, ValueError):

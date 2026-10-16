@@ -15,6 +15,13 @@ from page_conversion_quality import render_public_conversion_quality
 from site_analytics_public import fetch_public_analytics_rpc, fetch_public_hiring_timing_v2
 
 
+def _display_date(value: str | None) -> str:
+    try:
+        return date.fromisoformat(str(value)).strftime("%d %B %Y").lstrip("0")
+    except (TypeError, ValueError):
+        return "Not available"
+
+
 def _week(x: dict | None) -> str:
     """Legacy historical date formatting; not used for live public predictions."""
     if not x:

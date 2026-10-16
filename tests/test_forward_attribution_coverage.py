@@ -83,7 +83,7 @@ class AttributionMonitoringTests(unittest.TestCase):
                 "render_attribution_coverage()\n"
             ).run(timeout=20)
         self.assertFalse(at.exception)
-        self.assertTrue(any("No eligible new content sessions" in x.message
+        self.assertTrue(any("No eligible new content sessions" in x.value
                             for x in at.info))
 
     def test_content_session_counters_and_medium_reconciliation(self):

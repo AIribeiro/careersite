@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import Mock
 
 from analytics_reporting_period import (
-    WINDOW_KEY, PREFERENCE_KEY, initialize_reporting_period, remember_reporting_period,
+    WINDOW_KEY, PREFERENCE_KEY, DEFAULT_WINDOWS, initialize_reporting_period, remember_reporting_period,
 )
 
 
@@ -10,10 +10,33 @@ class ReportingPeriodTests(unittest.TestCase):
     def test_zero_uses_today(self):
         for value in (0, "0"):
             state = {}
-            fetch = Mock(return_value={"totals": {"sessions": value}})
+            fetch = Mock(side_effect=[{"totals": {"sessions": value}}, {"totals": {"sessions": 2}}])
             initialize_reporting_period(state, fetch)
             self.assertEqual(state[WINDOW_KEY], "today")
-            fetch.assert_called_once_with("last_hour")
+            self.assertEqual([c.args[0] for c in fetch.call_args_list], ["last_hour", "today"])
+
+    def test_each_period_is_selected_when_first_nonempty(self):
+        for index, expected in enumerate(DEFAULT_WINDOWS):
+            state = {}
+            fetch = Mock(side_effect=[{"totals": {"sessions": 0}}] * index
+                         + [{"totals": {"sessions": 1}}])
+            initialize_reporting_period(state, fetch)
+            self.assertEqual(state[WINDOW_KEY], expected)
+            self.assertEqual([c.args[0] for c in fetch.call_args_list], list(DEFAULT_WINDOWS[:index+1]))
+
+    def test_all_empty_stops_at_365_days(self):
+        state = {}
+        fetch = Mock(return_value={"totals": {"sessions": 0}})
+        initialize_reporting_period(state, fetch)
+        self.assertEqual(state[WINDOW_KEY], "365d")
+        self.assertEqual(fetch.call_count, len(DEFAULT_WINDOWS))
+
+    def test_error_after_zero_stops_without_widening_again(self):
+        state = {}
+        fetch = Mock(side_effect=[{"totals": {"sessions": 0}}, RuntimeError("offline")])
+        initialize_reporting_period(state, fetch)
+        self.assertEqual(state[WINDOW_KEY], "today")
+        self.assertEqual(fetch.call_count, 2)
 
     def test_activity_keeps_last_hour(self):
         state = {}

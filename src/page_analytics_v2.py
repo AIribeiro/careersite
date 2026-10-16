@@ -103,7 +103,7 @@ def render_analytics_dashboard() -> None:
         key="careersite_analytics_reporting_window",
         on_change=remember_reporting_period,
         args=(st.session_state,),
-        help="Starts with Last hour, or Today when the last hour has zero recorded sessions. Your selection is kept while you use Analytics.",
+        help="Starts with the first period with recorded sessions: Last hour → Today → 7 → 30 → 90 → 365 days. If all are empty, shows 365 days. Your manual selection is kept while you use Analytics.",
     )
     if str(window) in ("last_hour","today"):
         st.caption("Short windows are useful for monitoring, not for judging hiring or content outcomes.")

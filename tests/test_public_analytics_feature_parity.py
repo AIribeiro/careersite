@@ -17,9 +17,14 @@ sys.path.insert(0,str(ROOT/"src"))
 class PublicFeatureParityTests(unittest.TestCase):
     def test_no_login_and_every_primary_view_preserved(self):
         from page_analytics_v2 import _VIEWS
-        self.assertEqual(set(_VIEWS),{
-            "overview","portfolio","jobs","predictions","market"
-        })
+        self.assertEqual(set(_VIEWS),{"overview","portfolio"})
+        # Historical recruitment charts were moved, not removed.
+        from page_admin import _dashboard
+        import inspect
+        private = inspect.getsource(_dashboard)
+        for label in ("Hiring overview", "Job search", "Job market",
+                      "Job predictions", "Detailed analysis"):
+            self.assertIn(label, private)
         source=(ROOT/"src/page_analytics_v2.py").read_text()
         self.assertNotIn("persistent_owner_session",source)
         self.assertNotIn("_owner_session()",source)

@@ -69,7 +69,9 @@ class PublicRejectionInsightTests(unittest.TestCase):
         self.assertIn("Avoid attributing unknown decisions", result["action"])
 
     def _fetch_public_rpc(self, payload):
-        with patch("site_analytics_public.request.urlopen") as opener:
+        with patch("site_analytics_public.owner_hiring_headers",
+                   return_value={"Authorization": "Bearer test-owner-token"}), \
+             patch("site_analytics_public.request.urlopen") as opener:
             response = opener.return_value.__enter__.return_value
             response.read.return_value = json.dumps(payload).encode()
             return fetch_public_analytics_rpc("careersite_public_rejection_summary_v1")

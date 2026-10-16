@@ -12,7 +12,7 @@ from datetime import date
 import streamlit as st
 
 from page_conversion_quality import render_public_conversion_quality
-from site_analytics_public import fetch_public_analytics_rpc
+from site_analytics_public import fetch_public_analytics_rpc, fetch_public_hiring_timing_v2
 
 
 def _week(x: dict | None) -> str:

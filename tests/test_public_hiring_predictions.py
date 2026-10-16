@@ -132,7 +132,8 @@ class PublicHiringPredictionTests(unittest.TestCase):
             self.assertTrue(any("17 December 2026" in value for value in values))
             self.assertTrue(any("19 Nov 2026" in value for value in values))
             self.assertTrue(any("17 Dec 2026" in value for value in values))
-            self.assertTrue(any("21 Jan 2027" in value for value in values))
+            self.assertTrue(any("19 Nov ’26 – 21 Jan ’27" in value for value in values))
+            self.assertFalse(any("→" in value for value in values))
             # Streamlit metric widgets ellipsize long dates in narrow columns.
             self.assertEqual(len(at.metric), 0)
             self.assertEqual(len(at.get("vega_lite_chart")), 1)

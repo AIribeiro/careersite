@@ -111,7 +111,7 @@ class ReactivePortfolioSignalTests(unittest.TestCase):
         source = next(x for x in top + more if x.key == "attribution_gap")
         self.assertIn("direct or unknown", source.message)
         self.assertIn("194", source.evidence)
-        self.assertIn("Standardize source", source.next_check)
+        self.assertIn("channel-tagged", source.next_check)
 
     def test_low_traffic_is_not_exaggerated(self):
         empty = {"period_comparison": [], "performance": [], "campaigns": []}

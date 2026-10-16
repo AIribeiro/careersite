@@ -20,6 +20,7 @@ from site_cms import (
     CmsArticle,
     admin_list_articles,
     article_preview_url,
+    article_url,
     bundled_header_bytes,
     change_article_status,
     delete_article,
@@ -804,6 +805,65 @@ def _private_view_changed() -> None:
     st.session_state["_owner_last_private_url"] = route
 
 
+def _distribution_links(articles: list[CmsArticle]) -> None:
+    """Owner-only canonical links for intentional portfolio distribution."""
+    from site_campaign_links import CHANNEL_MEDIA, make_distribution_link
+
+    with st.expander("Distribution links · source and campaign tracking", expanded=False):
+        st.caption(
+            "Use these links when publishing articles, WEEKLY AI, Daily Quotes "
+            "or sending portfolio introductions. Existing untagged visits "
+            "cannot be reconstructed from a link created today."
+        )
+        locations = {
+            "Portfolio home": "https://jairribeiro-ai.streamlit.app/",
+            "Thinking & articles": "https://jairribeiro-ai.streamlit.app/?page=thinking",
+            "WEEKLY AI archive": "https://jairribeiro-ai.streamlit.app/?page=thinking&weekly_ai=archive",
+            "Leadership impact": "https://jairribeiro-ai.streamlit.app/?page=impact",
+            "AI governance": "https://jairribeiro-ai.streamlit.app/?page=governance",
+        }
+        for article in articles:
+            if article.status.lower() == "published" and article.slug:
+                locations[f"Article: {article.title}"] = article_url(article)
+        col1, col2 = st.columns(2)
+        with col1:
+            channel = st.selectbox("Distribution channel", list(CHANNEL_MEDIA),
+                                   key="cms_distribution_channel")
+            campaign_choice = st.selectbox(
+                "Campaign", ["portfolio", "thinking", "weekly_ai", "dailyquote",
+                             "introduction", "outreach", "custom"],
+                key="cms_distribution_campaign",
+            )
+        with col2:
+            destination = st.selectbox("Destination", list(locations),
+                                       key="cms_distribution_destination")
+            custom = (st.text_input("Custom campaign slug",
+                                    placeholder="weekly_ai_2026_w42",
+                                    key="cms_distribution_custom")
+                      if campaign_choice == "custom" else "")
+        campaign = custom if campaign_choice == "custom" else campaign_choice
+        slug = ""
+        for article in articles:
+            if destination == f"Article: {article.title}":
+                slug = article.slug
+                break
+        if campaign:
+            try:
+                link = make_distribution_link(
+                    locations[destination], channel=channel,
+                    campaign=campaign, content=slug,
+                )
+                st.code(link, language=None, wrap_lines=True)
+                st.caption(
+                    "source and utm_source identify the known channel; "
+                    "utm_campaign describes the distribution series; "
+                    "utm_content identifies the article when applicable. "
+                    "The permalink remains unchanged."
+                )
+            except ValueError as exc:
+                st.warning(str(exc))
+
+
 def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
     token = str(session["access_token"])
     user = session.get("user") or {}
@@ -908,6 +968,11 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
     except Exception as exc:
         st.error(str(exc))
         return
+
+    # Distribution links are available in the article list, not in the editor
+    # where reruns could otherwise discard an unsaved article form.
+    if not st.session_state.get("cms_edit_id"):
+        _distribution_links(articles)
 
     edit_id = st.session_state.get("cms_edit_id")
     if edit_id == "__new__":

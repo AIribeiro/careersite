@@ -76,7 +76,11 @@ class JobAnalyticsTests(unittest.TestCase):
             private_fetch.assert_not_called()
             self.assertEqual(app.title[0].value,"Job Search Analytics")
             self.assertEqual(len(app.text_input),0)
-            self.assertEqual(len(app.metric),4)
+            self.assertGreaterEqual(len(app.get("segmented_control")), 2)
+            self.assertTrue(any(
+                "conversion always uses original dated" in x.value
+                for x in app.caption
+            ))
 
 
     def test_private_report_renders_graphs_and_empty_metrics(self):

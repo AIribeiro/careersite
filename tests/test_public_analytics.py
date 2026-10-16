@@ -69,7 +69,9 @@ class PublicAnalyticsTests(unittest.TestCase):
                 "render_public_analytics_overview()").run(timeout=15)
             self.assertFalse(at.exception)
             self.assertIn("Analytics overview",[x.value for x in at.title])
-            self.assertGreaterEqual(len(at.metric),4)
+            # The visual overview intentionally uses date tiles rather than
+            # clipped metric values for the hiring forecast.
+            self.assertIn("Hiring predictor", [x.value for x in at.subheader])
             private.assert_not_called()
 
     def test_public_market_renders_cited_aggregates(self):

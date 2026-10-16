@@ -62,7 +62,8 @@ def make_distribution_link(
             or target.port is not None or target.username is not None \
             or target.password is not None:
         raise ValueError("Destination must be the public portfolio site.")
-    if target.path not in ("", "/", "/~/+/"):
+    is_article = bool(re.fullmatch(r"/thinking/[a-z0-9][a-z0-9-]{0,130}/?", target.path))
+    if target.path not in ("", "/", "/~/+/") and not is_article:
         raise ValueError("Unsupported portfolio destination path.")
     original = parse_qsl(target.query, keep_blank_values=False)
     params = [(key, val) for key, val in original

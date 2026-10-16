@@ -1,25 +1,30 @@
-"""Public anonymized Hiring Predictor, with detailed Beta kept owner-only."""
+"""Public hiring outlook: evidence-led, without private v2 process details.
+
+The prior public beta model inferred spurious offer weeks from aggregate
+stage counts and hypothetical future applications. The authoritative personal
+interview-stage v2 model is owner-only and must never be called anonymously.
+The old public beta math remains as historical code, but is not rendered.
+"""
 from __future__ import annotations
 
 from datetime import date
 
-import altair as alt
 import streamlit as st
 
-from public_hiring_forecast import forecast_public_hiring
+from page_conversion_quality import render_public_conversion_quality
 from site_analytics_public import fetch_public_analytics_rpc
-from page_content_intelligence import _fetch_rpc
 
 
 def _week(x: dict | None) -> str:
+    """Legacy historical date formatting; not used for live public predictions."""
     if not x:
         return "Not yet estimable"
     try:
-        a=date.fromisoformat(str(x["from"]))
-        b=date.fromisoformat(str(x["to"]))
-    except (ValueError,TypeError,KeyError):
+        a = date.fromisoformat(str(x["from"]))
+        b = date.fromisoformat(str(x["to"]))
+    except (ValueError, TypeError, KeyError):
         return "Not yet estimable"
-    if a.month==b.month:
+    if a.month == b.month:
         return f"{a.day}–{b.day} {b:%b %Y}"
     return f"{a:%d %b} – {b:%d %b %Y}"
 
@@ -28,148 +33,65 @@ def _week(x: dict | None) -> str:
 def render_public_hiring_predictions() -> None:
     st.title("Job Predictions")
     st.caption(
-        "Hiring Predictor · public planning edition. "
-        "Based on anonymized recruitment-stage distributions, quality-filtered "
-        "portfolio activity and cited Swedish market signals."
+        "Hiring Prediction v2 · evidence-first edition. This public view uses "
+        "privacy-thresholded cohort statistics, not private recruiter records."
     )
-    try:
-        inputs=fetch_public_analytics_rpc("careersite_public_hiring_inputs_v1")
-    except (RuntimeError,ValueError,PermissionError):
-        st.warning("Hiring scenarios are temporarily unavailable.")
-        return
+    st.markdown("**The current personal forecast is based on verified recruiting stages.**")
+    st.info(
+        "An employer's confirmed interview progression matters more than "
+        "an application count. Public, aggregated stage history cannot reliably "
+        "identify a personal offer week or first day at work."
+    )
 
-    market=[]
-    portfolio={}
-    market_ok=False
-    portfolio_ok=False
-    try:
-        data=fetch_public_analytics_rpc("careersite_public_market_summary_v1")
-        market=data.get("signals") or []
-        market_ok=True
-    except (RuntimeError,ValueError,PermissionError):
-        pass
-    try:
-        portfolio=_fetch_rpc("careersite_portfolio_signals_daily_v1",{"p_days":365})
-        portfolio_ok=True
-    except (RuntimeError,ValueError,PermissionError):
-        pass
-
-    assumed=int(inputs.get("provisional_date_assumption_stage_count") or 0)
-    if assumed:
-        st.caption(
-            f"{assumed} application-stage inputs use a manually assumed 15 Sep 2026 "
-            "date at the existing 0.35 fallback weight. They are provisional "
-            "planning assumptions, not verified application dates or recruiter responses."
-        )
-    result=forecast_public_hiring(inputs, portfolio, market)
+    st.markdown("**What the latest evidence can establish**")
     st.caption(
-        "Stage inputs exclude only current evidence-verified dormant processes; "
-        "unverified silence is not rejection. This aggregate planning model "
-        "uses the original dated application history."
+        "Recorded human responses and interviews provide stronger indications of "
+        "recruiting traction than job-application volume. Confirmed subsequent "
+        "interview invitations are distinct from completed interviews. "
+        "Employer silence represents uncertainty, not a verified rejection."
     )
-    if result["status"]=="offer_recorded":
-        st.info("A current offer is already documented. An additional first-offer scenario is withheld.")
-        return
-    if result["status"]=="insufficient":
-        st.info("Not enough dated hiring-stage evidence for a meaningful planning period.")
-        return
+    render_public_conversion_quality(compact=False)
 
-    offer=(result["windows"].get("offers") or [None])[0]
-    starting=(result["windows"].get("starts") or [None])[0]
-    a,b=st.columns(2)
-    with a:
-        st.markdown("**Highest-weighted offer week**")
-        st.subheader(_week(offer))
-        if offer:
-            st.caption(
-                f"{offer['model_week_pct']:.1f}% of this scenario's "
-                "weekly model weight—not a calibrated likelihood."
-            )
-    with b:
-        st.markdown("**Highest-weighted start week**")
-        st.subheader(_week(starting))
-        if starting:
-            st.caption(
-                f"{starting['model_week_pct']:.1f}% of this scenario's "
-                "weekly model weight—not a confirmed start date."
-            )
-
-    st.markdown("**Offer-timing planning scenarios**")
-    data=[{"Date":r["Date"],"Scenario":name,"Model index":round(100*r[name],1)}
-          for r in result["curve"]
-          for name in ("Conservative","Current pace","Faster conversion")]
-    if data:
-        chart=(alt.Chart(alt.Data(values=data)).mark_line()
-               .encode(x=alt.X("Date:T",title="Potential offer period"),
-                       y=alt.Y("Model index:Q",title="Illustrative model index (0–100)",
-                               scale=alt.Scale(domain=[0,100])),
-                       color="Scenario:N",
-                       tooltip=["Date:T","Scenario:N","Model index:Q"])
-               .properties(height=290))
-        st.altair_chart(chart,width="stretch")
+    st.markdown("**What cannot yet be inferred**")
     st.caption(
-        "The vertical scale represents scenario mathematics, not independently "
-        "validated personal hiring probabilities. Conservative/current/faster "
-        "assumptions vary conversion and opportunity pace, not confirmed decisions."
+        "There are not enough verified offer outcomes to calibrate a personal "
+        "30-, 60- or 90-day offer probability. Historical beta 4.3 curves and "
+        "highest-weighted offer weeks are therefore no longer presented as "
+        "current forecasts."
     )
 
-    m1,m2,m3=st.columns(3)
-    m1.metric("Future application pace assumed",f"{result['weekly_application_pace']:.1f}/week")
-    m2.metric("Portfolio scenario contribution",f"{result['portfolio_effect']:+.1%}")
-    m3.metric("Swedish market contribution",f"{result['market_effect']:+.1%}")
-    market_context=result.get("market_context") or {}
-    nowcast=market_context.get("nowcast") or {}
-    if nowcast.get("components"):
+    try:
+        market = fetch_public_analytics_rpc("careersite_public_market_summary_v1")
+    except (RuntimeError, ValueError, PermissionError, TimeoutError):
+        market = None
+    if isinstance(market, dict) and market.get("signals"):
         st.caption(
-            f"Current-month JobTech nowcast: {nowcast.get('effect',0):+.1%}. "
-            "Partial-month AI/Data leadership ad pace is compared with the "
-            "previous completed month and damped for sample size and month completeness."
+            "Swedish labour-market and target-role demand evidence remains an "
+            "external contextual factor. It does not establish an employer's "
+            "decision about an individual candidate."
         )
-    corroboration=float(market_context.get("corroboration_multiplier") or 1.0)
-    if corroboration>1.001:
+
+    with st.expander("What changed in the hiring methodology?"):
+        st.markdown(
+            "**V2 (current, private):** verified employer contact, scheduled versus "
+            "completed interviews, subsequent-round progression, role alignment, "
+            "evidence freshness and employer decisions. Its credibility index is "
+            "a descriptive pipeline score, not a hiring probability."
+        )
+        st.markdown(
+            "**Beta 4.3 (historical):** scenario curves built from 30-day "
+            "aggregated stages, hypothetical application pace and capped "
+            "market/portfolio multipliers. These produced illustrative week "
+            "weights, not validated personal employment forecasts."
+        )
         st.caption(
-            f"Cross-signal confirmation: ×{corroboration:.2f}, still bounded by "
-            "the Swedish-market cap."
+            "The stage-level evidence required for v2 is owner-only, including "
+            "specific employers, hiring-manager correspondence, roles and "
+            "interview appointments. It is not exposed through this page."
         )
-    strategy=result.get("strategy_context") or {}
-    if strategy.get("records_used"):
-        st.caption(
-            f"Strategy calibration: {strategy['records_used']} current job-search "
-            "strategy records are consumed as qualitative guardrails. They do not "
-            "receive an unvalidated probability multiplier."
-        )
-    with st.expander("How this edition differs from the detailed Hiring Predictor"):
-        st.write(
-            "This is a privacy-preserving approximation of the existing "
-            f"{result['model_family']} stage-based planning model. Individual "
-            "employers, roles, case notes and recruiter details are not published. "
-            "Instead, current hiring stages are grouped into 30-day age buckets; "
-            "that coarsening changes the estimated offer/start weeks slightly."
-        )
-        st.write(
-            "The 30-day, 7-day or Today reporting selector in Job Search affects "
-            "activity charts only. Predictions intentionally use the complete "
-            "dated recruitment history and up to 365 days of portfolio data."
-        )
-        st.write(
-            "The public model cannot use the detailed owner-only CV/contact "
-            "action breakdowns or the complete per-process records. "
-            "Consequently its output may differ from the protected "
-            "Hiring Predictor Beta, which remains the authoritative personal "
-            "planning model."
-        )
-        if not market_ok or not portfolio_ok:
-            st.warning(
-                "Some live market or portfolio data were unavailable; "
-                "missing drivers were kept neutral rather than invented."
-            )
-        st.caption(
-            "All numbers are dynamic and conditional. Historical applications "
-            "can be revised; opportunities may close unexpectedly. "
-            "A first day at work is modeled roughly 3–8 weeks after an offer."
-        )
+
     st.markdown(
-        "For the full role-by-role, evidence-sensitive predictor and detailed "
-        "recruitment drivers, open the **[private owner workspace](?page=admin)** "
-        "and choose **Decision overview**."
+        "To see the **current role-by-role v2 forecast and conditional hiring "
+        "window**, open the **[private owner workspace](?page=admin)** and "
+        "select **Decision overview**."
     )

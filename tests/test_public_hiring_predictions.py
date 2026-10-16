@@ -128,8 +128,13 @@ class PublicHiringPredictionTests(unittest.TestCase):
             self.assertFalse(at.exception)
             self.assertIn("When could I get my next job?", [v.value for v in at.title])
             self.assertEqual(len(at.text_input), 0)
-            self.assertTrue(any("17 December 2026" in m.value for m in at.markdown))
-            self.assertEqual(len(at.metric), 3)
+            values = [m.value for m in at.markdown]
+            self.assertTrue(any("17 December 2026" in value for value in values))
+            self.assertTrue(any("19 Nov 2026" in value for value in values))
+            self.assertTrue(any("17 Dec 2026" in value for value in values))
+            self.assertTrue(any("21 Jan 2027" in value for value in values))
+            # Streamlit metric widgets ellipsize long dates in narrow columns.
+            self.assertEqual(len(at.metric), 0)
             self.assertEqual(len(at.get("vega_lite_chart")), 1)
             self.assertEqual(len(at.expander), 2)
             self.assertEqual([x.label for x in at.expander],

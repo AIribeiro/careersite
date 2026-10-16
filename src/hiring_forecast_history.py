@@ -96,6 +96,26 @@ def record_v2_daily_first(access_token: str, result: dict,
     return True
 
 
+def publish_v2_timing(access_token: str, result: dict) -> bool:
+    """Publish the six scenario dates only; all process records stay private."""
+    if not access_token or result.get("model_version") != "hiring-v2-stage-evidence-provisional":
+        return False
+    scenario = result.get("leading_stage_scenario") or {}
+    fields = ("offer_central", "offer_earliest", "offer_latest",
+              "start_central", "start_earliest", "start_latest")
+    if any(not scenario.get(k) for k in fields):
+        return False
+    payload = {"id": 1, "model_version": result["model_version"],
+               "as_of": result["as_of"],
+               **{k: scenario[k] for k in fields}}
+    _request_json(
+        "POST", _rest_url("careersite_public_hiring_timing_v2?on_conflict=id"),
+        token=access_token, payload=payload,
+        prefer="resolution=merge-duplicates,return=minimal", timeout=20,
+    )
+    return True
+
+
 def previous_forecasts(access_token: str, limit: int=15) -> list[dict]:
     if not access_token:
         return []

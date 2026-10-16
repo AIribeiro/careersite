@@ -1,29 +1,71 @@
-"""Public hiring outlook: evidence-led, without private v2 process details.
+"""Public decision-first hiring outlook.
 
-The prior public beta model inferred spurious offer weeks from aggregate
-stage counts and hypothetical future applications. The authoritative personal
-interview-stage v2 model is owner-only and must never be called anonymously.
-The old public beta math remains as historical code, but is not rendered.
+Only the explicitly published date-only v2 scenario is shown anonymously.
+Employer, role, interview, recruiter and application evidence remain private.
+Historical beta forecast math is not rendered as a live prediction.
 """
 from __future__ import annotations
 
 from datetime import date
 
+import altair as alt
 import streamlit as st
 
 from page_conversion_quality import render_public_conversion_quality
-from site_analytics_public import fetch_public_analytics_rpc, fetch_public_hiring_timing_v2
+from site_analytics_public import (
+    fetch_public_analytics_rpc, fetch_public_hiring_timing_v2,
+)
 
 
-def _display_date(value: str | None) -> str:
+def _display_date(value: str | None, *, compact: bool = False) -> str:
+    """Human-readable dates without platform-dependent %-d formatting."""
     try:
-        return date.fromisoformat(str(value)).strftime("%d %B %Y").lstrip("0")
+        day = date.fromisoformat(str(value))
     except (TypeError, ValueError):
         return "Not available"
+    return f"{day.day} {day:%b %Y}" if compact else f"{day.day} {day:%B %Y}"
+
+
+def _start_window(timing: dict) -> str:
+    a = date.fromisoformat(timing["start_earliest"])
+    b = date.fromisoformat(timing["start_latest"])
+    return f"{a.day} {a:%b} – {b.day} {b:%b}"
+
+
+def _timing_chart(timing: dict) -> alt.Chart:
+    """Visual date ranges, not a cumulative hiring-probability curve."""
+    data = [
+        {"Milestone": "Offer", "Earliest": timing["offer_earliest"],
+         "Midpoint": timing["offer_central"], "Latest": timing["offer_latest"]},
+        {"Milestone": "Start", "Earliest": timing["start_earliest"],
+         "Midpoint": timing["start_central"], "Latest": timing["start_latest"]},
+    ]
+    source = alt.Data(values=data)
+    y = alt.Y("Milestone:N", sort=["Offer", "Start"],
+              title=None, axis=alt.Axis(labelFontSize=13))
+    start = alt.X("Earliest:T", title=None,
+                  axis=alt.Axis(format="%d %b", labelAngle=0, tickCount=5))
+    tooltip = [
+        alt.Tooltip("Milestone:N"),
+        alt.Tooltip("Earliest:T", title="Early scenario", format="%d %b %Y"),
+        alt.Tooltip("Midpoint:T", title="Central scenario", format="%d %b %Y"),
+        alt.Tooltip("Latest:T", title="Later scenario", format="%d %b %Y"),
+    ]
+    window = (
+        alt.Chart(source)
+        .mark_bar(size=17, cornerRadius=5)
+        .encode(x=start, x2="Latest:T", y=y, tooltip=tooltip)
+    )
+    midpoint = (
+        alt.Chart(source)
+        .mark_point(size=115, filled=True, shape="diamond")
+        .encode(x="Midpoint:T", y=y, tooltip=tooltip)
+    )
+    return (window + midpoint).properties(height=118)
 
 
 def _week(x: dict | None) -> str:
-    """Legacy historical date formatting; not used for live public predictions."""
+    """Legacy date formatter for historical beta regression fixtures."""
     if not x:
         return "Not yet estimable"
     try:
@@ -45,88 +87,85 @@ def render_public_hiring_predictions() -> None:
         timing = {"available": False}
 
     if timing.get("available"):
-        st.markdown(f"## Around {_display_date(timing['start_central'])}")
-        st.markdown("**Indicative first day at work**")
-        st.markdown(
-            f"**Potential job offer: around {_display_date(timing['offer_central'])}.**"
-        )
+        with st.container(border=True):
+            st.caption("INDICATIVE FIRST DAY AT WORK")
+            st.markdown(f"# {_display_date(timing['start_central'])}")
+            st.caption(
+                "Conditional on current interview processes progressing to an offer."
+            )
+
+        offer, starting, window = st.columns(3, gap="small")
+        with offer:
+            with st.container(border=True):
+                st.metric("Potential job offer", _display_date(
+                    timing["offer_central"], compact=True))
+        with starting:
+            with st.container(border=True):
+                st.metric("Potential start", _display_date(
+                    timing["start_central"], compact=True))
+        with window:
+            with st.container(border=True):
+                st.metric("Possible start window", _start_window(timing))
+                st.caption("2026–2027" if timing["start_earliest"][:4] !=
+                           timing["start_latest"][:4] else
+                           timing["start_earliest"][:4])
+
+        st.markdown("**Offer and start timing range**")
+        st.altair_chart(_timing_chart(timing), width="stretch")
         st.caption(
-            "Potential start window: "
-            f"{_display_date(timing['start_earliest'])} – "
-            f"{_display_date(timing['start_latest'])}. "
-            "The timing assumes successful recruiting progression, "
-            "not a confirmed employer decision."
-        )
-        st.caption(
-            f"Hiring Prediction v2 · assessed {_display_date(timing['as_of'])}. "
-            "Dates represent a conditional scenario, not a calibrated "
-            "personal hiring probability."
+            f"Ranges show early–late scenarios; diamonds mark central dates. "
+            f"Updated {_display_date(timing['as_of'])} · "
+            "Not a confirmed offer or calibrated hiring probability."
         )
         if timing.get("needs_refresh"):
-            st.warning(
-                "This estimate is more than two weeks old. "
-                "It will update when the owner forecast is refreshed."
-            )
+            st.warning("This scenario is older than two weeks; the next verified "
+                       "recruitment update will refresh it.")
     else:
-        st.markdown("## No current timing estimate available")
+        with st.container(border=True):
+            st.markdown("## No current start-date scenario")
+            st.caption(
+                "The latest published v2 forecast is unavailable or too old. "
+                "The page does not substitute unvalidated offer-week estimates."
+            )
+
+    st.divider()
+    with st.expander("Recruitment evidence and conversion", expanded=False):
         st.caption(
-            "A recent versioned hiring forecast has not been published. "
-            "The model requires new verified interview-stage evidence."
+            "Human responses and verified interview progression are stronger "
+            "signals than application volume. A scheduled interview is not "
+            "a completed one. Silence is not a verified rejection."
         )
-    st.caption(
-        "The public display contains offer and start dates only. "
-        "Recruiting details remain in the authenticated Decision overview."
-    )
+        render_public_conversion_quality(compact=False)
 
-    st.markdown("**What the latest evidence can establish**")
-    st.caption(
-        "Recorded human responses and interviews provide stronger indications of "
-        "recruiting traction than job-application volume. Confirmed subsequent "
-        "interview invitations are distinct from completed interviews. "
-        "Employer silence represents uncertainty, not a verified rejection."
-    )
-    render_public_conversion_quality(compact=False)
-
-    st.markdown("**What cannot yet be inferred**")
-    st.caption(
-        "There are not enough verified offer outcomes to calibrate a personal "
-        "30-, 60- or 90-day offer probability. Historical beta 4.3 curves and "
-        "highest-weighted offer weeks are therefore no longer presented as "
-        "current forecasts."
-    )
-
-    try:
-        market = fetch_public_analytics_rpc("careersite_public_market_summary_v1")
-    except (RuntimeError, ValueError, PermissionError, TimeoutError):
-        market = None
-    if isinstance(market, dict) and market.get("signals"):
-        st.caption(
-            "Swedish labour-market and target-role demand evidence remains an "
-            "external contextual factor. It does not establish an employer's "
-            "decision about an individual candidate."
-        )
-
-    with st.expander("What changed in the hiring methodology?"):
+    with st.expander("Methodology, market context and limitations", expanded=False):
         st.markdown(
-            "**V2 (current, private):** verified employer contact, scheduled versus "
-            "completed interviews, subsequent-round progression, role alignment, "
-            "evidence freshness and employer decisions. Its credibility index is "
-            "a descriptive pipeline score, not a hiring probability."
-        )
-        st.markdown(
-            "**Beta 4.3 (historical):** scenario curves built from 30-day "
-            "aggregated stages, hypothetical application pace and capped "
-            "market/portfolio multipliers. These produced illustrative week "
-            "weights, not validated personal employment forecasts."
+            "**Current model:** Hiring Prediction v2 uses confirmed recruiting "
+            "stages, role alignment and evidence freshness. Its date range is "
+            "conditional on future successful progression, not an observed "
+            "30-, 60- or 90-day chance of getting hired."
         )
         st.caption(
-            "The stage-level evidence required for v2 is owner-only, including "
-            "specific employers, hiring-manager correspondence, roles and "
-            "interview appointments. It is not exposed through this page."
+            "Historic beta 4.3 model-week curves have been retired from the "
+            "current page because their arbitrary weights did not measure "
+            "personal hiring probabilities."
+        )
+        try:
+            market = fetch_public_analytics_rpc(
+                "careersite_public_market_summary_v1")
+        except (RuntimeError, ValueError, PermissionError, TimeoutError):
+            market = None
+        if isinstance(market, dict) and market.get("signals"):
+            st.caption(
+                "Swedish labour-market signals provide context, not proof of "
+                "a particular employer's hiring decision."
+            )
+        st.caption(
+            "Only dates from a specifically published v2 projection appear "
+            "here. Employer names, interviews, application records and "
+            "contact details remain private."
         )
 
-    st.markdown(
-        "To see the **current role-by-role v2 forecast and conditional hiring "
-        "window**, open the **[private owner workspace](?page=admin)** and "
-        "select **Decision overview**."
+    st.caption(
+        "See detailed role-by-role evidence in the "
+        "**[private Decision overview](?page=admin)**."
     )

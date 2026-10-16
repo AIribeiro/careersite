@@ -16,7 +16,8 @@ from page_content_intelligence import _fetch_rpc
 from portfolio_job_correlations import (
     ANCHORS, LAGS, _site_features, _test_one, _bh_pvalues, _classify,
 )
-from site_analytics_public import fetch_public_analytics_rpc
+from site_analytics_public import fetch_public_analytics_rpc, fetch_public_hiring_timing_v2
+from page_public_predictions import _display_date, _start_window
 from public_rejection_insights import rejection_overview_readout
 
 
@@ -96,19 +97,40 @@ def render_public_analytics_overview() -> None:
 
     st.divider()
     st.subheader("Hiring predictor")
-    st.markdown("**Interview-stage evidence now drives the current prediction model.**")
-    st.caption(
-        "The detailed Hiring Prediction v2 is available in the authenticated "
-        "owner Decision overview. This public dashboard deliberately does not "
-        "publish personalized offer/start weeks derived from coarsened application "
-        "buckets or future application pace."
-    )
-    st.caption(
-        "Meaningful recruiter responses and confirmed progression through "
-        "interview stages are stronger signals than submission volume. "
-        "Without enough verified offers, a personal hiring probability remains "
-        "uncalibrated."
-    )
+    try:
+        timing = fetch_public_hiring_timing_v2()
+    except (RuntimeError, ValueError, PermissionError, TimeoutError):
+        timing = {"available": False}
+
+    if timing.get("available"):
+        start_col, offer_col, window_col = st.columns(3, gap="small")
+        with start_col:
+            with st.container(border=True):
+                st.metric("Indicative start", _display_date(
+                    timing["start_central"], compact=True))
+        with offer_col:
+            with st.container(border=True):
+                st.metric("Potential offer", _display_date(
+                    timing["offer_central"], compact=True))
+        with window_col:
+            with st.container(border=True):
+                st.metric("Possible start range", _start_window(timing))
+                st.caption(
+                    "2026–2027" if timing["start_earliest"][:4] !=
+                    timing["start_latest"][:4] else timing["start_earliest"][:4]
+                )
+        st.caption(
+            f"Conditional v2 scenario · assessed "
+            f"{_display_date(timing['as_of'], compact=True)}. "
+            "Not a confirmed offer or start date."
+        )
+        if timing.get("needs_refresh"):
+            st.caption("Timing estimate is over 14 days old; awaiting verified refresh.")
+    else:
+        with st.container(border=True):
+            st.markdown("**No current start-date estimate**")
+            st.caption("A recent verified v2 timing scenario is not available.")
+
     if st.button("Explore Job predictions",key="public_overview_predictions"):
         _navigate_public_analytics("predictions")
 

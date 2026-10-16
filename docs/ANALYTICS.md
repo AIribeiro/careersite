@@ -111,6 +111,41 @@ of historical sessions that can be guessed into new buckets. Compare
 equivalent time windows and avoid treating a higher tagged fraction alone as
 proof of increased real readership.
 
+## Forward attribution coverage (activated 16 October 2026)
+
+The event store records the optional `utm_medium` field, bounded to 32
+lowercase letters, digits, underscores or hyphens. Both normal page views
+and article reads capture the field when a visitor follows a tagged URL and
+retain it only within the existing browser-tab session.
+
+The authenticated **Analytics → Private analytics → Attribution quality**
+dashboard uses an owner-only aggregate RPC and a database activation
+timestamp. Historical events are not edited or backfilled. Only sessions
+whose first observed event occurred on or after the activation timestamp
+are eligible; one session is counted once, at its first recorded page or
+article view. Explicit test sessions and telemetry-only sessions are
+excluded.
+
+The dashboard separates mutually exclusive source evidence:
+
+- **Explicitly tagged** — a channel was declared in the URL;
+- **Referrer-only** — no explicit tag, but an external referrer hostname exists;
+- **Unknown** — neither source evidence type exists.
+
+**Identifiable coverage** equals (explicitly tagged + referrer-only) /
+eligible new content sessions. **Tagged medium completeness** equals
+explicitly tagged first-content sessions with `utm_medium` divided by
+all explicitly tagged first-content sessions. Campaign completeness uses
+the same denominator with `utm_campaign`. Daily trends use the configured
+Europe/Stockholm reporting date. Small cohorts receive an explicit caveat;
+missing data is not silently turned into a zero-based growth rate.
+
+The existing CMS link builder already produces channel, medium and
+campaign tags for deliberate distribution. Search, bookmarked, referrer-
+stripped and otherwise unattributed visits are never assigned to channels
+without verification. The owner-only reporting RPC has no raw-row or
+session-ID output, and public visitors cannot execute it.
+
 ## Shared event store
 
 Both the Streamlit implementation and the Lovable implementation use the same Supabase table:

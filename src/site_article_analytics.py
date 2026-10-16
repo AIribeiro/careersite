@@ -94,7 +94,7 @@ def inject_article_analytics(
 
   const attributionKey = 'jair_hq_attribution_v1';
   const params = new URL(win.location.href).searchParams;
-  let attribution = {{ source: null, role: null, utm_source: null, utm_campaign: null }};
+  let attribution = {{ source: null, role: null, utm_source: null, utm_medium: null, utm_campaign: null }};
   try {{
     attribution = JSON.parse(win.sessionStorage.getItem(attributionKey) || 'null') || attribution;
   }} catch (_) {{}}
@@ -104,13 +104,16 @@ def inject_article_analytics(
   ).trim().slice(0, 100) || null;
   const incomingRole = (params.get('role') || '').trim().slice(0, 120) || null;
   const incomingUtmSource = (params.get('utm_source') || params.get('src') || '').trim().slice(0, 100) || null;
+  const incomingMedium = (params.get('utm_medium') || '').trim().toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '').slice(0, 32) || null;
   const incomingCampaign = (params.get('utm_campaign') || '').trim().slice(0, 100) || null;
   const incomingContent = (params.get('utm_content') || '').trim().slice(0, 100) || null;
-  if (incomingSource || incomingRole || incomingUtmSource || incomingCampaign || incomingContent) {{
+  if (incomingSource || incomingRole || incomingUtmSource || incomingMedium || incomingCampaign || incomingContent) {{
     attribution = {{
       source: incomingSource || attribution.source || null,
       role: incomingRole || attribution.role || null,
       utm_source: incomingUtmSource || attribution.utm_source || null,
+      utm_medium: incomingMedium || attribution.utm_medium || null,
       utm_campaign: incomingCampaign || attribution.utm_campaign || null,
       utm_content: incomingContent,
     }};
@@ -187,6 +190,7 @@ def inject_article_analytics(
       attribution_source: attribution.source,
       attribution_role: attribution.role,
       utm_source: attribution.utm_source,
+      utm_medium: attribution.utm_medium || null,
       utm_campaign: attribution.utm_campaign,
       utm_content: attribution.utm_content || null,
       session_elapsed_ms: Math.round(Math.min(86400000, Math.max(0, Date.now() - startedAt))),

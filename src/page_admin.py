@@ -793,6 +793,7 @@ _PRIVATE_VIEW_ROUTES = {
     "market": "Job market",
     "predictions": "Job predictions",
     "deep": "Detailed analysis",
+    "attribution": "Attribution quality",
 }
 _PRIVATE_ROUTE_KEYS = {label: key for key, label in _PRIVATE_VIEW_ROUTES.items()}
 
@@ -940,6 +941,10 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
     if workspace == "Job predictions":
         from page_public_predictions import render_public_hiring_predictions
         render_public_hiring_predictions()
+        return
+    if workspace == "Attribution quality":
+        from page_attribution_coverage import render_attribution_coverage
+        render_attribution_coverage()
         return
     if workspace == "Detailed job analytics":
         from page_job_search_analytics import render_job_search_analytics

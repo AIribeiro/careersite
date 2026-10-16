@@ -45,11 +45,8 @@ def _update_view_url() -> None:
         st.session_state[_VIEW_STATE_KEY] = _url_view()
 
 
-def render_analytics_dashboard() -> None:
-    """Public, read-only analytics. The CMS remains separately authenticated."""
-    _noindex()
-    _dashboard_css()
-
+def _render_public_analytics() -> None:
+    """The existing five public reports, with their original controls and layout."""
     if _VIEW_STATE_KEY not in st.session_state:
         st.session_state[_VIEW_STATE_KEY] = _url_view()
 
@@ -120,3 +117,97 @@ def render_analytics_dashboard() -> None:
             render_site_analytics_dashboard()
         else:
             render_article_analytics()
+
+# One Analytics URL contains three clearly separated workspaces. The five
+# public analytics views above continue to work without signing in; owner-only
+# components are imported and invoked only after a verified owner session.
+_WORKSPACE_STATE_KEY = "careersite_analytics_workspace"
+_WORKSPACE_LABELS = {
+    "public": "Public analytics",
+    "private": "Private analytics",
+    "cms": "CMS",
+}
+
+
+def _workspace_from_url(authenticated: bool) -> str:
+    requested = str(st.query_params.get("workspace", "public")).lower().strip()
+    if requested == "public":
+        # Accept links created while this was two separate pages.
+        legacy = str(st.query_params.get("view", "")).lower().strip()
+        if legacy in ("private", "cms"):
+            requested = legacy
+    return requested if authenticated and requested in ("private", "cms") else "public"
+
+
+def _update_workspace_url() -> None:
+    workspace = st.session_state.get(_WORKSPACE_STATE_KEY, "public")
+    if workspace in ("private", "cms"):
+        st.query_params["workspace"] = workspace
+    else:
+        st.query_params.pop("workspace", None)
+
+
+def render_analytics_dashboard() -> None:
+    """Public analytics by default; verified owners also see private reports and CMS."""
+    _noindex()
+    _dashboard_css()
+
+    # Reuse the existing Supabase owner identity check, refresh and device
+    # restoration. A failed authentication service must never block public
+    # analytics or grant access to a private renderer.
+    from page_admin import _session as owner_session, _dashboard as owner_dashboard
+    from page_admin import _css as owner_css
+    from site_owner_persistence import show_owner_login_or_refresh
+
+    try:
+        owner = owner_session()
+    except (RuntimeError, TimeoutError, ValueError):
+        owner = None
+
+    workspace = _workspace_from_url(authenticated=owner is not None)
+    st.session_state[_WORKSPACE_STATE_KEY] = workspace
+
+    if owner is None:
+        # The proven Streamlit-native password form also works when the
+        # browser's secure-cookie bridge is unavailable (including mobile).
+        _, login_column = st.columns([7, 1.5], vertical_alignment="center")
+        with login_column:
+            with st.popover("Owner sign in"):
+                show_owner_login_or_refresh("analytics")
+        _render_public_analytics()
+        return
+
+    navigation, portfolio = st.columns([7, 1.5], vertical_alignment="center")
+    with navigation:
+        # Streamlit removes hidden widget state on reruns. Keep CMS navigation
+        # locked during editing so unsaved drafts cannot be lost by switching
+        # to another workspace before using the editor's own back/save controls.
+        editing = bool(st.session_state.get("cms_edit_id")) and workspace == "cms"
+        workspace = st.segmented_control(
+            "Analytics workspace",
+            options=list(_WORKSPACE_LABELS),
+            format_func=lambda value: _WORKSPACE_LABELS[value],
+            key=_WORKSPACE_STATE_KEY,
+            on_change=_update_workspace_url,
+            disabled=editing,
+            label_visibility="collapsed",
+            width="stretch",
+        ) or "public"
+    with portfolio:
+        if workspace != "public" and st.button(
+            "Portfolio", key="owner_workspace_back_to_portfolio"
+        ):
+            st.query_params.clear()
+            st.query_params["page"] = "home"
+            st.rerun()
+
+    if editing:
+        st.caption("Finish article editing or return to the article list to change workspaces.")
+
+    if workspace == "public":
+        _render_public_analytics()
+        return
+
+    st.divider()
+    owner_css()
+    owner_dashboard(owner, workspace_mode="private" if workspace == "private" else "CMS")

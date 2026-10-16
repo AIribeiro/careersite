@@ -168,11 +168,17 @@ def render_analytics_dashboard() -> None:
     st.session_state[_WORKSPACE_STATE_KEY] = workspace
 
     if owner is None:
-        # The proven Streamlit-native password form also works when the
-        # browser's secure-cookie bridge is unavailable (including mobile).
+        # Do not even create a password widget until sign-in is selected:
+        # the anonymous public dashboard must remain entirely read-only.
         _, login_column = st.columns([7, 1.5], vertical_alignment="center")
         with login_column:
-            with st.popover("Owner sign in"):
+            if st.button("Owner sign in", key="analytics_owner_login_toggle"):
+                st.session_state["analytics_owner_login_open"] = not bool(
+                    st.session_state.get("analytics_owner_login_open")
+                )
+        if st.session_state.get("analytics_owner_login_open"):
+            with st.expander("Owner sign in", expanded=True):
+                # Reuse the proven native form, including Cloud-safe fallback.
                 show_owner_login_or_refresh("analytics")
         _render_public_analytics()
         return
@@ -194,7 +200,12 @@ def render_analytics_dashboard() -> None:
             width="stretch",
         ) or "public"
     with portfolio:
-        if workspace != "public" and st.button(
+        if workspace == "public":
+            if st.button("Sign out", key="analytics_owner_signout"):
+                from site_owner_persistence import browser_owner_signout as owner_signout
+                owner_signout()
+                return
+        elif st.button(
             "Portfolio", key="owner_workspace_back_to_portfolio",
             disabled=editing,
         ):

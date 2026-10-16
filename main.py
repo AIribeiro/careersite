@@ -80,7 +80,7 @@ TITLES = {
     "governance": "AI Governance & Operating Model | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
     "consulting": "Business-Driven AI & Consulting | Jair Ribeiro",
-    "analytics": "Hiring-Funnel Analytics | Jair Ribeiro",
+    "analytics": "Portfolio Visits & Reads | Jair Ribeiro",
     "admin": "Article CMS | Jair Ribeiro",
 }
 

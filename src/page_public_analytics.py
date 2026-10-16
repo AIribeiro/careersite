@@ -1,7 +1,7 @@
-"""Open, read-only Analytics summaries. No identifiable recruitment evidence.
+"""Aggregate hiring reports displayed only inside verified owner workspace.
 
-The public site never retrieves job_search_analytics rows, contacts, private
-notes, source workbooks, follow-up actions or CMS credentials.
+Historical public-safe aggregate reports remain available to the owner;
+anonymous Portfolio Analytics never imports or invokes these dashboards.
 """
 from __future__ import annotations
 
@@ -39,10 +39,19 @@ def _market_summary() -> dict:
 
 
 def _navigate_public_analytics(view: str) -> None:
-    if view not in ("portfolio","jobs","predictions","market"):
+    """Keep legacy navigation actions within owner-only job workspaces."""
+    choices = {
+        "portfolio": "Hiring overview",
+        "jobs": "Job search",
+        "predictions": "Job predictions",
+        "market": "Job market",
+    }
+    if view not in choices:
         return
-    st.session_state["careersite_analytics_view"]=view
-    st.query_params["view"]=view
+    st.session_state["admin_private_analytics_view"] = choices[view]
+    st.session_state["_owner_last_private_url"] = view
+    st.query_params["workspace"] = "private"
+    st.query_params["view"] = view
     st.rerun()
 
 
@@ -397,9 +406,7 @@ def render_public_job_search() -> None:
         except (RuntimeError,ValueError,PermissionError,TypeError,KeyError):
             st.warning("Live market relationships are temporarily unavailable.")
         if st.button("Open full Swedish Market dashboard",key="job_market_link"):
-            st.session_state["careersite_analytics_view"]="market"
-            st.query_params["view"]="market"
-            st.rerun()
+            _navigate_public_analytics("market")
     else:
         st.subheader("Evidence quality and privacy")
         st.write(
@@ -424,9 +431,7 @@ def render_public_job_search() -> None:
         "It uses historical evidence independently of this reporting window."
     )
     if st.button("Open Job predictions",key="public_jobs_open_predictions"):
-        st.session_state["careersite_analytics_view"]="predictions"
-        st.query_params["view"]="predictions"
-        st.rerun()
+        _navigate_public_analytics("predictions")
 
 
 @st.fragment(run_every="15m")

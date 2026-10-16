@@ -11,6 +11,8 @@ from urllib import error, request
 
 from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
 
+import streamlit as st
+
 
 def public_analytics_rpc_headers() -> dict[str,str]:
     return {
@@ -18,6 +20,21 @@ def public_analytics_rpc_headers() -> dict[str,str]:
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
+
+
+def owner_hiring_headers() -> dict[str, str]:
+    """Authenticate job/market/forecast reads with the verified owner JWT.
+
+    The database enforces owner identity independently. No token ever goes to
+    public page HTML or external analytics clients.
+    """
+    session = st.session_state.get("cms_auth")
+    token = str(session.get("access_token") or "") if isinstance(session, dict) else ""
+    if not token:
+        raise PermissionError("Owner sign-in is required for hiring analytics.")
+    headers = public_analytics_rpc_headers()
+    headers["Authorization"] = f"Bearer {token}"
+    return headers
 
 
 def fetch_public_analytics_rpc(name: str, payload: dict | None = None) -> dict:
@@ -32,7 +49,7 @@ def fetch_public_analytics_rpc(name: str, payload: dict | None = None) -> dict:
     req = request.Request(
         f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{name}",
         data=json.dumps(payload or {}).encode("utf-8"),
-        method="POST", headers=public_analytics_rpc_headers(),
+        method="POST", headers=owner_hiring_headers(),
     )
     try:
         with request.urlopen(req,timeout=18) as response:
@@ -180,13 +197,13 @@ def validate_public_hiring_timing_v2(rows: object, *, today: date | None = None)
 
 
 def fetch_public_hiring_timing_v2() -> dict:
-    """Anonymous date-only projection; never uses the owner session."""
+    """Owner-only timing projection (server-side JWT and database RLS)."""
     fields = ",".join(("model_version", *_PUBLIC_HIRING_DATE_FIELDS))
     req = request.Request(
         f"{ANALYTICS_URL.rstrip('/')}/rest/v1/"
         f"careersite_public_hiring_timing_v2?select={fields}&id=eq.1",
         method="GET",
-        headers={"apikey": ANALYTICS_PUBLISHABLE_KEY, "Accept": "application/json"},
+        headers=owner_hiring_headers(),
     )
     try:
         with request.urlopen(req, timeout=18) as response:

@@ -37,13 +37,20 @@ from page_presence import presence
 from page_contact import contact
 from page_ai_data_governance import ai_data_governance
 from page_analytics_v2 import render_analytics_dashboard
-from page_admin import render_admin_dashboard
 from site_lenses import enterprise, transformation, governance, consulting
 
 PAGE = st.query_params.get("page", "home")
 if isinstance(PAGE, list):
     PAGE = PAGE[0] if PAGE else "home"
 PAGE = str(PAGE).lower().strip()
+
+# Preserve historical ?page=admin bookmarks, but use one canonical Analytics
+# page with authenticated private reporting and CMS workspaces.
+if PAGE == "admin":
+    PAGE = "analytics"
+    st.query_params["page"] = "analytics"
+    st.query_params["workspace"] = "cms"
+
 PUBLIC_VALID = {"home", "impact", "thinking", "about", "certifications", "presence", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
@@ -103,8 +110,6 @@ st.set_page_config(
 
 if PAGE == "analytics":
     render_analytics_dashboard()
-elif PAGE == "admin":
-    render_admin_dashboard()
 else:
     if CMS_ARTICLE_META is not None:
         inject_cms_article_metadata(CMS_ARTICLE_META)

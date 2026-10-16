@@ -82,6 +82,35 @@ Attribution identifies a job-search activity, not a person. Avoid putting recrui
 
 Legacy `utm_source`, `src` and `utm_campaign` parameters remain accepted for compatibility. When `source` is present it is the preferred hiring-attribution label.
 
+## Campaign source classification (October 2026)
+
+Not all sessions can be attributed. Missing source parameters, direct navigation,
+bookmarks, stripped referrers, in-app browsers, and redirects can produce
+`direct/unknown` observations. **Never assign such sessions to LinkedIn,
+WhatsApp, search, or any other channel without evidence.** Historical raw
+analytics are preserved.
+
+The CMS now includes an authenticated **Distribution links** generator. Use it
+for deliberate portfolio sharing, including articles, Daily Quotes, WEEKLY AI,
+CV links and introductions. It preserves destination routes and creates:
+
+- `source` and `utm_source` — canonical channel (`linkedin`, `threads`,
+  `x`, `facebook`, `whatsapp`, `email`, `cv`, `outreach`, `application`);
+- `utm_medium` — channel class (`social`, `messaging`, `email`, etc.);
+- `utm_campaign` — publication or distribution series (e.g. `dailyquote`,
+  `weekly_ai_2026_w42`, `thinking`);
+- `utm_content` — the selected article slug when available.
+
+The built-in CMS article sharing links for LinkedIn, X and email now use the
+same tagged URLs. Copying a permanent article URL **does not** imply a known
+future distribution channel and therefore remains untagged. Static social
+preview bridges retain their existing source-specific links.
+
+Report *tagged first-touch coverage* in subsequent periods, not the share
+of historical sessions that can be guessed into new buckets. Compare
+equivalent time windows and avoid treating a higher tagged fraction alone as
+proof of increased real readership.
+
 ## Shared event store
 
 Both the Streamlit implementation and the Lovable implementation use the same Supabase table:

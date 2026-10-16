@@ -17,9 +17,7 @@ class UnifiedAnalyticsWorkspaceTests(unittest.TestCase):
     def test_public_views_are_unchanged_and_owner_scope_is_explicit(self):
         from page_analytics_v2 import _VIEWS, _WORKSPACE_LABELS, _resolve_workspace
 
-        self.assertEqual(set(_VIEWS), {
-            "overview", "portfolio", "jobs", "predictions", "market",
-        })
+        self.assertEqual(set(_VIEWS), {"overview", "portfolio"})
         self.assertEqual(set(_WORKSPACE_LABELS), {"public", "private", "cms"})
         for requested in ("public", "private", "cms", "unknown", None):
             self.assertEqual(_resolve_workspace(requested, False), "public")

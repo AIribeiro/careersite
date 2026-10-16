@@ -6,6 +6,7 @@ Postgres EXECUTE grants apply only to aggregate reporting RPCs.
 from __future__ import annotations
 
 import json
+from datetime import date
 from urllib import error, request
 
 from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
@@ -131,3 +132,65 @@ def fetch_public_analytics_rpc(name: str, payload: dict | None = None) -> dict:
         elif result.get("available") is not False:
             raise RuntimeError("Invalid public rejection-summary availability flag.")
     return result
+
+
+PUBLIC_HIRING_TIMING_VERSION = "hiring-v2-stage-evidence-provisional"
+_PUBLIC_HIRING_DATE_FIELDS = (
+    "as_of", "offer_central", "offer_earliest", "offer_latest",
+    "start_central", "start_earliest", "start_latest",
+)
+
+
+def validate_public_hiring_timing_v2(rows: object, *, today: date | None = None) -> dict:
+    """Accept only explicitly published, date-only v2 data.
+
+    No private role/company/person details may be included even if an endpoint
+    is accidentally expanded later.
+    """
+    if not isinstance(rows, list) or len(rows) > 1:
+        raise RuntimeError("Invalid public hiring timing response.")
+    if not rows:
+        return {"available": False}
+    row = rows[0]
+    if not isinstance(row, dict):
+        raise RuntimeError("Invalid public hiring timing record.")
+    permitted = {"model_version", *_PUBLIC_HIRING_DATE_FIELDS}
+    if set(row) - permitted:
+        raise RuntimeError("Public hiring timing contained unexpected fields.")
+    if row.get("model_version") != PUBLIC_HIRING_TIMING_VERSION:
+        raise RuntimeError("Unknown hiring timing model version.")
+    try:
+        dates = {k: date.fromisoformat(row[k]) for k in _PUBLIC_HIRING_DATE_FIELDS}
+    except (ValueError, TypeError, KeyError) as exc:
+        raise RuntimeError("Incomplete or malformed hiring timing dates.") from exc
+    current = today or date.today()
+    if dates["as_of"] > current or (current - dates["as_of"]).days > 45:
+        return {"available": False, "as_of": row["as_of"], "reason": "outdated"}
+    if not (
+        dates["offer_earliest"] <= dates["offer_central"] <= dates["offer_latest"]
+        and dates["start_earliest"] <= dates["start_central"] <= dates["start_latest"]
+    ):
+        raise RuntimeError("Inconsistent hiring timing date ranges.")
+    return {
+        "available": True,
+        **{key: row[key] for key in _PUBLIC_HIRING_DATE_FIELDS},
+        "model_version": PUBLIC_HIRING_TIMING_VERSION,
+        "needs_refresh": (current - dates["as_of"]).days > 14,
+    }
+
+
+def fetch_public_hiring_timing_v2() -> dict:
+    """Anonymous date-only projection; never uses the owner session."""
+    fields = ",".join(("model_version", *_PUBLIC_HIRING_DATE_FIELDS))
+    req = request.Request(
+        f"{ANALYTICS_URL.rstrip('/')}/rest/v1/"
+        f"careersite_public_hiring_timing_v2?select={fields}&id=eq.1",
+        method="GET",
+        headers={"apikey": ANALYTICS_PUBLISHABLE_KEY, "Accept": "application/json"},
+    )
+    try:
+        with request.urlopen(req, timeout=18) as response:
+            rows = json.load(response)
+    except (error.HTTPError, error.URLError, TimeoutError) as exc:
+        raise RuntimeError("Published hiring timing is temporarily unavailable.") from exc
+    return validate_public_hiring_timing_v2(rows)

@@ -785,7 +785,7 @@ def _import_existing(access_token: str, current: list[CmsArticle]) -> None:
     st.success(f"Imported {imported} existing portfolio article(s).")
 
 
-def _dashboard(session: dict) -> None:
+def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
     token = str(session["access_token"])
     user = session.get("user") or {}
     email_value = str(user.get("email") or OWNER_EMAIL)
@@ -808,13 +808,30 @@ def _dashboard(session: dict) -> None:
             browser_owner_signout()
             return
 
-    workspace = st.segmented_control(
-        "Private owner workspace",
-        options=["CMS","Detailed job analytics","Stale applications","Rejection Analytics","Hiring market","Decision overview"],
-        default="CMS",
-        key="admin_private_workspace",
-        width="stretch",
-    )
+    # The legacy standalone Admin renderer still uses the original menu.
+    # The unified Analytics page supplies a workspace mode and reuses all
+    # existing private reports/CMS widgets without reimplementing them.
+    if workspace_mode == "private":
+        workspace = st.segmented_control(
+            "Private analytics view",
+            options=[
+                "Decision overview", "Detailed job analytics",
+                "Stale applications", "Rejection Analytics", "Hiring market",
+            ],
+            default="Decision overview",
+            key="admin_private_analytics_view",
+            width="stretch",
+        )
+    elif workspace_mode == "CMS":
+        workspace = "CMS"
+    else:
+        workspace = st.segmented_control(
+            "Private owner workspace",
+            options=["CMS","Detailed job analytics","Stale applications","Rejection Analytics","Hiring market","Decision overview"],
+            default="CMS",
+            key="admin_private_workspace",
+            width="stretch",
+        )
     if workspace == "Detailed job analytics":
         from page_job_search_analytics import render_job_search_analytics
         render_job_search_analytics(session)

@@ -132,7 +132,9 @@ class PublicHiringPredictionTests(unittest.TestCase):
             self.assertEqual(len(at.metric), 3)
             self.assertEqual(len(at.get("vega_lite_chart")), 1)
             self.assertEqual(len(at.expander), 2)
-            self.assertTrue(all(not x.expanded for x in at.expander))
+            self.assertEqual([x.label for x in at.expander],
+                             ["Recruitment evidence and conversion",
+                              "Methodology, market context and limitations"])
             self.assertFalse(any("From applications to actual hiring progress" in x.value
                                  for x in at.subheader))
             quality.assert_called_once_with(compact=False)

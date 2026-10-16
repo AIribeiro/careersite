@@ -31,16 +31,20 @@ def _week(x: dict | None) -> str:
 
 @st.fragment(run_every="15m")
 def render_public_hiring_predictions() -> None:
-    st.title("Job Predictions")
-    st.caption(
-        "Hiring Prediction v2 · evidence-first edition. This public view uses "
-        "privacy-thresholded cohort statistics, not private recruiter records."
+    st.title("When could I get my next job?")
+    st.markdown(
+        "**Your indicative offer and start dates are available in "
+        "the [private Decision overview](?page=admin).**"
     )
-    st.markdown("**The current personal forecast is based on verified recruiting stages.**")
+    st.caption(
+        "Hiring Prediction v2 · current model. The public page shows "
+        "privacy-thresholded evidence; personal timing requires private "
+        "verified interview stages."
+    )
     st.info(
-        "An employer's confirmed interview progression matters more than "
-        "an application count. Public, aggregated stage history cannot reliably "
-        "identify a personal offer week or first day at work."
+        "The public data alone cannot support a credible personal date. "
+        "The authenticated forecast gives a conditional offer window and "
+        "potential start date, updated as confirmed interviews progress."
     )
 
     st.markdown("**What the latest evidence can establish**")

@@ -94,9 +94,9 @@ def render_hiring_prediction_v2(data: dict) -> dict:
 
     st.markdown(f"**Pipeline credibility: {index:.1f} / 100**")
     st.progress(index / 100)
-    st.caption("Relative strength of documented recruiting processes — **not** "
-               "a {index:.1f}% offer chance, evidence reliability percentage or forecast accuracy."
-               .replace("{index:.1f}", f"{index:.1f}"))
+    st.caption(f"Relative strength of documented recruiting processes — not a "
+               f"{index:.1f}% offer chance, evidence reliability percentage or "
+               "forecast accuracy.")
 
     live = _live_opportunities(data)
     if live:

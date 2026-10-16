@@ -32,6 +32,18 @@ def _start_window(timing: dict) -> str:
     return f"{a.day} {a:%b} – {b.day} {b:%b}"
 
 
+def render_date_tile(label: str, value: str, *, range_end: str | None = None) -> None:
+    """Render full dates at narrow widths; Streamlit metrics truncate values.
+
+    A date range uses two stacked lines so neither year gets hidden on tablets.
+    All inputs pass through strict ISO-date formatting before display.
+    """
+    st.caption(label)
+    st.markdown(f"#### {_display_date(value, compact=True)}")
+    if range_end is not None:
+        st.markdown(f"#### → {_display_date(range_end, compact=True)}")
+
+
 def _timing_chart(timing: dict) -> alt.Chart:
     """Visual date ranges, not a cumulative hiring-probability curve."""
     data = [
@@ -97,18 +109,15 @@ def render_public_hiring_predictions() -> None:
         offer, starting, window = st.columns(3, gap="small")
         with offer:
             with st.container(border=True):
-                st.metric("Potential job offer", _display_date(
-                    timing["offer_central"], compact=True))
+                render_date_tile("Potential job offer", timing["offer_central"])
         with starting:
             with st.container(border=True):
-                st.metric("Potential start", _display_date(
-                    timing["start_central"], compact=True))
+                render_date_tile("Potential start", timing["start_central"])
         with window:
             with st.container(border=True):
-                st.metric("Possible start window", _start_window(timing))
-                st.caption("2026–2027" if timing["start_earliest"][:4] !=
-                           timing["start_latest"][:4] else
-                           timing["start_earliest"][:4])
+                render_date_tile("Possible start window",
+                                 timing["start_earliest"],
+                                 range_end=timing["start_latest"])
 
         st.markdown("**Offer and start timing range**")
         st.altair_chart(_timing_chart(timing), width="stretch")

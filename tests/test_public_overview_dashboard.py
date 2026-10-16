@@ -131,8 +131,9 @@ class PublicVisualOverviewTests(unittest.TestCase):
         for date_text in ("17 Dec 2026", "19 Nov 2026",
                           "19 Nov ’26 – 21 Jan ’27"):
             self.assertTrue(any(date_text in value for value in displayed))
-        # No native st.metric in the narrow hiring columns: it clips dates.
-        self.assertEqual(len(at.metric), 0)
+        # Private timing must not be shown via ellipsizing st.metric cards.
+        self.assertFalse(any(x.label in ("Potential offer", "Possible start window")
+                             for x in at.metric))
         self.assertEqual(len(at.text_input), 0)
 
 

@@ -10,7 +10,7 @@ from datetime import date, datetime, timedelta
 import altair as alt
 import streamlit as st
 
-from page_public_predictions import _display_date, _start_window
+from page_public_predictions import _display_date, render_date_tile
 from public_rejection_insights import rejection_overview_readout
 
 
@@ -268,13 +268,11 @@ def render_public_overview_dashboard(
                 st.caption("INDICATIVE FIRST DAY AT WORK")
                 st.markdown(f"## {_display_date(timing['start_central'], compact=True)}")
             with offer:
-                st.metric("Potential offer", _display_date(
-                    timing["offer_central"], compact=True))
+                render_date_tile("Potential offer", timing["offer_central"])
             with window:
-                st.metric("Possible start window", _start_window(timing))
-                st.caption("2026–27" if timing["start_earliest"][:4] !=
-                           timing["start_latest"][:4] else
-                           timing["start_earliest"][:4])
+                render_date_tile("Possible start window",
+                                 timing["start_earliest"],
+                                 range_end=timing["start_latest"])
         st.caption(
             f"Conditional v2 scenario · assessed "
             f"{_display_date(timing['as_of'], compact=True)} · "

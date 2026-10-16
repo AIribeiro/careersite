@@ -785,6 +785,25 @@ def _import_existing(access_token: str, current: list[CmsArticle]) -> None:
     st.success(f"Imported {imported} existing portfolio article(s).")
 
 
+
+_PRIVATE_VIEW_ROUTES = {
+    "hiring": "Hiring overview",
+    "jobs": "Job search",
+    "market": "Job market",
+    "predictions": "Job predictions",
+    "deep": "Detailed analysis",
+}
+_PRIVATE_ROUTE_KEYS = {label: key for key, label in _PRIVATE_VIEW_ROUTES.items()}
+
+
+def _private_view_changed() -> None:
+    selected = st.session_state.get("admin_private_analytics_view", "Hiring overview")
+    route = _PRIVATE_ROUTE_KEYS.get(selected, "hiring")
+    st.query_params["view"] = route
+    st.query_params["workspace"] = "private"
+    st.session_state["_owner_last_private_url"] = route
+
+
 def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
     token = str(session["access_token"])
     user = session.get("user") or {}
@@ -812,16 +831,30 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
     # The unified Analytics page supplies a workspace mode and reuses all
     # existing private reports/CMS widgets without reimplementing them.
     if workspace_mode == "private":
+        route = str(st.query_params.get("view", "hiring")).lower().strip()
+        selected = _PRIVATE_VIEW_ROUTES.get(route, "Hiring overview")
+        if (st.session_state.get("_owner_last_private_url") != route or
+                "admin_private_analytics_view" not in st.session_state):
+            st.session_state["admin_private_analytics_view"] = selected
+            st.session_state["_owner_last_private_url"] = route
         workspace = st.segmented_control(
             "Private analytics view",
-            options=[
-                "Decision overview", "Detailed job analytics",
-                "Stale applications", "Rejection Analytics", "Hiring market",
-            ],
-            default="Decision overview",
+            options=list(_PRIVATE_ROUTE_KEYS),
             key="admin_private_analytics_view",
+            on_change=_private_view_changed,
             width="stretch",
-        )
+        ) or "Hiring overview"
+        if workspace == "Detailed analysis":
+            workspace = st.segmented_control(
+                "Detailed analysis",
+                options=[
+                    "Decision overview", "Detailed job analytics",
+                    "Stale applications", "Rejection Analytics", "Hiring market",
+                ],
+                default="Decision overview",
+                key="admin_private_detail_view",
+                width="stretch",
+            ) or "Decision overview"
     elif workspace_mode == "CMS":
         workspace = "CMS"
     else:
@@ -832,6 +865,22 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
             key="admin_private_workspace",
             width="stretch",
         )
+    if workspace == "Hiring overview":
+        from page_public_analytics import render_public_analytics_overview
+        render_public_analytics_overview()
+        return
+    if workspace == "Job search":
+        from page_public_analytics import render_public_job_search
+        render_public_job_search()
+        return
+    if workspace == "Job market":
+        from page_public_analytics import render_public_swedish_market
+        render_public_swedish_market()
+        return
+    if workspace == "Job predictions":
+        from page_public_predictions import render_public_hiring_predictions
+        render_public_hiring_predictions()
+        return
     if workspace == "Detailed job analytics":
         from page_job_search_analytics import render_job_search_analytics
         render_job_search_analytics(session)

@@ -17,8 +17,10 @@ from page_content_intelligence import _fetch_rpc
 from page_job_market_insights import fetch_market_records, _latest_by_indicator, _format_value, _readouts
 from page_job_search_analytics import fetch_job_records
 from page_stale_applications import fetch_private_pipeline, private_summary, render_pipeline_health
-from page_hiring_predictor import render_hiring_predictor
-from hiring_forecast_history import record_daily_first, previous_forecasts, stability_summary
+from page_hiring_prediction_v2 import (
+    fetch_hiring_prediction_v2, render_hiring_prediction_v2, VERSION as HIRING_V2_VERSION,
+)
+from hiring_forecast_history import record_v2_daily_first, previous_forecasts, stability_summary
 from site_cms import ensure_owner_session, _request_json, _rest_url
 
 
@@ -32,6 +34,7 @@ _SOURCE_NAMES = {
     "actions": "CV downloads and contact clicks",
     "geo": "matched vacancy locations",
     "employers": "verified employer vacancy status",
+    "v2": "verified interview-stage progress",
 }
 
 
@@ -160,6 +163,7 @@ def render_analytics_overview(session: dict | None) -> None:
     geography_locations = None
     employer_activity = None
     stale_pipeline = None
+    v2_prediction = None
     errors = []
     with st.spinner("Comparing current evidence…"):
         try:
@@ -195,13 +199,19 @@ def render_analytics_overview(session: dict | None) -> None:
             )
         except (RuntimeError,TimeoutError,PermissionError,ValueError):
             errors.append("employer vacancy status")
+        try:
+            v2_prediction = fetch_hiring_prediction_v2(str(valid["access_token"]))
+        except (RuntimeError, TimeoutError, PermissionError, ValueError):
+            errors.append("interview-stage forecast")
     current_signatures = {}
     failed_sources = {"jobs": "job search", "market": "market",
                       "site": "portfolio correlation"}
     for key, payload in (("jobs", jobs), ("stale", stale_pipeline), ("market", market),
                          ("site", site), ("hiring", hiring), ("actions", actions),
                          ("geo", geography_locations),
-                         ("employers", employer_activity)):
+                         ("employers", employer_activity),
+                         ("v2", {k: v for k, v in v2_prediction.items()
+                                 if k != "generated_at"} if v2_prediction else None)):
         # Unavailable sources must not be mistaken for newly deleted data.
         if payload is None or failed_sources.get(key) in errors:
             continue
@@ -227,44 +237,49 @@ def render_analytics_overview(session: dict | None) -> None:
     if jobs:
         search, trends = _search_brief(jobs,now.date())
 
-    # A single pass supplies the beta model and later drill-down summaries.
-    # Cross-domain relationships are contextual unless independently validated.
+    # V2 uses owner-verified recruitment stages from Supabase. Never present
+    # a beta-4.3 scenario as if it were the current interview-stage model.
     market_model = analyze_market(market,jobs,site,now.date()) if market else None
     site_corr = analyze_portfolio_job_correlations(site,jobs) if site and jobs else None
-    if jobs and stale_pipeline is not None:
-        forecast = render_hiring_predictor(
-            jobs,market_model,site_corr,hiring,now.date(),
-            portfolio_actions=actions,geography_locations=geography_locations,
-            employer_activity=employer_activity,
-            stale_pipeline=stale_pipeline,
-        )
-        if forecast and forecast.get("status") in ("scenario","no_median"):
-            if market and site and actions is not None and not errors:
-                try:
-                    record_daily_first(str(valid["access_token"]),
-                                       forecast,current_signatures)
-                except (RuntimeError,TimeoutError,PermissionError,ValueError):
-                    st.caption("Daily forecast history temporarily unavailable.")
-            try:
-                archived=previous_forecasts(str(valid["access_token"]))
-            except (RuntimeError,TimeoutError,PermissionError,ValueError):
-                archived=[]
-            comparison=stability_summary(archived)
-            with st.expander("Forecast history and validation"):
-                st.caption(f"{comparison['history_count']} dated forecasts archived.")
-                if comparison.get("shift_days") is not None:
-                    shift=comparison["shift_days"]
-                    st.caption(f"Latest central-date change: {shift:+d} days.")
-                st.caption("Forecast accuracy is not yet validated against "
-                           "confirmed offers. The evidence-quality percentage "
-                           "does not measure predictive accuracy.")
+    if v2_prediction is not None:
+        render_hiring_prediction_v2(v2_prediction)
+        try:
+            record_v2_daily_first(str(valid["access_token"]),
+                                  v2_prediction, current_signatures)
+        except (RuntimeError, TimeoutError, PermissionError, ValueError):
+            st.caption("Today's stage-based forecast was calculated, but the "
+                       "historical archive could not be updated.")
+        try:
+            archived = previous_forecasts(str(valid["access_token"]))
+        except (RuntimeError, TimeoutError, PermissionError, ValueError):
+            archived = []
+        comparison = stability_summary(archived, model_version=HIRING_V2_VERSION)
+        with st.expander("Forecast history and validation"):
+            st.caption(f"{comparison['history_count']} archived records across "
+                       f"{comparison['model_versions']} model version(s).")
+            if comparison.get("shift_days") is not None:
+                st.caption(f"Within-v2 central-offer-date change: "
+                           f"{comparison['shift_days']:+d} days.")
+            else:
+                st.caption("At least two distinct dated v2 snapshots are needed "
+                           "to measure movement within the current methodology.")
+            beta = next((row for row in archived
+                         if row.get("model_version") != HIRING_V2_VERSION), None)
+            if beta:
+                st.caption(
+                    "Earlier beta 4.3 snapshot retained for history: "
+                    f"central offer date {beta.get('central_offer_date') or 'unavailable'}. "
+                    "Its evidence-quality percentage and provisional offer estimates "
+                    "are not comparable to the v2 pipeline credibility index."
+                )
+            st.caption("A scheduled interview is not a completed one. "
+                       "There are not yet enough confirmed offers to validate "
+                       "prediction accuracy or personal hiring probabilities.")
     else:
-        st.subheader("Hiring predictor")
-        if jobs and stale_pipeline is None:
-            st.warning("Forecast withheld because the verified-dormancy ledger is unavailable. "
-                       "An unknown exclusion must not silently restore old applications to the active pipeline.")
-        else:
-            st.info("Forecast unavailable until primary job-search evidence can be loaded.")
+        st.subheader("When might I get an offer?")
+        st.warning("Hiring Prediction v2 is temporarily unavailable. "
+                   "The previous beta 4.3 is not substituted as a current "
+                   "forecast; historical records are preserved.")
     st.divider()
 
     st.subheader("Where your search stands")

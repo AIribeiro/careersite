@@ -79,6 +79,14 @@ class HiringV2Tests(unittest.TestCase):
         with patch("page_hiring_prediction_v2.st", ui):
             render_hiring_prediction_v2(example_v2())
         self.assertTrue(any(
+            "Around 17 Dec 2026" in str(call.args[0])
+            for call in ui.markdown.call_args_list if call.args
+        ))
+        self.assertTrue(any(
+            "Possible job offer: around 19 Nov 2026" in str(call.args[0])
+            for call in ui.markdown.call_args_list if call.args
+        ))
+        self.assertTrue(any(
             "Pipeline credibility: 46.5 / 100" in str(call.args[0])
             for call in ui.markdown.call_args_list if call.args
         ))

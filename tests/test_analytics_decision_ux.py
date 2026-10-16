@@ -14,16 +14,12 @@ class DecisionExperienceTests(unittest.TestCase):
         from streamlit.testing.v1 import AppTest
         source=("from page_analytics_v2 import render_analytics_dashboard\n"
                 "render_analytics_dashboard()")
-        with patch("page_analytics_v2.render_public_analytics_overview") as brief, \
-             patch("page_analytics_v2.render_content_intelligence") as portfolio, \
-             patch("page_analytics_v2.render_public_job_search") as jobs, \
-             patch("page_analytics_v2.render_public_swedish_market") as market:
+        with patch("page_analytics_v2.render_public_portfolio_overview") as brief, \
+             patch("page_analytics_v2.render_content_intelligence") as portfolio:
             page=AppTest.from_string(source).run(timeout=15)
             self.assertFalse(page.exception)
             brief.assert_called_once()
             portfolio.assert_not_called()
-            jobs.assert_not_called()
-            market.assert_not_called()
             self.assertEqual(len(page.tabs),0)
 
     def test_decision_brief_degrades_without_market_or_search(self):

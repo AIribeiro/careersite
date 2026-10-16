@@ -70,7 +70,8 @@ class PublicFeatureParityTests(unittest.TestCase):
             "Hiring predictor",
         ):
             self.assertIn(label,source)
-        self.assertIn("forecast_public_hiring",source)
+        self.assertIn("render_public_conversion_quality",source)
+        self.assertNotIn("forecast_public_hiring(",source)
 
     def test_anon_rpc_projects_no_personal_or_raw_market_content(self):
         sql=(ROOT/"supabase/migrations/20261012_public_market_history_restore.sql").read_text()

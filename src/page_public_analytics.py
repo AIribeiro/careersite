@@ -96,32 +96,19 @@ def render_public_analytics_overview() -> None:
 
     st.divider()
     st.subheader("Hiring predictor")
-    forecast=results.get("forecast")
-    if forecast:
-        try:
-            from public_hiring_forecast import forecast_public_hiring
-            from page_public_predictions import _week
-            # Overview omits optional data sources rather than silently
-            # inventing an employer interaction or a market signal.
-            projection=forecast_public_hiring(
-                forecast,None,market.get("signals") or [],
-            )
-            if projection["status"]=="scenario":
-                offer=(projection.get("windows",{}).get("offers") or [None])[0]
-                start=(projection.get("windows",{}).get("starts") or [None])[0]
-                a,b=st.columns(2)
-                a.metric("Leading offer week",_week(offer))
-                b.metric("Leading potential start week",_week(start))
-                st.caption(
-                    "These dates are scenario planning periods, not guaranteed "
-                    "interviews, offers or employment starts."
-                )
-            else:
-                st.info("A prediction is not presently supported by the recorded evidence.")
-        except (ValueError,TypeError,KeyError,RuntimeError):
-            st.warning("The hiring scenario could not be recalculated.")
-    else:
-        st.info("Hiring scenario inputs are temporarily unavailable.")
+    st.markdown("**Interview-stage evidence now drives the current prediction model.**")
+    st.caption(
+        "The detailed Hiring Prediction v2 is available in the authenticated "
+        "owner Decision overview. This public dashboard deliberately does not "
+        "publish personalized offer/start weeks derived from coarsened application "
+        "buckets or future application pace."
+    )
+    st.caption(
+        "Meaningful recruiter responses and confirmed progression through "
+        "interview stages are stronger signals than submission volume. "
+        "Without enough verified offers, a personal hiring probability remains "
+        "uncalibrated."
+    )
     if st.button("Explore Job predictions",key="public_overview_predictions"):
         _navigate_public_analytics("predictions")
 

@@ -68,11 +68,33 @@ async def _thinking_article(request):
         return PlainTextResponse("Article not found", status_code=404)
 
     if not _is_crawler(request):
-        target = (
-            f"{BASE_URL}/?page=thinking&article={cms_article.slug}"
-            if cms_article is not None
-            else article_app_url(article)
-        )
+        # This server route is both the crawler-visible Open Graph document
+        # and the permanent public permalink. Preserve only known attribution
+        # tags on its human redirect; otherwise tagged social shares lose
+        # their source and campaign before browser analytics sees them.
+        params = [
+            ("page", "thinking"),
+            ("article", cms_article.slug if cms_article is not None else article.slug),
+        ]
+        attribution_fields = {
+            "source": 100,
+            "src": 100,
+            "role": 120,
+            "utm_source": 100,
+            "utm_medium": 32,
+            "utm_campaign": 100,
+            "utm_content": 100,
+            "content": 100,
+        }
+        seen = set()
+        for key, value in request.query_params.multi_items():
+            if key not in attribution_fields or key in seen:
+                continue
+            tag = str(value).strip()[:attribution_fields[key]]
+            if tag:
+                params.append((key, tag))
+                seen.add(key)
+        target = f"{BASE_URL}/?{urlencode(params)}"
         return RedirectResponse(
             target,
             status_code=302,

@@ -104,6 +104,51 @@ class AttributionLinkTests(unittest.TestCase):
         bundled = bundled_footer(ARTICLES[0].key)
         self.assertIn("utm_source%3Demail", bundled)
 
+    def test_linkedin_share_offsite_uses_crawlable_cms_article_permalink(self):
+        from html import unescape
+        import re
+        from site_cms import CmsArticle, _share_footer
+        from site_campaign_links import linkedin_share_url
+        from thinking_articles import ARTICLES
+        from thinking_core import _share_footer as bundled_footer
+
+        slug = "ai-is-entering-the-management-layer-leadership-has-to-catch-up"
+        markup = _share_footer(CmsArticle(
+            title="AI Is Entering the Management Layer", slug=slug,
+            status="published",
+        ))
+        match = re.search(r'href="([^"]+)"[^>]+data-hq-event="article_share_linkedin"', markup)
+        self.assertIsNotNone(match, "CMS article must render a LinkedIn sharing anchor")
+        parsed = urlparse(unescape(match.group(1)))
+        self.assertEqual(parsed.scheme, "https")
+        self.assertEqual(parsed.netloc, "www.linkedin.com")
+        self.assertEqual(parsed.path, "/sharing/share-offsite/")
+        self.assertEqual(set(parse_qs(parsed.query)), {"url"})
+        target = urlparse(parse_qs(parsed.query)["url"][0])
+        self.assertEqual(target.netloc, "jairribeiro-ai.streamlit.app")
+        self.assertEqual(target.path, f"/thinking/{slug}")
+        inner = parse_qs(target.query)
+        self.assertEqual(inner["utm_source"], ["linkedin"])
+        self.assertEqual(inner["utm_medium"], ["social"])
+        self.assertEqual(inner["utm_campaign"], ["thinking"])
+        self.assertEqual(inner["utm_content"], [slug])
+        self.assertNotIn("/feed/", markup)
+        # Copied links remain clean permalink URLs, not tagged by assumption.
+        self.assertIn(f'data-copy-url="https://jairribeiro-ai.streamlit.app/thinking/{slug}"', markup)
+
+        bundled = bundled_footer(ARTICLES[0].key)
+        match = re.search(r'href="([^"]+)"[^>]+data-share-target="([^"]+)"[^>]+data-hq-event="article_share_linkedin"', bundled)
+        self.assertIsNotNone(match)
+        target = parse_qs(urlparse(unescape(match.group(1))).query)["url"][0]
+        self.assertEqual(target, unescape(match.group(2)))
+        self.assertIn("airibeiro.github.io/careersite/thinking/", target)
+        self.assertNotIn("/feed/", bundled)
+
+        with self.assertRaises(ValueError):
+            linkedin_share_url("https://malicious.example/steal")
+        with self.assertRaises(ValueError):
+            linkedin_share_url("http://jairribeiro-ai.streamlit.app/")
+
     def test_private_cms_has_generator_not_public_analytics(self):
         import page_admin
         source = inspect.getsource(page_admin._dashboard)

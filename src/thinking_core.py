@@ -49,9 +49,8 @@ def _share_footer(article_key: str) -> str:
     share = article_share_url(article)
 
     linkedin_target = _bridge_url(article.slug, "linkedin")
-    linkedin = "https://www.linkedin.com/feed/?" + urlencode(
-        {"shareActive": "true", "shareUrl": linkedin_target}
-    )
+    from site_campaign_links import linkedin_share_url
+    linkedin = linkedin_share_url(linkedin_target)
 
     x_target = _bridge_url(article.slug, "x", version=X_CARD_VERSION)
     x_share = (

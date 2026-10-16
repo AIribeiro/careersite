@@ -92,3 +92,25 @@ def article_distribution_link(
     return make_distribution_link(
         article_url, channel=channel, campaign=campaign, content=content_slug,
     )
+
+
+def linkedin_share_url(target_url: str) -> str:
+    """Open LinkedIn's share composer for an accessible article/preview URL.
+
+    LinkedIn's /feed/?shareActive=true&shareUrl= variant is not a reliable
+    URL-sharing contract. Percent-encode exactly one fully-qualified target.
+    """
+    target = urlsplit(str(target_url).strip())
+    if target.scheme != "https" or not target.hostname or (
+        target.hostname not in (
+            "jairribeiro-ai.streamlit.app", "airibeiro.github.io"
+        )
+    ):
+        raise ValueError("LinkedIn share destination must be a trusted portfolio URL.")
+    if target.username or target.password or target.port is not None:
+        raise ValueError("LinkedIn share destination must be a trusted portfolio URL.")
+    if target.hostname == "airibeiro.github.io" and not target.path.startswith("/careersite/thinking/"):
+        raise ValueError("Unexpected preview-link path.")
+    return "https://www.linkedin.com/sharing/share-offsite/?" + urlencode(
+        {"url": target_url}
+    )

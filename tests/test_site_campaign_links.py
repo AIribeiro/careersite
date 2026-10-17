@@ -25,21 +25,45 @@ class AttributionLinkTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             canonical_channel("unknown")
 
-    def test_article_tracking_preserves_original_permalink_and_creates_all_tags(self):
+    def test_article_tracking_uses_native_reader_route_and_creates_all_tags(self):
         base = "https://jairribeiro-ai.streamlit.app/thinking/ai-portfolio"
         url = make_distribution_link(
             base, channel="LinkedIn", campaign="thinking",
             content="ai-portfolio",
         )
         parsed = urlparse(url)
-        self.assertEqual(parsed.path, "/thinking/ai-portfolio")
+        self.assertEqual(parsed.path, "/")
         params = parse_qs(parsed.query)
+        self.assertEqual(params["page"], ["thinking"])
+        self.assertEqual(params["article"], ["ai-portfolio"])
         for name, value in (
             ("source", "linkedin"), ("utm_source", "linkedin"),
             ("utm_medium", "social"), ("utm_campaign", "thinking"),
             ("utm_content", "ai-portfolio"),
         ):
             self.assertEqual(params[name], [value])
+
+    def test_social_preview_permalink_can_be_preserved_for_crawlers(self):
+        base = "https://jairribeiro-ai.streamlit.app/thinking/ai-portfolio"
+        url = make_distribution_link(
+            base, channel="linkedin", campaign="thinking",
+            content="ai-portfolio", preview=True,
+        )
+        parsed = urlparse(url)
+        self.assertEqual(parsed.path, "/thinking/ai-portfolio")
+        self.assertEqual(parse_qs(parsed.query)["source"], ["linkedin"])
+
+    def test_reported_spinning_url_is_generated_as_native_streamlit_link(self):
+        slug = "ai-is-turning-data-definitions-into-a-leadership-problem"
+        link = make_distribution_link(
+            f"https://jairribeiro-ai.streamlit.app/thinking/{slug}",
+            channel="linkedin", campaign="thinking", content=slug,
+        )
+        parsed = urlparse(link)
+        self.assertEqual(parsed.path, "/")
+        self.assertEqual(parse_qs(parsed.query)["article"], [slug])
+        self.assertEqual(parse_qs(parsed.query)["utm_medium"], ["social"])
+        self.assertEqual(parse_qs(parsed.query)["utm_content"], [slug])
 
     def test_weekly_ai_and_portfolio_targets_keep_selection(self):
         url = make_distribution_link(
@@ -133,8 +157,12 @@ class AttributionLinkTests(unittest.TestCase):
         self.assertEqual(inner["utm_campaign"], ["thinking"])
         self.assertEqual(inner["utm_content"], [slug])
         self.assertNotIn("/feed/", markup)
-        # Copied links remain clean permalink URLs, not tagged by assumption.
-        self.assertIn(f'data-copy-url="https://jairribeiro-ai.streamlit.app/thinking/{slug}"', markup)
+        # Copied links open the Streamlit article without an ASGI redirect.
+        # They are deliberately untagged: a copy action does not prove the channel.
+        self.assertIn(
+            f'data-copy-url="https://jairribeiro-ai.streamlit.app/?page=thinking&amp;article={slug}"',
+            markup,
+        )
 
         bundled = bundled_footer(ARTICLES[0].key)
         match = re.search(r'href="([^"]+)"[^>]+data-share-target="([^"]+)"[^>]+data-hq-event="article_share_linkedin"', bundled)

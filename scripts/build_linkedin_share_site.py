@@ -17,6 +17,7 @@ if str(SRC) not in sys.path:
 
 from thinking_articles import ARTICLES, ArticleMeta, BASE_URL
 from thinking_social import ensure_article_social_image
+from site_shortlinks import registered_short_links
 
 DEFAULT_SHARE_BASE = "https://airibeiro.github.io/careersite"
 X_HANDLE = "@Liberoliber"
@@ -189,6 +190,46 @@ window.addEventListener('load', () => {{
 '''
 
 
+def _static_shortlink_html(code: str, slug: str, channel: str, target: str) -> str:
+    """A no-dependency redirect with a visible fallback and minimal social preview.
+
+    Do not route humans via the Streamlit Cloud /?go= handler: in production
+    that entrypoint can render the home page rather than expand the alias.
+    """
+    registered_titles = {
+        "ai-is-turning-data-definitions-into-a-leadership-problem":
+            "AI Is Turning Data Definitions Into a Leadership Problem",
+        "if-ai-does-the-routine-work-how-will-we-develop-the-next-experts":
+            "If AI Does the Routine Work, How Will We Develop the Next Experts?",
+    }
+    title = registered_titles.get(slug, slug.replace("-", " ").title())
+    destination = html.escape(target, quote=True)
+    script_target = json.dumps(target).replace("</", "<\\/")
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{html.escape(title)} · Jair Ribeiro</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta property="og:title" content="{html.escape(title, quote=True)}">
+<meta property="og:description" content="Read the full article on Jair Ribeiro's Enterprise AI &amp; Data Portfolio.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Jair Ribeiro">
+<meta property="og:image" content="{BASE_URL}/app/static/jair-ribeiro-social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta http-equiv="refresh" content="0;url={destination}">
+<script>window.location.replace({script_target});</script>
+</head>
+<body>
+<p>Opening the article in the AI &amp; Data Portfolio.</p>
+<p><a href="{destination}">Read the article</a></p>
+</body>
+</html>
+"""
+
+
 def _write_x_image(source_image: Path, target_image: Path) -> None:
     with Image.open(source_image) as image:
         x_image = ImageOps.fit(
@@ -222,6 +263,16 @@ def build(output: Path, share_base: str) -> None:
         )
         links.append(
             f'<li><a href="thinking/{html.escape(article.slug)}/">{html.escape(article.title)}</a></li>'
+        )
+
+    # GitHub Pages serves stable, source-specific URLs independently of
+    # the Streamlit Cloud query-router and its outer application iframe.
+    for code, slug, channel, target in registered_short_links():
+        alias_dir = output / "go" / code
+        alias_dir.mkdir(parents=True, exist_ok=True)
+        (alias_dir / "index.html").write_text(
+            _static_shortlink_html(code, slug, channel, target),
+            encoding="utf-8",
         )
 
     index = "<!doctype html><html><head><meta charset='utf-8'><meta name='robots' content='noindex'></head><body><h1>Jair Ribeiro — Thinking</h1><ul>" + "".join(links) + "</ul></body></html>"

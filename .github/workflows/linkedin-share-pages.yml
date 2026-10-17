@@ -7,6 +7,7 @@ on:
       - "src/thinking_articles.py"
       - "src/thinking_social.py"
       - "src/site_shortlinks.py"
+      - "src/weekly_ai_shortlink_registry.json"
       - "scripts/build_linkedin_share_site.py"
       - "static/thinking-visuals/**"
       - ".github/workflows/linkedin-share-pages.yml"
@@ -76,7 +77,7 @@ jobs:
 
           assert x_image.stat().st_size < 1_000_000
 
-          from site_shortlinks import registered_short_links, short_article_link
+          from site_shortlinks import registered_short_links, short_article_link, weekly_ai_short_link
           from html import escape
           for code, slug, channel, target in registered_short_links():
               page = Path(f'_share_site/go/{code}/index.html')
@@ -86,7 +87,15 @@ jobs:
               assert 'window.location.replace(' in markup
               assert escape(target, quote=True) in markup
               assert f'?page=thinking&amp;article={slug}' in markup
-              assert short_article_link(slug, channel).endswith(f'/go/{code}/')
+              if code.startswith('w'):
+                  from urllib.parse import parse_qs, urlsplit
+                  q = parse_qs(urlsplit(target).query)
+                  actual = weekly_ai_short_link(
+                      slug, channel, campaign=q['utm_campaign'][0], content=q['utm_content'][0],
+                  )
+              else:
+                  actual = short_article_link(slug, channel)
+              assert actual and actual.endswith(f'/go/{code}/')
           print('Static article redirects, campaign tags, and social assets validated')
           PY
 

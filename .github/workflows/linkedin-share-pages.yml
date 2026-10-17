@@ -6,6 +6,7 @@ on:
     paths:
       - "src/thinking_articles.py"
       - "src/thinking_social.py"
+      - "src/site_shortlinks.py"
       - "scripts/build_linkedin_share_site.py"
       - "static/thinking-visuals/**"
       - ".github/workflows/linkedin-share-pages.yml"
@@ -74,7 +75,19 @@ jobs:
               assert im.size == (1200, 600)
 
           assert x_image.stat().st_size < 1_000_000
-          print('Static LinkedIn and X share assets validated')
+
+          from site_shortlinks import registered_short_links, short_article_link
+          from html import escape
+          for code, slug, channel, target in registered_short_links():
+              page = Path(f'_share_site/go/{code}/index.html')
+              assert page.is_file(), f'Missing redirect for {code}'
+              markup = page.read_text(encoding='utf-8')
+              assert '<meta http-equiv="refresh"' in markup
+              assert 'window.location.replace(' in markup
+              assert escape(target, quote=True) in markup
+              assert f'?page=thinking&amp;article={slug}' in markup
+              assert short_article_link(slug, channel).endswith(f'/go/{code}/')
+          print('Static article redirects, campaign tags, and social assets validated')
           PY
 
       - name: Configure GitHub Pages

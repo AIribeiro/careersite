@@ -42,6 +42,40 @@ class ShortArticleLinkTests(unittest.TestCase):
                 })
                 self.assertLess(len(link), 60)
 
+    def test_next_experts_article_has_distinct_permanent_links(self):
+        slug = "if-ai-does-the-routine-work-how-will-we-develop-the-next-experts"
+        expected = {
+            "linkedin": ("el", "social"),
+            "x": ("ex", "social"),
+            "threads": ("et", "social"),
+            "facebook": ("ef", "social"),
+            "whatsapp": ("ew", "messaging"),
+        }
+        for channel, (code, medium) in expected.items():
+            with self.subTest(channel=channel):
+                link = short_article_link(slug, channel)
+                self.assertEqual(
+                    link, "https://jairribeiro-ai.streamlit.app/?go=" + code
+                )
+                self.assertEqual(parse_qs(urlparse(link).query), {"go": [code]})
+                self.assertEqual(expand_shortlink(code), {
+                    "page": "thinking",
+                    "article": slug,
+                    "source": channel,
+                    "role": "article",
+                    "utm_source": channel,
+                    "utm_medium": medium,
+                    "utm_campaign": "thinking",
+                    "utm_content": slug,
+                })
+                self.assertNotEqual(
+                    link,
+                    short_article_link(
+                        "ai-is-turning-data-definitions-into-a-leadership-problem",
+                        channel,
+                    ),
+                )
+
     def test_unregistered_or_attack_codes_do_not_resolve(self):
         for code in (None, "", "invalid", "../", "aa", "do", "dli", "dd",
                      "https://attacker.invalid", ["dl"]):

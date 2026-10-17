@@ -19,6 +19,7 @@ from site_article_analytics import inject_article_analytics
 from site_behavior_telemetry_v2 import mount_behavior_telemetry
 from site_weekly_audio_telemetry import inject_weekly_audio_telemetry
 from site_share_guard import inject_share_guard
+from site_shortlinks import expand_shortlink
 from thinking_articles import resolve_article
 from thinking_social import ensure_all_article_social_assets
 
@@ -38,6 +39,14 @@ from page_contact import contact
 from page_ai_data_governance import ai_data_governance
 from page_analytics_v2 import render_analytics_dashboard
 from site_lenses import enterprise, transformation, governance, consulting
+
+# Expand registered first-party short links before page selection and analytics.
+# The browser's URL becomes the complete native article URL, so both trackers
+# read the actual declared social source instead of an untagged alias.
+SHORT_CODE = st.query_params.get("go", "")
+SHORT_TARGET = expand_shortlink(SHORT_CODE)
+if SHORT_TARGET is not None:
+    st.query_params.from_dict(SHORT_TARGET)
 
 PAGE = st.query_params.get("page", "home")
 if isinstance(PAGE, list):

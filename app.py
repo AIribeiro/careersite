@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import sys
 from urllib.parse import urlencode
 from xml.sax.saxutils import escape
@@ -59,22 +60,20 @@ def _is_crawler(request) -> bool:
 
 async def _thinking_article(request):
     slug = str(request.path_params.get("slug") or "").strip().lower()
-    try:
-        cms_article = fetch_public_article(slug)
-    except RuntimeError:
-        cms_article = None
-    article = None if cms_article is not None else resolve_article(slug)
-    if cms_article is None and article is None:
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,149}", slug):
         return PlainTextResponse("Article not found", status_code=404)
 
     if not _is_crawler(request):
+        # Human readers need only the validated slug to reach the native
+        # Streamlit article view. Do not await CMS/Supabase, image generation,
+        # or cache hydration before issuing this redirect.
         # This server route is both the crawler-visible Open Graph document
         # and the permanent public permalink. Preserve only known attribution
         # tags on its human redirect; otherwise tagged social shares lose
         # their source and campaign before browser analytics sees them.
         params = [
             ("page", "thinking"),
-            ("article", cms_article.slug if cms_article is not None else article.slug),
+            ("article", slug),
         ]
         attribution_fields = {
             "source": 100,
@@ -100,6 +99,15 @@ async def _thinking_article(request):
             status_code=302,
             headers={"Cache-Control": "no-store"},
         )
+
+    # Only preview bots require the article lookup and social metadata.
+    try:
+        cms_article = fetch_public_article(slug)
+    except RuntimeError:
+        cms_article = None
+    article = None if cms_article is not None else resolve_article(slug)
+    if cms_article is None and article is None:
+        return PlainTextResponse("Article not found", status_code=404)
 
     if cms_article is not None:
         document = cms_share_document(cms_article)

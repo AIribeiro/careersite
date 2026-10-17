@@ -12,6 +12,7 @@ from site_campaign_links import CHANNEL_MEDIA, PUBLIC_SITE
 # Channel is part of the code, allowing disjoint source attribution.
 _SHORT_ARTICLES: dict[str, str] = {
     "d": "ai-is-turning-data-definitions-into-a-leadership-problem",
+    "e": "if-ai-does-the-routine-work-how-will-we-develop-the-next-experts",
 }
 _SHORT_CHANNELS: dict[str, str] = {
     "l": "linkedin",

@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, urlparse
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from site_shortlinks import expand_shortlink, short_article_link
+from site_shortlinks import expand_shortlink, registered_short_links, short_article_link
 
 
 class ShortArticleLinkTests(unittest.TestCase):
@@ -26,9 +26,12 @@ class ShortArticleLinkTests(unittest.TestCase):
             with self.subTest(channel=channel):
                 link = short_article_link(slug, channel)
                 self.assertEqual(
-                    link, "https://jairribeiro-ai.streamlit.app/?go=" + code
+                    link, "https://airibeiro.github.io/careersite/go/" + code + "/"
                 )
-                self.assertEqual(parse_qs(urlparse(link).query), {"go": [code]})
+                self.assertEqual(parse_qs(urlparse(link).query), {})
+                self.assertEqual(
+                    urlparse(link).path, "/careersite/go/" + code + "/"
+                )
                 target = expand_shortlink(code)
                 self.assertEqual(target, {
                     "page": "thinking",
@@ -55,9 +58,12 @@ class ShortArticleLinkTests(unittest.TestCase):
             with self.subTest(channel=channel):
                 link = short_article_link(slug, channel)
                 self.assertEqual(
-                    link, "https://jairribeiro-ai.streamlit.app/?go=" + code
+                    link, "https://airibeiro.github.io/careersite/go/" + code + "/"
                 )
-                self.assertEqual(parse_qs(urlparse(link).query), {"go": [code]})
+                self.assertEqual(parse_qs(urlparse(link).query), {})
+                self.assertEqual(
+                    urlparse(link).path, "/careersite/go/" + code + "/"
+                )
                 self.assertEqual(expand_shortlink(code), {
                     "page": "thinking",
                     "article": slug,
@@ -75,6 +81,24 @@ class ShortArticleLinkTests(unittest.TestCase):
                         channel,
                     ),
                 )
+
+    def test_registered_static_redirect_targets_preserve_campaigns(self):
+        rows = registered_short_links()
+        self.assertEqual(len(rows), 10)
+        for code, slug, channel, target in rows:
+            with self.subTest(code=code):
+                self.assertEqual(
+                    short_article_link(slug, channel),
+                    f"https://airibeiro.github.io/careersite/go/{code}/",
+                )
+                params = parse_qs(urlparse(target).query)
+                self.assertEqual(params["page"], ["thinking"])
+                self.assertEqual(params["article"], [slug])
+                self.assertEqual(params["source"], [channel])
+                self.assertEqual(params["utm_source"], [channel])
+                self.assertEqual(params["utm_campaign"], ["thinking"])
+                self.assertEqual(params["utm_content"], [slug])
+                self.assertEqual(params["role"], ["article"])
 
     def test_unregistered_or_attack_codes_do_not_resolve(self):
         for code in (None, "", "invalid", "../", "aa", "do", "dli", "dd",

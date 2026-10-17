@@ -107,6 +107,32 @@ jobs:
             "http://127.0.0.1:8501/owner-auth/logout"
           grep -E '^HTTP/.* 403' /tmp/owner-forbidden-headers.txt
 
+      - name: Verify tagged article permalink redirects immediately
+        run: |
+          SLUG="ai-is-turning-data-definitions-into-a-leadership-problem"
+          curl --silent --show-error --max-time 10 \
+            --dump-header /tmp/article-redirect-headers.txt --output /dev/null \
+            "http://127.0.0.1:8501/thinking/${SLUG}?source=linkedin&utm_source=linkedin&utm_medium=social&utm_campaign=thinking&utm_content=${SLUG}"
+          python - <<'PY'
+          from pathlib import Path
+          from urllib.parse import parse_qs, urlparse
+
+          raw = Path("/tmp/article-redirect-headers.txt").read_text()
+          assert " 302 " in raw, raw
+          location = next(line.split(":", 1)[1].strip() for line in raw.splitlines()
+                          if line.lower().startswith("location:"))
+          target = urlparse(location)
+          params = parse_qs(target.query)
+          assert target.path == "/", location
+          assert params["page"] == ["thinking"]
+          assert params["article"] == ["ai-is-turning-data-definitions-into-a-leadership-problem"]
+          assert params["source"] == ["linkedin"]
+          assert params["utm_source"] == ["linkedin"]
+          assert params["utm_medium"] == ["social"]
+          assert params["utm_campaign"] == ["thinking"]
+          print("Tagged article URL redirects to the native Streamlit reader without CMS lookup.")
+          PY
+
       - name: Verify public CV endpoint serves PDF bytes
         run: |
           CV="Jair_Ribeiro_CV.pdf"

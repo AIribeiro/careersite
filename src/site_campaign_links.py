@@ -49,6 +49,7 @@ def make_distribution_link(
     campaign: str,
     content: str = "",
     role: str = "",
+    preview: bool = False,
 ) -> str:
     """Build one truthful channel-tagged URL to the real portfolio destination.
 
@@ -68,6 +69,17 @@ def make_distribution_link(
     original = parse_qsl(target.query, keep_blank_values=False)
     params = [(key, val) for key, val in original
               if key.lower() not in _TRACKING_KEYS and key.lower() != "role"]
+    path = target.path or "/"
+    if is_article and not preview:
+        # Reader links must load Streamlit from its native app root rather
+        # than depending on a custom ASGI permalink route. Keep that route
+        # only for server-rendered social preview crawlers.
+        slug = target.path.strip("/").split("/", 1)[1]
+        params = [("page", "thinking"), ("article", slug)] + [
+            (key, val) for key, val in params
+            if key.lower() not in {"page", "article"}
+        ]
+        path = "/"
     params.extend((
         ("source", channel),
         ("utm_source", channel),
@@ -82,15 +94,16 @@ def make_distribution_link(
     if role:
         clean_role = canonical_campaign(role)
         params.append(("role", clean_role))
-    return urlunsplit(("https", target.netloc, target.path or "/", urlencode(params), ""))
+    return urlunsplit(("https", target.netloc, path, urlencode(params), ""))
 
 
 def article_distribution_link(
     article_url: str, channel: str, *, campaign: str = "thinking",
-    content_slug: str = "",
+    content_slug: str = "", preview: bool = False,
 ) -> str:
     return make_distribution_link(
         article_url, channel=channel, campaign=campaign, content=content_slug,
+        preview=preview,
     )
 
 

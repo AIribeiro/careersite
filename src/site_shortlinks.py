@@ -99,7 +99,7 @@ def _weekly_ai_shortlinks() -> tuple[tuple[str, str, str, str, str, str], ...]:
         year, week = int(edition["iso_year"]), int(edition["iso_week"])
         date.fromisocalendar(year, week, 1)  # ISO year/week boundary validation
         slug = str(edition["slug"])
-        if not re.fullmatch(r"weekly-ai-\\d{4}-\\d{2}-\\d{2}", slug):
+        if not re.fullmatch(r"weekly-ai-\d{4}-\d{2}-\d{2}", slug):
             raise ValueError("Invalid Weekly AI publication slug")
         keys = list(edition["story_keys"])
         if not 3 <= len(keys) <= 5 or len(keys) != len(set(keys)):

@@ -96,10 +96,10 @@ class ShortArticleLinkTests(unittest.TestCase):
         self.assertFalse(at.exception)
         self.assertEqual(
             at.query_params.get("article"),
-            "ai-is-turning-data-definitions-into-a-leadership-problem",
+            ["ai-is-turning-data-definitions-into-a-leadership-problem"],
         )
-        self.assertEqual(at.query_params.get("source"), "linkedin")
-        self.assertEqual(at.query_params.get("utm_medium"), "social")
+        self.assertEqual(at.query_params.get("source"), ["linkedin"])
+        self.assertEqual(at.query_params.get("utm_medium"), ["social"])
         self.assertNotIn("go", at.query_params)
 
 

@@ -27,7 +27,10 @@ class ArticleShareRedirectTests(unittest.TestCase):
                 "&page=admin&article=unrelated&workspace=cms&source=facebook"
             ),
         )
-        with patch.object(launcher, "fetch_public_article", return_value=article):
+        with patch.object(
+            launcher, "fetch_public_article",
+            side_effect=AssertionError("Human redirects must not call CMS"),
+        ):
             response = asyncio.run(launcher._thinking_article(request))
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.headers["cache-control"], "no-store")
@@ -42,6 +45,30 @@ class ArticleShareRedirectTests(unittest.TestCase):
         self.assertEqual(params["utm_campaign"], ["thinking"])
         self.assertEqual(params["utm_content"], [slug])
         self.assertNotIn("workspace", params)
+
+    def test_reported_cms_article_redirect_is_independent_of_cms_availability(self):
+        import app as launcher
+
+        slug = "ai-is-turning-data-definitions-into-a-leadership-problem"
+        request = SimpleNamespace(
+            path_params={"slug": slug},
+            headers={"user-agent": "Mozilla/5.0 Safari/605.1"},
+            query_params=QueryParams(
+                "source=linkedin&utm_source=linkedin&utm_medium=social"
+                "&utm_campaign=thinking&utm_content=" + slug
+            ),
+        )
+        with patch.object(
+            launcher, "fetch_public_article",
+            side_effect=RuntimeError("CMS unavailable"),
+        ):
+            response = asyncio.run(launcher._thinking_article(request))
+        self.assertEqual(response.status_code, 302)
+        parsed = urlparse(response.headers["location"])
+        self.assertEqual(parsed.path, "/")
+        params = parse_qs(parsed.query)
+        self.assertEqual(params["article"], [slug])
+        self.assertEqual(params["utm_campaign"], ["thinking"])
 
     def test_linkedin_crawler_receives_og_html_not_redirect(self):
         import app as launcher

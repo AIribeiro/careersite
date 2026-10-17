@@ -365,7 +365,32 @@ def render_article_analytics() -> None:
                 key="careersite_article_analytics_selected_slug",
             )
             sources = _source_rows(data.get("sources", []), selected)
-            _bar_chart(sources, "source", value="sessions", limit=10, height=260, color=ACCENT)
+            source_visits = sum(max(0, int(row.get("sessions") or 0)) for row in sources)
+            unknown_visits = sum(
+                max(0, int(row.get("sessions") or 0))
+                for row in sources
+                if row.get("source") == "Unattributed / unknown"
+            )
+            tagged_visits = source_visits - unknown_visits
+            st.caption(
+                f"**Selected article:** {_article_title(selected)}  "
+                f"\n\n**{source_visits:,} article-session visits** in the selected reporting period. "
+                "This breakdown applies only to the selected article, not to a URL being examined elsewhere."
+            )
+            if not sources:
+                _empty("No article visits recorded in this reporting period.")
+            elif tagged_visits == 0:
+                st.info(
+                    f"All {unknown_visits:,} recorded article-session visits have no retained source tag. "
+                    "They cannot be assigned to LinkedIn or another channel without recorded evidence."
+                )
+            else:
+                _bar_chart(sources, "source", value="sessions", limit=10, height=260, color=ACCENT)
+                st.caption(
+                    f"**{tagged_visits:,} tagged visits** · "
+                    f"**{unknown_visits:,} unattributed visits**. "
+                    "Source tags are campaign attribution, not independently verified referrers."
+                )
 
     st.caption(
         "Article analytics remains first-party and session-scoped: measured sessions are distinct browser session IDs with an actual article view and should not be interpreted as unique people. "

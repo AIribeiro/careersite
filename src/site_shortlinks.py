@@ -1,12 +1,15 @@
-"""First-party compact article links. No external shortener or user-level tracking.
+"""Permanent short article links, served by a static first-party Pages bridge.
 
-Each registered alias expands to the existing native Streamlit article route with
-the complete, evidence-based distribution tags before analytics is mounted.
-Unregistered aliases do not change routing or attribution.
+The Streamlit Cloud wrapper does not reliably expand a root ?go= alias;
+registered public links instead redirect from GitHub Pages directly to the
+native Streamlit article URL with complete channel attribution. Registered
+codes never change owners and do not require a third-party URL shortener.
 """
 from __future__ import annotations
 
-from site_campaign_links import CHANNEL_MEDIA, PUBLIC_SITE
+from site_campaign_links import CHANNEL_MEDIA, PUBLIC_SITE, make_distribution_link
+
+SHORT_BASE = "https://airibeiro.github.io/careersite/go"
 
 # Author-curated immutable aliases. Never recycle a code for another destination.
 # Channel is part of the code, allowing disjoint source attribution.
@@ -54,4 +57,21 @@ def short_article_link(slug: str, channel: str, *, campaign: str = "thinking", r
     suffix = _CHANNEL_SUFFIX.get(str(channel).strip().lower())
     if prefix is None or suffix is None or campaign != "thinking" or role != "article":
         return None
-    return f"{PUBLIC_SITE}/?go={prefix}{suffix}"
+    return f"{SHORT_BASE}/{prefix}{suffix}/"
+
+def registered_short_links() -> tuple[tuple[str, str, str, str], ...]:
+    """Enumerate code, article slug, channel, and immutable tracked target.
+
+    Used by GitHub Pages publishing, tests, and the editorial distribution
+    workflow. Only pre-registered article/channel pairs can produce a URL.
+    """
+    rows: list[tuple[str, str, str, str]] = []
+    for prefix, slug in sorted(_SHORT_ARTICLES.items()):
+        for suffix, channel in _SHORT_CHANNELS.items():
+            target = make_distribution_link(
+                f"{PUBLIC_SITE}/?page=thinking&article={slug}",
+                channel=channel, campaign="thinking", content=slug, role="article",
+            )
+            rows.append((prefix + suffix, slug, channel, target))
+    return tuple(rows)
+

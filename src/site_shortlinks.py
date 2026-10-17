@@ -123,10 +123,10 @@ def _weekly_ai_shortlinks() -> tuple[tuple[str, str, str, str, str, str], ...]:
             content="weekly_perspective", role="weeklyai",
         )
         rows.append((code, slug, "linkedin", linkedin_campaign, "weekly_perspective", target))
-        for code, *_ in rows:
-            if code in seen:
-                raise ValueError(f"Duplicate permanent Weekly AI short code: {code}")
-            seen.add(code)
+        for new_code, *_ in rows[-(2 * len(keys) + 1):]:
+            if new_code in seen:
+                raise ValueError(f"Duplicate permanent Weekly AI short code: {new_code}")
+            seen.add(new_code)
     return tuple(rows)
 
 

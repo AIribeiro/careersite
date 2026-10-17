@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, urlparse
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from site_shortlinks import expand_shortlink, registered_short_links, short_article_link
+from site_shortlinks import expand_shortlink, registered_short_links, short_article_link, weekly_ai_short_link
 
 
 class ShortArticleLinkTests(unittest.TestCase):
@@ -84,11 +84,20 @@ class ShortArticleLinkTests(unittest.TestCase):
 
     def test_registered_static_redirect_targets_preserve_campaigns(self):
         rows = registered_short_links()
-        self.assertEqual(len(rows), 10)
+        self.assertGreaterEqual(len(rows), 21)
         for code, slug, channel, target in rows:
             with self.subTest(code=code):
+                if code.startswith("w"):
+                    params0 = parse_qs(urlparse(target).query)
+                    found = weekly_ai_short_link(
+                        slug, channel,
+                        campaign=params0["utm_campaign"][0],
+                        content=params0["utm_content"][0],
+                    )
+                else:
+                    found = short_article_link(slug, channel)
                 self.assertEqual(
-                    short_article_link(slug, channel),
+                    found,
                     f"https://airibeiro.github.io/careersite/go/{code}/",
                 )
                 params = parse_qs(urlparse(target).query)
@@ -96,9 +105,44 @@ class ShortArticleLinkTests(unittest.TestCase):
                 self.assertEqual(params["article"], [slug])
                 self.assertEqual(params["source"], [channel])
                 self.assertEqual(params["utm_source"], [channel])
-                self.assertEqual(params["utm_campaign"], ["thinking"])
-                self.assertEqual(params["utm_content"], [slug])
-                self.assertEqual(params["role"], ["article"])
+                if code.startswith("w"):
+                    self.assertEqual(params["role"], ["weeklyai"])
+                    self.assertTrue(params["utm_campaign"][0].startswith("weekly_ai_"))
+                    self.assertTrue(params["utm_content"][0])
+                else:
+                    self.assertEqual(params["utm_campaign"], ["thinking"])
+                    self.assertEqual(params["utm_content"], [slug])
+                    self.assertEqual(params["role"], ["article"])
+
+    def test_weekly_ai_registry_preserves_all_story_and_channel_attribution(self):
+        slug = "weekly-ai-2026-10-11"
+        campaign = "weekly_ai_2026_w41"
+        stories = ["work_task_changes", "physical_ai", "agent_identity", "adoption_gap", "leadership_mindsets"]
+        rows = [row for row in registered_short_links() if row[1] == slug]
+        self.assertEqual(len(rows), 11)
+        for position, story in enumerate(stories, 1):
+            for channel, suffix in (("x", "x"), ("threads", "t")):
+                expected = f"https://airibeiro.github.io/careersite/go/w202641{position}{suffix}/"
+                self.assertEqual(
+                    weekly_ai_short_link(slug, channel, campaign=campaign, content=story), expected
+                )
+                record = next(row for row in rows if row[0] == f"w202641{position}{suffix}")
+                q = parse_qs(urlparse(record[3]).query)
+                self.assertEqual(q["source"], [channel])
+                self.assertEqual(q["utm_source"], [channel])
+                self.assertEqual(q["utm_medium"], ["social"])
+                self.assertEqual(q["utm_campaign"], [campaign])
+                self.assertEqual(q["utm_content"], [story])
+                self.assertEqual(q["role"], ["weeklyai"])
+        self.assertEqual(
+            weekly_ai_short_link(
+                slug, "linkedin", campaign=campaign + "_wednesday",
+                content="weekly_perspective",
+            ),
+            "https://airibeiro.github.io/careersite/go/w2026410l/",
+        )
+        self.assertIsNone(weekly_ai_short_link(slug, "x", campaign=campaign, content="unverified"))
+        self.assertIsNone(weekly_ai_short_link(slug, "threads", campaign=campaign+"_wednesday", content="physical_ai"))
 
     def test_unregistered_or_attack_codes_do_not_resolve(self):
         for code in (None, "", "invalid", "../", "aa", "do", "dli", "dd",

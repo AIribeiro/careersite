@@ -1,11 +1,9 @@
 name: Verify live article short links
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "src/site_shortlinks.py"
-      - ".github/workflows/live-article-shortlinks.yml"
+  workflow_run:
+    workflows: ["Social Share Pages"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -13,6 +11,7 @@ permissions:
 
 jobs:
   live-browser-check:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -35,6 +34,7 @@ jobs:
           from playwright.sync_api import sync_playwright
 
           base = "https://jairribeiro-ai.streamlit.app"
+          short_base = "https://airibeiro.github.io/careersite/go"
           title = "If AI Does the Routine Work, How Will We Develop the Next Experts?"
           slug = "if-ai-does-the-routine-work-how-will-we-develop-the-next-experts"
           channels = [
@@ -82,9 +82,9 @@ jobs:
                               viewport={"width": 1400, "height": 900}
                           )
                           try:
-                              print(f"Checking {base}/?go={code}; attempt {attempt}", flush=True)
+                              print(f"Checking {short_base}/{code}/; attempt {attempt}", flush=True)
                               response = page.goto(
-                                  f"{base}/?go={code}",
+                                  f"{short_base}/{code}/",
                                   wait_until="domcontentloaded",
                                   timeout=90000,
                               )

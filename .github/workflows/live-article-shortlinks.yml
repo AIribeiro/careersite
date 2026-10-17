@@ -62,6 +62,10 @@ jobs:
                       print(f"DIRECT page title: {direct.title()}", flush=True)
                       print(f"DIRECT body sample: {direct.locator('body').inner_text(timeout=10000)[:1800]!r}", flush=True)
                       print(f"DIRECT frames: {[frame.url for frame in direct.frames]}", flush=True)
+                      active = next((frame for frame in direct.frames if "/~/+/" in frame.url), None)
+                      if active:
+                          print(f"DIRECT app body: {active.locator('body').inner_text(timeout=10000)[:2000]!r}", flush=True)
+                          print(f"DIRECT app title: {active.title()}", flush=True)
                       direct.screenshot(
                           path="live-link-diagnostics/direct-article.png",
                           full_page=False,
@@ -87,7 +91,17 @@ jobs:
                               assert response is not None and response.status == 200, (
                                   f"Unexpected HTTP status: {response.status if response else 'none'}"
                               )
-                              page.wait_for_function(
+                              # Streamlit Community Cloud wraps the real app
+                              # in /~/+/; the outer frame's query never changes.
+                              page.wait_for_timeout(9000)
+                              frame = next(
+                                  (f for f in page.frames if "/~/+/" in f.url),
+                                  None,
+                              )
+                              assert frame is not None, "Streamlit application iframe absent"
+                              print(f"App frame URL before assertions: {frame.url}", flush=True)
+                              print(f"App frame text: {frame.locator('body').inner_text(timeout=10000)[:1400]!r}", flush=True)
+                              frame.wait_for_function(
                                   """expected => {
                                       const p = new URLSearchParams(window.location.search);
                                       return p.get('page') === 'thinking'
@@ -102,11 +116,11 @@ jobs:
                                   arg={"slug": slug, "channel": channel, "medium": medium},
                                   timeout=35000,
                               )
-                              page.get_by_text(title, exact=False).first.wait_for(
+                              frame.get_by_text(title, exact=False).first.wait_for(
                                   state="visible", timeout=70000
                               )
                               print(
-                                  f"PASS {code} {channel}: URL={page.url}; "
+                                  f"PASS {code} {channel}: app URL={frame.url}; "
                                   f"visible article title confirmed",
                                   flush=True,
                               )
@@ -123,6 +137,10 @@ jobs:
                                   print(f"Page title: {page.title()}", flush=True)
                                   print(f"Body sample: {page.locator('body').inner_text(timeout=10000)[:1800]!r}", flush=True)
                                   print(f"Frame URLs: {[frame.url for frame in page.frames]}", flush=True)
+                                  app_frame = next((f for f in page.frames if "/~/+/" in f.url), None)
+                                  if app_frame:
+                                      print(f"App frame text after failure: {app_frame.locator('body').inner_text(timeout=10000)[:2000]!r}", flush=True)
+                                      print(f"App frame title after failure: {app_frame.title()}", flush=True)
                               except Exception as diagnosis:
                                   print(f"Browser diagnostics error: {diagnosis}", flush=True)
                               try:

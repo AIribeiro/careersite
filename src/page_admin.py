@@ -809,6 +809,7 @@ def _private_view_changed() -> None:
 def _distribution_links(articles: list[CmsArticle]) -> None:
     """Owner-only canonical links for intentional portfolio distribution."""
     from site_campaign_links import CHANNEL_MEDIA, make_distribution_link
+    from site_shortlinks import short_article_link
 
     with st.expander("Distribution links · source and campaign tracking", expanded=False):
         st.caption(
@@ -850,16 +851,25 @@ def _distribution_links(articles: list[CmsArticle]) -> None:
                 break
         if campaign:
             try:
+                role = "article" if slug and campaign == "thinking" else ""
                 link = make_distribution_link(
                     locations[destination], channel=channel,
-                    campaign=campaign, content=slug,
+                    campaign=campaign, content=slug, role=role,
                 )
-                st.code(link, language=None, wrap_lines=True)
+                compact = short_article_link(
+                    slug, channel, campaign=campaign, role=role
+                ) if slug else None
+                if compact:
+                    st.caption("Short link · permanent, first-party, channel-tagged")
+                    st.code(compact, language=None, wrap_lines=False)
+                    with st.expander("Full tracked destination", expanded=False):
+                        st.code(link, language=None, wrap_lines=True)
+                else:
+                    st.code(link, language=None, wrap_lines=True)
                 st.caption(
-                    "source and utm_source identify the known channel; "
-                    "utm_campaign describes the distribution series; "
-                    "utm_content identifies the article when applicable. "
-                    "The permalink remains unchanged."
+                    "Source and UTM tags identify the declared distribution channel; "
+                    "campaign and content tags describe the publication. "
+                    "Short links expand to the full native article URL before analytics records a visit."
                 )
             except ValueError as exc:
                 st.warning(str(exc))

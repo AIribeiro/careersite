@@ -1094,13 +1094,18 @@ def _share_footer(article: CmsArticle) -> str:
     from site_campaign_links import article_distribution_link, linkedin_share_url
     canonical = article_url(article)
     campaign = "weekly_ai" if article.slug.startswith("weekly-ai-") else "thinking"
-    linkedin_target = article_distribution_link(canonical, "linkedin", campaign=campaign, content_slug=article.slug)
+    # The preview route remains available for LinkedInBot/Open Graph.
+    # Human-facing X, email and copied links go straight to Streamlit's root.
+    linkedin_target = article_distribution_link(
+        canonical, "linkedin", campaign=campaign, content_slug=article.slug, preview=True
+    )
     x_target = article_distribution_link(canonical, "x", campaign=campaign, content_slug=article.slug)
     email_target = article_distribution_link(canonical, "email", campaign=campaign, content_slug=article.slug)
+    reader_url = f"{BASE_URL}/{article_relative_url(article)}"
     linkedin = linkedin_share_url(linkedin_target)
     x_url = "https://twitter.com/intent/tweet?" + parse.urlencode({"url": x_target, "text": article.social_title or article.title})
     mailto = "mailto:?" + parse.urlencode({"subject": article.social_title or article.title, "body": f"{article.social_description or article.excerpt}\n\n{email_target}"})
-    return f'''<section class="article-share"><div class="article-share-grid"><div><p class="eyebrow">Share this article</p><h3>Useful for someone working through the same decision?</h3><p>Share it directly, or copy the permanent article link.</p></div><div class="share-actions"><a class="share-btn primary" href="{escape(linkedin, quote=True)}" target="_blank" rel="noopener noreferrer" data-hq-event="article_share_linkedin">LinkedIn ↗</a><a class="share-btn" href="{escape(x_url, quote=True)}" target="_blank" rel="noopener noreferrer" data-hq-event="article_share_x">X ↗</a><a class="share-btn" href="{escape(mailto, quote=True)}" data-hq-event="article_share_email">Email</a><button class="share-btn" type="button" data-copy-url="{escape(canonical, quote=True)}" data-hq-event="article_share_copy">Copy link</button></div></div><div class="share-meta"><span>{escape(article.kind_topic)}</span><span>·</span><span>{escape(article.published_label)}</span><span>·</span><a href="?page=thinking" target="_self">More Thinking</a><span class="share-copy-status" data-copy-status></span></div></section>'''
+    return f'''<section class="article-share"><div class="article-share-grid"><div><p class="eyebrow">Share this article</p><h3>Useful for someone working through the same decision?</h3><p>Share it directly, or copy the permanent article link.</p></div><div class="share-actions"><a class="share-btn primary" href="{escape(linkedin, quote=True)}" target="_blank" rel="noopener noreferrer" data-hq-event="article_share_linkedin">LinkedIn ↗</a><a class="share-btn" href="{escape(x_url, quote=True)}" target="_blank" rel="noopener noreferrer" data-hq-event="article_share_x">X ↗</a><a class="share-btn" href="{escape(mailto, quote=True)}" data-hq-event="article_share_email">Email</a><button class="share-btn" type="button" data-copy-url="{escape(reader_url, quote=True)}" data-hq-event="article_share_copy">Copy link</button></div></div><div class="share-meta"><span>{escape(article.kind_topic)}</span><span>·</span><span>{escape(article.published_label)}</span><span>·</span><a href="?page=thinking" target="_self">More Thinking</a><span class="share-copy-status" data-copy-status></span></div></section>'''
 
 
 def render_cms_article(article: CmsArticle) -> str:

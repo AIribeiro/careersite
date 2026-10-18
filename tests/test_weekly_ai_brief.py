@@ -138,7 +138,10 @@ class WeeklyAiBriefingTests(unittest.TestCase):
         rendered = inject_cms_landing(original)
         self.assertIn('id="weekly-ai"', rendered)
         self.assertIn("Normal Article", rendered)
-        self.assertEqual(rendered.count('data-hq-event="cms_article_open"'), 1)
+        # With a single eligible essay, it occupies the auto-highlight slot;
+        # Weekly AI must still appear only in its own editorial feature.
+        self.assertIn('class="featured-thinking cms-featured-thinking"', rendered)
+        self.assertEqual(rendered.count('data-hq-event="cms_article_open"'), 0)
 
 
 if __name__ == "__main__":

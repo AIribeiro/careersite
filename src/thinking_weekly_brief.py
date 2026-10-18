@@ -234,13 +234,15 @@ WEEKLY_CSS = """
 """
 
 
-def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> str:
+def inject_weekly_brief_landing(
+    document: str, briefs: list["CmsArticle"], *, read_counts: dict[str, int] | None = None,
+) -> str:
     """Position the latest issue first, immediately under Thinking navigation."""
     editions = sorted_editions(briefs)
     if not editions:
         return document
 
-    from site_cms import article_relative_url
+    from site_cms import article_relative_url, article_read_count_label
 
     latest, *older = editions
     year, week, start, end = edition_week(latest)
@@ -259,7 +261,8 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
             '<a href="' + escape(article_relative_url(item), quote=True)
             + '" target="_self" data-hq-content-slug="' + escape(item.slug, quote=True) + '" data-hq-event="weekly_ai_previous_open">'
             + escape(edition_label(item))
-            + ' <span>· ' + escape(_headline(item)) + '</span></a>'
+            + ' <span>· ' + escape(_headline(item)) + ' · 1 min · '
+            + article_read_count_label(item.slug, read_counts) + '</span></a>'
             for item in older[:2]
         )
     else:
@@ -294,7 +297,8 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
         '<div class="weekly-ai-side">'
         '<div class="weekly-ai-side-label">Calendar week</div>'
         '<div class="weekly-ai-number">' + str(week) + '<small>Week · ' + str(year) + '</small></div>'
-        '<div class="weekly-ai-dates">' + escape(_english_range(start, end)) + '<br>1 min read</div>'
+        '<div class="weekly-ai-dates">' + escape(_english_range(start, end)) + '<br>1 min read · '
+        + article_read_count_label(latest.slug, read_counts) + '</div>'
         '<div class="weekly-ai-history"><p>Previous editions</p>' + recent_items + '</div>'
         '</div></div></div></section>'
     )
@@ -307,8 +311,9 @@ def inject_weekly_brief_landing(document: str, briefs: list["CmsArticle"]) -> st
 
 def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
     """A permanent, fully populated public archive grouped by ISO week-year."""
-    from site_cms import article_relative_url
+    from site_cms import article_relative_url, article_read_count_label, _public_reads_or_none
     from site_components import footer, nav
+    read_counts = _public_reads_or_none()
     from thinking_core import THINKING_CSS
 
     editions = sorted_editions(briefs)
@@ -327,7 +332,8 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
                 '<a class="weekly-ai-issue" href="' + link + '" target="_self"'
                 ' data-hq-content-slug="' + escape(article.slug, quote=True) + '" data-hq-event="weekly_ai_archive_issue_open">'
                 '<span class="weekly-ai-issue-week">Week ' + str(week) + ' · ' + str(year) + '</span>'
-                '<span class="weekly-ai-issue-dates">' + escape(_english_range(start, end)) + '</span>'
+                '<span class="weekly-ai-issue-dates">' + escape(_english_range(start, end))
+                + ' · 1 min · ' + article_read_count_label(article.slug, read_counts) + '</span>'
                 '<h3>' + escape(_headline(article)) + '</h3>'
                 '<p>' + escape(article.excerpt or article.subtitle) + '</p>'
                 '<span class="weekly-ai-issue-cta">Read · 1 min →</span></a>'
@@ -361,7 +367,9 @@ def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str
     from site_components import footer, nav
     from thinking_core import THINKING_CSS
     from weekly_ai_audio import audio_player_html
+    from site_cms import article_read_count_label, _public_reads_or_none
 
+    read_counts = _public_reads_or_none()
     year, week, start, end = edition_week(article)
     return (
         THINKING_CSS + WEEKLY_CSS + nav("thinking")
@@ -372,7 +380,8 @@ def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str
         '<h1>' + escape(_headline(article)) + '</h1>'
         '<p class="weekly-ai-subtitle">' + escape(article.subtitle or article.excerpt) + '</p>'
         '<div class="weekly-ai-bylines">' + escape(_english_range(start, end))
-        + ' · 1 min read · Curated by ' + escape(article.author_name) + '</div>'
+        + ' · 1 min read · ' + article_read_count_label(article.slug, read_counts)
+        + ' · Curated by ' + escape(article.author_name) + '</div>'
         + audio_player_html(article.slug)
         + '<article class="weekly-ai-body">' + article.content_html
         + '<p class="weekly-ai-source-note">Personally curated by Jair Ribeiro. I review the reporting, choose the developments '

@@ -1259,6 +1259,14 @@ def inject_cms_landing(document: str) -> str:
                 f'alt="{escape(featured.header_image_alt or featured.title, quote=True)}" '
                 f'loading="eager" decoding="async"></div>'
             )
+        elif featured.legacy_key:
+            # Earlier articles use their original branded visuals when promoted
+            # by readership, not the generic CMS fallback illustration.
+            try:
+                from page_thinking import _image
+                featured_image = _image(featured.legacy_key, "thinking-thumb cms-thinking-thumb")
+            except (ImportError, KeyError, ValueError):
+                featured_image = _cms_fallback_cover(featured, "thinking-thumb cms-thinking-thumb")
         else:
             featured_image = _cms_fallback_cover(featured, "thinking-thumb cms-thinking-thumb")
         featured_copy = featured.subtitle or featured.excerpt

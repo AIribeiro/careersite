@@ -18,7 +18,7 @@ def home() -> str:
 
 
 <section class="section paper journey-section" data-analytics-section="home-choose-your-path"><div class="container">
-<div class="journey-intro"><p class="eyebrow">Explore the portfolio</p><h2>What would you like to understand about my work?</h2><p>Choose the evidence that matters most to you — what I have led, how I make AI workable, or how I think about enterprise decisions.</p></div>
+<div class="journey-intro"><p class="eyebrow">Beyond the CV</p><h2>If you’d like to know a little more</h2><p>A CV can only say so much. I’ve shared a few examples of the work I’ve done, what I’ve learned along the way, and some questions I’m still thinking through about AI and Data.</p></div>
 <div class="journey-grid">
 <a class="journey-card" href="?page=impact" target="_self" data-hq-event="journey_home_impact"><span class="journey-step">01 · Experience &amp; impact</span><h3>What I’ve led</h3><p>Explore leadership responsibilities, decisions and practical contributions across Volvo Group, MSX International and other enterprise settings.</p><span class="journey-link">Explore my experience →</span></a>
 <a class="journey-card" href="?page=ai-data-governance" target="_self" data-hq-event="journey_home_governance"><span class="journey-step">02 · Governance &amp; adoption</span><h3>How I make AI work</h3><p>See my approach to ownership, governance and adoption — the operating choices behind responsible enterprise use.</p><span class="journey-link">Explore AI &amp; Data Governance →</span></a>

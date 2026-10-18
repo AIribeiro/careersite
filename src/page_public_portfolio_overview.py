@@ -14,6 +14,7 @@ from page_content_intelligence import (
     _article_metadata, _fetch_rpc, content_label, fetch_intelligence,
 )
 from portfolio_signal_brief import ranked_portfolio_signals
+from page_home_journey import render_home_journey
 
 
 def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
@@ -138,6 +139,9 @@ def render_public_portfolio_overview() -> None:
             st.write(insight.message)
             st.markdown(f"*Next to examine:* {insight.next_check}")
             st.caption(insight.evidence)
+
+    st.divider()
+    render_home_journey(str(window))
 
     st.divider()
     left, right = st.columns(2, gap="medium")

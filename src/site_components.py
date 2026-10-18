@@ -100,6 +100,66 @@ def opportunity() -> str:
     return '''<section class="cta"><div class="container ctain"><div><h2>Working on a similar enterprise AI or data problem?</h2><p>If the context involves strategy, governance, adoption, portfolio choices or operating ownership, the experience on this site may be relevant.</p></div><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_opportunity">Contact →</a></div></section>'''
 
 
+def journey_next(page: str) -> str:
+    """Offer two relevant, optional portfolio destinations after primary content.
+
+    Link identifiers remain stable across editorial changes, so analytics can
+    compare real route selections without relying on button copy.
+    """
+    routes = {
+        "impact": (
+            ("governance", "ai-data-governance", "How I make AI work",
+             "Explore operating ownership, governance and proportionate controls.",
+             "Explore AI & Data Governance →"),
+            ("thinking", "thinking", "How I think",
+             "Read my perspectives on the decisions behind enterprise AI adoption and scale.",
+             "Read my articles →"),
+        ),
+        "governance": (
+            ("impact", "impact", "What I’ve led",
+             "See where business priorities, ownership and adoption shaped my leadership work.",
+             "Explore my experience →"),
+            ("thinking", "thinking", "How I think",
+             "Read the reasoning behind enterprise AI decisions and trade-offs.",
+             "Read my articles →"),
+        ),
+        "thinking": (
+            ("impact", "impact", "Experience behind the perspective",
+             "Connect these ideas with enterprise leadership responsibilities and practical work.",
+             "Explore my experience →"),
+            ("governance", "ai-data-governance", "Governance in practice",
+             "See how accountable AI adoption can become part of the operating model.",
+             "Explore AI & Data Governance →"),
+        ),
+        "article": (
+            ("impact", "impact", "Experience behind the perspective",
+             "See how these ideas connect with my leadership experience.",
+             "Explore my experience →"),
+            ("governance", "ai-data-governance", "Governance in practice",
+             "Explore the operating principles behind responsible AI at scale.",
+             "Explore AI & Data Governance →"),
+        ),
+    }
+    if page not in routes:
+        return ""
+    cards = []
+    for kind, destination, title, description, label in routes[page]:
+        cards.append(
+            f'<a class="journey-card" href="?page={destination}" target="_self" '
+            f'data-hq-event="journey_{page}_{kind}">'
+            '<span class="journey-step">Continue exploring</span>'
+            f'<h3>{html.escape(title)}</h3><p>{html.escape(description)}</p>'
+            f'<span class="journey-link">{html.escape(label)}</span></a>'
+        )
+    return (
+        '<section class="section paper journey-next" data-analytics-section="related-portfolio-routes">'
+        '<div class="container"><div class="journey-intro"><p class="eyebrow">Explore further</p>'
+        '<h2>Continue from here.</h2>'
+        '<p>Follow the aspect of my work most relevant to your question.</p></div>'
+        f'<div class="journey-grid">{"".join(cards)}</div></div></section>'
+    )
+
+
 VALUES = [
     ("01", "AI Strategy & Portfolio", "Connect enterprise priorities with realistic AI opportunities, investment choices, ownership and portfolio discipline. The important work is deciding what deserves attention, what evidence is still missing and what should not progress yet."),
     ("02", "Operating Models & CoEs", "Create the roles, decision rights, lifecycle and collaboration model needed to move beyond disconnected experiments. A useful operating model makes ownership clearer without creating a central team that becomes a bottleneck."),

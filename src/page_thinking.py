@@ -124,10 +124,12 @@ def _image(article_key: str, css_class: str) -> str:
 
 
 def _decorate_article(document: str, article_key: str) -> str:
+    from site_components import journey_next
     marker = '</div></section><section class="section paper">'
     image = _image(article_key, "article-cover")
     if marker in document:
         document = document.replace(marker, image + marker, 1)
+    document = document.replace('</main>', journey_next('article') + '</main>', 1)
     return VISUAL_CSS + document
 
 

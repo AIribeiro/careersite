@@ -37,6 +37,7 @@ ALLOWED_EVENTS = (
     "element_impression",
     "article_card_click",
     "cta_click",
+    "navigation_click",
     "section_view",
     "performance_metric",
     "section_attention",
@@ -368,7 +369,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     if (raw.startsWith('article_share_')) return null;
     const href = String(el.getAttribute('href') || '');
     let qualifies = false;
-    try {{ qualifies = el.matches('a.btn, a.contactlink, footer a[data-hq-event]'); }} catch (_) {{}}
+    try {{ qualifies = el.matches('a.btn, a.journey-card, a.contactlink, footer a[data-hq-event]'); }} catch (_) {{}}
     qualifies = qualifies || /^(cv_download|contact_|email_|linkedin_|impact_|medium_|weekly_ai_archive_open)/.test(raw);
     const isWeeklySource = Boolean(el.closest('.weekly-ai-body')) && /^https?:\/\//i.test(href);
     qualifies = qualifies || isWeeklySource;
@@ -445,7 +446,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
 
     const candidates = doc.querySelectorAll(
       'a[href*="article="], a.recent-card, a.article, .featured-thinking a, .decision-note a, ' +
-      'a.btn, a.contactlink, footer a[data-hq-event], .weekly-ai-body a[href^="https://"], .weekly-ai-body a[href^="http://"], ' +
+      'a.btn, a.journey-card, a.contactlink, footer a[data-hq-event], .weekly-ai-body a[href^="https://"], .weekly-ai-body a[href^="http://"], ' +
       'a[data-hq-event^="weekly_ai_"], a[data-hq-event^="cv_download"], ' +
       'a[data-hq-event^="contact_"], a[data-hq-event^="email_"], a[data-hq-event^="linkedin_"], a[data-hq-event^="impact_"]'
     );
@@ -721,6 +722,25 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       if (!el) return;
 
       const raw = String(el.dataset.hqEvent || '').toLowerCase();
+      // Record route intent *before* Streamlit navigates. This is distinct
+      // from a destination page_view: a click is not proof of an arrival.
+      try {{
+        const link = new URL(el.getAttribute('href') || '', win.location.href);
+        const destination = String(link.searchParams.get('page') || '').toLowerCase();
+        const originPage = String(win.__jairAnalyticsContext?.page || 'home').toLowerCase();
+        if (link.origin === win.location.origin && destination &&
+            destination !== originPage &&
+            /^[a-z][a-z0-9-]{{0,63}}$/.test(destination) && win.__jairAnalyticsSend) {{
+          win.__jairAnalyticsSend('navigation_click', {{
+            target: destination,
+            element_kind: 'cta',
+            element_key: raw || 'internal_navigation',
+            element_label: safeText(el.textContent),
+            element_placement: placementFor(el),
+          }});
+        }}
+      }} catch (_) {{}}
+
       const articleDescriptor = win.__jairAnalyticsDescribeArticleCard
         ? win.__jairAnalyticsDescribeArticleCard(el)
         : null;

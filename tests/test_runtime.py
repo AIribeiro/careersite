@@ -225,6 +225,7 @@ class RuntimeSmokeTests(unittest.TestCase):
                 "element_impression",
                 "article_card_click",
                 "cta_click",
+                "navigation_click",
                 "section_view",
                 "performance_metric",
                 "section_attention",

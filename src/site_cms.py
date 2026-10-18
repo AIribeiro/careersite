@@ -1325,15 +1325,13 @@ def inject_cms_landing(document: str) -> str:
             f'<h3>{escape(article.title)}</h3><p>{escape(article.excerpt)}</p>'
             f'<div class="read">{article_read_metadata(article, read_counts)} →</div></a>'
         )
-    ranked = read_counts is not None
     section = (
         '<section class="section white cms-latest"><div class="container">'
-        '<div class="head"><div><p class="eyebrow">' + ('Most read' if ranked else 'All articles') + '</p>'
-        '<h2>' + ('Articles ranked by readership.' if ranked else 'Explore the published articles.') + '</h2></div>'
-        '<p>' + (
-            'All published articles, sorted by recorded reading visits. One article visit per browser session; counts update regularly.'
-            if ranked else 'Read totals are temporarily unavailable. Articles are shown in publication order.'
-        ) + '</p>'
+        '<div class="head"><div><p class="eyebrow">Selected writing</p>'
+        '<h2>Articles I believe are worth your time.</h2></div>'
+        '<p>I wrote these pieces to examine the real decisions behind enterprise AI and data. '
+        'They offer practical perspectives on strategy, governance, adoption and business value'
+        '—and questions you can bring into your own work.</p>'
         '</div><div class="recent-grid">' + ''.join(cards) + '</div></div></section>'
         '<style>'
         '.cms-thinking-thumb{margin:-25px -25px 20px;min-width:0;max-width:100%;box-sizing:border-box;aspect-ratio:2/1!important;overflow:hidden;'

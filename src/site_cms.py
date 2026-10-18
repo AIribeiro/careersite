@@ -422,6 +422,50 @@ def fetch_public_article(slug: str) -> CmsArticle | None:
     return None
 
 
+@st.cache_data(ttl=60, show_spinner=False)
+def fetch_public_article_reads() -> dict[str, int]:
+    """Published-article visits, deduplicated per article/browser session.
+
+    The read-only RPC returns counts only, never analytics event rows or visitor
+    identifiers. Refresh after 60 seconds, rather than on every page render.
+    """
+    result = _request_json("GET", _rest_url("rpc/careersite_public_article_reads"))
+    if not isinstance(result, list):
+        raise RuntimeError("Article readership is temporarily unavailable.")
+    counts: dict[str, int] = {}
+    for row in result:
+        if not isinstance(row, dict) or not isinstance(row.get("slug"), str):
+            raise RuntimeError("Article readership returned an unexpected response.")
+        try:
+            count = int(row["reads"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise RuntimeError("Article readership returned invalid counts.") from exc
+        if count < 0:
+            raise RuntimeError("Article readership returned invalid counts.")
+        counts[row["slug"]] = count
+    return counts
+
+
+def _public_reads_or_none() -> dict[str, int] | None:
+    """Distinguish a temporarily unavailable count from a genuine zero."""
+    try:
+        return fetch_public_article_reads()
+    except (RuntimeError, ValueError):
+        return None
+
+
+def article_read_count_label(slug: str, counts: dict[str, int] | None) -> str:
+    if counts is None:
+        return "reads unavailable"
+    count = max(0, int(counts.get(slug, 0)))
+    return f"{count:,} {'read' if count == 1 else 'reads'}"
+
+
+def article_read_metadata(article: CmsArticle, counts: dict[str, int] | None) -> str:
+    """HTML-safe metadata: publication date · reading time · article visits."""
+    return f"{escape(article.read_label)} · {article_read_count_label(article.slug, counts)}"
+
+
 def admin_list_articles(access_token: str) -> list[CmsArticle]:
     query = f"{TABLE}?select=*&order=updated_at.desc"
     result = _request_json("GET", _rest_url(query), token=access_token)
@@ -1115,6 +1159,8 @@ def render_cms_article(article: CmsArticle) -> str:
     from site_components import footer, nav, opportunity
     from thinking_core import THINKING_CSS
 
+    read_counts = _public_reads_or_none()
+    read_metadata = article_read_metadata(article, read_counts)
     image = ""
     header_image_url = embedded_header_image_src(article)
     if header_image_url:
@@ -1139,14 +1185,14 @@ def render_cms_article(article: CmsArticle) -> str:
     aside = article.aside_html.strip()
     if not aside:
         keyword_lines = ''.join(f'<div>{escape(keyword)}</div>' for keyword in article.keywords[:5])
-        aside = f'''<span>{escape(article.category or "Article")}</span><strong>{escape(article.read_label)}</strong><div class="article-questions">{keyword_lines}</div><p>Published in Jair Ribeiro's selected Thinking portfolio.</p>'''
+        aside = f'''<span>{escape(article.category or "Article")}</span><strong>{read_metadata}</strong><div class="article-questions">{keyword_lines}</div><p>Published in Jair Ribeiro's selected Thinking portfolio.</p>'''
 
     css = '''<style>
 .cms-article-image{margin:26px 0 0}.cms-article-image img{display:block;width:100%;max-height:620px;object-fit:cover;border:1px solid rgba(255,255,255,.16);box-shadow:0 20px 48px rgba(0,0,0,.22)}
 .cms-source{margin-top:28px!important;padding-top:18px;border-top:1px solid var(--line)}.cms-source a{font-size:11px;font-weight:850;text-decoration:none}.article-signature{margin:38px 0 0;padding-top:18px;border-top:1px solid var(--line)}.article-signature a{color:var(--copper)!important;text-decoration:none!important;font:600 19px/1.2 Georgia,serif}.article-signature a:hover{text-decoration:underline!important}.article-body h3{margin:34px 0 14px;font:500 26px/1.15 Georgia,serif}.article-body ul,.article-body ol{margin:0 0 24px;padding-left:24px;color:#343b43;font-size:16px;line-height:1.75}.article-body li{margin:7px 0}.article-body hr{border:0;border-top:1px solid var(--line);margin:34px 0}
 </style>'''
 
-    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="?page=thinking" target="_self">← Back to Thinking</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{escape(article.read_label)}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{opportunity()}</main>{footer()}'''
+    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="?page=thinking" target="_self">← Back to Thinking</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{opportunity()}</main>{footer()}'''
 
 
 def inject_cms_landing(document: str) -> str:
@@ -1155,7 +1201,8 @@ def inject_cms_landing(document: str) -> str:
     from thinking_weekly_brief import is_weekly_brief, inject_weekly_brief_landing
     weekly_briefs = [article for article in cms_articles if is_weekly_brief(article)]
     cms_articles = [article for article in cms_articles if not is_weekly_brief(article)]
-    document = inject_weekly_brief_landing(document, weekly_briefs)
+    read_counts = _public_reads_or_none()
+    document = inject_weekly_brief_landing(document, weekly_briefs, read_counts=read_counts)
     featured = next((article for article in cms_articles if article.featured), None)
 
     if featured is not None:
@@ -1179,7 +1226,7 @@ def inject_cms_landing(document: str) -> str:
             f'<a class="read-live" href="{escape(article_relative_url(featured), quote=True)}" '
             f'target="_self" data-hq-event="cms_featured_article_open">Read the article →</a>'
             f'<div class="meta">{escape(featured.published_label)} · '
-            f'{escape(featured.topic)} · {featured.read_minutes} min</div></article>'
+            f'{escape(featured.topic)} · {featured.read_minutes} min · {article_read_count_label(featured.slug, read_counts)}</div></article>'
         )
         document = re.sub(
             r'<article class="featured-thinking">.*?</article>',
@@ -1196,8 +1243,13 @@ def inject_cms_landing(document: str) -> str:
     if not articles:
         return CMS_FALLBACK_CSS + document
 
+    # Stable descending sort retains the publication-date order for ties.
+    # Never suggest a ranking or invent zeros during a metrics outage.
+    if read_counts is not None:
+        articles.sort(key=lambda article: read_counts.get(article.slug, 0), reverse=True)
+
     cards = []
-    for article in articles[:6]:
+    for article in articles:
         thumb = ""
         card_header_url = embedded_header_image_src(article)
         if card_header_url:
@@ -1207,18 +1259,29 @@ def inject_cms_landing(document: str) -> str:
                 f'alt="{escape(article.header_image_alt or article.title, quote=True)}" '
                 f'loading="lazy" decoding="async"></div>'
             )
+        elif article.legacy_key:
+            # Preserve the artwork of CMS-migrated legacy essays.
+            try:
+                from page_thinking import _image
+                thumb = _image(article.legacy_key, "thinking-thumb cms-thinking-thumb")
+            except (ImportError, KeyError, ValueError):
+                thumb = ""
         cards.append(
             f'<a class="recent-card" href="{escape(article_relative_url(article), quote=True)}" '
             f'target="_self" data-hq-event="cms_article_open">{thumb}'
             f'<div class="kicker">{escape(article.kind_topic)}</div>'
             f'<h3>{escape(article.title)}</h3><p>{escape(article.excerpt)}</p>'
-            f'<div class="read">{escape(article.read_label)} →</div></a>'
+            f'<div class="read">{article_read_metadata(article, read_counts)} →</div></a>'
         )
+    ranked = read_counts is not None
     section = (
         '<section class="section white cms-latest"><div class="container">'
-        '<div class="head"><div><p class="eyebrow">Latest articles</p>'
-        '<h2>New signals, practical leadership implications.</h2></div>'
-        '<p>These are the newest pieces, usually triggered by something changing in AI or data that has a real consequence for how enterprises lead, organize or execute.</p>'
+        '<div class="head"><div><p class="eyebrow">' + ('Most read' if ranked else 'All articles') + '</p>'
+        '<h2>' + ('Articles ranked by readership.' if ranked else 'Explore the published articles.') + '</h2></div>'
+        '<p>' + (
+            'All published articles, sorted by recorded reading visits. One article visit per browser session; counts update regularly.'
+            if ranked else 'Read totals are temporarily unavailable. Articles are shown in publication order.'
+        ) + '</p>'
         '</div><div class="recent-grid">' + ''.join(cards) + '</div></div></section>'
         '<style>'
         '.cms-thinking-thumb{margin:-25px -25px 20px;min-width:0;max-width:100%;box-sizing:border-box;aspect-ratio:2/1!important;overflow:hidden;'
@@ -1245,9 +1308,15 @@ def inject_cms_landing(document: str) -> str:
         'font-size:clamp(30px,8vw,42px)!important;margin:18px 0 14px!important}}'
         '</style>'
     )
+    # Replace the legacy hardcoded list with a complete CMS-backed list
+    # to rank older and newer articles together without duplicates.
     marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">More leadership questions</p>'
-    if marker in document:
-        return CMS_FALLBACK_CSS + document.replace(marker, section + marker, 1)
+    start = document.find(marker)
+    if start >= 0:
+        end = document.find('<section class="section paper">', start + len(marker))
+        if end >= 0:
+            return CMS_FALLBACK_CSS + document[:start] + section + document[end:]
+        return CMS_FALLBACK_CSS + document[:start] + section
     return CMS_FALLBACK_CSS + section + document
 
 

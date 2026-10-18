@@ -1192,7 +1192,7 @@ def select_auto_featured_article(
     *,
     as_of: datetime | None = None,
 ) -> CmsArticle | None:
-    """Latest newly published article for 48h; otherwise the most-read.
+    """Latest newly published article for 24h; otherwise the most-read.
 
     Mirrors the scheduled database selection. Counts are distinct article
     browser-session visits; ties are settled by publication time and UUID.
@@ -1222,7 +1222,7 @@ def select_auto_featured_article(
 
     recent = [
         article for article in eligible
-        if published_time(article) <= current < published_time(article) + timedelta(hours=48)
+        if published_time(article) <= current < published_time(article) + timedelta(hours=24)
     ]
     sort_key = lambda article: (published_time(article), article.id or "")
     if recent:

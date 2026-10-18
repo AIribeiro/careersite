@@ -31,10 +31,22 @@ class HomeGridLayoutTests(unittest.TestCase):
 
         hero = home.split('<section class="hero">', 1)[1]
         hero = hero.split('<section class="section white">', 1)[0]
-        self.assertIn("Selected experience →", hero)
+        self.assertIn("Explore my leadership experience →", hero)
         self.assertIn("AI &amp; Data Governance →", hero)
         self.assertIn("Download CV ↓", hero)
         self.assertNotIn("Contact me", hero)
+
+        journey = home.split('data-analytics-section="home-choose-your-path"', 1)[1]
+        journey = journey.split('<p class="eyebrow">Leadership focus</p>', 1)[0]
+        self.assertEqual(journey.count('class="journey-card"'), 3)
+        for destination in ("impact", "ai-data-governance", "thinking"):
+            self.assertIn(f'href="?page={destination}"', journey)
+        for event in ("journey_home_impact", "journey_home_governance",
+                      "journey_home_thinking"):
+            self.assertIn(f'data-hq-event="{event}"', journey)
+        self.assertIn("What I’ve led", journey)
+        self.assertIn("How I make AI work", journey)
+        self.assertIn("How I think", journey)
 
         self.assertNotIn('<p class="eyebrow">Recurring questions</p>', home)
 

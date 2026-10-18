@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from html import escape
 from io import BytesIO
 import base64
@@ -495,7 +495,6 @@ def _article_payload(article: CmsArticle) -> dict[str, object]:
         "kind": article.kind.strip() or "Article",
         "source_url": article.source_url.strip() or None,
         "status": article.status if article.status in {"draft", "published"} else "draft",
-        "featured": bool(article.featured),
         "legacy_key": article.legacy_key.strip() or None,
         "read_minutes": max(1, min(120, int(article.read_minutes or 1))),
         "social_title": article.social_title.strip() or None,
@@ -531,17 +530,9 @@ def save_article(access_token: str, article: CmsArticle) -> CmsArticle:
     rows = result if isinstance(result, list) else []
     if not rows:
         raise RuntimeError("The article save returned no row.")
+    # The database publication trigger selects the highlight. Do not override it
+    # with an editor checkbox or clear another article's featured flag here.
     saved = CmsArticle.from_row(rows[0])
-    if saved.status == "published" and saved.featured and saved.id:
-        _request_json(
-            "PATCH",
-            _rest_url(
-                f"{TABLE}?featured=eq.true&id=neq.{parse.quote(saved.id, safe='')}"
-            ),
-            token=access_token,
-            payload={"featured": False},
-            prefer="return=minimal",
-        )
     fetch_published_articles.clear()
     fetch_public_article.clear()
     return saved
@@ -1195,15 +1186,68 @@ def render_cms_article(article: CmsArticle) -> str:
     return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="?page=thinking" target="_self">← Back to Thinking</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{opportunity()}</main>{footer()}'''
 
 
+def select_auto_featured_article(
+    articles: list[CmsArticle],
+    read_counts: dict[str, int] | None,
+    *,
+    as_of: datetime | None = None,
+) -> CmsArticle | None:
+    """Latest newly published article for 48h; otherwise the most-read.
+
+    Mirrors the scheduled database selection. Counts are distinct article
+    browser-session visits; ties are settled by publication time and UUID.
+    Weekly AI belongs in its own featured section and is excluded.
+    """
+    eligible = [
+        article for article in articles
+        if article.status == "published"
+        and article.kind != "Weekly Brief"
+        and article.category != "Weekly AI"
+    ]
+    if not eligible:
+        return None
+
+    current = as_of or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+
+    def published_time(article: CmsArticle) -> datetime:
+        try:
+            date = datetime.fromisoformat(article.published_at.replace("Z", "+00:00"))
+            if date.tzinfo is None:
+                date = date.replace(tzinfo=timezone.utc)
+            return date.astimezone(timezone.utc)
+        except (ValueError, TypeError, AttributeError):
+            return datetime.min.replace(tzinfo=timezone.utc)
+
+    recent = [
+        article for article in eligible
+        if published_time(article) <= current < published_time(article) + timedelta(hours=48)
+    ]
+    sort_key = lambda article: (published_time(article), article.id or "")
+    if recent:
+        return max(recent, key=sort_key)
+
+    if read_counts is not None:
+        return max(
+            eligible,
+            key=lambda article: (int(read_counts.get(article.slug, 0)), *sort_key(article)),
+        )
+
+    # A reporting outage must not invent popular articles: retain the last
+    # database-reconciled highlight, falling back to the newest publication.
+    return max((article for article in eligible if article.featured), key=sort_key, default=None) or max(eligible, key=sort_key)
+
+
 def inject_cms_landing(document: str) -> str:
     published = list(fetch_published_articles())
-    cms_articles = [article for article in published if not article.legacy_key]
     from thinking_weekly_brief import is_weekly_brief, inject_weekly_brief_landing
-    weekly_briefs = [article for article in cms_articles if is_weekly_brief(article)]
-    cms_articles = [article for article in cms_articles if not is_weekly_brief(article)]
+    weekly_briefs = [article for article in published if is_weekly_brief(article)]
+    # Rank every published article, including the older CMS-migrated essays.
+    cms_articles = [article for article in published if not is_weekly_brief(article)]
     read_counts = _public_reads_or_none()
     document = inject_weekly_brief_landing(document, weekly_briefs, read_counts=read_counts)
-    featured = next((article for article in cms_articles if article.featured), None)
+    featured = select_auto_featured_article(cms_articles, read_counts)
 
     if featured is not None:
         featured_image = ""

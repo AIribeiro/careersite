@@ -624,7 +624,7 @@ def _editor(article: CmsArticle, access_token: str) -> None:
         st.text_input("Social title", key=f"{prefix}_social_title")
         st.text_area("Social description", key=f"{prefix}_social_description", height=90)
         st.text_input("Original / source URL (optional)", key=f"{prefix}_source_url")
-        st.checkbox("Featured", key=f"{prefix}_featured")
+        st.caption("Highlight is automatic: each new article leads for 48 hours; after that, the most-read published article is highlighted. Weekly AI is separate.")
         st.checkbox("Show hashtags publicly", key=f"{prefix}_show_tags")
 
         with st.expander("Advanced article aside"):
@@ -1041,7 +1041,7 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
   {badge}
   <h3>{html.escape(article.title)}</h3>
   <p>{html.escape(article.category or "Uncategorized")} · {html.escape(article.slug)}</p>
-  <div class="cms-meta">Updated {html.escape(article.updated_at[:16].replace("T", " ") if article.updated_at else "—")}{" · Featured" if article.featured else ""}</div>
+  <div class="cms-meta">Updated {html.escape(article.updated_at[:16].replace("T", " ") if article.updated_at else "—")}{" · Auto-highlighted" if article.featured else ""}</div>
 </div>
 """,
             unsafe_allow_html=True,

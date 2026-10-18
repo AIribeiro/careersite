@@ -68,5 +68,26 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 .site .home-photo--workshop img{object-position:85% center}
 .site .home-photo figcaption{position:absolute;left:0;right:0;bottom:0;padding:36px 20px 17px;background:linear-gradient(0deg,rgba(11,18,32,.82),rgba(11,18,32,0));color:#fff;font-size:11px;font-weight:750;line-height:1.45;letter-spacing:.025em;text-shadow:0 1px 2px rgba(0,0,0,.18)}
 @media(max-width:700px){.site .home-focus-grid,.site .home-case-grid{grid-template-columns:minmax(0,1fr)}.site .home-photo{height:330px;min-height:0}}
+
+/* Portfolio journey: explicit, accessible paths instead of a generic link directory. */
+.site .journey-section{padding:56px 0 68px}
+.site .journey-intro{max-width:900px;margin-bottom:28px}
+.site .journey-intro h2{font:500 clamp(31px,4vw,45px)/1.12 Georgia,serif;letter-spacing:-.025em;margin:0}
+.site .journey-intro p:last-child{max-width:820px;color:var(--muted);line-height:1.65;margin:16px 0 0}
+.site .journey-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.site a.journey-card{display:flex;flex-direction:column;min-width:0;min-height:250px;padding:28px 25px;background:var(--white);border:1px solid var(--line);text-decoration:none!important;transition:border-color .18s,box-shadow .18s,transform .18s}
+.site a.journey-card:hover,.site a.journey-card:focus-visible{border-color:var(--copper);box-shadow:0 14px 35px rgba(11,18,32,.09);transform:translateY(-2px)}
+.site a.journey-card:focus-visible{outline:3px solid var(--copper);outline-offset:3px}
+.site .journey-step{font-size:10px;font-weight:850;letter-spacing:.11em;text-transform:uppercase;color:var(--copper)}
+.site .journey-card h3{font:500 29px/1.15 Georgia,serif;letter-spacing:-.015em;margin:24px 0 10px}
+.site .journey-card p{font-size:13px;line-height:1.7;color:var(--muted);margin:0 0 20px}
+.site .journey-link{margin-top:auto;color:var(--ink);font-size:12px;font-weight:850}
+.site .journey-next{padding:56px 0}
+.site .journey-next .journey-intro{margin-bottom:21px}
+.site .journey-next .journey-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.site .journey-next a.journey-card{min-height:180px}
+.site .journey-next .journey-card h3{margin-top:18px}
+@media(max-width:800px){.site .journey-grid{grid-template-columns:minmax(0,1fr)}.site .journey-section{padding:40px 0 48px}.site a.journey-card{min-height:0;padding:23px}.site .journey-next{padding:44px 0}}
+@media(prefers-reduced-motion:reduce){.site a.journey-card{transition:none}.site a.journey-card:hover{transform:none}}
 </style>
 """

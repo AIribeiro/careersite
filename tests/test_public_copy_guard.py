@@ -74,7 +74,7 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("Selected Experience", components)
         self.assertIn("Experience by mandate", components)
         self.assertIn("Speaking & Publications", components)
-        self.assertIn("Selected experience →", home)
+        self.assertIn("Explore my leadership experience →", home)
         self.assertIn("Adoption in practice", home)
         self.assertIn("strategy has to become operating capability", home)
         self.assertIn("Microsoft 365 Copilot and agent initiatives", home)

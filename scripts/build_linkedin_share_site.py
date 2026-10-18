@@ -201,6 +201,8 @@ def _static_shortlink_html(code: str, slug: str, channel: str, target: str) -> s
             "AI Is Turning Data Definitions Into a Leadership Problem",
         "if-ai-does-the-routine-work-how-will-we-develop-the-next-experts":
             "If AI Does the Routine Work, How Will We Develop the Next Experts?",
+        "ai-can-make-every-team-faster-and-still-leave-the-business-slow":
+            "AI Can Make Every Team Faster and Still Leave the Business Slow",
     }
     title = registered_titles.get(slug, slug.replace("-", " ").title())
     destination = html.escape(target, quote=True)

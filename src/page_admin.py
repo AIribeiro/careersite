@@ -624,7 +624,7 @@ def _editor(article: CmsArticle, access_token: str) -> None:
         st.text_input("Social title", key=f"{prefix}_social_title")
         st.text_area("Social description", key=f"{prefix}_social_description", height=90)
         st.text_input("Original / source URL (optional)", key=f"{prefix}_source_url")
-        st.caption("Highlight is automatic: each new article leads for 48 hours; after that, the most-read published article is highlighted. Weekly AI is separate.")
+        st.caption("Highlight is automatic: each new article leads for 24 hours; after that, the most-read published article is highlighted. Weekly AI is separate.")
         st.checkbox("Show hashtags publicly", key=f"{prefix}_show_tags")
 
         with st.expander("Advanced article aside"):

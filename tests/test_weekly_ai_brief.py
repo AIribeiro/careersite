@@ -129,7 +129,8 @@ class WeeklyAiBriefingTests(unittest.TestCase):
                        status="published", published_at="2026-10-10T10:00:00+00:00"),
         )
         original = (
-            '<main><section class="pagehero">Thinking</section>'
+            '<main><article class="featured-thinking"><h2>Earlier feature</h2></article>'
+            '<section class="pagehero">Thinking</section>'
             '<section class="section paper"><div class="container"><div class="head">'
             '<div><p class="eyebrow">Current questions</p></div></div></section>'
             '<section class="section white"><div class="container"><div class="head">'

@@ -82,9 +82,39 @@ class ShortArticleLinkTests(unittest.TestCase):
                     ),
                 )
 
+    def test_ai_flow_article_has_distinct_permanent_links(self):
+        slug = "ai-can-make-every-team-faster-and-still-leave-the-business-slow"
+        expected = {
+            "linkedin": ("fl", "social"),
+            "x": ("fx", "social"),
+            "threads": ("ft", "social"),
+            "facebook": ("ff", "social"),
+            "whatsapp": ("fw", "messaging"),
+        }
+        for channel, (code, medium) in expected.items():
+            with self.subTest(channel=channel):
+                link = short_article_link(slug, channel)
+                self.assertEqual(
+                    link, "https://airibeiro.github.io/careersite/go/" + code + "/"
+                )
+                self.assertEqual(parse_qs(urlparse(link).query), {})
+                self.assertEqual(
+                    urlparse(link).path, "/careersite/go/" + code + "/"
+                )
+                self.assertEqual(expand_shortlink(code), {
+                    "page": "thinking",
+                    "article": slug,
+                    "source": channel,
+                    "role": "article",
+                    "utm_source": channel,
+                    "utm_medium": medium,
+                    "utm_campaign": "thinking",
+                    "utm_content": slug,
+                })
+
     def test_registered_static_redirect_targets_preserve_campaigns(self):
         rows = registered_short_links()
-        self.assertGreaterEqual(len(rows), 21)
+        self.assertGreaterEqual(len(rows), 26)
         for code, slug, channel, target in rows:
             with self.subTest(code=code):
                 if code.startswith("w"):

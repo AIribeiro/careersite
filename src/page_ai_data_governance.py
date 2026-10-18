@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from site_assets import CV_URI
-from site_components import nav, footer, CV_DOWNLOAD_NAME
+from site_components import nav, footer, CV_DOWNLOAD_NAME, journey_next
 
 
 DFM_GOVERNANCE_URL = "https://www.digitalfirstmagazine.com/leaders-are-finally-understanding-ai-governance-is-not-about-control-it-is-about-scale-temp/"
@@ -142,4 +142,4 @@ def ai_data_governance() -> str:
 </div></section>
 
 <section class="cta"><div class="container ctain"><div><h2>Governance works best when it is connected to the operating model around AI.</h2><p>That connection — across strategy, Responsible AI, data governance, portfolio decisions and operating ownership — is the thread running through the work and research shown on this page.</p></div><div class="actions"><a class="btn ghost" href="?page=impact" target="_self" data-hq-event="governance_impact_cta">Explore leadership impact →</a><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_governance_final">Contact</a></div></div></section>
-</main>{footer()}'''
+{journey_next("governance")}</main>{footer()}'''

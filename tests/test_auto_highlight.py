@@ -30,15 +30,26 @@ class AutomaticHighlightTests(unittest.TestCase):
         )
         self.assertEqual(result.slug, "new-essay")
 
-    def test_feature_window_is_exactly_48_hours(self) -> None:
+    def test_feature_window_is_exactly_24_hours(self) -> None:
         popular = self.article("most-read", 250, legacy_key="investable_portfolio")
-        new = self.article("new", 48)
+        new = self.article("new", 24)
         self.assertEqual(
             select_auto_featured_article(
                 [new, popular], {"most-read": 80, "new": 5},
                 as_of=self.NOW,
             ).slug,
             "most-read",
+        )
+
+    def test_just_before_24_hours_new_article_keeps_priority(self) -> None:
+        popular = self.article("most-read", 250)
+        new = self.article("new", 23.999)
+        self.assertEqual(
+            select_auto_featured_article(
+                [new, popular], {"most-read": 80, "new": 5},
+                as_of=self.NOW,
+            ).slug,
+            "new",
         )
 
     def test_multiple_recent_publications_choose_most_recent(self) -> None:

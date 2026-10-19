@@ -174,6 +174,7 @@ def journey(opportunity: dict, meetings: list[dict], now: datetime) -> dict:
             if first_confirmed else None
         ),
         "days_application_to_offer": elapsed(applied, offer, reliable=reliable),
+        "days_application_to_decision": elapsed(applied, decision, reliable=reliable),
         "days_decision_after_latest_confirmed": (
             elapsed(confirmed[-1]["date"], decision)
             if decision and confirmed else None

@@ -70,7 +70,7 @@ def impact() -> str:
                 ("Situation", "Business units were exploring AI and ML applications with different levels of technical maturity, problem definition and stakeholder understanding."),
                 ("My responsibility", "I led business-requirement, product and stakeholder activities across a broad set of AI initiatives and supported enterprise AI & ML CoE capability building."),
                 ("Trade-off", "The organization needed enough shared language and discipline to select useful work without turning education or PoC activity into a proxy for business results."),
-                ("Decision / contribution", f"I helped translate business demand into tractable AI initiatives and delivered {VOLVO_AI_LEARNING_SESSIONS} AI learning sessions. Across this and my later Volvo chapter, my combined portfolio work covered {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects."),
+                ("Decision / contribution", f"I helped translate business demand into tractable AI initiatives and delivered {VOLVO_AI_LEARNING_SESSIONS} AI learning sessions. Across my Volvo AI roles, my combined portfolio work covered {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects."),
                 ("What changed", "Enterprise practitioners had more opportunities to build AI literacy and engage with an organized AI community; business and technical teams had a clearer basis for discussing use cases and requirements."),
             ],
         ),

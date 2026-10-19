@@ -54,8 +54,8 @@ class RecruiterMeetingsUITests(unittest.TestCase):
 
         self.assertFalse(at.exception)
         self.assertTrue(any("Recruiter interactions" in t.value for t in at.title))
-        self.assertTrue(any("Upcoming conversations" in t.value for t in at.subheader))
-        self.assertTrue(any("Meeting history" in t.value for t in at.subheader))
+        self.assertTrue(any("Role journeys" in t.label for t in at.tabs))
+        self.assertTrue(any("Calendar & interaction history" in t.label for t in at.tabs))
 
 
 if __name__ == "__main__":

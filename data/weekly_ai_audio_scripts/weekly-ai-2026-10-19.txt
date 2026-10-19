@@ -1,0 +1,15 @@
+Welcome to Weekly A I, a briefing from my A I and Data Portfolio. This week, what matters is not how quickly A I spreads, but whether organizations can make it work.
+
+The European Commission's Joint Research Centre reports A I use in strategic sectors rose from seven percent in twenty twenty-one to eighteen percent in twenty twenty-five. Mobility still lags, and core operations remain harder to change.
+
+Boston Consulting Group argues agentic A I is changing technology leadership. Finance, workforce planning and operating design now belong in the same conversation.
+
+Carnegie Mellon researchers tested personal A I agents coordinating small teams. In one simulated task, teams finished nineteen percent faster, with similar accuracy. Promising, not proof for every workplace.
+
+A Meta-commissioned survey across nine Asia-Pacific markets found small-business owners reporting productivity gains, but also needing practical guidance.
+
+McKinsey warns that faster analysis can overwhelm human judgment and remove the work through which future leaders learn.
+
+From my experience leading enterprise A I and data initiatives, I see the same requirement across these stories: clear ownership, meaningful measures, human oversight and deliberate opportunities to build judgment.
+
+The written edition links to the original sources.

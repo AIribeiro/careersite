@@ -24,9 +24,17 @@ class ImpactCaseConsistencyTests(unittest.TestCase):
         self.assertEqual(home_positions, sorted(home_positions))
         self.assertNotIn('<span class="org">IBM</span>', home_section)
 
-        impact_positions = [impact.index(f'            "{org}",') for org in home_expected]
-        self.assertEqual(impact_positions, sorted(impact_positions))
-        self.assertEqual(impact.count("        case(\n"), 3)
+        # Homepage remains three selected cases; the Impact page also includes
+        # the earlier Volvo chapter as its own dated case.
+        self.assertEqual(impact.count("        case(\n"), 4)
+        self.assertIn('"Senior Artificial Intelligence Business Expert"', impact)
+        self.assertIn("Wroclaw, Poland", impact)
+        self.assertIn("Göteborg, Sweden", impact)
+        # Impact uses reverse chronological order; Home uses curated order.
+        self.assertLess(
+            impact.index('"MSX International"'),
+            impact.index('"Volvo Group / Volvo Trucks"'),
+        )
 
         self.assertIn("Foundation · IBM", impact)
         self.assertIn("Where the business-translation thread started.", impact)

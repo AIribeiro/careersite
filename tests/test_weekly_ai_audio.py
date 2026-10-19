@@ -36,9 +36,11 @@ class WeeklyAiAudioTests(unittest.TestCase):
         self.assertEqual(audio_player_html("../secrets"), "")
 
     def test_spoken_script_drops_publisher_links_not_facts(self):
-        script = prepare_spoken_script("weekly-ai-2026-10-19", PUBLISHED_HTML, week=42, iso_year=2026)
+        # Use an unpublished fixture so the fallback narrator is tested,
+        # rather than a published edition with a canonical editorial override.
+        script = prepare_spoken_script("weekly-ai-2026-10-26", PUBLISHED_HTML, week=43, iso_year=2026)
         self.assertIn("Welcome to Weekly A I", script)
-        self.assertIn("Week 42", script)
+        self.assertIn("Week 43", script)
         self.assertIn("Research found changing jobs", script)
         self.assertIn("governance determines accountability", script.lower())
         self.assertIn("my A I and Data Portfolio", script)

@@ -1,8 +1,8 @@
-name: Validate approved canonical CV
+name: Build and validate canonical CV
 
 on:
   push:
-    branches: [main]
+    branches: [main, cv-rev5-dated-evidence-20261019]
     paths:
       - "src/site_cv.py"
       - "src/career_facts.py"
@@ -36,6 +36,18 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq qpdf poppler-utils
 
+      - name: Generate canonical CV from reviewed source
+        env:
+          PYTHONPATH: src
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from site_cv import CV_FILENAME, build_public_cv
+          path = Path('static') / CV_FILENAME
+          path.write_bytes(build_public_cv())
+          print('Built', path, path.stat().st_size, 'bytes')
+          PY
+
       - name: Validate PDF structure
         env:
           PYTHONPATH: src
@@ -51,7 +63,7 @@ jobs:
           assert data.startswith(b"%PDF-"), "Missing PDF header"
           assert data.rstrip().endswith(b"%%EOF"), "Missing PDF EOF marker"
           reader = PdfReader(BytesIO(data), strict=True)
-          assert len(reader.pages) >= 1, "PDF has no pages"
+          assert len(reader.pages) == 2, "Reviewed CV must be exactly two pages"
           assert reader.trailer.get("/Root") is not None, "PDF catalog missing"
           uris = set()
           for page in reader.pages:
@@ -62,8 +74,11 @@ jobs:
           for link in (site_cv.CV_SITE_URL, site_cv.CERTIFICATIONS_URL, site_cv.PRESENCE_URL):
               assert link in uris, f"Approved CV missing hyperlink: {link}"
           text = " ".join(page.extract_text() or "" for page in reader.pages).replace("–", "-")
-          for period in ("Dec 2025 - Sep 2026", "Jul 2016 - Jul 2017", "Jan 2013 - Jul 2016"):
+          for period in ("Dec 2025 - Jun 2026", "Aug 2022 - Dec 2025", "Jul 2021 - Sep 2022", "Jun 2018 - Jul 2021"):
               assert period in text, f"Approved LinkedIn-aligned career period missing: {period}"
+          assert "Wroclaw, Poland" in (reader.pages[0].extract_text() or ""), "Wroclaw Volvo role not on page one"
+          assert "Göteborg, Sweden" in text, "Gothenburg Volvo role location missing"
+          assert "Selected Leadership Impact" not in text, "Duplicated impact section must be absent"
           print(f"Strict parser validated {path}: {len(data)} bytes, {len(reader.pages)} page(s)")
           PY
 
@@ -79,5 +94,12 @@ jobs:
           test -s /tmp/cv-render/page.png
           file /tmp/cv-render/page.png
 
-      - name: Ensure approved CV stays unchanged during checks
-        run: git diff --exit-code -- static/Jair_Ribeiro_CV.pdf
+      - name: Commit refreshed canonical PDF
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/Jair_Ribeiro_CV.pdf
+          if ! git diff --cached --quiet; then
+            git commit -m "build(cv): refresh two-page canonical CV rev5"
+            git push
+          fi

@@ -62,7 +62,7 @@ def _fetch(token: str) -> list[dict]:
             f"{TABLE}?select=id,source_kind,title,employer,role_title,"
             "contact_name,meeting_type,stage,scheduled_date,starts_at,ends_at,"
             "attendance,outcome,follow_up_status,follow_up_due,follow_up_sent_at,"
-            "calendar_url,evidence_note,calendar_captured_at,updated_at"
+            "calendar_url,evidence_note,calendar_captured_at,updated_at,opportunity_id"
             "&order=scheduled_date.desc,starts_at.desc.nullslast&limit=500"
         ),
         token=token,
@@ -334,7 +334,8 @@ def _write(token: str, payload: dict, selected_id: int | None) -> None:
         )
 
 
-def _editor(rows: list[dict], token: str, now: datetime) -> None:
+def _editor(rows: list[dict], token: str, now: datetime,
+            opportunities: list[dict] | None = None) -> None:
     with st.expander("Review a meeting, record the outcome, or add a missing interaction",
                      expanded=bool(st.session_state.get("recruiter_selected_meeting"))):
         choices = {"Add a new meeting": None}
@@ -369,6 +370,18 @@ def _editor(rows: list[dict], token: str, now: datetime) -> None:
                 at_time = st.time_input(
                     "Start time (Stockholm)", value=old_local.time().replace(tzinfo=None)
                     if old_local else time(11, 0), disabled=not has_time
+                )
+                choices = {None: "Unlinked / not a hiring process"}
+                choices.update({o["id"]: f"{o['employer']} · {o['role_title']} (#{o['id']})"
+                                for o in (opportunities or [])})
+                linked_options = list(choices)
+                original_process = original.get("opportunity_id")
+                linked_id = st.selectbox(
+                    "Hiring process / vacancy", options=linked_options,
+                    index=linked_options.index(original_process)
+                    if original_process in linked_options else 0,
+                    format_func=lambda v: choices[v],
+                    help="Link interviews to the same exact vacancy. Different roles at the same employer must stay separate.",
                 )
                 meeting_type = st.selectbox(
                     "Interaction type", list(TYPES),
@@ -430,6 +443,7 @@ def _editor(rows: list[dict], token: str, now: datetime) -> None:
                     "employer": employer.strip(), "role_title": role.strip(),
                     "title": title.strip(), "contact_name": contact.strip(),
                     "meeting_type": meeting_type, "stage": int(stage) or None,
+                    "opportunity_id": linked_id,
                     "scheduled_date": when.isoformat(),
                     "starts_at": start.isoformat() if start else None,
                     "ends_at": (start + duration).isoformat() if start and duration else None,
@@ -463,13 +477,17 @@ def render_recruiter_meetings(session: dict) -> None:
     )
     try:
         all_rows = _fetch(token)
+        from page_recruiting_journeys import fetch_opportunities
+        opportunities = fetch_opportunities(token)
     except (RuntimeError, ValueError) as exc:
         st.error(f"Meeting data is unavailable: {exc}")
         return
 
     if not all_rows:
         st.info("No recruiter meetings have been captured. Use the editor below to add one.")
-        _editor([], token, now)
+        from page_recruiting_journeys import render_role_journeys
+        render_role_journeys(token, [], now, opportunities)
+        _editor([], token, now, opportunities)
         return
 
     c1, c2 = st.columns([2.2, 1])
@@ -507,9 +525,14 @@ def render_recruiter_meetings(session: dict) -> None:
             "must be imported or entered, and statuses checked against recruiting correspondence."
         )
 
-    _agenda(rows, now)
-    _insights(rows, now)
-    _month_calendar(rows, now)
-    _charts(rows, now)
-    _history(rows, now)
-    _editor(all_rows, token, now)
+    role_tab, calendar_tab = st.tabs(["Role journeys", "Calendar & interaction history"])
+    with role_tab:
+        from page_recruiting_journeys import render_role_journeys
+        render_role_journeys(token, all_rows, now, opportunities)
+    with calendar_tab:
+        _agenda(rows, now)
+        _insights(rows, now)
+        _month_calendar(rows, now)
+        _charts(rows, now)
+        _history(rows, now)
+        _editor(all_rows, token, now, opportunities)

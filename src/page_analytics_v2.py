@@ -131,7 +131,7 @@ def _workspace_from_url(authenticated: bool) -> str:
     # Pre-migration bookmarks to job reports are private even when the old
     # link does not carry an explicit workspace parameter.
     requested = str(st.query_params.get("view", "")).lower().strip()
-    if explicit is None and requested in ("jobs", "market", "predictions", "hiring", "deep", "attribution"):
+    if explicit is None and requested in ("jobs", "market", "predictions", "hiring", "deep", "attribution", "meetings"):
         explicit = "private"
     return _resolve_workspace(explicit, authenticated)
 
@@ -145,7 +145,7 @@ def _update_workspace_url() -> None:
         # A private deep-link marker must not immediately bounce the owner
         # back into the private workspace after selecting Public analytics.
         if str(st.query_params.get("view", "")).lower() in (
-            "jobs", "market", "predictions", "hiring", "deep", "attribution",
+            "jobs", "market", "predictions", "hiring", "deep", "attribution", "meetings",
         ):
             st.query_params["view"] = "overview"
 

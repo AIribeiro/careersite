@@ -304,9 +304,6 @@ def _process_editor(opportunities: list[dict], token: str, selected_id: int | No
                 error_message = "A dated decision requires its evidence reference."
             elif offer_known and (not offer_evidence.strip() or outcome != "offer"):
                 error_message = "A dated offer requires evidence and the Offer status."
-            elif offer_known and decision_known and offer_date > decision_date:
-                # Decision may be made before offer; a later date can also mean acceptance.
-                error_message = "Please record the offer date as the decision date or earlier."
             elif any(d > datetime.now(TZ).date() for d in (
                 [app_date] if app_known else []
             ) + ([decision_date] if decision_known else []) +

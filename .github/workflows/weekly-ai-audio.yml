@@ -7,6 +7,7 @@ on:
       - 'src/weekly_ai_audio.py'
       - 'scripts/generate_weekly_ai_audio.py'
       - 'data/weekly_ai_audio_scripts/**'
+      - 'data/weekly_ai_audio_release_trigger.txt'
       - 'scripts/normalize_weekly_ai_audio.py'
       - '.github/workflows/weekly-ai-audio.yml'
   schedule:
@@ -44,7 +45,25 @@ jobs:
           GOOGLE_TTS_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_TTS_SERVICE_ACCOUNT_JSON }}
           GOOGLE_TTS_VOICE: en-US-Neural2-D
           EDGE_TTS_VOICE: en-US-AndrewNeural
-        run: python scripts/generate_weekly_ai_audio.py
+        run: |
+          python scripts/generate_weekly_ai_audio.py
+          python - <<'PY'
+          from datetime import datetime, timedelta
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+          from urllib import request, parse
+          import json, os
+          today = datetime.now(ZoneInfo('Europe/Stockholm')).date()
+          monday = today - timedelta(days=today.weekday())
+          slug = 'weekly-ai-' + monday.isoformat()
+          query = parse.urlencode({'select':'slug,status','slug':'eq.'+slug,'status':'eq.published'})
+          req = request.Request(os.environ['SUPABASE_URL']+'/rest/v1/careersite_articles?'+query,headers={'apikey':os.environ['SUPABASE_PUBLISHABLE_KEY']})
+          rows = json.load(request.urlopen(req,timeout=30))
+          if rows and not (Path('static/weekly-ai')/(slug+'.mp3')).is_file():
+              raise SystemExit('Published current-week edition lacks generated MP3: '+slug)
+          if rows and not (Path('static/weekly-ai')/(slug+'.txt')).is_file():
+              raise SystemExit('Published current-week edition lacks transcript: '+slug)
+          PY
       - name: Normalize MPEG audio for Safari and other mobile browsers
         run: |
           python scripts/normalize_weekly_ai_audio.py

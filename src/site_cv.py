@@ -377,9 +377,9 @@ def build_public_cv() -> bytes:
     return bytes(pdf.output())
 
 
-# Serve only the approved, LinkedIn-date-aligned PDF checked into /static.
-# The old drawing template remains for archival reference; importing this
-# module must never regenerate and overwrite the approved downloadable CV.
+# The PDF builder above runs only in CI to refresh the committed static CV.
+# At application runtime this module reads the approved PDF; it must not
+# regenerate or overwrite the downloadable artifact.
 ROOT = Path(__file__).resolve().parents[1]
 STATIC_DIR = ROOT / "static"
 CV_PATH = STATIC_DIR / CV_FILENAME

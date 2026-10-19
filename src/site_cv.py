@@ -105,6 +105,7 @@ def build_public_cv() -> bytes:
         location: str,
         bullets: list[str],
         company_context: str | None = None,
+        mandate: str | None = None,
     ) -> None:
         pdf.set_x(16)
         pdf.set_font("DejaVu", "B", 8.9)
@@ -120,6 +121,11 @@ def build_public_cv() -> bytes:
             pdf.set_font("DejaVu", "", 7.35)
             pdf.set_text_color(*MUTED)
             pdf.multi_cell(178, 3.65, company_context, new_x="LMARGIN", new_y="NEXT")
+        if mandate:
+            pdf.set_x(16)
+            pdf.set_font("DejaVu", "", 7.7)
+            pdf.set_text_color(*MUTED)
+            pdf.multi_cell(178, 3.85, "Mandate: " + mandate, new_x="LMARGIN", new_y="NEXT")
         pdf.ln(0.25)
         for item in bullets:
             bullet(item)
@@ -180,28 +186,6 @@ def build_public_cv() -> bytes:
         line=4.15,
     )
 
-    section("Selected Leadership Impact", 3.0)
-    bullet(
-        f"Across Volvo AI roles, led business-requirement, product and stakeholder work across {VOLVO_AI_INITIATIVES} AI initiatives, Proofs of Concept (PoCs) and projects spanning multiple regions and functions.",
-        7.8,
-        3.95,
-    )
-    bullet(
-        f"Led Microsoft 365 Copilot and agent initiatives alongside operational adoption of AI solutions in {VOLVO_WORKFLOW_SCOPE} workflows, moving AI beyond awareness into day-to-day business processes.",
-        7.8,
-        3.95,
-    )
-    bullet(
-        f"At MSX, established AI & Data CoE foundations, portfolio and lifecycle governance, scale-readiness criteria, a {MSX_ROADMAP} maturity roadmap and initial data-governance foundations.",
-        7.8,
-        3.95,
-    )
-    bullet(
-        f"At Kimberly-Clark, led EMEA AI value discovery and realization, reporting directly to the CDAO across {KIMBERLY_SCOPE}.",
-        7.8,
-        3.95,
-    )
-
     section("Core Leadership Areas", 2.8)
     body(
         "Enterprise AI Strategy | AI & Data Operating Models / CoEs | AI Governance & Responsible AI | Data Governance & Trusted Data | AI Portfolio & Value Realization",
@@ -220,38 +204,52 @@ def build_public_cv() -> bytes:
         MSX_TITLE,
         MSX_COMPANY,
         MSX_PUBLIC_DATES,
-        "Gothenburg, Sweden",
+        "Göteborg, Sweden",
         [
-            "Established the foundations of MSXi's AI & Data Center of Excellence, bringing AI and data strategy, governance, adoption and business value into one working model across business and technology.",
-            "Created a clearer portfolio and lifecycle process for AI initiatives, defining the stages, decision owners and evidence needed before moving toward scale.",
-            f"Turned the maturity assessment into a practical {MSX_ROADMAP} roadmap, while putting the first data ownership, stewardship and quality practices in place.",
-            "Brought business and technology leaders together to move AI opportunities beyond isolated experiments and toward a more managed enterprise capability.",
+            "Created an AI opportunity portfolio and lifecycle process with named decision owners, stage criteria and readiness-to-scale checks, making prioritization and accountability easier to examine.",
+            f"Translated AI and data maturity assessment into a {MSX_ROADMAP} roadmap, identifying capability gaps and priorities for stewardship, data ownership and trusted information.",
+            "Established early CoE governance and engagement mechanisms across business and technology stakeholders, giving an emerging enterprise capability a more defined working structure.",
         ],
         company_context=MSX_CONTEXT,
+        mandate="Build the foundations of a business-facing AI & Data Center of Excellence, covering portfolio governance, data accountability and adoption.",
     )
 
     role(
         VOLVO_CURRENT_TITLE,
-        "Volvo Group",
+        "Volvo Group / Volvo Trucks",
         VOLVO_CURRENT_DATES,
-        "Greater Gothenburg Metropolitan Area, Sweden",
+        "Göteborg, Sweden",
         [
-            f"Led AI adoption across commercial operations, including Microsoft 365 Copilot and agent initiatives and AI solutions introduced into {VOLVO_WORKFLOW_SCOPE} workflows, helping business teams bring them into day-to-day work.",
-            "Applied Generative AI to translation, summarization, structured analysis and communications, with human review and responsible-use practices built into the way the work was done.",
-            "Led AI use cases and PoCs across warranty, sales, aftermarket, legal, compliance and sustainability, starting from the business problem and shaping practical AI solutions around it.",
-            "Built AI innovation and literacy programs that reached thousands of employees worldwide, helping strengthen responsible use and the quality of business demand.",
+            f"Led Microsoft 365 Copilot and agent initiatives alongside AI solutions introduced into {VOLVO_WORKFLOW_SCOPE} workflows, connecting adoption with real commercial work and human review.",
+            "Connected business teams with Digital & IT, legal, compliance and other stakeholders to frame use cases, clarify dependencies and consider practical responsible-use requirements.",
+            "Designed practical AI innovation and literacy programs reaching thousands of employees globally, building understanding of AI use and its limits.",
+            f"Across my two Volvo AI roles (2018–2021 and 2022–2025), led business-requirement, product and stakeholder work on {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects across regions.",
         ],
+        mandate="Lead AI and analytics adoption in commercial operations, with business ownership, operational fit and responsible use at the center.",
     )
 
     role(
         KIMBERLY_TITLE,
         "Kimberly-Clark",
         KIMBERLY_DATES,
-        "Krakow Metropolitan Area, Poland",
+        "Kraków, Poland",
         [
-            "Led AI and Data Science value discovery across EMEA, reporting directly to the Chief Data & Analytics Officer and helping business teams decide which opportunities were worth pursuing.",
-            f"Worked with {KIMBERLY_SCOPE} to define the business problem, expected value, feasibility and readiness before moving into technical solutioning.",
+            "Led EMEA AI and Data Science value discovery, reporting directly to the Chief Data & Analytics Officer; made business problems, expected value and feasibility explicit before technical solution selection.",
+            f"Worked across {KIMBERLY_SCOPE} to compare opportunities against business readiness, data conditions and delivery considerations.",
         ],
+        mandate="Help EMEA functions evaluate AI opportunities against business priorities and readiness, not technology appeal alone.",
+    )
+
+    role(
+        VOLVO_SENIOR_AI_TITLE,
+        "Volvo Group",
+        VOLVO_SENIOR_AI_DATES,
+        "Wroclaw, Poland",
+        [
+            "Led business requirements, product and stakeholder coordination in AI and ML CoE work, translating cross-regional business needs into AI use cases and delivery discussions.",
+            f"Delivered {VOLVO_AI_LEARNING_SESSIONS} AI learning sessions and supported enterprise practitioner communities, strengthening shared AI understanding across business and technical teams.",
+        ],
+        mandate="Connect enterprise AI demand, stakeholders and CoE specialists while building practical literacy and business engagement.",
     )
 
     # Page 2
@@ -266,16 +264,7 @@ def build_public_cv() -> bytes:
     pdf.cell(0, 3.9, "Enterprise AI & Data Leader", new_x="LMARGIN", new_y="NEXT")
 
     section("Professional Experience", 3.0)
-    role(
-        VOLVO_SENIOR_AI_TITLE,
-        "Volvo Group",
-        VOLVO_SENIOR_AI_DATES,
-        "Wroclaw, Poland",
-        [
-            f"Led business requirements, product management and stakeholder engagement across {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects in multiple regions.",
-            f"Delivered {VOLVO_AI_LEARNING_SESSIONS} AI learning sessions and training opportunities across the global Volvo Group, strengthening AI literacy and the quality of business demand.",
-        ],
-    )
+
     role(
         IBM_TITLE,
         "IBM",

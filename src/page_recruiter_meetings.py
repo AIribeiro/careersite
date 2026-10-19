@@ -336,7 +336,7 @@ def _write(token: str, payload: dict, selected_id: int | None) -> None:
 
 def _editor(rows: list[dict], token: str, now: datetime) -> None:
     with st.expander("Review a meeting, record the outcome, or add a missing interaction",
-                     expanded=False):
+                     expanded=bool(st.session_state.get("recruiter_selected_meeting"))):
         choices = {"Add a new meeting": None}
         choices.update({
             f"{_when(r)} — {r.get('employer') or r['title']} (#{r['id']})": int(r["id"])

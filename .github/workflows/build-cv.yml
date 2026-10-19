@@ -2,7 +2,7 @@ name: Build and validate canonical CV
 
 on:
   push:
-    branches: [main, cv-rev5-dated-evidence-20261019]
+    branches: [main]
     paths:
       - "src/site_cv.py"
       - "src/career_facts.py"

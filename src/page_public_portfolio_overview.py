@@ -15,6 +15,8 @@ from page_content_intelligence import (
 )
 from portfolio_signal_brief import ranked_portfolio_signals
 from page_home_journey import render_home_journey
+from site_cms import fetch_published_articles
+from thinking_weekly_brief import edition_label, is_weekly_brief
 
 
 def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
@@ -39,22 +41,56 @@ def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
     return sorted(values, key=lambda row: (-row["Views"], row["Content"]))
 
 
-def _ranking_chart(rows: list[dict]) -> None:
+def split_reader_rows(
+    articles: list[dict], published_editions: list[object],
+) -> tuple[list[dict], list[dict]]:
+    """Separate regular essays from verified WEEKLY AI editions.
+
+    Both groups retain the existing first-party article-view grain, not a
+    second WEEKLY AI tracker. Only published CMS records with the exact
+    Weekly AI + Weekly Brief classification qualify. Edition-specific
+    reading sessions may overlap between editions and other essays.
+    """
+    weekly = {
+        edition.slug: edition
+        for edition in published_editions
+        if getattr(edition, "status", "") == "published"
+        and is_weekly_brief(edition)
+    }
+    essays: list[dict] = []
+    editions: list[dict] = []
+    for row in articles:
+        slug = str(row.get("Slug") or "")
+        if slug in weekly:
+            item = dict(row)
+            item["Title"] = item["Content"]
+            item["Content"] = edition_label(weekly[slug])
+            editions.append(item)
+        else:
+            essays.append(row)
+    return essays, sorted(editions, key=lambda r: (-r["Views"], r["Content"]))
+
+
+def _ranking_chart(rows: list[dict], *, compact: bool = False) -> None:
+    """Equal chart heights keep all three content cards aligned on desktop."""
     if not rows:
-        st.info("No classified views recorded in this period.")
+        st.caption("No recorded views for this content in the selected period.")
         return
-    top = rows[:7]
+    top = rows[:5] if compact else rows[:7]
+    tooltips = ["Content:N", alt.Tooltip("Views:Q", format=","),
+                alt.Tooltip("Sessions:Q", format=",")]
+    if any(r.get("Title") for r in top):
+        tooltips.insert(1, "Title:N")
     chart = (
         alt.Chart(alt.Data(values=top))
-        .mark_bar(cornerRadiusEnd=5, size=22)
+        .mark_bar(cornerRadiusEnd=5, size=20 if compact else 22)
         .encode(
             x=alt.X("Views:Q", title="Recorded views",
                     axis=alt.Axis(tickMinStep=1)),
             y=alt.Y("Content:N", sort=[r["Content"] for r in top],
-                    title=None, axis=alt.Axis(labelLimit=250)),
-            tooltip=["Content:N", alt.Tooltip("Views:Q", format=","),
-                     alt.Tooltip("Sessions:Q", format=",")],
-        ).properties(height=max(180, 38 * len(top)))
+                    title=None, axis=alt.Axis(labelLimit=145 if compact else 250)),
+            tooltip=tooltips,
+        ).properties(height=220 if compact else max(180, 38 * len(top)))
     )
     st.altair_chart(chart, width="stretch")
 
@@ -105,7 +141,20 @@ def render_public_portfolio_overview() -> None:
     page_views = max(0, int(quality.get("page_views") or 0))
     article_views = max(0, int(quality.get("article_views") or 0))
     page_sessions = max(0, int(quality.get("page_sessions") or 0))
-    article_sessions = max(0, int(quality.get("article_sessions") or 0))
+    # The content RPC reports WEEKLY AI as ordinary article-view rows.
+    # Use published format metadata to make mutually exclusive visual groups.
+    catalogue_available = True
+    try:
+        published_editions = list(fetch_published_articles())
+    except RuntimeError:
+        published_editions = []
+        catalogue_available = False
+    regular_articles, weekly_editions = split_reader_rows(articles, published_editions)
+    regular_views = sum(row["Views"] for row in regular_articles)
+    regular_item_sessions = sum(row["Sessions"] for row in regular_articles)
+    weekly_views = sum(row["Views"] for row in weekly_editions)
+    weekly_item_sessions = sum(row["Sessions"] for row in weekly_editions)
+    rows_reconcile = regular_views + weekly_views == article_views
 
     recent_report = None
     if str(window) in ("14d", "30d", "60d", "90d", "365d"):
@@ -144,21 +193,54 @@ def render_public_portfolio_overview() -> None:
     render_home_journey(str(window))
 
     st.divider()
-    left, right = st.columns(2, gap="medium")
-    with left:
-        with st.container(border=True):
+    # Identical card heights and chart heights; 3 columns on desktop,
+    # Streamlit naturally stacks them for narrow/mobile viewports.
+    pages_col, articles_col, weekly_col = st.columns(3, gap="medium")
+    with pages_col:
+        with st.container(border=True, height=510):
             st.markdown("#### Portfolio visits")
             st.metric("Page views", f"{page_views:,}")
             st.caption(f"{page_sessions:,} page-view sessions · {len(pages)} visited pages")
             st.markdown("**Pages receiving attention**")
-            _ranking_chart(pages)
-    with right:
-        with st.container(border=True):
+            _ranking_chart(pages, compact=True)
+    with articles_col:
+        with st.container(border=True, height=510):
             st.markdown("#### Article readership")
-            st.metric("Article views", f"{article_views:,}")
-            st.caption(f"{article_sessions:,} reading sessions · {len(articles)} read articles")
-            st.markdown("**Most-read articles**")
-            _ranking_chart(articles)
+            st.metric("Article views", f"{regular_views:,}" if catalogue_available else "—")
+            if catalogue_available:
+                st.caption(
+                    f"{regular_item_sessions:,} article-item sessions · "
+                    f"{len(regular_articles)} read articles"
+                )
+                st.markdown("**Most-read articles**")
+                _ranking_chart(regular_articles, compact=True)
+            else:
+                st.caption("Article/edition breakdown temporarily unavailable.")
+    with weekly_col:
+        with st.container(border=True, height=510):
+            st.markdown("#### WEEKLY AI")
+            st.metric("Edition views", f"{weekly_views:,}" if catalogue_available else "—")
+            if catalogue_available:
+                st.caption(
+                    f"{weekly_item_sessions:,} edition-item sessions · "
+                    f"{len(weekly_editions)} read editions"
+                )
+                st.markdown("**Most-read WEEKLY AI editions**")
+                _ranking_chart(weekly_editions, compact=True)
+            else:
+                st.caption("Published edition metadata is temporarily unavailable.")
+
+    if catalogue_available and not rows_reconcile:
+        st.caption(
+            "The per-content view breakdown does not reconcile with the overall "
+            "article-view total for this window; investigate reporting coverage "
+            "before comparing the two reading categories."
+        )
+    st.caption(
+        "Article readership excludes WEEKLY AI editions. Both are partitions of "
+        "existing article views, not additional website traffic. Item-session "
+        "observations can overlap across content and are not unique readers."
+    )
 
     st.divider()
     st.subheader("Other relevant portfolio signals")
@@ -199,6 +281,6 @@ def render_public_portfolio_overview() -> None:
         "that any particular employer or recruiter visited."
     )
     st.caption(
-        "For reading depth, distribution sources, WEEKLY AI performance and "
-        "measurement diagnostics, open Explore content."
+        "For reading depth, distribution sources, WEEKLY AI audio performance "
+        "and measurement diagnostics, open Explore content."
     )

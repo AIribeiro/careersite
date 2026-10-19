@@ -197,6 +197,14 @@ def _role_detail(model: dict, now: datetime) -> None:
         st.info("The application date is estimated. Exact application-to-stage day counts are suppressed.")
     if not offer:
         st.caption("No dated offer is supported by the recorded evidence; offer intervals are intentionally blank.")
+    if model["decision_date"]:
+        decision_days = _duration(model["days_application_to_decision"])
+        after_latest = _duration(model["days_decision_after_latest_confirmed"])
+        st.caption(
+            f"Decision timing: application → decision {decision_days}; "
+            f"latest confirmed interview → decision {after_latest}. "
+            "Intervals without sufficient evidence remain blank."
+        )
     if op.get("notes"):
         with st.expander("Process notes"):
             st.write(op["notes"])

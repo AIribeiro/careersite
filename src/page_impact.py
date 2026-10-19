@@ -41,7 +41,7 @@ def impact() -> str:
                 ("My responsibility", "I led business-facing AI adoption, use-case and stakeholder work across commercial operations, including Microsoft 365 Copilot and agent initiatives and work with Digital & IT and business owners."),
                 ("Trade-off", "Fast demonstrations and broad awareness could build interest, but operational use required clearer ownership, human review, appropriate controls and practical changes in day-to-day work."),
                 ("Decision / contribution", "I connected use-case choices and literacy with the workflows where AI would be used, engaging cross-functional stakeholders and keeping human oversight part of the approach."),
-                ("What changed", f"AI solutions and agents were introduced into {VOLVO_WORKFLOW_SCOPE} workflows. Practical AI learning activity reached thousands of employees globally; no unverified productivity or financial outcomes are claimed."),
+                ("What changed", f"AI solutions and agents were introduced into {VOLVO_WORKFLOW_SCOPE} workflows, with business engagement and human review supporting day-to-day use. Practical AI literacy activity reached employees globally."),
             ],
         ),
         case(

@@ -117,6 +117,7 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
                       "careersite_analytics_reporting_window", "30d")),
             patch("page_public_portfolio_overview._ranking_chart") as chart,
             patch("page_public_portfolio_overview.render_home_journey") as journey,
+            patch("page_public_portfolio_overview.fetch_published_articles", return_value=[]),
             patch("page_public_portfolio_overview._recent_content_report",
                   return_value=make_report()),
         ):
@@ -124,12 +125,12 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
                 "from page_public_portfolio_overview import render_public_portfolio_overview\n"
                 "render_public_portfolio_overview()\n"
             ).run(timeout=20)
-            self.assertEqual(chart.call_count, 2)
+            self.assertEqual(chart.call_count, 3)
             journey.assert_called_once_with("30d")
         self.assertFalse(app.exception)
         self.assertIn("What changed and why it matters", [x.value for x in app.subheader])
         self.assertIn("Other relevant portfolio signals", [x.value for x in app.subheader])
-        self.assertEqual(len(app.metric), 2)
+        self.assertEqual(len(app.metric), 3)
         self.assertEqual(len(app.get("vega_lite_chart")), 0)
 
 

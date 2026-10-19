@@ -74,7 +74,7 @@ jobs:
           for link in (site_cv.CV_SITE_URL, site_cv.CERTIFICATIONS_URL, site_cv.PRESENCE_URL):
               assert link in uris, f"Approved CV missing hyperlink: {link}"
           text = " ".join(page.extract_text() or "" for page in reader.pages).replace("–", "-")
-          for period in ("Dec 2025 - Jun 2026", "Aug 2022 - Dec 2025", "Jul 2021 - Sep 2022", "Jun 2018 - Jul 2021"):
+          for period in ("Dec 2025 - Jun 2026", "Aug 2022 - Dec 2025", "Jul 2021 - Sep 2022", "Jun 2018 - Jul 2021", "Jul 2016 - Jul 2017", "Jan 2013 - Jul 2016"):
               assert period in text, f"Approved LinkedIn-aligned career period missing: {period}"
           assert "Wroclaw, Poland" in (reader.pages[0].extract_text() or ""), "Wroclaw Volvo role not on page one"
           assert "Göteborg, Sweden" in text, "Gothenburg Volvo role location missing"

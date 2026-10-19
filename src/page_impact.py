@@ -4,7 +4,7 @@ import html
 from site_assets import WORKSHOP_URI
 from site_components import nav, footer, opportunity, journey_next
 from site_artifacts import leadership_frameworks
-from career_facts import KIMBERLY_SCOPE, KIMBERLY_TITLE, MSX_PUBLIC_DATES, MSX_ROADMAP, VOLVO_AI_INITIATIVES, VOLVO_WORKFLOW_SCOPE
+from career_facts import KIMBERLY_SCOPE, KIMBERLY_TITLE, MSX_PUBLIC_DATES, MSX_ROADMAP, VOLVO_AI_INITIATIVES, VOLVO_AI_LEARNING_SESSIONS, VOLVO_CURRENT_DATES, VOLVO_SENIOR_AI_DATES, VOLVO_WORKFLOW_SCOPE
 
 
 def case(org: str, role: str, date: str, scope: str, title: str, intro: str, boxes: list[tuple[str, str]]) -> str:
@@ -15,24 +15,9 @@ def case(org: str, role: str, date: str, scope: str, title: str, intro: str, box
 def impact() -> str:
     cases = [
         case(
-            "Volvo Group / Volvo Trucks",
-            "AI leadership roles across Volvo Group and Volvo Trucks",
-            "Jun 2018 – Dec 2025 · Poland / Sweden",
-            f"Multiple regions and business functions · {VOLVO_WORKFLOW_SCOPE} · enterprise AI community / CoE work",
-            "Connecting business priorities, AI adoption and enterprise reality across two Volvo AI roles.",
-            "Across my Volvo AI roles, the recurring challenge was not a shortage of ideas. It was helping different business areas connect real workflows, data conditions, Digital & IT constraints, governance and the people expected to use the capability.",
-            [
-                ("Situation", f"AI opportunities ranged from enterprise-wide use-case work and practitioner communities to commercial operations such as {VOLVO_WORKFLOW_SCOPE}, each with different stakeholders and readiness."),
-                ("My responsibility", f"At Volvo Group, I led business-requirement gathering, product management and stakeholder management across {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects while supporting the AI & ML Center of Excellence. At Volvo Trucks, I led AI adoption work across commercial operations and cross-functional use cases, including Microsoft 365 Copilot and agent initiatives."),
-                ("Trade-off", "Visible activity can be mistaken for progress. More PoCs and more training can increase momentum without creating clear responsibility, changed workflows or a credible path into enterprise delivery."),
-                ("Decision / contribution", "I treated adoption as both a portfolio and capability problem: connect use cases to real work, involve business and technical partners early, and make literacy practical enough to improve the quality of demand and everyday use."),
-                ("What changed", f"At Volvo Trucks, AI solutions and agents moved into {VOLVO_WORKFLOW_SCOPE} workflows, connecting adoption to day-to-day operational work rather than awareness alone. Across the wider Volvo AI portfolio, use cases and PoCs also spanned legal, compliance and sustainability, requiring the capability to work across different business contexts rather than one isolated pilot."),
-            ],
-        ),
-        case(
             "MSX International",
             "AI & Data Center of Excellence Director",
-            f"{MSX_PUBLIC_DATES.replace(' - ', ' – ')} · Gothenburg",
+            f"{MSX_PUBLIC_DATES.replace(' - ', ' – ')} · Göteborg, Sweden",
             "Enterprise CoE mandate across strategy, operations, technology and business leaders · AI portfolio · governance · data foundations · adoption",
             "Building the foundations for an enterprise AI & Data capability.",
             "The mandate was to put clearer foundations under an emerging AI & Data capability while portfolio management, data governance, adoption and business engagement were still maturing together.",
@@ -42,6 +27,21 @@ def impact() -> str:
                 ("Trade-off", "The question was how much structure the organization could use productively at that stage. Too little would preserve ambiguity; too much would create bureaucracy before the operating habits existed."),
                 ("Decision / contribution", f"I favored a small number of connected decision mechanisms: clearer portfolio visibility, practical lifecycle discipline, risk-aware criteria, stewardship and the proof needed before broader use. I also connected the maturity assessment to a pragmatic {MSX_ROADMAP.replace('-', '–')} roadmap rather than treating maturity as a score in isolation."),
                 ("What changed", f"The CoE became a more defined business-facing capability: a visible AI opportunity portfolio, clearer lifecycle stages and responsibilities, a {MSX_ROADMAP.replace('-', '–')} maturity roadmap, initial data-ownership and stewardship foundations, and explicit capability gaps that informed the creation of new roles."),
+            ],
+        ),
+        case(
+            "Volvo Group / Volvo Trucks",
+            "Data Analytics and AI Leader",
+            f"{VOLVO_CURRENT_DATES.replace(' - ', ' – ')} · Göteborg, Sweden",
+            f"Commercial operations · {VOLVO_WORKFLOW_SCOPE} · Microsoft 365 Copilot and agent initiatives · cross-functional adoption",
+            "Bringing enterprise AI into commercial workflows with responsible use.",
+            "Within Volvo Trucks commercial operations, the challenge was connecting AI opportunities to actual workflows, accountable business teams, technical feasibility and adoption, rather than measuring progress in experiments alone.",
+            [
+                ("Situation", f"Warranty, sales and aftermarket teams had distinct processes, information needs and stakeholder dependencies; additional use cases touched legal, compliance and sustainability."),
+                ("My responsibility", "I led business-facing AI adoption, use-case and stakeholder work across commercial operations, including Microsoft 365 Copilot and agent initiatives and work with Digital & IT and business owners."),
+                ("Trade-off", "Fast demonstrations and broad awareness could build interest, but operational use required clearer ownership, human review, appropriate controls and practical changes in day-to-day work."),
+                ("Decision / contribution", "I connected use-case choices and literacy with the workflows where AI would be used, engaging cross-functional stakeholders and keeping human oversight part of the approach."),
+                ("What changed", f"AI solutions and agents were introduced into {VOLVO_WORKFLOW_SCOPE} workflows, with business engagement and human review supporting day-to-day use. Practical AI literacy activity reached employees globally."),
             ],
         ),
         case(
@@ -57,6 +57,21 @@ def impact() -> str:
                 ("Trade-off", "The tension was consistency versus context: create enough structure to compare opportunities, but not so much that the method replaced the business reality behind each one."),
                 ("Decision / contribution", "I started from the business problem and value hypothesis before moving to the technical solution, using value-engineering thinking to make assumptions and delivery implications visible early."),
                 ("What changed", "The work gave business and data-science teams a more consistent basis for comparing opportunities, exposing assumptions earlier and deciding which ideas were ready for deeper investment."),
+            ],
+        ),
+        case(
+            "Volvo Group",
+            "Senior Artificial Intelligence Business Expert",
+            f"{VOLVO_SENIOR_AI_DATES.replace(' - ', ' – ')} · Wroclaw, Poland",
+            "AI & ML Center of Excellence · business requirements · product and stakeholder management · practitioner communities",
+            "Building the business-facing practices around an emerging enterprise AI capability.",
+            "In the earlier Volvo chapter, the work focused on shaping AI opportunities across functions and regions while strengthening the business and practitioner capabilities needed to collaborate with specialists.",
+            [
+                ("Situation", "Business units were exploring AI and ML applications with different levels of technical maturity, problem definition and stakeholder understanding."),
+                ("My responsibility", "I led business-requirement, product and stakeholder activities across a broad set of AI initiatives and supported enterprise AI & ML CoE capability building."),
+                ("Trade-off", "The organization needed enough shared language and discipline to select useful work without turning education or PoC activity into a proxy for business results."),
+                ("Decision / contribution", f"I helped translate business demand into tractable AI initiatives and delivered {VOLVO_AI_LEARNING_SESSIONS} AI learning sessions. Across my Volvo AI roles, my combined portfolio work covered {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects."),
+                ("What changed", "Enterprise practitioners had more opportunities to build AI literacy and engage with an organized AI community; business and technical teams had a clearer basis for discussing use cases and requirements."),
             ],
         ),
     ]

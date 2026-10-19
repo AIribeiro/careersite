@@ -45,6 +45,7 @@ class RecruiterMeetingsUITests(unittest.TestCase):
         with (
             patch("page_recruiter_meetings._fetch", return_value=fixtures),
             patch("page_recruiter_meetings._now", return_value=now),
+            patch("page_recruiting_journeys.fetch_opportunities", return_value=[]),
         ):
             at = AppTest.from_string(
                 "from page_recruiter_meetings import render_recruiter_meetings\n"

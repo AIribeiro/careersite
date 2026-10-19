@@ -11,6 +11,18 @@
         "adoption_gap",
         "leadership_mindsets"
       ]
+    },
+    {
+      "iso_year": 2026,
+      "iso_week": 42,
+      "slug": "weekly-ai-2026-10-19",
+      "story_keys": [
+        "european_adoption",
+        "agentic_technology_leadership",
+        "agent_team_coordination",
+        "human_ai_interaction",
+        "judgment_bottleneck"
+      ]
     }
   ]
 }

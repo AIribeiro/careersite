@@ -277,6 +277,9 @@ def build_public_cv() -> bytes:
     )
 
     section("Earlier Career", 2.5)
+    earlier("Infrastructure Services Solution Manager", "IBM", "Jul 2016 - Jul 2017")
+    earlier("Project Manager (concurrent IBM assignment)", "IBM", "Apr 2017 - Aug 2017")
+    earlier("IT&C Manager / Senior IT Engineer / IT Project Manager", "Hewlett Packard Enterprise", "Jan 2013 - Jul 2016")
     earlier("Founder, ICT Manager", "Imprendo Consulting", "Mar 2012 - Apr 2013")
     earlier("Information Technology System Administrator", "CityLife S.p.A", "Jun 2009 - Mar 2012")
     earlier("Application Testing & Documentation", "AXA Assicurazioni", "Mar 2009 - May 2009")

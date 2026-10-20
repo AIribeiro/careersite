@@ -11,7 +11,10 @@ from datetime import date, timedelta
 import hashlib
 import json
 
-SHADOW_VERSION = "market-shadow-v1-context-only"
+from hiring_target_policy import (POLICY_VERSION, catalog_sensitivity,
+                                  pipeline_sensitivity)
+
+SHADOW_VERSION = "market-shadow-v2-role-mandates-context-only"
 SOURCE_GROUPS = {
     "trr_professional_transitions": "Professional transitions",
     "brg_gothenburg_business_cycle": "Hiring environment",
@@ -130,7 +133,7 @@ def _signal(group, label, metric, interpretation, *, direction="mixed", independ
     }
 
 
-def evaluate_market_shadow(market_rows, registry_rows, baseline, as_of):
+def evaluate_market_shadow(market_rows, registry_rows, baseline, as_of, catalog_rows=None):
     """Evaluate five registered source families without changing offer or start dates.
 
     A matching shadow *date* is a deliberate no-score safeguard, not proof that
@@ -238,11 +241,18 @@ def evaluate_market_shadow(market_rows, registry_rows, baseline, as_of):
     # No expansion of JobTech v1 feature definitions or auto-scoring.
     scenario = baseline.get("leading_stage_scenario") or {} if isinstance(baseline, dict) else {}
     timing = {k: scenario.get(k) for k in TIMING_FIELDS}
+    # Functional leadership roles have always been legitimate conversions. Show
+    # a versioned counterfactual, not an invented probability multiplier.
+    process_policy = pipeline_sensitivity(
+        baseline.get("top_processes", []) if isinstance(baseline, dict) else [])
+    catalog_policy = (catalog_sensitivity(catalog_rows, as_of)
+                      if catalog_rows is not None else None)
     signature_items = sorted((str(r.get("id")), str(r.get("source_key")),
                               str(r.get("updated_at") or ""), str(r.get("metric_value") or ""),
                               str(r.get("metric_value_text") or "")) for r in eligible)
     signature = hashlib.sha256(json.dumps(
-        {"market": signature_items,
+        {"market": signature_items, "policy_version": POLICY_VERSION,
+         "role_catalog": catalog_policy,
          "baseline": {"version": baseline.get("model_version"),
                       "scenario": timing,
                       "stages": baseline.get("stage_breakdown"),
@@ -271,6 +281,10 @@ def evaluate_market_shadow(market_rows, registry_rows, baseline, as_of):
         "observations_read": len(eligible),
         "signals": signals, "groups": dict(by_group),
         "jobtech": jobtech, "contradictory_output_employment": contradictions,
+        "role_policy": {"version": POLICY_VERSION, "aspiration": "AI Director / Head of enterprise AI",
+                        "conversion": "Senior Manager, AI Strategy Lead, AI Transformation Lead, Head of AI Adoption and equivalent mandates",
+                        "catalog": catalog_policy, "pipeline": process_policy,
+                        "jobtech_v1_unchanged": True},
         "geography": {"Sweden": jobtech.get("Sweden"),
                       "Stockholm": jobtech.get("Stockholm"),
                       "Västra Götaland": jobtech.get("Västra Götaland"),
@@ -279,6 +293,7 @@ def evaluate_market_shadow(market_rows, registry_rows, baseline, as_of):
         "limitations": [
             "TRR transition outcomes cover a selected private-sector white-collar population.",
             "JobTech v1 captures advertised matched posts, not unadvertised vacancies; small VGR counts lack precision.",
+            "Catalogue primary/functional title comparisons are not verified role-fit or independently sampled vacancies.",
             "Stockholm, Västra Götaland and Göteborgsregionen are distinct geographies.",
             "Almega's SCB/KI-derived estimates count as one dependent evidence cluster.",
             "Survey sentiment and SCB AI adoption do not imply a leadership opening.",

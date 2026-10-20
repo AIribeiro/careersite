@@ -23,8 +23,8 @@ from page_hiring_prediction_v2 import (
 from hiring_forecast_history import (record_v2_daily_first, publish_v2_timing,
                                      previous_forecasts, stability_summary)
 from hiring_market_shadow import evaluate_market_shadow
-from page_market_shadow import (fetch_market_registry, historical_shadow,
-                                record_shadow, render_market_shadow)
+from page_market_shadow import (fetch_market_registry, fetch_role_catalog,
+                                historical_shadow, record_shadow, render_market_shadow)
 from site_cms import ensure_owner_session, _request_json, _rest_url
 
 
@@ -34,6 +34,7 @@ _SOURCE_NAMES = {
     "stale": "application staleness reviews",
     "market": "Swedish market",
     "registry": "market source registry",
+    "role_catalog": "role-target candidate catalogue",
     "site": "portfolio activity",
     "hiring": "qualified portfolio behavior",
     "actions": "CV downloads and contact clicks",
@@ -163,6 +164,7 @@ def render_analytics_overview(session: dict | None) -> None:
     jobs = []
     market = []
     registry = None
+    role_catalog = None
     site = None
     hiring = {}
     actions = None
@@ -188,6 +190,10 @@ def render_analytics_overview(session: dict | None) -> None:
             registry = fetch_market_registry(str(valid["access_token"]))
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             errors.append("market source registry")
+        try:
+            role_catalog = fetch_role_catalog(str(valid["access_token"]))
+        except (RuntimeError, TimeoutError, PermissionError, ValueError):
+            errors.append("role-target candidate catalogue")
         try:
             site = _fetch_rpc("careersite_portfolio_signals_daily_v1",{"p_days":365})
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
@@ -216,9 +222,10 @@ def render_analytics_overview(session: dict | None) -> None:
     current_signatures = {}
     failed_sources = {"jobs": "job search", "market": "market",
                       "registry": "market source registry",
+                      "role_catalog": "role-target candidate catalogue",
                       "site": "portfolio correlation"}
     for key, payload in (("jobs", jobs), ("stale", stale_pipeline), ("market", market),
-                         ("registry", registry), ("site", site),
+                         ("registry", registry), ("role_catalog", role_catalog), ("site", site),
                          ("hiring", hiring), ("actions", actions),
                          ("geo", geography_locations),
                          ("employers", employer_activity),
@@ -293,7 +300,8 @@ def render_analytics_overview(session: dict | None) -> None:
                        "There are not yet enough confirmed offers to validate "
                        "prediction accuracy or personal hiring probabilities.")
         if market and registry:
-            shadow = evaluate_market_shadow(market, registry, v2_prediction, now.date())
+            shadow = evaluate_market_shadow(market, registry, v2_prediction, now.date(),
+                                            catalog_rows=role_catalog)
             try:
                 past_shadow = historical_shadow(str(valid["access_token"]))
             except (RuntimeError, TimeoutError, PermissionError, ValueError):

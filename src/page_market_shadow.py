@@ -11,6 +11,18 @@ from site_cms import _request_json, _rest_url
 TABLE = "careersite_hiring_market_shadow_history"
 
 
+def fetch_role_catalog(token: str) -> list[dict]:
+    """Bounded Swedish vacancy slice through a strict owner-only RPC."""
+    if not token:
+        raise PermissionError("Owner access required for role catalogue.")
+    data = _request_json(
+        "POST", _rest_url("rpc/careersite_hiring_role_catalog_v1"),
+        token=token, payload={}, timeout=25)
+    if not isinstance(data, list):
+        raise RuntimeError("Owner role catalogue unavailable.")
+    return data
+
+
 def fetch_market_registry(token: str) -> list[dict]:
     if not token:
         raise PermissionError("Owner access required for source registry.")
@@ -136,6 +148,49 @@ def render_market_shadow(evaluation: dict, *, compact: bool = False,
                    f"{_date(base.get('start_latest'))}). "
                    "The shadow has retained the same windows.")
     st.caption("Since previous shadow evaluation: " + _change_message(evaluation, history))
+    role_policy = evaluation.get("role_policy") or {}
+    catalog = role_policy.get("catalog")
+    pipeline = role_policy.get("pipeline") or {}
+    st.markdown("**Target policy: ambition versus conversion mandates**")
+    st.caption("Primary ambition: AI Director / enterprise Head of AI. Equally valid conversion "
+               "targets include Senior Manager, AI Strategy Lead, AI Transformation Lead, "
+               "Head of AI Adoption and equivalent functional leadership mandates. "
+               "Decision rights, strategic scope and accountability matter more than title.")
+    if catalog is not None:
+        x,y,z = st.columns(3)
+        x.metric("Primary title candidates", catalog.get("primary",0))
+        y.metric("Additional functional titles", catalog.get("incremental_functional",0))
+        z.metric("Combined title candidates", catalog.get("primary_plus_functional",0))
+        st.caption(f"Owner's indexed Swedish catalogue: {catalog.get('sample_size',0)} "
+                   "distinct employer–title pairs in the returned sample, not a census "
+                   "of live senior vacancies. First-seen 45-day counts: "
+                   f"primary {catalog.get('recent_45d',{}).get('primary',0)}, "
+                   f"functional {catalog.get('recent_45d',{}).get('functional',0)}. "
+                   "Titles and descriptive keywords are not verified mandates.")
+    else:
+        st.caption("Live catalogue role sensitivity unavailable; no zero-valued "
+                   "vacancy evidence is inferred.")
+    if pipeline.get("details"):
+        with st.expander("Active recruiting processes by policy lane", expanded=False):
+            st.dataframe([{
+                "Employer": x.get("employer"), "Role": x.get("role"),
+                "Title classification": {
+                    "primary":"Director / Head ambition",
+                    "functional":"Functional AI leadership",
+                    "adjacent":"Adjacent leadership",
+                    "outside_or_uncertain":"Scope unverified / other",
+                }.get(x.get("lane"),"Unverified"),
+                "Recruitment stage": str(x.get("stage") or "").replace("_"," "),
+            } for x in pipeline["details"]],hide_index=True,width="stretch")
+            st.caption("The list is the existing model's top-ranked process subset "
+                       "only, not every application. Classification from title does "
+                       "not supersede verified job descriptions.")
+    st.caption("Forecast sensitivity: 0-day adjustment **by policy**, not measured "
+               "zero market effect. The existing v2 already treats AI strategy and "
+               "adoption leads as core AI-family roles. The original JobTech v1 "
+               "high-signal counts are unchanged; recalculating the full demand "
+               "denominator requires a new, validated search basket.")
+
     count = sum(evaluation.get("source_counts", {}).values())
     st.caption(f"{count} verified observations across "
                f"{len(SOURCE_GROUPS)-len(evaluation.get('missing_sources',[]))}/5 "

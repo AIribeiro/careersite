@@ -167,11 +167,16 @@ def render_market_shadow(evaluation: dict, *, compact: bool = False,
         brg = geo.get("Göteborgsregionen") or {}
         service, manufacturing = brg.get("services"), brg.get("manufacturing")
         if service and manufacturing:
+            service_change = (f"{service['change']:+g}" if service['change'] is not None
+                              else "not yet comparable")
+            manufacturing_change = (
+                f"{manufacturing['change']:+g}" if manufacturing['change'] is not None
+                else "not yet comparable")
             st.caption("Göteborgsregionen (13 municipalities), separate from VGR: "
                        f"services confidence {service['value']:g} "
-                       f"(quarter-on-quarter {service['change']:+g}); "
+                       f"(quarter-on-quarter {service_change}); "
                        f"manufacturing {manufacturing['value']:g} "
-                       f"({manufacturing['change']:+g}). "
+                       f"({manufacturing_change}). "
                        "Business confidence is not a count of vacancies.")
         st.caption("Never sum or equate the nested national, Stockholm and VGR counts. "
                    "No Göteborg-specific senior JobTech count is asserted.")

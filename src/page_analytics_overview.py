@@ -23,6 +23,8 @@ from page_hiring_prediction_v2 import (
 from hiring_forecast_history import (record_v2_daily_first, publish_v2_timing,
                                      previous_forecasts, stability_summary)
 from hiring_market_shadow import evaluate_market_shadow
+from page_hiring_daily import (recheck_owner_now, read_daily_history,
+                               render_daily_recheck)
 from page_market_shadow import (fetch_market_registry, fetch_role_catalog,
                                 historical_shadow, record_shadow, render_market_shadow)
 from site_cms import ensure_owner_session, _request_json, _rest_url
@@ -172,6 +174,8 @@ def render_analytics_overview(session: dict | None) -> None:
     employer_activity = None
     stale_pipeline = None
     v2_prediction = None
+    daily_status = None
+    daily_history = None
     errors = []
     with st.spinner("Comparing current evidence…"):
         try:
@@ -219,6 +223,15 @@ def render_analytics_overview(session: dict | None) -> None:
             v2_prediction = fetch_hiring_prediction_v2(str(valid["access_token"]))
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             errors.append("interview-stage forecast")
+        if v2_prediction is not None:
+            try:
+                daily_status = recheck_owner_now(str(valid["access_token"]))
+            except (RuntimeError, TimeoutError, PermissionError, ValueError):
+                errors.append("daily forecast recheck")
+        try:
+            daily_history = read_daily_history(str(valid["access_token"]))
+        except (RuntimeError, TimeoutError, PermissionError, ValueError):
+            errors.append("daily hiring archive")
     current_signatures = {}
     failed_sources = {"jobs": "job search", "market": "market",
                       "registry": "market source registry",
@@ -262,6 +275,11 @@ def render_analytics_overview(session: dict | None) -> None:
     site_corr = analyze_portfolio_job_correlations(site,jobs) if site and jobs else None
     if v2_prediction is not None:
         render_hiring_prediction_v2(v2_prediction)
+        if daily_history is not None:
+            render_daily_recheck(daily_history,now.date(),daily_status)
+        else:
+            st.caption("Automated daily forecast history is currently unavailable; "
+                       "the verified interview-stage scenario remains readable.")
         try:
             record_v2_daily_first(str(valid["access_token"]),
                                   v2_prediction, current_signatures)

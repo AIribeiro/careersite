@@ -96,7 +96,26 @@ def render_hiring_prediction_v2(data: dict) -> dict:
             )
     else:
         st.markdown("## No defensible start date yet")
-        st.caption("A timing scenario requires stronger verified interview evidence.")
+        if scenario.get("window_state") == "expired_requires_new_employer_evidence":
+            st.warning("The leading-process window has expired without a confirmed offer. "
+                       "The model will not extend it indefinitely. "
+                       "A new employer milestone is needed to establish a dated estimate.")
+        else:
+            st.caption("A timing scenario requires stronger verified interview evidence.")
+    if scenario.get("timing_anchor"):
+        remaining = scenario.get("days_to_offer")
+        shift = scenario.get("calendar_shift_days")
+        st.caption("Calendar anchor: verified milestone "+
+                   _pretty_date(scenario.get("timing_anchor"))+
+                   (f" · {remaining} calendar days until the conditional offer centre"
+                    if remaining is not None else "")+
+                   (f" · reassessed by {shift} days" if shift not in (None,0) else "")+
+                   ". The countdown decreases daily while the central milestone remains "
+                   "feasible; it does not restart automatically.")
+        if scenario.get("window_state")=="overdue_reassessed_weekly":
+            st.warning("Calendar reassessment: the original central offer window is "
+                       "approaching or overdue. The planning date has advanced by "
+                       "a bounded weekly step, not because an employer confirmed an offer.")
     st.caption(
         "Conditional stage-based planning estimate, **not a confirmed job, "
         "offer or statistically calibrated hiring probability**. "
@@ -187,6 +206,11 @@ def render_hiring_prediction_v2(data: dict) -> dict:
                    "0.45; subsequent interview scheduled 0.58; subsequent interview "
                    "completed 0.65; verified offer 0.95. These are provisional scoring "
                    "coefficients, **not** observed conversion rates.")
+        st.caption("Offer dates are now anchored to the observed employer milestone, "
+                   "not recalculated as today plus a fixed number of days. "
+                   "Elapsed days reduce remaining time. Near the original centre, "
+                   "a bounded weekly reassessment applies; when the evidence window "
+                   "expires, the model withholds the date instead of endlessly rolling it.")
         st.caption("Confirmed employer advancement provides a small bonus. Ageing "
                    "reduces confidence. Rejections and verified exclusions receive "
                    "zero active credit; stale silence is not a confirmed rejection.")

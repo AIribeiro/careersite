@@ -12,8 +12,8 @@ PROFILE_AI_LEADERSHIP_YEARS = "8+"
 
 MSX_TITLE = "AI & Data Center of Excellence Director"
 MSX_COMPANY = "MSX International"
-MSX_PUBLIC_DATES = "Dec 2025 - Jun 2026"
-MSX_PUBLIC_TIMELINE = "2025–2026"
+MSX_PUBLIC_DATES = "Dec 2025 - Sep 2026"
+MSX_PUBLIC_TIMELINE = "Dec 2025–Sep 2026"
 MSX_CONTEXT = "Global automotive business services."
 MSX_ROADMAP = "2026-2027"
 

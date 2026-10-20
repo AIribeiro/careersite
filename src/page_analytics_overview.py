@@ -255,7 +255,9 @@ def render_analytics_overview(session: dict | None) -> None:
                "opening the page reads the latest scheduled daily snapshot. "
                "No page-triggered forecast computation or database writes.")
     if changed:
-        st.caption("New data detected and forecast recalculated: " + ", ".join(changed) + ".")
+        st.caption("New source data observed: " + ", ".join(changed) + ". " 
+                   "This does not trigger an additional hiring forecast run; " 
+                   "the next daily batch will incorporate the evidence.")
     if errors:
         st.warning("Some sources were temporarily unavailable: " + ", ".join(errors)
                    + ". Other available sections remain usable.")

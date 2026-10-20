@@ -72,7 +72,7 @@ def build_cv_pdf() -> bytes:
     pdf.multi_cell(0, 4.5, "Gothenburg, Sweden | jair.ribeiro@outlook.it | +46 76 761 2158 | linkedin.com/in/jairribeiro", new_x="LMARGIN", new_y="NEXT")
 
     heading("Executive Profile")
-    body(f"Enterprise AI, data and analytics leader with {PROFILE_TECH_YEARS} years in enterprise technology, including {PROFILE_AI_LEADERSHIP_YEARS} years in AI, data and analytics leadership. Experience spans AI strategy, operating models, portfolio decisions, governance, analytics, adoption and business translation across automotive, consumer goods and enterprise technology environments.")
+    body(f"Across two Volvo Group roles in Poland and Sweden, led business-facing AI and analytics work spanning requirements, stakeholder engagement and adoption. Portfolio work covered {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects across regions, with operational AI work in warranty, sales and aftermarket. At MSX International, continued the cross-functional enterprise AI mandate in an explicit Director role, establishing CoE portfolio, governance and data ownership foundations.")
 
     heading("Leadership & Domain Expertise")
     body("AI strategy & enterprise adoption | Responsible AI & AI governance | Data & analytics strategy | Data governance & maturity | GenAI enablement | Portfolio prioritization | Operating models & CoE design | Executive stakeholder management | Change, literacy & capability building | Enterprise architecture | Cloud & technology consulting", size=8.5)
@@ -86,7 +86,7 @@ def build_cv_pdf() -> bytes:
     heading("Professional Experience")
     body("AI & Data Center of Excellence Director | MSX International", True)
     body(f"{MSX_PUBLIC_DATES} | Gothenburg, Sweden", size=8)
-    bullet("Built foundations for a business-facing AI & Data CoE connecting strategy, governance, adoption and responsible enablement.")
+    bullet("Continued cross-functional enterprise AI leadership through a formal Director mandate, establishing foundations for a business-facing AI & Data CoE.")
     bullet("Structured the enterprise AI opportunity portfolio, improving visibility, prioritization, decision quality and readiness to scale.")
     bullet("Advanced data governance foundations covering ownership, stewardship, data quality and trusted data practices.")
     bullet("Introduced clearer lifecycle stages, ownership and scale-readiness criteria for AI initiatives.")

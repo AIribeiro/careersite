@@ -8,10 +8,11 @@ POLICY_VERSION = "ai-leadership-mandates-v1-2026-10-20"
 AI = re.compile(r"\b(?:AI|artificial intelligence|GenAI|Copilot)\b", re.I)
 PRIMARY = re.compile(r"\b(?:Director|Head of|Chief|VP)\W+(?:of\W+)?(?:Enterprise\W+)?(?:AI|artificial intelligence)\b|\b(?:AI|artificial intelligence)\s+(?:Transformation\s+)?(?:Director|Head)\b|\bVP Domain Head\b.{0,40}\bAI\b", re.I)
 FUNCTIONAL = re.compile(r"\b(?:Senior Manager|Manager|Lead|Strategy|Transformation|Adoption|Enablement|Capability|Governance|Productivity|Operating Model|Portfolio)\b", re.I)
-ADJACENT = re.compile(r"\b(?:Data|Analytics|Business Intelligence|Intelligent Automation|Enterprise Architecture)\b", re.I)
+ADJACENT = re.compile(r"\b(?:Data|Analytics|Business Intelligence|Intelligent Automation|Enterprise Architecture|Governance)\b", re.I)
 LEADERSHIP = re.compile(r"\b(?:Senior Manager|Head|Director|Lead|Chief|VP|Senior Principal)\b", re.I)
-CRAFT = re.compile(r"\b(?:AI Engineer|ML Engineer|Machine Learning Engineer|MLOps|Data Scientist|Prompt Engineer|Software Engineer|Developer|Data Analyst|Solutions Architect|Pre-Sales)\b", re.I)
+CRAFT = re.compile(r"\b(?:AI Engineer|ML Engineer|Machine Learning Engineer|MLOps|Data Scientist|Prompt Engineer|Software Engineer|Developer|Data Analyst|Solutions Architect|Pre-Sales|Program Manager|Project Manager|Technical Lead|Technical Product|Engineering Manager|AI Development)\b", re.I)
 MANDATE = ("roadmap","portfolio","governance","operating model","ai strategy","business value","value realization","adoption","stakeholder","cross-functional","transformation","budget","decision rights","capability development")
+SPECIALIST = re.compile(r"\bSpecialists?\b", re.I)
 FUNCTIONAL_HEAD = re.compile(r"\bHead of AI\s+(?:Adoption|Enablement|Capability|Productivity)\b", re.I)
 CRAFT_SCOPE = ("hands-on coding","hands-on software development","build and deploy ml models","quota-carrying sales")
 
@@ -19,6 +20,8 @@ def classify_title(title):
     t = " ".join(str(title or "").split())
     if CRAFT.search(t):
         return "outside_or_uncertain"
+    if SPECIALIST.search(t):
+        return "adjacent" if ADJACENT.search(t) else "outside_or_uncertain"
     if FUNCTIONAL_HEAD.search(t):
         return "functional"
     if PRIMARY.search(t):

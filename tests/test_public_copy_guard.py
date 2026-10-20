@@ -76,7 +76,7 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("Speaking & Publications", components)
         self.assertIn("Explore my leadership experience →", home)
         self.assertIn("Adoption in practice", home)
-        self.assertIn("strategy has to become operating capability", home)
+        self.assertIn("At Volvo Group, I led business-facing AI and analytics work", home)
         self.assertIn("Microsoft 365 Copilot and agent initiatives", home)
         self.assertIn("Comments from people I worked with.", home)
         self.assertIn("Working across business, AI and technology.", about)
@@ -88,7 +88,7 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("Selected AI, data and leadership credentials.", certifications)
         self.assertIn("Discuss the mandate.", contact)
         self.assertIn("Open to immediate collaboration", contact)
-        self.assertIn("Experience spans enterprise AI, Data &amp; Analytics", lenses)
+        self.assertIn("Across two Volvo Group AI roles, I led business-facing requirements", lenses)
         self.assertIn("AI &amp; Data Governance · Operating perspective", governance)
         self.assertIn("Four observable signals", governance)
 
@@ -104,7 +104,7 @@ class PublicCopyGuardTests(unittest.TestCase):
 
         self.assertIn("20+ years", home_html)
         self.assertIn("Microsoft 365 Copilot and agent initiatives plus AI solutions introduced across warranty, sales and aftermarket", home_html)
-        self.assertIn("PoC → repeatable capability", home_html)
+        self.assertIn("CoE foundations and decision clarity", home_html)
         self.assertIn("100+ AI initiatives, PoCs and projects", impact_html)
         self.assertIn("reporting directly to the Chief Data &amp; Analytics Officer", impact_html)
         self.assertIn("Enterprise CoE mandate across strategy, operations, technology and business leaders", impact_html)

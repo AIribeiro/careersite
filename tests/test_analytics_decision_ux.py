@@ -37,8 +37,8 @@ class DecisionExperienceTests(unittest.TestCase):
                    return_value={"quality_summary":{
                        "analysis_eligible_sessions":10,"evidence_verified_sessions":3,
                        "hiring_intent_sessions":1}}), \
-             patch("page_analytics_overview.fetch_hiring_prediction_v2",
-                   side_effect=ValueError("No valid v2 model")):
+             patch("page_analytics_overview.read_daily_history",
+                   return_value=[]):
             page=AppTest.from_string(source).run(timeout=15)
             self.assertFalse(page.exception)
             self.assertIn("Decision overview",[x.value for x in page.title])

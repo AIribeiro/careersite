@@ -90,6 +90,19 @@ class RolePolicyTests(unittest.TestCase):
         self.assertEqual(model["role_policy"]["catalog"]["primary_plus_functional"],1)
         self.assertFalse(model["promotion_allowed"])
 
+    def test_role_catalog_sql_special_forms_and_access_guards(self):
+        """Regression: COALESCE cannot be prefixed with pg_catalog schema."""
+        sql = (Path(__file__).resolve().parents[1] / "sql" /
+               "20261020_fix_role_catalog_coalesce.sql").read_text()
+        self.assertNotIn("pg_catalog.coalesce(", sql)
+        self.assertIn("coalesce(pg_catalog.jsonb_agg(", sql)
+        self.assertIn("coalesce(description,''),2200", sql)
+        self.assertIn("auth.uid() is distinct from", sql)
+        self.assertIn("is_anonymous", sql)
+        self.assertIn("limit 500", sql.lower())
+        self.assertIn("REVOKE ALL ON FUNCTION", sql)
+        self.assertIn("GRANT EXECUTE ON FUNCTION", sql)
+
     def test_private_catalog_request_is_owner_only(self):
         with self.assertRaises(PermissionError):
             fetch_role_catalog("")

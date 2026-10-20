@@ -620,13 +620,14 @@ def _render_hiring_barrier_patterns(session: dict, scoped: list[dict], hypothese
     if ranked:
         with st.expander("Inspect roles and evidence behind each barrier", expanded=False):
             chosen = st.selectbox(
-                "Potential hiring barrier", options=ordered,
-                key="rejection_barrier_category",
+                "Potential hiring barrier", options=[None] + ordered,
+                format_func=lambda x: "All potential barriers" if x is None else x,
+                key="rejection_barrier_category_all_v2",
             )
             selected = [
                 (rid, level, row)
                 for (rid, label), (level, row) in ranked.items()
-                if label == chosen
+                if chosen is None or label == chosen
             ]
             selected.sort(
                 key=lambda v: (-v[1], str(unknown[v[0]].get("employer") or ""))

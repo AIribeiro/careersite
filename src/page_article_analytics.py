@@ -95,18 +95,11 @@ def _share_rows(rows: object) -> list[dict]:
     return prepared
 
 
-def _source_rows(rows: object, slug: str) -> list[dict]:
+def _source_rows(rows: object, slug: str = "") -> list[dict]:
     if not isinstance(rows, list):
         return []
-    prepared: list[dict] = []
-    for row in rows:
-        if not isinstance(row, dict) or str(row.get("article_slug") or "") != slug:
-            continue
-        item = dict(row)
-        raw = str(item.get("attribution_source") or "direct/unknown")
-        item["source"] = "Unattributed / unknown" if raw.casefold() == "direct/unknown" else raw
-        prepared.append(item)
-    return prepared
+    return [{"source": row["Source"], "sessions": row["Reading visits"]}
+            for row in _reader_source_rows([r for r in rows if isinstance(r, dict)], slug)]
 
 
 def _article_daily_chart(rows: object) -> None:
@@ -352,7 +345,7 @@ def render_article_analytics() -> None:
         _section(
             "Acquisition",
             "Tagged acquisition source",
-            "Select an article to see the source tag retained for that browser tab/session; this is campaign attribution, not a verified referrer.",
+            "All articles are combined by default. Select an article to drill down; source tags are campaign attribution, not verified referrers.",
         )
         slugs = [str(row.get("article_slug") or "") for row in article_rows if row.get("article_slug")]
         if not slugs:
@@ -360,9 +353,9 @@ def render_article_analytics() -> None:
         else:
             selected = st.selectbox(
                 "Article",
-                slugs,
-                format_func=_article_title,
-                key="careersite_article_analytics_selected_slug",
+                [""] + list(dict.fromkeys(slugs)),
+                format_func=lambda slug: _article_title(slug) if slug else "All articles",
+                key="careersite_article_analytics_scope_v2",
             )
             sources = _source_rows(data.get("sources", []), selected)
             source_visits = sum(max(0, int(row.get("sessions") or 0)) for row in sources)
@@ -373,9 +366,10 @@ def render_article_analytics() -> None:
             )
             tagged_visits = source_visits - unknown_visits
             st.caption(
-                f"**Selected article:** {_article_title(selected)}  "
+                f"**Scope:** {_article_title(selected) if selected else 'All articles'}  "
                 f"\n\n**{source_visits:,} article-session visits** in the selected reporting period. "
-                "This breakdown applies only to the selected article, not to a URL being examined elsewhere."
+                + ("This breakdown applies only to the selected article, not to a URL being examined elsewhere."
+                   if selected else "Combined across articles. One session reading two articles contributes two visits; this is not a unique-person total.")
             )
             if not sources:
                 _empty("No article visits recorded in this reporting period.")

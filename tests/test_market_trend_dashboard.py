@@ -14,7 +14,7 @@ class MarketTrendCardsTests(unittest.TestCase):
         groups["ai"] = [dict(row("2026-08-01", 3), indicator_name="AI/Data leadership ads"),
                         dict(row("2026-09-01", 4), indicator_name="AI/Data leadership ads")]
         selected = default_indicator_keys(trend_cards(groups))
-        self.assertEqual(selected, ["ai", "0", "1", "2", "3", "4", "5"])
+        self.assertEqual(selected, ["ai", "0", "1", "2", "3", "4", "5", "6", "7"])
 
     def test_audience_role_does_not_make_every_indicator_ai(self):
         self.assertFalse(is_ai_indicator({"indicator_name": "Business confidence", "role_family": "enterprise_ai_data_leadership"}))
@@ -60,6 +60,7 @@ render_market_trends({"groups": {"a": [
 ]}, "trends": [{"Latest": 2}]})
 ''').run()
         self.assertFalse(app.exception)
+        self.assertEqual(app.multiselect[0].value, [None])
         self.assertEqual(app.metric[0].label, "Higher")
         self.assertFalse(app.expander[0].proto.expanded)
         app.multiselect[0].set_value([]).run()

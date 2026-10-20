@@ -222,8 +222,16 @@ def _scatter(report: dict, site_payload: dict) -> None:
         return
     choices = {_description(r,report):r for r in candidates}
     st.subheader("Inspect the daily evidence")
-    selected = st.selectbox("Relationship",list(choices),key="job_portfolio_corr_inspection")
-    candidate = choices[selected]
+    selected = st.selectbox("Relationship", [None] + list(choices),
+                            format_func=lambda x: "All relationships" if x is None else x,
+                            key="job_portfolio_corr_inspection_all_v2")
+    for label, candidate in choices.items():
+        if selected is None or selected == label:
+            st.markdown(f"**{label}**")
+            _scatter_candidate(report, site_payload, candidate)
+
+
+def _scatter_candidate(report: dict, site_payload: dict, candidate: dict) -> None:
     site,_,_ = _site_features(site_payload)
     dates,x,y = _aligned_values(site,report["job_daily"],candidate["feature"],
                                 candidate["outcome"],LAGS[candidate["lag"]])

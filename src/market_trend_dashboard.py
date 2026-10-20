@@ -17,7 +17,7 @@ def is_ai_indicator(row: dict) -> bool:
 
 def default_indicator_keys(cards: list[dict]) -> list:
     ai = [c["key"] for c in cards if c["ai_related"]]
-    return ai + [c["key"] for c in cards[:6] if c["key"] not in ai]
+    return ai + [c["key"] for c in cards if c["key"] not in ai]
 
 
 def trend_cards(groups: dict, *, include_ai_snapshots: bool = False) -> list[dict]:
@@ -80,13 +80,16 @@ def render_market_trends(model: dict) -> None:
         st.caption("This is a coverage summary, not a composite market score. Series may overlap "
                    "and their releases cover different dates; movement is not necessarily a sustained trend.")
         choices = {c["key"]: c for c in cards}
-        st.caption("AI indicators are selected automatically alongside the first six market measures. "
+        st.caption("All indicators are shown by default, with AI measures first. Measures retain separate units; they are not summed. "
                    "Single observations and month-to-date counts appear as points, without an implied trend.")
         selected = st.multiselect(
-            "Indicators to explore", list(choices), default=default_indicator_keys(cards),
-            format_func=lambda key: f"{choices[key]['title']} — {choices[key]['scope']} · {choices[key]['unit']}",
-            key="admin_market_trend_cards_ai_v2",
+            "Indicators to explore", [None] + list(choices), default=[None],
+            format_func=lambda key: "All indicators" if key is None else f"{choices[key]['title']} — {choices[key]['scope']} · {choices[key]['unit']}",
+            key="admin_market_trend_cards_all_v3",
+            help="All indicators includes every available chart. Remove it to choose individual indicators.",
         )
+        if None in selected:
+            selected = default_indicator_keys(cards)
         columns = st.columns(2)
         for index, key in enumerate(selected):
             card = choices[key]

@@ -234,13 +234,17 @@ def _evidence(model: dict) -> None:
         column_config={"Reference":st.column_config.LinkColumn("Source document")})
     choices = {f"{r.get('indicator_name')} · {r.get('source_organization')}":r for r in filtered}
     if choices:
-        selected = st.selectbox("Inspect source interpretation", list(choices),
-                                key="job_market_inspect")
-        item = choices[selected]
-        st.write(item.get("insight_summary") or "No summary recorded.")
-        st.caption(item.get("job_search_implication") or "No search-specific interpretation recorded.")
-        if item.get("methodology_note"):
-            st.caption("Method: " + str(item["methodology_note"]))
+        selected = st.selectbox("Inspect source interpretation", [None] + list(choices),
+                                format_func=lambda x: "All source interpretations" if x is None else x,
+                                key="job_market_inspect_all_v2")
+        for label, item in choices.items():
+            if selected is not None and label != selected:
+                continue
+            st.markdown(f"**{label}**")
+            st.write(item.get("insight_summary") or "No summary recorded.")
+            st.caption(item.get("job_search_implication") or "No search-specific interpretation recorded.")
+            if item.get("methodology_note"):
+                st.caption("Method: " + str(item["methodology_note"]))
     st.caption("Source publication timing, reporting periods, revisions and the freshness of underlying "
                "data differ. A market signal does not automatically represent a current live vacancy.")
 

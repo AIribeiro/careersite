@@ -18,19 +18,17 @@ from page_job_market_insights import fetch_market_records, _latest_by_indicator,
 from page_job_search_analytics import fetch_job_records
 from page_stale_applications import fetch_private_pipeline, private_summary, render_pipeline_health
 from page_hiring_prediction_v2 import (
-    fetch_hiring_prediction_v2, render_hiring_prediction_v2, VERSION as HIRING_V2_VERSION,
+    validate_prediction_v2, render_hiring_prediction_v2, VERSION as HIRING_V2_VERSION,
 )
-from hiring_forecast_history import (record_v2_daily_first, publish_v2_timing,
-                                     previous_forecasts, stability_summary)
+from hiring_forecast_history import previous_forecasts, stability_summary
 from hiring_market_shadow import evaluate_market_shadow
-from page_hiring_daily import (recheck_owner_now, read_daily_history,
-                               render_daily_recheck)
+from page_hiring_daily import read_daily_history, render_daily_recheck
 from page_market_shadow import (fetch_market_registry, fetch_role_catalog,
-                                historical_shadow, record_shadow, render_market_shadow)
+                                historical_shadow, render_market_shadow)
 from site_cms import ensure_owner_session, _request_json, _rest_url
 
 
-_REFRESH_INTERVAL = "5m"
+_REFRESH_INTERVAL = "24h"
 _SOURCE_NAMES = {
     "jobs": "job search",
     "stale": "application staleness reviews",
@@ -174,7 +172,6 @@ def render_analytics_overview(session: dict | None) -> None:
     employer_activity = None
     stale_pipeline = None
     v2_prediction = None
-    daily_status = None
     daily_history = None
     errors = []
     with st.spinner("Comparing current evidence…"):
@@ -219,17 +216,15 @@ def render_analytics_overview(session: dict | None) -> None:
             )
         except (RuntimeError,TimeoutError,PermissionError,ValueError):
             errors.append("employer vacancy status")
-        try:
-            v2_prediction = fetch_hiring_prediction_v2(str(valid["access_token"]))
-        except (RuntimeError, TimeoutError, PermissionError, ValueError):
-            errors.append("interview-stage forecast")
-        if v2_prediction is not None:
-            try:
-                daily_status = recheck_owner_now(str(valid["access_token"]))
-            except (RuntimeError, TimeoutError, PermissionError, ValueError):
-                errors.append("daily forecast recheck")
+        # The scheduler is the sole forecast producer. This page reads its
+        # immutable latest snapshot; neither a rerun nor a reopened tab recalculates.
         try:
             daily_history = read_daily_history(str(valid["access_token"]))
+            if daily_history:
+                v2_prediction = validate_prediction_v2(
+                    daily_history[0].get("scenario"))
+            else:
+                errors.append("daily forecast snapshot")
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             errors.append("daily hiring archive")
     current_signatures = {}
@@ -256,11 +251,13 @@ def render_analytics_overview(session: dict | None) -> None:
         **(previous_signatures or {}), **current_signatures,
     }
     st.caption(f"Last checked {now:%d %b %Y at %H:%M} Stockholm · "
-               "automatically checks source changes every 5 minutes while Overview is open; "
-               "recalculates immediately when the page is reopened. "
-               "Data must first be recorded in Supabase.")
+               "dashboard display refreshes at most every 24 hours while open; "
+               "opening the page reads the latest scheduled daily snapshot. "
+               "No page-triggered forecast computation or database writes.")
     if changed:
-        st.caption("New data detected and forecast recalculated: " + ", ".join(changed) + ".")
+        st.caption("New source data observed: " + ", ".join(changed) + ". " 
+                   "This does not trigger an additional hiring forecast run; " 
+                   "the next daily batch will incorporate the evidence.")
     if errors:
         st.warning("Some sources were temporarily unavailable: " + ", ".join(errors)
                    + ". Other available sections remain usable.")
@@ -274,27 +271,32 @@ def render_analytics_overview(session: dict | None) -> None:
     market_model = analyze_market(market,jobs,site,now.date()) if market else None
     site_corr = analyze_portfolio_job_correlations(site,jobs) if site and jobs else None
     if v2_prediction is not None:
+        if daily_history and str(daily_history[0].get("forecast_day")) < now.date().isoformat():
+            st.warning("Daily forecast snapshot is older than today; the scheduler has "
+                       "not yet produced a newer verified calculation.")
         render_hiring_prediction_v2(v2_prediction)
         if daily_history is not None:
-            render_daily_recheck(daily_history,now.date(),daily_status)
+            render_daily_recheck(daily_history,now.date())
         else:
             st.caption("Automated daily forecast history is currently unavailable; "
                        "the verified interview-stage scenario remains readable.")
         try:
-            record_v2_daily_first(str(valid["access_token"]),
-                                  v2_prediction, current_signatures)
-        except (RuntimeError, TimeoutError, PermissionError, ValueError):
-            st.caption("Today's stage-based forecast was calculated, but the "
-                       "historical archive could not be updated.")
-        try:
-            publish_v2_timing(str(valid["access_token"]), v2_prediction)
-        except (RuntimeError, TimeoutError, PermissionError, ValueError):
-            st.caption("The private forecast is current, but its public date-only "
-                       "projection could not be refreshed.")
-        try:
             archived = previous_forecasts(str(valid["access_token"]))
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             archived = []
+        # Preserve legacy history and extend it with autonomous daily snapshots.
+        # Distinct states on the same day are deduplicated in stability_summary.
+        for snapshot in daily_history or []:
+            raw = snapshot.get("scenario") or {}
+            timing = raw.get("leading_stage_scenario") or {}
+            if raw.get("model_version") == HIRING_V2_VERSION:
+                archived.append({
+                    "forecast_day": snapshot.get("forecast_day"),
+                    "model_version": raw["model_version"],
+                    "central_offer_date": timing.get("offer_central"),
+                    "top_start_week": timing.get("start_central"),
+                    "observed_at": snapshot.get("generated_at"),
+                })
         comparison = stability_summary(archived, model_version=HIRING_V2_VERSION)
         with st.expander("Forecast history and validation"):
             st.caption(f"{comparison['history_count']} archived records across "
@@ -325,18 +327,13 @@ def render_analytics_overview(session: dict | None) -> None:
             except (RuntimeError, TimeoutError, PermissionError, ValueError):
                 past_shadow = []
             render_market_shadow(shadow, compact=True, history=past_shadow)
-            try:
-                record_shadow(str(valid["access_token"]), shadow)
-            except (RuntimeError, TimeoutError, PermissionError, ValueError):
-                st.caption("Shadow comparison is visible, but its private historical "
-                           "audit record could not be saved.")
         else:
             st.caption("Shadow market evaluation is unavailable while market records "
                        "or the verified source registry cannot be read. "
                        "The existing hiring forecast is unaffected.")
     else:
         st.subheader("When might I get an offer?")
-        st.warning("Hiring Prediction v2 is temporarily unavailable. "
+        st.warning("Scheduled Hiring Prediction v2 snapshot is temporarily unavailable. "
                    "The previous beta 4.3 is not substituted as a current "
                    "forecast; historical records are preserved.")
     st.divider()

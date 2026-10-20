@@ -12,7 +12,8 @@ from market_trend_dashboard import render_market_trends
 from hiring_market_shadow import evaluate_market_shadow
 from page_market_shadow import (fetch_market_registry, fetch_role_catalog,
                                 historical_shadow, render_market_shadow)
-from page_hiring_prediction_v2 import fetch_hiring_prediction_v2
+from page_hiring_prediction_v2 import validate_prediction_v2
+from page_hiring_daily import read_daily_history
 from portfolio_job_correlations import analyze_portfolio_job_correlations
 from page_content_intelligence import _fetch_rpc
 from site_cms import _request_json, _rest_url, ensure_owner_session
@@ -297,7 +298,7 @@ def _load(session, provided_jobs):
     return market, jobs, site
 
 
-@st.fragment(run_every="15m")
+@st.fragment(run_every="24h")
 def render_swedish_job_market(session: dict | None) -> None:
     st.title("Swedish Job Market")
     st.caption("External hiring conditions, your recorded search outcomes and portfolio audience behavior — "
@@ -338,7 +339,13 @@ def render_swedish_job_market(session: dict | None) -> None:
         try:
             token = str(st.session_state["cms_auth"]["access_token"])
             registry = fetch_market_registry(token)
-            baseline = fetch_hiring_prediction_v2(token)
+            daily = read_daily_history(token,limit=1)
+            if not daily:
+                raise RuntimeError("No scheduled hiring snapshot yet.")
+            baseline = validate_prediction_v2(daily[0].get("scenario"))
+            if str(daily[0].get("forecast_day") or "") < now.date().isoformat():
+                st.warning("Latest model snapshot is older than today; "
+                           "the next scheduled daily calculation has not been recorded.")
             try:
                 catalog_rows = fetch_role_catalog(token)
             except (RuntimeError, TimeoutError, PermissionError, ValueError):
@@ -363,7 +370,7 @@ def render_swedish_job_market(session: dict | None) -> None:
         st.rerun(scope="fragment")
 
 
-@st.fragment(run_every="15m")
+@st.fragment(run_every="24h")
 def render_market_relationships(jobs: list[dict]) -> None:
     """Permanent live section inside the Job Search Analytics statistics page."""
     try:

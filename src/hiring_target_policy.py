@@ -12,7 +12,7 @@ ADJACENT = re.compile(r"\b(?:Data|Analytics|Business Intelligence|Intelligent Au
 LEADERSHIP = re.compile(r"\b(?:Senior Manager|Head|Director|Lead|Chief|VP|Senior Principal)\b", re.I)
 CRAFT = re.compile(r"\b(?:AI Engineer|ML Engineer|Machine Learning Engineer|MLOps|Data Scientist|Prompt Engineer|Software Engineer|Developer|Data Analyst|Solutions Architect|Pre-Sales)\b", re.I)
 MANDATE = ("roadmap","portfolio","governance","operating model","ai strategy","business value","value realization","adoption","stakeholder","cross-functional","transformation","budget","decision rights","capability development")
-FUNCTIONAL_HEAD = re.compile(r"\\bHead of AI\\s+(?:Adoption|Enablement|Capability|Productivity)\\b", re.I)
+FUNCTIONAL_HEAD = re.compile(r"\bHead of AI\s+(?:Adoption|Enablement|Capability|Productivity)\b", re.I)
 CRAFT_SCOPE = ("hands-on coding","hands-on software development","build and deploy ml models","quota-carrying sales")
 
 def classify_title(title):

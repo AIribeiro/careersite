@@ -68,6 +68,19 @@ class CareerFactConsistencyTests(unittest.TestCase):
             "Public MSX positioning must not imply the role is current.",
         )
 
+    def test_committed_downloadable_cv_matches_evidence_first_policy(self) -> None:
+        from site_cv_runtime import CV_PATH
+
+        committed_text = " ".join(
+            page.extract_text() or ""
+            for page in PdfReader(BytesIO(CV_PATH.read_bytes()), strict=True).pages
+        )
+        committed_text = re.sub(r"\\s+", " ", committed_text).replace("–", "-")
+        self.assertIn("Dec 2025 - Sep 2026", committed_text)
+        self.assertIn("Across two Volvo Group roles in Poland and Sweden", committed_text)
+        self.assertIn("explicit Director-level role", committed_text)
+        self.assertNotIn("Dec 2025 - Jun 2026", committed_text)
+
     def test_role_titles_and_scale_claims_match(self) -> None:
         from page_impact import impact
 

@@ -75,7 +75,7 @@ class CareerFactConsistencyTests(unittest.TestCase):
             page.extract_text() or ""
             for page in PdfReader(BytesIO(CV_PATH.read_bytes()), strict=True).pages
         )
-        committed_text = re.sub(r"\\s+", " ", committed_text).replace("–", "-")
+        committed_text = " ".join(committed_text.split()).replace("–", "-")
         self.assertIn("Dec 2025 - Sep 2026", committed_text)
         self.assertIn("Across two Volvo Group roles in Poland and Sweden", committed_text)
         self.assertIn("explicit Director-level role", committed_text)

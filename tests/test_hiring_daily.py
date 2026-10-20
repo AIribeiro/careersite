@@ -10,9 +10,11 @@ from unittest.mock import patch
 
 root=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(root / "src"))
-from page_hiring_daily import recheck_owner_now, read_daily_history, _days
+import page_hiring_daily
+from page_hiring_daily import read_daily_history, _days
 
 SQL=(root / "sql" / "20261020_hiring_dual_track_daily.sql").read_text()
+DAILY=(root / "sql" / "20261020_hiring_daily_only_antiloop.sql").read_text()
 
 
 def simulate(as_of: date, initial: date, latest: date):
@@ -48,29 +50,36 @@ class HiringDailyTests(unittest.TestCase):
         self.assertIn("d>base_late+14 THEN NULL::date",SQL)
         self.assertNotIn("d-(base_middle-7)",SQL)
 
-    def test_daily_and_hourly_checks_are_independent_from_browser(self):
-        self.assertIn("hiring-daily-calendar-0600-utc",SQL)
-        self.assertIn("hiring-new-evidence-hourly",SQL)
-        self.assertIn("IF reason<>'unchanged' THEN",SQL)
-        self.assertIn("context_only_not_scored",SQL)
-        self.assertIn("private.careersite_hiring_core_v3()",SQL)
-        self.assertIn("Owner sign-in required",SQL)
-        self.assertIn("careersite_daily_rechecks_owner_read",SQL)
+    def test_daily_only_schedule_guards_and_no_page_recompute(self):
+        self.assertIn("hiring-daily-calendar-0600-utc", DAILY)
+        self.assertIn("cron.unschedule('hiring-new-evidence-hourly')", DAILY)
+        self.assertNotIn("cron.schedule('hiring-new-evidence-hourly'", DAILY)
+        self.assertIn("pg_try_advisory_xact_lock(191000, 24)", DAILY)
+        self.assertIn("'status','already_running'", DAILY)
+        self.assertIn("'status','already_checked_today'", DAILY)
+        self.assertLess(DAILY.index("already_checked_today"),
+                        DAILY.index("calc := private.careersite_hiring_core_v3()"))
+        self.assertIn("REVOKE EXECUTE ON FUNCTION public.careersite_hiring_daily_recheck_v1()", DAILY)
+        self.assertFalse(hasattr(page_hiring_daily, "recheck_owner_now"))
+        overview=(root / "src" / "page_analytics_overview.py").read_text()
+        market=(root / "src" / "page_job_market_insights.py").read_text()
+        self.assertIn('_REFRESH_INTERVAL = "24h"', overview)
+        self.assertEqual(market.count('@st.fragment(run_every="24h")'),2)
+        for forbidden in ("recheck_owner_now(", "record_v2_daily_first(",
+                          "publish_v2_timing(", "record_shadow(",
+                          "fetch_hiring_prediction_v2("):
+            self.assertNotIn(forbidden,overview)
+        self.assertIn("read_daily_history(",overview)
+        self.assertIn("read_daily_history(",market)
+        self.assertNotIn("fetch_hiring_prediction_v2(",market)
 
-    def test_owner_token_is_required_for_on_demand_rechecks(self):
-        with self.assertRaises(PermissionError):
-            recheck_owner_now("")
+    def test_history_is_read_only_and_requires_owner_token(self):
         with self.assertRaises(PermissionError):
             read_daily_history("")
-        with patch("page_hiring_daily._request_json",
-                   return_value={"status":"unchanged"}) as api:
-            self.assertEqual(recheck_owner_now("owner-jwt")["status"],"unchanged")
-            self.assertEqual(api.call_args.kwargs["token"],"owner-jwt")
-            self.assertIn("rpc/careersite_hiring_daily_recheck_v1",
-                          api.call_args.args[1])
         with patch("page_hiring_daily._request_json",return_value=[]) as api:
             self.assertEqual(read_daily_history("owner-jwt"),[])
             self.assertEqual(api.call_args.kwargs["token"],"owner-jwt")
+            self.assertEqual(api.call_args.args[0],"GET")
 
     def test_invalid_or_expired_dates_are_not_fake_zeroes(self):
         day=date(2026,10,20)

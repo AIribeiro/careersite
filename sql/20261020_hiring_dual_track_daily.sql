@@ -351,10 +351,7 @@ BEGIN
        published_at=excluded.published_at;
    ELSE
      -- A lapsed scenario must not be advertised as a current public estimate.
-     UPDATE public.careersite_public_hiring_timing_v2 SET
-       as_of=d,offer_central=NULL,offer_earliest=NULL,offer_latest=NULL,
-       start_central=NULL,start_earliest=NULL,start_latest=NULL,published_at=now()
-     WHERE id=1;
+     DELETE FROM public.careersite_public_hiring_timing_v2 WHERE id=1;
    END IF;
  END IF;
  RETURN pg_catalog.jsonb_build_object('status',reason,'forecast_day',d,

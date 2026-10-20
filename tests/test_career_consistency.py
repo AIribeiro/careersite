@@ -51,7 +51,7 @@ class CareerFactConsistencyTests(unittest.TestCase):
 
         pdf_text = self._pdf_text()
         self.assertIn(MSX_PUBLIC_DATES, pdf_text.replace("–", "-"))
-        self.assertNotIn("Dec 2025 - Sep 2026", pdf_text)
+        self.assertNotIn("Dec 2025 - Jun 2026", pdf_text)
         self.assertNotIn("Dec 2025 - Present", pdf_text)
 
         impact_html = impact()
@@ -60,8 +60,8 @@ class CareerFactConsistencyTests(unittest.TestCase):
 
         public_source = self._public_source_text()
         self.assertIsNone(
-            re.search(r"MSX.{0,160}Dec 2025\s*[-–]\s*Sep 2026", public_source, re.I | re.S),
-            "Public MSX positioning must not drift to an unverified September 2026 end date.",
+            re.search(r"MSX.{0,160}Dec 2025\s*[-–]\s*Jun 2026", public_source, re.I | re.S),
+            "Public MSX positioning must not drift back to the previous June 2026 end date.",
         )
         self.assertIsNone(
             re.search(r"MSX.{0,160}Present", public_source, re.I | re.S),

@@ -212,7 +212,7 @@ BEGIN
  ) INTO answer;
  RETURN answer;
 END;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.careersite_hiring_prediction_v2()
 RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO ''

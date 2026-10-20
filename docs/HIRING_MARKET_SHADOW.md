@@ -3,7 +3,7 @@
 ## Current mode and source of truth
 
 The owner-only production forecast remains `hiring-v2-stage-evidence-provisional`, returned by
-`careersite_hiring_prediction_v2`. The secondary `market-shadow-v1-context-only` evaluation
+`careersite_hiring_prediction_v2`. The secondary `market-shadow-v2-role-mandates-context-only` evaluation
 does not change model coefficients, offer dates, start dates, or public hiring projections.
 A shadow value identical to the baseline is an **unscored control**, not an estimated
 zero market effect. No personal offer probability can be calibrated from the current
@@ -97,3 +97,43 @@ offer probability from the pipeline credibility index.
 
 These values are displayed from Supabase evidence dynamically; this paragraph
 is a dated, immutable reference for initial regression and interpretation.
+
+## Role ambition vs. functional conversion policy (20 October 2026)
+
+The owner has specified a **primary ambition** of AI Director / AI Transformation Director
+and equivalent enterprise Head of AI positions. His **equally valid conversion targets**
+include Senior Manager of enterprise AI strategy or transformation, AI Strategy Lead,
+AI Transformation Lead, Head of AI Adoption, AI Enablement/Capability Lead and similar
+functional leadership roles. Lead/Manager does **not** imply a second-class match.
+Role *mandate* determines fit: ownership of roadmap, operating model, governance,
+adoption, stakeholders, portfolio and value realization. Engineering and implementation
+craft, generic IT, quota sales and PMO are not made eligible by including AI in a title.
+Data/Analytics management, Responsible AI and intelligent automation leadership remain
+adjacent paths subject to their existing scope rules.
+
+Versioned classifier: `src/hiring_target_policy.py` /
+`ai-leadership-mandates-v1-2026-10-20`. The catalogue is read using the
+authenticated owner-only `careersite_hiring_role_catalog_v1` RPC, not open
+REST table access. Titles provide **discovery candidates only**. Keyword evidence
+can mark *strategic signals for manual review* but must never certify suitability
+or a vacancy's authenticity. The live 500 most-recent Swedish active listings are
+deduplicated by normalized title and company, a nonrepresentative source snapshot.
+Aliases, technical-heavy mandates and language/location constraints can further
+reduce actual eligibility.
+
+The owner-only Decision Overview and Swedish Job Market shadow compare:
+(i) title candidates for the aspirational Director/Head lane versus (ii) the
+additional functional-conversion lane, with 45-day first-seen counts;
+(iii) the v2 forecast's available top-ranked interview processes by role lane;
+and (iv) the unchanged conditional offer/start forecasts. A wider title basket
+cannot be treated as a multiplier to personal offer odds or as faster time-to-offer.
+The existing v2 SQL model already includes AI Strategy/Transformation/Adoption
+Lead and Manager titles in role family A with full fit weight; role policy should
+not double-count or artificially add a premium.
+
+The earlier JobTech v1 high-signal sample (19 national September matches)
+is **not** a market-census denominator and is not retroactively relabeled
+or used as a Dir-only baseline. If future evidence supports a revised JobTech
+basket, store it as v2 with explicit query definitions, employer/title/URL
+deduplication, scope checks and matched full reporting months. Backtest its
+incremental predictive value before applying any external scoring factor.

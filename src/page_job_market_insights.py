@@ -10,7 +10,8 @@ import streamlit as st
 from job_market_correlations import OUTCOMES, analyze_market
 from market_trend_dashboard import render_market_trends
 from hiring_market_shadow import evaluate_market_shadow
-from page_market_shadow import fetch_market_registry, historical_shadow, render_market_shadow
+from page_market_shadow import (fetch_market_registry, fetch_role_catalog,
+                                historical_shadow, render_market_shadow)
 from page_hiring_prediction_v2 import fetch_hiring_prediction_v2
 from portfolio_job_correlations import analyze_portfolio_job_correlations
 from page_content_intelligence import _fetch_rpc
@@ -338,7 +339,12 @@ def render_swedish_job_market(session: dict | None) -> None:
             token = str(st.session_state["cms_auth"]["access_token"])
             registry = fetch_market_registry(token)
             baseline = fetch_hiring_prediction_v2(token)
-            report = evaluate_market_shadow(market, registry, baseline, now.date())
+            try:
+                catalog_rows = fetch_role_catalog(token)
+            except (RuntimeError, TimeoutError, PermissionError, ValueError):
+                catalog_rows = None
+            report = evaluate_market_shadow(market, registry, baseline, now.date(),
+                                            catalog_rows=catalog_rows)
             try:
                 history = historical_shadow(token)
             except (RuntimeError, TimeoutError, PermissionError, ValueError):

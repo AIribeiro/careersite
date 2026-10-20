@@ -50,7 +50,7 @@ def role_lens(
         f'<section class="section paper"><div class="container lensgrid">'
         f'<aside class="lensaside"><p class="eyebrow">Jair Ribeiro</p>'
         f'<h2>Enterprise AI &amp; Data Leader</h2>{photo}'
-        f'<p class="muted">Experience spans enterprise AI, Data &amp; Analytics strategy, portfolio choices, governance, adoption and operating-model decisions, with enough technical depth to connect business priorities with delivery reality.</p>'
+        f'<p class="muted">Across two Volvo Group AI roles, I led business-facing requirements, stakeholder and adoption work. At MSX International, I continued that enterprise-level mandate in an explicit CoE Director role, building portfolio and governance foundations.</p>'
         f'<p class="muted">{html.escape(perspective)}</p><div class="actions">'
         f'<a class="btn dark" href="?page=impact" target="_self" data-hq-event="impact_lens">'
         f'Leadership impact</a>{cv}</div></aside><div>{"".join(body)}</div></div></section>'

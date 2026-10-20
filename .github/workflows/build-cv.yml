@@ -101,5 +101,8 @@ jobs:
           git add static/Jair_Ribeiro_CV.pdf
           if ! git diff --cached --quiet; then
             git commit -m "build(cv): refresh two-page canonical CV rev5"
-            git push
+            # Portfolio edits may land while PDF validation is running.
+            # Rebase the generated artifact onto the current branch before pushing.
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi

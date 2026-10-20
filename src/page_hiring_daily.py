@@ -10,17 +10,6 @@ from site_cms import _request_json, _rest_url
 TABLE = "careersite_hiring_daily_rechecks"
 
 
-def recheck_owner_now(token: str) -> dict:
-    """Read/write only via strictly owner-guarded RPC; never use anon access."""
-    if not token:
-        raise PermissionError("Owner JWT required for hiring refresh.")
-    result = _request_json("POST",_rest_url("rpc/careersite_hiring_daily_recheck_v1"),
-                           token=token,payload={},timeout=30)
-    if not isinstance(result,dict):
-        raise RuntimeError("Hiring refresh RPC returned an invalid result.")
-    return result
-
-
 def read_daily_history(token: str, limit: int = 30) -> list[dict]:
     if not token:
         raise PermissionError("Owner JWT required for hiring snapshots.")
@@ -41,14 +30,13 @@ def _days(v, today: date):
         return None
 
 
-def render_daily_recheck(history: list[dict], today: date,
-                         latest_status: dict | None = None) -> None:
+def render_daily_recheck(history: list[dict], today: date) -> None:
     """Separate clock effects, pipeline effects and external market changes."""
     st.subheader("Daily recalculation · calendar and evidence")
-    st.caption("A daily run is scheduled independently of the website; new market "
-               "or recruitment evidence is also checked hourly. When the Admin "
-               "page is open, it checks immediately. Only changed input states "
-               "produce a new audit snapshot.")
+    st.caption("One automatic model refresh each day at 06:00 UTC (07:00/08:00 "
+               "Stockholm depending on daylight saving). Market and recruitment "
+               "changes are included in the next daily calculation. This page "
+               "only reads completed snapshots; no auto-recalculation loops.")
     if not history:
         st.warning("No confirmed daily snapshots are readable. "
                    "Do not interpret an absent refresh as an unchanged forecast.")
@@ -86,9 +74,6 @@ def render_daily_recheck(history: list[dict], today: date,
                ". Shift from original milestone centre: "+
                str(scenario.get("calendar_shift_days",0))+
                " days. A shift is a planning-rule adjustment, not a measured offer likelihood.")
-    if latest_status and latest_status.get("status")=="unchanged":
-        st.caption("Most recent immediate recheck found no new evidence; "
-                   "the existing audited scenario was retained.")
     if context.get("source_refresh_detected"):
         st.info("New external market observations were detected. They update risk "
                 "context, not an uncalibrated numerical probability or offer date.")
@@ -115,6 +100,7 @@ def render_daily_recheck(history: list[dict], today: date,
                 "External effect":"Context only, not scored",
             })
         st.dataframe(rows,hide_index=True,width="stretch")
-        st.caption("The audit includes mid-day changes to source evidence as "
-                   "separate states; date and time represent Stockholm calendar days. "
+        st.caption("One archived evaluation per Stockholm calendar day. "
+                   "External changes observed between runs are incorporated on "
+                   "the next scheduled day; no hourly checks or mid-day writes. "
                    "A difference between daily estimates is not prediction accuracy.")

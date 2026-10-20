@@ -22,6 +22,9 @@ from page_hiring_prediction_v2 import (
 )
 from hiring_forecast_history import (record_v2_daily_first, publish_v2_timing,
                                      previous_forecasts, stability_summary)
+from hiring_market_shadow import evaluate_market_shadow
+from page_market_shadow import (fetch_market_registry, historical_shadow,
+                                record_shadow, render_market_shadow)
 from site_cms import ensure_owner_session, _request_json, _rest_url
 
 
@@ -30,6 +33,7 @@ _SOURCE_NAMES = {
     "jobs": "job search",
     "stale": "application staleness reviews",
     "market": "Swedish market",
+    "registry": "market source registry",
     "site": "portfolio activity",
     "hiring": "qualified portfolio behavior",
     "actions": "CV downloads and contact clicks",
@@ -158,6 +162,7 @@ def render_analytics_overview(session: dict | None) -> None:
     now = datetime.now(ZoneInfo("Europe/Stockholm"))
     jobs = []
     market = []
+    registry = None
     site = None
     hiring = {}
     actions = None
@@ -179,6 +184,10 @@ def render_analytics_overview(session: dict | None) -> None:
             market = fetch_market_records(str(valid["access_token"]))
         except (RuntimeError, TimeoutError, ValueError):
             errors.append("market")
+        try:
+            registry = fetch_market_registry(str(valid["access_token"]))
+        except (RuntimeError, TimeoutError, PermissionError, ValueError):
+            errors.append("market source registry")
         try:
             site = _fetch_rpc("careersite_portfolio_signals_daily_v1",{"p_days":365})
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
@@ -206,9 +215,11 @@ def render_analytics_overview(session: dict | None) -> None:
             errors.append("interview-stage forecast")
     current_signatures = {}
     failed_sources = {"jobs": "job search", "market": "market",
+                      "registry": "market source registry",
                       "site": "portfolio correlation"}
     for key, payload in (("jobs", jobs), ("stale", stale_pipeline), ("market", market),
-                         ("site", site), ("hiring", hiring), ("actions", actions),
+                         ("registry", registry), ("site", site),
+                         ("hiring", hiring), ("actions", actions),
                          ("geo", geography_locations),
                          ("employers", employer_activity),
                          ("v2", {k: v for k, v in v2_prediction.items()
@@ -281,6 +292,22 @@ def render_analytics_overview(session: dict | None) -> None:
             st.caption("A scheduled interview is not a completed one. "
                        "There are not yet enough confirmed offers to validate "
                        "prediction accuracy or personal hiring probabilities.")
+        if market and registry:
+            shadow = evaluate_market_shadow(market, registry, v2_prediction, now.date())
+            try:
+                past_shadow = historical_shadow(str(valid["access_token"]))
+            except (RuntimeError, TimeoutError, PermissionError, ValueError):
+                past_shadow = []
+            render_market_shadow(shadow, compact=True, history=past_shadow)
+            try:
+                record_shadow(str(valid["access_token"]), shadow)
+            except (RuntimeError, TimeoutError, PermissionError, ValueError):
+                st.caption("Shadow comparison is visible, but its private historical "
+                           "audit record could not be saved.")
+        else:
+            st.caption("Shadow market evaluation is unavailable while market records "
+                       "or the verified source registry cannot be read. "
+                       "The existing hiring forecast is unaffected.")
     else:
         st.subheader("When might I get an offer?")
         st.warning("Hiring Prediction v2 is temporarily unavailable. "

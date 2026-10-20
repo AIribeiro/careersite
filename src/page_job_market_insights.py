@@ -9,12 +9,15 @@ import streamlit as st
 
 from job_market_correlations import OUTCOMES, analyze_market
 from market_trend_dashboard import render_market_trends
+from hiring_market_shadow import evaluate_market_shadow
+from page_market_shadow import fetch_market_registry, historical_shadow, render_market_shadow
+from page_hiring_prediction_v2 import fetch_hiring_prediction_v2
 from portfolio_job_correlations import analyze_portfolio_job_correlations
 from page_content_intelligence import _fetch_rpc
 from site_cms import _request_json, _rest_url, ensure_owner_session
 
 MARKET_FIELDS = (
-    "id,series_key,indicator_key,indicator_name,record_type,observation_date,period_start,"
+    "id,source_key,series_key,indicator_key,indicator_name,record_type,observation_date,period_start,"
     "period_end,period_label,frequency,published_at,region,sector,role_family,metric_value,"
     "metric_value_text,metric_unit,comparison_value,change_value,signal_score,confidence_score,"
     "relevance_score,is_leading_indicator,expected_lag_days,insight_summary,"
@@ -315,10 +318,11 @@ def render_swedish_job_market(session: dict | None) -> None:
                "Automatic recomputation uses the existing Analytics sign-in.")
     focus = st.segmented_control(
         "Market question",
-        options=["direction","relationships","evidence"],
+        options=["direction","forecast","relationships","evidence"],
         default="direction",
         format_func=lambda key: {
             "direction":"What is changing?",
+            "forecast":"What affects my hiring?",
             "relationships":"What connects to my search?",
             "evidence":"Sources & measurement",
         }[key],
@@ -329,6 +333,20 @@ def render_swedish_job_market(session: dict | None) -> None:
         _market_pulse(model)
         st.divider()
         _market_history(model)
+    elif focus == "forecast":
+        try:
+            token = str(st.session_state["cms_auth"]["access_token"])
+            registry = fetch_market_registry(token)
+            baseline = fetch_hiring_prediction_v2(token)
+            report = evaluate_market_shadow(market, registry, baseline, now.date())
+            try:
+                history = historical_shadow(token)
+            except (RuntimeError, TimeoutError, PermissionError, ValueError):
+                history = []
+            render_market_shadow(report, compact=False, history=history)
+        except (RuntimeError, TimeoutError, PermissionError, ValueError):
+            st.warning("Shadow evidence is unavailable. The original hiring "
+                       "forecast remains unchanged.")
     elif focus == "relationships":
         _relationship_screen(model,compact=False)
         st.divider()

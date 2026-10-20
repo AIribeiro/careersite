@@ -7,7 +7,7 @@ Never treat contextual classifications or coverage as personal probabilities.
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import date
+from datetime import date, timedelta
 import hashlib
 import json
 
@@ -60,8 +60,9 @@ def _released(row, as_of):
     observed = _observed(row)
     # Historical backfills with absent release dates are NOT usable as leading
     # evidence; their history may still be charted elsewhere.
-    return bool(observed and observed <= as_of and released and released <= as_of
-                and first and first <= as_of
+    return bool(observed and observed <= as_of and first and first <= as_of
+                and (str(row.get("source_registry_key")) == TARGET_SOURCE
+                     or (released and released <= as_of))
                 and (not _date(row.get("valid_until"))
                      or _date(row.get("valid_until")) >= as_of
                      or row.get("is_current") is False))
@@ -240,7 +241,14 @@ def evaluate_market_shadow(market_rows, registry_rows, baseline, as_of):
     signature_items = sorted((str(r.get("id")), str(r.get("source_key")),
                               str(r.get("updated_at") or ""), str(r.get("metric_value") or ""),
                               str(r.get("metric_value_text") or "")) for r in eligible)
-    signature = hashlib.sha256(json.dumps(signature_items, ensure_ascii=False).encode()).hexdigest()
+    signature = hashlib.sha256(json.dumps(
+        {"market": signature_items,
+         "baseline": {"version": baseline.get("model_version"),
+                      "scenario": timing,
+                      "stages": baseline.get("stage_breakdown"),
+                      "pipeline_index": baseline.get("portfolio_credibility_index")}}
+        if isinstance(baseline, dict) else {"market": signature_items},
+        sort_keys=True, ensure_ascii=False, default=str).encode()).hexdigest()
 
     by_group = defaultdict(list)
     for signal in signals:

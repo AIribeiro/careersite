@@ -137,7 +137,7 @@ BEGIN
    FROM top_anchor a
  ), top_roll AS (
    SELECT w.*, (base_middle + 7 * greatest(0,
-     pg_catalog.ceil(greatest(0,d-(base_middle-7))::numeric / 7)::integer)
+     pg_catalog.ceil(greatest(0,d-base_middle)::numeric / 7)::integer)
    )::date AS roll_central
    FROM top_base w
  ), top_stage AS (
@@ -150,7 +150,7 @@ BEGIN
        ELSE greatest(base_late,roll_central+14) END AS offer_late,
     (roll_central - base_middle) AS calendar_shift_days,
     CASE WHEN d>base_late+14 THEN 'expired_requires_new_employer_evidence'
-      WHEN d>base_middle-7 THEN 'overdue_reassessed_weekly'
+      WHEN d>base_middle THEN 'overdue_reassessed_weekly'
       WHEN d>base_early THEN 'earliest_elapsed'
       ELSE 'within_original_window' END AS window_state
    FROM top_roll t
@@ -187,7 +187,7 @@ BEGIN
     'days_to_offer',offer_central-d,
     'offer_earliest',offer_early,'offer_central',offer_central,'offer_latest',offer_late,
     'start_earliest',offer_early+14,'start_central',offer_central+28,'start_latest',offer_late+42,
-    'disclaimer','Milestone-anchored conditional planning range; calendar-only weekly reassessments after central-window approach; not calibrated probability') FROM top_stage),
+    'disclaimer','Milestone-anchored conditional planning range; calendar-only weekly reassessments after the original central milestone passes; not calibrated probability') FROM top_stage),
   'top_processes',(SELECT coalesce(pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
     'rank',ranking,'process_key',process_key,'employer',employer,'role',role,'job_family',job_family,
     'stage',stage,'status',pipeline_status,'credibility_index',credibility,

@@ -108,12 +108,12 @@ BEGIN
  ), top_anchor AS (
    SELECT l.*,
     CASE stage
-      WHEN 'subsequent_interview_scheduled' THEN pg_catalog.coalesce(upcoming_meeting,next_invited,progressed_on,d)
-      WHEN 'subsequent_interview_completed' THEN pg_catalog.coalesce(next_done,progressed_on,d)
-      WHEN 'first_interview_completed' THEN pg_catalog.coalesce(first_done,progressed_on,d)
-      WHEN 'first_interview_scheduled' THEN pg_catalog.coalesce(upcoming_meeting,first_invited,progressed_on,d)
-      WHEN 'human_response' THEN pg_catalog.coalesce(human_on,progressed_on,d)
-      ELSE pg_catalog.coalesce(applied_on,d) END AS timing_anchor,
+      WHEN 'subsequent_interview_scheduled' THEN coalesce(upcoming_meeting,next_invited,progressed_on,d)
+      WHEN 'subsequent_interview_completed' THEN coalesce(next_done,progressed_on,d)
+      WHEN 'first_interview_completed' THEN coalesce(first_done,progressed_on,d)
+      WHEN 'first_interview_scheduled' THEN coalesce(upcoming_meeting,first_invited,progressed_on,d)
+      WHEN 'human_response' THEN coalesce(human_on,progressed_on,d)
+      ELSE coalesce(applied_on,d) END AS timing_anchor,
     CASE stage WHEN 'subsequent_interview_scheduled' THEN 14
       WHEN 'subsequent_interview_completed' THEN 10
       WHEN 'first_interview_completed' THEN 21
@@ -136,18 +136,18 @@ BEGIN
           timing_anchor+late_days AS base_late
    FROM top_anchor a
  ), top_roll AS (
-   SELECT w.*, (base_middle + 7 * pg_catalog.greatest(0,
-     pg_catalog.ceil(pg_catalog.greatest(0,d-(base_middle-7))::numeric / 7)::integer)
+   SELECT w.*, (base_middle + 7 * greatest(0,
+     pg_catalog.ceil(greatest(0,d-(base_middle-7))::numeric / 7)::integer)
    )::date AS roll_central
    FROM top_base w
  ), top_stage AS (
    SELECT t.*,
     CASE WHEN d>base_late+14 THEN NULL::date
-       ELSE pg_catalog.greatest(base_early,d+2) END AS offer_early,
+       ELSE greatest(base_early,d+2) END AS offer_early,
     CASE WHEN d>base_late+14 THEN NULL::date
        ELSE roll_central END AS offer_central,
     CASE WHEN d>base_late+14 THEN NULL::date
-       ELSE pg_catalog.greatest(base_late,roll_central+14) END AS offer_late,
+       ELSE greatest(base_late,roll_central+14) END AS offer_late,
     (roll_central - base_middle) AS calendar_shift_days,
     CASE WHEN d>base_late+14 THEN 'expired_requires_new_employer_evidence'
       WHEN d>base_middle-7 THEN 'overdue_reassessed_weekly'
@@ -219,8 +219,8 @@ RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO ''
 AS $wrapper$
 BEGIN
  IF auth.uid() IS DISTINCT FROM '210ec7a4-6b03-4720-99d9-091ea6cbf975'::uuid
-    OR pg_catalog.lower(pg_catalog.coalesce(auth.jwt()->>'email','')) <> 'jair.ribeiro@outlook.it'
-    OR pg_catalog.coalesce(auth.jwt()->>'is_anonymous','false') <> 'false'
+    OR pg_catalog.lower(coalesce(auth.jwt()->>'email','')) <> 'jair.ribeiro@outlook.it'
+    OR coalesce(auth.jwt()->>'is_anonymous','false') <> 'false'
  THEN RAISE EXCEPTION 'Owner sign-in required' USING ERRCODE='42501'; END IF;
  RETURN private.careersite_hiring_core_v3();
 END;
@@ -250,8 +250,8 @@ GRANT SELECT ON public.careersite_hiring_daily_rechecks TO authenticated;
 CREATE POLICY careersite_daily_rechecks_owner_read
  ON public.careersite_hiring_daily_rechecks FOR SELECT TO authenticated
  USING (owner_user_id=(SELECT auth.uid()) AND
- pg_catalog.lower(pg_catalog.coalesce((SELECT auth.jwt())->>'email',''))='jair.ribeiro@outlook.it'
- AND pg_catalog.coalesce((SELECT auth.jwt())->>'is_anonymous','false')='false');
+ pg_catalog.lower(coalesce((SELECT auth.jwt())->>'email',''))='jair.ribeiro@outlook.it'
+ AND coalesce((SELECT auth.jwt())->>'is_anonymous','false')='false');
 CREATE INDEX IF NOT EXISTS careersite_daily_rechecks_by_date ON
  public.careersite_hiring_daily_rechecks(forecast_day DESC,generated_at DESC);
 
@@ -279,7 +279,7 @@ DECLARE
  stored_id bigint;
 BEGIN
  calc := private.careersite_hiring_core_v3();
- SELECT pg_catalog.md5(pg_catalog.coalesce(
+ SELECT pg_catalog.md5(coalesce(
    pg_catalog.string_agg(
      pg_catalog.concat_ws('|',id,source_registry_key,indicator_key,metric_value,
        metric_value_text,updated_at,last_confirmed_at,first_seen_at),
@@ -292,8 +292,8 @@ BEGIN
   'brg_gothenburg_business_cycle','scb_enterprise_ai_adoption',
   'unionen_branschbarometern','almega_services_indicator')
  AND (first_seen_at IS NULL OR first_seen_at <= now());
- p_sig := pg_catalog.md5(pg_catalog.coalesce((calc->'top_processes')::text,'[]'));
- t_sig := pg_catalog.md5(pg_catalog.coalesce((calc->'leading_stage_scenario')::text,'{}'));
+ p_sig := pg_catalog.md5(coalesce((calc->'top_processes')::text,'[]'));
+ t_sig := pg_catalog.md5(coalesce((calc->'leading_stage_scenario')::text,'{}'));
  SELECT id,forecast_day,market_signature,pipeline_signature,timing_signature
  INTO prior FROM public.careersite_hiring_daily_rechecks
  ORDER BY generated_at DESC,id DESC LIMIT 1;
@@ -370,8 +370,8 @@ RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path TO ''
 AS $owner$
 BEGIN
  IF auth.uid() IS DISTINCT FROM '210ec7a4-6b03-4720-99d9-091ea6cbf975'::uuid
-    OR pg_catalog.lower(pg_catalog.coalesce(auth.jwt()->>'email','')) <> 'jair.ribeiro@outlook.it'
-    OR pg_catalog.coalesce(auth.jwt()->>'is_anonymous','false') <> 'false'
+    OR pg_catalog.lower(coalesce(auth.jwt()->>'email','')) <> 'jair.ribeiro@outlook.it'
+    OR coalesce(auth.jwt()->>'is_anonymous','false') <> 'false'
  THEN RAISE EXCEPTION 'Owner sign-in required' USING ERRCODE='42501'; END IF;
  RETURN private.careersite_run_hiring_daily_recheck();
 END;

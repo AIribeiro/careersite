@@ -165,7 +165,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         artifacts = (ROOT / "src/site_artifacts.py").read_text(encoding="utf-8")
         meta = (ROOT / "src/site_meta.py").read_text(encoding="utf-8")
 
-        self.assertIn("I lead enterprise AI &amp; Data work where strategy has to become operating capability", home)
+        self.assertIn("At Volvo Group, I led business-facing AI and analytics work", home)
         self.assertIn("Enterprise AI and Data leadership, from strategic priorities to operating capability.", home)
         self.assertIn("Based in Gothenburg · Sweden / Nordic scope · Gothenburg hybrid or Sweden-based remote · Open to immediate collaboration and relevant mandates", home)
         self.assertIn("Enterprise AI strategy &amp; scaling", home)

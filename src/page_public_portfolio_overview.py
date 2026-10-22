@@ -125,9 +125,6 @@ def render_public_portfolio_overview() -> None:
         help="Starts with the most recent window containing recorded sessions; "
              "a manual selection is retained.",
     )
-    if st.button("Refresh insights", key="portfolio_refresh_insights"):
-        _recent_content_report.clear()
-        st.rerun()
     try:
         report = fetch_intelligence(str(window))
     except (RuntimeError, ValueError, TimeoutError) as exc:
@@ -156,43 +153,6 @@ def render_public_portfolio_overview() -> None:
     weekly_item_sessions = sum(row["Sessions"] for row in weekly_editions)
     rows_reconcile = regular_views + weekly_views == article_views
 
-    recent_report = None
-    if str(window) in ("14d", "30d", "60d", "90d", "365d"):
-        try:
-            recent_report = _recent_content_report()
-        except (RuntimeError, ValueError, TimeoutError, PermissionError):
-            # A failed background comparator does not make the selected-period
-            # visits/read charts unavailable, nor imply missing activity.
-            recent_report = None
-
-    latest_articles = (portfolio_visit_rows(recent_report, "article")
-                       if recent_report else None)
-    latest_pages = (portfolio_visit_rows(recent_report, "page")
-                    if recent_report else None)
-    top_insights, deeper_insights, limitations = ranked_portfolio_signals(
-        report, pages, articles, window=str(window),
-        recent_report=recent_report, recent_articles=latest_articles,
-        recent_pages=latest_pages,
-    )
-    st.subheader("What changed and why it matters")
-    st.caption(
-        "Highest-signal evidence first. Recent seven-day movements inform the "
-        "interpretation of broad historical reporting windows."
-        if recent_report else
-        "Selected-period findings, ranked by evidence and relevance."
-    )
-    summaries = st.columns(len(top_insights), gap="large")
-    for column, insight in zip(summaries, top_insights):
-        with column:
-            st.markdown(f"**{insight.title}**")
-            st.write(insight.message)
-            st.markdown(f"*Next to examine:* {insight.next_check}")
-            st.caption(insight.evidence)
-
-    st.divider()
-    render_home_journey(str(window))
-
-    st.divider()
     # Identical card heights and chart heights; 3 columns on desktop,
     # Streamlit naturally stacks them for narrow/mobile viewports.
     pages_col, articles_col, weekly_col = st.columns(3, gap="medium")
@@ -241,6 +201,46 @@ def render_public_portfolio_overview() -> None:
         "existing article views, not additional website traffic. Item-session "
         "observations can overlap across content and are not unique readers."
     )
+
+    if st.button("Refresh insights", key="portfolio_refresh_insights"):
+        _recent_content_report.clear()
+        st.rerun()
+
+    recent_report = None
+    if str(window) in ("14d", "30d", "60d", "90d", "365d"):
+        try:
+            recent_report = _recent_content_report()
+        except (RuntimeError, ValueError, TimeoutError, PermissionError):
+            # A failed background comparator does not make the selected-period
+            # visits/read charts unavailable, nor imply missing activity.
+            recent_report = None
+
+    latest_articles = (portfolio_visit_rows(recent_report, "article")
+                       if recent_report else None)
+    latest_pages = (portfolio_visit_rows(recent_report, "page")
+                    if recent_report else None)
+    top_insights, deeper_insights, limitations = ranked_portfolio_signals(
+        report, pages, articles, window=str(window),
+        recent_report=recent_report, recent_articles=latest_articles,
+        recent_pages=latest_pages,
+    )
+    st.subheader("What changed and why it matters")
+    st.caption(
+        "Highest-signal evidence first. Recent seven-day movements inform the "
+        "interpretation of broad historical reporting windows."
+        if recent_report else
+        "Selected-period findings, ranked by evidence and relevance."
+    )
+    summaries = st.columns(len(top_insights), gap="large")
+    for column, insight in zip(summaries, top_insights):
+        with column:
+            st.markdown(f"**{insight.title}**")
+            st.write(insight.message)
+            st.markdown(f"*Next to examine:* {insight.next_check}")
+            st.caption(insight.evidence)
+
+    st.divider()
+    render_home_journey(str(window))
 
     st.divider()
     st.subheader("Other relevant portfolio signals")

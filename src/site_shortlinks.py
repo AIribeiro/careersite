@@ -143,4 +143,3 @@ def weekly_ai_short_link(
         ):
             return f"{SHORT_BASE}/{code}/"
     return None
-

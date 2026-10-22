@@ -73,6 +73,57 @@ def _destination_chart(report: dict) -> None:
     st.altair_chart(chart, width="stretch")
 
 
+def _journey_comparison(rows: list[dict], label_key: str, total_key: str,
+                        confirmed_key: str, success_label: str, pending_label: str) -> None:
+    """Show volume and measured continuation together, with exact values on hover."""
+    values = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        total = _n(row.get(total_key))
+        if not total:
+            continue
+        confirmed = min(total, _n(row.get(confirmed_key)))
+        label = str(row.get(label_key) or "Unknown").replace("-", " ").title()
+        for status, count, order in ((success_label, confirmed, 0),
+                                      (pending_label, total - confirmed, 1)):
+            values.append({"Group": label, "Status": status, "Count": count,
+                           "Total": total, "Rate": confirmed / total, "Order": order})
+    if not values:
+        st.info("No observations available for this comparison in the selected period.")
+        return
+    order = list(dict.fromkeys(r["Group"] for r in sorted(values, key=lambda r: -r["Total"])))
+    base = alt.Chart(alt.Data(values=values))
+    bars = base.mark_bar(cornerRadiusEnd=5, size=24).encode(
+        x=alt.X("Count:Q", stack="zero", title="Recorded observations",
+                axis=alt.Axis(tickMinStep=1)),
+        y=alt.Y("Group:N", sort=order, title=None, axis=alt.Axis(labelLimit=210)),
+        color=alt.Color("Status:N", title=None,
+                        scale=alt.Scale(domain=[success_label, pending_label],
+                                        range=["#c47642", "#d6d4ce"]),
+                        legend=alt.Legend(orient="bottom", labelLimit=280)),
+        order=alt.Order("Order:Q", sort="ascending"),
+        tooltip=[alt.Tooltip("Group:N", title="Scope"), "Status:N",
+                 alt.Tooltip("Count:Q", title="Observations", format=","),
+                 alt.Tooltip("Total:Q", title="Total", format=","),
+                 alt.Tooltip("Rate:Q", title="Confirmed continuation", format=".1%")],
+    )
+    st.altair_chart(bars.properties(height=max(130, len(order) * 48)), width="stretch")
+    # A shared percentage scale makes small mobile cohorts comparable with desktop.
+    rates = base.transform_filter(alt.datum.Order == 0).mark_bar(
+        cornerRadiusEnd=5, size=18, color="#c47642"
+    ).encode(
+        x=alt.X("Rate:Q", title="Confirmed continuation rate",
+                scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(format="%")),
+        y=alt.Y("Group:N", sort=order, title=None),
+        tooltip=["Group:N", alt.Tooltip("Rate:Q", format=".1%"),
+                 alt.Tooltip("Count:Q", title="Confirmed", format=","), "Total:Q"],
+    )
+    labels = rates.mark_text(align="left", dx=5, color="#666666").encode(
+        text=alt.Text("Rate:Q", format=".1%"))
+    st.altair_chart((rates + labels).properties(height=max(100, len(order) * 38)), width="stretch")
+
+
 def render_home_journey(window: str) -> None:
     st.subheader("From Home to the rest of the portfolio")
     st.caption(
@@ -122,29 +173,25 @@ def render_home_journey(window: str) -> None:
         st.markdown("**First recorded destination after Home**")
         _destination_chart(report)
 
-    with st.expander("Route selections, devices and measurement definitions"):
-        choices = [
-            {
-                "Route": r.get("page"),
-                "Clicks": _n(r.get("clicks")),
-                "Confirmed arrivals": _n(r.get("confirmed")),
-            }
-            for r in report.get("route_selections", [])
-            if isinstance(r, dict)
-        ]
-        if choices:
-            st.dataframe(choices, hide_index=True, width="stretch")
-        else:
-            st.caption("Route-click records are not yet available.")
-        devices = [
-            {"Device": row.get("device") or "Unknown",
-             "Home entries": _n(row.get("landings")),
-             "Onward sessions": _n(row.get("onward"))}
-            for row in report.get("device_breakdown", [])
-            if isinstance(row, dict)
-        ]
-        if devices:
-            st.dataframe(devices, hide_index=True, width="stretch")
+    devices_col, routes_col = st.columns(2, gap="large")
+    with devices_col:
+        with st.container(border=True):
+            st.markdown("#### How journeys differ by device")
+            st.caption("Compare audience size and the share that reached another page.")
+            _journey_comparison(report.get("device_breakdown") or [], "device", "landings", "onward",
+                                "Reached another page", "No onward view recorded")
+            st.caption("A missing onward view does not establish that someone left. "
+                       "Rates based on small groups can move sharply with one visit.")
+    with routes_col:
+        with st.container(border=True):
+            st.markdown("#### Which routes lead to arrivals?")
+            st.caption("Compare selected routes with subsequently recorded destination views.")
+            _journey_comparison(report.get("route_selections") or [], "page", "clicks", "confirmed",
+                                "Confirmed arrival", "Arrival not confirmed")
+            st.caption("Each route uses its own recorded clicks as the denominator. "
+                       "Missing click records leave this comparison unavailable.")
+
+    with st.expander("How these journeys are measured"):
         st.caption(
             "Session = short-lived browser-tab session. Home entry = first recorded page "
             "within the selected period is Home. Onward = a subsequent different page_view "

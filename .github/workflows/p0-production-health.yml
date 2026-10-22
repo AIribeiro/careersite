@@ -11,27 +11,33 @@ permissions:
 jobs:
   live-health:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
-      - name: Check public deployment independently of local CI
+      - name: Diagnose production redirects and response status
         shell: bash
         run: |
           set -u
-          URL="https://jairribeiro-ai.streamlit.app/_stcore/health"
-          for attempt in 1 2 3 4 5 6; do
-            echo "Production health attempt ${attempt}/6"
-            code="$(curl -L -sS --connect-timeout 8 --max-time 18 -o /tmp/cloud-health-response -w '%{http_code}' "$URL" || true)"
-            echo "HTTP status: ${code:-unavailable}"
-            if [ "$code" = "200" ]; then
-              echo "PRODUCTION HEALTH REACHABLE: $URL"
-              head -c 300 /tmp/cloud-health-response || true
+          SITE="https://jairribeiro-ai.streamlit.app"
+          for path in / /_stcore/health /robots.txt; do
+            echo "Checking $SITE$path"
+            status="$(curl -sS --connect-timeout 8 --max-time 14 -D /tmp/p0headers -o /tmp/p0body -w '%{http_code}' "$SITE$path" || true)"
+            echo "HTTP ${status:-unavailable}"
+            python - <<'PY'
+          from urllib.parse import urlsplit
+          from pathlib import Path
+          headers=Path("/tmp/p0headers").read_text(errors="replace") if Path("/tmp/p0headers").exists() else ""
+          for line in headers.splitlines():
+              if line.lower().startswith("location:"):
+                  dest=line.split(":",1)[1].strip()
+                  target=urlsplit(dest)
+                  print(f"Redirect target (query redacted): {target.scheme}://{target.netloc}{target.path}")
+              elif line.lower().startswith("content-type:"):
+                  print(line.strip())
+          PY
+            if [ "$path" = "/_stcore/health" ] && [ "$status" = "200" ]; then
+              echo "HEALTHY"
               exit 0
             fi
-            if [ -f /tmp/cloud-health-response ]; then
-              head -c 300 /tmp/cloud-health-response || true
-              echo
-            fi
-            sleep 10
           done
-          echo "::error::Streamlit Community Cloud production health is unreachable; local CI success does not imply a healthy public deployment."
+          echo "::error::Production is not healthy; inspect Cloud deployment manager and access settings."
           exit 1

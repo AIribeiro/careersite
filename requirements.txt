@@ -3,3 +3,4 @@ fpdf2==2.8.8
 Pillow==12.3.0
 pypdf>=5.9,<7
 bleach==6.2.0
+# P0 2026-10-22: request a clean Streamlit Cloud dependency rebuild after manager provisioning stall; no package changes.

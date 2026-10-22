@@ -1,4 +1,4 @@
-name: P0 production reachability check
+name: P0 production browser smoke check
 on:
   push:
     paths:
@@ -9,35 +9,52 @@ permissions:
   contents: read
 
 jobs:
-  live-health:
+  live-browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 8
     steps:
-      - name: Diagnose production redirects and response status
-        shell: bash
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install headless Chromium
         run: |
-          set -u
-          SITE="https://jairribeiro-ai.streamlit.app"
-          for path in / /_stcore/health /robots.txt; do
-            echo "Checking $SITE$path"
-            status="$(curl -sS --connect-timeout 8 --max-time 14 -D /tmp/p0headers -o /tmp/p0body -w '%{http_code}' "$SITE$path" || true)"
-            echo "HTTP ${status:-unavailable}"
-            python - <<'PY'
+          python -m pip install --quiet playwright==1.58.0
+          python -m playwright install chromium
+      - name: Open public portfolio as a real browser
+        env:
+          SITE_URL: https://jairribeiro-ai.streamlit.app/
+        run: |
+          python - <<'PY'
+          import os
+          import time
           from urllib.parse import urlsplit
-          from pathlib import Path
-          headers=Path("/tmp/p0headers").read_text(errors="replace") if Path("/tmp/p0headers").exists() else ""
-          for line in headers.splitlines():
-              if line.lower().startswith("location:"):
-                  dest=line.split(":",1)[1].strip()
-                  target=urlsplit(dest)
-                  print(f"Redirect target (query redacted): {target.scheme}://{target.netloc}{target.path}")
-              elif line.lower().startswith("content-type:"):
-                  print(line.strip())
+          from playwright.sync_api import sync_playwright
+
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True)
+              page = browser.new_page(viewport={"width": 1440, "height": 900})
+              try:
+                  page.goto(os.environ["SITE_URL"], wait_until="domcontentloaded", timeout=45000)
+              except Exception as exc:
+                  print(f"Initial navigation warning: {type(exc).__name__}: {str(exc)[:200]}")
+              visible = False
+              for i in range(12):
+                  try:
+                      url = urlsplit(page.url)
+                      print(f"Browser attempt {i+1}: host={url.netloc} path={url.path}")
+                      if page.locator(".site .hero h1").count() > 0:
+                          heading = page.locator(".site .hero h1").first.inner_text(timeout=5000)
+                          if "Jair Ribeiro" in heading:
+                              print(f"PUBLIC PORTFOLIO IS AVAILABLE: {heading[:100]}")
+                              visible = True
+                              break
+                      text = page.locator("body").inner_text(timeout=8000)[:350]
+                      print(f"Visible text: {text!r}")
+                  except Exception as exc:
+                      print(f"Page still loading: {type(exc).__name__}: {str(exc)[:200]}")
+                  time.sleep(5)
+              browser.close()
+              if not visible:
+                  raise SystemExit("ERROR: Portfolio hero did not render within browser-level production smoke check")
           PY
-            if [ "$path" = "/_stcore/health" ] && [ "$status" = "200" ]; then
-              echo "HEALTHY"
-              exit 0
-            fi
-          done
-          echo "::error::Production is not healthy; inspect Cloud deployment manager and access settings."
-          exit 1

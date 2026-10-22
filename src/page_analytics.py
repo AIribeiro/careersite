@@ -7,6 +7,7 @@ from urllib import error, parse, request
 import streamlit as st
 import streamlit.components.v1 as components
 
+from analytics_event_labels import event_label
 from site_analytics_public import public_analytics_rpc_headers, owner_hiring_headers
 from site_analytics import (
     ANALYTICS_PUBLISHABLE_KEY,
@@ -921,8 +922,12 @@ def render_analytics_dashboard() -> None:
                 _bar_chart(data.get("lenses", []), "lens", value="sessions", limit=6, height=245)
         with right:
             with st.container(border=True):
-                _section("Actions", "Conversion activity")
-                _bar_chart(data.get("events", []), "event_name", value="sessions", limit=8, height=245, color=GREEN)
+                _section("Activity", "Browsing & interaction activity",
+                         "Browser sessions with each type of recorded activity. "
+                         "Includes automatic measurement checks; a session can appear in several bars.")
+                activity_rows = [dict(row, activity=event_label(row.get("event_name")))
+                                 for row in data.get("events", []) if isinstance(row, dict)]
+                _bar_chart(activity_rows, "activity", value="sessions", limit=8, height=245, color=GREEN)
 
         left, right = st.columns([1.45, 1])
         with left:

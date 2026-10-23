@@ -33,7 +33,13 @@ jobs:
           python-version: '3.12'
       - name: Compile every app and analytics module before deployment
         run: python -m compileall -q main.py app.py src scripts
+      - name: Install visual renderer
+        run: python -m pip install --disable-pip-version-check pillow
       - name: Verify Friday week range and legacy archive regression
         env:
           PYTHONPATH: src
         run: python -m unittest discover -s tests -p 'test_weekly_ai_friday_cycle.py' -v
+      - name: Verify immutable branded Friday cover composition
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -p 'test_weekly_ai_brand_cover.py' -v

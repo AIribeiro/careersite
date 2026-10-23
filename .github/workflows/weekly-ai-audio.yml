@@ -78,7 +78,21 @@ jobs:
           fi
           if ! git diff --cached --quiet; then
             git commit -m "Publish WEEKLY AI MP3 audio editions"
-            git push
+            # Editorial and short-link commits may land during synthesis.
+            # Rebase only the generated audio commit; never force-push or rewrite archives.
+            for attempt in 1 2 3 4 5; do
+              git fetch origin main
+              git rebase origin/main
+              if git push origin HEAD:main; then
+                echo "Audio publication committed on attempt $attempt"
+                break
+              fi
+              if [ "$attempt" -eq 5 ]; then
+                echo "::error::Audio generated but GitHub push repeatedly conflicted"
+                exit 1
+              fi
+              sleep $((attempt * 3))
+            done
           else
             echo "No new audio editions to commit"
           fi

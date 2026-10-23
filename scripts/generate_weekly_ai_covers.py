@@ -16,7 +16,7 @@ from urllib import parse, request
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from weekly_ai_brand_cover import save_friday_cover, SIZE
+from weekly_ai_brand_cover import save_friday_cover, render_friday_cover, SIZE
 
 REGISTRY = ROOT / "src" / "weekly_ai_shortlink_registry.json"
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://rnqweoxtynelfirffmlr.supabase.co").rstrip("/")
@@ -73,10 +73,23 @@ def publish_cover(edition: dict, *, dry_run: bool=False) -> str:
         return "SKIP unpublished " + slug
     validate_issue(edition,article)
     if output.is_file():
-        from PIL import Image
+        from PIL import Image, ImageChops
         with Image.open(output) as existing:
             if existing.size!=SIZE or existing.format!="PNG":
                 raise ValueError("Existing Friday cover is corrupt; never overwrite silently")
+            if slug == "weekly-ai-2026-10-23":
+                # One-time fidelity correction: replace the initial programmatic
+                # pilot with the user's expressly approved original Week 43 art.
+                approved = render_friday_cover(
+                    iso_year=int(edition["iso_year"]), iso_week=int(edition["iso_week"]),
+                    title=str(edition["edition_title"]),
+                    subtitle=str(edition.get("cover_subtitle") or "Friday perspective · one minute"),
+                )
+                if ImageChops.difference(existing.convert("RGB"), approved).getbbox():
+                    if dry_run:
+                        return "DRY RUN restore user-approved pilot visual " + slug
+                    approved.save(output,format="PNG",optimize=True)
+                    return "RESTORED user-approved pilot visual " + slug
         return "SKIP immutable existing " + slug
     if dry_run:
         return "DRY RUN verified " + slug

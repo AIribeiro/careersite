@@ -51,7 +51,7 @@ def verify_latest() -> list[str]:
     campaign=f"weekly_ai_{int(edition['iso_year'])}_w{int(edition['iso_week'])}_friday"
     entries={code:(row_slug,channel,target) for code,row_slug,channel,target in registered_short_links() if row_slug==slug}
     checked=[]
-    for channel,suffix in [('x','x'),('threads','t'),('linkedin','l'),('whatsapp','w')]:
+    for channel,suffix in [('x','x'),('threads','t'),('linkedin','l'),('whatsapp','w'),('facebook','f')]:
         code=f"f{edition['iso_year']}{int(edition['iso_week']):02d}{suffix}"
         row=entries.get(code)
         if not row or row[1]!=channel:

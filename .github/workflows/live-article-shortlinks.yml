@@ -281,20 +281,25 @@ jobs:
                   section.close()
               # Streamlit Cloud may need several minutes to pick up the new
               # GitHub MP3 commit; do not confuse deploy lag with synthesis loss.
-              players = frame.locator('audio')
+              src = ''
               for retry in range(16):
-                  if players.count() >= 1:
-                      break
+                  # Reloading replaces Streamlit's iframe. Never reuse locators
+                  # from a detached frame.
+                  current_frame = next((f for f in page.frames if '/~/+/' in f.url), None)
+                  if current_frame:
+                      try:
+                          current_players = current_frame.locator('audio')
+                          if current_players.count() >= 1:
+                              src = current_players.first.locator('source').first.get_attribute('src') or ''
+                              if slug in src:
+                                  break
+                      except Exception as exc:
+                          print(f'Frame replaced while checking audio: {exc}', flush=True)
                   print(f'Audio not yet deployed; retry {retry + 1}/16', flush=True)
                   page.wait_for_timeout(15000)
                   page.reload(wait_until='domcontentloaded', timeout=90000)
                   page.wait_for_timeout(5000)
-                  frame = next((f for f in page.frames if '/~/+/' in f.url), None)
-                  if frame is None:
-                      continue
-                  players = frame.locator('audio')
-              assert frame is not None and players.count() >= 1, 'Published MP3 exists but Streamlit Listen player has not deployed'
-              src = players.first.locator('source').first.get_attribute('src') or ''
+              assert slug in src, 'Published MP3 exists but Streamlit Listen player has not deployed'
               assert slug in src, f'Audio player points to wrong edition: {src}'
               print('FRIDAY ARTICLE + AUDIO PLAYER LIVE PASS:', slug, src, flush=True)
               browser.close()

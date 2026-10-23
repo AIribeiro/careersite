@@ -151,3 +151,13 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Check out verification code
+        uses: actions/checkout@v4
+      - name: Set up Python for public verification
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify live Friday redirects, attribution, and branded OG images
+        env:
+          PYTHONPATH: src
+        run: python scripts/verify_weekly_ai_live_pages.py --latest

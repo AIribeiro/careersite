@@ -8,6 +8,7 @@ on:
       - 'scripts/generate_weekly_ai_audio.py'
       - 'data/weekly_ai_audio_scripts/**'
       - 'data/weekly_ai_visual/**'
+      - 'src/weekly_ai_shortlink_registry.json'
       - 'src/weekly_ai_brand_cover.py'
       - 'scripts/generate_weekly_ai_covers.py'
       - 'data/weekly_ai_audio_release_trigger.txt'

@@ -34,7 +34,6 @@ from page_impact import impact
 from page_thinking import thinking
 from page_about import about
 from page_certifications import certifications
-from page_presence import presence
 from page_contact import contact
 from page_ai_data_governance import ai_data_governance
 from page_analytics_v2 import render_analytics_dashboard
@@ -52,6 +51,10 @@ PAGE = st.query_params.get("page", "home")
 if isinstance(PAGE, list):
     PAGE = PAGE[0] if PAGE else "home"
 PAGE = str(PAGE).lower().strip()
+# Retired Presence page: keep incoming bookmarks working and preserve attribution.
+LEGACY_PRESENCE_LINK = PAGE == "presence"
+if LEGACY_PRESENCE_LINK:
+    PAGE = "about"
 
 # Preserve historical ?page=admin bookmarks, but use one canonical Analytics
 # page with authenticated private reporting and CMS workspaces.
@@ -59,7 +62,7 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"home", "impact", "thinking", "about", "certifications", "presence", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance"}
+PUBLIC_VALID = {"home", "impact", "thinking", "about", "certifications", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -82,7 +85,6 @@ TITLES = {
     "thinking": "Articles & Perspectives | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
     "certifications": "Credentials & Certifications | Jair Ribeiro",
-    "presence": "Speaking & Publications | Jair Ribeiro",
     "contact": "Contact | Jair Ribeiro",
     "enterprise": "Enterprise AI & Data Leadership | Jair Ribeiro",
     "transformation": "AI Transformation & Adoption | Jair Ribeiro",
@@ -121,6 +123,8 @@ st.set_page_config(
 if LEGACY_ADMIN_LINK:
     st.query_params["page"] = "analytics"
     st.query_params["workspace"] = "cms"
+if LEGACY_PRESENCE_LINK:
+    st.query_params["page"] = "about"
 
 if PAGE == "analytics":
     render_analytics_dashboard()
@@ -138,7 +142,6 @@ else:
         "thinking": thinking,
         "about": about,
         "certifications": certifications,
-        "presence": presence,
         "contact": contact,
         "enterprise": enterprise,
         "transformation": transformation,

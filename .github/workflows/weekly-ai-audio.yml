@@ -7,6 +7,9 @@ on:
       - 'src/weekly_ai_audio.py'
       - 'scripts/generate_weekly_ai_audio.py'
       - 'data/weekly_ai_audio_scripts/**'
+      - 'data/weekly_ai_visual/**'
+      - 'src/weekly_ai_brand_cover.py'
+      - 'scripts/generate_weekly_ai_covers.py'
       - 'data/weekly_ai_audio_release_trigger.txt'
       - 'scripts/normalize_weekly_ai_audio.py'
       - '.github/workflows/weekly-ai-audio.yml'
@@ -37,7 +40,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install synthesis dependencies
-        run: python -m pip install --disable-pip-version-check edge-tts google-auth requests imageio-ffmpeg
+        run: python -m pip install --disable-pip-version-check edge-tts google-auth requests imageio-ffmpeg pillow
       - name: Generate missing weekly recordings
         env:
           SUPABASE_URL: https://rnqweoxtynelfirffmlr.supabase.co
@@ -47,6 +50,9 @@ jobs:
           GOOGLE_TTS_VOICE: en-US-Neural2-D
           EDGE_TTS_VOICE: en-US-AndrewNeural
         run: |
+          # Render the branded cover from the approved portrait and verified CMS.
+          # Never synthesize a new likeness or invent week/title fields.
+          python scripts/generate_weekly_ai_covers.py
           python scripts/generate_weekly_ai_audio.py
           python - <<'PY'
           from datetime import datetime, timedelta

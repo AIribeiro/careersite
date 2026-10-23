@@ -5,18 +5,6 @@ import html
 from site_assets import BRAND_ICON_URI, CV_URI, LINKEDIN, MEDIUM, EMAIL
 
 
-ROLE_LENSES = {
-    "enterprise": "Enterprise AI & Data Leadership",
-    "transformation": "AI Transformation & Adoption",
-    "governance": "AI Governance & Operating Model",
-    "consulting": "Business-Driven AI & Consulting",
-}
-
-ABOUT_PAGES = {
-    "about": "About",
-    "certifications": "Credentials & Certifications",
-}
-
 CV_DOWNLOAD_NAME = "Jair_Ribeiro_CV.pdf"
 
 
@@ -30,43 +18,7 @@ def nav(active: str) -> str:
             f'target="_self">{html.escape(label)}</a>'
         )
 
-    about_active = active in ABOUT_PAGES
-    about_items = "".join(
-        f'<a href="?page={page}" target="_self" '
-        f'style="display:block;padding:11px 14px;color:{"#fff" if page == active else "#c9d0da"}!important;'
-        f'background:{"rgba(255,255,255,.08)" if page == active else "transparent"};text-decoration:none!important;'
-        f'font-size:12px;font-weight:700;line-height:1.35" data-hq-event="nav_about_{page}">'
-        f'{html.escape(label)}</a>'
-        for page, label in ABOUT_PAGES.items()
-    )
-    about_menu = (
-        '<details style="position:relative;flex:0 0 auto">'
-        f'<summary class="link{" on" if about_active else ""}" '
-        'style="list-style:none;cursor:pointer;user-select:none;white-space:nowrap">About ▾</summary>'
-        '<div style="position:absolute;right:0;top:calc(100% + 6px);z-index:1001;'
-        'min-width:245px;max-width:calc(100vw - 34px);padding:6px;background:#111b2c;'
-        'border:1px solid rgba(255,255,255,.14);box-shadow:0 18px 40px rgba(0,0,0,.28)">'
-        f'{about_items}</div></details>'
-    )
-
-    lens_active = active in ROLE_LENSES
-    lens_items = "".join(
-        f'<a href="?page={page}" target="_self" '
-        f'style="display:block;padding:11px 14px;color:{"#fff" if page == active else "#c9d0da"}!important;'
-        f'background:{"rgba(255,255,255,.08)" if page == active else "transparent"};text-decoration:none!important;'
-        f'font-size:12px;font-weight:700;line-height:1.35" data-hq-event="nav_role_{page}">'
-        f'{html.escape(label)}</a>'
-        for page, label in ROLE_LENSES.items()
-    )
-    lens_menu = (
-        '<details style="position:relative;flex:0 0 auto">'
-        f'<summary class="link{" on" if lens_active else ""}" '
-        'style="list-style:none;cursor:pointer;user-select:none;white-space:nowrap">Experience by mandate ▾</summary>'
-        '<div style="position:absolute;right:0;top:calc(100% + 6px);z-index:1001;'
-        'min-width:270px;max-width:calc(100vw - 34px);padding:6px;background:#111b2c;'
-        'border:1px solid rgba(255,255,255,.14);box-shadow:0 18px 40px rgba(0,0,0,.28)">'
-        f'{lens_items}</div></details>'
-    )
+    about_active = active == "about"
     brand_icon = (
         f'<img src="{BRAND_ICON_URI}" alt="" aria-hidden="true">'
         if BRAND_ICON_URI
@@ -82,8 +34,7 @@ def nav(active: str) -> str:
         f'{link("impact", "Selected Experience")}'
         f'{link("ai-data-governance", "AI & Data Governance")}'
         f'{link("thinking", "Thinking")}'
-        f'{about_menu}'
-        f'{lens_menu}'
+        f'{link("about", "About")}'
         f'<a class="link contactlink{" on" if active == "contact" else ""}" style="{top_item_style}" href="?page=contact" '
         'target="_self" data-hq-event="contact_nav">Contact</a>'
         '</div></div></nav>'

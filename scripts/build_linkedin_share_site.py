@@ -190,11 +190,23 @@ window.addEventListener('load', () => {{
 '''
 
 
-def _static_shortlink_html(code: str, slug: str, channel: str, target: str) -> str:
-    """A no-dependency redirect with a visible fallback and minimal social preview.
+def _weekly_issue_metadata(slug: str) -> dict[str, object] | None:
+    """Read published-week registry metadata, never infer week from a code."""
+    registry = ROOT / "src" / "weekly_ai_shortlink_registry.json"
+    if not registry.is_file():
+        return None
+    payload = json.loads(registry.read_text(encoding="utf-8"))
+    for edition in payload.get("editions", []):
+        if edition.get("slug") == slug:
+            return edition
+    return None
 
-    Do not route humans via the Streamlit Cloud /?go= handler: in production
-    that entrypoint can render the home page rather than expand the alias.
+
+def _static_shortlink_html(code: str, slug: str, channel: str, target: str) -> str:
+    """Source-preserving static redirect with accurate per-edition social cards.
+
+    The image is specific to the week only when an actual approved file exists.
+    Never mislabel the generic portfolio card as a generated weekly cover.
     """
     registered_titles = {
         "ai-is-turning-data-definitions-into-a-leadership-problem":
@@ -204,7 +216,32 @@ def _static_shortlink_html(code: str, slug: str, channel: str, target: str) -> s
         "ai-can-make-every-team-faster-and-still-leave-the-business-slow":
             "AI Can Make Every Team Faster and Still Leave the Business Slow",
     }
-    title = registered_titles.get(slug, slug.replace("-", " ").title())
+    edition = _weekly_issue_metadata(slug)
+    if edition and edition.get("distribution_mode") == "friday_wrap":
+        year = int(edition["iso_year"])
+        week = int(edition["iso_week"])
+        issue_title = str(edition.get("edition_title") or "").strip()
+        if not issue_title:
+            raise ValueError("Published Friday cover needs a verified edition_title: " + slug)
+        title = f"WEEKLY AI · Week {week} · {year} — {issue_title}"
+        description = "My AI week: selected developments and a practical enterprise AI leadership perspective."
+    else:
+        title = registered_titles.get(slug, slug.replace("-", " ").title())
+        description = "Read the full article on Jair Ribeiro's Enterprise AI & Data Portfolio."
+    image_path = ROOT / "static" / "weekly-ai" / f"{slug}.png"
+    cover_ready = bool(edition and edition.get("distribution_mode") == "friday_wrap" and image_path.is_file())
+    if cover_ready:
+        og_image = f"{DEFAULT_SHARE_BASE}/social/{slug}.png"
+        x_image = f"{DEFAULT_SHARE_BASE}/social-x/{slug}.jpg"
+        image_props = (
+            f'<meta property="og:image:width" content="1200">\n'
+            f'<meta property="og:image:height" content="627">\n'
+            f'<meta name="twitter:image" content="{html.escape(x_image, quote=True)}">\n'
+            f'<meta name="twitter:image:alt" content="{html.escape(title, quote=True)}">'
+        )
+    else:
+        og_image = f"{BASE_URL}/app/static/jair-ribeiro-social-preview.png"
+        image_props = ""
     destination = html.escape(target, quote=True)
     script_target = json.dumps(target).replace("</", "<\\/")
     return f"""<!doctype html>
@@ -216,11 +253,14 @@ def _static_shortlink_html(code: str, slug: str, channel: str, target: str) -> s
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
 <meta property="og:title" content="{html.escape(title, quote=True)}">
-<meta property="og:description" content="Read the full article on Jair Ribeiro's Enterprise AI &amp; Data Portfolio.">
+<meta property="og:description" content="{html.escape(description, quote=True)}">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Jair Ribeiro">
-<meta property="og:image" content="{BASE_URL}/app/static/jair-ribeiro-social-preview.png">
+<meta property="og:image" content="{html.escape(og_image, quote=True)}">
+{image_props}
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{html.escape(title, quote=True)}">
+<meta name="twitter:description" content="{html.escape(description, quote=True)}">
 <meta http-equiv="refresh" content="0;url={destination}">
 <script>window.location.replace({script_target});</script>
 </head>
@@ -230,6 +270,7 @@ def _static_shortlink_html(code: str, slug: str, channel: str, target: str) -> s
 </body>
 </html>
 """
+
 
 
 def _write_x_image(source_image: Path, target_image: Path) -> None:
@@ -266,6 +307,23 @@ def build(output: Path, share_base: str) -> None:
         links.append(
             f'<li><a href="thinking/{html.escape(article.slug)}/">{html.escape(article.title)}</a></li>'
         )
+
+    # Publish the approved weekly cover alongside the three platform redirects.
+    # Generated assets must be committed by the Friday editorial workflow first.
+    registry = ROOT / "src" / "weekly_ai_shortlink_registry.json"
+    if registry.is_file():
+        editions = json.loads(registry.read_text(encoding="utf-8")).get("editions", [])
+        for edition in editions:
+            if edition.get("distribution_mode") != "friday_wrap":
+                continue
+            slug = str(edition["slug"])
+            approved_cover = ROOT / "static" / "weekly-ai" / f"{slug}.png"
+            if approved_cover.is_file():
+                with Image.open(approved_cover) as image:
+                    if image.size != (1200, 627) or image.format != "PNG":
+                        raise ValueError("Friday cover must be a 1200 × 627 PNG: " + slug)
+                shutil.copy2(approved_cover, output / "social" / f"{slug}.png")
+                _write_x_image(approved_cover, output / "social-x" / f"{slug}.jpg")
 
     # GitHub Pages serves stable, source-specific URLs independently of
     # the Streamlit Cloud query-router and its outer application iframe.

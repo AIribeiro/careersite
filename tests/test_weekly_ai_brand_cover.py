@@ -8,7 +8,7 @@ from PIL import Image
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT / 'src'))
-from weekly_ai_brand_cover import render_friday_cover, save_friday_cover, SIZE
+from weekly_ai_brand_cover import render_friday_cover, save_friday_cover, approved_week43_image, SIZE
 
 
 class FridayCoverTests(unittest.TestCase):
@@ -18,6 +18,12 @@ class FridayCoverTests(unittest.TestCase):
         self.assertEqual(image.size,(1200,627))
         self.assertEqual(image.mode,'RGB')
         self.assertNotEqual(image.getpixel((60,250)), image.getpixel((750,250)))
+
+    def test_pilot_matches_user_approved_original_exactly(self):
+        approved=approved_week43_image()
+        generated=render_friday_cover(iso_year=2026,iso_week=43,
+                                      title='Faster Tools, Harder Decisions')
+        self.assertEqual(generated.tobytes(),approved.tobytes())
 
     def test_different_week_different_issue_image(self):
         a=render_friday_cover(iso_year=2026,iso_week=43,

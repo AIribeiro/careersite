@@ -5,7 +5,7 @@ Google Cloud TTS is preferred when GOOGLE_TTS_SERVICE_ACCOUNT_JSON is set.
 Otherwise use the free edge-tts neural voice, clearly identified in the build log.
 From Week 42 onward, refuse to synthesize if the required personalized,
 source-checked spoken script has not been saved to the editorial override path.
-Runs AFTER the portfolio's weekly article publishing task. Generates once per
+Runs AFTER the portfolio's Friday edition publishing task. Generates once per
 edition, unless the editor-reviewed script override is explicitly revised.
 Commits the MP3 and exact narration transcript together.
 """

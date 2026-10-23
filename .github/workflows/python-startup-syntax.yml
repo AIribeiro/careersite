@@ -1,0 +1,39 @@
+name: Python startup syntax check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'main.py'
+      - 'app.py'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tests/test_weekly_ai_friday_cycle.py'
+      - '.github/workflows/python-startup-syntax.yml'
+  pull_request:
+    paths:
+      - 'main.py'
+      - 'app.py'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tests/test_weekly_ai_friday_cycle.py'
+      - '.github/workflows/python-startup-syntax.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax-and-friday-week:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile every app and analytics module before deployment
+        run: python -m compileall -q main.py app.py src scripts
+      - name: Verify Friday week range and legacy archive regression
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -p 'test_weekly_ai_friday_cycle.py' -v

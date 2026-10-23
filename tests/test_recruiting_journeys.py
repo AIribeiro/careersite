@@ -12,7 +12,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from recruiting_journeys import journey, cohort_metrics, comparison_rows, elapsed
+from recruiting_journeys import journey, cohort_metrics, comparison_rows, elapsed, recent_interaction_rows
 
 
 NOW = datetime(2026, 10, 19, 18, 30, tzinfo=ZoneInfo("Europe/Stockholm"))
@@ -120,6 +120,43 @@ class RecruitingJourneyTests(unittest.TestCase):
         self.assertEqual(stats["round_sample"], 1)
         self.assertEqual(stats["median_days_between_completed_rounds"], 5)
         self.assertEqual(stats["offer_sample"], 0)
+
+    def test_oct23_betsson_screening_visible_by_actual_date(self):
+        today = datetime(2026, 10, 23, 14, 3,
+                         tzinfo=ZoneInfo("Europe/Stockholm"))
+        op = opportunity(id=2, employer="Betsson Group",
+                         role_title="Head of SB Product – Data & AI",
+                         application_date="2026-10-09")
+        first = interview(15, "2026-10-23", process=2)
+        first.update({
+            "meeting_type": "recruiter_screening",
+            "starts_at": "2026-10-23T08:00:00+00:00",
+        })
+        cancelled = interview(19, "2026-10-20", process=2,
+                              attendance="cancelled")
+        m = journey(op, [cancelled, first], today)
+        self.assertEqual(m["days_to_first_confirmed"], 14)
+        self.assertEqual(len(m["confirmed"]), 1)
+        self.assertEqual(m["by_round"][1]["date"].isoformat(), "2026-10-23")
+        row = comparison_rows([m])[0]
+        self.assertEqual(row["Round 1"], "23 Oct · 14 d · held")
+        self.assertEqual(row["Latest held"], "23 Oct 2026")
+        activity = recent_interaction_rows([m], today)
+        self.assertEqual(activity[0]["Date"], "2026-10-23")
+        self.assertEqual(activity[0]["Time (Stockholm)"], "10:00")
+        self.assertEqual(activity[0]["Status"], "Completed · confirmed")
+        self.assertEqual(len(activity), 2)
+
+    def test_actual_interview_date_visible_even_without_application(self):
+        today = datetime(2026, 10, 23, 14,
+                         tzinfo=ZoneInfo("Europe/Stockholm"))
+        op = opportunity(id=4, application_date=None,
+                         application_date_basis="unknown")
+        model = journey(op, [interview(22, "2026-10-22", process=4,
+                                      stage=2)], today)
+        row = comparison_rows([model])[0]
+        self.assertEqual(row["Round 2"], "22 Oct · days unknown · held")
+        self.assertEqual(row["Latest held"], "22 Oct 2026")
 
     def test_round_comparison_distinguishes_planned(self):
         model = journey(

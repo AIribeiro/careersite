@@ -49,9 +49,13 @@ def _destination_chart(report: dict) -> None:
         "thinking": "Thinking & articles",
         "ai-data-governance": "AI & Data Governance",
         "about": "About",
-        "presence": "Speaking & publications",
-        "certifications": "Credentials",
+        "presence": "Speaking & publications (retired)",
+        "certifications": "Credentials (retired)",
         "contact": "Contact",
+        "enterprise": "Enterprise AI leadership (retired)",
+        "transformation": "AI adoption (retired)",
+        "governance": "Governance role lens (retired)",
+        "consulting": "Consulting role lens (retired)",
     }
     rows = [
         {"Destination": labels.get(str(r.get("page")),str(r.get("page") or "Other")),
@@ -126,6 +130,7 @@ def _journey_comparison(rows: list[dict], label_key: str, total_key: str,
 
 def render_home_journey(window: str) -> None:
     st.subheader("From Home to the rest of the portfolio")
+    st.caption("The six-page design began on 23 October 2026. Retired route labels below represent historical navigation only; they must not be counted as distinct current destinations. For a clean redesign comparison, use complete post-release days and the same pre-release duration.")
     st.caption(
         "Where Home-entry sessions go next, which navigation routes they select, "
         "and whether a destination page view was subsequently recorded."

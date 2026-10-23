@@ -537,6 +537,26 @@ def render_recruiter_meetings(session: dict) -> None:
         st.error(f"Meeting data is unavailable: {exc}")
         return
 
+    changes = [
+        str(x.get("updated_at"))
+        for x in [*all_rows, *opportunities] if x.get("updated_at")
+    ]
+    if changes:
+        try:
+            last = max(
+                datetime.fromisoformat(s.replace("Z", "+00:00")).astimezone(TZ)
+                for s in changes
+            )
+            st.caption(
+                f"Saved records last updated {last:%d %b %Y at %H:%M} Stockholm time. "
+                "These records are read when this page reloads; Outlook and Gmail are "
+                "not continuously synchronized."
+            )
+        except (TypeError, ValueError):
+            pass
+    if st.button("Reload latest saved records", key="recruiter_reload_records"):
+        st.rerun()
+
     if not all_rows:
         st.info("No recruiter meetings have been captured. Use the editor below to add one.")
         from page_recruiting_journeys import render_role_journeys

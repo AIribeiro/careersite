@@ -167,7 +167,7 @@ def _latest_activity(models: list[dict], now: datetime) -> None:
         if recently_held:
             st.dataframe(
                 [{k: r[k] for k in (
-                    "Date", "Time (Stockholm)", "Employer", "Stage", "Status"
+                    "Date", "Time (Stockholm)", "Employer", "Role", "Stage", "Status"
                 )} for r in recently_held[:8]],
                 hide_index=True, use_container_width=True,
             )
@@ -178,7 +178,7 @@ def _latest_activity(models: list[dict], now: datetime) -> None:
         if scheduled:
             st.dataframe(
                 [{k: r[k] for k in (
-                    "Date", "Time (Stockholm)", "Employer", "Stage", "Status"
+                    "Date", "Time (Stockholm)", "Employer", "Role", "Stage", "Status"
                 )} for r in sorted(scheduled, key=lambda r: r["Date"])[:8]],
                 hide_index=True, use_container_width=True,
             )

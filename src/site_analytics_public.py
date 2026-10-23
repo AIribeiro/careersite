@@ -151,7 +151,7 @@ def fetch_public_analytics_rpc(name: str, payload: dict | None = None) -> dict:
     return result
 
 
-PUBLIC_HIRING_TIMING_VERSION = "hiring-v2-stage-evidence-provisional"
+PUBLIC_HIRING_TIMING_VERSION = "hiring-v2-stage-review-v1"
 _PUBLIC_HIRING_DATE_FIELDS = (
     "as_of", "offer_central", "offer_earliest", "offer_latest",
     "start_central", "start_earliest", "start_latest",

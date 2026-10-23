@@ -33,10 +33,10 @@ def _days(v, today: date):
 def render_daily_recheck(history: list[dict], today: date) -> None:
     """Separate clock effects, pipeline effects and external market changes."""
     st.subheader("Daily recalculation · calendar and evidence")
-    st.caption("One automatic model refresh each day at 06:00 UTC (07:00/08:00 "
-               "Stockholm depending on daylight saving). Market and recruitment "
-               "changes are included in the next daily calculation. This page "
-               "only reads completed snapshots; no auto-recalculation loops.")
+    st.caption("Scheduled refresh: 06:00 UTC (07:00/08:00 Stockholm, seasonally). "
+               "Verified changes to recruitment evidence can produce another same-day "
+               "snapshot, while unchanged inputs are deduplicated. This page only "
+               "reads stored snapshots; it does not recalculate on every view.")
     if not history:
         st.warning("No confirmed daily snapshots are readable. "
                    "Do not interpret an absent refresh as an unchanged forecast.")
@@ -100,7 +100,6 @@ def render_daily_recheck(history: list[dict], today: date) -> None:
                 "External effect":"Context only, not scored",
             })
         st.dataframe(rows,hide_index=True,width="stretch")
-        st.caption("One archived evaluation per Stockholm calendar day. "
-                   "External changes observed between runs are incorporated on "
-                   "the next scheduled day; no hourly checks or mid-day writes. "
-                   "A difference between daily estimates is not prediction accuracy.")
+        st.caption("The first daily evaluation remains immutable. Material recruitment "
+                   "changes may add a newer evaluation on the same day, preserving the "
+                   "previous state for audit. Shifts do not measure prediction accuracy.")

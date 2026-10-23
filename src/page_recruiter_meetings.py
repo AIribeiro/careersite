@@ -84,6 +84,19 @@ def _meeting_day(row: dict) -> date:
     return date.fromisoformat(str(row["scheduled_date"])[:10])
 
 
+def _checkpoint_day(row: dict) -> date | None:
+    """A follow-up date is a personal checkpoint, not a scheduled interview."""
+    if row.get("follow_up_status") not in ("pending", "sent"):
+        return None
+    raw = row.get("follow_up_due")
+    if not raw:
+        return None
+    try:
+        return date.fromisoformat(str(raw)[:10])
+    except (TypeError, ValueError):
+        return None
+
+
 def _when(row: dict) -> str:
     stamp = _local_start(row)
     return stamp.strftime("%d %b %Y · %H:%M") if stamp else _meeting_day(row).strftime("%d %b %Y") + " · time TBC"
@@ -184,10 +197,21 @@ div[class*="st-key-recruiter_calendar_event_"] {
 div[class*="st-key-recruiter_calendar_event_"] p {
     color: #4b2d19 !important;
 }
+div[class*="st-key-recruiter_calendar_checkpoint_"] {
+    background-color: #e1ebf4;
+    border: 2px solid #547a9b !important;
+    border-radius: 0.65rem;
+}
+div[class*="st-key-recruiter_calendar_checkpoint_"] p {
+    color: #233d54 !important;
+}
 </style>
 """, unsafe_allow_html=True)
-    available = sorted({(_meeting_day(r).year, _meeting_day(r).month) for r in rows} |
-                       {(now.year, now.month)})
+    available = sorted(
+        {(_meeting_day(r).year, _meeting_day(r).month) for r in rows}
+        | {(d.year, d.month) for r in rows if (d := _checkpoint_day(r)) is not None}
+        | {(now.year, now.month)}
+    )
     labels = {f"{date(y, m, 1):%B %Y}": (y, m) for y, m in available}
     current = f"{now:%B %Y}"
     month_label = st.selectbox(
@@ -197,10 +221,16 @@ div[class*="st-key-recruiter_calendar_event_"] p {
     year, month = labels[month_label]
     first_weekday, count = monthrange(year, month)
     lookup = defaultdict(list)
+    checkpoints = defaultdict(list)
     for item in rows:
+        if item.get("attendance") == "cancelled":
+            continue
         d = _meeting_day(item)
-        if d.year == year and d.month == month and item.get("attendance") != "cancelled":
+        if d.year == year and d.month == month:
             lookup[d.day].append(item)
+        checkpoint = _checkpoint_day(item)
+        if checkpoint and checkpoint.year == year and checkpoint.month == month:
+            checkpoints[checkpoint.day].append(item)
     for week in range((first_weekday + count + 6) // 7):
         cols = st.columns(7, gap="small")
         for weekday, col in enumerate(cols):
@@ -210,20 +240,30 @@ div[class*="st-key-recruiter_calendar_event_"] p {
                     st.caption(("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")[weekday])
                 if 1 <= day <= count:
                     events = lookup.get(day, [])
-                    cell_kind = "event" if events else "empty"
+                    followups = checkpoints.get(day, [])
+                    cell_kind = "event" if events else ("checkpoint" if followups else "empty")
                     with st.container(border=True, height=124,
                                       key=f"recruiter_calendar_{cell_kind}_{year}_{month}_{day}"):
                         st.markdown(f"**{day}**")
                         for item in events[:2]:
                             stamp = _local_start(item)
                             clock = stamp.strftime("%H:%M") if stamp else "TBC"
-                            st.caption(f"{clock} · {item.get('employer') or item['title']}")
-                        if len(events) > 2:
-                            st.caption(f"+{len(events)-2} more")
+                            status = " · Attended" if item.get("attendance") == "attended" else ""
+                            st.caption(f"{clock} · {item.get('employer') or item['title']}{status}")
+                        for item in followups[:max(0, 2 - len(events))]:
+                            name = item.get("employer") or item["title"]
+                            label = ("Response checkpoint" if item.get("follow_up_status") == "sent"
+                                     else "Follow-up due")
+                            st.caption(f"{label} · {name}")
+                        extras = len(events) + len(followups) - 2
+                        if extras > 0:
+                            st.caption(f"+{extras} more")
                 else:
                     st.write(" ")
-    st.caption("All times are shown in Europe/Stockholm. Date-only entries have no verified start time.")
-
+    st.caption(
+        "Orange = meeting date; blue = follow-up or response checkpoint, not a "
+        "booked meeting. Dates and times use Europe/Stockholm."
+    )
 
 def _charts(rows: list[dict], now: datetime) -> None:
     st.subheader("Interaction patterns")

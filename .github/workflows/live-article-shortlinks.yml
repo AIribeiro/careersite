@@ -300,7 +300,25 @@ jobs:
                   page.reload(wait_until='domcontentloaded', timeout=90000)
                   page.wait_for_timeout(5000)
               assert slug in src, 'Published MP3 exists but Streamlit Listen player has not deployed'
-              assert slug in src, f'Audio player points to wrong edition: {src}'
-              print('FRIDAY ARTICLE + AUDIO PLAYER LIVE PASS:', slug, src, flush=True)
+              # A visible player is insufficient: confirm that the browser can
+              # fetch and decode its actual media metadata (including fallback).
+              current_frame = next((f for f in page.frames if '/~/+/' in f.url), None)
+              assert current_frame is not None, 'Streamlit player frame missing'
+              state = current_frame.locator('audio').first.evaluate("""async audio => {
+                audio.preload = 'metadata';
+                audio.load();
+                await Promise.race([
+                  new Promise((resolve, reject) => {
+                    if (audio.readyState >= 1) return resolve();
+                    audio.addEventListener('loadedmetadata', resolve, {once: true});
+                    audio.addEventListener('error', () => reject(new Error('MP3 decode/load error')), {once: true});
+                  }),
+                  new Promise((_, reject) => setTimeout(() => reject(new Error('MP3 metadata timeout')), 25000))
+                ]);
+                return {duration: audio.duration, readyState: audio.readyState, currentSrc: audio.currentSrc};
+              }""")
+              assert state['readyState'] >= 1 and 45 <= state['duration'] <= 110, f'MP3 metadata invalid: {state}'
+              assert slug in state['currentSrc'], f'Browser loaded wrong audio: {state}'
+              print('FRIDAY ARTICLE + PLAYABLE AUDIO LIVE PASS:', slug, state, flush=True)
               browser.close()
           PY

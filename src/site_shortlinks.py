@@ -23,6 +23,16 @@ _SHORT_ARTICLES: dict[str, str] = {
     "e": "if-ai-does-the-routine-work-how-will-we-develop-the-next-experts",
     "f": "ai-can-make-every-team-faster-and-still-leave-the-business-slow",
 }
+
+# Dedicated Daily Quote aliases. Each prefix is immutable and binds one
+# article to one Daily Quote campaign; channel remains the second character.
+_DAILY_QUOTE_ARTICLES: dict[str, tuple[str, str]] = {
+    "q": (
+        "ai-can-make-every-team-faster-and-still-leave-the-business-slow",
+        "daily_quote_20261023",
+    ),
+}
+
 _SHORT_CHANNELS: dict[str, str] = {
     "l": "linkedin",
     "x": "x",
@@ -41,20 +51,37 @@ def expand_shortlink(code: object) -> dict[str, str] | None:
     code = code.strip().lower()
     if len(code) != 2:
         return None
-    slug = _SHORT_ARTICLES.get(code[0])
     channel = _SHORT_CHANNELS.get(code[1])
-    if not slug or not channel:
+    if not channel:
         return None
-    return {
-        "page": "thinking",
-        "article": slug,
-        "source": channel,
-        "role": "article",
-        "utm_source": channel,
-        "utm_medium": CHANNEL_MEDIA[channel],
-        "utm_campaign": "thinking",
-        "utm_content": slug,
-    }
+
+    slug = _SHORT_ARTICLES.get(code[0])
+    if slug:
+        return {
+            "page": "thinking",
+            "article": slug,
+            "source": channel,
+            "role": "article",
+            "utm_source": channel,
+            "utm_medium": CHANNEL_MEDIA[channel],
+            "utm_campaign": "thinking",
+            "utm_content": slug,
+        }
+
+    daily = _DAILY_QUOTE_ARTICLES.get(code[0])
+    if daily:
+        slug, campaign = daily
+        return {
+            "page": "thinking",
+            "article": slug,
+            "source": channel,
+            "role": "dailyquote",
+            "utm_source": channel,
+            "utm_medium": CHANNEL_MEDIA[channel],
+            "utm_campaign": campaign,
+            "utm_content": slug,
+        }
+    return None
 
 
 def short_article_link(slug: str, channel: str, *, campaign: str = "thinking", role: str = "article") -> str | None:
@@ -64,6 +91,28 @@ def short_article_link(slug: str, channel: str, *, campaign: str = "thinking", r
     if prefix is None or suffix is None or campaign != "thinking" or role != "article":
         return None
     return f"{SHORT_BASE}/{prefix}{suffix}/"
+
+
+def daily_quote_short_link(
+    slug: str,
+    channel: str,
+    *,
+    campaign: str,
+    role: str = "dailyquote",
+) -> str | None:
+    """Return only an immutable Daily Quote alias with an exact tracking match."""
+    if role != "dailyquote":
+        return None
+    suffix = _CHANNEL_SUFFIX.get(str(channel).strip().lower())
+    if suffix is None:
+        return None
+    clean_slug = str(slug).strip().lower()
+    clean_campaign = str(campaign).strip().lower()
+    for prefix, (row_slug, row_campaign) in _DAILY_QUOTE_ARTICLES.items():
+        if (clean_slug, clean_campaign) == (row_slug, row_campaign):
+            return f"{SHORT_BASE}/{prefix}{suffix}/"
+    return None
+
 
 def registered_short_links() -> tuple[tuple[str, str, str, str], ...]:
     """Enumerate code, article slug, channel, and immutable tracked target.
@@ -77,6 +126,13 @@ def registered_short_links() -> tuple[tuple[str, str, str, str], ...]:
             target = make_distribution_link(
                 f"{PUBLIC_SITE}/?page=thinking&article={slug}",
                 channel=channel, campaign="thinking", content=slug, role="article",
+            )
+            rows.append((prefix + suffix, slug, channel, target))
+    for prefix, (slug, campaign) in sorted(_DAILY_QUOTE_ARTICLES.items()):
+        for suffix, channel in _SHORT_CHANNELS.items():
+            target = make_distribution_link(
+                f"{PUBLIC_SITE}/?page=thinking&article={slug}",
+                channel=channel, campaign=campaign, content=slug, role="dailyquote",
             )
             rows.append((prefix + suffix, slug, channel, target))
     rows.extend((code, slug, channel, target) for code, slug, channel, _campaign, _story, target in _weekly_ai_shortlinks())
@@ -143,4 +199,3 @@ def weekly_ai_short_link(
         ):
             return f"{SHORT_BASE}/{code}/"
     return None
-

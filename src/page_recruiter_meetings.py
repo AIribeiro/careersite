@@ -174,6 +174,18 @@ def _insights(rows: list[dict], now: datetime) -> None:
 
 def _month_calendar(rows: list[dict], now: datetime) -> None:
     st.subheader("Recruiter calendar")
+    st.markdown("""
+<style>
+div[class*="st-key-recruiter_calendar_event_"] {
+    background-color: #f4dfca;
+    border: 2px solid #b96732 !important;
+    border-radius: 0.65rem;
+}
+div[class*="st-key-recruiter_calendar_event_"] p {
+    color: #4b2d19 !important;
+}
+</style>
+""", unsafe_allow_html=True)
     available = sorted({(_meeting_day(r).year, _meeting_day(r).month) for r in rows} |
                        {(now.year, now.month)})
     labels = {f"{date(y, m, 1):%B %Y}": (y, m) for y, m in available}
@@ -198,7 +210,9 @@ def _month_calendar(rows: list[dict], now: datetime) -> None:
                     st.caption(("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")[weekday])
                 if 1 <= day <= count:
                     events = lookup.get(day, [])
-                    with st.container(border=True, height=124):
+                    cell_kind = "event" if events else "empty"
+                    with st.container(border=True, height=124,
+                                      key=f"recruiter_calendar_{cell_kind}_{year}_{month}_{day}"):
                         st.markdown(f"**{day}**")
                         for item in events[:2]:
                             stamp = _local_start(item)

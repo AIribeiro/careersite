@@ -115,6 +115,23 @@ def _assessment_rows(access_token: str, prediction: dict) -> list[dict]:
         })
     return sorted(rows, key=lambda item:item["Interview"], reverse=True)
 
+def _credibility_gradient_101() -> list[str]:
+    """101 exact color stops: 0 green, 50 yellow, 100 red."""
+    green = (22, 163, 74)
+    yellow = (250, 204, 21)
+    red = (220, 38, 38)
+    colors = []
+    for score in range(101):
+        start, end, fraction = (
+            (green, yellow, score / 50.0)
+            if score <= 50 else
+            (yellow, red, (score - 50) / 50.0)
+        )
+        rgb = tuple(round(a + (b - a) * fraction) for a, b in zip(start, end))
+        colors.append("#{0:02x}{1:02x}{2:02x}".format(*rgb))
+    return colors
+
+
 def _pretty_date(value: str | None) -> str:
     if not value:
         return "Not established"
@@ -233,12 +250,29 @@ def render_hiring_prediction_v2(data: dict) -> dict:
                      y=alt.Y("Process:N", sort=None, title=None),
                      x=alt.X("Credibility:Q", title="Relative credibility index",
                              scale=alt.Scale(domain=[0, 100])),
+                     color=alt.Color(
+                         "Credibility:Q",
+                         title="Credibility · green 0 → red 100",
+                         scale=alt.Scale(
+                             type="linear",
+                             domain=list(range(101)),
+                             range=_credibility_gradient_101(),
+                             clamp=True,
+                         ),
+                         legend=alt.Legend(
+                             orient="bottom",
+                             gradientLength=270,
+                             values=[0, 25, 50, 75, 100],
+                         ),
+                     ),
                      tooltip=["Process:N", "Stage:N",
                               alt.Tooltip("Credibility:Q", format=".1f")],
                  ).properties(height=max(150, len(chart_data) * 39)))
         st.altair_chart(chart, width="stretch")
-        st.caption("Scores use the highest documented process stage, senior role-fit "
-                   "category and evidence recency. They are **not** offer probabilities.")
+        st.caption("Bar colors follow 101 one-point steps: green at 0, yellow at 50, "
+                   "red at 100. Scores reflect documented stage, senior role fit, "
+                   "evidence recency and finalized post-interview reviews — **not** "
+                   "offer probabilities.")
 
 
     st.markdown("**Post-interview assessment impact**")

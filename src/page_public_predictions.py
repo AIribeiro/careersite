@@ -163,7 +163,8 @@ def render_public_hiring_predictions() -> None:
     with st.expander("Methodology, market context and limitations", expanded=False):
         st.markdown(
             "**Current model:** Hiring Prediction v2 uses confirmed recruiting "
-            "stages, role alignment and evidence freshness. Its date range is "
+            "stages, role alignment, evidence freshness and finalized post-interview "
+            "assessments. Its date range is "
             "conditional on future successful progression, not an observed "
             "30-, 60- or 90-day chance of getting hired."
         )

@@ -8,6 +8,9 @@ on:
       - "src/thinking_social.py"
       - "src/site_shortlinks.py"
       - "src/weekly_ai_shortlink_registry.json"
+      - "static/weekly-ai/*.png"
+      - "src/weekly_ai_brand_cover.py"
+      - "scripts/generate_weekly_ai_covers.py"
       - "scripts/build_linkedin_share_site.py"
       - "static/thinking-visuals/**"
       - ".github/workflows/linkedin-share-pages.yml"
@@ -101,6 +104,32 @@ jobs:
               else:
                   actual = short_article_link(slug, channel)
               assert actual and actual.endswith(f'/go/{code}/')
+          # The Friday social cover is generated from the immutable approved portrait.
+          # Each registered release must have a matching 1.91:1 branded preview after
+          # the audio/cover workflow commits the approved generated PNG.
+          import json
+          from site_shortlinks import registered_short_links
+          registry = json.loads(Path('src/weekly_ai_shortlink_registry.json').read_text())
+          for edition in registry['editions']:
+              if edition.get('distribution_mode') != 'friday_wrap':
+                  continue
+              slug = edition['slug']
+              cover = Path(f'static/weekly-ai/{slug}.png')
+              if not cover.is_file():
+                  print(f'Friday cover not yet committed for {slug}; using safe fallback')
+                  continue
+              preview = Path(f'_share_site/social/{slug}.png')
+              preview_x = Path(f'_share_site/social-x/{slug}.jpg')
+              assert preview.is_file() and preview_x.is_file(), slug
+              with Image.open(preview) as im:
+                  assert im.format == 'PNG' and im.size == (1200, 627), slug
+              with Image.open(preview_x) as im:
+                  assert im.format == 'JPEG' and im.size == (1200, 600), slug
+              for code, row_slug, _channel, _target in registered_short_links():
+                  if row_slug == slug and code.startswith('f'):
+                      short_markup = Path(f'_share_site/go/{code}/index.html').read_text()
+                      assert f'/social/{slug}.png' in short_markup, code
+                      assert edition['edition_title'] in short_markup, code
           print('Static article redirects, campaign tags, and social assets validated')
           PY
 

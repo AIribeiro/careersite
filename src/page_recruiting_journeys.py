@@ -12,6 +12,7 @@ import streamlit as st
 
 from recruiting_journeys import (
     TZ, as_day, elapsed, journey, cohort_metrics, comparison_rows,
+    recent_interaction_rows,
 )
 from site_cms import _request_json, _rest_url
 
@@ -136,6 +137,58 @@ def _quality_signal(models: list[dict]) -> None:
         "completed interviews only. Missing or estimated application dates and scheduled-but-not-held "
         "interviews never enter completed-process medians."
     )
+
+
+def _latest_activity(models: list[dict], now: datetime) -> None:
+    """Lead with the actual conversations, not elapsed-day abbreviations."""
+    entries = recent_interaction_rows(models, now, past_days=14, future_days=14, limit=40)
+    recently_held = [e for e in entries if e["Status"] == "Completed · confirmed"]
+    scheduled = [e for e in entries if e["Status"].startswith("Scheduled")]
+    changed = [e for e in entries if e["Status"] in ("Cancelled", "Did not take place")]
+
+    st.subheader("Latest interviews and upcoming rounds")
+    st.caption(
+        "Stockholm time · verified dates and attendance. The older comparison below "
+        "now shows explicit interview dates as well as elapsed calendar days."
+    )
+    if recently_held:
+        with st.container(border=True):
+            latest = recently_held[0]
+            st.markdown(
+                f"**Latest completed: {latest['Employer']} — "
+                f"{latest['Date']} at {latest['Time (Stockholm)']}**"
+            )
+            st.caption(
+                f"{latest['Role']} · {latest['Stage']} · Attendance confirmed"
+            )
+    left, right = st.columns(2)
+    with left:
+        st.markdown("**Completed recently**")
+        if recently_held:
+            st.dataframe(
+                [{k: r[k] for k in (
+                    "Date", "Time (Stockholm)", "Employer", "Stage", "Status"
+                )} for r in recently_held[:8]],
+                hide_index=True, use_container_width=True,
+            )
+        else:
+            st.caption("No confirmed interviews in the last 14 days.")
+    with right:
+        st.markdown("**Upcoming**")
+        if scheduled:
+            st.dataframe(
+                [{k: r[k] for k in (
+                    "Date", "Time (Stockholm)", "Employer", "Stage", "Status"
+                )} for r in sorted(scheduled, key=lambda r: r["Date"])[:8]],
+                hide_index=True, use_container_width=True,
+            )
+        else:
+            st.caption("No future interviews documented for the next 14 days.")
+    if changed:
+        st.caption(
+            f"{len(changed)} cancelled or rescheduled appointment(s) in the "
+            "display window are preserved in each role's history, not counted as held."
+        )
 
 
 def _role_detail(model: dict, now: datetime) -> None:
@@ -363,6 +416,8 @@ def render_role_journeys(token: str, meetings: list[dict], now: datetime,
             st.error(f"Hiring-process history is unavailable: {exc}")
             return
     models = [journey(op, meetings, now) for op in opportunities]
+    if models:
+        _latest_activity(models, now)
     _quality_signal(models)
     if not models:
         st.info("No hiring processes are linked yet. Add one below.")
@@ -371,8 +426,14 @@ def render_role_journeys(token: str, meetings: list[dict], now: datetime,
 
     models.sort(
         key=lambda j: (
-            0 if any(e["state"].startswith("Scheduled") for e in j["meeting_events"]) else 1,
-            -(max((e["date"].toordinal() for e in j["events"]), default=0)),
+            # Give the reader's most recent actual interview priority; do not
+            # default to a different employer just because it has a future invite.
+            0 if j["confirmed"] and
+            (now.date() - max(e["date"] for e in j["confirmed"])).days in range(0, 8)
+            else 1 if any(e["state"].startswith("Scheduled") for e in j["meeting_events"])
+            else 2,
+            -(max((e["date"].toordinal() for e in j["confirmed"]),
+                  default=max((e["date"].toordinal() for e in j["meeting_events"]), default=0))),
             j["opportunity"]["employer"],
         )
     )
@@ -390,6 +451,7 @@ def render_role_journeys(token: str, meetings: list[dict], now: datetime,
     _role_detail(map_by_id[selected_id], now)
     with st.expander("Compare timelines across all hiring processes", expanded=True):
         table_rows = comparison_rows(models)
+        st.caption("Round columns show **actual interview date · days since application · evidence status**. When the application date is unknown, the meeting date still appears.")
         st.dataframe(table_rows, hide_index=True, use_container_width=True)
         st.download_button(
             "Export journey comparison (CSV)", data=_export_comparison(table_rows),

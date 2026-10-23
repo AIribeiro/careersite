@@ -9,7 +9,8 @@ from urllib.parse import parse_qs, urlparse
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from site_shortlinks import expand_shortlink, registered_short_links, short_article_link, weekly_ai_short_link
+from site_shortlinks import (expand_shortlink, registered_short_links, short_article_link,
+                             daily_quote_short_link, weekly_ai_short_link)
 
 
 class ShortArticleLinkTests(unittest.TestCase):
@@ -117,12 +118,17 @@ class ShortArticleLinkTests(unittest.TestCase):
         self.assertGreaterEqual(len(rows), 26)
         for code, slug, channel, target in rows:
             with self.subTest(code=code):
-                if code.startswith("w"):
-                    params0 = parse_qs(urlparse(target).query)
+                params0 = parse_qs(urlparse(target).query)
+                role = params0["role"][0]
+                if role == "weeklyai":
                     found = weekly_ai_short_link(
                         slug, channel,
                         campaign=params0["utm_campaign"][0],
                         content=params0["utm_content"][0],
+                    )
+                elif role == "dailyquote":
+                    found = daily_quote_short_link(
+                        slug, channel, campaign=params0["utm_campaign"][0]
                     )
                 else:
                     found = short_article_link(slug, channel)
@@ -135,10 +141,12 @@ class ShortArticleLinkTests(unittest.TestCase):
                 self.assertEqual(params["article"], [slug])
                 self.assertEqual(params["source"], [channel])
                 self.assertEqual(params["utm_source"], [channel])
-                if code.startswith("w"):
+                if role == "weeklyai":
                     self.assertEqual(params["role"], ["weeklyai"])
                     self.assertTrue(params["utm_campaign"][0].startswith("weekly_ai_"))
                     self.assertTrue(params["utm_content"][0])
+                elif role == "dailyquote":
+                    self.assertEqual(params["role"], ["dailyquote"])
                 else:
                     self.assertEqual(params["utm_campaign"], ["thinking"])
                     self.assertEqual(params["utm_content"], [slug])
@@ -173,6 +181,33 @@ class ShortArticleLinkTests(unittest.TestCase):
         )
         self.assertIsNone(weekly_ai_short_link(slug, "x", campaign=campaign, content="unverified"))
         self.assertIsNone(weekly_ai_short_link(slug, "threads", campaign=campaign+"_wednesday", content="physical_ai"))
+
+    def test_friday_week43_has_only_three_edition_level_short_links(self):
+        slug = "weekly-ai-2026-10-23"
+        campaign = "weekly_ai_2026_w43_friday"
+        rows = [row for row in registered_short_links() if row[1] == slug]
+        self.assertEqual(len(rows), 3)
+        for channel, code in (("x", "f202643x"), ("threads", "f202643t"), ("linkedin", "f202643l")):
+            with self.subTest(channel=channel):
+                short = weekly_ai_short_link(
+                    slug, channel, campaign=campaign, content="weekly_perspective"
+                )
+                self.assertEqual(
+                    short, f"https://airibeiro.github.io/careersite/go/{code}/"
+                )
+                target = next(item[3] for item in rows if item[0] == code)
+                params = parse_qs(urlparse(target).query)
+                self.assertEqual(params["page"], ["thinking"])
+                self.assertEqual(params["article"], [slug])
+                self.assertEqual(params["source"], [channel])
+                self.assertEqual(params["utm_source"], [channel])
+                self.assertEqual(params["utm_medium"], ["social"])
+                self.assertEqual(params["utm_campaign"], [campaign])
+                self.assertEqual(params["utm_content"], ["weekly_perspective"])
+                self.assertEqual(params["role"], ["weeklyai"])
+        self.assertIsNone(weekly_ai_short_link(
+            slug, "threads", campaign="weekly_ai_2026_w43", content="agentic_marketing_costs"
+        ))
 
     def test_unregistered_or_attack_codes_do_not_resolve(self):
         for code in (None, "", "invalid", "../", "aa", "do", "dli", "dd",

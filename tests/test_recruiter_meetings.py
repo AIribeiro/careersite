@@ -1,7 +1,7 @@
 """Recruiter calendar evidence, privacy routing and meeting state regressions."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 import inspect
 import sys
@@ -13,7 +13,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from page_recruiter_meetings import _phase, _upcoming, _when, _csv, _cohort
+from page_recruiter_meetings import _phase, _upcoming, _when, _csv, _cohort, _meeting_day
 
 
 class RecruiterMeetingsTests(unittest.TestCase):
@@ -53,6 +53,23 @@ class RecruiterMeetingsTests(unittest.TestCase):
         item = self._record("2026-10-22", attendance="cancelled")
         self.assertEqual(_phase(item, self.now), "Cancelled")
         self.assertFalse(_upcoming(item, self.now))
+
+    def test_response_checkpoint_is_not_a_second_meeting(self):
+        from page_recruiter_meetings import _checkpoint_day
+
+        completed = self._record(
+            "2026-10-23", attendance="attended",
+            follow_up_status="sent", follow_up_due="2026-10-28",
+        )
+        self.assertEqual(_checkpoint_day(completed), date(2026, 10, 28))
+        self.assertEqual(_meeting_day(completed), date(2026, 10, 23))
+        self.assertIsNone(_checkpoint_day({**completed, "follow_up_status": "unknown"}))
+        self.assertIsNone(_checkpoint_day({**completed, "follow_up_due": None}))
+        self.assertIsNone(_checkpoint_day({**completed, "follow_up_due": "invalid"}))
+        self.assertEqual(
+            _checkpoint_day({**completed, "follow_up_status": "pending"}),
+            date(2026, 10, 28),
+        )
 
     def test_csv_excludes_calendar_ids_private_notes(self):
         item = self._record(

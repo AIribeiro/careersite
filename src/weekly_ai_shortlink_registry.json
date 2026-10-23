@@ -23,6 +23,18 @@
         "human_ai_interaction",
         "judgment_bottleneck"
       ]
+    },
+    {
+      "iso_year": 2026,
+      "iso_week": 43,
+      "slug": "weekly-ai-2026-10-23",
+      "distribution_mode": "friday_wrap",
+      "story_keys": [
+        "agentic_marketing_costs",
+        "cross_functional_coordination",
+        "uber_enterprise_rollout",
+        "agent_monitoring_evaluation"
+      ]
     }
   ]
 }

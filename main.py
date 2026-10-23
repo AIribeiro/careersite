@@ -33,11 +33,9 @@ from page_home import home
 from page_impact import impact
 from page_thinking import thinking
 from page_about import about
-from page_certifications import certifications
 from page_contact import contact
 from page_ai_data_governance import ai_data_governance
 from page_analytics_v2 import render_analytics_dashboard
-from site_lenses import enterprise, transformation, governance, consulting
 
 # Expand registered first-party short links before page selection and analytics.
 # The browser's URL becomes the complete native article URL, so both trackers
@@ -53,8 +51,12 @@ if isinstance(PAGE, list):
 PAGE = str(PAGE).lower().strip()
 # Retired Presence page: keep incoming bookmarks working and preserve attribution.
 LEGACY_PRESENCE_LINK = PAGE == "presence"
-if LEGACY_PRESENCE_LINK:
+LEGACY_CREDENTIALS_LINK = PAGE == "certifications"
+LEGACY_LENS_LINK = PAGE in {"enterprise", "transformation", "governance", "consulting"}
+if LEGACY_PRESENCE_LINK or LEGACY_CREDENTIALS_LINK:
     PAGE = "about"
+elif LEGACY_LENS_LINK:
+    PAGE = "impact"
 
 # Preserve historical ?page=admin bookmarks, but use one canonical Analytics
 # page with authenticated private reporting and CMS workspaces.
@@ -84,13 +86,8 @@ TITLES = {
     "impact": "Selected Experience | Jair Ribeiro",
     "thinking": "Articles & Perspectives | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
-    "certifications": "Credentials & Certifications | Jair Ribeiro",
     "contact": "Contact | Jair Ribeiro",
-    "enterprise": "Enterprise AI & Data Leadership | Jair Ribeiro",
-    "transformation": "AI Transformation & Adoption | Jair Ribeiro",
-    "governance": "AI Governance & Operating Model | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
-    "consulting": "Business-Driven AI & Consulting | Jair Ribeiro",
     "analytics": "Portfolio Visits & Reads | Jair Ribeiro",
     "admin": "Article CMS | Jair Ribeiro",
 }
@@ -123,8 +120,10 @@ st.set_page_config(
 if LEGACY_ADMIN_LINK:
     st.query_params["page"] = "analytics"
     st.query_params["workspace"] = "cms"
-if LEGACY_PRESENCE_LINK:
+if LEGACY_PRESENCE_LINK or LEGACY_CREDENTIALS_LINK:
     st.query_params["page"] = "about"
+if LEGACY_LENS_LINK:
+    st.query_params["page"] = "impact"
 
 if PAGE == "analytics":
     render_analytics_dashboard()
@@ -141,13 +140,8 @@ else:
         "impact": impact,
         "thinking": thinking,
         "about": about,
-        "certifications": certifications,
         "contact": contact,
-        "enterprise": enterprise,
-        "transformation": transformation,
-        "governance": governance,
         "ai-data-governance": ai_data_governance,
-        "consulting": consulting,
     }
 
     st.html(CSS + IMAGE_CSS + '<div class="site">' + RENDER[PAGE]() + '</div>')

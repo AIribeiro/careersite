@@ -215,6 +215,59 @@ def cohort_metrics(journeys: list[dict]) -> dict:
     }
 
 
+
+def recent_interaction_rows(
+    journeys: list[dict], now: datetime, *, past_days: int = 14,
+    future_days: int = 14, limit: int = 15,
+) -> list[dict]:
+    """Date-first interview ledger for the Admin front page.
+
+    Includes numbered and unnumbered hiring rounds; distinguishes cancelled
+    and rescheduled invitations from held conversations. It does not rely
+    on application date being known.
+    """
+    results = []
+    for model in journeys:
+        op = model["opportunity"]
+        for row in model["meetings"]:
+            day = as_day(row.get("scheduled_date"))
+            if day is None or not (-past_days <= (day - now.date()).days <= future_days):
+                continue
+            if row.get("meeting_type") not in MEETING_TYPES:
+                continue
+            clock = "Time not recorded"
+            stamp = row.get("starts_at")
+            if stamp:
+                try:
+                    clock = datetime.fromisoformat(
+                        str(stamp).replace("Z", "+00:00")
+                    ).astimezone(TZ).strftime("%H:%M")
+                except (ValueError, TypeError):
+                    pass
+            state = meeting_state(row, now)
+            results.append({
+                "Date": day.isoformat(),
+                "Time (Stockholm)": clock,
+                "Employer": op.get("employer") or row.get("employer") or "Unknown",
+                "Role": op.get("role_title") or "Unknown",
+                "Stage": stage_label(row),
+                "Status": state,
+                "Follow-up": (
+                    row.get("follow_up_due") or "—"
+                    if row.get("follow_up_status") == "pending"
+                    else "—"
+                ),
+                "_date": day,
+                "_rank": (0 if row.get("attendance") == "attended"
+                          else 1 if state.startswith("Scheduled") else 2),
+            })
+    results.sort(key=lambda r: (
+        -r["_date"].toordinal(), r["_rank"], r["Employer"].lower()
+    ))
+    return [{key: value for key, value in r.items() if not key.startswith("_")}
+            for r in results[:limit]]
+
+
 def comparison_rows(journeys: list[dict]) -> list[dict]:
     result = []
     for j in journeys:
@@ -225,11 +278,19 @@ def comparison_rows(journeys: list[dict]) -> list[dict]:
             event = j["by_round"].get(n)
             if not event:
                 return "—"
+            # A day count alone hides the actual interview on a dense dashboard.
+            # Show the verified meeting date even if application timing is unknown.
+            when = event["date"].strftime("%d %b")
             days = event.get("from_application")
-            if days is None:
-                return "Date unknown"
-            suffix = "held" if event["confirmed"] else "planned" if event["state"].startswith("Scheduled") else "unverified"
-            return f"{days} d · {suffix}"
+            duration = f"{days} d" if days is not None else "days unknown"
+            state = event["state"]
+            suffix = (
+                "held" if event["confirmed"] else
+                "planned" if state.startswith("Scheduled") else
+                "cancelled" if state.startswith("Cancelled") else
+                "unverified"
+            )
+            return f"{when} · {duration} · {suffix}"
         result.append({
             "Role": op.get("role_title") or "Unknown",
             "Employer": op.get("employer") or "Unknown",
@@ -238,6 +299,19 @@ def comparison_rows(journeys: list[dict]) -> list[dict]:
             "Round 2": round_metric(2),
             "Highest round": max(j["by_round"]) if j["by_round"] else "Not recorded",
             "Interviews confirmed": len(j["confirmed"]),
+            "Latest held": (
+                max(e["date"] for e in j["confirmed"]).strftime("%d %b %Y")
+                if j["confirmed"] else "—"
+            ),
+            "Next interview": (
+                min(
+                    (e["date"] for e in j["meeting_events"]
+                     if e["state"].startswith("Scheduled")),
+                    default=None,
+                ).strftime("%d %b %Y")
+                if any(e["state"].startswith("Scheduled") for e in j["meeting_events"])
+                else "—"
+            ),
             "Application → offer": (
                 f"{j['days_application_to_offer']} d"
                 if j["days_application_to_offer"] is not None else "—"

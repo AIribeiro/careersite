@@ -218,20 +218,51 @@ jobs:
               else:
                   raise AssertionError(f'Live Friday alias unavailable: {alias}: {last_error}')
 
-          article = f'https://jairribeiro-ai.streamlit.app/?page=thinking&article={slug}'
-          with urlopen(Request(article, headers={'User-Agent':'Weekly-AI-Live-Release-Check/1.0'}), timeout=45) as r:
-              assert r.status == 200, f'Public article route HTTP {r.status}'
-          print(f'ARTICLE ROUTE PASS: {article}', flush=True)
-
-          audio = f'https://jairribeiro-ai.streamlit.app/weekly-ai-audio/{slug}.mp3'
-          req = Request(audio, headers={'Range':'bytes=0-1023','User-Agent':'Weekly-AI-Live-Release-Check/1.0'})
+          # The Streamlit Community Cloud front door uses JS and 303 redirects.
+          # Validate binary audio at its canonical public raw URL here; a
+          # browser step below checks the actual Streamlit article and player.
+          raw_audio = f'https://raw.githubusercontent.com/AIribeiro/careersite/main/static/weekly-ai/{slug}.mp3'
+          req = Request(raw_audio, headers={'User-Agent':'Weekly-AI-Live-Release-Check/1.0'})
           with urlopen(req, timeout=45) as r:
               sample = r.read(1024)
-              mime = r.headers.get('Content-Type', '').split(';')[0].strip()
-              assert r.status in (200, 206), f'Audio route HTTP {r.status}'
-              assert mime == 'audio/mpeg', f'Audio MIME {mime}'
+              assert r.status == 200, f'Audio file HTTP {r.status}'
               assert sample.startswith(b'ID3') or sample.startswith(b'\\xff\\xfb'), 'Invalid MP3 header'
-              if r.status == 206:
-                  assert r.headers.get('Content-Range','').startswith('bytes 0-'), 'Invalid byte range'
-          print(f'AUDIO ROUTE PASS: {audio}', flush=True)
+          print(f'PUBLIC AUDIO FILE PASS: {raw_audio}', flush=True)
+          PY
+
+      - name: Check Friday article and embedded Listen player in real browser
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.56.0
+          python -m playwright install --with-deps chromium
+          python - <<'PY'
+          from datetime import datetime, timedelta
+          from zoneinfo import ZoneInfo
+          from playwright.sync_api import sync_playwright
+          today = datetime.now(ZoneInfo('Europe/Stockholm')).date()
+          friday = today - timedelta(days=(today.weekday() - 4) % 7)
+          year, week, _ = friday.isocalendar()
+          slug = 'weekly-ai-' + friday.isoformat()
+          alias = f'https://airibeiro.github.io/careersite/go/f{year}{week:02d}x/'
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True, args=['--no-sandbox'])
+              page = browser.new_page(viewport={'width': 1300, 'height': 900})
+              response = page.goto(alias, wait_until='domcontentloaded', timeout=90000)
+              assert response is not None and response.status == 200, 'Friday alias did not serve HTTP 200'
+              frame = None
+              for attempt in range(20):
+                  page.wait_for_timeout(3000)
+                  frame = next((f for f in page.frames if '/~/+/' in f.url), None)
+                  if frame: break
+              assert frame is not None, f'Streamlit app frame missing: {[f.url for f in page.frames]}'
+              print('FRIDAY APP FRAME:', frame.url, flush=True)
+              frame.get_by_text('Faster Tools, Harder Decisions', exact=False).first.wait_for(state='visible', timeout=70000)
+              body = frame.locator('body').inner_text(timeout=15000)
+              assert '19–23 October 2026' in body or '19-23 October 2026' in body, 'Friday date range missing'
+              assert 'Harvard Business Review' in body and 'Reuters' in body, 'Original sources not displayed'
+              players = frame.locator('audio')
+              assert players.count() >= 1, 'Published audio player missing'
+              src = players.first.get_attribute('src') or ''
+              assert slug in src, f'Audio player points to wrong edition: {src}'
+              print('FRIDAY ARTICLE + AUDIO PLAYER LIVE PASS:', slug, src, flush=True)
+              browser.close()
           PY

@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/live-article-shortlinks.yml'
+      - 'static/weekly-ai/**'
+      - 'src/weekly_ai_audio.py'
+      - 'src/weekly_ai_shortlink_registry.json'
   workflow_run:
     workflows: ["Social Share Pages"]
     types: [completed]
@@ -15,7 +18,7 @@ permissions:
 
 jobs:
   live-browser-check:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -259,8 +262,21 @@ jobs:
               body = frame.locator('body').inner_text(timeout=15000)
               assert '19–23 October 2026' in body or '19-23 October 2026' in body, 'Friday date range missing'
               assert 'Harvard Business Review' in body and 'Reuters' in body, 'Original sources not displayed'
+              # Streamlit Cloud may need several minutes to pick up the new
+              # GitHub MP3 commit; do not confuse deploy lag with synthesis loss.
               players = frame.locator('audio')
-              assert players.count() >= 1, 'Published audio player missing'
+              for retry in range(16):
+                  if players.count() >= 1:
+                      break
+                  print(f'Audio not yet deployed; retry {retry + 1}/16', flush=True)
+                  page.wait_for_timeout(15000)
+                  page.reload(wait_until='domcontentloaded', timeout=90000)
+                  page.wait_for_timeout(5000)
+                  frame = next((f for f in page.frames if '/~/+/' in f.url), None)
+                  if frame is None:
+                      continue
+                  players = frame.locator('audio')
+              assert frame is not None and players.count() >= 1, 'Published MP3 exists but Streamlit Listen player has not deployed'
               src = players.first.locator('source').first.get_attribute('src') or ''
               assert slug in src, f'Audio player points to wrong edition: {src}'
               print('FRIDAY ARTICLE + AUDIO PLAYER LIVE PASS:', slug, src, flush=True)

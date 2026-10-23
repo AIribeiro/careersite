@@ -34,6 +34,25 @@ def _weekly_header_image_uri() -> str:
 
 
 
+
+def _edition_cover_html(slug: str) -> str:
+    """Show a committed, approved Friday edition image; never a guessed URL."""
+    if not re.fullmatch(r"weekly-ai-\d{4}-\d{2}-\d{2}", str(slug)):
+        return ""
+    file = Path(__file__).resolve().parents[1] / "static" / "weekly-ai" / f"{slug}.png"
+    if not file.is_file() or file.stat().st_size < 2048:
+        return ""
+    payload = base64.b64encode(file.read_bytes()).decode("ascii")
+    return (
+        '<figure class="weekly-ai-edition-cover" aria-label="Weekly AI branded edition header">'
+        '<img alt="WEEKLY AI Friday leadership perspective — '
+        + escape(slug, quote=True)
+        + '" width="1200" height="627" loading="eager" decoding="async"'
+        + ' src="data:image/png;base64,' + payload + '"></figure>'
+    )
+
+
+
 def is_weekly_brief(article: "CmsArticle") -> bool:
     """Only the dedicated weekly news format is lifted from the regular essay feed."""
     return (
@@ -175,6 +194,8 @@ WEEKLY_CSS = """
 .weekly-ai-audio audio{width:100%;min-height:45px}
 .weekly-ai-audio p{font-size:12px!important;color:#5a6975!important;line-height:1.45!important;margin:12px 0 0!important}
 .weekly-ai-reader{max-width:840px;margin:auto;padding:40px 0 60px}
+.weekly-ai-edition-cover{margin:10px 0 26px;border:1px solid #cdb9a4;background:#0d1929;overflow:hidden}
+.weekly-ai-edition-cover img{display:block;width:100%;height:auto;aspect-ratio:1200/627;object-fit:contain}
 .weekly-ai-back{font-size:12px;color:#506073!important;text-decoration:none!important}
 .weekly-ai-label{margin:27px 0 11px;color:#9d643e;font-size:12px;font-weight:850;
   letter-spacing:.11em;text-transform:uppercase}
@@ -386,6 +407,7 @@ def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str
         '<div class="weekly-ai-bylines">' + escape(_english_range(start, end))
         + ' · 1 min read · ' + article_read_count_label(article.slug, read_counts)
         + ' · Curated by ' + escape(article.author_name) + '</div>'
+        + _edition_cover_html(article.slug)
         + audio_player_html(article.slug)
         + '<article class="weekly-ai-body">' + article.content_html
         + '<p class="weekly-ai-source-note">Personally curated by Jair Ribeiro. I review the reporting, choose the developments '

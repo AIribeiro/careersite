@@ -258,10 +258,10 @@ jobs:
                   if frame: break
               assert frame is not None, f'Streamlit app frame missing: {[f.url for f in page.frames]}'
               print('FRIDAY APP FRAME:', frame.url, flush=True)
-              frame.get_by_text('Faster Tools, Harder Decisions', exact=False).first.wait_for(state='visible', timeout=70000)
-              body = frame.locator('body').inner_text(timeout=15000)
-              assert '19–23 October 2026' in body or '19-23 October 2026' in body, 'Friday date range missing'
-              assert 'Harvard Business Review' in body and 'Reuters' in body, 'Original sources not displayed'
+              frame.get_by_text(f'Week {week}', exact=False).first.wait_for(state='visible', timeout=70000)
+              frame.get_by_text('Leadership signal', exact=False).first.wait_for(state='visible', timeout=15000)
+              links = frame.locator('.weekly-ai-body a[href^="https://"]')
+              assert 3 <= links.count() <= 5, f'Expected 3–5 original source links, got {links.count()}'
               # Streamlit Cloud may need several minutes to pick up the new
               # GitHub MP3 commit; do not confuse deploy lag with synthesis loss.
               players = frame.locator('audio')

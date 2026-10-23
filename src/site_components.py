@@ -15,7 +15,6 @@ ROLE_LENSES = {
 ABOUT_PAGES = {
     "about": "About",
     "certifications": "Credentials & Certifications",
-    "presence": "Speaking & Publications",
 }
 
 CV_DOWNLOAD_NAME = "Jair_Ribeiro_CV.pdf"

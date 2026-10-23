@@ -279,7 +279,7 @@ def inject_weekly_brief_landing(
         '<div class="weekly-ai-brand-eyebrow">THINKING · QUICK CONTEXT</div>'
         '<h2>WEEKLY <span>AI</span></h2>'
         '<p class="weekly-ai-brand-strap">A Friday perspective · one minute</p>'
-        '<p class="weekly-ai-brand-intro">What this week's AI developments mean for leaders, with original sources and one practical perspective. New every Friday evening.</p>'
+        '<p class="weekly-ai-brand-intro">What this week’s AI developments mean for leaders, with original sources and one practical perspective. New every Friday evening.</p>'
         '</div>'
         + ('<img class="weekly-ai-brand-art" src="' + _weekly_header_image_uri() 
            + '" alt="AI briefing artwork: digital globe and modern laptop in a workplace" loading="eager" decoding="async">'

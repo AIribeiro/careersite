@@ -1,6 +1,10 @@
 name: Verify live article short links
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-article-shortlinks.yml'
   workflow_run:
     workflows: ["Social Share Pages"]
     types: [completed]
@@ -168,3 +172,66 @@ jobs:
           name: live-shortlink-diagnostics
           path: live-link-diagnostics/
           if-no-files-found: ignore
+
+
+  friday-live-redirects:
+    if: github.event_name == 'push' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify current Friday live aliases, article destination, and audio endpoint
+        run: |
+          python - <<'PY'
+          import html
+          import time
+          from datetime import datetime, timedelta
+          from urllib.request import Request, urlopen
+          from zoneinfo import ZoneInfo
+
+          today = datetime.now(ZoneInfo('Europe/Stockholm')).date()
+          friday = today - timedelta(days=(today.weekday() - 4) % 7)
+          iso_year, iso_week, _ = friday.isocalendar()
+          slug = 'weekly-ai-' + friday.isoformat()
+          campaign = f'weekly_ai_{iso_year}_w{iso_week}_friday'
+          prefix = f'f{iso_year}{iso_week:02d}'
+          base = 'https://airibeiro.github.io/careersite/go'
+          for suffix, channel in (('x', 'x'), ('t', 'threads'), ('l', 'linkedin')):
+              alias = f'{base}/{prefix}{suffix}/'
+              last_error = None
+              for attempt in range(6):
+                  try:
+                      req = Request(alias, headers={'User-Agent': 'Weekly-AI-Live-Release-Check/1.0'})
+                      with urlopen(req, timeout=25) as response:
+                          body = html.unescape(response.read().decode('utf-8'))
+                          assert response.status == 200, f'HTTP {response.status}'
+                      for required in (slug, 'page=thinking', 'article=' + slug,
+                                       'utm_campaign=' + campaign, 'utm_content=weekly_perspective',
+                                       'utm_source=' + channel, 'role=weeklyai',
+                                       'window.location.replace'):
+                          assert required in body, f'Missing {required}'
+                      print(f'LIVE PASS {channel}: {alias}', flush=True)
+                      break
+                  except Exception as exc:
+                      last_error = exc
+                      print(f'RETRY {channel} {attempt+1}: {exc}', flush=True)
+                      if attempt < 5: time.sleep(12)
+              else:
+                  raise AssertionError(f'Live Friday alias unavailable: {alias}: {last_error}')
+
+          article = f'https://jairribeiro-ai.streamlit.app/?page=thinking&article={slug}'
+          with urlopen(Request(article, headers={'User-Agent':'Weekly-AI-Live-Release-Check/1.0'}), timeout=45) as r:
+              assert r.status == 200, f'Public article route HTTP {r.status}'
+          print(f'ARTICLE ROUTE PASS: {article}', flush=True)
+
+          audio = f'https://jairribeiro-ai.streamlit.app/weekly-ai-audio/{slug}.mp3'
+          req = Request(audio, headers={'Range':'bytes=0-1023','User-Agent':'Weekly-AI-Live-Release-Check/1.0'})
+          with urlopen(req, timeout=45) as r:
+              sample = r.read(1024)
+              mime = r.headers.get('Content-Type', '').split(';')[0].strip()
+              assert r.status in (200, 206), f'Audio route HTTP {r.status}'
+              assert mime == 'audio/mpeg', f'Audio MIME {mime}'
+              assert sample.startswith(b'ID3') or sample.startswith(b'\\xff\\xfb'), 'Invalid MP3 header'
+              if r.status == 206:
+                  assert r.headers.get('Content-Range','').startswith('bytes 0-'), 'Invalid byte range'
+          print(f'AUDIO ROUTE PASS: {audio}', flush=True)
+          PY

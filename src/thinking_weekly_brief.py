@@ -57,15 +57,19 @@ def _issue_date(article: "CmsArticle") -> date:
 def edition_week(article: "CmsArticle") -> tuple[int, int, date, date]:
     """ISO 8601 week *covered* by the briefing.
 
-    Monday publications report the completed previous week. The pilot was
-    published on Sunday 2026-10-11 and therefore covers ISO week 41 itself.
+    Legacy Monday publications report the previous completed week. From Friday
+    2026-10-23 onward, new Friday editions cover Monday through Friday of the
+    SAME ISO calendar week; earlier publications retain their original ranges.
     ISO week-year is distinct from Gregorian publication year near New Year.
     """
     publication_date = _issue_date(article)
     covered = publication_date - timedelta(days=1) if publication_date.weekday() == 0 else publication_date
     monday = covered - timedelta(days=covered.weekday())
     iso_year, iso_week, _ = monday.isocalendar()
-    return iso_year, iso_week, monday, monday + timedelta(days=6)
+    # The Friday-perspective cadence began on 23 October 2026.
+    # Keep the previous Monday/Sunday editions' original seven-day ranges.
+    friday_edition = publication_date >= date(2026, 10, 23) and publication_date.weekday() == 4
+    return iso_year, iso_week, monday, publication_date if friday_edition else monday + timedelta(days=6)
 
 
 def _english_range(start: date, end: date, *, include_year: bool = True) -> str:
@@ -274,8 +278,8 @@ def inject_weekly_brief_landing(
         '<div class="weekly-ai-brand-copy">'
         '<div class="weekly-ai-brand-eyebrow">THINKING · QUICK CONTEXT</div>'
         '<h2>WEEKLY <span>AI</span></h2>'
-        '<p class="weekly-ai-brand-strap">A one-minute briefing</p>'
-        '<p class="weekly-ai-brand-intro">Selected AI developments, original sources and practical leadership context. A new edition every week.</p>'
+        '<p class="weekly-ai-brand-strap">A Friday perspective · one minute</p>'
+        '<p class="weekly-ai-brand-intro">What this week's AI developments mean for leaders, with original sources and one practical perspective. New every Friday evening.</p>'
         '</div>'
         + ('<img class="weekly-ai-brand-art" src="' + _weekly_header_image_uri() 
            + '" alt="AI briefing artwork: digital globe and modern laptop in a workplace" loading="eager" decoding="async">'
@@ -283,7 +287,7 @@ def inject_weekly_brief_landing(
         + '</div>'
         '<div class="weekly-ai-feature">'
         '<div class="weekly-ai-main">'
-        '<div class="weekly-ai-overline"><span aria-hidden="true"></span> WEEKLY AI · QUICK CONTEXT</div>'
+        '<div class="weekly-ai-overline"><span aria-hidden="true"></span> WEEKLY AI · FRIDAY PERSPECTIVE</div>'
         '<h3>Latest edition.</h3>'
         '<p class="weekly-ai-headline">' + escape(_headline(latest)) + '</p>'
         '<p class="weekly-ai-description">' + escape(latest.excerpt or latest.subtitle) + '</p>'

@@ -20,6 +20,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 ROOT = Path(__file__).resolve().parents[1]
 PORTRAIT_SOURCE = ROOT / "data" / "weekly_ai_visual" / "approved_portrait.webp.b64"
 PORTRAIT_SHA256 = "afd5f9949851e3dc0ed556941b7d8528f5aa4d90c055bf3105998625c215fb94"
+APPROVED_WEEK43_SOURCE = ROOT / "data" / "weekly_ai_visual" / "week43_approved_original.webp.b64"
+APPROVED_WEEK43_SHA256 = "109fe0accb9a208b666bc2898821d9fd618dc6d402d47fa3e830d21b7203ca94"
 SIZE = (1200, 627)
 NAVY = (8, 21, 37)
 COPPER = (224, 149, 106)
@@ -51,6 +53,17 @@ def _load_portrait(source: Path = PORTRAIT_SOURCE) -> Image.Image:
         raise ValueError("Approved WEEKLY AI photo digest mismatch; no replacement allowed")
     with Image.open(BytesIO(raw)) as im:
         return im.convert("RGB")
+
+
+def approved_week43_image() -> Image.Image:
+    """Preserve the exact visually approved edition instead of approximating it."""
+    raw = b64decode("".join(APPROVED_WEEK43_SOURCE.read_text(encoding="ascii").split()), validate=True)
+    if sha256(raw).hexdigest() != APPROVED_WEEK43_SHA256:
+        raise ValueError("The author-approved Week 43 visual has changed unexpectedly")
+    with Image.open(BytesIO(raw)) as image:
+        if image.size != SIZE:
+            raise ValueError("Wrong approved Week 43 LinkedIn cover dimensions")
+        return image.convert("RGB")
 
 
 def _background() -> Image.Image:
@@ -110,6 +123,10 @@ def render_friday_cover(*, iso_year: int, iso_week: int, title: str,
     subtitle = re.sub(r"\s+", " ", subtitle).strip()
     if not (8 <= len(title) <= 95 and 8 <= len(subtitle) <= 70):
         raise ValueError("Unsafe or missing Weekly AI headline/subtitle")
+    if (int(iso_year), int(iso_week), title, subtitle) == (
+        2026, 43, "Faster Tools, Harder Decisions", "Friday perspective · one minute"
+    ):
+        return approved_week43_image()
     canvas=_background()
     _constellation(canvas)
     portrait=ImageOps.fit(_load_portrait(photo_source),(485,627),method=Image.Resampling.LANCZOS,centering=(.48,.5))

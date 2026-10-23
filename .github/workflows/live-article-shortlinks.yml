@@ -261,7 +261,7 @@ jobs:
               assert 'Harvard Business Review' in body and 'Reuters' in body, 'Original sources not displayed'
               players = frame.locator('audio')
               assert players.count() >= 1, 'Published audio player missing'
-              src = players.first.get_attribute('src') or ''
+              src = players.first.locator('source').first.get_attribute('src') or ''
               assert slug in src, f'Audio player points to wrong edition: {src}'
               print('FRIDAY ARTICLE + AUDIO PLAYER LIVE PASS:', slug, src, flush=True)
               browser.close()

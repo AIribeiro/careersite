@@ -11,8 +11,9 @@ on:
       - 'scripts/normalize_weekly_ai_audio.py'
       - '.github/workflows/weekly-ai-audio.yml'
   schedule:
-    # Run after the Monday editorial automation and retry Tuesday.
-    - cron: '25 12 * * 1,2'
+    # Friday after editorial release; retry Saturday if the script/CMS was late.
+    # UTC scheduling follows DST-safe pushes; this is a fallback, not the main trigger.
+    - cron: '25 19 * * 5,6'
   workflow_dispatch:
 
 permissions:
@@ -54,8 +55,9 @@ jobs:
           from urllib import request, parse
           import json, os
           today = datetime.now(ZoneInfo('Europe/Stockholm')).date()
-          monday = today - timedelta(days=today.weekday())
-          slug = 'weekly-ai-' + monday.isoformat()
+          # Validate the latest Friday issue, not a legacy Monday publication.
+          friday = today - timedelta(days=(today.weekday() - 4) % 7)
+          slug = 'weekly-ai-' + friday.isoformat()
           query = parse.urlencode({'select':'slug,status','slug':'eq.'+slug,'status':'eq.published'})
           req = request.Request(os.environ['SUPABASE_URL']+'/rest/v1/careersite_articles?'+query,headers={'apikey':os.environ['SUPABASE_PUBLISHABLE_KEY']})
           rows = json.load(request.urlopen(req,timeout=30))

@@ -262,6 +262,23 @@ jobs:
               frame.get_by_text('Leadership signal', exact=False).first.wait_for(state='visible', timeout=15000)
               links = frame.locator('.weekly-ai-body a[href^="https://"]')
               assert 3 <= links.count() <= 5, f'Expected 3–5 original source links, got {links.count()}'
+              # Check the published issue appears in both the Thinking feature
+              # and the ISO-week archive, not just at a direct article route.
+              for section_url, section_name in (
+                  ('https://jairribeiro-ai.streamlit.app/?page=thinking', 'Thinking'),
+                  ('https://jairribeiro-ai.streamlit.app/?page=thinking&weekly_ai=archive', 'Archive'),
+              ):
+                  section = browser.new_page(viewport={'width': 1300, 'height': 900})
+                  section.goto(section_url, wait_until='domcontentloaded', timeout=90000)
+                  for attempt in range(20):
+                      section.wait_for_timeout(2500)
+                      section_frame = next((f for f in section.frames if '/~/+/' in f.url), None)
+                      if section_frame and section_frame.get_by_text(f'Week {week}', exact=False).count():
+                          print(f'FRIDAY {section_name.upper()} LIVE PASS: Week {week}', flush=True)
+                          break
+                  else:
+                      raise AssertionError(f'Week {week} not visible in {section_name}')
+                  section.close()
               # Streamlit Cloud may need several minutes to pick up the new
               # GitHub MP3 commit; do not confuse deploy lag with synthesis loss.
               players = frame.locator('audio')

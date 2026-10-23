@@ -167,7 +167,7 @@ def _weekly_ai_shortlinks() -> tuple[tuple[str, str, str, str, str, str], ...]:
             # One full-week leadership interpretation, not one post per news item.
             # Historic daily-story and Wednesday codes remain exactly as issued.
             friday_campaign = campaign + "_friday"
-            for suffix, channel in (("x", "x"), ("t", "threads"), ("l", "linkedin"), ("w", "whatsapp")):
+            for suffix, channel in (("x", "x"), ("t", "threads"), ("l", "linkedin"), ("w", "whatsapp"), ("f", "facebook")):
                 code = f"f{year}{week:02d}{suffix}"
                 if code in seen:
                     raise ValueError("Duplicate permanent Friday short code: " + code)

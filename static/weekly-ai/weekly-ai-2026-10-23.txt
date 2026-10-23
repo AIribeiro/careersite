@@ -1,0 +1,11 @@
+Welcome to Weekly A I, the Friday perspective from my A I and Data Portfolio. This week, a common question runs through four developments: is the organization changing as quickly as its technology?
+
+Harvard Business Review described why agentic marketing can become more expensive before it becomes efficient. Teams must turn expert decisions into clear rules and connect the work, while keeping existing operations running.
+
+In another Harvard Business Review analysis, researchers argued that faster work inside individual functions does not remove coordination problems between them.
+
+OpenAI announced that Uber is extending ChatGPT Work from a pilot of one thousand staff to more than thirty thousand employees. That is a significant deployment decision, but deployment alone is not evidence of a productivity gain.
+
+And Reuters reported that independent evaluators found potential gaps in OpenAI's agent monitoring. OpenAI says production fixes were made, though the evaluators had not verified them.
+
+My takeaway is that leading enterprise A I means treating workflow design, decision rights and oversight as core capabilities, not follow-up tasks. The written edition links to the original sources.

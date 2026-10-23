@@ -594,8 +594,8 @@ def render_recruiter_meetings(session: dict) -> None:
     if imported:
         stamp = max(imported)
         st.caption(
-            "Outlook calendar snapshot captured " + str(stamp)[:16].replace("T", " ") +
-            " UTC. This page does not have a live calendar connector: new or changed invitations "
+            "Most recently checked Outlook calendar record: " + str(stamp)[:16].replace("T", " ") +
+            " UTC. This is not a full mailbox sync: new or changed invitations "
             "must be imported or entered, and statuses checked against recruiting correspondence."
         )
 

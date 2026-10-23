@@ -1,4 +1,16 @@
-# Weekly AI · One-minute briefing
+# Weekly AI · Friday leadership perspective
+
+## Current Friday editorial contract — effective 23 October 2026
+
+This section is **authoritative** wherever older text below describes Monday publication, previous Monday–Sunday coverage, daily social rotation or Wednesday sharing. Those rules are historical and must not be applied to editions from Week 43 onward.
+
+- **Release**: Every Friday at **19:00 Europe/Stockholm**, beginning **23 October 2026**. Week 43 covers **Monday 19–Friday 23 October 2026** and has slug `weekly-ai-2026-10-23`. Publication date and covered ISO week are both within the *same week*. No Saturday/Sunday claims; the news cutoff is the Friday release time. The ISO week label remains Week 43 · 2026. Pre-23 October editions and their metadata are preserved.
+- **Writing position**: A personally voiced but evidence-grounded Friday *leadership wrap*: one coherent enterprise AI judgment connecting 3–5 dated and independently verified reports from this week's Monday–Friday, not a sequence of social hooks or a generic automated news digest. First-person language expresses an editorial leadership perspective only; never manufacture Jair's own reading, research, reporting or approval.
+- **Public edition**: A 140–190-word concise original article with short context, 3–5 independently attributed facts and direct publisher links, then a first-person **Leadership signal** translating events into ownership, operating model, adoption, responsible AI, human judgment and tangible value. The portfolio's familiar one-minute experience and archival classification remain.
+- **Audio**: Separate bespoke spoken-first script, approximately 160–195 words / 60–90 seconds, exactly one 'my A I and Data Portfolio' mention, valid first-person takeaway, natural pronunciation and transitions, verified sources. Save `data/weekly_ai_audio_scripts/<Friday-slug>.txt`; the existing audio workflow runs on script push and Friday/Saturday UTC retry. Do not announce audio until the MP3 and transcript have been published and checked. Never remove or silently regenerate archived recordings.
+- **Social distribution**: On Friday at **20:00 Europe/Stockholm**, one coherent *edition-level* X, Threads and LinkedIn wrap, in three native versions. No Tuesday–Saturday story rotation or Wednesday launch. Never auto-post to social networks. One immutable channel-specific short link per platform with `source=x|threads|linkedin`, `role=weeklyai`, `utm_campaign=weekly_ai_<ISO_YEAR>_w<WEEK>_friday` and `utm_content=weekly_perspective`. All short links resolve via the existing verified GitHub Pages first-party redirect mechanism to the current Friday article. Do not invent or display unverified codes. Old tracking and aliases are immutable.
+- **One issue per week**: Check Supabase `public.careersite_articles` in project `rnqweoxtynelfirffmlr` for a published issue matching ISO week and slug before any insert. Never duplicate, overwrite or rewrite historical issues. Failure of a verification stage is a reported blocker, not permission to fabricate success.
+
 
 ## Editorial contract
 
@@ -9,7 +21,7 @@ The dedicated **Weekly AI** feature is the first editorial section immediately b
 - **Category:** \`Weekly AI\`
 - **Slug:** `weekly-ai-YYYY-MM-DD` using the local Stockholm publication date.
 - **Week identity:** **ISO 8601** calendar week (Monday–Sunday), for the **covered news period**, not the Monday publication week. Display **Week N · YYYY** and an English-language date range in the feature, reader and archive. Compute the week-year with `date.isocalendar()`; do not assume publication year equals ISO week-year at New Year.
-- **Weekly scheduling:** Monday issue date refers to the just-completed Monday–Sunday week. For example, publication 2026-10-19 covers `Week 42 · 2026` (12–18 October 2026). The Sunday pilot publication 2026-10-11 covers `Week 41 · 2026` (5–11 October 2026).
+- **Weekly scheduling:** Starting 23 October 2026, Friday issue date covers **the current Monday–Friday window**, not the completed previous week. Week 43 covers 19–23 October, slug `weekly-ai-2026-10-23`. The Monday Week 42 and Sunday Week 41 examples are preserved as archival cases.
 - **Length:** 110–165 body words, excluding source URLs; \`read_minutes=1\`.
 - **Items:** 3–5 verified items, each a title-like clause, one explanatory sentence and one publisher link.
 - **Closing:** one synthesis labeled **Leadership signal**, distinguishing interpretation from reporting.

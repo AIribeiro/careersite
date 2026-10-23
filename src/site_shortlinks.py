@@ -162,6 +162,27 @@ def _weekly_ai_shortlinks() -> tuple[tuple[str, str, str, str, str, str], ...]:
         if not 3 <= len(keys) <= 5 or len(keys) != len(set(keys)):
             raise ValueError("Weekly AI needs 3–5 distinct verified story keys")
         campaign = f"weekly_ai_{year}_w{week}"
+        distribution_mode = edition.get("distribution_mode", "daily_story")
+        if distribution_mode == "friday_wrap":
+            # One full-week leadership interpretation, not one post per news item.
+            # Historic daily-story and Wednesday codes remain exactly as issued.
+            friday_campaign = campaign + "_friday"
+            for suffix, channel in (("x", "x"), ("t", "threads"), ("l", "linkedin")):
+                code = f"f{year}{week:02d}{suffix}"
+                if code in seen:
+                    raise ValueError("Duplicate permanent Friday short code: " + code)
+                target = make_distribution_link(
+                    f"{PUBLIC_SITE}/?page=thinking&article={slug}",
+                    channel=channel,
+                    campaign=friday_campaign,
+                    content="weekly_perspective",
+                    role="weeklyai",
+                )
+                rows.append((code, slug, channel, friday_campaign, "weekly_perspective", target))
+                seen.add(code)
+            continue
+        if distribution_mode != "daily_story":
+            raise ValueError("Unsupported Weekly AI distribution mode")
         for position, story in enumerate(keys, 1):
             if not re.fullmatch(r"[a-z0-9][a-z0-9_]{0,79}", story):
                 raise ValueError("Invalid Weekly AI story key")

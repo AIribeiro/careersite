@@ -15,6 +15,9 @@ from page_content_intelligence import (
 )
 from portfolio_signal_brief import ranked_portfolio_signals
 from page_home_journey import render_home_journey
+
+# Routes retired in the October 2026 six-page navigation redesign.
+RETIRED_ROUTES = {"presence", "certifications", "enterprise", "transformation", "governance", "consulting"}
 from site_cms import fetch_published_articles
 from thinking_weekly_brief import edition_label, is_weekly_brief
 
@@ -32,6 +35,8 @@ def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
             continue
         content = str(row.get("content") or "")
         label = _article_title(content) if kind == "article" else content_label(content)
+        if kind == "page" and content in RETIRED_ROUTES:
+            label += " · retired route"
         values.append({
             "Content": label,
             "Slug": content,
@@ -133,6 +138,8 @@ def render_public_portfolio_overview() -> None:
         return
 
     pages = portfolio_visit_rows(report, "page")
+    historical_routes = [row for row in pages if row["Slug"] in RETIRED_ROUTES]
+    current_routes = [row for row in pages if row["Slug"] not in RETIRED_ROUTES]
     articles = portfolio_visit_rows(report, "article")
     quality = report.get("quality") or {}
     page_views = max(0, int(quality.get("page_views") or 0))
@@ -153,6 +160,11 @@ def render_public_portfolio_overview() -> None:
     weekly_item_sessions = sum(row["Sessions"] for row in weekly_editions)
     rows_reconcile = regular_views + weekly_views == article_views
 
+    st.caption("Portfolio structure changed on 23 October 2026: six public destinations now replace the former nested navigation. Selected windows spanning that date mix two different navigation designs; compare journeys on complete days within each design, not raw historical page rankings.")
+    if historical_routes:
+        with st.expander("Historical routes in this reporting window", expanded=False):
+            st.caption("These retired routes are preserved as historical observations. Their older views are not silently reassigned to About or Experience; new visits through legacy links are attributed to the destination actually rendered.")
+            st.dataframe([{"Former destination": row["Content"], "Recorded views": row["Views"], "Page sessions": row["Sessions"]} for row in historical_routes], hide_index=True, use_container_width=True)
     # Identical card heights and chart heights; 3 columns on desktop,
     # Streamlit naturally stacks them for narrow/mobile viewports.
     pages_col, articles_col, weekly_col = st.columns(3, gap="medium")
@@ -160,9 +172,9 @@ def render_public_portfolio_overview() -> None:
         with st.container(border=True, height=510):
             st.markdown("#### Portfolio visits")
             st.metric("Page views", f"{page_views:,}")
-            st.caption(f"{page_sessions:,} page-view sessions · {len(pages)} visited pages")
+            st.caption(f"{page_sessions:,} page-view sessions · {len(current_routes)} active destinations with recorded views")
             st.markdown("**Pages receiving attention**")
-            _ranking_chart(pages, compact=True)
+            _ranking_chart(current_routes, compact=True)
     with articles_col:
         with st.container(border=True, height=510):
             st.markdown("#### Article readership")

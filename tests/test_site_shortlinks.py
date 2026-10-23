@@ -182,12 +182,12 @@ class ShortArticleLinkTests(unittest.TestCase):
         self.assertIsNone(weekly_ai_short_link(slug, "x", campaign=campaign, content="unverified"))
         self.assertIsNone(weekly_ai_short_link(slug, "threads", campaign=campaign+"_wednesday", content="physical_ai"))
 
-    def test_friday_week43_has_only_three_edition_level_short_links(self):
+    def test_friday_week43_has_four_platform_specific_short_links(self):
         slug = "weekly-ai-2026-10-23"
         campaign = "weekly_ai_2026_w43_friday"
         rows = [row for row in registered_short_links() if row[1] == slug]
-        self.assertEqual(len(rows), 3)
-        for channel, code in (("x", "f202643x"), ("threads", "f202643t"), ("linkedin", "f202643l")):
+        self.assertEqual(len(rows), 4)
+        for channel, code in (("x", "f202643x"), ("threads", "f202643t"), ("linkedin", "f202643l"), ("whatsapp", "f202643w")):
             with self.subTest(channel=channel):
                 short = weekly_ai_short_link(
                     slug, channel, campaign=campaign, content="weekly_perspective"
@@ -201,7 +201,7 @@ class ShortArticleLinkTests(unittest.TestCase):
                 self.assertEqual(params["article"], [slug])
                 self.assertEqual(params["source"], [channel])
                 self.assertEqual(params["utm_source"], [channel])
-                self.assertEqual(params["utm_medium"], ["social"])
+                self.assertEqual(params["utm_medium"], ["messaging" if channel == "whatsapp" else "social"])
                 self.assertEqual(params["utm_campaign"], [campaign])
                 self.assertEqual(params["utm_content"], ["weekly_perspective"])
                 self.assertEqual(params["role"], ["weeklyai"])

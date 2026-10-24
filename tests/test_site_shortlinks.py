@@ -113,6 +113,32 @@ class ShortArticleLinkTests(unittest.TestCase):
                     "utm_content": slug,
                 })
 
+    def test_gothenburg_ai_innovation_links_preserve_channel_tracking(self):
+        slug = "the-ai-innovation-future-i-see-from-gothenburg"
+        expected = {
+            "linkedin": ("gl", "social"),
+            "x": ("gx", "social"),
+            "threads": ("gt", "social"),
+            "facebook": ("gf", "social"),
+            "whatsapp": ("gw", "messaging"),
+        }
+        for channel, (code, medium) in expected.items():
+            with self.subTest(channel=channel):
+                self.assertEqual(
+                    short_article_link(slug, channel),
+                    f"https://airibeiro.github.io/careersite/go/{code}/",
+                )
+                self.assertEqual(expand_shortlink(code), {
+                    "page": "thinking",
+                    "article": slug,
+                    "source": channel,
+                    "role": "article",
+                    "utm_source": channel,
+                    "utm_medium": medium,
+                    "utm_campaign": "thinking",
+                    "utm_content": slug,
+                })
+
     def test_registered_static_redirect_targets_preserve_campaigns(self):
         rows = registered_short_links()
         self.assertGreaterEqual(len(rows), 26)

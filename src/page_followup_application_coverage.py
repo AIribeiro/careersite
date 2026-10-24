@@ -10,7 +10,7 @@ from datetime import date
 import streamlit as st
 from site_cms import _request_json, _rest_url
 
-_VIEW = "careersite_followup_engaged_v1"
+_VIEW = "careersite_followup_engaged_status_v1"
 _PRIORITY = {
     "follow_up_now": 0, "review_due": 1, "upcoming": 2,
     "review_upcoming": 3, "wait": 4, "verify_date": 5,
@@ -32,7 +32,8 @@ def fetch_engaged(token: str) -> list[dict]:
         "source_type,source_ref,opportunity_id,employer,role_title,source_status,"
         "application_date,interview_date,next_interview_date,action,due_date,"
         "decision_reason,evidence_sources,engagement_basis,engagement_confidence,"
-        "engagement_source,last_engagement_on"
+        "engagement_source,last_engagement_on,manual_status,manual_status_on,"
+        "manual_status_note,is_archived,effective_action,effective_reason"
     )
     result = _request_json(
         "GET",
@@ -58,20 +59,22 @@ def render_application_coverage(token: str, rows: list[dict] | None = None) -> N
         except (RuntimeError, ValueError) as exc:
             st.warning(f"Could not load engaged hiring-process shortlist: {exc}")
             return
-    extra = [r for r in rows if r.get("source_type") != "managed"]
-    review_due = sum(r.get("action") == "review_due" for r in extra)
-    upcoming = sum(r.get("action") == "review_upcoming" for r in extra)
-    evidence = sum(r.get("action") in {"stale_review", "verify_date"} for r in extra)
+    active = [r for r in rows if not r.get("is_archived")]
+    extra = [r for r in active if r.get("source_type") != "managed"]
+    review_due = sum(r.get("effective_action") == "review_due" for r in extra)
+    upcoming = sum(r.get("effective_action") == "review_upcoming" for r in extra)
+    evidence = sum(r.get("effective_action") in {"stale_review", "verify_date"} for r in extra)
     cols = st.columns(4)
     for col, title, value in zip(
         cols,
         ("Engaged processes", "Review checkpoints due", "Upcoming checkpoints", "Older / missing evidence"),
-        (len(rows), review_due, upcoming, evidence),
+        (len(active), review_due, upcoming, evidence),
     ):
         col.metric(title, value)
     st.caption(
-        f"{len(rows) - len(extra)} managed recruiting records and {len(extra)} additional "
-        "human-engaged processes. Review-due does not mean a message should be sent."
+        f"{sum(r.get('source_type') == 'managed' for r in active)} managed recruiting records "
+        f"and {len(extra)} additional human-engaged processes. "
+        f"{len(rows) - len(active)} archived. Review-due does not mean a message should be sent."
     )
     needle = st.text_input(
         "Search engaged processes", placeholder="Employer or role", key="fu_all_search"
@@ -82,17 +85,21 @@ def render_application_coverage(token: str, rows: list[dict] | None = None) -> N
         "Missing dates": "verify_date", "Managed": "managed",
     }
     view = st.selectbox("Review filter", list(options), key="fu_all_filter")
+    show_archived = st.checkbox(
+        "Show archived / ignored processes", value=False, key="fu_show_archived_coverage"
+    )
     filtered = [
         r for r in rows
-        if (not needle or needle in
+        if (show_archived or not r.get("is_archived"))
+        and (not needle or needle in
             (str(r.get("employer") or "") + " " + str(r.get("role_title") or "")).casefold())
         and (view == "All"
              or (view == "Managed" and r.get("source_type") == "managed")
-             or r.get("action") == options[view])
+             or r.get("effective_action") == options[view])
     ]
     filtered.sort(
         key=lambda r: (
-            _PRIORITY.get(r.get("action"), 9),
+            _PRIORITY.get(r.get("effective_action"), 9),
             r.get("due_date") or "9999-12-31",
             str(r.get("employer") or "").casefold(),
         )
@@ -105,13 +112,14 @@ def render_application_coverage(token: str, rows: list[dict] | None = None) -> N
                     "Role": r.get("role_title") or "",
                     "Source": r.get("source_type") or "",
                     "Recorded status": r.get("source_status") or "Unknown",
+                    "My status": str(r.get("manual_status") or "tracking").replace("_", " "),
                     "Qualifying contact": str(r.get("engagement_basis") or "").replace("_", " "),
                     "Evidence quality": r.get("engagement_confidence") or "—",
                     "Last contact": _day(r.get("last_engagement_on")),
                     "Applied": _day(r.get("application_date")),
                     "Checkpoint": _day(r.get("due_date")),
-                    "Action": str(r.get("action") or "").replace("_", " ").capitalize(),
-                    "Reason": r.get("decision_reason") or "",
+                    "Action": str(r.get("effective_action") or "").replace("_", " ").capitalize(),
+                    "Reason": r.get("effective_reason") or "",
                 }
                 for r in filtered
             ],
@@ -119,6 +127,24 @@ def render_application_coverage(token: str, rows: list[dict] | None = None) -> N
         )
     else:
         st.info("No matching engaged processes.")
+    external = [r for r in rows if r.get("source_type") != "managed"]
+    if external:
+        st.markdown("**Update a recruiter-contact process outside the interview register**")
+        st.caption("Managed processes can be updated directly on their cards above.")
+        options_by_source = {(str(r.get("source_type")), str(r.get("source_ref"))): r for r in external}
+        choices = list(options_by_source)
+        chosen = st.selectbox(
+            "Select employer and role",
+            options=choices,
+            format_func=lambda k: (
+                f"{options_by_source[k].get('employer')} · {options_by_source[k].get('role_title')}"
+                + (" (archived)" if options_by_source[k].get("is_archived") else "")
+            ),
+            key="fu_external_status_selector",
+        )
+        from page_followup_status import status_editor
+        status_editor(token, options_by_source[chosen], prefix="external")
+
     st.caption(
         "Positive engagement qualifies a role for follow-up tracking, not for immediate "
         "outreach. Older replies, unverified attendance, missing recipient details "

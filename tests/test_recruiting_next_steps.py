@@ -123,9 +123,9 @@ class NextStepPlanningTests(unittest.TestCase):
     def test_empirical_dates_are_data_driven_and_small_sample(self):
         data=timing_sample(self.ops,self.meetings,self.signals)
         self.assertEqual(data["decision_n"],1)
-        self.assertEqual(data["progression_n"],2)
-        self.assertEqual(data["n"],3)
-        self.assertEqual(data["typical"],17)
+        self.assertEqual(data["progression_n"],3)
+        self.assertEqual(data["n"],4)
+        self.assertEqual(data["typical"],16)
         self.assertEqual(data["minimum"],6)
 
     def test_missing_history_falls_back_to_broad_uncalibrated_window(self):

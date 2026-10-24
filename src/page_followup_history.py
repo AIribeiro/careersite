@@ -69,6 +69,50 @@ def fetch_history_all(token: str) -> dict[tuple[str, str], list[dict]]:
     return output
 
 
+def fetch_recruiter_contacts_all(token: str) -> dict[tuple[str, str], list[dict]]:
+    """Read all owner-only, role-scoped recruiter contacts once per page."""
+    fields = ("source_type,source_ref,email,contact_name,contact_role,"
+              "contact_status,primary_contact,last_verified_at,evidence_source,notes")
+    result = _request_json(
+        "GET", _rest_url(f"careersite_followup_contacts?select={fields}&limit=1000"),
+        token=token,
+    )
+    if not isinstance(result, list):
+        raise RuntimeError("Role-specific contacts could not be loaded.")
+    grouped: dict[tuple[str, str], list[dict]] = {}
+    for item in result:
+        grouped.setdefault((str(item.get("source_type")), str(item.get("source_ref"))), []).append(item)
+    for items in grouped.values():
+        items.sort(key=lambda c: (not c.get("primary_contact"), c.get("contact_status") != "verified"))
+    return grouped
+
+
+def contacts_panel(row: dict, contacts: dict[tuple[str, str], list[dict]]) -> None:
+    """Verified address book, including unusable and alternative addresses clearly labelled."""
+    key = (str(row.get("source_type") or ""), str(row.get("source_ref") or ""))
+    items = contacts.get(key, [])
+    if not items:
+        return
+    with st.expander(f"Recruiter & hiring contacts · {len(items)}", expanded=False):
+        st.dataframe(
+            [{
+                "Contact": c.get("contact_name") or "Unspecified",
+                "Email": c.get("email") or "—",
+                "Role": c.get("contact_role") or "—",
+                "Verification": c.get("contact_status") or "unverified",
+                "Preferred": "Yes" if c.get("primary_contact") else "",
+                "Evidence / limitations": c.get("notes") or c.get("evidence_source") or "",
+            } for c in items],
+            hide_index=True, width="stretch", height=min(320, 42 + 35 * len(items)),
+        )
+        if any(c.get("contact_status") in ("inactive", "unverified", "alternative_only") for c in items):
+            st.caption(
+                "Inactive, unverified, or alternative-only addresses are not approved "
+                "follow-up recipients. A contact in another vacancy is not a verified "
+                "recruiter for this specific role."
+            )
+
+
 def fetch_history_counts(token: str) -> dict[tuple[str, str], dict]:
     result = _request_json(
         "GET", _rest_url(f"{SUMMARY_VIEW}?select=*&limit=1000"), token=token

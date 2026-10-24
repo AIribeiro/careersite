@@ -329,7 +329,9 @@ def render_followup_manager(session: dict) -> None:
             if row.get("source_checked_at"):
                 st.caption("Correspondence checked: " + _day(row["source_checked_at"]))
             from page_followup_status import status_editor
+            from page_followup_history import history_editor
             status_editor(token, proof, prefix="managed")
+            history_editor(token, proof, prefix="managed")
             if row.get("is_archived"):
                 st.caption("Archived. Change the status above to resume tracking.")
             elif row.get("action") == "follow_up_now":

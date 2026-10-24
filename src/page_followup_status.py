@@ -2,11 +2,17 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+from zoneinfo import ZoneInfo
 
 import streamlit as st
 from site_cms import _request_json, _rest_url
 
 TABLE = "careersite_followup_process_status"
+STOCKHOLM = ZoneInfo("Europe/Stockholm")
+
+
+def _local_today() -> date:
+    return datetime.now(STOCKHOLM).date()
 STATUS_LABELS = {
     "tracking": "Tracking / no change",
     "contacted": "I contacted recruiter",
@@ -29,7 +35,7 @@ def save_status(token: str, row: dict, status: str, status_on: date, note: str) 
         raise ValueError("The process needs a verified source identifier.")
     if status not in STATUS_LABELS:
         raise ValueError("Select a supported status.")
-    if status_on > date.today():
+    if status_on > _local_today():
         raise ValueError("The status date cannot be in the future.")
     _request_json(
         "POST",
@@ -57,9 +63,9 @@ def status_editor(token: str, row: dict, *, prefix: str = "managed") -> None:
         current = "tracking"
     on = row.get("manual_status_on")
     try:
-        existing_date = date.fromisoformat(str(on)[:10]) if on else date.today()
+        existing_date = date.fromisoformat(str(on)[:10]) if on else _local_today()
     except ValueError:
-        existing_date = date.today()
+        existing_date = _local_today()
 
     with st.form(f"fu_quick_status_{key}", border=False):
         c1, c2, c3 = st.columns([2.6, 1.25, 1.15], vertical_alignment="bottom")
@@ -75,7 +81,7 @@ def status_editor(token: str, row: dict, *, prefix: str = "managed") -> None:
             status_on = st.date_input(
                 "Status date",
                 value=existing_date,
-                max_value=date.today(),
+                max_value=_local_today(),
                 format="DD/MM/YYYY",
                 key=f"fu_date_{key}",
             )

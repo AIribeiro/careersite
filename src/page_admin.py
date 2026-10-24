@@ -790,6 +790,7 @@ def _import_existing(access_token: str, current: list[CmsArticle]) -> None:
 _PRIVATE_VIEW_ROUTES = {
     "hiring": "Hiring overview",
     "meetings": "Recruiter meetings",
+    "followups": "Follow-up manager",
     "jobs": "Job search",
     "market": "Job market",
     "predictions": "Job predictions",
@@ -932,11 +933,15 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
     else:
         workspace = st.segmented_control(
             "Private owner workspace",
-            options=["CMS","Recruiter meetings","Detailed job analytics","Stale applications","Rejection Analytics","Hiring market","Decision overview"],
+            options=["CMS","Follow-up manager","Recruiter meetings","Detailed job analytics","Stale applications","Rejection Analytics","Hiring market","Decision overview"],
             default="CMS",
             key="admin_private_workspace",
             width="stretch",
         )
+    if workspace == "Follow-up manager":
+        from page_followup_manager import render_followup_manager
+        render_followup_manager(session)
+        return
     if workspace == "Recruiter meetings":
         from page_recruiter_meetings import render_recruiter_meetings
         render_recruiter_meetings(session)

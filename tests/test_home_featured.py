@@ -90,20 +90,34 @@ class HomeFeaturedArticleTests(unittest.TestCase):
         self.assertIn('data-hq-event="home_featured_article_open"', html)
 
     def test_article_artwork_is_confined_to_a_responsive_frame(self) -> None:
-        """Prevent full-resolution CMS headers from controlling Home card width/height."""
+        """The image cannot expand the Home featured card to its native size."""
         from site_styles import CSS
 
         feature_css = CSS.split("/* Home editorial feature:", 1)[1].split("</style>", 1)[0]
-        self.assertIn(".site .home-featured>.container{width:min(1000px,calc(100% - 44px));max-width:100%}", feature_css)
+        self.assertIn(".site .home-featured>.container{width:min(980px,calc(100% - 44px));max-width:100%}", feature_css)
         self.assertIn("grid-template-columns:minmax(0,.43fr) minmax(0,.57fr)", feature_css)
         self.assertIn(".site .home-featured-story{", feature_css)
-        self.assertIn("max-width:100%;overflow:hidden", feature_css)
+        self.assertIn("max-width:100%;min-width:0;overflow:hidden", feature_css)
         self.assertIn(".site .home-featured-media img{position:absolute;inset:0;margin:auto", feature_css)
         self.assertIn("max-height:320px", feature_css)
         self.assertIn("min-width:0;min-height:0;object-fit:contain", feature_css)
-        self.assertIn("height:clamp(170px,27vw,260px)", feature_css)
+        self.assertIn("height:clamp(155px,33vw,220px)", feature_css)
         self.assertIn("height:clamp(145px,43vw,185px)", feature_css)
         self.assertNotIn("min-height:360px", feature_css)
+
+    def test_ipad_breakpoint_keeps_side_by_side_editorial_layout(self) -> None:
+        """Do not stack the article at iPad portrait widths (~768-834 CSS px)."""
+        from site_styles import CSS
+
+        feature_css = CSS.split("/* Home editorial feature:", 1)[1].split("</style>", 1)[0]
+        self.assertIn("@media(min-width:701px) and (max-width:980px)", feature_css)
+        stacked_css = feature_css.split("@media(max-width:700px)", 1)[1]
+        self.assertIn("grid-template-columns:minmax(0,1fr)", stacked_css)
+        self.assertNotIn("@media(max-width:850px)", feature_css)
+        tablet_css = feature_css.split("@media(min-width:701px) and (max-width:980px)", 1)[1]
+        tablet_css = tablet_css.split("@media(max-width:700px)", 1)[0]
+        self.assertIn("max-height:270px", tablet_css)
+        self.assertIn("font-size:clamp(27px,3.6vw,33px)", tablet_css)
 
     def test_featured_article_and_contact_remain_inside_site_wrapper(self) -> None:
         """Catch surplus HTML closing tags which silently disable scoped CSS.

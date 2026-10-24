@@ -1,7 +1,7 @@
-"""Full non-rejected job application register for the private follow-up manager.
+"""Engaged hiring process shortlist for the private follow-up manager.
 
-Combines authenticated recruiting journeys, job_search_analytics evidence and
-Jobwise applications. No email is sent and no records are reclassified here.
+Requires a positive human recruiter/hiring-team contact or interview evidence.
+No email is sent and no records are reclassified here.
 """
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from datetime import date
 import streamlit as st
 from site_cms import _request_json, _rest_url
 
-_VIEW = "careersite_followup_application_coverage_v1"
+_VIEW = "careersite_followup_engaged_v1"
 _PRIORITY = {
     "follow_up_now": 0, "review_due": 1, "upcoming": 2,
     "review_upcoming": 3, "wait": 4, "verify_date": 5,
@@ -27,11 +27,12 @@ def _day(value: object) -> str:
         return str(value)[:10]
 
 
-def _fetch(token: str) -> list[dict]:
+def fetch_engaged(token: str) -> list[dict]:
     fields = (
         "source_type,source_ref,opportunity_id,employer,role_title,source_status,"
         "application_date,interview_date,next_interview_date,action,due_date,"
-        "decision_reason,evidence_sources"
+        "decision_reason,evidence_sources,engagement_basis,engagement_confidence,"
+        "engagement_source,last_engagement_on"
     )
     result = _request_json(
         "GET",
@@ -39,24 +40,24 @@ def _fetch(token: str) -> list[dict]:
         token=token,
     )
     if not isinstance(result, list):
-        raise RuntimeError("Full application coverage did not return a list.")
+        raise RuntimeError("Engaged hiring-process shortlist did not return a list.")
     return [row for row in result if isinstance(row, dict)]
 
 
-def render_application_coverage(token: str) -> None:
-    st.subheader("Full application coverage")
+def render_application_coverage(token: str, rows: list[dict] | None = None) -> None:
+    st.subheader("Engaged hiring processes")
     st.caption(
-        "All submitted or interviewed processes, except rejected, cancelled or "
-        "withdrawn records. Evidence is consolidated from the recruiting register, "
-        "Job Search Analytics, Jobwise and verified submission evidence. Entries "
-        "for the same employer and role are deduplicated; distinct requisitions "
-        "with identical titles may need review."
+        "Only vacancies with at least one substantive positive recruiter/hiring-manager "
+        "reply or a recorded interview invitation/meeting. Applications alone, automated "
+        "receipts and profile views are excluded. Rejected, cancelled and withdrawn "
+        "processes are also excluded. Some older engagement evidence needs rechecking."
     )
-    try:
-        rows = _fetch(token)
-    except (RuntimeError, ValueError) as exc:
-        st.warning(f"Could not load full application coverage: {exc}")
-        return
+    if rows is None:
+        try:
+            rows = fetch_engaged(token)
+        except (RuntimeError, ValueError) as exc:
+            st.warning(f"Could not load engaged hiring-process shortlist: {exc}")
+            return
     extra = [r for r in rows if r.get("source_type") != "managed"]
     review_due = sum(r.get("action") == "review_due" for r in extra)
     upcoming = sum(r.get("action") == "review_upcoming" for r in extra)
@@ -64,16 +65,16 @@ def render_application_coverage(token: str) -> None:
     cols = st.columns(4)
     for col, title, value in zip(
         cols,
-        ("All processes", "Application reviews due", "Upcoming reviews", "Evidence reviews"),
+        ("Engaged processes", "Review checkpoints due", "Upcoming checkpoints", "Older / missing evidence"),
         (len(rows), review_due, upcoming, evidence),
     ):
         col.metric(title, value)
     st.caption(
         f"{len(rows) - len(extra)} managed recruiting records and {len(extra)} additional "
-        "application records. Review-due does not mean a message should be sent."
+        "human-engaged processes. Review-due does not mean a message should be sent."
     )
     needle = st.text_input(
-        "Search applications", placeholder="Employer or role", key="fu_all_search"
+        "Search engaged processes", placeholder="Employer or role", key="fu_all_search"
     ).strip().casefold()
     options = {
         "All": None, "Review due": "review_due",
@@ -104,6 +105,9 @@ def render_application_coverage(token: str) -> None:
                     "Role": r.get("role_title") or "",
                     "Source": r.get("source_type") or "",
                     "Recorded status": r.get("source_status") or "Unknown",
+                    "Qualifying contact": str(r.get("engagement_basis") or "").replace("_", " "),
+                    "Evidence quality": r.get("engagement_confidence") or "—",
+                    "Last contact": _day(r.get("last_engagement_on")),
                     "Applied": _day(r.get("application_date")),
                     "Checkpoint": _day(r.get("due_date")),
                     "Action": str(r.get("action") or "").replace("_", " ").capitalize(),
@@ -114,9 +118,10 @@ def render_application_coverage(token: str) -> None:
             width="stretch", hide_index=True, height=460,
         )
     else:
-        st.info("No matching application records.")
+        st.info("No matching engaged processes.")
     st.caption(
-        "Application-only records are review tasks until a named recruiter/contact, "
-        "current communication and the relevant vacancy are verified. "
-        "Use the managed section above for eligible, copyable email drafts."
+        "Positive engagement qualifies a role for follow-up tracking, not for immediate "
+        "outreach. Older replies, unverified attendance, missing recipient details "
+        "and provisional cross-role referrals remain review-only. "
+        "Copyable emails appear only when a separately verified send checkpoint is due."
     )

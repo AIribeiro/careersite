@@ -292,6 +292,9 @@ def render_followup_manager(session: dict) -> None:
                 st.caption("Review the application status, find a verified recipient, or confirm old interview evidence before sending.")
             _editor(row, token)
     st.divider()
+    from page_followup_application_coverage import render_application_coverage
+    render_application_coverage(token)
+    st.divider()
     st.caption(
         "Method: 5 workdays after advanced interviews; 7 after first interviews; "
         "10 after a dated application; a verified recipient is required to send. A fresh elevated "

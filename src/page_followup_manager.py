@@ -323,6 +323,11 @@ def render_followup_manager(session: dict) -> None:
                     str(proof["engagement_basis"]).replace("_", " ") +
                     " · " + str(proof.get("engagement_confidence") or "recorded")
                 )
+            if int(proof.get("unanswered_followups") or 0) >= 2:
+                st.warning(
+                    f"{int(proof['unanswered_followups'])} follow-up messages without a "
+                    "subsequent recorded recruiter reply. Further chasing is on hold."
+                )
             if row.get("interview_date"):
                 st.caption(
                     f"Last verified interview: {_day(row['interview_date'])} "

@@ -143,7 +143,9 @@ def render_application_coverage(token: str, rows: list[dict] | None = None) -> N
             key="fu_external_status_selector",
         )
         from page_followup_status import status_editor
+        from page_followup_history import history_editor
         status_editor(token, options_by_source[chosen], prefix="external")
+        history_editor(token, options_by_source[chosen], prefix="external")
 
     st.caption(
         "Positive engagement qualifies a role for follow-up tracking, not for immediate "

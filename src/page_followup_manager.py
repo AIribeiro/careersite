@@ -23,9 +23,14 @@ ACTION_ORDER = {"follow_up_now": 0, "upcoming": 1, "wait": 2, "hold": 3}
 EXCLUDED_OUTCOMES = {"rejected", "cancelled", "canceled", "withdrawn"}
 
 
-def _is_eligible(row: dict) -> bool:
-    """Track every opportunity unless its outcome explicitly excludes it."""
-    return str(row.get("outcome") or "unknown").strip().lower() not in EXCLUDED_OUTCOMES
+def _is_eligible(row: dict, engaged_ids: set[int]) -> bool:
+    """Require positive human contact or interview proof, and no exclusion."""
+    return (
+        int(row.get("opportunity_id") or 0) in engaged_ids
+        and str(row.get("outcome") or "unknown").strip().lower() not in EXCLUDED_OUTCOMES
+    )
+
+
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
@@ -199,19 +204,29 @@ def render_followup_manager(session: dict) -> None:
     token = str(session["access_token"])
     st.title("Live hiring follow-up manager")
     st.caption(
-        "Owner-only · all applications except rejected, cancelled or withdrawn · "
+        "Owner-only · positive human recruiter/hiring-team contact or interview required · "
         "Swedish business-day timing · manual email delivery. "
         "Snapshot-driven: opening this page does not sync Outlook or Gmail."
     )
     if st.button("Refresh decisions", key="followup_refresh"):
         st.rerun()
+    from page_followup_application_coverage import (
+        fetch_engaged, render_application_coverage,
+    )
     try:
+        engaged = fetch_engaged(token)
         records = _fetch(token)
     except (RuntimeError, ValueError) as exc:
         st.error(f"Follow-up manager is unavailable: {exc}")
         return
+    engaged_ids = {
+        int(r["opportunity_id"])
+        for r in engaged if r.get("source_type") == "managed" and r.get("opportunity_id")
+    }
+    engaged_by_id = {int(r["opportunity_id"]): r for r in engaged
+                     if r.get("source_type") == "managed" and r.get("opportunity_id")}
     tracked = sorted(
-        [r for r in records if _is_eligible(r)],
+        [r for r in records if _is_eligible(r, engaged_ids)],
         key=lambda r: (ACTION_ORDER.get(r.get("action"), 9), r.get("due_date") or "9999-12-31"),
     )
     counts = {key: sum(r.get("action") == key for r in tracked) for key in ACTION_NAMES}
@@ -223,8 +238,11 @@ def render_followup_manager(session: dict) -> None:
     unresolved = len(tracked) - confirmed
     app_only = sum(not r.get("interview_date") for r in tracked)
     st.caption(
-        f"{len(tracked)} tracked applications · {confirmed} confirmed in progress · "
-        f"{unresolved} unconfirmed/other outcomes · {app_only} without a verified completed interview."
+        f"{len(engaged)} engaged hiring processes · {len(tracked)} in the managed "
+        f"interview/contact register · {len(engaged) - len(tracked)} additional "
+        f"positive human-contact processes · {confirmed} confirmed in progress · "
+        f"{unresolved} unresolved/other outcomes · "
+        f"{app_only} managed records without an attended interview."
     )
     market = next((r for r in tracked if r.get("market_snapshot_date")), None)
     if market:
@@ -235,15 +253,18 @@ def render_followup_manager(session: dict) -> None:
         )
     st.info(
         "Employer commitments outrank default windows. Already-sent thank-yous "
-        "do not count as chasing emails. Unconfirmed applications remain in this manager; "
-        "an unknown status does not establish that the vacancy is still open. "
-        "A missing recipient or stale evidence requires review, not an automatic email."
+        "do not count as chasing emails. Application receipts or LinkedIn views do not "
+        "qualify for this desk: one substantive positive human reply or an interview is "
+        "required. Unknown outcomes remain review-only if evidence is stale, and "
+        "a missing recipient never authorizes sending."
     )
     if not tracked:
-        st.warning("No non-rejected, non-cancelled, non-withdrawn applications are recorded.")
+        st.info("No managed process currently meets the contact-or-interview evidence rule. "
+                "Review qualifying cross-source records below.")
+        render_application_coverage(token, engaged)
         return
     show = st.segmented_control(
-        "Process filter", ["All tracked", "Action required", "Waiting", "Needs review", "Applications only"],
+        "Process filter", ["All tracked", "Action required", "Waiting", "Needs review", "Contact only"],
         default="All tracked", key="followup_filter", width="stretch"
     ) or "All tracked"
     filtered = [
@@ -252,7 +273,7 @@ def render_followup_manager(session: dict) -> None:
         or (show == "Action required" and r.get("action") == "follow_up_now")
         or (show == "Waiting" and r.get("action") in ("upcoming", "wait"))
         or (show == "Needs review" and r.get("action") == "hold")
-        or (show == "Applications only" and not r.get("interview_date"))
+        or (show == "Contact only" and not r.get("interview_date"))
     ]
     for row in filtered:
         status = ACTION_NAMES.get(row.get("action"), "Check")
@@ -268,6 +289,13 @@ def render_followup_manager(session: dict) -> None:
                 f"{_dates(row)} · {row.get('decision_reason') or 'No reason saved'} "
                 f"· Process ID {row['opportunity_id']}"
             )
+            proof = engaged_by_id.get(int(row["opportunity_id"]), {})
+            if proof.get("engagement_basis"):
+                st.caption(
+                    "Qualifying evidence: " +
+                    str(proof["engagement_basis"]).replace("_", " ") +
+                    " · " + str(proof.get("engagement_confidence") or "recorded")
+                )
             if row.get("interview_date"):
                 st.caption(
                     f"Last verified interview: {_day(row['interview_date'])} "
@@ -292,8 +320,7 @@ def render_followup_manager(session: dict) -> None:
                 st.caption("Review the application status, find a verified recipient, or confirm old interview evidence before sending.")
             _editor(row, token)
     st.divider()
-    from page_followup_application_coverage import render_application_coverage
-    render_application_coverage(token)
+    render_application_coverage(token, engaged)
     st.divider()
     st.caption(
         "Method: 5 workdays after advanced interviews; 7 after first interviews; "
@@ -302,5 +329,6 @@ def render_followup_manager(session: dict) -> None:
         "reply date uses a three-workday grace period. Recent outgoing messages "
         "and repeat follow-ups impose a cooldown. Weekends and curated Swedish "
         "holidays are excluded. Unknown-status applications stay visible, but stale and "
-        "unverified cases are held for review. These dates are advisory, not employer promises."
+        "unverified engagements are held for review. Receipt-only applications are excluded. "
+        "These dates are advisory, not employer promises."
     )

@@ -106,7 +106,7 @@ def timing_sample(opportunities: list[dict], meetings: list[dict],
 
 def _item(opp: dict, kind: str, label: str, start: date,
           end: date, *, evidence: str, conditional: str = "",
-          next_action: bool = False) -> dict:
+          next_action: bool = False, central: date | None = None) -> dict:
     if end < start:
         raise ValueError("Next-step end predates start")
     return {
@@ -120,6 +120,7 @@ def _item(opp: dict, kind: str, label: str, start: date,
         "evidence": evidence,
         "conditional": conditional,
         "candidate_action": next_action,
+        "central": central,
         "type_label": LABELS[kind],
         "model_version": MODEL_VERSION,
     }
@@ -219,6 +220,7 @@ def make_plan(opportunities: list[dict], meetings: list[dict],
                               f"middle observed range {lo}–{hi} calendar days. "
                               "Not an empirically calibrated probability interval."),
                     conditional="Only relevant if the scheduled interview actually takes place.",
+                    central=working_day_on_or_after(last_future + timedelta(days=typical)),
                 ))
                 checkpoint = working_days_after(last_future, 5)
                 items.append(_item(
@@ -242,6 +244,7 @@ def make_plan(opportunities: list[dict], meetings: list[dict],
                               "Outcomes cannot be inferred."),
                     conditional=("If shortlisted, may prompt a further interview; "
                                  "the interview itself is not booked."),
+                    central=working_day_on_or_after(last + timedelta(days=typical)),
                 ))
                 checkpoint = working_days_after(last, 5)
                 items.append(_item(

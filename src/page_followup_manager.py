@@ -70,6 +70,8 @@ def _num(value: object) -> int:
 
 
 def _dates(row: dict) -> str:
+    if row.get("is_archived"):
+        return "Archived: " + str(row.get("manual_status") or "closed").replace("_", " ")
     if row.get("next_interview_date"):
         return "Next interview " + _day(row["next_interview_date"])
     if row.get("action") in ("upcoming", "follow_up_now"):
@@ -226,25 +228,43 @@ def render_followup_manager(session: dict) -> None:
     engaged_by_id = {int(r["opportunity_id"]): r for r in engaged
                      if r.get("source_type") == "managed" and r.get("opportunity_id")}
     tracked = sorted(
-        [r for r in records if _is_eligible(r, engaged_ids)],
-        key=lambda r: (ACTION_ORDER.get(r.get("action"), 9), r.get("due_date") or "9999-12-31"),
+        [
+            {
+                **r,
+                "action": engaged_by_id[int(r["opportunity_id"])].get("effective_action", r.get("action")),
+                "decision_reason": engaged_by_id[int(r["opportunity_id"])].get(
+                    "effective_reason", r.get("decision_reason")
+                ),
+                "is_archived": bool(engaged_by_id[int(r["opportunity_id"])].get("is_archived")),
+                "manual_status": engaged_by_id[int(r["opportunity_id"])].get("manual_status", "tracking"),
+            }
+            for r in records if _is_eligible(r, engaged_ids)
+        ],
+        key=lambda r: (
+            bool(r.get("is_archived")),
+            ACTION_ORDER.get(r.get("action"), 9),
+            r.get("due_date") or "9999-12-31",
+        ),
     )
-    counts = {key: sum(r.get("action") == key for r in tracked) for key in ACTION_NAMES}
+    active_tracked = [r for r in tracked if not r.get("is_archived")]
+    counts = {key: sum(r.get("action") == key for r in active_tracked) for key in ACTION_NAMES}
     cols = st.columns(4)
     for col, (action, label) in zip(cols, ACTION_NAMES.items()):
         col.metric(label, counts[action])
 
-    confirmed = sum(str(r.get("outcome") or "").strip().lower() == "in_progress" for r in tracked)
-    unresolved = len(tracked) - confirmed
-    app_only = sum(not r.get("interview_date") for r in tracked)
+    active_engaged = [r for r in engaged if not r.get("is_archived")]
+    confirmed = sum(str(r.get("outcome") or "").strip().lower() == "in_progress" for r in active_tracked)
+    unresolved = len(active_tracked) - confirmed
+    app_only = sum(not r.get("interview_date") for r in active_tracked)
     st.caption(
-        f"{len(engaged)} engaged hiring processes · {len(tracked)} in the managed "
-        f"interview/contact register · {len(engaged) - len(tracked)} additional "
+        f"{len(active_engaged)} engaged hiring processes · {len(active_tracked)} in the managed "
+        f"interview/contact register · {len(active_engaged) - len(active_tracked)} additional "
         f"positive human-contact processes · {confirmed} confirmed in progress · "
         f"{unresolved} unresolved/other outcomes · "
-        f"{app_only} managed records without an attended interview."
+        f"{app_only} managed records without an attended interview · "
+        f"{len(engaged) - len(active_engaged)} archived."
     )
-    market = next((r for r in tracked if r.get("market_snapshot_date")), None)
+    market = next((r for r in active_tracked if r.get("market_snapshot_date")), None)
     if market:
         st.caption(
             f"Market adjustment: +{market.get('market_lag_days', 0)} business day(s) "
@@ -264,16 +284,17 @@ def render_followup_manager(session: dict) -> None:
         render_application_coverage(token, engaged)
         return
     show = st.segmented_control(
-        "Process filter", ["All tracked", "Action required", "Waiting", "Needs review", "Contact only"],
+        "Process filter", ["All tracked", "Action required", "Waiting", "Needs review", "Contact only", "Archived"],
         default="All tracked", key="followup_filter", width="stretch"
     ) or "All tracked"
     filtered = [
         r for r in tracked
-        if show == "All tracked"
-        or (show == "Action required" and r.get("action") == "follow_up_now")
-        or (show == "Waiting" and r.get("action") in ("upcoming", "wait"))
-        or (show == "Needs review" and r.get("action") == "hold")
-        or (show == "Contact only" and not r.get("interview_date"))
+        if (show == "All tracked" and not r.get("is_archived"))
+        or (show == "Archived" and r.get("is_archived"))
+        or (show == "Action required" and not r.get("is_archived") and r.get("action") == "follow_up_now")
+        or (show == "Waiting" and not r.get("is_archived") and r.get("action") in ("upcoming", "wait"))
+        or (show == "Needs review" and not r.get("is_archived") and r.get("action") == "hold")
+        or (show == "Contact only" and not r.get("is_archived") and not r.get("interview_date"))
     ]
     for row in filtered:
         status = ACTION_NAMES.get(row.get("action"), "Check")
@@ -307,7 +328,11 @@ def render_followup_manager(session: dict) -> None:
                 st.caption("Application/meeting date not fully verified; check source records")
             if row.get("source_checked_at"):
                 st.caption("Correspondence checked: " + _day(row["source_checked_at"]))
-            if row.get("action") == "follow_up_now":
+            from page_followup_status import status_editor
+            status_editor(token, proof, prefix="managed")
+            if row.get("is_archived"):
+                st.caption("Archived. Change the status above to resume tracking.")
+            elif row.get("action") == "follow_up_now":
                 if row.get("verify_correspondence_first"):
                     st.warning("Draft requires an updated mailbox check.")
                 else:
@@ -318,7 +343,8 @@ def render_followup_manager(session: dict) -> None:
                 st.caption("Do not send a process-status request before the scheduled interview.")
             else:
                 st.caption("Review the application status, find a verified recipient, or confirm old interview evidence before sending.")
-            _editor(row, token)
+            if not row.get("is_archived"):
+                _editor(row, token)
     st.divider()
     render_application_coverage(token, engaged)
     st.divider()

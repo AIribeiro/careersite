@@ -48,8 +48,9 @@ def render_application_coverage(token: str) -> None:
     st.caption(
         "All submitted or interviewed processes, except rejected, cancelled or "
         "withdrawn records. Evidence is consolidated from the recruiting register, "
-        "Job Search Analytics and Jobwise. Entries for the same employer and role "
-        "are deduplicated; distinct requisitions with identical titles may need review."
+        "Job Search Analytics, Jobwise and verified submission evidence. Entries "
+        "for the same employer and role are deduplicated; distinct requisitions "
+        "with identical titles may need review."
     )
     try:
         rows = _fetch(token)
@@ -68,7 +69,7 @@ def render_application_coverage(token: str) -> None:
     ):
         col.metric(title, value)
     st.caption(
-        f"{len(rows) - len(extra)} interview/recruiting records and {len(extra)} additional "
+        f"{len(rows) - len(extra)} managed recruiting records and {len(extra)} additional "
         "application records. Review-due does not mean a message should be sent."
     )
     needle = st.text_input(

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from html import unescape
+from html.parser import HTMLParser
 from unittest.mock import patch
 import unittest
 
@@ -103,6 +104,59 @@ class HomeFeaturedArticleTests(unittest.TestCase):
         self.assertIn("height:clamp(170px,27vw,260px)", feature_css)
         self.assertIn("height:clamp(145px,43vw,185px)", feature_css)
         self.assertNotIn("min-height:360px", feature_css)
+
+    def test_featured_article_and_contact_remain_inside_site_wrapper(self) -> None:
+        """Catch surplus HTML closing tags which silently disable scoped CSS.
+
+        An extra closing div in References previously closed .site before
+        the article, causing Safari to display its full-resolution image and
+        unstyled default text despite correct responsive CSS.
+        """
+        from page_home import home
+
+        class DocumentNesting(HTMLParser):
+            VOID = {"area", "base", "br", "col", "embed", "hr", "img",
+                    "input", "link", "meta", "param", "source", "track", "wbr"}
+
+            def __init__(self) -> None:
+                super().__init__()
+                self.stack: list[tuple[str, dict[str, str | None]]] = []
+                self.unbalanced: list[str] = []
+                self.feature_inside_site = False
+                self.contact_inside_site = False
+
+            def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+                attributes = dict(attrs)
+                inside_site = any(
+                    node == "div" and "site" in (values.get("class") or "").split()
+                    for node, values in self.stack
+                )
+                if attributes.get("data-analytics-section") == "home-featured-article":
+                    self.feature_inside_site = inside_site
+                if tag == "section" and "cta" in (attributes.get("class") or "").split():
+                    self.contact_inside_site = inside_site
+                if tag not in self.VOID:
+                    self.stack.append((tag, attributes))
+
+            def handle_endtag(self, tag: str) -> None:
+                if tag in self.VOID:
+                    return
+                if not self.stack or self.stack[-1][0] != tag:
+                    self.unbalanced.append(
+                        f"Unexpected </{tag}> after {self.stack[-1][0] if self.stack else 'root'}"
+                    )
+                    return
+                self.stack.pop()
+
+        article = '<section data-analytics-section="home-featured-article"></section>'
+        with patch("page_home.home_featured_article", return_value=article):
+            markup = '<div class="site">' + home() + '</div>'
+        checker = DocumentNesting()
+        checker.feed(markup)
+        self.assertFalse(checker.unbalanced, checker.unbalanced)
+        self.assertFalse(checker.stack, checker.stack)
+        self.assertTrue(checker.feature_inside_site)
+        self.assertTrue(checker.contact_inside_site)
 
     def test_featured_panel_is_immediately_before_contact(self) -> None:
         from page_home import home

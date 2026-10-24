@@ -53,6 +53,7 @@ def _schedule_chart(plan: dict) -> None:
             "Why": row["evidence"],
             "Condition": row["conditional"] or "—",
             "kind": kind,
+            "Center": row["central"].isoformat() if row.get("central") else None,
         })
     if not records:
         st.info("No forthcoming steps to plot.")
@@ -89,12 +90,27 @@ def _schedule_chart(plan: dict) -> None:
         .mark_rule(color="#718096", strokeWidth=1.5, strokeDash=[5, 5])
         .encode(x="Today:T")
     )
-    st.altair_chart(chart + today_line, use_container_width=True)
+    middle = [r for r in records if r["kind"] == "estimated" and r["Center"]]
+    if middle:
+        central_ticks = (
+            alt.Chart(alt.Data(values=middle))
+            .mark_tick(color="#283444", thickness=3, size=20)
+            .encode(x="Center:T", y=alt.Y("Lane:N", sort=rows_by_label),
+                    tooltip=[
+                        alt.Tooltip("Lane:N", title="Process"),
+                        alt.Tooltip("Center:T", title="Central planning anchor",
+                                    format="%d %b %Y"),
+                    ])
+        )
+        st.altair_chart(chart + today_line + central_ticks, use_container_width=True)
+    else:
+        st.altair_chart(chart + today_line, use_container_width=True)
     st.caption(
         "Horizontal bands show timing windows; a one-day mark indicates a "
         "specific date. Dashed vertical line = as-of date. The displayed "
-        "width does not express probability. No conditional interview is "
-        "presented as booked."
+        "width does not express probability. Dark ticks inside estimated "
+        "bands mark the observed median-delay planning anchor, not a "
+        "probability peak. No conditional interview is presented as booked."
     )
 
 
@@ -151,6 +167,10 @@ def render_next_steps(opportunities: list[dict], meetings: list[dict],
             "Next step": primary["label"] if primary else "No new milestone evidenced",
             "Window": _when(primary) if primary else "Not established",
             "Evidence": LABELS[primary["kind"]] if primary else "Unknown",
+            "Median-delay anchor": (
+                primary["central"].strftime("%d %b %Y")
+                if primary and primary.get("central") else "—"
+            ),
             "Your checkpoint": _when(followup) if followup else "—",
             "_sort": primary["start"] if primary else date.max,
         })

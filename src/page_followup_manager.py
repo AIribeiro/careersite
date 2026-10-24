@@ -225,12 +225,19 @@ def render_followup_manager(session: dict) -> None:
         int(r["opportunity_id"])
         for r in engaged if r.get("source_type") == "managed" and r.get("opportunity_id")
     }
-    from page_followup_history import fetch_history_all
+    from page_followup_history import (
+        fetch_history_all, fetch_recruiter_contacts_all, contacts_panel,
+    )
     try:
         timeline = fetch_history_all(token)
     except (RuntimeError, ValueError) as exc:
         st.warning(f"Interaction history could not be loaded: {exc}")
         timeline = {}
+    try:
+        role_contacts = fetch_recruiter_contacts_all(token)
+    except (RuntimeError, ValueError) as exc:
+        st.warning(f"Recruiter contacts could not be loaded: {exc}")
+        role_contacts = {}
     engaged_by_id = {int(r["opportunity_id"]): r for r in engaged
                      if r.get("source_type") == "managed" and r.get("opportunity_id")}
     tracked = sorted(
@@ -287,7 +294,7 @@ def render_followup_manager(session: dict) -> None:
     if not tracked:
         st.info("No managed process currently meets the contact-or-interview evidence rule. "
                 "Review qualifying cross-source records below.")
-        render_application_coverage(token, engaged, timeline)
+        render_application_coverage(token, engaged, timeline, role_contacts)
         return
     show = st.segmented_control(
         "Process filter", ["All tracked", "Action required", "Waiting", "Needs review", "Contact only", "Archived"],
@@ -342,6 +349,7 @@ def render_followup_manager(session: dict) -> None:
             from page_followup_status import status_editor
             from page_followup_history import history_editor
             status_editor(token, proof, prefix="managed")
+            contacts_panel(proof, role_contacts)
             history_editor(token, proof, prefix="managed", timeline=timeline)
             if row.get("is_archived"):
                 st.caption("Archived. Change the status above to resume tracking.")
@@ -359,7 +367,7 @@ def render_followup_manager(session: dict) -> None:
             if not row.get("is_archived"):
                 _editor(row, token)
     st.divider()
-    render_application_coverage(token, engaged, timeline)
+    render_application_coverage(token, engaged, timeline, role_contacts)
     st.divider()
     st.caption(
         "Method: 5 workdays after advanced interviews; 7 after first interviews; "

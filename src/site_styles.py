@@ -90,35 +90,43 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 @media(max-width:800px){.site .journey-grid{grid-template-columns:minmax(0,1fr)}.site .journey-section{padding:40px 0 48px}.site a.journey-card{min-height:0;padding:23px}.site .journey-next{padding:44px 0}}
 @media(prefers-reduced-motion:reduce){.site a.journey-card{transition:none}.site a.journey-card:hover{transform:none}}
 
-/* Home editorial feature: a single current article, presented as a considered
-   piece of writing rather than a promotional card. */
-.site .home-featured{padding:60px 0 72px;background:var(--paper)}
-/* A restrained reading feature, never a full-size article header. */
-.site .home-featured>.container{width:min(1000px,calc(100% - 44px));max-width:100%}
-.site .home-featured-topline{display:flex;justify-content:space-between;align-items:baseline;gap:24px;margin:0 0 24px}
+/* Home editorial feature: the current Thinking highlight is an elegant, contained
+   two-column story through tablet sizes, rather than a huge stacked header. */
+.site .home-featured{padding:54px 0 64px;background:var(--paper)}
+.site .home-featured>.container{width:min(980px,calc(100% - 44px));max-width:100%}
+.site .home-featured-topline{display:flex;justify-content:space-between;align-items:baseline;gap:24px;margin:0 0 19px}
 .site .home-featured-topline .eyebrow{margin:0}
-.site .home-featured-topline>p:last-child{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
-.site .home-featured-story{display:grid;grid-template-columns:minmax(0,.43fr) minmax(0,.57fr);align-items:stretch;width:100%;max-width:100%;overflow:hidden;background:var(--navy);color:#fff;min-width:0;box-shadow:0 22px 58px rgba(11,18,32,.13)}
-.site a.home-featured-media{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-width:0;min-height:290px;max-height:390px;overflow:hidden;background:#152337;text-decoration:none!important;isolation:isolate}
-.site .home-featured-media:before{content:"";position:absolute;inset:0;background:linear-gradient(125deg,rgba(44,69,89,.18),transparent 58%);pointer-events:none}
-.site .home-featured-media img{position:absolute;inset:0;margin:auto;display:block;width:calc(100% - 36px);height:calc(100% - 36px);max-width:calc(100% - 36px);max-height:320px;min-width:0;min-height:0;object-fit:contain;object-position:center}
-.site .home-featured-art-fallback{padding:48px 32px;color:#d4e0ec;font:500 30px/1.25 Georgia,serif;letter-spacing:.02em;text-align:center}
-.site .home-featured-copy{padding:clamp(26px,3vw,43px);display:flex;flex-direction:column;justify-content:center;min-width:0}
-.site .home-featured-kind{margin:0 0 20px;color:#e6aa7d;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;line-height:1.5}
-.site .home-featured-copy h2{margin:0;font:500 clamp(30px,3.15vw,44px)/1.12 Georgia,serif;letter-spacing:-.025em;overflow-wrap:anywhere;text-wrap:balance}
+.site .home-featured-topline>p:last-child{margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+.site .home-featured-story{display:grid;grid-template-columns:minmax(0,.43fr) minmax(0,.57fr);align-items:stretch;width:100%;max-width:100%;min-width:0;overflow:hidden;background:var(--navy);color:#fff;box-shadow:0 16px 38px rgba(11,18,32,.11)}
+.site a.home-featured-media{position:relative;display:flex;align-items:center;justify-content:center;align-self:stretch;width:100%;min-width:0;min-height:0;overflow:hidden;background:#152337;text-decoration:none!important;isolation:isolate}
+.site .home-featured-media:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(64,89,106,.21),transparent 68%);pointer-events:none}
+.site .home-featured-media img{position:absolute;inset:0;margin:auto;display:block;width:calc(100% - 28px);height:calc(100% - 34px);max-width:calc(100% - 28px);max-height:320px;min-width:0;min-height:0;object-fit:contain;object-position:center}
+.site .home-featured-art-fallback{padding:30px 20px;color:#d4e0ec;font:500 25px/1.25 Georgia,serif;letter-spacing:.02em;text-align:center}
+.site .home-featured-copy{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:clamp(24px,3.3vw,43px)}
+.site .home-featured-kind{margin:0 0 14px;color:#e6aa7d;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;line-height:1.5}
+.site .home-featured-copy h2{margin:0;font:500 clamp(27px,2.8vw,38px)/1.14 Georgia,serif;letter-spacing:-.025em;overflow-wrap:anywhere;text-wrap:balance}
 .site .home-featured-copy h2 a{text-decoration:none!important;color:#fff!important}
 .site .home-featured-copy h2 a:hover{text-decoration:underline!important;text-decoration-thickness:1px!important;text-underline-offset:5px}
-.site .home-featured-deck{margin:23px 0 0;max-width:47ch;font-size:clamp(14px,1.45vw,16px);line-height:1.75;color:#cbd5df}
-.site .home-featured-date{margin:23px 0 0;color:#a3b2c1;font-size:11px;letter-spacing:.035em}
-.site a.home-featured-read{display:inline-flex;align-items:center;align-self:flex-start;gap:16px;min-height:44px;margin-top:30px;padding:10px 0 8px;color:#f3bc96!important;text-decoration:none!important;font-size:13px;font-weight:750;border-bottom:1px solid rgba(243,188,150,.68);transition:border-color .2s,color .2s}
+.site .home-featured-deck{margin:17px 0 0;max-width:49ch;font-size:clamp(13px,1.3vw,15px);line-height:1.65;color:#cbd5df}
+.site .home-featured-date{margin:17px 0 0;color:#a3b2c1;font-size:11px;letter-spacing:.035em}
+.site a.home-featured-read{display:inline-flex;align-items:center;align-self:flex-start;gap:16px;min-height:42px;margin-top:17px;padding:9px 0 7px;color:#f3bc96!important;text-decoration:none!important;font-size:13px;font-weight:750;border-bottom:1px solid rgba(243,188,150,.68);transition:border-color .2s,color .2s}
 .site a.home-featured-read:hover{color:#fff!important;border-color:#fff}
 .site a.home-featured-media:focus-visible,.site .home-featured-copy a:focus-visible{outline:3px solid #f3bc96;outline-offset:4px}
-@media(max-width:850px){
-  .site .home-featured{padding:48px 0 58px}
+/* The iPad portrait viewport still has room for two balanced columns. */
+@media(min-width:701px) and (max-width:980px){
+  .site .home-featured-copy{padding:clamp(23px,3vw,34px)}
+  .site .home-featured-copy h2{font-size:clamp(27px,3.6vw,33px)}
+  .site .home-featured-deck{font-size:13px;line-height:1.58}
+  .site .home-featured-media img{width:calc(100% - 22px);max-width:calc(100% - 22px);max-height:270px}
+}
+@media(max-width:700px){
+  .site .home-featured{padding:42px 0 52px}
   .site .home-featured-story{grid-template-columns:minmax(0,1fr)}
-  .site a.home-featured-media{height:clamp(170px,27vw,260px);min-height:0;max-height:260px}
-  .site .home-featured-media img{height:calc(100% - 24px);width:calc(100% - 24px);max-width:calc(100% - 24px);max-height:236px}
-  .site .home-featured-copy{padding:29px 28px 33px}
+  .site a.home-featured-media{height:clamp(155px,33vw,220px);min-height:0;max-height:220px}
+  .site .home-featured-media img{height:calc(100% - 16px);width:calc(100% - 20px);max-width:calc(100% - 20px);max-height:205px}
+  .site .home-featured-copy{padding:25px 27px 29px}
+  .site .home-featured-copy h2{font-size:clamp(27px,5vw,33px)}
+  .site .home-featured-deck{font-size:14px}
 }
 @media(max-width:520px){
   .site .home-featured>.container{width:calc(100% - 30px)}
@@ -126,7 +134,7 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .home-featured-topline>p:last-child{margin-top:8px}
   .site a.home-featured-media{height:clamp(145px,43vw,185px);max-height:185px}
   .site .home-featured-media img{max-height:165px}
-  .site .home-featured-copy{padding:24px 22px 28px}
+  .site .home-featured-copy{padding:23px 22px 27px}
   .site .home-featured-copy h2{font-size:clamp(26px,7vw,30px)}
 }
 @media(prefers-reduced-motion:reduce){.site a.home-featured-read{transition:none}}

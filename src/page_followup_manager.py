@@ -20,6 +20,12 @@ ACTION_NAMES = {
     "hold": "Hold / review",
 }
 ACTION_ORDER = {"follow_up_now": 0, "upcoming": 1, "wait": 2, "hold": 3}
+EXCLUDED_OUTCOMES = {"rejected", "cancelled", "canceled", "withdrawn"}
+
+
+def _is_eligible(row: dict) -> bool:
+    """Track every opportunity unless its outcome explicitly excludes it."""
+    return str(row.get("outcome") or "unknown").strip().lower() not in EXCLUDED_OUTCOMES
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
@@ -63,6 +69,8 @@ def _dates(row: dict) -> str:
         return "Next interview " + _day(row["next_interview_date"])
     if row.get("action") in ("upcoming", "follow_up_now"):
         return "Recommended checkpoint " + _day(row.get("due_date"))
+    if row.get("due_date"):
+        return "Review checkpoint " + _day(row["due_date"]) + " (not a send recommendation)"
     return "No verified follow-up due date"
 
 
@@ -191,8 +199,9 @@ def render_followup_manager(session: dict) -> None:
     token = str(session["access_token"])
     st.title("Live hiring follow-up manager")
     st.caption(
-        "Owner-only · Swedish business-day timing · dynamic status checkpoints · "
-        "manual email delivery. Snapshot-driven: opening this page does not sync Outlook or Gmail."
+        "Owner-only · all applications except rejected, cancelled or withdrawn · "
+        "Swedish business-day timing · manual email delivery. "
+        "Snapshot-driven: opening this page does not sync Outlook or Gmail."
     )
     if st.button("Refresh decisions", key="followup_refresh"):
         st.rerun()
@@ -201,16 +210,23 @@ def render_followup_manager(session: dict) -> None:
     except (RuntimeError, ValueError) as exc:
         st.error(f"Follow-up manager is unavailable: {exc}")
         return
-    active = sorted(
-        [r for r in records if r.get("outcome") == "in_progress"],
+    tracked = sorted(
+        [r for r in records if _is_eligible(r)],
         key=lambda r: (ACTION_ORDER.get(r.get("action"), 9), r.get("due_date") or "9999-12-31"),
     )
-    counts = {key: sum(r.get("action") == key for r in active) for key in ACTION_NAMES}
+    counts = {key: sum(r.get("action") == key for r in tracked) for key in ACTION_NAMES}
     cols = st.columns(4)
     for col, (action, label) in zip(cols, ACTION_NAMES.items()):
         col.metric(label, counts[action])
 
-    market = next((r for r in active if r.get("market_snapshot_date")), None)
+    confirmed = sum(str(r.get("outcome") or "").strip().lower() == "in_progress" for r in tracked)
+    unresolved = len(tracked) - confirmed
+    app_only = sum(not r.get("interview_date") for r in tracked)
+    st.caption(
+        f"{len(tracked)} tracked applications · {confirmed} confirmed in progress · "
+        f"{unresolved} unconfirmed/other outcomes · {app_only} without a verified completed interview."
+    )
+    market = next((r for r in tracked if r.get("market_snapshot_date")), None)
     if market:
         st.caption(
             f"Market adjustment: +{market.get('market_lag_days', 0)} business day(s) "
@@ -219,27 +235,35 @@ def render_followup_manager(session: dict) -> None:
         )
     st.info(
         "Employer commitments outrank default windows. Already-sent thank-yous "
-        "do not count as chasing emails. Closed and unconfirmed processes never enter the due queue."
+        "do not count as chasing emails. Unconfirmed applications remain in this manager; "
+        "an unknown status does not establish that the vacancy is still open. "
+        "A missing recipient or stale evidence requires review, not an automatic email."
     )
-    if not active:
-        st.warning("No active recruiting opportunities are confirmed in the saved register.")
+    if not tracked:
+        st.warning("No non-rejected, non-cancelled, non-withdrawn applications are recorded.")
         return
     show = st.segmented_control(
-        "Process filter", ["All active", "Action required", "Waiting", "Needs review"],
-        default="All active", key="followup_filter", width="stretch"
-    ) or "All active"
+        "Process filter", ["All tracked", "Action required", "Waiting", "Needs review", "Applications only"],
+        default="All tracked", key="followup_filter", width="stretch"
+    ) or "All tracked"
     filtered = [
-        r for r in active
-        if show == "All active"
+        r for r in tracked
+        if show == "All tracked"
         or (show == "Action required" and r.get("action") == "follow_up_now")
         or (show == "Waiting" and r.get("action") in ("upcoming", "wait"))
         or (show == "Needs review" and r.get("action") == "hold")
+        or (show == "Applications only" and not r.get("interview_date"))
     ]
     for row in filtered:
         status = ACTION_NAMES.get(row.get("action"), "Check")
         title = (f"{row['employer']} · {row['role_title']} — {status}")
         with st.container(border=True):
             st.markdown("**" + title + "**")
+            outcome = str(row.get("outcome") or "unknown").strip().lower()
+            if outcome == "unknown":
+                st.caption("Outcome unconfirmed · requires evidence check; not assumed rejected or still hiring")
+            elif outcome not in {"in_progress"}:
+                st.caption("Saved outcome: " + outcome + " · review any outstanding administrative steps")
             st.caption(
                 f"{_dates(row)} · {row.get('decision_reason') or 'No reason saved'} "
                 f"· Process ID {row['opportunity_id']}"
@@ -249,6 +273,10 @@ def render_followup_manager(session: dict) -> None:
                     f"Last verified interview: {_day(row['interview_date'])} "
                     f"· Round {row.get('stage') or '?'}"
                 )
+            elif row.get("application_date"):
+                st.caption("Application: " + _day(row["application_date"]) + " · no completed interview recorded")
+            else:
+                st.caption("Application/meeting date not fully verified; check source records")
             if row.get("source_checked_at"):
                 st.caption("Correspondence checked: " + _day(row["source_checked_at"]))
             if row.get("action") == "follow_up_now":
@@ -261,14 +289,15 @@ def render_followup_manager(session: dict) -> None:
             elif row.get("action") == "wait":
                 st.caption("Do not send a process-status request before the scheduled interview.")
             else:
-                st.caption("No automatic outreach recommended. Verify the vacancy or recipient.")
+                st.caption("Review the application status, find a verified recipient, or confirm old interview evidence before sending.")
             _editor(row, token)
     st.divider()
     st.caption(
         "Method: 5 workdays after advanced interviews; 7 after first interviews; "
-        "10 after an application only with verified contact. A fresh elevated "
+        "10 after a dated application; a verified recipient is required to send. A fresh elevated "
         "market-delay indicator adds at most one workday. An explicit employer "
         "reply date uses a three-workday grace period. Recent outgoing messages "
         "and repeat follow-ups impose a cooldown. Weekends and curated Swedish "
-        "holidays are excluded. These dates are advisory, not employer promises."
+        "holidays are excluded. Unknown-status applications stay visible, but stale and "
+        "unverified cases are held for review. These dates are advisory, not employer promises."
     )

@@ -161,11 +161,19 @@ def render_next_steps(opportunities: list[dict], meetings: list[dict],
             (r for r in sorted(events, key=lambda r: r["start"])
              if r["kind"] == "action" and r["end"] >= today), None
         )
+        future_stage = next(
+            (s["event_label"] for s in signals
+             if int(s["opportunity_id"]) == int(op["id"])
+             and s.get("kind") == "conditional_stage"), None
+        )
+        if not future_stage and op.get("process_key") == "betsson-head-sb-product-data-ai-2026":
+            future_stage = "Director interview / case, if shortlisted (not booked)"
         active_rows.append({
             "Employer": op["employer"],
             "Role": op["role_title"],
             "Next step": primary["label"] if primary else "No new milestone evidenced",
             "Window": _when(primary) if primary else "Not established",
+            "Further stage if selected": future_stage or "Not established",
             "Evidence": LABELS[primary["kind"]] if primary else "Unknown",
             "Median-delay anchor": (
                 primary["central"].strftime("%d %b %Y")

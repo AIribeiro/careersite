@@ -417,6 +417,13 @@ def render_role_journeys(token: str, meetings: list[dict], now: datetime,
             return
     models = [journey(op, meetings, now) for op in opportunities]
     if models:
+        from page_recruiting_forecast import fetch_step_signals, render_next_steps
+        try:
+            signals = fetch_step_signals(token)
+        except (RuntimeError, ValueError) as exc:
+            st.warning(f"Next-step evidence could not be loaded: {exc}")
+        else:
+            render_next_steps(opportunities, meetings, signals, now.date())
         _latest_activity(models, now)
     _quality_signal(models)
     if not models:

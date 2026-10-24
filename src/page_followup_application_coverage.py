@@ -47,7 +47,8 @@ def fetch_engaged(token: str) -> list[dict]:
 
 
 def render_application_coverage(token: str, rows: list[dict] | None = None,
-                                timeline: dict[tuple[str, str], list[dict]] | None = None) -> None:
+                                timeline: dict[tuple[str, str], list[dict]] | None = None,
+                                role_contacts: dict[tuple[str, str], list[dict]] | None = None) -> None:
     st.subheader("Engaged hiring processes")
     st.caption(
         "Only vacancies with at least one substantive positive recruiter/hiring-manager "
@@ -149,8 +150,9 @@ def render_application_coverage(token: str, rows: list[dict] | None = None,
             key="fu_external_status_selector",
         )
         from page_followup_status import status_editor
-        from page_followup_history import history_editor
+        from page_followup_history import history_editor, contacts_panel
         status_editor(token, options_by_source[chosen], prefix="external")
+        contacts_panel(options_by_source[chosen], role_contacts or {})
         history_editor(token, options_by_source[chosen], prefix="external", timeline=timeline)
 
     st.caption(

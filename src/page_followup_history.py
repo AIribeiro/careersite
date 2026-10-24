@@ -52,6 +52,23 @@ def fetch_history(token: str, source_type: str, source_ref: str) -> list[dict]:
     return result
 
 
+def fetch_history_all(token: str) -> dict[tuple[str, str], list[dict]]:
+    """One owner-scoped read for the entire follow-up desk, avoiding 13 HTTP calls."""
+    fields = ("source_type,source_ref,id,event_on,occurred_at,event_type,direction,"
+              "channel,contact_name,summary,evidence_ref,confidence,source_system")
+    result = _request_json(
+        "GET",
+        _rest_url(f"{EVENT_TABLE}?select={fields}&order=event_on.desc,id.desc&limit=2000"),
+        token=token,
+    )
+    if not isinstance(result, list):
+        raise RuntimeError("Recruiter interaction history unavailable.")
+    output: dict[tuple[str, str], list[dict]] = {}
+    for e in result:
+        output.setdefault((str(e.get("source_type")), str(e.get("source_ref"))), []).append(e)
+    return output
+
+
 def fetch_history_counts(token: str) -> dict[tuple[str, str], dict]:
     result = _request_json(
         "GET", _rest_url(f"{SUMMARY_VIEW}?select=*&limit=1000"), token=token
@@ -94,16 +111,20 @@ def _row_title(item: dict) -> str:
     return TYPES.get(code, code.replace("_", " ").capitalize())
 
 
-def history_editor(token: str, row: dict, *, prefix: str = "managed") -> None:
+def history_editor(token: str, row: dict, *, prefix: str = "managed",
+                   timeline: dict[tuple[str, str], list[dict]] | None = None) -> None:
     source_type = str(row.get("source_type") or "")
     source_ref = str(row.get("source_ref") or "")
     key = f"{prefix}_{source_type}_{source_ref}"
     with st.expander("Interaction history · follow-ups and replies", expanded=False):
-        try:
-            events = fetch_history(token, source_type, source_ref)
-        except RuntimeError as exc:
-            st.warning(f"History unavailable: {exc}")
-            return
+        if timeline is not None:
+            events = timeline.get((source_type, source_ref), [])
+        else:
+            try:
+                events = fetch_history(token, source_type, source_ref)
+            except RuntimeError as exc:
+                st.warning(f"History unavailable: {exc}")
+                return
         followups = sum(e.get("event_type") == "followup_sent" for e in events)
         replies = sum(e.get("event_type") == "recruiter_reply" for e in events)
         interviews = sum(e.get("event_type") == "interview_completed" for e in events)
@@ -112,7 +133,11 @@ def history_editor(token: str, row: dict, *, prefix: str = "managed") -> None:
                                (len(events),followups,replies,interviews)):
             c.metric(title,val)
         if events:
-            for e in events[:50]:
+            show_more = st.checkbox(
+                "Show up to 50 historical events", value=False, key=f"hist_full_{key}"
+            )
+            shown = 50 if show_more else 6
+            for e in events[:shown]:
                 label = _row_title(e)
                 timestamp = str(e.get("occurred_at") or e.get("event_on") or "")[:16]
                 # When timestamp is date only, do not suggest a verified clock time.
@@ -126,8 +151,8 @@ def history_editor(token: str, row: dict, *, prefix: str = "managed") -> None:
                 )
                 st.write(str(e.get("summary") or ""))
                 st.divider()
-            if len(events)>50:
-                st.caption(f"Showing 50 of {len(events)} interactions. More events are retained.")
+            if len(events)>shown:
+                st.caption(f"Showing the most recent {min(shown,len(events))} of {len(events)} interactions. Full history is retained.")
         else:
             st.caption("No dated interactions yet. Add the first verified conversation or follow-up.")
         st.markdown("**Add interaction**")

@@ -45,7 +45,8 @@ def fetch_engaged(token: str) -> list[dict]:
     return [row for row in result if isinstance(row, dict)]
 
 
-def render_application_coverage(token: str, rows: list[dict] | None = None) -> None:
+def render_application_coverage(token: str, rows: list[dict] | None = None,
+                                timeline: dict[tuple[str, str], list[dict]] | None = None) -> None:
     st.subheader("Engaged hiring processes")
     st.caption(
         "Only vacancies with at least one substantive positive recruiter/hiring-manager "
@@ -145,7 +146,7 @@ def render_application_coverage(token: str, rows: list[dict] | None = None) -> N
         from page_followup_status import status_editor
         from page_followup_history import history_editor
         status_editor(token, options_by_source[chosen], prefix="external")
-        history_editor(token, options_by_source[chosen], prefix="external")
+        history_editor(token, options_by_source[chosen], prefix="external", timeline=timeline)
 
     st.caption(
         "Positive engagement qualifies a role for follow-up tracking, not for immediate "

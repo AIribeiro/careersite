@@ -88,6 +88,22 @@ class HomeFeaturedArticleTests(unittest.TestCase):
         self.assertEqual(html.count('href="?page=thinking&amp;article=a-slug"'), 3)
         self.assertIn('data-hq-event="home_featured_article_open"', html)
 
+    def test_article_artwork_is_confined_to_a_responsive_frame(self) -> None:
+        """Prevent full-resolution CMS headers from controlling Home card width/height."""
+        from site_styles import CSS
+
+        feature_css = CSS.split("/* Home editorial feature:", 1)[1].split("</style>", 1)[0]
+        self.assertIn(".site .home-featured>.container{width:min(1000px,calc(100% - 44px));max-width:100%}", feature_css)
+        self.assertIn("grid-template-columns:minmax(0,.43fr) minmax(0,.57fr)", feature_css)
+        self.assertIn(".site .home-featured-story{", feature_css)
+        self.assertIn("max-width:100%;overflow:hidden", feature_css)
+        self.assertIn(".site .home-featured-media img{position:absolute;inset:0;margin:auto", feature_css)
+        self.assertIn("max-height:320px", feature_css)
+        self.assertIn("min-width:0;min-height:0;object-fit:contain", feature_css)
+        self.assertIn("height:clamp(170px,27vw,260px)", feature_css)
+        self.assertIn("height:clamp(145px,43vw,185px)", feature_css)
+        self.assertNotIn("min-height:360px", feature_css)
+
     def test_featured_panel_is_immediately_before_contact(self) -> None:
         from page_home import home
         with patch("page_home.home_featured_article", return_value="<section id='highlight-test'></section>"):

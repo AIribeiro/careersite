@@ -33,7 +33,8 @@ def fetch_engaged(token: str) -> list[dict]:
         "application_date,interview_date,next_interview_date,action,due_date,"
         "decision_reason,evidence_sources,engagement_basis,engagement_confidence,"
         "engagement_source,last_engagement_on,manual_status,manual_status_on,"
-        "manual_status_note,is_archived,effective_action,effective_reason"
+        "manual_status_note,is_archived,effective_action,effective_reason,"
+        "unanswered_followups,last_recruiter_reply_on,last_recorded_followup_on"
     )
     result = _request_json(
         "GET",
@@ -84,6 +85,7 @@ def render_application_coverage(token: str, rows: list[dict] | None = None,
         "All": None, "Review due": "review_due",
         "Upcoming review": "review_upcoming", "Older / stale": "stale_review",
         "Missing dates": "verify_date", "Managed": "managed",
+        "Follow-ups exhausted": "exhausted",
     }
     view = st.selectbox("Review filter", list(options), key="fu_all_filter")
     show_archived = st.checkbox(
@@ -96,6 +98,8 @@ def render_application_coverage(token: str, rows: list[dict] | None = None,
             (str(r.get("employer") or "") + " " + str(r.get("role_title") or "")).casefold())
         and (view == "All"
              or (view == "Managed" and r.get("source_type") == "managed")
+             or (view == "Follow-ups exhausted" and
+                 int(r.get("unanswered_followups") or 0) >= 2)
              or r.get("effective_action") == options[view])
     ]
     filtered.sort(
@@ -117,6 +121,7 @@ def render_application_coverage(token: str, rows: list[dict] | None = None,
                     "Qualifying contact": str(r.get("engagement_basis") or "").replace("_", " "),
                     "Evidence quality": r.get("engagement_confidence") or "—",
                     "Last contact": _day(r.get("last_engagement_on")),
+                    "Unanswered chasers": r.get("unanswered_followups") or 0,
                     "Applied": _day(r.get("application_date")),
                     "Checkpoint": _day(r.get("due_date")),
                     "Action": str(r.get("effective_action") or "").replace("_", " ").capitalize(),

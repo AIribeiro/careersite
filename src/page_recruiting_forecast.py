@@ -196,11 +196,16 @@ def render_next_steps(opportunities: list[dict], meetings: list[dict],
         for op in plan["watch"]:
             st.write(f"{op['employer']} · {op['role_title']}")
 
+    sample_summary = (
+        f"combined n={sample['n']}, median {sample['typical']:g} calendar days, "
+        f"middle sample range {sample['lower']}–{sample['upper']} days"
+        if sample["typical"] is not None else
+        "insufficient verified transitions; fallback planning range used"
+    )
     st.caption(
-        f"Method {plan['version']}: from {sample['decision_n']} observed employer "
-        f"decision delays and {sample['progression_n']} observed stage transitions "
-        f"(combined n={sample['n']}), median {sample['typical']:g} calendar days "
-        f"and middle sample range {sample['lower']}–{sample['upper']} days. "
+        f"Method {plan['version']}: {sample['decision_n']} observed employer "
+        f"decision delays and {sample['progression_n']} observed stage transitions; "
+        f"{sample_summary}. "
         "Small, selective data cannot justify probabilities or calibrated "
         "prediction intervals. Estimated timing is conditional on the process "
         "continuing, **not** a probability of an offer. Candidate checkpoints "

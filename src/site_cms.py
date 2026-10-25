@@ -1239,7 +1239,7 @@ def select_auto_featured_article(
     return max((article for article in eligible if article.featured), key=sort_key, default=None) or max(eligible, key=sort_key)
 
 
-def inject_cms_landing(document: str) -> str:
+def inject_cms_landing(document: str, *, listing_page: int | str | None = None) -> str:
     published = list(fetch_published_articles())
     from thinking_weekly_brief import is_weekly_brief, inject_weekly_brief_landing
     weekly_briefs = [article for article in published if is_weekly_brief(article)]
@@ -1247,13 +1247,11 @@ def inject_cms_landing(document: str) -> str:
     cms_articles = [article for article in published if not is_weekly_brief(article)]
     read_counts = _public_reads_or_none()
     document = inject_weekly_brief_landing(document, weekly_briefs, read_counts=read_counts)
-    # The current Thinking landing has no oversized feature panel: show every
-    # published article in the normal catalogue. Older template users retaining
-    # a feature placeholder continue to receive the existing behavior.
-    featured = (select_auto_featured_article(cms_articles, read_counts)
-                if '<article class="featured-thinking">' in document else None)
+    # Use the same canonical highlight on Thinking and Home.
+    featured = select_auto_featured_article(cms_articles, read_counts)
+    legacy_feature_placeholder = '<article class="featured-thinking">' in document
 
-    if featured is not None:
+    if featured is not None and legacy_feature_placeholder:
         featured_image = ""
         featured_header_url = embedded_header_image_src(featured)
         if featured_header_url:
@@ -1294,18 +1292,59 @@ def inject_cms_landing(document: str) -> str:
 
     articles = [
         article for article in cms_articles
-        if featured is None or article.id != featured.id
+        if featured is None or article.slug != featured.slug
     ]
-    if not articles:
-        return CMS_FALLBACK_CSS + document
-
     # Stable descending sort retains the publication-date order for ties.
     # Never suggest a ranking or invent zeros during a metrics outage.
     if read_counts is not None:
         articles.sort(key=lambda article: read_counts.get(article.slug, 0), reverse=True)
 
+    # Shareable article-page URLs; page numbers clamp as the catalogue grows.
+    from thinking_core import query_value
+    raw_page = query_value("articles_page") if listing_page is None else listing_page
+    page_size = 6
+    pages = max(1, math.ceil(len(articles) / page_size))
+    try:
+        page = max(1, min(int(raw_page), pages))
+    except (ValueError, TypeError, OverflowError):
+        page = 1
+    offset = (page - 1) * page_size
+    listed_articles = articles[offset:offset + page_size]
+
+    def page_link(number: int, caption: str) -> str:
+        return (
+            f'<a href="?page=thinking&amp;articles_page={number}#articles-catalog" '
+            f'target="_self" data-hq-event="thinking_catalog_page" data-catalog-page="{number}">'
+            f'{caption}</a>'
+        )
+
+    page_controls = []
+    if page > 1:
+        page_controls.append(page_link(page - 1, "← Previous"))
+    visible_pages = set(range(max(1, page - 1), min(pages, page + 1) + 1))
+    visible_pages.update((1, pages))
+    previous = 0
+    for number in sorted(visible_pages):
+        if previous and number - previous > 1:
+            page_controls.append('<span class="catalog-page-ellipsis" aria-hidden="true">…</span>')
+        if number == page:
+            page_controls.append(f'<span class="catalog-page-current" aria-current="page">{number}</span>')
+        else:
+            page_controls.append(page_link(number, str(number)))
+        previous = number
+    if page < pages:
+        page_controls.append(page_link(page + 1, "Next →"))
+
+    shown = f'Showing {offset + 1}–{offset + len(listed_articles)} of {len(articles)} articles' if articles else 'No additional articles'
+    pagination = (
+        '<div class="cms-catalog-footer"><p>' + shown + ' · Six per page'
+        + (' · Highlighted article shown separately' if featured else '')
+        + '</p><nav class="cms-pagination" aria-label="Article pages">'
+        + ''.join(page_controls) + '</nav></div>'
+    )
+
     cards = []
-    for article in articles:
+    for article in listed_articles:
         thumb = ""
         card_header_url = embedded_header_image_src(article)
         if card_header_url:

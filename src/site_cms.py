@@ -1368,14 +1368,52 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
             f'<h3>{escape(article.title)}</h3><p>{escape(article.excerpt)}</p>'
             f'<div class="read">{article_read_metadata(article, read_counts)} →</div></a>'
         )
+    # Small editorial feature directly under the heading, following the same
+    # article selection as the Home feature. Not repeated in the six-card list.
+    highlight_html = ""
+    if featured is not None and not legacy_feature_placeholder:
+        href = escape(article_relative_url(featured), quote=True)
+        slug = escape(featured.slug, quote=True)
+        art_url = cms_feature_image_url(featured)
+        image = (
+            f'<img src="{escape(art_url, quote=True)}" '
+            f'alt="{escape(featured.header_image_alt or featured.title, quote=True)}" '
+            'loading="lazy" decoding="async">'
+            if art_url else '<span class="home-featured-art-fallback">AI · Data · Leadership</span>'
+        )
+        highlight_html = (
+            '<div class="cms-thinking-highlight" data-analytics-section="thinking-featured-article">'
+            '<div class="home-featured-topline"><p class="eyebrow">Highlighted article</p>'
+            '<p>A perspective from my latest writing and reader interest.</p></div>'
+            '<article class="home-featured-story">'
+            f'<a class="home-featured-media" href="{href}" target="_self" '
+            f'data-hq-event="thinking_highlight_image" data-hq-content-slug="{slug}" '
+            f'aria-label="Read {escape(featured.title, quote=True)}">{image}</a>'
+            '<div class="home-featured-copy">'
+            f'<p class="home-featured-kind">{escape(featured.kind_topic)}</p>'
+            f'<h3><a href="{href}" target="_self" data-hq-event="thinking_highlight_title" '
+            f'data-hq-content-slug="{slug}">{escape(featured.title)}</a></h3>'
+            f'<p class="home-featured-deck">{escape(featured.subtitle or featured.excerpt)}</p>'
+            f'<p class="home-featured-date">{escape(featured.published_label)} · '
+            f'{featured.read_minutes} min read</p>'
+            f'<a class="home-featured-read" href="{href}" target="_self" '
+            f'data-hq-event="thinking_highlight_open" data-hq-content-slug="{slug}">'
+            'Read highlighted article <span aria-hidden="true">→</span></a>'
+            '</div></article></div>'
+        )
+
     section = (
-        '<section class="section white cms-latest"><div class="container">'
+        '<section class="section white cms-latest" id="articles-catalog"><div class="container">'
         '<div class="head"><div><p class="eyebrow">Selected writing</p>'
         '<h2>Articles I believe are worth your time.</h2></div>'
         '<p>I wrote these pieces to examine the real decisions behind enterprise AI and data. '
         'They offer practical perspectives on strategy, governance, adoption and business value'
         '—and questions you can bring into your own work.</p>'
-        '</div><div class="recent-grid">' + ''.join(cards) + '</div></div></section>'
+        '</div>' + highlight_html
+        + '<div class="cms-listing-head"><p class="eyebrow">All articles</p>'
+        '<p>Browse the full collection, six at a time.</p></div>'
+        + '<div class="recent-grid">' + ''.join(cards) + '</div>'
+        + pagination + '</div></section>'
         '<style>'
         '.cms-thinking-thumb{margin:-25px -25px 20px;min-width:0;max-width:100%;box-sizing:border-box;aspect-ratio:2/1!important;overflow:hidden;'
         'background:#0b1220;display:flex;align-items:center;justify-content:center}.cms-thinking-thumb img{'
@@ -1399,6 +1437,33 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
         'margin:0;font-size:7px}.cms-featured-thinking .cms-fallback-cover .cms-cover-copy strong,.cms-featured-thinking .cms-fallback-cover .cms-cover-copy p{display:none}'
         '.cms-featured-thinking .cms-fallback-cover .cms-cover-network{opacity:.65;width:46%;height:76%;right:4%;bottom:12%}.cms-featured-thinking>h2{'
         'font-size:clamp(30px,8vw,42px)!important;margin:18px 0 14px!important}}'
+        '.cms-thinking-highlight{max-width:100%;margin:0 0 42px}'
+        '.cms-thinking-highlight .home-featured-story{max-width:100%;width:100%}'
+        '.cms-thinking-highlight .home-featured-copy h3{margin:0;font:500 clamp(27px,2.8vw,38px)/1.14 Georgia,serif;'
+        'letter-spacing:-.025em;overflow-wrap:anywhere;text-wrap:balance}'
+        '.cms-thinking-highlight .home-featured-copy h3 a{text-decoration:none!important;color:#fff!important}'
+        '.cms-thinking-highlight .home-featured-copy h3 a:hover{text-decoration:underline!important}'
+        '.cms-listing-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;'
+        'margin:0 0 18px;border-bottom:1px solid var(--line);padding-bottom:12px}'
+        '.cms-listing-head>p{margin:0;color:var(--muted);font-size:12px}'
+        '.cms-listing-head .eyebrow{color:var(--copper)}'
+        '.cms-catalog-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;'
+        'gap:20px;margin-top:26px;padding-top:24px;border-top:1px solid var(--line)}'
+        '.cms-catalog-footer>p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}'
+        '.cms-pagination{display:flex;align-items:center;flex-wrap:wrap;gap:8px}'
+        '.cms-pagination a,.cms-pagination .catalog-page-current{display:inline-flex;align-items:center;'
+        'justify-content:center;min-width:40px;min-height:40px;padding:9px 12px;'
+        'border:1px solid var(--line);font-size:12px;font-weight:750;text-decoration:none!important;'
+        'color:var(--ink)!important}'
+        '.cms-pagination a:hover,.cms-pagination a:focus-visible{border-color:var(--copper);color:var(--copper)!important}'
+        '.cms-pagination .catalog-page-current{background:var(--navy);border-color:var(--navy);color:#fff!important}'
+        '.catalog-page-ellipsis{padding:8px;color:var(--muted)}'
+        '@media(max-width:700px){.cms-listing-head{display:block}.cms-listing-head>p:last-child{margin-top:6px}'
+        '.cms-thinking-highlight .home-featured-story{grid-template-columns:minmax(0,1fr)}'
+        '.cms-thinking-highlight .home-featured-media{height:clamp(175px,45vw,240px)}'
+        '.cms-thinking-highlight .home-featured-copy{padding:24px}'
+        '.cms-thinking-highlight .home-featured-copy h3{font-size:clamp(26px,7vw,32px)}'
+        '.cms-catalog-footer{align-items:flex-start;flex-direction:column}}'
         '</style>'
     )
     # Replace the legacy hardcoded list with a complete CMS-backed list

@@ -138,5 +138,23 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .home-featured-copy h2{font-size:clamp(26px,7vw,30px)}
 }
 @media(prefers-reduced-motion:reduce){.site a.home-featured-read{transition:none}}
+/* About: four balanced proof cards per section, two columns on iPad and desktop. */
+.site .about-tech-section .twocol{display:block}
+.site .about-tech-section .twocol>div:first-child{max-width:920px;margin-bottom:26px}
+.site .about-four-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-auto-rows:auto;
+  gap:18px;
+  align-items:stretch;
+}
+.site .about-four-grid>.card{
+  min-width:0;
+  height:100%;
+}
+@media(max-width:700px){
+  .site .about-four-grid{grid-template-columns:minmax(0,1fr);gap:15px}
+}
+
 </style>
 """

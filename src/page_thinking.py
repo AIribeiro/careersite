@@ -113,7 +113,6 @@ def _image(article_key: str, css_class: str) -> str:
     return (
         f'<div class="{css_class}" role="img" aria-label="{html.escape(article.title + " — Jair Ribeiro", quote=True)}">'
         '<div class="cover-content">'
-        '<div class="cover-eyebrow">Leading in the AI Enterprise</div>'
         f'<div class="cover-title">{title}</div>'
         f'<div class="cover-subtitle">{subtitle}</div>'
         '</div>'

@@ -31,7 +31,7 @@ def nav(active: str) -> str:
         '<span>Enterprise AI &amp; Data Leader</span></div></a>'
         '<div class="links" style="flex:1 1 560px;min-width:0;align-items:center;justify-content:flex-end">'
         f'{link("home", "Home")}'
-        f'{link("impact", "Selected Experience")}'
+        f'{link("impact", "AI Leadership")}'
         f'{link("ai-data-governance", "AI & Data Governance")}'
         f'{link("thinking", "Thinking")}'
         f'{link("about", "About")}'

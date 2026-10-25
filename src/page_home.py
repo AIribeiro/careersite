@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from site_assets import AI_PANEL_URI, HERO_URI, LINKEDIN, WORKSHOP_URI
-from site_components import nav, footer
+from site_assets import AI_PANEL_URI, CV_URI, HERO_URI, LINKEDIN, WORKSHOP_URI
+from site_components import nav, footer, CV_DOWNLOAD_NAME
 from page_home_featured import home_featured_article
 from career_facts import PROFILE_TECH_YEARS, VOLVO_AI_INITIATIVES, VOLVO_WORKFLOW_SCOPE, MSX_PUBLIC_DATES, VOLVO_CURRENT_DATES, VOLVO_SENIOR_AI_DATES, KIMBERLY_DATES
 
@@ -14,7 +14,7 @@ JIM_LINKEDIN = "https://www.linkedin.com/in/james-edwards-7233b8152"
 
 def home() -> str:
     return f'''{nav("home")}<main>
-<section class="hero"><div class="container heroin"><div><p class="eyebrow">Enterprise AI · Data · Analytics</p><h1>Jair Ribeiro<span>Enterprise AI &amp; Data Leader</span></h1><p class="deck">My career has moved from enterprise technology into AI, Data and Analytics leadership. I’ve led cross-functional work on strategy, portfolio priorities, governance and adoption—helping teams bring AI into everyday operations and build the foundations for responsible scale.</p><p class="context">Based in Gothenburg, Sweden · International enterprise experience</p><div class="actions"><a class="btn primary" href="?page=impact" target="_self" data-hq-event="impact_home">Explore my leadership experience →</a><a class="btn text" href="?page=ai-data-governance" target="_self" data-hq-event="governance_home">AI &amp; Data Governance →</a></div></div><div class="portrait"><img src="{HERO_URI}" alt="Jair Ribeiro contributing to an executive AI panel" loading="eager" fetchpriority="high" decoding="async"><div class="note"><span>Operating perspective</span><strong>AI becomes useful when priorities, ownership and adoption are clear enough to support better business decisions.</strong></div></div></div></section>
+<section class="hero"><div class="container heroin"><div><p class="eyebrow">Enterprise AI · Data · Analytics</p><h1>Jair Ribeiro<span>Enterprise AI &amp; Data Leader</span></h1><p class="deck">My career has moved from enterprise technology into AI, Data and Analytics leadership. I’ve led cross-functional work on strategy, portfolio priorities, governance and adoption—helping teams bring AI into everyday operations and build the foundations for responsible scale.</p><p class="context">Based in Gothenburg, Sweden · International enterprise experience</p><div class="actions"><a class="btn primary" href="?page=impact" target="_self" data-hq-event="impact_home">Explore my AI leadership →</a><a class="btn text" href="?page=ai-data-governance" target="_self" data-hq-event="governance_home">AI &amp; Data Governance →</a><a class="btn text" href="{CV_URI}" download="{CV_DOWNLOAD_NAME}" data-hq-event="cv_download_home">Download CV ↓</a></div></div><div class="portrait"><img src="{HERO_URI}" alt="Jair Ribeiro contributing to an executive AI panel" loading="eager" fetchpriority="high" decoding="async"><div class="note"><span>Operating perspective</span><strong>AI becomes useful when priorities, ownership and adoption are clear enough to support better business decisions.</strong></div></div></div></section>
 
 
 <section class="section paper journey-section" data-analytics-section="home-choose-your-path"><div class="container">

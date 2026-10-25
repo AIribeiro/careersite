@@ -1364,8 +1364,12 @@ def inject_cms_landing(document: str) -> str:
     )
     # Replace the legacy hardcoded list with a complete CMS-backed list
     # to rank older and newer articles together without duplicates.
-    marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">More leadership questions</p>'
+    marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Selected writing</p>'
     start = document.find(marker)
+    if start < 0:
+        # Compatibility with older Thinking templates.
+        marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">More leadership questions</p>'
+        start = document.find(marker)
     if start >= 0:
         end = document.find('<section class="section paper">', start + len(marker))
         if end >= 0:

@@ -327,7 +327,17 @@ def inject_weekly_brief_landing(
         '<div class="weekly-ai-history"><p>Previous editions</p>' + recent_items + '</div>'
         '</div></div></div></section>'
     )
-    # The feature must be seen before the essay introduction, not buried below Latest articles.
+    # The Thinking introduction is always the first section below navigation.
+    # Insert WEEKLY AI after that hero, before the article catalogue. Keeping the
+    # insertion within <main> also preserves the document's HTML structure.
+    hero_start = document.find('<section class="pagehero">')
+    if hero_start >= 0:
+        hero_end = document.find("</section>", hero_start)
+        if hero_end >= 0:
+            insert_at = hero_end + len("</section>")
+            return WEEKLY_CSS + document[:insert_at] + feature + document[insert_at:]
+
+    # Compatibility for older landing templates without a page hero.
     anchor = "<main>"
     if anchor in document:
         return WEEKLY_CSS + document.replace(anchor, anchor + feature, 1)

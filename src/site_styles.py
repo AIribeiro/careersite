@@ -168,5 +168,23 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .foundation-four-grid{grid-template-columns:minmax(0,1fr);gap:15px}
 }
 
+/* AI & Data Governance: two-by-two evidence and research grids, including iPad. */
+.site .governance-four-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  align-items:stretch;
+}
+.site .governance-four-grid>.card{
+  min-width:0;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+.site .governance-four-grid>.card .proof{margin-top:auto}
+@media(max-width:700px){
+  .site .governance-four-grid{grid-template-columns:minmax(0,1fr);gap:15px}
+}
+
 </style>
 """

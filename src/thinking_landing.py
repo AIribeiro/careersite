@@ -89,14 +89,85 @@ SPEAKING_CSS = r'''<style>
 </style>'''
 
 
+
+THINKING_APPROACH_CSS = r'''<style>
+/* Four equal-size tiles: a consistent 2x2 grid on iPad and desktop. */
+.thinking-approach-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-auto-rows:minmax(305px,1fr);
+  gap:20px;
+  align-items:stretch;
+}
+.thinking-approach-grid>.thinking-approach-tile{
+  box-sizing:border-box;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  margin:0;
+}
+.thinking-approach-grid>.card{
+  padding:clamp(22px,2.8vw,34px);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.thinking-approach-grid>.card h3{
+  margin:20px 0 12px;
+  font-size:clamp(22px,2.5vw,30px);
+  line-height:1.2;
+}
+.thinking-approach-grid>.card p{
+  margin:0;
+  font-size:clamp(13px,1.3vw,15px);
+  line-height:1.65;
+}
+.thinking-approach-photo{
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:#111b2c;
+}
+.thinking-approach-photo img{
+  display:block;
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  max-width:none;
+  object-fit:cover;
+  object-position:center 28%;
+}
+@media (min-width:701px) and (max-width:900px){
+  .thinking-approach-grid{gap:16px;grid-auto-rows:minmax(315px,1fr)}
+  .thinking-approach-grid>.card{padding:22px}
+  .thinking-approach-grid>.card h3{font-size:24px}
+  .thinking-approach-grid>.card p{font-size:13px}
+}
+@media (max-width:700px){
+  .thinking-approach-grid{grid-template-columns:minmax(0,1fr);grid-auto-rows:auto;gap:16px}
+  .thinking-approach-grid>.card{min-height:0;padding:25px}
+  .thinking-approach-photo{height:auto!important;min-height:320px!important}
+}
+</style>'''
+
+
 def landing() -> str:
     primary = article_by_key(CURRENT_PRIMARY)
     secondary = article_by_key(CURRENT_SECONDARY)
-    return f'''{THINKING_CSS}{SPEAKING_CSS}{nav("thinking")}<main>
+    return f'''{THINKING_CSS}{SPEAKING_CSS}{THINKING_APPROACH_CSS}{nav("thinking")}<main>
 <section class="pagehero"><div class="container"><p class="eyebrow">Thinking · Articles &amp; Knowledge Sharing</p><h1>What I’ve learned about AI—and what I’m still questioning.</h1><p>My articles draw on the decisions and trade-offs I’ve faced in enterprise AI and Data leadership: what to prioritize, how to govern responsibly, what makes adoption real, and how to judge business value.</p><p>I share these perspectives to make practical experience useful to others, challenge my own assumptions and keep learning through conversation.</p></div></section>
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Selected writing</p><h2>Explore the articles.</h2></div><p>Explore practical perspectives on AI priorities, accountability, adoption, governance and business value.</p></div>{_recent_cards()}{_upcoming_preview()}</div></section>
 <section class="section paper"><div class="container"><div class="head"><div><p class="eyebrow">Further reading</p><h2>Longer perspectives behind the decisions.</h2></div><p>Longer pieces on strategy, value, operating models, governance, data readiness and adoption. They give more context to the shorter, current material above.</p></div>{thought_grid(THOUGHTS,"articles")}<div class="actions"><a class="btn dark" href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_thinking">More writing on Medium ↗</a><a class="btn dark" href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_thinking">LinkedIn ↗</a></div></div></section>
-<section class="section white"><div class="container editorial-split"><div><p class="eyebrow">Approach</p><h2>Each piece starts from a concrete operating decision.</h2><p>The focus is on the situation, the trade-off, what changes the answer, and what the next decision requires.</p><div class="grid3" style="margin-top:24px"><article class="card"><span class="org">Situation first</span><h3>Start with what is actually happening</h3><p>A pilot has no clear owner, governance arrives too late, a strong use case has weak business pull, or adoption looks good in a dashboard while the work itself has not changed. The operating consequence is usually more useful than the abstract theme.</p></article><article class="card"><span class="org">Trade-off</span><h3>Make the trade-off visible</h3><p>Most enterprise choices are not solved by a universal best practice. The useful questions are what changes the answer, who carries the consequence and where a compromise is worth making.</p></article><article class="card"><span class="org">Practical use</span><h3>End with a decision, not a slogan</h3><p>A useful piece should help someone frame the problem better, challenge an assumption or make the next decision with more confidence.</p></article></div></div><div class="editorial-photo portrait"><img src="{THINKING_PANEL_URI}" alt="Jair Ribeiro listening during an industry panel discussion" loading="lazy" decoding="async"></div></div></section>
+<section class="section white thinking-approach" data-analytics-section="thinking-approach"><div class="container">
+<div class="head"><div><p class="eyebrow">Approach</p><h2>Each piece starts from a concrete operating decision.</h2></div><p>The focus is on the situation, the trade-off, what changes the answer, and what the next decision requires.</p></div>
+<div class="thinking-approach-grid">
+<article class="card thinking-approach-tile"><span class="org">Situation first</span><h3>Start with what is actually happening</h3><p>A pilot has no clear owner, governance arrives too late, a strong use case has weak business pull, or adoption looks good in a dashboard while the work itself has not changed. The operating consequence is usually more useful than the abstract theme.</p></article>
+<article class="card thinking-approach-tile"><span class="org">Trade-off</span><h3>Make the trade-off visible</h3><p>Most enterprise choices are not solved by a universal best practice. The useful questions are what changes the answer, who carries the consequence and where a compromise is worth making.</p></article>
+<article class="card thinking-approach-tile"><span class="org">Practical use</span><h3>End with a decision, not a slogan</h3><p>A useful piece should help someone frame the problem better, challenge an assumption or make the next decision with more confidence.</p></article>
+<figure class="thinking-approach-photo thinking-approach-tile"><img src="{THINKING_PANEL_URI}" alt="Jair Ribeiro sharing perspectives at an AI industry discussion" loading="lazy" decoding="async"></figure>
+</div></div></section>
 <section class="section speaking-feature" data-analytics-section="speaking-publications-feature" aria-labelledby="speaking-heading">
 <div class="container">
 <div class="speaking-intro"><div><p class="eyebrow">Speaking &amp; publications</p><h2 id="speaking-heading">Ideas tested beyond the page.</h2></div><p>I also take these conversations into conferences, panels and external publications. The themes remain close to my work: business adoption, AI governance, accountability and what it takes to scale.</p></div>

@@ -25,10 +25,11 @@ def ai_data_governance() -> str:
 
 <section class="section white" id="governance-evidence"><div class="container">
 <div class="head"><div><p class="eyebrow">Experience behind the perspective</p><h2>Governance shaped by enterprise operating work.</h2></div><p>The perspective on this page comes from building structures around AI and Data, working across business and technology environments, and studying how Responsible AI can move from principles into enterprise practice.</p></div>
-<div class="grid3">
+<div class="grid3 governance-four-grid">
 <article class="card"><span class="org">MSX International · AI &amp; Data CoE</span><h3>Portfolio, lifecycle and scale-readiness.</h3><p>I built portfolio and lifecycle structure for an emerging AI &amp; Data capability, including decision points, ownership, scale-readiness criteria, data-governance foundations and a 2026–2027 maturity roadmap.</p><div class="proof">Portfolio visibility · lifecycle stages · decision rights · stewardship foundations</div></article>
 <article class="card"><span class="org">Volvo Group / Volvo Trucks</span><h3>Governance connected to real enterprise use.</h3><p>Across AI roles, I worked between business, Digital &amp; IT and specialist functions while AI initiatives moved across warranty, sales, aftermarket, legal, compliance and sustainability contexts.</p><div class="proof">Cross-functional AI · adoption · business ownership · enterprise constraints</div></article>
 <article class="card"><span class="org">MSc dissertation research · Artificial Intelligence</span><h3>Responsible AI as an enterprise capability.</h3><p><em>Responsible AI Adoption in Global Enterprises: Balancing Innovation, Governance, and Trust</em> examines how large organizations can turn Responsible AI principles into operating practice across strategic, operational, technical, human and regulatory governance.</p><div class="proof"><strong>Selinus University of Science and Literature</strong><br>Risk-based governance · lifecycle controls · accountability · trust · human oversight</div></article>
+<article class="card"><span class="org">Digital First Magazine · Published perspective</span><h3>Governance that supports responsible scale.</h3><p>In my 2026 external article, I examine why AI governance needs to connect business accountability, usable controls and adoption rather than become a parallel approval process.</p><div class="proof"><a href="{DFM_GOVERNANCE_URL}" target="_blank" rel="noopener noreferrer" data-hq-event="governance_publication_proof">Read the published article ↗</a><br>Enterprise accountability · governance at scale · operating practice</div></article>
 </div></div></section>
 
 <section class="section soft"><div class="container">
@@ -122,10 +123,11 @@ def ai_data_governance() -> str:
 
 <section class="section paper"><div class="container">
 <div class="head"><div><p class="eyebrow">Research &amp; external perspective</p><h2>Responsible AI as an operating capability, not a compliance sidecar.</h2></div><p>My MSc dissertation research and public writing reinforce the same operating view: enterprise AI governance is strongest when business value, accountability, evidence, human oversight and trust are designed together.</p></div>
-<div class="grid3">
+<div class="grid3 governance-four-grid">
 <article class="card"><span class="org">Strategic governance</span><h3>Direction, sponsorship and accountability.</h3><p>Executive direction, enterprise priorities and decision rights establish who owns the use of AI and where governance authority sits.</p></article>
-<article class="card"><span class="org">Operational + technical governance</span><h3>Controls embedded in the lifecycle.</h3><p>Risk classification, documentation, data responsibilities, validation, monitoring and auditability need to live inside delivery rather than arrive after it.</p></article>
+<article class="card"><span class="org">Operational + technical governance</span><h3>Controls embedded in the lifecycle.</h3><p>Risk classification, validation, monitoring, documentation and auditability need to live inside delivery rather than arrive after it.</p></article>
 <article class="card"><span class="org">Human + regulatory governance</span><h3>Trust, oversight and defensibility.</h3><p>AI literacy, human accountability, adoption, regulatory obligations and enterprise risk have to work together if governance is expected to survive real operating pressure.</p></article>
+<article class="card"><span class="org">Data &amp; information governance</span><h3>Trust begins with the information.</h3><p>Clear data ownership, quality expectations, definitions, lineage and permitted use help make AI decisions explainable and give business and technical teams a foundation they can defend.</p></article>
 </div>
 <div class="actions"><a class="btn dark" href="{DFM_GOVERNANCE_URL}" target="_blank" rel="noopener" data-hq-event="article_governance_evidence">Read: AI Governance Is Not About Control. It Is About Scale. ↗</a><a class="btn dark" href="?page=thinking" target="_self" data-hq-event="governance_thinking">Selected thinking →</a></div>
 </div></section>

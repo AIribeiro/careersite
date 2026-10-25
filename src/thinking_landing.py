@@ -58,12 +58,59 @@ def _upcoming_preview() -> str:
     )
 
 
+
+SPEAKING_CSS = r'''<style>
+.speaking-feature{background:#111d2d;color:#f1f3f4;padding:70px 0 68px}
+.speaking-feature .eyebrow{color:#dfaa82}
+.speaking-intro{display:grid;grid-template-columns:minmax(0,1.16fr) minmax(290px,.84fr);gap:42px;align-items:end;margin-bottom:32px}
+.speaking-intro h2{margin:14px 0 0;font:500 clamp(35px,4.2vw,58px)/1.08 Georgia,serif;letter-spacing:-.027em;color:#fff}
+.speaking-intro>p{margin:0 0 3px;max-width:470px;color:#c1cbd8;font-size:16px;line-height:1.75}
+.speaking-layout{display:grid;grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr);gap:18px;align-items:stretch}
+.speaking-photo{min-width:0;min-height:456px;position:relative;margin:0;overflow:hidden;border:1px solid rgba(255,255,255,.17);background:#182a42}
+.speaking-photo img{display:block;width:100%;height:100%;position:absolute;inset:0;object-fit:cover;object-position:center}
+.speaking-photo:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(8,17,30,.96),rgba(8,17,30,.02) 63%)}
+.speaking-photo figcaption{position:absolute;bottom:0;left:0;right:0;z-index:1;padding:29px 28px;display:flex;flex-direction:column;gap:8px}
+.speaking-photo figcaption span,.speaking-record .record-meta{font:800 10px/1.4 Inter,Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#e6ae85}
+.speaking-photo figcaption strong{font:500 clamp(23px,2.35vw,35px)/1.16 Georgia,serif;color:#fff}
+.speaking-photo figcaption small{font:400 13px/1.5 Inter,Arial,sans-serif;color:#d1dae3}
+.speaking-records{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.speaking-record{min-width:0;min-height:219px;padding:23px 21px;display:flex;flex-direction:column;gap:11px;background:#1d2c40;border:1px solid rgba(255,255,255,.14);text-decoration:none!important;transition:border-color .15s ease,background .15s ease}
+.speaking-record:hover,.speaking-record:focus-visible{border-color:#e3ae86;background:#253751}
+.speaking-record strong{font:500 clamp(19px,2vw,26px)/1.16 Georgia,serif;color:#fff}
+.speaking-record .record-detail{font:400 13px/1.55 Inter,Arial,sans-serif;color:#c2ced9}
+.speaking-record .record-link{margin-top:auto;padding-top:9px;font:750 11px/1.4 Inter,Arial,sans-serif;color:#f0c4a5}
+.speaking-bottom{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:22px;margin-top:24px}
+.speaking-bottom p{margin:0;font:400 13px/1.6 Inter,Arial,sans-serif;color:#acb9c7}
+.speaking-about-link{display:inline-flex;align-items:center;gap:17px;padding:14px 20px;border:1px solid #d5a17e;color:#fff!important;text-decoration:none!important;font:750 12px/1.4 Inter,Arial,sans-serif}
+.speaking-about-link:hover,.speaking-about-link:focus-visible{background:#d5a17e;color:#101c2b!important}
+@media(max-width:1050px){.speaking-intro{grid-template-columns:1fr;gap:14px}.speaking-layout{grid-template-columns:1fr}.speaking-photo{min-height:390px}.speaking-records{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.speaking-feature{padding:46px 0}.speaking-intro h2{font-size:36px}.speaking-intro>p{font-size:15px}.speaking-photo{min-height:285px}.speaking-photo figcaption{padding:20px}.speaking-records{grid-template-columns:1fr}.speaking-record{min-height:0;padding:22px}.speaking-bottom{align-items:stretch}.speaking-about-link{justify-content:space-between;width:100%;box-sizing:border-box}}
+@media(prefers-reduced-motion:reduce){.speaking-record{transition:none}}
+</style>'''
+
+
 def landing() -> str:
     primary = article_by_key(CURRENT_PRIMARY)
     secondary = article_by_key(CURRENT_SECONDARY)
-    return f'''{THINKING_CSS}{nav("thinking")}<main>
+    return f'''{THINKING_CSS}{SPEAKING_CSS}{nav("thinking")}<main>
 <section class="pagehero"><div class="container"><p class="eyebrow">Articles &amp; Perspectives</p><h1>My thinking on AI, data and business value.</h1><p>Through these articles, I share how I approach the decisions that shape enterprise AI and data: where to focus, how to govern responsibly, what drives adoption, and how to turn strategy into measurable results.</p><p>I write to explore ideas, challenge assumptions, and share the reasoning, trade-offs, and practical experience behind my perspectives on AI and data leadership.</p></div></section>
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Selected writing</p><h2>Explore the articles.</h2></div><p>Explore practical perspectives on AI priorities, accountability, adoption, governance and business value.</p></div>{_recent_cards()}{_upcoming_preview()}</div></section>
 <section class="section paper"><div class="container"><div class="head"><div><p class="eyebrow">Further reading</p><h2>Longer perspectives behind the decisions.</h2></div><p>Longer pieces on strategy, value, operating models, governance, data readiness and adoption. They give more context to the shorter, current material above.</p></div>{thought_grid(THOUGHTS,"articles")}<div class="actions"><a class="btn dark" href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_thinking">More writing on Medium ↗</a><a class="btn dark" href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_thinking">LinkedIn ↗</a></div></div></section>
 <section class="section white"><div class="container editorial-split"><div><p class="eyebrow">Approach</p><h2>Each piece starts from a concrete operating decision.</h2><p>The focus is on the situation, the trade-off, what changes the answer, and what the next decision requires.</p><div class="grid3" style="margin-top:24px"><article class="card"><span class="org">Situation first</span><h3>Start with what is actually happening</h3><p>A pilot has no clear owner, governance arrives too late, a strong use case has weak business pull, or adoption looks good in a dashboard while the work itself has not changed. The operating consequence is usually more useful than the abstract theme.</p></article><article class="card"><span class="org">Trade-off</span><h3>Make the trade-off visible</h3><p>Most enterprise choices are not solved by a universal best practice. The useful questions are what changes the answer, who carries the consequence and where a compromise is worth making.</p></article><article class="card"><span class="org">Practical use</span><h3>End with a decision, not a slogan</h3><p>A useful piece should help someone frame the problem better, challenge an assumption or make the next decision with more confidence.</p></article></div></div><div class="editorial-photo portrait"><img src="{THINKING_PANEL_URI}" alt="Jair Ribeiro listening during an industry panel discussion" loading="lazy" decoding="async"></div></div></section>
-<section class="section paper"><div class="container"><div class="head"><div><p class="eyebrow">Research &amp; speaking</p><h2>Related work beyond the articles.</h2></div><p>Selected research, conference participation and publications are documented separately.</p></div><div class="actions"><a class="btn dark" href="?page=presence" target="_self">Speaking &amp; publications →</a></div></div></section>{journey_next("thinking")}</main>{footer()}'''
+<section class="section speaking-feature" data-analytics-section="speaking-publications-feature" aria-labelledby="speaking-heading">
+<div class="container">
+<div class="speaking-intro"><div><p class="eyebrow">Speaking &amp; publications</p><h2 id="speaking-heading">Ideas tested beyond the page.</h2></div><p>I also take these conversations into conferences, panels and external publications. The themes remain close to my work: business adoption, AI governance, accountability and what it takes to scale.</p></div>
+<div class="speaking-layout">
+<figure class="speaking-photo"><img src="{PANEL_DIALOGUE_URI}" alt="Jair Ribeiro taking part in the Financial Times Future of AI Summit panel" loading="lazy" decoding="async"><figcaption><span>On stage · 2023</span><strong>Financial Times Future of AI Summit</strong><small>Discussing how AI becomes part of business operations.</small></figcaption></figure>
+<div class="speaking-records">
+<a class="speaking-record" href="https://www.smau.it/stockholm/schedule/driving-transformation-through-ai-and-digitalisation" target="_blank" rel="noopener noreferrer" data-hq-event="thinking_speaking_smau">
+<span class="record-meta">2026 · Panel</span><strong>SMAU Stockholm</strong><span class="record-detail">AI and digitalisation in business ecosystems, with leaders from industry and academia.</span><span class="record-link">Official event record ↗</span></a>
+<a class="speaking-record" href="https://www.digitalfirstmagazine.com/leaders-are-finally-understanding-ai-governance-is-not-about-control-it-is-about-scale-temp/" target="_blank" rel="noopener noreferrer" data-hq-event="thinking_speaking_digitalfirst">
+<span class="record-meta">2026 · Publication</span><strong>Digital First Magazine</strong><span class="record-detail">Why AI governance needs to support accountable, repeatable use—not simply control.</span><span class="record-link">Read the publication ↗</span></a>
+<a class="speaking-record" href="https://eco-cdn.iqpc.com/eco/files/event_content/chief-ai-officcer-exchange-europe-event-agenda-2024SUq6T8hBKVXfnBqCHm3LLUYAgsH9fL5OPo5cKlEK.pdf" target="_blank" rel="noopener noreferrer" data-hq-event="thinking_speaking_caio">
+<span class="record-meta">2024 · Keynote</span><strong>Chief AI Officer Exchange Europe</strong><span class="record-detail">Getting the business on board through AI literacy, storytelling and adoption.</span><span class="record-link">Official agenda ↗</span></a>
+<a class="speaking-record" href="https://www.edreamsodigeo.com/press-releases/2023/11/edreams-odigeo-shares-insights-on-infusing-ai-into-business-operations-at-the-financial-times-future-of-ai-summit/" target="_blank" rel="noopener noreferrer" data-hq-event="thinking_speaking_ft">
+<span class="record-meta">2023 · Panel</span><strong>Financial Times Future of AI Summit</strong><span class="record-detail">A discussion about bringing AI beyond specialist teams and into business operations.</span><span class="record-link">Event coverage ↗</span></a>
+</div></div>
+<div class="speaking-bottom"><p>A selected record of external contributions, rather than a complete events archive.</p><a class="speaking-about-link" href="?page=about#speaking-publications" target="_self" data-hq-event="thinking_speaking_about">Explore the full speaking &amp; publication record <span aria-hidden="true">→</span></a></div>
+</div></section>{journey_next("thinking")}</main>{footer()}'''

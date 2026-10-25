@@ -10,6 +10,32 @@ IMAGE_CSS = """
 .editorial-photo{overflow:hidden;background:#111b2c;width:min(100%,520px);justify-self:end}
 .editorial-photo img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;object-position:center;image-rendering:auto}
 .editorial-photo.portrait img{aspect-ratio:4/5;object-position:center 26%}
+/* About / Professional arc: integrate the portrait into the reading flow, not a second column. */
+.about-professional-arc{display:flow-root}
+.about-professional-arc .about-arc-photo{
+  float:right;
+  width:clamp(205px,27%,320px);
+  max-width:100%;
+  margin:5px 0 18px clamp(22px,3vw,38px);
+  overflow:hidden;
+  background:#111b2c;
+}
+.about-professional-arc .about-arc-photo img{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:4/5;
+  object-fit:cover;
+  object-position:center 26%;
+  image-rendering:auto;
+}
+@media(max-width:600px){
+  .about-professional-arc .about-arc-photo{
+    float:none;
+    width:min(100%,300px);
+    margin:17px auto 22px;
+  }
+}
 .contactvisual{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,320px);gap:48px;align-items:center}
 .contactportrait{width:100%;max-width:320px;justify-self:end;overflow:hidden;background:#111b2c}
 .contactportrait img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;object-position:center 28%;image-rendering:auto}

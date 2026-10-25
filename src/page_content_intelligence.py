@@ -1489,7 +1489,11 @@ def _render_visit_overview(data: dict, kind: str) -> None:
     first, second = st.columns(2)
     first.metric("Most viewed article" if kind == "article" else "Most visited page", ranked[0][label],
                  help="Highest view count in the selected window; tied counts share the lead.")
-    second.metric("Articles with views" if kind == "article" else "Pages with visits", len(ranked))
+    if kind == "article":
+        second.metric("Articles with views", len(ranked))
+    else:
+        second.metric("Total page visits", f"{total:,}",
+                      help="Total recorded page views in the selected period, including repeat visits.")
     metric = st.segmented_control(
         "Rank by", ["Views", "Sessions"], default="Views",
         key=f"{kind}_visit_ranking_metric", selection_mode="single",

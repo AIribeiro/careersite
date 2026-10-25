@@ -1363,7 +1363,8 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
                 thumb = ""
         cards.append(
             f'<a class="recent-card" href="{escape(article_relative_url(article), quote=True)}" '
-            f'target="_self" data-hq-event="cms_article_open">{thumb}'
+            f'target="_self" data-hq-event="cms_article_open" '
+            f'data-hq-content-slug="{escape(article.slug, quote=True)}">{thumb}'
             f'<div class="kicker">{escape(article.kind_topic)}</div>'
             f'<h3>{escape(article.title)}</h3><p>{escape(article.excerpt)}</p>'
             f'<div class="read">{article_read_metadata(article, read_counts)} →</div></a>'

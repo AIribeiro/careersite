@@ -1247,7 +1247,11 @@ def inject_cms_landing(document: str) -> str:
     cms_articles = [article for article in published if not is_weekly_brief(article)]
     read_counts = _public_reads_or_none()
     document = inject_weekly_brief_landing(document, weekly_briefs, read_counts=read_counts)
-    featured = select_auto_featured_article(cms_articles, read_counts)
+    # The current Thinking landing has no oversized feature panel: show every
+    # published article in the normal catalogue. Older template users retaining
+    # a feature placeholder continue to receive the existing behavior.
+    featured = (select_auto_featured_article(cms_articles, read_counts)
+                if '<article class="featured-thinking">' in document else None)
 
     if featured is not None:
         featured_image = ""

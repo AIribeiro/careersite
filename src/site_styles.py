@@ -156,5 +156,17 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .about-four-grid{grid-template-columns:minmax(0,1fr);gap:15px}
 }
 
+/* AI Leadership / IBM foundation: four equal cards in two rows on tablet and desktop. */
+.site .foundation-four-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  align-items:stretch;
+}
+.site .foundation-four-grid>.card{min-width:0;height:100%}
+@media(max-width:700px){
+  .site .foundation-four-grid{grid-template-columns:minmax(0,1fr);gap:15px}
+}
+
 </style>
 """

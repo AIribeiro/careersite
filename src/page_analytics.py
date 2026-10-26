@@ -22,10 +22,12 @@ PUBLIC_BASE_URL = "https://jairribeiro-ai.streamlit.app/"
 REPORTING_WINDOWS = (
     ("last_hour", "Last hour"),
     ("today", "Today"),
-    ("7d", "Last 7 days"),
-    ("30d", "Last 30 days"),
-    ("90d", "Last 90 days"),
-    ("365d", "Last 365 days"),
+    ("this_week", "This Week"),
+    ("last_week", "Last Week"),
+    ("this_month", "This Month"),
+    ("last_month", "Last Month"),
+    ("this_year", "This year"),
+    ("all", "All"),
 )
 REPORTING_WINDOW_LABELS = dict(REPORTING_WINDOWS)
 
@@ -61,6 +63,8 @@ def _noindex() -> None:
 
 
 def _dashboard_payload(window: str) -> dict[str, object]:
+    if window in REPORTING_WINDOW_LABELS:
+        return {"p_token": PUBLIC_DASHBOARD_TOKEN, "p_days": 30, "p_window": window}
     if window == "last_hour":
         return {"p_token": PUBLIC_DASHBOARD_TOKEN, "p_days": 30, "p_window": "last_hour"}
     if window == "today":

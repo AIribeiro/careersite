@@ -185,12 +185,13 @@ def weekly_ai_report(data: dict, editions: list[object], audio: dict | None = No
 
 
 def render_weekly_ai_analytics(window: str) -> None:
+    from page_analytics import REPORTING_WINDOW_LABELS
     st.subheader("WEEKLY AI · Content performance")
     period = {
         "last_hour": "Last hour", "today": "Today",
         "7d": "Last 7 days", "14d": "Last 14 days", "30d": "Last 30 days",
         "60d": "Last 60 days", "90d": "Last 90 days",
-    }.get(window, window)
+    }.get(window, REPORTING_WINDOW_LABELS.get(window, window))
     st.caption(
         f"Reporting window: **{period}**. Source: first-party analytics and published CMS editions. "
         "Counts are anonymous browser sessions, not identified people. "

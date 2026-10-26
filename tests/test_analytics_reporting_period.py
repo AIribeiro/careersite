@@ -24,11 +24,11 @@ class ReportingPeriodTests(unittest.TestCase):
             self.assertEqual(state[WINDOW_KEY], expected)
             self.assertEqual([c.args[0] for c in fetch.call_args_list], list(DEFAULT_WINDOWS[:index+1]))
 
-    def test_all_empty_stops_at_365_days(self):
+    def test_all_empty_stops_at_all(self):
         state = {}
         fetch = Mock(return_value={"totals": {"sessions": 0}})
         initialize_reporting_period(state, fetch)
-        self.assertEqual(state[WINDOW_KEY], "365d")
+        self.assertEqual(state[WINDOW_KEY], "all")
         self.assertEqual(fetch.call_count, len(DEFAULT_WINDOWS))
 
     def test_error_after_zero_stops_without_widening_again(self):
@@ -61,6 +61,21 @@ class ReportingPeriodTests(unittest.TestCase):
         initialize_reporting_period(state, fetch)
         self.assertEqual(state[WINDOW_KEY], "last_hour")
         fetch.assert_not_called()
-        state[WINDOW_KEY] = "30d"
+        state[WINDOW_KEY] = "this_month"
         remember_reporting_period(state)
-        self.assertEqual(state[PREFERENCE_KEY], "30d")
+        self.assertEqual(state[PREFERENCE_KEY], "this_month")
+
+    def test_automatic_choice_rechecks_and_ignores_old_preferences(self):
+        state = {WINDOW_KEY: "today", PREFERENCE_KEY: "365d"}
+        initialize_reporting_period(state, Mock(return_value={"totals": {"recorded_views": 1}}))
+        self.assertEqual(state[WINDOW_KEY], "last_hour")
+        initialize_reporting_period(state, Mock(side_effect=[
+            {"totals": {"recorded_views": 0}}, {"totals": {"recorded_views": 3}}]))
+        self.assertEqual(state[WINDOW_KEY], "today")
+
+    def test_telemetry_without_visits_does_not_select_period(self):
+        state = {}
+        initialize_reporting_period(state, Mock(side_effect=[
+            {"totals": {"sessions": 10, "recorded_views": 0}},
+            {"totals": {"sessions": 12, "recorded_views": 2}}]))
+        self.assertEqual(state[WINDOW_KEY], "today")

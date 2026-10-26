@@ -92,7 +92,7 @@ def _render_public_analytics() -> None:
         key="careersite_analytics_reporting_window",
         on_change=remember_reporting_period,
         args=(st.session_state,),
-        help="Starts with the first period with recorded sessions: Last hour → Today → 7 → 30 → 90 → 365 days. If all are empty, shows 365 days. Your manual selection is kept while you use Analytics.",
+        help="Defaults to the first period with visits, from Last hour through All. Calendar periods use Stockholm time; weeks start Monday. Last Week and Last Month are completed periods. You can select any period manually.",
     )
     if str(window) in ("last_hour","today"):
         st.caption("Short windows are useful for monitoring, not for judging hiring or content outcomes.")

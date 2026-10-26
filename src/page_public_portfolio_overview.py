@@ -127,8 +127,9 @@ def render_public_portfolio_overview() -> None:
         key="careersite_analytics_reporting_window",
         on_change=remember_reporting_period,
         args=(st.session_state,),
-        help="Starts with the most recent window containing recorded sessions; "
-             "a manual selection is retained.",
+        help="Defaults to the first period with visits, from Last hour through All. "
+             "Calendar periods use Stockholm time; weeks start Monday. "
+             "Last Week and Last Month are completed periods. You can select any period manually.",
     )
     try:
         report = fetch_intelligence(str(window))
@@ -219,7 +220,7 @@ def render_public_portfolio_overview() -> None:
         st.rerun()
 
     recent_report = None
-    if str(window) in ("14d", "30d", "60d", "90d", "365d"):
+    if str(window) in ("14d", "30d", "60d", "90d", "365d", "this_month", "this_year", "all"):
         try:
             recent_report = _recent_content_report()
         except (RuntimeError, ValueError, TimeoutError, PermissionError):

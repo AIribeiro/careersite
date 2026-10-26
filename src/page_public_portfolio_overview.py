@@ -30,7 +30,7 @@ def _lifetime_content_report() -> dict:
 def lifetime_caption(total: int | None, measure: str) -> str:
     if total is None:
         return "Lifetime total temporarily unavailable"
-    return f"Lifetime total: {total:,} {measure} · all recorded history"
+    return f"Lifetime total: {total:,} {measure}"
 
 
 def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:

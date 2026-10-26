@@ -22,6 +22,25 @@ from site_cms import fetch_published_articles
 from thinking_weekly_brief import edition_label, is_weekly_brief
 
 
+def reading_time_caption(rows: list[dict]) -> str:
+    """Weight measured active time by content-session count, not by titles."""
+    measured = [(row.get("Average active seconds"), row.get("Timed sessions", 0))
+                for row in rows]
+    measured = [(float(seconds), int(count)) for seconds, count in measured
+                if seconds is not None and count > 0]
+    count = sum(n for _, n in measured)
+    if not count:
+        return "Time spent: not measured yet"
+    seconds = sum(seconds * n for seconds, n in measured) / count
+    if seconds < 60:
+        duration = f"{seconds:.0f} secs"
+    elif seconds < 3600:
+        duration = f"{seconds / 60:.1f} mins"
+    else:
+        duration = f"{seconds / 3600:.1f} hours"
+    return f"Average time spent: {duration} per measured visit"
+
+
 def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
     """Classified page/article views; repeat views are not unique visitors."""
     if kind not in ("page", "article"):
@@ -42,6 +61,8 @@ def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
             "Slug": content,
             "Views": views,
             "Sessions": max(0, int(row.get("sessions") or 0)),
+            "Average active seconds": row.get("avg_active_seconds"),
+            "Timed sessions": max(0, int(row.get("confirmed_sessions") or 0)),
         })
     return sorted(values, key=lambda row: (-row["Views"], row["Content"]))
 
@@ -173,6 +194,7 @@ def render_public_portfolio_overview() -> None:
         with st.container(border=True, height=510):
             st.markdown("#### Portfolio visits")
             st.metric("Page views", f"{page_views:,}")
+            st.caption(reading_time_caption(pages))
             st.caption(f"{page_sessions:,} page-view sessions · {len(current_routes)} active destinations with recorded views")
             st.markdown("**Pages receiving attention**")
             _ranking_chart(current_routes, compact=True)
@@ -181,6 +203,7 @@ def render_public_portfolio_overview() -> None:
             st.markdown("#### Article readership")
             st.metric("Article views", f"{regular_views:,}" if catalogue_available else "—")
             if catalogue_available:
+                st.caption(reading_time_caption(regular_articles))
                 st.caption(
                     f"{regular_item_sessions:,} article-item sessions · "
                     f"{len(regular_articles)} read articles"
@@ -194,6 +217,7 @@ def render_public_portfolio_overview() -> None:
             st.markdown("#### WEEKLY AI")
             st.metric("Edition views", f"{weekly_views:,}" if catalogue_available else "—")
             if catalogue_available:
+                st.caption(reading_time_caption(weekly_editions))
                 st.caption(
                     f"{weekly_item_sessions:,} edition-item sessions · "
                     f"{len(weekly_editions)} read editions"

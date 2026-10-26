@@ -22,23 +22,15 @@ from site_cms import fetch_published_articles
 from thinking_weekly_brief import edition_label, is_weekly_brief
 
 
-def reading_time_caption(rows: list[dict]) -> str:
-    """Weight measured active time by content-session count, not by titles."""
-    measured = [(row.get("Average active seconds"), row.get("Timed sessions", 0))
-                for row in rows]
-    measured = [(float(seconds), int(count)) for seconds, count in measured
-                if seconds is not None and count > 0]
-    count = sum(n for _, n in measured)
-    if not count:
-        return "Time spent: not measured yet"
-    seconds = sum(seconds * n for seconds, n in measured) / count
-    if seconds < 60:
-        duration = f"{seconds:.0f} secs"
-    elif seconds < 3600:
-        duration = f"{seconds / 60:.1f} mins"
-    else:
-        duration = f"{seconds / 3600:.1f} hours"
-    return f"Average time spent: {duration} per measured visit"
+@st.cache_data(ttl=300, show_spinner=False)
+def _lifetime_content_report() -> dict:
+    return fetch_intelligence("all")
+
+
+def lifetime_caption(total: int | None, measure: str) -> str:
+    if total is None:
+        return "Lifetime total temporarily unavailable"
+    return f"Lifetime total: {total:,} {measure} · all recorded history"
 
 
 def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
@@ -61,8 +53,6 @@ def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
             "Slug": content,
             "Views": views,
             "Sessions": max(0, int(row.get("sessions") or 0)),
-            "Average active seconds": row.get("avg_active_seconds"),
-            "Timed sessions": max(0, int(row.get("confirmed_sessions") or 0)),
         })
     return sorted(values, key=lambda row: (-row["Views"], row["Content"]))
 
@@ -181,6 +171,19 @@ def render_public_portfolio_overview() -> None:
     weekly_views = sum(row["Views"] for row in weekly_editions)
     weekly_item_sessions = sum(row["Sessions"] for row in weekly_editions)
     rows_reconcile = regular_views + weekly_views == article_views
+    lifetime_pages = lifetime_articles = lifetime_weekly = None
+    try:
+        lifetime_report = report if str(window) == "all" else _lifetime_content_report()
+        lifetime_quality = lifetime_report.get("quality") or {}
+        if lifetime_quality.get("page_views") is not None:
+            lifetime_pages = max(0, int(lifetime_quality["page_views"]))
+        if catalogue_available and "performance" in lifetime_report:
+            lifetime_essays, lifetime_editions = split_reader_rows(
+                portfolio_visit_rows(lifetime_report, "article"), published_editions)
+            lifetime_articles = sum(row["Views"] for row in lifetime_essays)
+            lifetime_weekly = sum(row["Views"] for row in lifetime_editions)
+    except (RuntimeError, ValueError, TimeoutError, PermissionError):
+        pass  # Keep selected-period reports usable when lifetime loading fails.
 
     st.caption("Portfolio structure changed on 23 October 2026: six public destinations now replace the former nested navigation. Selected windows spanning that date mix two different navigation designs; compare journeys on complete days within each design, not raw historical page rankings.")
     if historical_routes:
@@ -194,7 +197,7 @@ def render_public_portfolio_overview() -> None:
         with st.container(border=True, height=510):
             st.markdown("#### Portfolio visits")
             st.metric("Page views", f"{page_views:,}")
-            st.caption(reading_time_caption(pages))
+            st.caption(lifetime_caption(lifetime_pages, "page views"))
             st.caption(f"{page_sessions:,} page-view sessions · {len(current_routes)} active destinations with recorded views")
             st.markdown("**Pages receiving attention**")
             _ranking_chart(current_routes, compact=True)
@@ -203,7 +206,7 @@ def render_public_portfolio_overview() -> None:
             st.markdown("#### Article readership")
             st.metric("Article views", f"{regular_views:,}" if catalogue_available else "—")
             if catalogue_available:
-                st.caption(reading_time_caption(regular_articles))
+                st.caption(lifetime_caption(lifetime_articles, "article views"))
                 st.caption(
                     f"{regular_item_sessions:,} article-item sessions · "
                     f"{len(regular_articles)} read articles"
@@ -217,7 +220,7 @@ def render_public_portfolio_overview() -> None:
             st.markdown("#### WEEKLY AI")
             st.metric("Edition views", f"{weekly_views:,}" if catalogue_available else "—")
             if catalogue_available:
-                st.caption(reading_time_caption(weekly_editions))
+                st.caption(lifetime_caption(lifetime_weekly, "edition views"))
                 st.caption(
                     f"{weekly_item_sessions:,} edition-item sessions · "
                     f"{len(weekly_editions)} read editions"
@@ -240,6 +243,7 @@ def render_public_portfolio_overview() -> None:
     )
 
     if st.button("Refresh insights", key="portfolio_refresh_insights"):
+        _lifetime_content_report.clear()
         _recent_content_report.clear()
         st.rerun()
 

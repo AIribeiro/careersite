@@ -203,7 +203,7 @@ def render_public_portfolio_overview() -> None:
             _ranking_chart(current_routes, compact=True)
     with articles_col:
         with st.container(border=True, height=510):
-            st.markdown("#### Article readership")
+            st.markdown("#### Articles")
             st.metric("Article views", f"{regular_views:,}" if catalogue_available else "—")
             if catalogue_available:
                 st.caption(lifetime_caption(lifetime_articles, "article views"))
@@ -217,8 +217,8 @@ def render_public_portfolio_overview() -> None:
                 st.caption("Article/edition breakdown temporarily unavailable.")
     with weekly_col:
         with st.container(border=True, height=510):
-            st.markdown("#### WEEKLY AI")
-            st.metric("Edition views", f"{weekly_views:,}" if catalogue_available else "—")
+            st.markdown("#### Weekly AI")
+            st.metric("Weekly AI", f"{weekly_views:,}" if catalogue_available else "—")
             if catalogue_available:
                 st.caption(lifetime_caption(lifetime_weekly, "edition views"))
                 st.caption(

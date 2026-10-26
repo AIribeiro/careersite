@@ -33,6 +33,10 @@ _DAILY_QUOTE_ARTICLES: dict[str, tuple[str, str]] = {
         "ai-can-make-every-team-faster-and-still-leave-the-business-slow",
         "daily_quote_20261023",
     ),
+    "r": (
+        "when-your-best-people-disagree-with-the-ai",
+        "daily_quote_20261026",
+    ),
 }
 
 _SHORT_CHANNELS: dict[str, str] = {

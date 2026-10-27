@@ -1403,6 +1403,43 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
             '</div></article></div>'
         )
 
+
+    # Curated, stable editorial entry points: these communicate managerial
+    # judgment, rather than recycling whatever happens to be newest or most-read.
+    # Exclude the current dynamic highlight to avoid showing the same story twice.
+    reading_paths = (
+        ("Governance that operates", "ai-governance-becomes-real-when-accountability-becomes-operational",
+         "How ownership, lifecycle decisions and risk controls work together."),
+        ("Portfolio judgment", "from-ai-use-case-list-to-investable-portfolio",
+         "How to decide what deserves investment, what needs proof and what should stop."),
+        ("Human judgment & adoption", "when-your-best-people-disagree-with-the-ai",
+         "How to handle disagreement between domain experts and AI recommendations."),
+        ("Operating productivity", "ai-can-make-every-team-faster-and-still-leave-the-business-slow",
+         "Why faster tasks do not necessarily create a faster business process."),
+    )
+    by_slug = {article.slug: article for article in cms_articles}
+    reading_cards = []
+    for label, slug, description in reading_paths:
+        article = by_slug.get(slug)
+        if article is None or (featured is not None and featured.slug == slug):
+            continue
+        reading_cards.append(
+            f'<a class="editorial-reading-card" href="{escape(article_relative_url(article), quote=True)}" '
+            f'target="_self" data-hq-event="thinking_editorial_path" '
+            f'data-hq-content-slug="{escape(article.slug, quote=True)}">'
+            f'<span>{escape(label)}</span><strong>{escape(article.title)}</strong>'
+            f'<small>{escape(description)}</small></a>'
+        )
+        if len(reading_cards) == 3:
+            break
+    reading_path_html = (
+        '<div class="editorial-reading-path" data-analytics-section="thinking-editorial-reading">'
+        '<div class="cms-listing-head"><p class="eyebrow">Start here · Three perspectives</p>'
+        '<p>Selected examples of how I approach accountability, investment and adoption.</p></div>'
+        '<div class="editorial-reading-grid">' + ''.join(reading_cards) + '</div></div>'
+        if reading_cards else ""
+    )
+
     section = (
         '<section class="section white cms-latest" id="articles-catalog"><div class="container">'
         '<div class="head"><div><p class="eyebrow">Selected writing</p>'
@@ -1410,12 +1447,19 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
         '<p>I wrote these pieces to examine the real decisions behind enterprise AI and data. '
         'They offer practical perspectives on strategy, governance, adoption and business value'
         '—and questions you can bring into your own work.</p>'
-        '</div>' + highlight_html
+        '</div>' + highlight_html + reading_path_html
         + '<div class="cms-listing-head"><p class="eyebrow">All articles</p>'
         '<p>Browse the full collection, six at a time.</p></div>'
         + '<div class="recent-grid">' + ''.join(cards) + '</div>'
         + pagination + '</div></section>'
         '<style>'
+        '.editorial-reading-path{margin:0 0 40px}.editorial-reading-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}'
+        '.editorial-reading-card{display:flex;flex-direction:column;gap:11px;padding:22px 20px;border:1px solid #d8d1c6;background:#fff;text-decoration:none!important;min-width:0}'
+        '.editorial-reading-card:hover,.editorial-reading-card:focus-visible{border-color:#bd8460;background:#faf7f2}'
+        '.editorial-reading-card span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#995b39;font-weight:800}'
+        '.editorial-reading-card strong{font:500 clamp(18px,2vw,23px)/1.23 Georgia,serif;color:#182333}'
+        '.editorial-reading-card small{font-size:12px;line-height:1.55;color:#576071}'
+        '@media(max-width:700px){.editorial-reading-grid{grid-template-columns:1fr}.editorial-reading-card{padding:20px}}'
         '.cms-thinking-thumb{margin:-25px -25px 20px;min-width:0;max-width:100%;box-sizing:border-box;aspect-ratio:2/1!important;overflow:hidden;'
         'background:#0b1220;display:flex;align-items:center;justify-content:center}.cms-thinking-thumb img{'
         'width:100%!important;max-width:100%!important;height:100%!important;display:block!important;object-fit:contain!important;'

@@ -100,15 +100,9 @@ def _render_public_analytics() -> None:
         render_weekly_ai_analytics(str(window))
         return
     render_content_intelligence(str(kind), str(window))
-    if st.toggle("Inspect legacy traffic reports and detailed source tables",
-                 value=False,key="analytics_show_historical"):
-        st.caption("Legacy reporting includes unfiltered traffic for continuity. "
-                   "It should not replace the qualified-session and behavior measures above.")
-        render_reader_sources(str(window), str(kind))
-        if kind == "page":
-            render_site_analytics_dashboard()
-        else:
-            render_article_analytics()
+    # Source-level attribution audits and unfiltered legacy detail belong in
+    # the authenticated Private analytics workspace, not the public dashboard.
+    # In particular, never render historical source / campaign tables for anon.
 
 # One Analytics URL with content-only public reporting and authenticated
 # hiring intelligence / CMS. The full legacy job dashboards are kept private.

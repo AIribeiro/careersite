@@ -53,13 +53,12 @@ Current hierarchy:
 6. three curated external perspectives;
 7. low-pressure leadership-opportunity CTA.
 
-The hero keeps:
+The current hero uses:
 
 - `Enterprise AI · Data · Analytics`
-- `Jair Ribeiro`
-- `Enterprise AI & Data Leader`
-- `AI scales as a system, not as a model.`
-- `Based in Gothenburg · Sweden & international mandates`
+- `Jair Ribeiro` / `Enterprise AI & Data Leader`
+- a concise career-and-leadership summary, not a self-awarded slogan;
+- `Based in Gothenburg, Sweden · International enterprise experience`
 
 The three broad homepage areas are:
 
@@ -182,28 +181,26 @@ Avoid hype, superlatives, self-appointed authority and aggressive contrasts. In 
 
 ## Navigation
 
-Primary menu:
+Current primary menu:
 
 - Home
-- Leadership Impact
+- AI Leadership
+- AI & Data Governance
 - Thinking
 - About
-  - About
-  - Speaking & Thought Leadership
-- Role lenses
 - Contact
 
-The About submenu contains the core About page and the selected Speaking & Thought Leadership evidence page. The Role lenses submenu contains all four contextual pages. Active submenu states must remain visible. The analytics dashboard is deliberately excluded from public navigation.
+Speaking and publications are sections within the About and Thinking pages. Role perspectives are integrated into AI Leadership rather than separate navigation destinations. All six links must remain accessible on mobile. The analytics dashboard is deliberately excluded from public navigation.
 
 ## CV standard
 
 The canonical PDF is:
 
-`static/Jair_Ribeiro_Enterprise_AI_Data_Leader_CV_2026.pdf`
+`static/Jair_Ribeiro_CV.pdf`
 
 The visible CV identity is **Enterprise AI & Data Leader**, matching the website. The CV header displays a clickable **AI & Data Portfolio** label pointing to the attributed Streamlit URL rather than exposing the domain.
 
-The CV is generated and validated in GitHub Actions, committed under `/static`, and served through Streamlit's app-relative `app/static/...` route. Production must not regenerate the PDF at runtime.
+The CV is generated and validated in GitHub Actions, committed under `/static`, and served through Streamlit's app-relative `app/static/...` route. The published filename is `Jair_Ribeiro_CV.pdf`; do not re-create it in production. Production must not regenerate the PDF at runtime.
 
 ## Visual and repository guardrails
 
@@ -230,7 +227,7 @@ GitHub should remain public, clean and quiet. Its role is supporting technical c
 ├── src/                      # pages, shared components, analytics, metadata and CV source
 ├── static/                   # validated public downloadable CV
 ├── tests/                    # regression and smoke tests
-├── app.py                    # Starlette routes, crawler previews and Streamlit app mounting
+├── app.py                    # Starlette routes and Streamlit app mounting
 ├── main.py                   # Streamlit page entry point
 ├── README.md
 └── requirements.txt

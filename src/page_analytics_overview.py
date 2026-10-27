@@ -107,6 +107,23 @@ def _action_queue(search: dict) -> list[dict]:
     return sorted(queue,key=lambda r:(r["_sort"],-(r["Days since event"] or 0)))[:5]
 
 
+def _fetch_owner_portfolio_signals(access_token: str) -> dict:
+    """Fetch portfolio correlation through the owner-only RPC with the owner JWT.
+
+    This RPC rejects anonymous access. The public content-analytics helper uses
+    anonymous headers and must not be used for private correlation reports.
+    """
+    if not access_token:
+        raise PermissionError("Owner session required for private portfolio correlation.")
+    data = _request_json(
+        "POST", _rest_url("rpc/careersite_portfolio_signals_daily_v1"),
+        token=access_token, payload={"p_days": 365}, timeout=35,
+    )
+    if not isinstance(data, dict):
+        raise RuntimeError("Portfolio correlation response is not an object.")
+    return data
+
+
 def _fetch_owner_portfolio_actions(access_token: str) -> dict:
     """Use the verified owner session for the private hiring-action RPC.
 
@@ -198,7 +215,7 @@ def render_analytics_overview(session: dict | None) -> None:
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             errors.append("role-target candidate catalogue")
         try:
-            site = _fetch_rpc("careersite_portfolio_signals_daily_v1",{"p_days":365})
+            site = _fetch_owner_portfolio_signals(str(valid["access_token"]))
         except (RuntimeError, TimeoutError, PermissionError, ValueError):
             errors.append("portfolio correlation")
         hiring = _fetch_hiring_intelligence("30d")

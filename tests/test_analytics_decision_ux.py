@@ -30,7 +30,7 @@ class DecisionExperienceTests(unittest.TestCase):
                    return_value={"access_token":"owner"}), \
              patch("page_analytics_overview.fetch_job_records",return_value=[]), \
              patch("page_analytics_overview.fetch_market_records",return_value=[]), \
-             patch("page_analytics_overview._fetch_rpc",return_value=None), \
+             patch("page_analytics_overview._fetch_owner_portfolio_signals",return_value=None), \
              patch("page_analytics_overview._fetch_owner_portfolio_actions",
                    return_value={"quality_checked":True}) as owner_actions, \
              patch("page_analytics_overview._fetch_hiring_intelligence",
@@ -45,6 +45,23 @@ class DecisionExperienceTests(unittest.TestCase):
             self.assertGreaterEqual(len(page.metric),3)
             self.assertEqual(len(page.tabs),0)
             owner_actions.assert_called_once_with("owner")
+
+    def test_portfolio_correlation_requires_owner_jwt(self):
+        from page_analytics_overview import _fetch_owner_portfolio_signals
+        from site_cms import _rest_url
+
+        result = {"daily": [], "pages": [], "sources": []}
+        with patch("page_analytics_overview._request_json",
+                   return_value=result) as rpc:
+            self.assertEqual(_fetch_owner_portfolio_signals("owner-jwt"), result)
+            rpc.assert_called_once_with(
+                "POST", _rest_url("rpc/careersite_portfolio_signals_daily_v1"),
+                token="owner-jwt", payload={"p_days": 365}, timeout=35,
+            )
+        with patch("page_analytics_overview._request_json") as rpc:
+            with self.assertRaises(PermissionError):
+                _fetch_owner_portfolio_signals("")
+            rpc.assert_not_called()
 
     def test_qualified_actions_use_owner_token(self):
         from page_analytics_overview import _fetch_owner_portfolio_actions

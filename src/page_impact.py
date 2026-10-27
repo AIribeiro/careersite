@@ -25,9 +25,9 @@ def impact() -> str:
                 ("Situation", "AI opportunities existed across business areas, but visibility, prioritization, decision rights and readiness criteria were inconsistent. Data governance also needed a practical starting point."),
                 ("My responsibility", "I led the AI and data excellence agenda across the organization, shaping the CoE foundations: portfolio structure, lifecycle stages, governance mechanisms, maturity assessment, data stewardship, adoption connections and the capability model needed to mature the function."),
                 ("Trade-off", "The question was how much structure the organization could use productively at that stage. Too little would preserve ambiguity; too much would create bureaucracy before the operating habits existed."),
-                ("Decision / contribution", f"I favored a small number of connected decision mechanisms: clearer portfolio visibility, practical lifecycle discipline, risk-aware criteria, stewardship and the proof needed before broader use. I also connected the maturity assessment to a pragmatic {MSX_ROADMAP.replace('-', '–')} roadmap rather than treating maturity as a score in isolation."),
-                ("What changed", f"An emerging CoE gained a visible AI opportunity portfolio, clearer lifecycle stages and decision responsibilities, a {MSX_ROADMAP.replace('-', '–')} maturity roadmap and initial data-ownership and stewardship foundations."),
-                ("Evidence / outcome status", "These are delivered portfolio and governance foundations. They are not presented as evidence of a fully scaled CoE or quantified enterprise ROI."),
+                ("Decision / contribution", f"I consolidated the AI opportunity inventory, structured Keep / Kill / Scale portfolio discussions, and developed lifecycle stage-gate and decision-rights material. I connected a seven-pillar maturity assessment with a {MSX_ROADMAP.replace('-', '–')} roadmap and initial data-stewardship work. The focus was on decisions the organization could actually support at that stage."),
+                ("What changed", f"The work produced a shared AI opportunity inventory, an initial lifecycle and responsibility model, a maturity baseline and roadmap, and the starting materials for data stewardship. These were the foundations for subsequent operating decisions, not evidence of a completed enterprise-wide change."),
+                ("Evidence / outcome status", "Artifact-level evidence: portfolio inventory, portfolio decision criteria, lifecycle / RACI materials, seven-pillar maturity baseline and roadmap, and initial stewardship materials. Status: foundation design and early adoption—not a fully scaled CoE, verified financial savings, or proven organization-wide use."),
             ],
         ),
         case(
@@ -43,7 +43,7 @@ def impact() -> str:
                 ("Trade-off", "Fast demonstrations and broad awareness could build interest, but operational use required clearer ownership, human review, appropriate controls and practical changes in day-to-day work."),
                 ("Decision / contribution", "I connected use-case choices and literacy with the workflows where AI would be used, engaging cross-functional stakeholders and keeping human oversight part of the approach."),
                 ("What changed", f"AI solutions and agents were introduced into {VOLVO_WORKFLOW_SCOPE} workflows, with business engagement and human review supporting day-to-day use. Practical AI literacy activity reached employees globally."),
-                ("Evidence / outcome status", "Workflow introductions and AI literacy activity are distinct types of evidence. No unverified percentage reduction in cost or cycle time is attributed to these initiatives."),
+                ("Evidence / outcome status", "Distinguishable evidence: operational use-case introductions in warranty, sales and aftermarket; cross-functional involvement; and practical AI learning sessions. The learning sessions and the wider 100+ initiative portfolio refer to separate measures and do not imply 100+ production deployments or verified ROI."),
             ],
         ),
         case(
@@ -75,7 +75,7 @@ def impact() -> str:
                 ("Trade-off", "The organization needed enough shared language and discipline to select useful work without turning education or PoC activity into a proxy for business results."),
                 ("Decision / contribution", f"I helped translate business demand into tractable AI initiatives and delivered {VOLVO_AI_LEARNING_SESSIONS} AI learning sessions. Across my Volvo AI roles, my combined portfolio work covered {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects."),
                 ("What changed", "Enterprise practitioners had more opportunities to build AI literacy and engage with an organized AI community; business and technical teams had a clearer basis for discussing use cases and requirements."),
-                ("Evidence / outcome status", "The 100+ learning sessions were delivered in this earlier Volvo chapter. The 100+ AI initiatives figure spans both Volvo AI roles and includes initiatives, PoCs and projects, not 100+ completed deployments."),
+                ("Evidence / outcome status", "Quantified, bounded activity: 100+ practical AI learning sessions in this earlier Volvo chapter. Separately, 100+ AI initiatives, PoCs and projects across both Volvo AI roles. Neither measure is presented as 100+ deployed solutions or quantified financial returns."),
             ],
         ),
     ]

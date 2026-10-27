@@ -140,6 +140,7 @@ def render_public_hiring_predictions() -> None:
             f"Updated {_display_date(timing['as_of'])} · "
             "Not a confirmed offer or calibrated hiring probability."
         )
+        st.caption("Published model: " + str(timing.get("model_version") or "not identified"))
         if timing.get("needs_refresh"):
             st.warning("This scenario is older than two weeks; the next verified "
                        "recruitment update will refresh it.")
@@ -147,7 +148,7 @@ def render_public_hiring_predictions() -> None:
         with st.container(border=True):
             st.markdown("## No current start-date scenario")
             st.caption(
-                "The latest published v2 forecast is unavailable or too old. "
+                "The latest published hiring forecast is unavailable or too old. "
                 "The page does not substitute unvalidated offer-week estimates."
             )
 
@@ -162,9 +163,9 @@ def render_public_hiring_predictions() -> None:
 
     with st.expander("Methodology, market context and limitations", expanded=False):
         st.markdown(
-            "**Current model:** Hiring Prediction v2 uses confirmed recruiting "
+            "**Current model:** The production hiring predictor uses confirmed recruiting "
             "stages, role alignment, evidence freshness and finalized post-interview "
-            "assessments. Its date range is "
+            "assessments, with corroborated external market conditions. Its date range is "
             "conditional on future successful progression, not an observed "
             "30-, 60- or 90-day chance of getting hired."
         )
@@ -184,7 +185,7 @@ def render_public_hiring_predictions() -> None:
                 "a particular employer's hiring decision."
             )
         st.caption(
-            "Only dates from a specifically published v2 projection appear "
+            "Only dates from a specifically published, version-validated projection appear "
             "here. Employer names, interviews, application records and "
             "contact details remain private."
         )

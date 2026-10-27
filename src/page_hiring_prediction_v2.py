@@ -12,7 +12,9 @@ import streamlit as st
 
 from site_cms import _request_json, _rest_url
 
-VERSION = "hiring-v2-stage-review-v1"
+VERSION = "hiring-v2-stage-review-v1"  # Accepted historical stage model
+CURRENT_VERSION = "hiring-v4-stage-review-market-live-v1"
+SUPPORTED_VERSIONS = frozenset((VERSION, CURRENT_VERSION))
 STAGE_NAMES = {
     "verified_offer": "Verified offer",
     "subsequent_interview_completed": "Subsequent interview completed",
@@ -25,7 +27,7 @@ STAGE_NAMES = {
 
 
 def validate_prediction_v2(result: object) -> dict:
-    if not isinstance(result, dict) or result.get("model_version") != VERSION:
+    if not isinstance(result, dict) or result.get("model_version") not in SUPPORTED_VERSIONS:
         raise ValueError("The hiring v2 model did not return a valid versioned forecast.")
     if not isinstance(result.get("cohort"), dict) or not isinstance(
         result.get("top_processes"), list
@@ -225,6 +227,16 @@ def render_hiring_prediction_v2(data: dict) -> dict:
                f"{index:.1f}% offer chance, evidence reliability percentage or "
                "forecast accuracy.")
 
+    market = data.get("market_intelligence")
+    if isinstance(market, dict) and market.get("status") == "active_in_production_not_shadow":
+        st.caption(
+            "Live market conditions: "
+            + str(market.get("direction") or "mixed_stable").replace("_", " ")
+            + f" · {int(market.get('signal_families_active') or 0)} scored source families"
+            + f" · planning adjustment {int(data.get('market_adjustment_applied_days') or 0):+d} days."
+            + " Directional planning evidence, not calibrated offer probabilities."
+        )
+
     live = _live_opportunities(data)
     if live:
         top = live[0]
@@ -353,8 +365,8 @@ def render_hiring_prediction_v2(data: dict) -> dict:
         st.caption(f"Audited processes: {cohort.get('total',0)} · "
                    f"active scored: {cohort.get('eligible_scored',0)} · "
                    f"verified offers: {cohort.get('offers',0)}. "
-                   "Market data is contextual, not substituted for personal interview "
-                   "outcomes. Model version: " + VERSION + ".")
+                   "External market evidence is live but never replaces personal interview "
+                   "outcomes. Model version: " + str(data.get("model_version") or VERSION) + ".")
         with st.container():
             details = [{
                 "Employer": p.get("employer"),

@@ -51,7 +51,7 @@ def record_daily_first(access_token: str, result: dict, signatures: dict[str,str
 
 def build_v2_snapshot(result: dict, source_signatures: dict[str, str]) -> dict:
     """Archive the v2 stage scenario without inventing offer probabilities."""
-    if result.get("model_version") != "hiring-v2-stage-review-v1":
+    if result.get("model_version") not in ("hiring-v2-stage-review-v1", "hiring-v4-stage-review-market-live-v1"):
         raise ValueError("Only a verified stage-model v2 result may be archived.")
     s = result.get("leading_stage_scenario") or {}
     cohort = result.get("cohort") or {}
@@ -98,7 +98,7 @@ def record_v2_daily_first(access_token: str, result: dict,
 
 def publish_v2_timing(access_token: str, result: dict) -> bool:
     """Publish the six scenario dates only; all process records stay private."""
-    if not access_token or result.get("model_version") != "hiring-v2-stage-review-v1":
+    if not access_token or result.get("model_version") not in ("hiring-v2-stage-review-v1", "hiring-v4-stage-review-market-live-v1"):
         return False
     scenario = result.get("leading_stage_scenario") or {}
     fields = ("offer_central", "offer_earliest", "offer_latest",
@@ -136,9 +136,11 @@ def stability_summary(history: list[dict],
     versions = sorted({r.get("model_version") for r in history
                        if r.get("model_version")})
     selected = model_version or (
-        "hiring-v2-stage-review-v1"
-        if "hiring-v2-stage-review-v1" in versions
-        else (versions[-1] if versions else None)
+        "hiring-v4-stage-review-market-live-v1"
+        if "hiring-v4-stage-review-market-live-v1" in versions
+        else ("hiring-v2-stage-review-v1"
+              if "hiring-v2-stage-review-v1" in versions
+              else (versions[-1] if versions else None))
     )
     rows = [r for r in history
             if r.get("central_offer_date") and r.get("forecast_day")

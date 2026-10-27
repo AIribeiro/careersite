@@ -18,7 +18,9 @@ from page_job_market_insights import fetch_market_records, _latest_by_indicator,
 from page_job_search_analytics import fetch_job_records
 from page_stale_applications import fetch_private_pipeline, private_summary, render_pipeline_health
 from page_hiring_prediction_v2 import (
-    validate_prediction_v2, render_hiring_prediction_v2, VERSION as HIRING_V2_VERSION,
+    validate_prediction_v2, render_hiring_prediction_v2,
+    CURRENT_VERSION as HIRING_CURRENT_VERSION,
+    SUPPORTED_VERSIONS as HIRING_SUPPORTED_VERSIONS,
 )
 from hiring_forecast_history import previous_forecasts, stability_summary
 from hiring_market_shadow import evaluate_market_shadow
@@ -289,7 +291,7 @@ def render_analytics_overview(session: dict | None) -> None:
         for snapshot in daily_history or []:
             raw = snapshot.get("scenario") or {}
             timing = raw.get("leading_stage_scenario") or {}
-            if raw.get("model_version") == HIRING_V2_VERSION:
+            if raw.get("model_version") in HIRING_SUPPORTED_VERSIONS:
                 archived.append({
                     "forecast_day": snapshot.get("forecast_day"),
                     "model_version": raw["model_version"],
@@ -297,18 +299,18 @@ def render_analytics_overview(session: dict | None) -> None:
                     "top_start_week": timing.get("start_central"),
                     "observed_at": snapshot.get("generated_at"),
                 })
-        comparison = stability_summary(archived, model_version=HIRING_V2_VERSION)
+        comparison = stability_summary(archived, model_version=HIRING_CURRENT_VERSION)
         with st.expander("Forecast history and validation"):
             st.caption(f"{comparison['history_count']} archived records across "
                        f"{comparison['model_versions']} model version(s).")
             if comparison.get("shift_days") is not None:
-                st.caption(f"Within-v2 central-offer-date change: "
+                st.caption(f"Within-current-model central-offer-date change: "
                            f"{comparison['shift_days']:+d} days.")
             else:
-                st.caption("At least two distinct dated v2 snapshots are needed "
+                st.caption("At least two distinct dated current-model snapshots are needed "
                            "to measure movement within the current methodology.")
             beta = next((row for row in archived
-                         if row.get("model_version") != HIRING_V2_VERSION), None)
+                         if "beta" in str(row.get("model_version") or "").lower()), None)
             if beta:
                 st.caption(
                     "Earlier beta 4.3 snapshot retained for history: "
@@ -319,7 +321,20 @@ def render_analytics_overview(session: dict | None) -> None:
             st.caption("A scheduled interview is not a completed one. "
                        "There are not yet enough confirmed offers to validate "
                        "prediction accuracy or personal hiring probabilities.")
-        if market and registry:
+        live_market = v2_prediction.get("market_intelligence") or {}
+        if live_market.get("status") == "active_in_production_not_shadow":
+            with st.expander("Live hiring-market evidence", expanded=False):
+                st.caption(
+                    "Production market assessment: "
+                    + str(live_market.get("direction") or "mixed_stable").replace("_", " ")
+                    + " · " + str(live_market.get("signal_families_active") or 0)
+                    + " scored source families · conditional planning shift "
+                    + str(live_market.get("planning_days") or 0) + " days."
+                )
+                st.caption("Employer progression remains the primary decision signal. "
+                           "Market weights are directional and not calibrated hiring probabilities.")
+                st.json(live_market.get("inputs") or {}, expanded=False)
+        elif market and registry:
             shadow = evaluate_market_shadow(market, registry, v2_prediction, now.date(),
                                             catalog_rows=role_catalog)
             try:
@@ -328,12 +343,11 @@ def render_analytics_overview(session: dict | None) -> None:
                 past_shadow = []
             render_market_shadow(shadow, compact=True, history=past_shadow)
         else:
-            st.caption("Shadow market evaluation is unavailable while market records "
-                       "or the verified source registry cannot be read. "
-                       "The existing hiring forecast is unaffected.")
+            st.caption("Live market evidence is unavailable; personal recruitment "
+                       "stage evidence is evaluated separately.")
     else:
         st.subheader("When might I get an offer?")
-        st.warning("Scheduled Hiring Prediction v2 snapshot is temporarily unavailable. "
+        st.warning("Scheduled hiring forecast snapshot is temporarily unavailable. "
                    "The previous beta 4.3 is not substituted as a current "
                    "forecast; historical records are preserved.")
     st.divider()

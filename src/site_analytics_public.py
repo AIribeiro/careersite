@@ -151,7 +151,11 @@ def fetch_public_analytics_rpc(name: str, payload: dict | None = None) -> dict:
     return result
 
 
-PUBLIC_HIRING_TIMING_VERSION = "hiring-v2-stage-review-v1"
+PUBLIC_HIRING_TIMING_VERSION = "hiring-v2-stage-review-v1"  # Historical valid version
+PUBLIC_HIRING_TIMING_CURRENT_VERSION = "hiring-v4-stage-review-market-live-v1"
+PUBLIC_HIRING_TIMING_SUPPORTED_VERSIONS = frozenset((
+    PUBLIC_HIRING_TIMING_VERSION, PUBLIC_HIRING_TIMING_CURRENT_VERSION,
+))
 _PUBLIC_HIRING_DATE_FIELDS = (
     "as_of", "offer_central", "offer_earliest", "offer_latest",
     "start_central", "start_earliest", "start_latest",
@@ -159,7 +163,7 @@ _PUBLIC_HIRING_DATE_FIELDS = (
 
 
 def validate_public_hiring_timing_v2(rows: object, *, today: date | None = None) -> dict:
-    """Accept only explicitly published, date-only v2 data.
+    """Accept only explicitly published, date-only approved stage-based model data.
 
     No private role/company/person details may be included even if an endpoint
     is accidentally expanded later.
@@ -174,7 +178,7 @@ def validate_public_hiring_timing_v2(rows: object, *, today: date | None = None)
     permitted = {"model_version", *_PUBLIC_HIRING_DATE_FIELDS}
     if set(row) - permitted:
         raise RuntimeError("Public hiring timing contained unexpected fields.")
-    if row.get("model_version") != PUBLIC_HIRING_TIMING_VERSION:
+    if row.get("model_version") not in PUBLIC_HIRING_TIMING_SUPPORTED_VERSIONS:
         raise RuntimeError("Unknown hiring timing model version.")
     try:
         dates = {k: date.fromisoformat(row[k]) for k in _PUBLIC_HIRING_DATE_FIELDS}
@@ -191,7 +195,7 @@ def validate_public_hiring_timing_v2(rows: object, *, today: date | None = None)
     return {
         "available": True,
         **{key: row[key] for key in _PUBLIC_HIRING_DATE_FIELDS},
-        "model_version": PUBLIC_HIRING_TIMING_VERSION,
+        "model_version": row["model_version"],
         "needs_refresh": (current - dates["as_of"]).days > 14,
     }
 

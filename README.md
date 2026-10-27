@@ -230,7 +230,8 @@ GitHub should remain public, clean and quiet. Its role is supporting technical c
 ├── src/                      # pages, shared components, analytics, metadata and CV source
 ├── static/                   # validated public downloadable CV
 ├── tests/                    # regression and smoke tests
-├── app.py                    # Streamlit entry point
+├── app.py                    # Starlette routes, crawler previews and Streamlit app mounting
+├── main.py                   # Streamlit page entry point
 ├── README.md
 └── requirements.txt
 ```
@@ -238,7 +239,7 @@ GitHub should remain public, clean and quiet. Its role is supporting technical c
 Runtime:
 
 - Python 3.12
-- Streamlit 1.53.0
+- Streamlit 1.64.0
 - fpdf2 2.8.8
 
 ## Analytics and attribution
@@ -289,75 +290,22 @@ The hidden site-owner dashboard remains at:
 
 `https://jairribeiro-ai.streamlit.app/?page=analytics`
 
-The Analytics page is **public, read-only and does not require login**.
-It remains unlisted from primary navigation and noindex by default. Its five
-top-level views are **Overview**, **Portfolio**, **Job search**,
-**Job predictions** and **Swedish market**. Portfolio shows existing page,
-article and WEEKLY AI statistics using anonymous aggregate reporting RPCs.
-The Portfolio reporting window defaults to **Last 7 days**.
-The Job Search activity selector offers **Today, 7, 30, 90, 180, 365 and
-730 days**, defaulting to 30 days.
+The Analytics route remains unlisted from public navigation and is **noindex**:
 
-**Feature parity after removing the Analytics sign-in:** The public dashboard
-retains the substantive original analyses rather than replacing them with
-static KPI cards:
+`https://jairribeiro-ai.streamlit.app/?page=analytics`
 
-- **Overview** again combines the hiring predictor, 28-day recruitment
-  momentum, qualified portfolio attention and interpreted Swedish outlooks.
-- **Job search** includes Activity, Funnel & conversion, Time trends,
-  Portfolio correlations, Market relationships and Data quality sections.
-  Source-level recruiter identities and private follow-up lists are not public.
-- **Swedish market** uses a revision-deduplicated, read-only history feed,
-  not a latest-indicator-only projection. It exposes the original
-  **What is changing?**, **What connects to my search?** and
-  **Sources & measurement** views, with genuine independent-source trend
-  charts, market↔recruitment↔portfolio hypothesis screening, and the full
-  referenced source ledger. Correlation tests use monthly *aggregate*
-  recruitment records without manufacturing employer identities. The
-  original methodological guards against spurious relationships remain.
+**Current access model (October 2026):**
 
-`careersite_public_market_history_v1` projects only sourced external
-indicator fields and explicitly prevents anon access to the underlying
-market table, raw payloads or private application records. Future dashboard
-redesigns should preserve these views and analytical grain.
+- **Anonymous visitors** may view read-only, aggregated **portfolio content analytics** only: **Visits & reads** and **Explore content**, with Pages & profile, Articles & thinking and WEEKLY AI views. Browser sessions are not unique visitors, and the public view must not present any session as a known recruiter.
+- **Authenticated owner** has access to the separate **Private analytics** and **CMS** workspaces. Hiring processes, interview and application records, recruiter interactions, detailed job-market analysis, follow-up histories and personalized forecasting must remain owner-only.
+- Public views use approved aggregate reporting endpoints. Public mode cannot render private workspace components or invoke privileged analytics or CMS writes, even through old `view=` links or `workspace=` query parameters.
+- **Owner sign in** is offered separately on the analytics route; authentication is required for nonpublic views. Public Analytics must stay read-only if owner authentication is unavailable.
+- Public reporting periods follow the current interface: **Last hour, Today, This Week, Last Week, This Month, Last Month, This year, All**. The interface automatically selects the shortest period with available visits; manually selected periods remain available. Do not claim a fixed seven-day default.
+- Current source of truth for access controls: `src/page_analytics_v2.py`, `src/page_admin.py`, and the approved Supabase grants/RLS/RPC permission model. Earlier public hiring-prediction and labour-market designs are retired, not part of the current public interface.
 
-**Job predictions** reintroduces a public, privacy-preserving version of
-the Hiring Predictor Beta. The server exposes only an anonymized distribution
-of active recruitment stages in 30-day age bands, deduplicated application
-counts and mature response counts—no company, person, role, ATS status, note
-or identifying process ID. The public Python engine reuses the detailed
-Beta's stage-specific offer-timing assumptions, scenario conversion
-multipliers and weekly offer/start-window calculations, with bounded
-independent public market and quality-filtered portfolio drivers.
-The public model excludes sensitive CV/contact-action breakdowns and
-therefore can differ from the **authoritative, personalized Hiring
-Predictor** in the protected Admin → Decision overview. Both are
-illustrative planning scenarios, not validated offer probabilities.
-Predictions use the full dated historical evidence, irrespective of the
-selected short Job Search activity period.
+**Measurement discipline:** Show sample size and uncertainty, keep session attribution mutually exclusive, distinguish browser sessions from people, and report quality exclusions without inventing recruiter identities. Detailed attribution reconciliation, individual hiring intelligence and event-level diagnostics belong in the authenticated owner workspace. Public reporting must not expose employer, recruiter, applicant, personal forecast or contact information from the owner's job search.
 
-**Public job statistics** are derived in the database and only expose
-deduplicated daily/weekly application, interaction, interview and decision
-counts, plus aggregate portfolio/job correlations. Public Swedish market
-signals include source citations. Individual employers, recruiter names,
-correspondence, imported source records, action queues and other private
-job-search evidence are **not** exposed by these reports. The detailed employer-level job-search dashboards and market
-interpretations remain available inside the **authenticated Admin/CMS owner
-workspace**, under the "Detailed job analytics", "Hiring market" and
-"Decision overview" sections. They are no longer routed from public Analytics.
-
-**Security boundary:** Only explicitly allowlisted aggregate Supabase RPCs
-are callable as `anon`. Anonymous visitors are not granted SELECT access
-to either private job-search or market source tables, nor CMS write rights,
-nor permission for analytics reset or owner hiring-predictor action
-functions. CMS / article editing remains separately authenticated using
-Supabase. No owner credentials, refresh tokens, or service-role secrets are
-sent from the public Analytics page.
-
-The server-side aggregate functions use the existing first-party event
-taxonomy and deduplication screens; a session is not a person and a
-correlation is not a causal recruiter attribution. The public page never
-opens a privileged owner session or triggers user authentication.
+**Security verification:** Code-level routing is only one control. Confirm database permissions for `anon` and `authenticated` separately, including function EXECUTE grants, table/view privileges, security-definer behavior and RLS. A noindex directive and an unlisted URL are not access controls. Public documentation must never imply protection merely because the owner dashboard is not in navigation.
 
 ### Full-channel attribution integrity (Page Views → Acquisition)
 

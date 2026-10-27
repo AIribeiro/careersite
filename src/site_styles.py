@@ -90,6 +90,64 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 @media(max-width:800px){.site .journey-grid{grid-template-columns:minmax(0,1fr)}.site .journey-section{padding:40px 0 48px}.site a.journey-card{min-height:0;padding:23px}.site .journey-next{padding:44px 0}}
 @media(prefers-reduced-motion:reduce){.site a.journey-card{transition:none}.site a.journey-card:hover{transform:none}}
 
+/* Three homepage entry cards: identical text rhythm and CTA baseline.
+   Scoped to the homepage journey to avoid changing two-card secondary journeys. */
+.site .journey-section .journey-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:20px;
+  align-items:stretch;
+}
+.site .journey-section a.journey-card{
+  min-height:332px;
+  padding:30px 27px 28px;
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
+.site .journey-section .journey-step{
+  display:block;
+  min-height:2.9em; /* reserve two label lines on all three cards */
+  line-height:1.45;
+}
+.site .journey-section .journey-card h3{
+  margin:18px 0 12px;
+  min-height:2.32em; /* one and two-line headings share the same next baseline */
+  font-size:clamp(25px,2.55vw,29px);
+  line-height:1.16;
+}
+.site .journey-section .journey-card p{
+  flex:1 1 auto;
+  margin:0;
+  line-height:1.7;
+}
+.site .journey-section .journey-link{
+  display:block;
+  flex:0 0 auto;
+  margin-top:26px;
+  line-height:1.4;
+  white-space:nowrap;
+}
+@media(max-width:800px){
+  .site .journey-section .journey-grid{
+    grid-template-columns:minmax(0,1fr);
+    gap:15px;
+  }
+  .site .journey-section a.journey-card{
+    min-height:0;
+    padding:25px;
+  }
+  .site .journey-section .journey-step{min-height:0}
+  .site .journey-section .journey-card h3{
+    min-height:0;
+    margin:14px 0 11px;
+  }
+  .site .journey-section .journey-link{
+    margin-top:20px;
+    white-space:normal;
+  }
+}
+
+
 /* Home editorial feature: the current Thinking highlight is an elegant, contained
    two-column story through tablet sizes, rather than a huge stacked header. */
 .site .home-featured{padding:54px 0 64px;background:var(--paper)}

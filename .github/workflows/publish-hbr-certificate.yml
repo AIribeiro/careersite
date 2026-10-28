@@ -1,0 +1,77 @@
+name: Publish verified HBR certificate
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/publish-hbr-certificate.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  certificate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Retrieve issued Coursera specialization certificate
+        run: |
+          python -m pip install --quiet requests pillow
+          python - <<'PY'
+          from pathlib import Path
+          from subprocess import run
+          import requests
+          from PIL import Image
+          from io import BytesIO
+
+          code = "QUZPN3MKKUAY"
+          links = [
+              f"https://www.coursera.org/api/certificate.v1/pdf/{code}",
+              f"https://www.coursera.org/api/certificates.v1/pdf/{code}",
+              f"https://www.coursera.org/api/certificate.v1/pdf/{code}?download=true",
+          ]
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                            "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+              "Accept": "application/pdf,*/*",
+          })
+          response_pdf = None
+          for url in links:
+              try:
+                  r = session.get(url, timeout=25)
+                  print("Certificate endpoint:", r.status_code, r.headers.get("Content-Type", ""), len(r.content))
+                  if r.status_code == 200 and r.content.startswith(b"%PDF") and len(r.content) > 5000:
+                      response_pdf = r.content
+                      break
+              except requests.RequestException as e:
+                  print(type(e).__name__, str(e)[:120])
+
+          if response_pdf is None:
+              raise SystemExit("Public PDF not available; original local certificate image will be required.")
+
+          pdf_path = Path("/tmp/hbr-certificate.pdf")
+          pdf_path.write_bytes(response_pdf)
+          text_path = Path("/tmp/hbr-certificate")
+          run(["pdftotext", "-layout", str(pdf_path), "-"], check=True)
+          run(["pdftoppm", "-f", "1", "-singlefile", "-r", "185", "-png",
+               str(pdf_path), str(text_path)], check=True)
+          png = Image.open("/tmp/hbr-certificate.png").convert("RGB")
+          target = Path("images/credentials/hbr_business_savvy_2026.webp")
+          target.parent.mkdir(parents=True, exist_ok=True)
+          png.save(target, "WEBP", quality=90, method=6)
+          print("Issued certificate asset:", target, png.size, target.stat().st_size, "bytes")
+          PY
+      - name: Commit original issued certificate art
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images/credentials/hbr_business_savvy_2026.webp
+          if git diff --cached --quiet; then
+            echo 'Certificate already committed'
+          else
+            git commit -m "Add official HBR Business Savvy certificate image"
+            git push
+          fi

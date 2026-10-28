@@ -7,6 +7,7 @@ from site_media import (
     eitca_eu_banner,
     openai_ai_leadership,
     databricks_genai_fundamentals_badge,
+    hbr_business_savvy_diploma,
     microsoft_leadership_innovation_diploma,
     credly_cognitive_practitioner,
     credly_ai_agents_rag_langchain,
@@ -19,6 +20,8 @@ from site_media import (
 )
 
 HBR_BUSINESS_SAVVY_URL = "https://www.coursera.org/specializations/strengthen-your-business-savvy"
+HBR_CERTIFICATE_VERIFY_URL = "https://www.coursera.org/verify/specialization/QUZPN3MKKUAY"
+HBR_CERTIFICATE_ID = "QUZPN3MKKUAY"
 LINKEDIN_CERTIFICATIONS = "https://www.linkedin.com/in/jairribeiro/details/certifications/"
 OPENAI_AI_LEADERSHIP_URL = (
     "https://oaiacademy.credential.net/855a1e37-b0d2-4e7d-aed6-ae9a839c6de0?"
@@ -320,12 +323,12 @@ FOUNDATION_TIMELINE = [
 
 
 def _latest_hbr_achievement() -> str:
-    """Newest business-leadership credential. The program link is not a credential verification URL."""
+    """Verified HBR specialization, presented with its issued certificate when available."""
     courses = (
-        ("01", "Think Like a Leader", "Business models, decision quality and financial health"),
-        ("02", "Act Strategically", "Strategy, execution and anticipating change"),
-        ("03", "Master Financial Fundamentals", "Financial statements, budgets and cost-benefit analysis"),
-        ("04", "Lead with Technology and AI", "Responsible generative AI, adoption and digital priorities"),
+        ("01", "Think Like a Leader", "Business models, financial health and sound decisions"),
+        ("02", "Act Strategically", "Strategic plans and disciplined execution"),
+        ("03", "Master Financial Fundamentals", "Budgeting, investment decisions and financial analysis"),
+        ("04", "Lead with Technology and AI", "Responsible generative AI, data and digital leadership"),
     )
     course_cards = "".join(
         '<div class="hbr-course">'
@@ -335,31 +338,65 @@ def _latest_hbr_achievement() -> str:
         '</div>'
         for number, title, summary in courses
     )
+    certificate_art = (
+        '<a class="hbr-issued-certificate-image" href="'
+        f'{html.escape(HBR_CERTIFICATE_VERIFY_URL, quote=True)}" '
+        'target="_blank" rel="noopener" data-hq-event="hbr_certificate_image_verify" '
+        'aria-label="View and verify the Harvard Business Review specialization certificate">'
+        f'<img src="{hbr_business_savvy_diploma}" '
+        'alt="Coursera Specialization Certificate issued by Harvard Business Review to '
+        'Jair Pinto Ribeiro on October 28, 2026, for completing Strengthen Your Business Savvy" '
+        'width="1772" height="928" loading="lazy" decoding="async">'
+        '</a>'
+        if hbr_business_savvy_diploma else
+        '<a class="hbr-issued-certificate-pending" href="'
+        f'{html.escape(HBR_CERTIFICATE_VERIFY_URL, quote=True)}" '
+        'target="_blank" rel="noopener" data-hq-event="hbr_certificate_verify_fallback">'
+        '<strong>Issued specialization certificate</strong>'
+        '<span>Harvard Business Review · October 28, 2026 · View verified certificate ↗</span></a>'
+    )
     return (
         '<section class="section hbr-latest-section" id="latest-credential" '
         'data-analytics-section="certifications-latest-hbr">'
         '<div class="container">'
         '<div class="hbr-latest-overline">'
-        '<span>Latest achievement</span><span>October 2026 · 4-course specialization</span>'
+        '<span>Latest verified achievement</span><span>October 28, 2026 · Four-course specialization</span>'
         '</div>'
         '<article class="hbr-latest">'
         '<div class="hbr-latest-main">'
         '<span class="hbr-latest-issuer">Harvard Business Review <i aria-hidden="true"></i> Coursera</span>'
         '<h2>Strengthen Your Business Savvy <em>Specialization</em></h2>'
         '<p class="hbr-latest-lead">Business leadership requires more than knowing what technology can do. '
-        'It requires clear decisions about strategy, investment, financial trade-offs and where AI can create value.</p>'
-        '<p class="hbr-latest-context">This completed four-course program brings together leadership judgment, '
-        'strategic planning, financial fundamentals and responsible use of generative AI. '
-        'It builds on my enterprise AI and Data experience with a deliberate focus on business outcomes.</p>'
+        'It calls for clear decisions about strategy, financial trade-offs, investment and where AI can create real value.</p>'
+        '<p class="hbr-latest-context">This completed specialization brings together business strategy, '
+        'financial fundamentals, critical decision-making and responsible use of generative AI. '
+        'It builds on my enterprise AI and Data experience with greater focus on business outcomes.</p>'
+        '<div class="hbr-verified-details">'
+        '<div><span>Completed by</span><strong>Jair Pinto Ribeiro</strong></div>'
+        '<div><span>Completion date</span><strong>October 28, 2026</strong></div>'
+        '<div><span>Indicative study workload</span><strong>~1 month · 10 hours/week</strong></div>'
+        '<div><span>Verified credential</span><strong>Coursera · QUZPN3MKKUAY</strong></div>'
+        '</div>'
+        '<p class="hbr-verified-note">Coursera confirms successful completion of this '
+        'Harvard Business Review specialization on a verified learner account. '
+        'All four constituent course certificates were completed. '
+        'The study workload is the program estimate, not a record of hours personally logged.</p>'
         '<div class="hbr-latest-actions">'
-        f'<a class="btn dark" href="{html.escape(HBR_BUSINESS_SAVVY_URL, quote=True)}" '
-        'target="_blank" rel="noopener" data-hq-event="hbr_latest_program">'
-        'Explore the HBR program ↗</a>'
-        '<span>Completed October 2026 · Program offered by Harvard Business Review on Coursera</span>'
+        f'<a class="btn dark" href="{html.escape(HBR_CERTIFICATE_VERIFY_URL, quote=True)}" '
+        'target="_blank" rel="noopener" data-hq-event="hbr_latest_verify">Verify issued certificate ↗</a>'
+        f'<a class="btn ghost" href="{html.escape(HBR_BUSINESS_SAVVY_URL, quote=True)}" '
+        'target="_blank" rel="noopener" data-hq-event="hbr_latest_program">Explore the four-course program ↗</a>'
         '</div>'
         '</div>'
         '<div class="hbr-latest-side">'
-        '<p class="hbr-latest-side-label">The four-course series</p>'
+        '<p class="hbr-latest-side-label">Issued certificate · Click to verify</p>'
+        f'{certificate_art}'
+        '<p class="hbr-certificate-caption">Certificate awarded October 28, 2026 '
+        'by Harvard Business Review through Coursera. '
+        'The image is displayed at its original aspect ratio without cropping.</p>'
+        '</div>'
+        '<div class="hbr-latest-courses">'
+        '<p class="hbr-latest-side-label">Course certificates completed · Four of four</p>'
         f'<div class="hbr-course-grid">{course_cards}</div>'
         '</div>'
         '</article>'

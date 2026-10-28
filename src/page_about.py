@@ -9,7 +9,7 @@ from career_facts import MSX_PUBLIC_TIMELINE, PROFILE_AI_LEADERSHIP_YEARS, PROFI
 def _credential_archive() -> str:
     """Render the full credential record expanded by default."""
     legacy = certifications()
-    start = legacy.find('<section class="section white">')
+    start = legacy.find('<section class="section hbr-latest-section"')
     end = legacy.rfind('</main>')
     if start == -1 or end <= start:
         return ""

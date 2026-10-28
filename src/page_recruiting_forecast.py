@@ -152,7 +152,12 @@ def render_next_steps(opportunities: list[dict], meetings: list[dict],
               help="A small, selected set of completed stage transitions and "
               "interview-to-decision intervals; not representative market data.")
 
-    _schedule_chart(plan)
+    due = [r for r in plan["items"] if r["kind"] == "action"
+           and r["start"] <= today <= r["end"]]
+    if due:
+        st.info("Your checkpoints today: " + ", ".join(sorted({r["employer"] for r in due})))
+    else:
+        st.caption("No follow-up checkpoint falls today in the recorded plan.")
     active_rows = []
     for op in plan["active"]:
         events = [r for r in plan["items"] if r["opportunity_id"] == int(op["id"])]
@@ -183,12 +188,26 @@ def render_next_steps(opportunities: list[dict], meetings: list[dict],
             "_sort": primary["start"] if primary else date.max,
         })
     active_rows.sort(key=lambda x: x["_sort"])
-    st.markdown("**Planning table — by next expected milestone**")
-    st.dataframe(
-        [{k: v for k, v in row.items() if not k.startswith("_")}
-         for row in active_rows],
-        hide_index=True, use_container_width=True,
-    )
+    st.markdown("### What happens next")
+    for row in active_rows:
+        with st.container(border=True):
+            st.markdown(f"#### {row['Employer']}")
+            st.caption(row["Role"])
+            st.markdown(f"**{row['Window']}** · {row['Evidence']}")
+            st.write(row["Next step"])
+            if row["Your checkpoint"] != "—":
+                st.markdown(f"**Your follow-up:** {row['Your checkpoint']}")
+            if row["Further stage if selected"] != "Not established":
+                st.caption("If selected · " + row["Further stage if selected"])
+            if row["Median-delay anchor"] != "—":
+                st.caption("Historical timing midpoint: " + row["Median-delay anchor"]
+                           + " · estimate, not a booked appointment")
+    with st.expander("Compare timing windows"):
+        _schedule_chart(plan)
+    with st.expander("Detailed planning table"):
+        st.dataframe(
+            [{k: v for k, v in row.items() if not k.startswith("_")}
+             for row in active_rows], hide_index=True, use_container_width=True)
     with st.expander("Evidence, assumptions and conditional next interviews"):
         for op in sorted(plan["active"], key=lambda o: o["employer"]):
             st.markdown(f"**{op['employer']} · {op['role_title']}**")

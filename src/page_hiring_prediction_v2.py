@@ -251,40 +251,18 @@ def render_hiring_prediction_v2(data: dict) -> dict:
     relevant = [p for p in live if float(p.get("credibility_index") or 0) >= 10][:7]
     if relevant:
         st.markdown("**Where current opportunities stand**")
-        chart_data = [{
-            "Process": f"{p['employer']} · {p['role'][:35]}",
-            "Credibility": float(p.get("credibility_index") or 0),
-            "Stage": _stage_title(p.get("stage")),
-        } for p in reversed(relevant)]
-        chart = (alt.Chart(alt.Data(values=chart_data))
-                 .mark_bar(cornerRadiusEnd=4)
-                 .encode(
-                     y=alt.Y("Process:N", sort=None, title=None),
-                     x=alt.X("Credibility:Q", title="Relative credibility index",
-                             scale=alt.Scale(domain=[0, 100])),
-                     color=alt.Color(
-                         "Credibility:Q",
-                         title="Credibility · green 0 → red 100",
-                         scale=alt.Scale(
-                             type="linear",
-                             domain=list(range(101)),
-                             range=_credibility_gradient_101(),
-                             clamp=True,
-                         ),
-                         legend=alt.Legend(
-                             orient="bottom",
-                             gradientLength=270,
-                             values=[0, 25, 50, 75, 100],
-                         ),
-                     ),
-                     tooltip=["Process:N", "Stage:N",
-                              alt.Tooltip("Credibility:Q", format=".1f")],
-                 ).properties(height=max(150, len(chart_data) * 39)))
-        st.altair_chart(chart, width="stretch")
-        st.caption("Bar colors follow 101 one-point steps: green at 0, yellow at 50, "
-                   "red at 100. Scores reflect documented stage, senior role fit, "
-                   "evidence recency and finalized post-interview reviews — **not** "
-                   "offer probabilities.")
+        for position, process in enumerate(relevant, 1):
+            score = max(0.0, min(100.0, float(process.get("credibility_index") or 0)))
+            with st.container(border=True):
+                st.markdown(f"#### {position}. {process['employer']}")
+                st.caption(process["role"])
+                st.markdown(f"**{_stage_title(process.get('stage'))}**")
+                st.progress(score / 100, text=f"Evidence strength · {score:.1f} / 100")
+                if process.get("next_interview"):
+                    st.caption("Confirmed interview · " + _pretty_date(process["next_interview"]))
+        st.caption("Higher scores mean stronger documented progression. "
+                   "Scores reflect stage, role fit, evidence recency and finalized "
+                   "interview reviews; they are not offer probabilities.")
 
 
     st.markdown("**Post-interview assessment impact**")

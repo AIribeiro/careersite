@@ -18,6 +18,7 @@ from site_media import (
     credly_azure_data,
 )
 
+HBR_BUSINESS_SAVVY_URL = "https://www.coursera.org/specializations/strengthen-your-business-savvy"
 LINKEDIN_CERTIFICATIONS = "https://www.linkedin.com/in/jairribeiro/details/certifications/"
 OPENAI_AI_LEADERSHIP_URL = (
     "https://oaiacademy.credential.net/855a1e37-b0d2-4e7d-aed6-ae9a839c6de0?"
@@ -249,6 +250,7 @@ PATHWAYS = [
         "Enterprise AI leadership",
         "Strategy, adoption and organizational judgment.",
         [
+            "Strengthen Your Business Savvy Specialization · Harvard Business Review · 2026",
             "Microsoft Leadership and Innovation Professional Certificate · Microsoft · 2026",
             "Generative AI for Executives & Business Leaders · IBM · 2025",
             "AI for Organizational Leaders · Microsoft + LinkedIn · 2025",
@@ -314,6 +316,55 @@ FOUNDATION_TIMELINE = [
         "International Leadership and Organizational Behavior at Università Bocconi added formal study of leadership and organizational behavior to an already international technology career.",
     ),
 ]
+
+
+
+def _latest_hbr_achievement() -> str:
+    """Newest business-leadership credential. The program link is not a credential verification URL."""
+    courses = (
+        ("01", "Think Like a Leader", "Business models, decision quality and financial health"),
+        ("02", "Act Strategically", "Strategy, execution and anticipating change"),
+        ("03", "Master Financial Fundamentals", "Financial statements, budgets and cost-benefit analysis"),
+        ("04", "Lead with Technology and AI", "Responsible generative AI, adoption and digital priorities"),
+    )
+    course_cards = "".join(
+        '<div class="hbr-course">'
+        f'<span>{html.escape(number)}</span>'
+        f'<strong>{html.escape(title)}</strong>'
+        f'<p>{html.escape(summary)}</p>'
+        '</div>'
+        for number, title, summary in courses
+    )
+    return (
+        '<section class="section hbr-latest-section" id="latest-credential" '
+        'data-analytics-section="certifications-latest-hbr">'
+        '<div class="container">'
+        '<div class="hbr-latest-overline">'
+        '<span>Latest achievement</span><span>October 2026 · 4-course specialization</span>'
+        '</div>'
+        '<article class="hbr-latest">'
+        '<div class="hbr-latest-main">'
+        '<span class="hbr-latest-issuer">Harvard Business Review <i aria-hidden="true"></i> Coursera</span>'
+        '<h2>Strengthen Your Business Savvy <em>Specialization</em></h2>'
+        '<p class="hbr-latest-lead">Business leadership requires more than knowing what technology can do. '
+        'It requires clear decisions about strategy, investment, financial trade-offs and where AI can create value.</p>'
+        '<p class="hbr-latest-context">This completed four-course program brings together leadership judgment, '
+        'strategic planning, financial fundamentals and responsible use of generative AI. '
+        'It builds on my enterprise AI and Data experience with a deliberate focus on business outcomes.</p>'
+        '<div class="hbr-latest-actions">'
+        f'<a class="btn dark" href="{html.escape(HBR_BUSINESS_SAVVY_URL, quote=True)}" '
+        'target="_blank" rel="noopener" data-hq-event="hbr_latest_program">'
+        'Explore the HBR program ↗</a>'
+        '<span>Completed October 2026 · Program offered by Harvard Business Review on Coursera</span>'
+        '</div>'
+        '</div>'
+        '<div class="hbr-latest-side">'
+        '<p class="hbr-latest-side-label">The four-course series</p>'
+        f'<div class="hbr-course-grid">{course_cards}</div>'
+        '</div>'
+        '</article>'
+        '</div></section>'
+    )
 
 
 def _credential_card(item: dict[str, str]) -> str:
@@ -436,11 +487,13 @@ def certifications() -> str:
     return f'''{nav("certifications")}<main>
 <section class="pagehero"><div class="container"><p class="eyebrow">About · Credentials</p><h1>Selected AI, data and leadership credentials.</h1><p>Formal learning across AI strategy, governance, adoption, agentic AI, data platforms and technical foundations, with direct links for verification.</p><div class="actions"><a class="btn ghost" href="{LINKEDIN_CERTIFICATIONS}" target="_blank" rel="noopener" data-hq-event="linkedin_certifications">View full LinkedIn credential record ↗</a></div></div></section>
 
+{_latest_hbr_achievement()}
+
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Coverage</p><h2>What the credential record covers.</h2></div><p>The selected record spans strategy and value, Responsible AI, adoption and operating models, and technical and data foundations.</p></div><div class="grid3 cert-signal-grid"><article class="card"><span class="org">01 · Strategy &amp; value</span><h3>From AI ambition to business priorities</h3><p>Executive AI study covers use-case selection, feasibility, investment choices, business value and the decisions needed to move from experimentation to scale.</p></article><article class="card"><span class="org">02 · Governance &amp; trust</span><h3>Responsible AI as an operating discipline</h3><p>Responsible AI, explainability and ethics credentials add depth in accountability, policy, risk, transparency and responsible deployment.</p></article><article class="card"><span class="org">03 · Adoption &amp; operating model</span><h3>AI embedded into how work gets done</h3><p>Leadership and agentic-AI learning supports capability building, human–AI collaboration, organizational adoption and the operating choices required for sustainable use.</p></article><article class="card"><span class="org">04 · Technical &amp; data fluency</span><h3>Architecture-level judgment without engineering positioning</h3><p>EITCA/AI, Databricks, Microsoft and agent-building credentials provide context for discussions on data, cloud, models, platforms, dependencies and technical trade-offs.</p></article></div></div></section>
 
 <section class="section navy eitca-feature"><div class="container"><div class="eitca-banner"><img src="{eitca_eu_banner}" alt="European Union flags outside a modern institutional building" loading="lazy" decoding="async"></div><div class="eitca-top"><div><p class="eyebrow">Featured technical foundation</p><h2>EITCA/AI Artificial Intelligence Academy</h2><p class="eitca-lead">A <strong>24 ECTS</strong> European AI certification programme spanning <strong>12 component certifications</strong> across machine learning, deep learning, Python, cloud platforms and applied AI technologies.</p></div><div class="eitca-facts"><div><strong>24 ECTS</strong><span>Structured AI curriculum</span></div><div><strong>12</strong><span>Component certifications</span></div><div><strong>2025</strong><span>Credential awarded</span></div></div></div><div class="eitca-body"><div><h3>Scope and relevance</h3><p>EITCA/AI adds structured technical breadth across machine learning, deep learning, Python and cloud platforms. That background is useful when discussing model and data dependencies, architecture assumptions, platform choices, governance, scalability and cost with specialist teams.</p><p class="eitca-secondary">The credential supports business-facing work by providing technical context for decisions on platforms, delivery approaches, Responsible AI and adoption without positioning the role as specialist engineering.</p><div class="eitca-value-grid"><div><strong>Technical breadth</strong><span>AI, machine learning, deep learning, Python and cloud foundations.</span></div><div><strong>Decision quality</strong><span>Context for architecture, data, model and platform trade-offs.</span></div><div><strong>Leadership bridge</strong><span>Connects strategy, governance and adoption with technical delivery.</span></div></div><div class="actions"><a class="btn ghost" href="https://www.eitci.org/val.php?id=EITCA/AI/SLJ25004525&t=j5xq3TMD6GcHgrj9" target="_blank" rel="noopener">Verify credential ↗</a><a class="btn ghost" href="https://eitca.org/eitca-ai-artificial-intelligence-academy/" target="_blank" rel="noopener">Programme scope ↗</a></div><div class="eitca-meta-row">{EU_ROUND_EMBLEM}<div><span class="eitca-meta-label">European credential context</span><p class="eitca-id">Credential ID · EITCA/AI/SLJ25004525 · EITCA Academy</p></div></div></div><details class="cert-archive"><summary>View 12 component certifications</summary><ul>{eitca}</ul></details></div></div></section>
 
-<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Recent credentials</p><h2>Current credentials across enterprise AI and leadership priorities.</h2></div><p>Ten selected credentials complement the featured EITCA/AI programme. The Microsoft Leadership and Innovation Professional Certificate is highlighted because its scope is particularly close to the leadership work behind enterprise AI: judgment under ambiguity, responsible AI-supported decisions, execution discipline, influence and accountability.</p></div>{_leadership_credential(leadership_credential)}<div class="cert-grid">{flagship}</div></div></section>
+<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Recent credentials</p><h2>Current credentials across enterprise AI and leadership priorities.</h2></div><p>Ten further selected credentials complement the newest HBR specialization and featured EITCA/AI programme. The Microsoft Leadership and Innovation Professional Certificate is highlighted because its scope is particularly close to the leadership work behind enterprise AI: judgment under ambiguity, responsible AI-supported decisions, execution discipline, influence and accountability.</p></div>{_leadership_credential(leadership_credential)}<div class="cert-grid">{flagship}</div></div></section>
 
 
 

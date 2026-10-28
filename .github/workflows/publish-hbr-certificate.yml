@@ -21,7 +21,7 @@ jobs:
           python -m pip install --quiet requests pillow pymupdf
           python - <<'PY'
           from pathlib import Path
-                    import requests
+          import requests
           from PIL import Image
           import fitz
           from io import BytesIO

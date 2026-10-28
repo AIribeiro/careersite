@@ -7,13 +7,13 @@ from career_facts import MSX_PUBLIC_TIMELINE, PROFILE_AI_LEADERSHIP_YEARS, PROFI
 
 
 def _credential_archive() -> str:
-    """Preserve the documented credential record in an optional disclosure."""
+    """Render the full credential record expanded by default."""
     legacy = certifications()
     start = legacy.find('<section class="section white">')
     end = legacy.rfind('</main>')
     if start == -1 or end <= start:
         return ""
-    return '<details class="container" style="margin-top:22px"><summary style="cursor:pointer;font-weight:700">Full credential and verification record</summary>' + legacy[start:end] + '</details>'
+    return '<details class="container" open style="margin-top:22px"><summary style="cursor:pointer;font-weight:700">Full credential and verification record</summary>' + legacy[start:end] + '</details>'
 
 
 def about() -> str:

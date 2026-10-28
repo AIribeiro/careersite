@@ -419,7 +419,7 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 .site .hbr-latest .hbr-latest-side{padding:0;border:0}
 .site .hbr-issued-certificate-image{display:block;overflow:hidden;padding:11px;background:#fff;border:1px solid #ded8cf;box-shadow:0 20px 50px rgba(31,37,45,.12);transition:box-shadow .2s ease}
 .site .hbr-issued-certificate-image:hover{box-shadow:0 22px 58px rgba(31,37,45,.2)}
-.site .hbr-issued-certificate-image img{display:block;width:100%;height:auto;aspect-ratio:1772/928;object-fit:contain}
+.site .hbr-issued-certificate-image img{display:block;width:100%;height:auto;aspect-ratio:2400/1855;object-fit:contain}
 .site .hbr-issued-certificate-pending{display:flex;aspect-ratio:1772/928;flex-direction:column;justify-content:center;gap:12px;padding:35px;text-decoration:none;border:1px solid #dcd6ce;background:linear-gradient(145deg,#fdfcfb,#eceef3)}
 .site .hbr-issued-certificate-pending strong{color:#1c2e42;font:500 clamp(20px,2.6vw,30px)/1.2 Georgia,serif}
 .site .hbr-issued-certificate-pending span{color:#5b7187;font-size:12px}

@@ -361,5 +361,51 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .contact-footer-links a{transition:none}
 }
 
+
+/* October 2026 HBR business-leadership achievement — restrained editorial treatment. */
+.site .hbr-latest-section{padding:54px 0 68px;background:#f8f6f2}
+.site .hbr-latest-overline{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px;color:#806649;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+.site .hbr-latest-overline span:last-child{font-size:10px;font-weight:650;letter-spacing:.035em;text-transform:none}
+.site .hbr-latest{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.83fr);gap:36px;padding:clamp(28px,4vw,54px);background:#fff;border:1px solid #e4ded5;box-shadow:0 16px 46px rgba(15,29,43,.055)}
+.site .hbr-latest-main,.site .hbr-latest-side{min-width:0}
+.site .hbr-latest-issuer{display:flex;align-items:center;gap:11px;color:#7c583b;font-size:11px;font-weight:800;letter-spacing:.05em}
+.site .hbr-latest-issuer i{display:inline-block;width:4px;height:4px;border-radius:50%;background:#b79574}
+.site .hbr-latest h2{max-width:660px;margin:22px 0 20px;color:#152436;font:500 clamp(32px,4vw,52px)/1.06 Georgia,serif;letter-spacing:-.025em}
+.site .hbr-latest h2 em{font-style:normal;color:#9b6d48}
+.site .hbr-latest-lead{max-width:650px;color:#25394b;font-size:clamp(16px,1.5vw,19px);line-height:1.58}
+.site .hbr-latest-context{max-width:640px;margin:18px 0 0;color:#607082;font-size:14px;line-height:1.76}
+.site .hbr-latest-actions{display:flex;flex-wrap:wrap;align-items:center;gap:15px;margin-top:30px}
+.site .hbr-latest-actions .btn{white-space:normal;text-align:center}
+.site .hbr-latest-actions>span{max-width:260px;color:#7d858c;font-size:11px;line-height:1.5}
+.site .hbr-latest-side{padding:5px 0 0 30px;border-left:1px solid #e7e1d9}
+.site .hbr-latest-side-label{margin:0 0 18px;color:#857363;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+.site .hbr-course-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.site .hbr-course{min-height:155px;padding:19px;background:#faf8f5;border:1px solid #eae5dd}
+.site .hbr-course>span{display:block;margin-bottom:14px;color:#a77d57;font-size:11px;font-weight:850;letter-spacing:.1em}
+.site .hbr-course strong{display:block;color:#182c3f;font:500 20px/1.2 Georgia,serif}
+.site .hbr-course p{margin:10px 0 0;color:#617080;font-size:12px;line-height:1.6}
+.site .home-credential-strip{background:#f3f0eb;border-bottom:1px solid #e0d9d0}
+.site .home-credential-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-top:20px;padding-bottom:20px}
+.site .home-credential-text{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;min-width:0}
+.site .home-credential-tag{color:#9b6d48;font-size:10px;font-weight:850;letter-spacing:.10em;text-transform:uppercase}
+.site .home-credential-text strong{color:#1c2d3e;font:500 19px/1.2 Georgia,serif}
+.site .home-credential-text>span:last-child{color:#65717d;font-size:12px}
+.site .home-credential-inner>a{flex:0 0 auto;color:#324963;font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap}
+.site .home-credential-inner>a:hover{text-decoration:underline}
+@media(max-width:1060px){
+  .site .hbr-latest{grid-template-columns:minmax(0,1fr);gap:24px}
+  .site .hbr-latest-side{padding:22px 0 0;border-left:0;border-top:1px solid #e7e1d9}
+}
+@media(max-width:780px){
+  .site .home-credential-inner{align-items:flex-start;flex-direction:column;gap:12px}
+  .site .home-credential-text{flex-direction:column;align-items:flex-start;gap:5px}
+  .site .hbr-latest-section{padding:36px 0 44px}
+}
+@media(max-width:540px){
+  .site .hbr-latest-overline{flex-direction:column;align-items:flex-start;gap:5px}
+  .site .hbr-course-grid{grid-template-columns:minmax(0,1fr)}
+  .site .hbr-course{min-height:0}
+}
+
 </style>
 """

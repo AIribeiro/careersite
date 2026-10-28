@@ -346,7 +346,7 @@ def _latest_hbr_achievement() -> str:
         f'<img src="{hbr_business_savvy_diploma}" '
         'alt="Coursera Specialization Certificate issued by Harvard Business Review to '
         'Jair Pinto Ribeiro on October 28, 2026, for completing Strengthen Your Business Savvy" '
-        'width="1772" height="928" loading="lazy" decoding="async">'
+        'width="2400" height="1855" loading="lazy" decoding="async">'
         '</a>'
         if hbr_business_savvy_diploma else
         '<a class="hbr-issued-certificate-pending" href="'

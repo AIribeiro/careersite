@@ -18,12 +18,12 @@ jobs:
           persist-credentials: true
       - name: Retrieve issued Coursera specialization certificate
         run: |
-          python -m pip install --quiet requests pillow
+          python -m pip install --quiet requests pillow pymupdf
           python - <<'PY'
           from pathlib import Path
-          from subprocess import run
-          import requests
+                    import requests
           from PIL import Image
+          import fitz
           from io import BytesIO
 
           code = "QUZPN3MKKUAY"
@@ -52,13 +52,14 @@ jobs:
           if response_pdf is None:
               raise SystemExit("Public PDF not available; original local certificate image will be required.")
 
-          pdf_path = Path("/tmp/hbr-certificate.pdf")
-          pdf_path.write_bytes(response_pdf)
-          text_path = Path("/tmp/hbr-certificate")
-          run(["pdftotext", "-layout", str(pdf_path), "-"], check=True)
-          run(["pdftoppm", "-f", "1", "-singlefile", "-r", "185", "-png",
-               str(pdf_path), str(text_path)], check=True)
-          png = Image.open("/tmp/hbr-certificate.png").convert("RGB")
+          doc = fitz.open(stream=response_pdf, filetype="pdf")
+          pdf_text = " ".join(page.get_text() for page in doc).lower()
+          if "jair" not in pdf_text or "business savvy" not in pdf_text:
+              raise SystemExit("Public PDF is not the intended HBR certificate")
+          page = doc[0]
+          zoom = max(2.0, 2400 / page.rect.width)
+          pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
+          png = Image.open(BytesIO(pix.tobytes("png"))).convert("RGB")
           target = Path("images/credentials/hbr_business_savvy_2026.webp")
           target.parent.mkdir(parents=True, exist_ok=True)
           png.save(target, "WEBP", quality=90, method=6)

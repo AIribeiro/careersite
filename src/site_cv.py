@@ -181,12 +181,12 @@ def build_public_cv() -> bytes:
 
     section("Professional Summary", 3.25)
     body(
-        f"Across two Volvo Group roles in Poland and Sweden, led business-facing AI and analytics work spanning requirements, product, stakeholder coordination and adoption. Across both Volvo AI roles, portfolio work covered {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects across regions. At Volvo Trucks, this included Microsoft 365 Copilot and agent initiatives in {VOLVO_WORKFLOW_SCOPE} workflows. At MSX International, continued a comparable enterprise AI mandate in an explicit Director-level role, establishing AI & Data CoE portfolio and governance foundations, decision ownership and a {MSX_ROADMAP} maturity roadmap.",
+        f"Across two Volvo Group roles in Poland and Sweden, led business-facing Artificial Intelligence (AI) and analytics work spanning requirements, product, stakeholder coordination and adoption. Across both Volvo AI roles, portfolio work covered {VOLVO_AI_INITIATIVES} AI initiatives, Proofs of Concept (PoCs) and projects across regions. At Volvo Trucks, this included Microsoft 365 Copilot and agent initiatives in {VOLVO_WORKFLOW_SCOPE} workflows. At MSX International, continued a comparable enterprise AI mandate in an explicit Director-level role, establishing AI & Data Center of Excellence (CoE) portfolio and governance foundations, decision ownership and a {MSX_ROADMAP} maturity roadmap.",
         size=8.2,
         line=4.15,
     )
 
-    section("Core Leadership Areas", 2.8)
+    section("Core Competencies", 2.8)
     body(
         "Enterprise AI Strategy | AI & Data Operating Models / CoEs | AI Governance & Responsible AI | Data Governance & Trusted Data | AI Portfolio & Value Realization",
         size=7.7,
@@ -234,7 +234,7 @@ def build_public_cv() -> bytes:
         KIMBERLY_DATES,
         "Kraków, Poland",
         [
-            "Led EMEA AI and Data Science value discovery, reporting directly to the Chief Data & Analytics Officer; made business problems, expected value and feasibility explicit before technical solution selection.",
+            "Led Europe, Middle East and Africa (EMEA) AI and Data Science value discovery, reporting directly to the Chief Data & Analytics Officer; made business problems, expected value and feasibility explicit before technical solution selection.",
             f"Worked across {KIMBERLY_SCOPE} to compare opportunities against business readiness, data conditions and delivery considerations.",
         ],
         mandate="Help EMEA functions evaluate AI opportunities against business priorities and readiness, not technology appeal alone.",

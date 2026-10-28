@@ -407,5 +407,34 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .hbr-course{min-height:0}
 }
 
+
+/* Verified HBR certificate: letter-format evidence and compact program metadata. */
+.site .hbr-latest{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);align-items:start}
+.site .hbr-latest-courses{grid-column:1/-1;padding-top:25px;border-top:1px solid #e7e1d9}
+.site .hbr-verified-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;margin-top:25px;background:#e5e0d8;border:1px solid #e5e0d8}
+.site .hbr-verified-details>div{display:flex;flex-direction:column;gap:7px;min-width:0;min-height:76px;padding:15px;background:#fbfaf8}
+.site .hbr-verified-details span{color:#7d6d5c;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.site .hbr-verified-details strong{color:#203244;font-size:14px;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
+.site .hbr-verified-note{margin:18px 0 0;color:#607080;font-size:12px;line-height:1.7}
+.site .hbr-latest .hbr-latest-side{padding:0;border:0}
+.site .hbr-issued-certificate-image{display:block;overflow:hidden;padding:11px;background:#fff;border:1px solid #ded8cf;box-shadow:0 20px 50px rgba(31,37,45,.12);transition:box-shadow .2s ease}
+.site .hbr-issued-certificate-image:hover{box-shadow:0 22px 58px rgba(31,37,45,.2)}
+.site .hbr-issued-certificate-image img{display:block;width:100%;height:auto;aspect-ratio:1772/928;object-fit:contain}
+.site .hbr-issued-certificate-pending{display:flex;aspect-ratio:1772/928;flex-direction:column;justify-content:center;gap:12px;padding:35px;text-decoration:none;border:1px solid #dcd6ce;background:linear-gradient(145deg,#fdfcfb,#eceef3)}
+.site .hbr-issued-certificate-pending strong{color:#1c2e42;font:500 clamp(20px,2.6vw,30px)/1.2 Georgia,serif}
+.site .hbr-issued-certificate-pending span{color:#5b7187;font-size:12px}
+.site .hbr-certificate-caption{margin:13px 0 0;color:#7b7d7f;font-size:11px;line-height:1.6}
+.site .hbr-latest-courses .hbr-course-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.site .hbr-latest-courses .hbr-course{min-height:145px}
+@media(max-width:1060px){
+ .site .hbr-latest{grid-template-columns:minmax(0,1fr)}
+ .site .hbr-latest-courses{grid-column:1}
+ .site .hbr-latest-courses .hbr-course-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:540px){
+ .site .hbr-verified-details{grid-template-columns:minmax(0,1fr)}
+ .site .hbr-latest-courses .hbr-course-grid{grid-template-columns:minmax(0,1fr)}
+ .site .hbr-latest-actions{align-items:stretch;flex-direction:column}
+}
 </style>
 """

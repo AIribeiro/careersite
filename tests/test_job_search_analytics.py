@@ -4,7 +4,7 @@ import unittest
 from datetime import date
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'src'))
-from job_search_metrics import analyze,canonical_events
+from job_search_metrics import analyze,canonical_events,completed_interview
 
 START, END = date(2026,9,1),date(2026,10,9)
 def event(i,day='2026-09-01',**kwargs):
@@ -35,6 +35,20 @@ class JobAnalyticsTests(unittest.TestCase):
                    event(2,'2026-09-03',is_human_interaction=True,is_interview=True,activity='Interview invitation',status='Interview completed')],START,END)
         self.assertEqual(r['rejection_latency']['n'],0)
         self.assertEqual(r['funnel'][2]['Processes'],0)
+
+    def test_recruiter_screening_completed_counts_but_reschedule_does_not(self):
+        betsson_held = event(
+            101, '2026-10-23', is_interview=True, activity='Recruiter screening held',
+            stage_outcome='Recruiter screening completed',
+        )
+        betsson_cancelled = event(
+            102, '2026-10-20', is_interview=True, activity='Recruiter requested interview reschedule due to illness',
+            stage_outcome='Interview reschedule requested',
+        )
+        self.assertTrue(completed_interview(betsson_held))
+        self.assertFalse(completed_interview(betsson_cancelled))
+        self.assertEqual(sum(completed_interview(row) for row in
+                             (betsson_held, betsson_cancelled)), 1)
 
     def test_undated_application_does_not_enter_dated_cohort(self):
         r=analyze([event(1,None,is_application=True)],START,END)

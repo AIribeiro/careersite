@@ -11,6 +11,7 @@ from page_article_analytics import render_article_analytics, render_reader_sourc
 from page_content_intelligence import render_content_intelligence
 from page_weekly_ai_analytics import render_weekly_ai_analytics
 from page_public_portfolio_overview import render_public_portfolio_overview
+from page_linkedin_career_scorecard import render_linkedin_career_scorecard
 
 
 _VIEWS = {
@@ -111,13 +112,14 @@ _WORKSPACE_LABELS = {
     "public": "Public analytics",
     "private": "Private analytics",
     "cms": "CMS",
+    "linkedin": "LinkedIn Career Conversion",
 }
 
 
 def _resolve_workspace(requested: object, authenticated: bool) -> str:
     """Never route an anonymous browser to a private analytics/CMS renderer."""
     value = str(requested or "public").lower().strip()
-    return value if authenticated and value in ("private", "cms") else "public"
+    return value if authenticated and value in ("private", "cms", "linkedin") else "public"
 
 
 def _workspace_from_url(authenticated: bool) -> str:
@@ -132,7 +134,7 @@ def _workspace_from_url(authenticated: bool) -> str:
 
 def _update_workspace_url() -> None:
     workspace = st.session_state.get(_WORKSPACE_STATE_KEY, "public")
-    if workspace in ("private", "cms"):
+    if workspace in ("private", "cms", "linkedin"):
         st.query_params["workspace"] = workspace
     else:
         st.query_params.pop("workspace", None)
@@ -223,4 +225,7 @@ def render_analytics_dashboard() -> None:
 
     st.divider()
     owner_css()
-    owner_dashboard(owner, workspace_mode="private" if workspace == "private" else "CMS")
+    if workspace == "linkedin":
+        render_linkedin_career_scorecard()
+    else:
+        owner_dashboard(owner, workspace_mode="private" if workspace == "private" else "CMS")

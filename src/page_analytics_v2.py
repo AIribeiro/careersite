@@ -109,10 +109,10 @@ def _render_public_analytics() -> None:
 # hiring intelligence / CMS. The full legacy job dashboards are kept private.
 _WORKSPACE_STATE_KEY = "careersite_analytics_workspace"
 _WORKSPACE_LABELS = {
-    "public": "Public analytics",
-    "private": "Private analytics",
-    "cms": "CMS",
-    "linkedin": "LinkedIn Career Conversion",
+    "public": "Portfolio Analytics",
+    "private": "Job Hiring Analytics",
+    "linkedin": "Social Media Presence",
+    "cms": "Content Studio",
 }
 
 
@@ -129,21 +129,21 @@ def _workspace_from_url(authenticated: bool) -> str:
     requested = str(st.query_params.get("view", "")).lower().strip()
     if explicit is None and requested in ("jobs", "market", "predictions", "hiring", "deep", "attribution", "meetings", "followups"):
         explicit = "private"
+    # Attribution quality belongs to Portfolio Analytics, even for older
+    # bookmarked /?workspace=private&view=attribution links.
+    if authenticated and str(explicit).lower() == "private" and requested == "attribution":
+        return "public"
     return _resolve_workspace(explicit, authenticated)
 
 
 def _update_workspace_url() -> None:
+    """Switch workspaces without carrying a different domain's report route."""
     workspace = st.session_state.get(_WORKSPACE_STATE_KEY, "public")
     if workspace in ("private", "cms", "linkedin"):
         st.query_params["workspace"] = workspace
     else:
         st.query_params.pop("workspace", None)
-        # A private deep-link marker must not immediately bounce the owner
-        # back into the private workspace after selecting Public analytics.
-        if str(st.query_params.get("view", "")).lower() in (
-            "jobs", "market", "predictions", "hiring", "deep", "attribution", "meetings",
-        ):
-            st.query_params["view"] = "overview"
+    st.query_params["view"] = "overview"
 
 
 def render_analytics_dashboard() -> None:
@@ -186,14 +186,15 @@ def render_analytics_dashboard() -> None:
         _render_public_analytics()
         return
 
-    navigation, portfolio = st.columns([7, 1.5], vertical_alignment="center")
+    # Owner-only views use a single top-level information architecture.
+    # No duplication of the original oversized Owner workspace banner.
+    st.session_state["cms_auth"] = owner
+    navigation, portfolio, account = st.columns([7, 1.15, 1.05], vertical_alignment="center")
     with navigation:
-        # Streamlit removes hidden widget state on reruns. Keep CMS navigation
-        # locked during editing so unsaved drafts cannot be lost by switching
-        # to another workspace before using the editor's own back/save controls.
+        # Editing remains locked until save/back to prevent losing CMS drafts.
         editing = bool(st.session_state.get("cms_edit_id")) and workspace == "cms"
         workspace = st.segmented_control(
-            "Analytics workspace",
+            "Owner workspace",
             options=list(_WORKSPACE_LABELS),
             format_func=lambda value: _WORKSPACE_LABELS[value],
             key=_WORKSPACE_STATE_KEY,
@@ -203,29 +204,30 @@ def render_analytics_dashboard() -> None:
             width="stretch",
         ) or "public"
     with portfolio:
-        if workspace == "public":
-            if st.button("Sign out", key="analytics_owner_signout"):
-                from site_owner_persistence import browser_owner_signout as owner_signout
-                owner_signout()
-                return
-        elif st.button(
-            "Portfolio", key="owner_workspace_back_to_portfolio",
-            disabled=editing,
-        ):
+        if st.button("Portfolio ↗", key="owner_workspace_back_to_portfolio",
+                     disabled=editing, use_container_width=True):
             st.query_params.clear()
             st.query_params["page"] = "home"
             st.rerun()
+    with account:
+        if st.button("Sign out", key="analytics_owner_signout", use_container_width=True,
+                     disabled=editing):
+            from site_owner_persistence import browser_owner_signout as owner_signout
+            owner_signout()
+            return
 
     if editing:
         st.caption("Finish article editing or return to the article list to change workspaces.")
 
+    # Portfolio evidence is distinct from private job events and off-site
+    # social relationship history. Existing view routes remain bookmarked.
+    from page_owner_workspaces import render_owner_portfolio, render_owner_social
     if workspace == "public":
-        _render_public_analytics()
+        render_owner_portfolio(owner)
+        return
+    if workspace == "linkedin":
+        render_owner_social(owner)
         return
 
-    st.divider()
     owner_css()
-    if workspace == "linkedin":
-        render_linkedin_career_scorecard()
-    else:
-        owner_dashboard(owner, workspace_mode="private" if workspace == "private" else "CMS")
+    owner_dashboard(owner, workspace_mode="private" if workspace == "private" else "CMS")

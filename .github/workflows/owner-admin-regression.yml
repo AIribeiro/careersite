@@ -3,11 +3,15 @@ name: Owner administration regression
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
     paths:
       - "main.py"
       - "src/page_owner_workspaces.py"
       - "src/page_analytics_v2.py"
       - "src/page_admin.py"
+      - "src/page_salary_intelligence.py"
+      - "tests/test_salary_intelligence.py"
       - "src/page_public_analytics.py"
       - "src/page_linkedin_career_scorecard.py"
       - "tests/test_owner_workspace_separation.py"
@@ -36,9 +40,10 @@ jobs:
       - name: Install application requirements
         run: pip install -r requirements.txt
       - name: Check startup and owner workspace syntax
-        run: python -m py_compile main.py src/page_analytics_v2.py src/page_owner_workspaces.py src/page_admin.py src/page_public_analytics.py src/page_linkedin_career_scorecard.py
+        run: python -m py_compile main.py src/page_analytics_v2.py src/page_owner_workspaces.py src/page_admin.py src/page_salary_intelligence.py src/page_public_analytics.py src/page_linkedin_career_scorecard.py
       - name: Verify domain boundaries, owner access and old deep links
         run: |
+          python -m unittest discover -s tests -p 'test_salary_intelligence.py' -v
           python -m unittest discover -s tests -p 'test_owner_workspace_separation.py' -v
           python -m unittest discover -s tests -p 'test_analytics_unified_workspace.py' -v
           python -m unittest discover -s tests -p 'test_public_portfolio_only.py' -v

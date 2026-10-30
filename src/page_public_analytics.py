@@ -311,6 +311,8 @@ def render_public_job_search(*, include_portfolio: bool = True) -> None:
         "applies to dated activity only; conversion always uses original dated "
         "applications since 1 June 2026, not a mismatched event window."
     )
+    if not include_portfolio and st.session_state.get("public_job_focus") == "portfolio":
+        st.session_state["public_job_focus"] = "conversion"
     focus=st.segmented_control(
         "Recruitment question",
         options=(["activity","pipeline","conversion","trends","market","evidence"]

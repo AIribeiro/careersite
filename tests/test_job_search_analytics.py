@@ -4,7 +4,7 @@ import unittest
 from datetime import date
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'src'))
-from job_search_metrics import analyze,canonical_events,completed_interview
+from job_search_metrics import analyze,canonical_events,completed_interview,scheduled_interview
 
 START, END = date(2026,9,1),date(2026,10,9)
 def event(i,day='2026-09-01',**kwargs):
@@ -49,6 +49,20 @@ class JobAnalyticsTests(unittest.TestCase):
         self.assertFalse(completed_interview(betsson_cancelled))
         self.assertEqual(sum(completed_interview(row) for row in
                              (betsson_held, betsson_cancelled)), 1)
+
+    def test_employer_confirmed_final_interview_is_scheduled_not_held(self):
+        confirmed = event(
+            103, '2026-10-30', event_type='Interview scheduled',
+            stage_outcome='Final culture fit interview — next and final employer-confirmed stage',
+            is_interview=False, interaction_direction=None,
+            raw_data={'stage_state': 'scheduled', 'stage_source': 'recruiter_explicit',
+                      'is_final_stage': True, 'attended': False,
+                      'meeting_date': '2026-11-09'},
+        )
+        self.assertTrue(scheduled_interview(confirmed))
+        self.assertFalse(completed_interview(confirmed))
+        assumed = dict(confirmed, raw_data={**confirmed['raw_data'], 'stage_source': 'candidate_assumption'})
+        self.assertFalse(scheduled_interview(assumed))
 
     def test_undated_application_does_not_enter_dated_cohort(self):
         r=analyze([event(1,None,is_application=True)],START,END)

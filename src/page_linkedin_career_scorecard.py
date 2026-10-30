@@ -131,6 +131,16 @@ def render_linkedin_career_scorecard():
     with c3:
         st.markdown(_panel("Verified engagement", f'<div class="lc-number">{len(actions)}</div><div class="lc-muted">Recorded actions · {confirmed} relationship outcome signals</div>'), unsafe_allow_html=True)
 
+    st.subheader("Employer relationship coverage")
+    st.caption("Verified people grouped by employer; this is not evidence of an open vacancy.")
+    organizations = {}
+    for person in people:
+        employer = str(person.get("organization") or "").strip()
+        if employer:
+            organizations.setdefault(employer, []).append(person)
+    if organizations:
+        st.dataframe([{"Employer": employer, "Known people": len(members), "Confirmed interaction": "Yes" if any(a.get("person_id") in {p.get("id") for p in members} for a in actions) else "Not recorded"} for employer, members in sorted(organizations.items())], hide_index=True, use_container_width=True)
+    st.caption("Recruiter approaches, profile impressions, time spent and external hiring attribution remain unavailable without confirmed source data.")
     st.subheader("Who deserves attention next?")
     st.caption("Indicative relevance ranking based on recorded seniority, AI/data remit and Swedish-market proximity. This is not evidence of hiring authority, an open vacancy or personal interest.")
     suggested_ids = {s.get("person_id") for s in suggestions}

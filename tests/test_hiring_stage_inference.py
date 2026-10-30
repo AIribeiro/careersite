@@ -54,6 +54,31 @@ class StageInferenceTests(unittest.TestCase):
         self.assertEqual(current["state"], "attendance_unverified")
         self.assertNotIn("completed", current["label"].lower())
 
+    def test_dashboard_shows_specific_stage_and_confirmed_date(self):
+        from hiring_opportunity_comparison import opportunity_comparison_html
+        process = {"employer": "Example Enterprise", "role": "AI Lead",
+                   "process_key": "example|ai lead",
+                   "stage": "subsequent_interview_completed", "credibility_index": 75.0,
+                   "next_interview": None}
+        plan = {"pending_stage_label": "Culture fit interview",
+                "pending_stage_source": "outlook",
+                "pending_stage_confidence": "high",
+                "pending_stage_state": "scheduled",
+                "pending_stage_date": "2026-11-09",
+                "mto_source_type": "employer_confirmed",
+                "mto_total_min": 3, "mto_total_max": 3,
+                "outcome": "in_progress"}
+        html = opportunity_comparison_html([process],
+            {"subsequent_interview_completed": "Subsequent interview completed"},
+            meeting_counts={"example|ai lead": 2},
+            meeting_details={"example|ai lead": []},
+            process_plans={"example|ai lead": plan})
+        self.assertIn("Culture fit interview", html)
+        self.assertIn("Confirmed next interview", html)
+        self.assertIn("09 Nov 2026", html)
+        self.assertIn("Stage source: outlook", html)
+        self.assertNotIn(">Subsequent interview completed<", html)
+
     def test_rejection_dominates_old_interview_signals(self):
         current = resolve_stage(
             outcome="rejected", today="2026-10-30",

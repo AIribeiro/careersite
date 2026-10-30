@@ -5,7 +5,8 @@ snapshots but is not a fallback masquerading as a current v2 prediction.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 import altair as alt
 import streamlit as st
@@ -117,6 +118,48 @@ def _assessment_rows(access_token: str, prediction: dict) -> list[dict]:
                                     if matched else "Not in live shortlist",
         })
     return sorted(rows, key=lambda item:item["Interview"], reverse=True)
+
+def _verified_meetings_by_process(access_token: str) -> dict[str, int]:
+    """Count only attended meetings linked to the exact recruiting opportunity.
+
+    A calendar invitation, cancelled event, draft review or future meeting does
+    not establish attendance. This function only reads owner-private evidence.
+    """
+    if not access_token:
+        raise ValueError("An owner access token is required.")
+    opportunities = _request_json(
+        "GET", _rest_url(
+            "careersite_recruiting_opportunities?"
+            "select=id,forecast_process_key&forecast_process_key=not.is.null"
+        ), token=access_token, timeout=18,
+    )
+    meetings = _request_json(
+        "GET", _rest_url(
+            "careersite_recruiter_meetings?"
+            "select=id,opportunity_id,scheduled_date,attendance,source_event_id"
+            "&attendance=eq.attended"
+        ), token=access_token, timeout=18,
+    )
+    if not isinstance(opportunities, list) or not isinstance(meetings, list):
+        raise RuntimeError("Verified recruiter meetings are temporarily unavailable.")
+    keys = {row.get("id"): str(row["forecast_process_key"]).strip().casefold()
+            for row in opportunities if isinstance(row, dict)
+            and row.get("forecast_process_key") and row.get("id") is not None}
+    unique: dict[str, set[str]] = {}
+    today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
+    for meeting in meetings:
+        if not isinstance(meeting, dict) or meeting.get("attendance") != "attended":
+            continue
+        key = keys.get(meeting.get("opportunity_id"))
+        meeting_date = str(meeting.get("scheduled_date") or "")
+        if not key or not meeting_date or meeting_date > today:
+            continue
+        event_id = meeting.get("source_event_id") or meeting.get("id")
+        if event_id is None:
+            continue
+        unique.setdefault(key, set()).add(str(event_id))
+    return {key: len(event_ids) for key, event_ids in unique.items()}
+
 
 def _credibility_gradient_101() -> list[str]:
     """101 exact color stops: 0 green, 50 yellow, 100 red."""
@@ -249,26 +292,58 @@ def render_hiring_prediction_v2(data: dict) -> dict:
     else:
         st.info("No confirmed active interview or human-response process is available.")
 
+    owner_session = st.session_state.get("cms_auth") or {}
+    owner_token = str(owner_session.get("access_token") or "") if isinstance(owner_session, dict) else ""
+    meeting_counts = None
+    if owner_token:
+        try:
+            meeting_counts = _verified_meetings_by_process(owner_token)
+        except (RuntimeError, TimeoutError, ValueError, PermissionError):
+            st.caption("Meeting ledger unavailable; counts are not inferred from interview stages.")
+
     relevant = [
         p for p in live if opportunity_evidence_score(p) is not None
         and opportunity_evidence_score(p) >= 10
     ][:7]
     if relevant:
         st.markdown(
-            opportunity_comparison_html(relevant, STAGE_NAMES),
+            opportunity_comparison_html(relevant, STAGE_NAMES, meeting_counts),
             unsafe_allow_html=True,
         )
+        st.caption("Held = documented attended meetings (cancelled or scheduled meetings excluded). "
+                   "MTO = estimated total meetings to an offer, not meetings remaining; "
+                   "ranges are role- and employer-specific planning assumptions.")
         st.caption("Higher scores mean stronger documented progression. "
                    "Scores reflect stage, role fit, evidence recency and finalized "
                    "interview reviews; they are not offer probabilities.")
+        with st.expander("How meeting-to-offer estimates were set", expanded=False):
+            st.markdown(
+                "MTO is **not a probability or a confirmed recruiting plan**. "
+                "Each total includes meetings already held. "
+                "The ledger counts distinct attended calendar-backed records "
+                "linked to the specific vacancy, not different interviewers in one meeting."
+            )
+            st.markdown(
+                "- **LeoVegas:** 3–4 estimated meetings; recruiter and Chief AI Officer interviews "
+                "are held, with a possible stakeholder/final round. "
+                "[Published general sequence](https://justjoin.it/brands/story/leovegas-group) "
+                "is not confirmed for this AI leadership vacancy.\\n"
+                "- **KPMG:** 4–5 estimated meetings based on the two completed conversations "
+                "and possible partner and practice-head discussions. "
+                "[KPMG Sweden's general recruitment process]"
+                "(https://kpmg.com/se/en/insights/career/prepare-for-your-job-application-and-interview.html).\\n"
+                "- **Betsson:** 3–4 estimated meetings: recruiter screening, director/hiring-manager "
+                "interview and final HR/stakeholder step; an extra case review may be required. "
+                "[Betsson's recruitment process](https://betssongroup.com/careers/).\\n"
+                "- **Other roles:** estimated from seniority and contract versus permanent recruitment "
+                "where the employer has not confirmed an interview sequence."
+            )
 
 
     st.markdown("**Post-interview assessment impact**")
     st.caption("Assessment quality and employer progression are separate signals. "
                "Only finalized, evidence-backed assessments change the process score; "
                "drafts are retained for review but carry no forecast weight.")
-    owner_session = st.session_state.get("cms_auth") or {}
-    owner_token = str(owner_session.get("access_token") or "") if isinstance(owner_session, dict) else ""
     if owner_token:
         try:
             assessment_rows = _assessment_rows(owner_token, data)

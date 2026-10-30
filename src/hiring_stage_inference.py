@@ -29,7 +29,7 @@ def classify_stage(text: str, *, meeting_type: str = "", interviewer_role: str =
     kind = _norm(meeting_type)
     if ("culture fit" in value or "cultural fit" in value
             or "culture interview" in value or "values interview" in value):
-        return "Final culture fit interview" if re.search(r"\\bfinal\\b", value) else "Culture fit interview"
+        return "Final culture fit interview" if re.search(r"\bfinal\b", value) else "Culture fit interview"
     if re.search(r"\b(case study|case interview|business case|take home case)\b", value):
         return "Case interview"
     if "technical interview" in value or "technical assessment" in value:

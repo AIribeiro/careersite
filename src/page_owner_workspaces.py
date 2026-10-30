@@ -140,6 +140,10 @@ def render_owner_portfolio(session: dict) -> None:
         "attribution": "quality", "overview": "overview",
     }.get(requested, requested)
     selected = mapped if mapped in _PORTFOLIO_VIEWS else "overview"
+    if requested in ("pages", "articles"):
+        st.session_state["analytics_portfolio_kind"] = (
+            "article" if requested == "articles" else "page"
+        )
     if (st.session_state.get("_owner_portfolio_route") != selected or
             "owner_portfolio_section" not in st.session_state):
         st.session_state["owner_portfolio_section"] = selected

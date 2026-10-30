@@ -13,7 +13,7 @@ import streamlit as st
 
 from site_cms import _request_json, _rest_url
 
-ALIGNMENT_VIEW = "careersite_salary_market_alignment_v1"
+ALIGNMENT_VIEW = "careersite_salary_market_decision_v2"
 SOURCE_TABLE = "careersite_salary_market_sources"
 DUE_VIEW = "careersite_salary_market_due_v1"
 STOCKHOLM_TIMEZONE = "Europe/Stockholm"
@@ -27,6 +27,12 @@ FIELDS = (
     "benchmark_id,benchmark_on,market_low_sek,market_central_sek,market_high_sek,"
     "expected_vs_market_central_sek,expected_vs_market_central_pct,expected_market_position,"
     "benchmark_freshness,benchmark_confidence,benchmark_source_count,source_check_on,"
+    "benchmark_version,independent_employee_salary_dataset_families,"
+    "independent_families_in_model_formula,direct_role_observations,weak_role_observations,"
+    "evidence_quality_interpretation,displayed_market_evidence_status,"
+    "previous_market_central_sek,market_center_revision_sek,market_center_revision_pct,"
+    "market_model_formula,market_scope_description,market_weighted_source_base_sek,"
+    "market_role_scope_multiplier_pct,next_salary_action,"
     "next_review_on,source_reference_year,decision_data_status,salary_evidence_count,"
     "salary_assessment_stale,inference_method,observed_market_statistics,"
     "research_limitations,estimate_rationale,negotiation_guidance,comparison_caveats,"
@@ -36,7 +42,10 @@ FIELDS = (
 SOURCE_FIELDS = (
     "benchmark_id,publisher,title,source_url,reference_year,checked_on,"
     "observed_range_low_sek,observed_range_high_sek,observed_mean_sek,"
-    "observed_measure_kind,occupational_proxy,relevance,source_notes"
+    "observed_measure_kind,occupational_proxy,relevance,source_notes,"
+    "observed_median_sek,observed_p10_sek,observed_p25_sek,observed_p75_sek,"
+    "observed_p90_sek,observed_sample_n,independence_group,source_registry_id,"
+    "observation_status,access_type,source_metadata"
 )
 CLOSED = {"rejected", "withdrawn", "closed", "hired", "offer_accepted"}
 SORTS = {
@@ -404,6 +413,29 @@ def _evidence(row: dict, token: str) -> None:
         f"Next review {row.get('next_review_on') or 'not set'} · "
         f"Confidence {row.get('benchmark_confidence') or 'unknown'}."
     )
+    st.write(
+        f"**Source diversity:** {int(_number(row.get('independent_employee_salary_dataset_families')))} "
+        "independent linked employee-pay datasets · "
+        f"{int(_number(row.get('independent_families_in_model_formula')))} used in the current calculation · "
+        f"{int(_number(row.get('direct_role_observations')))} exact-role observations."
+    )
+    if row.get("displayed_market_evidence_status") == "multi_source_proxy_not_confirmed_role_pay":
+        st.caption("Source diversity improves context but does not verify what this employer pays "
+                   "for the exact role. These low/high bounds are plausible scenarios, not salary percentiles.")
+    if row.get("market_model_formula"):
+        st.markdown("**Reproducible model**")
+        st.write(str(row.get("market_model_formula")))
+        st.caption(
+            f"Weighted source base {_sek(row.get('market_weighted_source_base_sek'), compact=False)}; "
+            f"role adjustment {(_number(row.get('market_role_scope_multiplier_pct'))):+.1f}%. "
+            "These adjustment weights are analyst judgments rather than coefficients estimated from role-matched pay."
+        )
+    if row.get("market_center_revision_sek") is not None:
+        st.caption(
+            f"Previous model center {_sek(row.get('previous_market_central_sek'), compact=False)} → "
+            f"current {_sek(row.get('market_central_sek'), compact=False)} "
+            f"({_sek(row.get('market_center_revision_sek'), compact=False)} change)."
+        )
     if row.get("inference_method"):
         st.markdown("**Role-adjustment rationale**")
         st.write(str(row["inference_method"]))
@@ -431,12 +463,23 @@ def _evidence(row: dict, token: str) -> None:
                 f"Observed published range {_sek(source['observed_range_low_sek'], compact=False)} "
                 f"to {_sek(source['observed_range_high_sek'], compact=False)}"
             )
-        if source.get("observed_mean_sek") is not None:
-            observed.append(f"Observed mean {_sek(source['observed_mean_sek'], compact=False)}")
+        for field, label in (
+            ("observed_p10_sek", "P10"), ("observed_p25_sek", "P25"),
+            ("observed_median_sek", "Median"), ("observed_p75_sek", "P75"),
+            ("observed_p90_sek", "P90"), ("observed_mean_sek", "Mean"),
+        ):
+            if source.get(field) is not None:
+                observed.append(f"{label} {_sek(source[field], compact=False)}")
+        unit = ((source.get("source_metadata") or {}).get("unit")
+                if isinstance(source.get("source_metadata"), dict) else None)
+        if unit == "SEK/hour":
+            observed.append("Hourly contractor-rate reference; not employee monthly salary")
         st.caption(" · ".join(observed + [
             f"Reference {source.get('reference_year') or 'unknown'}",
             f"Checked {source.get('checked_on') or 'unknown'}",
-            f"Proxy: {source.get('occupational_proxy') or 'unspecified'}"
+            f"Proxy: {source.get('occupational_proxy') or 'unspecified'}",
+            f"Independent family: {source.get('independence_group') or 'unclassified'}",
+            f"Role match: {source.get('relevance') or 'unknown'}"
         ]))
         if source.get("source_notes"):
             st.write(str(source["source_notes"]))
@@ -545,6 +588,14 @@ def render_salary_intelligence(session: dict | None) -> None:
                     st.session_state["salary_kpi_filter"] = value
                     st.rerun()
         st.caption("Benchmarked means linked Swedish occupational references, not verified employer salary bands.")
+        sourced = sum(1 for r in rows if _direct(r) and
+                      _number(r.get("independent_employee_salary_dataset_families")) >= 3)
+        exact = sum(1 for r in rows if _number(r.get("direct_role_observations")) > 0)
+        st.caption(
+            f"Independent source depth: {sourced} comparable roles have ≥3 linked salary-data families; "
+            f"{exact} of {active} active roles have exact-role salary distributions. "
+            "The current center formula uses two underlying survey families; Unionen is a separate cross-check."
+        )
     else:
         st.caption(f"{len(rows)} {scope.lower()} requisitions · shown separately from in-progress salary opportunities.")
 
@@ -620,6 +671,23 @@ def render_salary_intelligence(session: dict | None) -> None:
             st.info("No comparable role has all numerical market and candidate bounds.")
         st.caption("Small differences from a modeled center do not demonstrate underpayment or overpricing. "
                    "The ranges are not statistical percentiles for these exact jobs.")
+        with st.expander("What changed in the latest research", expanded=False):
+            st.caption("New market v2 snapshots leave the candidate salary assessments unchanged. "
+                       "Change reflects new independent public pay data and an explicit role-scope calculation.")
+            history = [{
+                "Employer": str(r.get("employer") or ""),
+                "Benchmark": str(r.get("benchmark_version") or "unknown"),
+                "Previous central": _number(r.get("previous_market_central_sek")) if r.get("previous_market_central_sek") is not None else None,
+                "Latest central": _number(r.get("market_central_sek")) if r.get("market_central_sek") is not None else None,
+                "Revision": _number(r.get("market_center_revision_sek")) if r.get("market_center_revision_sek") is not None else None,
+                "Independent families linked": int(_number(r.get("independent_employee_salary_dataset_families"))),
+                "Exact-role observations": int(_number(r.get("direct_role_observations"))),
+            } for r in comparable_rows]
+            st.dataframe(history, hide_index=True, width="stretch",
+                         column_config={
+                             name: st.column_config.NumberColumn(name, format="%.0f SEK")
+                             for name in ("Previous central", "Latest central", "Revision")
+                         })
 
         with st.expander("Compare exact figures", expanded=False):
             table = []
@@ -638,6 +706,8 @@ def render_salary_intelligence(session: dict | None) -> None:
                     "Floor margin": (_number(row["expected_sek"]) - _number(row["career_floor_gross_monthly_sek"]))
                                     if row.get("expected_sek") is not None and row.get("career_floor_gross_monthly_sek") is not None else None,
                     "Confidence": str(row.get("benchmark_confidence") or "unknown"),
+                    "Independent survey families": int(_number(row.get("independent_employee_salary_dataset_families"))),
+                    "Exact-role evidence": int(_number(row.get("direct_role_observations"))),
                     "Review due": row.get("next_review_on"),
                 })
             st.dataframe(

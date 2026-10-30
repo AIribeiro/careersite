@@ -97,6 +97,46 @@ class HiringV2Tests(unittest.TestCase):
         self.assertTrue(any("A scheduled interview is not counted as completed" in c
                             for c in captions))
 
+    def test_meeting_totals_count_attendance_not_invites_or_people(self):
+        from page_hiring_prediction_v2 import _verified_meetings_by_process
+        opportunities = [
+            {"id": 7, "forecast_process_key": "kpmg|ai lead - manager - tax & legal technology"},
+            {"id": 8, "forecast_process_key": "leovegas mobile gaming group|ai strategy and transformation lead"},
+            {"id": 2, "forecast_process_key": "betsson group|head of sb product - data & ai"},
+            {"id": 99, "forecast_process_key": "skillhuset|digital product owner"},
+        ]
+        meetings = [
+            {"id": 1, "opportunity_id": 7, "scheduled_date": "2026-10-07",
+             "attendance": "attended", "source_event_id": "kpmg-one"},
+            {"id": 2, "opportunity_id": 7, "scheduled_date": "2026-10-22",
+             "attendance": "attended", "source_event_id": "kpmg-two"},
+            # Same calendar event copied from another source must not double-count.
+            {"id": 3, "opportunity_id": 7, "scheduled_date": "2026-10-22",
+             "attendance": "attended", "source_event_id": "kpmg-two"},
+            {"id": 4, "opportunity_id": 8, "scheduled_date": "2026-10-02",
+             "attendance": "attended", "source_event_id": "leo-one"},
+            {"id": 5, "opportunity_id": 8, "scheduled_date": "2026-10-28",
+             "attendance": "attended", "source_event_id": "leo-two"},
+            {"id": 6, "opportunity_id": 8, "scheduled_date": "2026-09-30",
+             "attendance": "cancelled", "source_event_id": "leo-cancelled"},
+            {"id": 7, "opportunity_id": 2, "scheduled_date": "2026-10-23",
+             "attendance": "attended", "source_event_id": "betsson-one"},
+            {"id": 8, "opportunity_id": 2, "scheduled_date": "2099-01-01",
+             "attendance": "attended", "source_event_id": "future-error"},
+        ]
+        # The production REST query filters cancelled meetings; keep one in
+        # this fixture to confirm a second independent attendance safeguard.
+        with patch("page_hiring_prediction_v2._request_json",
+                   side_effect=[opportunities, meetings]) as api:
+            counts = _verified_meetings_by_process("owner-token")
+        self.assertEqual(counts["kpmg|ai lead - manager - tax & legal technology"], 2)
+        self.assertEqual(counts["leovegas mobile gaming group|ai strategy and transformation lead"], 2)
+        self.assertEqual(counts["betsson group|head of sb product - data & ai"], 1)
+        self.assertEqual(counts["skillhuset|digital product owner"], 0)
+        self.assertEqual(api.call_count, 2)
+        self.assertTrue(all(c.kwargs["token"] == "owner-token" for c in api.call_args_list))
+        self.assertIn("attendance=eq.attended", api.call_args_list[1].args[1])
+
     def test_v2_snapshot_has_no_modelled_personal_offer_probability(self):
         x = build_v2_snapshot(example_v2(), {"v2": "signature"})
         self.assertEqual(x["model_version"], VERSION)

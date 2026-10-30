@@ -15,6 +15,7 @@ if str(SRC) not in sys.path:
 from page_salary_intelligence import (
     FIELDS, _benchmarked, _direct, _get_rows, _get_sources, _needs_review,
     _pct, _plot, _position, _priority, _process_url, _question, _sek, _summary,
+    _get_versions,
 )
 
 
@@ -112,6 +113,19 @@ class SalaryIntelligenceTests(TestCase):
         with patch("page_salary_intelligence._request_json", return_value=[]) as req:
             _get_rows("owner-jwt", "Unconfirmed")
         self.assertIn("eq.unknown", req.call_args.args[1])
+
+
+    def test_dated_versions_are_fetched_by_exact_opportunity_with_owner_token(self):
+        with self.assertRaises(PermissionError):
+            _get_versions("", 1)
+        with patch("page_salary_intelligence._request_json", side_effect=[[{"assessment_date": "2026-10-28"}], [{"benchmark_on": "2026-10-30"}]]) as req:
+            assessments, benchmarks = _get_versions("owner-jwt", 37)
+        self.assertEqual(assessments[0]["assessment_date"], "2026-10-28")
+        self.assertEqual(benchmarks[0]["benchmark_on"], "2026-10-30")
+        self.assertEqual(req.call_count, 2)
+        for call in req.call_args_list:
+            self.assertIn("opportunity_id=eq.37", call.args[1])
+            self.assertEqual(call.kwargs["token"], "owner-jwt")
 
     def test_sources_are_tied_to_exact_benchmark_and_owner(self):
         with patch("page_salary_intelligence._request_json", return_value=[]) as req:

@@ -180,7 +180,11 @@ class AttributionLinkTests(unittest.TestCase):
     def test_private_cms_has_generator_not_public_analytics(self):
         import page_admin
         source = inspect.getsource(page_admin._dashboard)
-        self.assertIn("_distribution_links(articles)", source)
+        # Publishing remains in Content Studio; tracked distribution is owned
+        # by Social Media Presence, not duplicated in the CMS article list.
+        self.assertNotIn("_distribution_links(articles)", source)
+        from page_owner_workspaces import render_owner_social
+        self.assertIn("_distribution_links(articles)", inspect.getsource(render_owner_social))
         self.assertIn("cms_edit_id", source)
         from page_analytics_v2 import _VIEWS
         self.assertNotIn("CMS", list(_VIEWS.values()))

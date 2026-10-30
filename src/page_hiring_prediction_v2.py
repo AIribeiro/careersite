@@ -130,7 +130,7 @@ def _verified_meetings_by_process(access_token: str, *, with_details: bool = Fal
     opportunities = _request_json(
         "GET", _rest_url(
             "careersite_recruiting_opportunities?"
-            "select=id,forecast_process_key,mto_total_min,mto_total_max,"
+            "select=id,forecast_process_key,outcome,mto_total_min,mto_total_max,"
             "mto_remaining_min,mto_remaining_max,mto_source_type,mto_source_note"
             "&forecast_process_key=not.is.null"
         ), token=access_token, timeout=18,

@@ -7,6 +7,7 @@ Separate opportunity identities prevent employer-level accidental merges.
 from __future__ import annotations
 
 from datetime import date, datetime
+from hiring_stage_inference import classify_stage
 from statistics import median
 from zoneinfo import ZoneInfo
 
@@ -54,6 +55,11 @@ def stage_label(row: dict) -> str:
         "interview": "Interview",
         "networking": "Introduction",
     }.get(kind, "Meeting")
+    # Employer-specific round names take priority over generic meeting types.
+    # A calendar title alone must not imply attendance or a final offer.
+    extracted = classify_stage(str(row.get("title") or ""))
+    if extracted and extracted != "Interview":
+        prefix = extracted
     stage = row.get("stage")
     return f"Round {stage} · {prefix}" if stage else f"{prefix} · round not verified"
 

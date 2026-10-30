@@ -66,7 +66,7 @@ class PortfolioOnlyAccessTests(unittest.TestCase):
                       "Job predictions", "Detailed analysis"):
             self.assertIn(label, source)
         for renderer in (
-            "render_public_analytics_overview", "render_public_job_search",
+            "render_owner_hiring_home",
             "render_public_swedish_market", "render_public_hiring_predictions",
             "render_job_search_analytics", "render_rejection_analytics",
             "render_private_staleness", "render_swedish_job_market",

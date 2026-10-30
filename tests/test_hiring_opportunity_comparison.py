@@ -90,8 +90,8 @@ class OpportunityComparisonTests(unittest.TestCase):
         self.assertEqual(html.count("2 held"), 2)
         self.assertEqual(html.count("1 held"), 1)
         self.assertEqual(html.count("0 verified"), 2)
-        self.assertEqual(html.count("MTO ~3–4"), 3)  # LeoVegas, Betsson, SkillHuset
-        self.assertIn("MTO ~4–5", html)  # KPMG
+        self.assertEqual(html.count("MTO ~3–4"), 3)  # KPMG, Betsson, SkillHuset
+        self.assertEqual(html.count("MTO ~2–3"), 2)  # LeoVegas and contract
         self.assertIn("MTO ~2–3", html)  # Contract
         self.assertIn("including those already completed", html)
         self.assertNotIn("chance of offer", html.lower())
@@ -104,7 +104,7 @@ class OpportunityComparisonTests(unittest.TestCase):
         }], self.STAGES)
         self.assertIn("— verified", html)
         self.assertNotIn("0 verified", html)
-        self.assertIn("MTO ~4–5", html)
+        self.assertIn("MTO ~3–4", html)
 
     def test_real_next_interview_only(self):
         html = opportunity_comparison_html([

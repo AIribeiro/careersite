@@ -53,6 +53,35 @@ class UnifiedAnalyticsWorkspaceTests(unittest.TestCase):
         ):
             self.assertIn(action, source)
 
+    def test_hiring_home_restores_stage_mto_and_dedicated_route(self):
+        from page_admin import _PRIVATE_VIEW_ROUTES
+        from page_owner_workspaces import (
+            _current_stage_groups, render_owner_hiring_home,
+        )
+
+        self.assertEqual(_PRIVATE_VIEW_ROUTES["stages"], "Stages & MTO")
+        source = inspect.getsource(render_owner_hiring_home)
+        self.assertIn("render_owner_stage_dashboard(session)", source)
+        # The stage board must appear before fallible job-search warehouse reads.
+        self.assertLess(
+            source.index("render_owner_stage_dashboard(session)"),
+            source.index("fetch_job_records("),
+        )
+        prediction = {"top_processes": [
+            {"employer": "LeoVegas", "process_key": "leovegas|ai lead",
+             "stage": "subsequent_interview_completed", "status": "active_reconciled"},
+            {"employer": "Betsson", "process_key": "betsson|head of product",
+             "stage": "first_interview_completed", "status": "active_unknown_decision"},
+            {"employer": "KPMG", "process_key": "kpmg|ai manager",
+             "stage": "subsequent_interview_completed", "status": "active_reconciled"},
+            {"employer": "Billerud", "process_key": "billerud|ai lead",
+             "stage": "application_only", "status": "active_unknown_decision"},
+        ]}
+        plans = {"betsson|head of product": {"outcome": "rejected"}}
+        progressed, applied = _current_stage_groups(prediction, plans)
+        self.assertEqual([p["employer"] for p in progressed], ["LeoVegas", "KPMG"])
+        self.assertEqual([p["employer"] for p in applied], ["Billerud"])
+
     def test_anonymous_navigation_never_invokes_private_renderers(self):
         from streamlit.testing.v1 import AppTest
 

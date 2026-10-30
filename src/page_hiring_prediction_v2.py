@@ -172,6 +172,51 @@ def _verified_meetings_by_process(access_token: str, *, with_details: bool = Fal
     counts = {key: len(unique.get(key, {})) for key in set(keys.values())}
     if with_details:
         details = {key: list(unique.get(key, {}).values()) for key in set(keys.values())}
+        # A later employer invitation describes the current next stage more precisely
+        # than the last *completed* meeting in a dated forecast snapshot.
+        # Do not count invitations as attended meetings or change the MTO figures.
+        try:
+            signals = _request_json(
+                "GET", _rest_url(
+                    "careersite_recruiting_step_signals?"
+                    "select=opportunity_id,kind,event_label,anchor_date"
+                    "&kind=eq.stage_progression&order=anchor_date.desc"
+                ), token=access_token, timeout=18,
+            )
+        except (RuntimeError, TimeoutError, ValueError, PermissionError):
+            signals = []
+        if isinstance(signals, list):
+            for signal in signals:
+                if not isinstance(signal, dict):
+                    continue
+                key = keys.get(signal.get("opportunity_id"))
+                plan = plans.get(key) if key else None
+                if not plan or str(plan.get("outcome") or "").casefold() != "in_progress":
+                    continue
+                if plan.get("pending_stage_label"):
+                    continue
+                label = " ".join(str(signal.get("event_label") or "").casefold().replace("-", " ").split())
+                if "interview" not in label or not ("invit" in label):
+                    continue
+                invitation_day = str(signal.get("anchor_date") or "")
+                latest_held = max(
+                    (str(m.get("scheduled_date") or "") for m in details.get(key, [])),
+                    default="",
+                )
+                if not invitation_day or invitation_day <= latest_held:
+                    continue
+                if "culture fit" in label:
+                    stage_label = "Culture fit interview"
+                elif "final interview" in label:
+                    stage_label = "Final interview"
+                elif "second interview" in label:
+                    stage_label = "Second interview"
+                elif "third interview" in label:
+                    stage_label = "Third interview"
+                else:
+                    stage_label = "Interview invited"
+                plan["pending_stage_label"] = stage_label
+                plan["pending_stage_evidence_date"] = invitation_day
         return counts, details, plans
     return counts
 

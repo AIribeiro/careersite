@@ -289,11 +289,11 @@ def _portfolio_job_relationships(job_report: dict) -> None:
         )
 
 @st.fragment(run_every="10m")
-def render_public_job_search() -> None:
+def render_public_job_search(*, include_portfolio: bool = True) -> None:
     st.title("Job Search Analytics")
     st.caption(
-        "Recruitment funnel, timing, trends, portfolio relationships and "
-        "Swedish market comparisons—without publishing private employer records."
+        "Recruitment funnel, timing, trends and Swedish market comparisons, "
+        "with employer-specific records restricted to your owner account."
     )
     period=st.segmented_control(
         "Reporting horizon",[1,7,30,90,180,365,730],default=30,
@@ -313,7 +313,9 @@ def render_public_job_search() -> None:
     )
     focus=st.segmented_control(
         "Recruitment question",
-        options=["activity","pipeline","conversion","trends","portfolio","market","evidence"],
+        options=(["activity","pipeline","conversion","trends","market","evidence"]
+                 if not include_portfolio else
+                 ["activity","pipeline","conversion","trends","portfolio","market","evidence"]),
         default="conversion",
         format_func=lambda x:{
             "activity":"Activity",

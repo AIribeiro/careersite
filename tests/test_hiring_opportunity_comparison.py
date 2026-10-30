@@ -58,6 +58,54 @@ class OpportunityComparisonTests(unittest.TestCase):
         self.assertEqual(opportunity_evidence_score({"credibility_index": 150}), 100.0)
         self.assertEqual(opportunity_evidence_score({"credibility_index": -20}), 0.0)
 
+    def test_estimated_mto_uses_exact_role_and_verified_meetings(self):
+        rows = [
+            {"employer": "LeoVegas Mobile Gaming Group",
+             "role": "AI Strategy and Transformation Lead",
+             "process_key": "leovegas mobile gaming group|ai strategy and transformation lead",
+             "stage": "subsequent_interview_completed", "credibility_index": 71.1},
+            {"employer": "KPMG", "role": "AI Lead – Manager, Tax & Legal Technology",
+             "process_key": "kpmg|ai lead - manager - tax & legal technology",
+             "stage": "subsequent_interview_completed", "credibility_index": 67.0},
+            {"employer": "Betsson Group", "role": "Head of SB Product – Data & AI",
+             "process_key": "betsson group|head of sb product - data & ai",
+             "stage": "first_interview_completed", "credibility_index": 42.6},
+            {"employer": "SkillHuset", "role": "Digital Product Owner",
+             "process_key": "skillhuset|digital product owner",
+             "stage": "human_response", "credibility_index": 11.1},
+            {"employer": "Seres Information Technologie Limited",
+             "role": "Digital Engineering Data Lead / Contract / Sweden",
+             "process_key": "seres|digital engineering data lead contract",
+             "stage": "human_response", "credibility_index": 10.2},
+        ]
+        counts = {
+            rows[0]["process_key"]: 2,
+            rows[1]["process_key"]: 2,
+            rows[2]["process_key"]: 1,
+            rows[3]["process_key"]: 0,
+            rows[4]["process_key"]: 0,
+        }
+        html = opportunity_comparison_html(rows, self.STAGES, counts)
+        self.assertEqual(html.count('class="op-compare__mto"'), 5)
+        self.assertEqual(html.count("2 held"), 2)
+        self.assertEqual(html.count("1 held"), 1)
+        self.assertEqual(html.count("0 verified"), 2)
+        self.assertEqual(html.count("MTO ~3–4"), 3)  # LeoVegas, Betsson, SkillHuset
+        self.assertIn("MTO ~4–5", html)  # KPMG
+        self.assertIn("MTO ~2–3", html)  # Contract
+        self.assertIn("including those already completed", html)
+        self.assertNotIn("chance of offer", html.lower())
+
+    def test_missing_meeting_ledger_never_invents_zero(self):
+        html = opportunity_comparison_html([{
+            "employer": "KPMG", "role": "AI Lead",
+            "process_key": "kpmg|ai lead - manager - tax & legal technology",
+            "stage": "first_interview_completed", "credibility_index": 67,
+        }], self.STAGES)
+        self.assertIn("— verified", html)
+        self.assertNotIn("0 verified", html)
+        self.assertIn("MTO ~4–5", html)
+
     def test_real_next_interview_only(self):
         html = opportunity_comparison_html([
             {"employer": "KPMG", "role": "AI Lead",

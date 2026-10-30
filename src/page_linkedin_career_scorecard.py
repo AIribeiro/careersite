@@ -68,6 +68,11 @@ def render_linkedin_career_scorecard():
     .lc-muted{font-size:.8rem;color:#746f6b;margin-top:8px}
     .lc-person{padding:14px 17px;border:1px solid #e2ddd7;background:#fffdfa;border-radius:11px;margin-bottom:9px}
     .lc-person strong{font-size:1rem;color:#242b32}
+    .lc-person-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .lc-person-name{color:#242b32!important;font-size:1.02rem;font-weight:700;text-decoration:none!important;border-bottom:1px solid transparent;transition:color .15s,border-color .15s}
+    .lc-person-name:hover,.lc-person-name:focus{color:#925b3d!important;border-bottom-color:#925b3d}
+    .lc-person-name span{font-size:.83rem;opacity:.65;margin-left:3px}
+    .lc-verify{font-size:.74rem!important;color:#857d76!important;margin-top:9px!important}
     .lc-person p{font-size:.82rem;color:#655f5b;margin:5px 0}
     .lc-chip{font-size:.69rem;font-weight:700;color:#76543c;background:#f4e8dc;padding:4px 8px;border-radius:20px}
     </style>""", unsafe_allow_html=True)
@@ -150,10 +155,17 @@ def render_linkedin_career_scorecard():
             is_direct = link.startswith(("https://www.linkedin.com/in/", "https://linkedin.com/in/"))
             if not is_direct:
                 link = "https://www.linkedin.com/search/results/people/?" + parse.urlencode({"keywords": str(person.get("full_name") or "")})
-            st.link_button(str(person.get("full_name") or "LinkedIn profile"), link, help="Open verified profile" if is_direct else "Find person on LinkedIn; direct URL not verified", key=f"lc_profile_{pid}")
-            st.markdown(f'<div class="lc-person"><span class="lc-chip">{html.escape(state)}</span><p>{role} · {org}</p><p>{html.escape(rationale)}</p></div>', unsafe_allow_html=True)
-            if not is_direct:
-                st.caption("LinkedIn people search · exact profile URL not yet verified")
+            destination = html.escape(link, quote=True)
+            title = "Open verified LinkedIn profile" if is_direct else "Search LinkedIn for this person; exact profile URL not verified"
+            st.markdown(
+                f'<div class="lc-person">'
+                f'<div class="lc-person-heading"><a class="lc-person-name" href="{destination}" target="_blank" rel="noopener noreferrer" title="{html.escape(title)}">{name} <span aria-hidden="true">↗</span></a>'
+                f'<span class="lc-chip">{html.escape(state)}</span></div>'
+                f'<p>{role} · {org}</p><p>{html.escape(rationale)}</p>'
+                f'{"<p class=lc-verify>LinkedIn search · exact profile pending verification</p>" if not is_direct else ""}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
     st.subheader("What to do next")
     if not actions:
         steps = [

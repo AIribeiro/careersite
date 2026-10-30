@@ -142,8 +142,40 @@ def render_linkedin_career_scorecard():
             organizations.setdefault(employer, []).append(person)
     contacted = {a.get("person_id") for a in actions_all}
     active_employers = [org for org, members in organizations.items() if any(p.get("id") in contacted for p in members)]
+    # Distinguish research coverage, contact readiness and observed relationship outcomes.
+    # All-time people inventory is intentional: a contact discovered yesterday remains
+    # available for a relationship decision today. Period-specific actions remain filtered.
+    verified_people = [p for p in people_all if "verified" in str(p.get("verification_status") or "").lower()]
+    direct_people = [p for p in verified_people if str(p.get("profile_url") or "").startswith(("https://www.linkedin.com/in/", "https://linkedin.com/in/", "https://se.linkedin.com/in/", "https://it.linkedin.com/in/", "https://pt.linkedin.com/in/"))]
+    senior_people = [p for p in verified_people if any(t in str(p.get("role_title") or "").lower() for t in ("chief", "director", "head of", "vp ", "vice president", "ceo", "partner"))]
+    complete_people = [p for p in verified_people if p.get("role_title") and p.get("organization") and p.get("geography") and p.get("profile_url")]
+    unique_engaged = len({a.get("person_id") for a in actions_all if a.get("person_id")})
+    st.markdown("### Conversion evidence")
+    st.caption("All-time research inventory and confirmed actions; a mapped profile is not an established relationship.")
+    c1, c2, c3, c4 = st.columns(4)
+    for col, label, value, note in (
+        (c1, "Verified profiles", len(verified_people), "Research coverage"),
+        (c2, "Senior leaders mapped", len(senior_people), "Role-based classification"),
+        (c3, "People with recorded actions", unique_engaged, "Any confirmed action, all history"),
+        (c4, "LinkedIn-attributed interviews", sum("interview" in str(a.get("action_type") or "").lower() for a in actions_all), "Only explicitly recorded"),
+    ):
+        with col:
+            st.markdown(_panel(label, '<div class="lc-number">' + str(value) + '</div><div class="lc-muted">' + html.escape(note) + '</div>'), unsafe_allow_html=True)
+    st.caption(f"Evidence readiness: {len(direct_people)}/{len(verified_people)} verified profiles have a direct LinkedIn URL; {len(complete_people)}/{len(verified_people)} have role, employer, geography and URL recorded. Missing fields are research gaps, not failed relationships.")
+    if not actions_all:
+        st.info("Conversion bottleneck: discovery is documented, but no outreach or response has been confirmed in this ledger. First verify any real interactions not yet recorded; then prioritize a specific, credible introduction. Do not infer zero real-world engagement.")
+    elif not confirmed:
+        st.info("Conversion bottleneck: some actions are recorded, but no reply, introduction or interview is confirmed within the selected evidence window. Review actual outcomes before new outreach.")
+    else:
+        st.info("Relationship evidence exists in the selected period. Review the individual outcomes and prioritize progressing existing conversations.")
+    ranked = sorted((( _score(p)[0], p) for p in verified_people), key=lambda item: (-item[0], str(item[1].get("full_name") or "")))
+    if ranked:
+        st.markdown("#### Next-best relationship research")
+        top = ranked[0][1]
+        st.markdown("**" + html.escape(str(top.get("full_name") or "Unidentified person")) + "** · " + html.escape(str(top.get("role_title") or "Role to verify")) + " · " + html.escape(str(top.get("organization") or "Organization to verify")))
+        st.caption("Highest indicative relevance among mapped profiles, not a claim of hiring authority or permission to contact. Confirm current role, shared context and an appropriate reason to connect.")
     st.markdown("### Relationship coverage")
-    st.caption("Where professional access exists, and where it is still only a research lead.")
+    st.caption("Employer-level research coverage. A mapped person is not an introduction, relationship or confirmed hiring stakeholder.")
     if organizations:
         tiles = []
         for org, members in sorted(organizations.items(), key=lambda item: (-any(p.get("id") in contacted for p in item[1]), item[0].lower())):
@@ -155,11 +187,11 @@ def render_linkedin_career_scorecard():
         st.info("No verified employer relationships available yet.")
     st.caption("Company presence is not proof of a vacancy or access to a hiring decision-maker.")
     st.subheader("Who deserves attention next?")
-    st.caption("Indicative relevance ranking based on recorded seniority, AI/data remit and Swedish-market proximity. This is not evidence of hiring authority, an open vacancy or personal interest.")
-    suggested_ids = {s.get("person_id") for s in suggestions}
-    engaged_ids = {a.get("person_id") for a in actions}
+    st.caption("All-time verified profiles ranked by recorded seniority, AI/data remit and Swedish-market proximity. Research priority is not evidence of hiring authority, a vacancy or personal interest.")
+    suggested_ids = {s.get("person_id") for s in suggestions_all}
+    engaged_ids = {a.get("person_id") for a in actions_all}
     candidates = []
-    for p in people:
+    for p in people_all:
         if "verified" not in str(p.get("verification_status") or "").lower():
             continue
         score, rationale = _score(p)
@@ -190,7 +222,7 @@ def render_linkedin_career_scorecard():
                 unsafe_allow_html=True,
             )
     st.subheader("What to do next")
-    if not actions:
+    if not actions_all:
         steps = [
             ("01 · Qualify", "Review the highest-relevance profiles and confirm their current roles and relevance to Swedish enterprise AI hiring."),
             ("02 · Engage", "Select a few genuinely relevant conversations. Record outreach only after it actually happens."),

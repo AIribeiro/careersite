@@ -3,6 +3,7 @@ from __future__ import annotations
 import html
 import json
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from urllib import parse, request
 import streamlit as st
 from site_analytics import ANALYTICS_URL
@@ -24,9 +25,9 @@ def _date(value):
     except (ValueError, TypeError):
         return None
 
-def _within(row, field, cutoff):
+def _within(row, field, start, end):
     date = _date(row.get(field))
-    return cutoff is None or (date is not None and date >= cutoff)
+    return date is not None and (start is None or date >= start) and (end is None or date < end)
 
 def _score(person):
     role = str(person.get("role_title") or "").lower()
@@ -73,8 +74,19 @@ def render_linkedin_career_scorecard():
     st.markdown("""<div class="lc-hero"><div class="lc-kicker">Private career intelligence</div>
     <h1>LinkedIn Career Conversion</h1>
     <p>From professional visibility to meaningful relationships and hiring opportunities. Focus on the next decision, not vanity metrics.</p></div>""", unsafe_allow_html=True)
-    period = st.segmented_control("Evidence window", ["30 days", "90 days", "All history"], default="90 days", key="linkedin_scorecard_period")
-    cutoff = None if period == "All history" else datetime.now(timezone.utc) - timedelta(days=30 if period == "30 days" else 90)
+    period = st.segmented_control("Evidence window", ["Today", "Yesterday", "This week", "30 days", "90 days", "All history"], default="90 days", key="linkedin_scorecard_period")
+    now = datetime.now(ZoneInfo("Europe/Stockholm"))
+    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    if period == "Today":
+        start, end = midnight, midnight + timedelta(days=1)
+    elif period == "Yesterday":
+        start, end = midnight - timedelta(days=1), midnight
+    elif period == "This week":
+        start, end = midnight - timedelta(days=midnight.weekday()), midnight + timedelta(days=1)
+    elif period == "All history":
+        start, end = None, None
+    else:
+        start, end = now - timedelta(days=30 if period == "30 days" else 90), None
     try:
         people_all = _read("linkedin_visibility_people", "id,full_name,role_title,organization,geography,verification_status,profile_url,first_seen_at")
         actions_all = _read("linkedin_visibility_confirmed_actions", "id,person_id,action_type,occurred_at,evidence_basis")
@@ -84,11 +96,11 @@ def render_linkedin_career_scorecard():
     except (OSError, ValueError, RuntimeError, PermissionError):
         st.error("Verified LinkedIn evidence is temporarily unavailable. The dashboard will not invent missing values.")
         return
-    people = [x for x in people_all if _within(x, "first_seen_at", cutoff)]
-    actions = [x for x in actions_all if _within(x, "occurred_at", cutoff)]
-    suggestions = [x for x in suggestions_all if _within(x, "suggested_on", cutoff)]
+    people = [x for x in people_all if _within(x, "first_seen_at", start, end)]
+    actions = [x for x in actions_all if _within(x, "occurred_at", start, end)]
+    suggestions = [x for x in suggestions_all if _within(x, "suggested_on", start, end)]
     recommendations = [x for x in recommendations_all if _within(x, "suggested_on", cutoff)]
-    runs = [x for x in runs_all if _within(x, "run_at", cutoff)]
+    runs = [x for x in runs_all if _within(x, "run_at", start, end)]
     def count(*terms):
         return sum(any(term in str(a.get("action_type") or "").lower() for term in terms) for a in actions)
     confirmed = count("reply", "accepted", "conversation", "referral", "introduction", "interview")

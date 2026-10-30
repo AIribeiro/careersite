@@ -88,8 +88,8 @@ TITLES = {
     "about": "About | Jair Ribeiro",
     "contact": "Contact | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
-    "analytics": "Portfolio Visits & Reads | Jair Ribeiro",
-    "admin": "Article CMS | Jair Ribeiro",
+    "analytics": "Portfolio & Career Intelligence | Jair Ribeiro",
+    "admin": "Content Studio | Jair Ribeiro",
 }
 
 PAGE_TITLE = (

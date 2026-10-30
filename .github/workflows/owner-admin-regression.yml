@@ -1,0 +1,46 @@
+name: Owner administration regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "main.py"
+      - "src/page_owner_workspaces.py"
+      - "src/page_analytics_v2.py"
+      - "src/page_admin.py"
+      - "src/page_public_analytics.py"
+      - "src/page_linkedin_career_scorecard.py"
+      - "tests/test_owner_workspace_separation.py"
+      - "tests/test_analytics_unified_workspace.py"
+      - "tests/test_public_portfolio_only.py"
+      - "tests/test_forward_attribution_coverage.py"
+      - "tests/test_site_campaign_links.py"
+      - ".github/workflows/owner-admin-regression.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  owner-console:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install application requirements
+        run: pip install -r requirements.txt
+      - name: Check startup and owner workspace syntax
+        run: python -m py_compile main.py src/page_analytics_v2.py src/page_owner_workspaces.py src/page_admin.py src/page_public_analytics.py src/page_linkedin_career_scorecard.py
+      - name: Verify domain boundaries, owner access and old deep links
+        run: |
+          python -m unittest discover -s tests -p 'test_owner_workspace_separation.py' -v
+          python -m unittest discover -s tests -p 'test_analytics_unified_workspace.py' -v
+          python -m unittest discover -s tests -p 'test_public_portfolio_only.py' -v
+          python -m unittest discover -s tests -p 'test_forward_attribution_coverage.py' -v
+          python -m unittest discover -s tests -p 'test_site_campaign_links.py' -v

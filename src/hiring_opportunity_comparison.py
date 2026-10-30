@@ -9,6 +9,8 @@ from datetime import date
 from html import escape
 from math import isfinite
 
+from meeting_to_offer import estimate_mto
+
 
 def opportunity_evidence_score(process: dict) -> float | None:
     """Return a finite 0–100 process credibility index; never invent a missing score."""
@@ -48,71 +50,56 @@ def _mark_for_employer(name: str) -> tuple[str, str]:
     return "".join(letters[:2]).upper() or "•", "neutral"
 
 
-# MTO means the estimated TOTAL of candidate meetings before an offer, not
-# meetings remaining, a time forecast or the probability of receiving an offer.
-# Known routes prioritize the authority of verified interviewers, not just
-# their sequence: seeing the accountable functional executive is a potential
-# final-decision milestone. A more senior interview changes the expected number
-# of remaining meetings without claiming an offer or a confirmed final round.
-# Ranges remain estimates until the employer confirms its process.
-_KNOWN_MTO = {
-    "leovegas mobile gaming group|ai strategy and transformation lead": (
-        2, 3, "Decision-authority assessment: a recruiter screening on 2 October was followed by the Chief AI Officer, Jörgen Ericsson, on 28 October. The CAIO leads the AI Hub and is the senior known functional stakeholder for this role. A decision after his interview is plausible; one final HR/stakeholder meeting is also plausible. There is no verified role-specific requirement for two further interviews."
-    ),
-    "kpmg|ai lead - manager - tax & legal technology": (
-        3, 4, "Decision-authority assessment: hiring-manager interview with Thérèse Schultze on 7 October and a cross-functional interview with Niklas Elofsson and Carl Svalstedt on 22 October. A Tax Transformation partner discussion and possibly the Head of Tax & Legal were discussed as potential next steps. They could be one joint meeting or two meetings; neither is confirmed."
-    ),
-    "betsson group|head of sb product - data & ai": (
-        3, 4, "Authority assessment: the first completed meeting was with recruiter Adrian Korpi on 23 October, not yet with the Director of Sports Product or other final hiring stakeholders. Betsson's official process includes a hiring-manager conversation and, for senior roles, stakeholder/final HR interviews; a case review is possible."
-    ),
-}
-
-
+# MTO is estimated from role family and recorded interviewer authority.
+# The shared estimator intentionally has no employer-name exceptions.
 def meetings_to_offer_estimate(process: dict) -> tuple[int, int, str]:
-    """Return a conservative estimated total interview-meeting range and basis."""
-    key = str(process.get("process_key") or "").strip().casefold()
-    if key in _KNOWN_MTO:
-        return _KNOWN_MTO[key]
-    role = str(process.get("role") or "").casefold()
-    if "contract" in role or "interim" in role:
-        return (2, 3, "Contract assignment estimate: recruiter/client discussion and possible final client interview; no employer-specific interview plan verified.")
-    if "head of" in role or "director" in role or "chief" in role:
-        return (3, 5, "Senior leadership estimate: screening, executive/hiring-manager interview and one or two stakeholder/final conversations; no employer-specific plan verified.")
-    if "product owner" in role or "manager" in role or "lead" in role:
-        return (3, 4, "Professional or functional lead estimate: recruiter, hiring-manager and final/team meeting, with a possible case review; no employer-specific plan verified.")
-    return (2, 4, "General experienced-hire interview estimate; no employer-specific plan verified.")
+    """Backward-compatible role-baseline accessor; see estimate_mto for evidence."""
+    result = estimate_mto(process)
+    return result.total_low, result.total_high, result.explanation
 
 
-def _meeting_progress_html(process: dict, meeting_counts: dict[str, int] | None) -> str:
+def _meeting_progress_html(
+    process: dict,
+    meeting_counts: dict[str, int] | None,
+    meeting_details: dict[str, list[dict]] | None = None,
+    process_plans: dict[str, dict] | None = None,
+) -> str:
     key = str(process.get("process_key") or "").strip().casefold()
     if meeting_counts is None:
-        count = None  # Ledger not loaded: never imply zero attendance.
+        count = None  # The ledger could not be loaded.
     elif key in meeting_counts:
         count = meeting_counts[key]
     elif str(process.get("stage") or "").endswith("interview_completed"):
-        count = None  # Stage and meeting ledger must not be silently reconciled.
+        count = None  # Do not silently reconcile disparate evidence.
     else:
-        count = 0  # No attended meeting has been recorded for this early-stage role.
-    low, high, basis = meetings_to_offer_estimate(process)
-    # Do not show a completed count beyond the estimated total. A longer-than-
-    # expected live process extends the range rather than rewriting history.
-    if isinstance(count, int) and count > high:
-        high = count + 1
-        low = count
-    if count is None:
-        completed_label = "— verified"
-    else:
-        completed_label = f"{max(0, count)} held" if count else "0 verified"
-    estimate = f"~{low}–{high}" if low != high else f"~{low}"
-    hint = (
-        f"Meetings to offer (MTO): estimated {low}–{high} total meetings, including those already completed. "
-        f"{basis} Attended meetings only; cancellations, invitations, tests and follow-up emails do not count."
+        count = 0
+    estimate = estimate_mto(
+        process, completed=count,
+        meetings=(meeting_details or {}).get(key),
+        employer_plan=(process_plans or {}).get(key),
+    )
+    low, high = estimate.total_low, estimate.total_high
+    completed_label = "— verified" if count is None else f"{count} held" if count else "0 verified"
+    range_label = f"~{low}–{high}" if low != high else f"~{low}"
+    remaining = (
+        "Remaining unknown" if estimate.remaining_low is None
+        else f"{estimate.remaining_low}–{estimate.remaining_high} remaining"
+        if estimate.remaining_low != estimate.remaining_high
+        else f"{estimate.remaining_low} remaining"
+    )
+    explanation = (
+        f"Meetings to offer (MTO): {low}–{high} estimated total meetings, "
+        f"including {completed_label}. {remaining}. "
+        f"Evidence: {estimate.evidence_level.replace('_', ' ')}; "
+        f"confidence: {estimate.confidence}. {estimate.explanation} "
+        "Cancellations, invitations, assessments and follow-up emails do not count."
     )
     return (
-        f'<span class="op-compare__mto" title="{escape(hint, quote=True)}" '
-        f'aria-label="{escape(hint, quote=True)}">'
+        f'<span class="op-compare__mto" title="{escape(explanation, quote=True)}" '
+        f'aria-label="{escape(explanation, quote=True)}">'
         f'<strong>{escape(completed_label)}</strong> <span aria-hidden="true">/</span> '
-        f'MTO {escape(estimate)}</span>'
+        f'MTO {escape(range_label)}'
+        f'<span class="op-compare__mto-more"> · {escape(remaining)}</span></span>'
     )
 
 
@@ -160,6 +147,7 @@ _COMPARISON_STYLE = """
 .op-next{display:block;margin-top:4px;color:#69778b;font-size:.66rem;line-height:1.25}
 .op-compare__mto{display:block;margin-top:5px;color:#718095;font-size:.66rem;line-height:1.3;white-space:normal;font-variant-numeric:tabular-nums}
 .op-compare__mto strong{font-weight:750;color:#34455c}
+.op-compare__mto-more{color:#8793a3;font-size:.64rem}
 .op-compare__score{white-space:nowrap;font-variant-numeric:tabular-nums}
 .op-compare__number{font-size:1.12rem;line-height:1.1;font-weight:800;color:#17203a;letter-spacing:-.025em}
 .op-compare__denominator{margin-left:3px;font-size:.72rem;color:#8190a2}
@@ -187,7 +175,7 @@ _COMPARISON_STYLE = """
 """
 
 
-def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, str], meeting_counts: dict[str, int] | None = None) -> str:
+def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, str], meeting_counts: dict[str, int] | None = None, meeting_details: dict[str, list[dict]] | None = None, process_plans: dict[str, dict] | None = None) -> str:
     """Build ranked rows from the supplied live forecast without static company scores."""
     rows: list[str] = []
     for position, process in enumerate(processes, 1):
@@ -227,7 +215,7 @@ def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, st
             '<span class="op-compare__dot" aria-hidden="true"></span>'
             f'<span>{escape(stage_title)}</span></span>'
             f'{_next_interview_label(process.get("next_interview"))}'
-            f'{_meeting_progress_html(process, meeting_counts)}'
+            f'{_meeting_progress_html(process, meeting_counts, meeting_details, process_plans)}'
             '</div>'
             f'<div class="op-compare__score" role="cell">{score_html}</div>'
             f'<div class="op-compare__bar" role="cell">{bar_html}</div>'

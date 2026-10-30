@@ -468,17 +468,15 @@ def render_owner_hiring_home(session: dict) -> None:
         "Recruitment decision desk", "Hiring overview",
         "Active conversations, pending follow-ups, observed response rates and recorded recruitment stages. Forecasts and market evidence remain separate.",
     )
+    # Priority decision panel remains available even if job-search events fail.
+    render_owner_stage_dashboard(session)
+    st.divider()
     try:
         jobs = fetch_job_records(str(session["access_token"]))
         search, trend = _search_brief(jobs, datetime.now(ZoneInfo("Europe/Stockholm")).date())
     except (RuntimeError, ValueError, TimeoutError, PermissionError, KeyError):
         st.warning("Private job-search events could not be loaded.")
         return
-    # Keep the interview-stage / MTO decision board visible on the default
-    # Job Hiring Analytics page, rather than burying it inside legacy forecasts.
-    render_owner_stage_dashboard(session)
-    st.divider()
-
     processes = search.get("processes") or []
     active = [p for p in processes if p.get("State") == "Active documented"]
     due = [p for p in processes if p.get("Overdue") or p.get("Follow-up due")]

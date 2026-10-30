@@ -85,15 +85,25 @@ class OpportunityComparisonTests(unittest.TestCase):
             rows[3]["process_key"]: 0,
             rows[4]["process_key"]: 0,
         }
-        html = opportunity_comparison_html(rows, self.STAGES, counts)
+        details = {
+            rows[0]["process_key"]: [
+                {"attendance": "attended", "decision_authority": "recruiter"},
+                {"attendance": "attended", "decision_authority": "functional_owner"}],
+            rows[1]["process_key"]: [
+                {"attendance": "attended", "decision_authority": "hiring_manager"},
+                {"attendance": "attended", "decision_authority": "stakeholder"}],
+            rows[2]["process_key"]: [
+                {"attendance": "attended", "decision_authority": "recruiter"}],
+        }
+        html = opportunity_comparison_html(rows, self.STAGES, counts, details)
         self.assertEqual(html.count('class="op-compare__mto"'), 5)
         self.assertEqual(html.count("2 held"), 2)
         self.assertEqual(html.count("1 held"), 1)
         self.assertEqual(html.count("0 verified"), 2)
-        self.assertEqual(html.count("MTO ~3–4"), 3)  # KPMG, Betsson, SkillHuset
-        self.assertEqual(html.count("MTO ~2–3"), 2)  # LeoVegas and contract
-        self.assertIn("MTO ~2–3", html)  # Contract
-        self.assertIn("including those already completed", html)
+        self.assertEqual(html.count("MTO ~3–4"), 2)  # Manager/panel + Product Owner
+        self.assertEqual(html.count("MTO ~2–3"), 2)  # Functional owner + contract
+        self.assertIn("MTO ~3–5", html)  # Recruiter-only Head role
+        self.assertIn("0–1 remaining", html)  # Functional owner
         self.assertNotIn("chance of offer", html.lower())
 
     def test_missing_meeting_ledger_never_invents_zero(self):

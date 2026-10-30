@@ -20,6 +20,7 @@ CURRENT_VERSION = "hiring-v4-stage-review-market-live-v1"
 SUPPORTED_VERSIONS = frozenset((VERSION, CURRENT_VERSION))
 STAGE_NAMES = {
     "verified_offer": "Verified offer",
+    "final_interview_scheduled": "Final interview scheduled",
     "subsequent_interview_completed": "Subsequent interview completed",
     "subsequent_interview_scheduled": "Second interview scheduled",
     "first_interview_completed": "First interview completed",

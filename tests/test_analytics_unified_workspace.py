@@ -129,5 +129,66 @@ class UnifiedAnalyticsWorkspaceTests(unittest.TestCase):
         self.assertNotIn('elif PAGE == "admin":', source)
 
 
+    def test_portfolio_top_metrics_use_tracked_cv_and_contact_actions(self):
+        from unittest.mock import MagicMock
+        from page_owner_workspaces import _portfolio_action_totals, _quality_cards
+
+        events = [
+            {"event_name": "cv_download", "events": 4},
+            {"event_name": "cv_download", "events": 2},
+            {"event_name": "email_click", "events": 3},
+            {"event_name": "linkedin_click", "events": 5},
+            {"event_name": "page_view", "events": 50},
+        ]
+        self.assertEqual(
+            _portfolio_action_totals({"events": events}),
+            {"cv_download": 6, "email_click": 3, "linkedin_click": 5},
+        )
+        self.assertIsNone(_portfolio_action_totals({}))
+        self.assertEqual(
+            _portfolio_action_totals({"events": [
+                {"event_name": "cv_download", "events": -10},
+                {"event_name": "email_click", "events": "invalid"},
+            ]}),
+            {"cv_download": 0, "email_click": 0, "linkedin_click": 0},
+        )
+
+        with (
+            patch("page_owner_workspaces._fetch_hiring_intelligence",
+                  return_value={"quality_summary": {
+                      "analysis_eligible_sessions": 20, "engaged_sessions": 10,
+                  }}) as quality,
+            patch("page_owner_workspaces._fetch_dashboard",
+                  return_value={"events": events}) as lifetime,
+            patch("page_owner_workspaces.st") as mock_st,
+        ):
+            mock_st.columns.return_value = [MagicMock() for _ in range(4)]
+            _quality_cards()
+            quality.assert_called_once_with("30d")
+            lifetime.assert_called_once_with("all")
+            measured = [(c.args[0], c.args[1]) for c in mock_st.metric.call_args_list]
+            self.assertEqual(measured, [
+                ("Qualified sessions", "20"),
+                ("Engaged sessions", "10"),
+                ("CV downloads", "6"),
+                ("Contact clicks", "8"),
+            ])
+
+    def test_portfolio_kpi_unavailable_source_does_not_claim_zero(self):
+        from unittest.mock import MagicMock
+        from page_owner_workspaces import _quality_cards
+
+        with (
+            patch("page_owner_workspaces._fetch_hiring_intelligence", return_value={}),
+            patch("page_owner_workspaces._fetch_dashboard",
+                  side_effect=RuntimeError("not available")),
+            patch("page_owner_workspaces.st") as mock_st,
+        ):
+            mock_st.columns.return_value = [MagicMock() for _ in range(4)]
+            _quality_cards()
+            values = [c.args[1] for c in mock_st.metric.call_args_list]
+            self.assertEqual(values, ["—", "—", "—", "—"])
+
+
 if __name__ == "__main__":
     unittest.main()

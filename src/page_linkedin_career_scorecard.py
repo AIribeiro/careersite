@@ -99,7 +99,7 @@ def render_linkedin_career_scorecard():
     people = [x for x in people_all if _within(x, "first_seen_at", start, end)]
     actions = [x for x in actions_all if _within(x, "occurred_at", start, end)]
     suggestions = [x for x in suggestions_all if _within(x, "suggested_on", start, end)]
-    recommendations = [x for x in recommendations_all if _within(x, "suggested_on", cutoff)]
+    recommendations = [x for x in recommendations_all if _within(x, "suggested_on", start, end)]
     runs = [x for x in runs_all if _within(x, "run_at", start, end)]
     def count(*terms):
         return sum(any(term in str(a.get("action_type") or "").lower() for term in terms) for a in actions)

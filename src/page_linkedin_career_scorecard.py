@@ -146,6 +146,9 @@ def render_linkedin_career_scorecard():
             name = html.escape(str(person.get("full_name") or "Unnamed profile"))
             role = html.escape(str(person.get("role_title") or "Role not verified"))
             org = html.escape(str(person.get("organization") or "Organization not verified"))
+            link = str(person.get("profile_url") or "").strip()
+            if link.startswith(("https://www.linkedin.com/in/", "https://linkedin.com/in/")):
+                name = "<a href=" + html.escape(json.dumps(link), quote=True) + " target=_blank rel=noopener>" + name + "</a>"
             st.markdown(f'<div class="lc-person"><strong>{name}</strong> <span class="lc-chip">{html.escape(state)}</span><p>{role} · {org}</p><p>{html.escape(rationale)}</p></div>', unsafe_allow_html=True)
             link = str(person.get("profile_url") or "")
             if link.startswith("https://www.linkedin.com/") or link.startswith("https://linkedin.com/"):

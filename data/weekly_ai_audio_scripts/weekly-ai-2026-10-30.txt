@@ -1,0 +1,13 @@
+Welcome to Weekly A I, the Friday perspective from my A I and Data Portfolio. This week, the question isn't how many agents a company can launch. It's who is responsible when those agents begin doing real work.
+
+Microsoft's latest customer examples offer one practical answer. It says Truist now oversees more than thirteen thousand A I agents, each with an accountable owner, and automatically disables agents that sit unused for forty-five days. That's a reported practice, not proof of business impact.
+
+Reuters tells a related story: Serval has raised new funding to automate IT workflows, but its chief executive says customers still generally want human approval for sensitive changes.
+
+At Goldman Sachs, David Solomon argues that businesses deploying A I must own the consequences, alongside regulators and model developers.
+
+And in a World Economic Forum conversation, economist Daron Acemoglu reminds us that the direction of A I matters for workers and shared prosperity.
+
+My takeaway from leading enterprise A I and data initiatives: define ownership before delegation, build controls into everyday processes, and judge progress by outcomes for people and customers.
+
+The written edition links to all four original sources.

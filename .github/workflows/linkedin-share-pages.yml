@@ -15,6 +15,11 @@ on:
       - "static/thinking-visuals/**"
       - ".github/workflows/linkedin-share-pages.yml"
   workflow_dispatch:
+  # Audio and the branded cover are committed by the Weekly AI workflow's bot;
+  # those bot pushes do not trigger ordinary push workflows.
+  workflow_run:
+    workflows: ["Weekly AI audio"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -27,6 +32,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: src

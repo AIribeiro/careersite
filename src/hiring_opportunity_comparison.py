@@ -98,7 +98,7 @@ def _meeting_progress_html(
         f'<span class="op-compare__mto" title="{escape(explanation, quote=True)}" '
         f'aria-label="{escape(explanation, quote=True)}">'
         f'<strong>{escape(completed_label)}</strong> <span aria-hidden="true">/</span> '
-        f'MTO {escape(range_label)}'
+        f'<span class="op-compare__mto-estimate">MTO {escape(range_label)}</span>'
         f'<span class="op-compare__mto-more"> · {escape(remaining)}</span></span>'
     )
 
@@ -123,7 +123,7 @@ _COMPARISON_STYLE = """
 .op-compare__detail{margin:4px 0 0!important;color:#69758a!important;font-size:.79rem!important;line-height:1.35!important}
 .op-compare__count{white-space:nowrap;border:1px solid #e5e9f0;border-radius:999px;background:#f5f7fa;padding:5px 10px;font-size:.73rem;font-weight:700;color:#526078}
 .op-compare__table{width:100%}
-.op-compare__head,.op-compare__row{display:grid;grid-template-columns:32px minmax(0,2fr) minmax(142px,1.1fr) 86px minmax(125px,1fr);column-gap:15px;align-items:center;padding-left:18px;padding-right:18px}
+.op-compare__head,.op-compare__row{display:grid;grid-template-columns:30px minmax(0,1.8fr) minmax(136px,1.05fr) minmax(152px,1.05fr) 76px minmax(80px,.65fr);column-gap:13px;align-items:center;padding-left:18px;padding-right:18px}
 .op-compare__head{min-height:35px;background:#f7f8fb;border-top:1px solid #edf0f5;border-bottom:1px solid #edf0f5;font-size:.64rem;letter-spacing:.065em;text-transform:uppercase;color:#788298;font-weight:800}
 .op-compare__row{min-height:74px;padding-top:11px;padding-bottom:11px;border-bottom:1px solid #edf0f4}
 .op-compare__row:last-child{border-bottom:0}
@@ -145,9 +145,11 @@ _COMPARISON_STYLE = """
 .op-compare__pill--first{background:#eaf3ff;border-color:#dae9fc;color:#235da5}
 .op-compare__pill--offer{background:#e7f6eb;border-color:#c9ead2;color:#287543}
 .op-next{display:block;margin-top:4px;color:#69778b;font-size:.66rem;line-height:1.25}
-.op-compare__mto{display:block;margin-top:5px;color:#718095;font-size:.66rem;line-height:1.3;white-space:normal;font-variant-numeric:tabular-nums}
+.op-compare__meeting{min-width:0;border-left:1px solid #edf0f4;padding-left:12px}
+.op-compare__mto{display:block;color:#53627a;font-size:.7rem;line-height:1.4;white-space:normal;font-variant-numeric:tabular-nums}
+.op-compare__mto-estimate{display:inline-block;margin:0 0 0 4px;color:#202c45;font-size:.88rem;font-weight:800;letter-spacing:-.015em}
 .op-compare__mto strong{font-weight:750;color:#34455c}
-.op-compare__mto-more{color:#8793a3;font-size:.64rem}
+.op-compare__mto-more{display:block;margin-top:4px;color:#68798e;font-size:.71rem;font-weight:680}
 .op-compare__score{white-space:nowrap;font-variant-numeric:tabular-nums}
 .op-compare__number{font-size:1.12rem;line-height:1.1;font-weight:800;color:#17203a;letter-spacing:-.025em}
 .op-compare__denominator{margin-left:3px;font-size:.72rem;color:#8190a2}
@@ -159,11 +161,12 @@ _COMPARISON_STYLE = """
  .op-compare__title{font-size:1rem!important}
  .op-compare__detail{font-size:.7rem!important}
  .op-compare__head{display:none}
- .op-compare__row{grid-template-columns:29px minmax(0,1fr) 79px;grid-template-areas:"rank identity score" ". stage stage" ". bar bar";column-gap:9px;row-gap:7px;padding:12px 13px;min-height:0}
+ .op-compare__row{grid-template-columns:29px minmax(0,1fr) 79px;grid-template-areas:"rank identity score" ". stage stage" ". meeting meeting" ". bar bar";column-gap:9px;row-gap:7px;padding:12px 13px;min-height:0}
  .op-compare__rank{grid-area:rank}
  .op-compare__identity{grid-area:identity;gap:8px}
  .op-compare__mark{flex-basis:30px;width:30px;height:30px}
  .op-compare__stage{grid-area:stage}
+ .op-compare__meeting{grid-area:meeting;border-left:0;border-top:1px solid #edf0f4;padding:7px 0 0}
  .op-compare__score{grid-area:score;text-align:right}
  .op-compare__bar{grid-area:bar}
  .op-compare__number{font-size:1rem}
@@ -215,6 +218,8 @@ def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, st
             '<span class="op-compare__dot" aria-hidden="true"></span>'
             f'<span>{escape(stage_title)}</span></span>'
             f'{_next_interview_label(process.get("next_interview"))}'
+            '</div>'
+            '<div class="op-compare__meeting" role="cell">'
             f'{_meeting_progress_html(process, meeting_counts, meeting_details, process_plans)}'
             '</div>'
             f'<div class="op-compare__score" role="cell">{score_html}</div>'
@@ -235,6 +240,7 @@ def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, st
         + '<div class="op-compare__head" role="row">'
         + '<span role="columnheader">#</span><span role="columnheader">Company &amp; role</span>'
         + '<span role="columnheader">Stage</span>'
+        + '<span role="columnheader">Meetings to offer</span>'
         + '<span role="columnheader">Evidence strength</span>'
         + '<span role="columnheader">Progress</span></div>'
         + "".join(rows)

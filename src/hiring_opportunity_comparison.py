@@ -186,6 +186,13 @@ def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, st
         role = str(process.get("role") or "Role not recorded")
         stage = str(process.get("stage") or "")
         stage_title = stage_names.get(stage, stage.replace("_", " ").capitalize() or "Unverified")
+        # An employer-confirmed invitation may supersede the generic description
+        # of the last completed stage, without changing the held-meetings count.
+        plan_key = str(process.get("process_key") or "").strip().casefold()
+        live_plan = (process_plans or {}).get(plan_key) or {}
+        pending_label = live_plan.get("pending_stage_label")
+        if pending_label and stage not in ("verified_offer", "application_only"):
+            stage_title = str(pending_label)
         tone = _stage_tone(stage)
         mark, mark_tone = _mark_for_employer(company)
         score = opportunity_evidence_score(process)

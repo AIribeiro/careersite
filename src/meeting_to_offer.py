@@ -156,6 +156,8 @@ def estimate_mto(
         decision_reason = "A recruiter conversation alone does not establish hiring-manager or decision-maker approval."
     elif completed:
         level = "count_only"
+        if completed >= high:
+            remaining_high = max(1, remaining_high)
         decision_reason = "Completed rounds are verified, but interviewer decision authority is not established."
 
     # A future interview date is confirmed on the live forecast, not completed.

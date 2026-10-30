@@ -193,6 +193,17 @@ def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, st
         pending_label = live_plan.get("pending_stage_label")
         if pending_label and stage not in ("verified_offer", "application_only"):
             stage_title = str(pending_label)
+        stage_provenance = (
+            f"Stage source: {live_plan.get('pending_stage_source')}; "
+            f"evidence confidence: {live_plan.get('pending_stage_confidence')}; "
+            f"state: {live_plan.get('pending_stage_state')}."
+            if pending_label else "Broad forecast milestone; specific stage not verified."
+        )
+        next_date = (
+            live_plan.get("pending_stage_date")
+            if live_plan.get("pending_stage_state") == "scheduled"
+            else process.get("next_interview")
+        )
         tone = _stage_tone(stage)
         mark, mark_tone = _mark_for_employer(company)
         score = opportunity_evidence_score(process)
@@ -221,10 +232,10 @@ def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, st
             f'<span class="op-compare__role">{escape(role)}</span>'
             '</div></div>'
             '<div class="op-compare__stage" role="cell">'
-            f'<span class="op-compare__pill op-compare__pill--{tone}">'
+            f'<span class="op-compare__pill op-compare__pill--{tone}" title="{escape(stage_provenance, quote=True)}">'
             '<span class="op-compare__dot" aria-hidden="true"></span>'
             f'<span>{escape(stage_title)}</span></span>'
-            f'{_next_interview_label(process.get("next_interview"))}'
+            f'{_next_interview_label(next_date)}'
             '</div>'
             '<div class="op-compare__meeting" role="cell">'
             f'{_meeting_progress_html(process, meeting_counts, meeting_details, process_plans)}'

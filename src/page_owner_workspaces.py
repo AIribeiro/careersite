@@ -363,6 +363,101 @@ def render_owner_social(session: dict) -> None:
             st.rerun()
 
 
+def _current_stage_groups(prediction: dict, plans: dict | None) -> tuple[list[dict], list[dict]]:
+    """Show open/unresolved processes, excluding outcomes confirmed after a snapshot."""
+    closed_outcomes = {"rejected", "withdrawn", "closed", "offer_accepted", "hired"}
+    stale_states = {"employer_rejection", "stale_unknown", "closed_unreconciled"}
+    progressed, applied = [], []
+    for process in prediction.get("top_processes", []):
+        if not isinstance(process, dict) or process.get("status") in stale_states:
+            continue
+        key = str(process.get("process_key") or "").strip().casefold()
+        latest = (plans or {}).get(key) or {}
+        if str(latest.get("outcome") or "").strip().casefold() in closed_outcomes:
+            continue
+        if process.get("stage") == "application_only":
+            applied.append(process)
+        else:
+            progressed.append(process)
+    return progressed, applied
+
+
+def render_owner_stage_dashboard(session: dict) -> None:
+    """Owner-only stage/MTO board: scheduled snapshot plus current meeting evidence."""
+    from page_hiring_daily import read_daily_history
+    from page_hiring_prediction_v2 import (
+        STAGE_NAMES, validate_prediction_v2, _verified_meetings_by_process,
+    )
+    from hiring_opportunity_comparison import opportunity_comparison_html
+
+    token = str(session.get("access_token") or "")
+    st.subheader("Hiring stages & meetings to offer")
+    st.caption(
+        "Every open or unresolved process in the latest stage-model shortlist. "
+        "Meeting totals are conditional estimates, not probabilities of receiving an offer."
+    )
+    if not token:
+        st.warning("Sign in as the portfolio owner to see hiring stages and MTO.")
+        return
+    try:
+        snapshots = read_daily_history(token, limit=1)
+        if not snapshots:
+            st.warning("No dated hiring-stage assessment is available. Earlier forecasts are not substituted.")
+            return
+        latest = snapshots[0]
+        prediction = validate_prediction_v2(latest.get("scenario"))
+    except (RuntimeError, ValueError, TimeoutError, PermissionError, KeyError) as exc:
+        st.warning("The hiring-stage snapshot is unavailable; the board cannot verify process stages.")
+        return
+
+    counts = details = plans = None
+    try:
+        counts, details, plans = _verified_meetings_by_process(token, with_details=True)
+    except (RuntimeError, TimeoutError, ValueError, PermissionError):
+        st.warning(
+            "Live meeting/outcome records are unavailable. The stage snapshot may include "
+            "a process subsequently closed, and attended meeting counts cannot be verified."
+        )
+
+    progressed, applied = _current_stage_groups(prediction, plans)
+    assessment_day = str(latest.get("forecast_day") or prediction.get("as_of") or "Unknown")
+    today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
+    st.caption(
+        f"Stage assessment: {assessment_day} · Meeting attendance and employer outcomes: "
+        + ("latest owner records" if plans is not None else "unavailable")
+        + ". A scheduled interview is not a held meeting."
+    )
+    if assessment_day < today:
+        st.warning(
+            "The stage assessment predates today. Current outcomes are checked separately "
+            "when the recruiting ledger is available."
+        )
+
+    if progressed:
+        st.markdown(
+            opportunity_comparison_html(progressed, STAGE_NAMES, counts, details, plans),
+            unsafe_allow_html=True,
+        )
+    else:
+        st.info("No open or unresolved recruiter-engaged process is documented in the latest shortlist.")
+    if applied:
+        with st.expander(f"Earlier-stage applications · {len(applied)}", expanded=False):
+            st.caption(
+                "Applications without a verified employer conversation. "
+                "MTO is a role-based planning range until actual interviews are recorded."
+            )
+            st.markdown(
+                opportunity_comparison_html(applied, STAGE_NAMES, counts, details, plans),
+                unsafe_allow_html=True,
+            )
+    st.caption(
+        "MTO = estimated total candidate meetings to a possible offer. "
+        "Held = distinct attended meetings; Remaining = estimated further meetings. "
+        "Interviewer decision authority and any employer-confirmed sequence take precedence "
+        "over the role baseline. Hover over the MTO figures for the rationale and confidence."
+    )
+
+
 def render_owner_hiring_home(session: dict) -> None:
     """Private hiring-first landing. No portfolio analytics or audience charts."""
     from page_analytics_overview import _action_queue, _search_brief
@@ -379,6 +474,11 @@ def render_owner_hiring_home(session: dict) -> None:
     except (RuntimeError, ValueError, TimeoutError, PermissionError, KeyError):
         st.warning("Private job-search events could not be loaded.")
         return
+    # Keep the interview-stage / MTO decision board visible on the default
+    # Job Hiring Analytics page, rather than burying it inside legacy forecasts.
+    render_owner_stage_dashboard(session)
+    st.divider()
+
     processes = search.get("processes") or []
     active = [p for p in processes if p.get("State") == "Active documented"]
     due = [p for p in processes if p.get("Overdue") or p.get("Follow-up due")]

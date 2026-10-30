@@ -795,7 +795,6 @@ _PRIVATE_VIEW_ROUTES = {
     "market": "Job market",
     "predictions": "Job predictions",
     "deep": "Detailed analysis",
-    "attribution": "Attribution quality",
 }
 _PRIVATE_ROUTE_KEYS = {label: key for key, label in _PRIVATE_VIEW_ROUTES.items()}
 
@@ -882,23 +881,29 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
     user = session.get("user") or {}
     email_value = str(user.get("email") or OWNER_EMAIL)
 
-    top_a, top_b = st.columns([1, .28])
-    with top_a:
-        st.markdown(
-            """
-<div class="cms-hero">
-  <div class="cms-kicker">Private authoring</div>
-  <h1>Owner workspace</h1>
-  <p>Private reporting, job-search evidence and portfolio publishing in one place.</p>
-</div>
-""",
-            unsafe_allow_html=True,
+    # In the unified four-workspace console the parent owns navigation,
+    # context and sign-out. Keep the standalone legacy admin layout intact.
+    if workspace_mode is None:
+        top_a, top_b = st.columns([1, .28])
+        with top_a:
+            st.markdown(
+                '<div class="cms-hero"><div class="cms-kicker">Private authoring</div>'
+                '<h1>Owner workspace</h1>'
+                '<p>Private reporting and portfolio publishing.</p></div>',
+                unsafe_allow_html=True,
+            )
+        with top_b:
+            st.caption(email_value)
+            if st.button("Sign out", use_container_width=True):
+                browser_owner_signout()
+                return
+    elif workspace_mode == "CMS":
+        from page_owner_workspaces import _hero
+        _hero(
+            "Editorial operations", "Content Studio",
+            "Draft, review, publish and maintain the portfolio's original articles. "
+            "Tracked campaign links now live in Social Media Presence.",
         )
-    with top_b:
-        st.caption(email_value)
-        if st.button("Sign out", use_container_width=True):
-            browser_owner_signout()
-            return
 
     # The legacy standalone Admin renderer still uses the original menu.
     # The unified Analytics page supplies a workspace mode and reuses all
@@ -921,10 +926,10 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
             workspace = st.segmented_control(
                 "Detailed analysis",
                 options=[
-                    "Decision overview", "Recruiter meetings", "Detailed job analytics",
-                    "Stale applications", "Rejection Analytics", "Hiring market",
+                    "Detailed job analytics", "Stale applications",
+                    "Rejection Analytics", "Hiring market",
                 ],
-                default="Decision overview",
+                default="Detailed job analytics",
                 key="admin_private_detail_view",
                 width="stretch",
             ) or "Decision overview"
@@ -947,8 +952,8 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
         render_recruiter_meetings(session)
         return
     if workspace == "Hiring overview":
-        from page_public_analytics import render_public_analytics_overview
-        render_public_analytics_overview()
+        from page_owner_workspaces import render_owner_hiring_home
+        render_owner_hiring_home(session)
         return
     if workspace == "Job search":
         from page_public_analytics import render_public_job_search
@@ -961,10 +966,6 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
     if workspace == "Job predictions":
         from page_public_predictions import render_public_hiring_predictions
         render_public_hiring_predictions()
-        return
-    if workspace == "Attribution quality":
-        from page_attribution_coverage import render_attribution_coverage
-        render_attribution_coverage()
         return
     if workspace == "Detailed job analytics":
         from page_job_search_analytics import render_job_search_analytics
@@ -994,10 +995,15 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
         st.error(str(exc))
         return
 
-    # Distribution links are available in the article list, not in the editor
-    # where reruns could otherwise discard an unsaved article form.
+    # Campaign/source attribution and tracked links are managed in the
+    # dedicated Social Media Presence workspace; do not duplicate controls.
     if not st.session_state.get("cms_edit_id"):
-        _distribution_links(articles)
+        summary = st.columns(3, gap="small")
+        summary[0].metric("Published articles", sum(a.status.lower() == "published" for a in articles))
+        summary[1].metric("Drafts in progress", sum(a.status.lower() == "draft" for a in articles))
+        summary[2].metric("Total content records", len(articles))
+        st.caption("Publishing and article lifecycle are managed here. "
+                   "Distribution and source tracking are managed under Social Media Presence.")
 
     edit_id = st.session_state.get("cms_edit_id")
     if edit_id == "__new__":

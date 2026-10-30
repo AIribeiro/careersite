@@ -146,7 +146,7 @@ def _priority(row: dict, today: date) -> tuple[int, str]:
 
 
 def _process_url(process_key: str, *, view: str = "stages") -> str:
-    return "?" + urlencode({"page": "analytics", "workspace": "private",
+    return "https://jairribeiro-ai.streamlit.app/?" + urlencode({"page": "analytics", "workspace": "private",
                             "view": view, "process": process_key})
 
 
@@ -378,7 +378,7 @@ def _evidence(row: dict, token: str) -> None:
             st.write(str(source["source_notes"]))
         url = str(source.get("source_url") or "")
         if url.startswith("https://"):
-            st.link_button("Open original evidence", url, key=f"salary_src_{row.get('opportunity_id')}_{source.get('source_url')}")
+            st.link_button("Open original evidence", url)
 
 
 def _contract_lane(rows: list[dict], token: str, today: date) -> None:

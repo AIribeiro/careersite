@@ -179,7 +179,11 @@ def render_linkedin_career_scorecard():
     if ranked:
         st.markdown("#### Next-best relationship research")
         top = ranked[0][1]
-        st.markdown("**" + html.escape(str(top.get("full_name") or "Unidentified person")) + "** · " + html.escape(str(top.get("role_title") or "Role to verify")) + " · " + html.escape(str(top.get("organization") or "Organization to verify")))
+        top_name = str(top.get("full_name") or "Unidentified person")
+        top_url = str(top.get("profile_url") or "").strip()
+        if not top_url.startswith(("https://www.linkedin.com/in/", "https://linkedin.com/in/", "https://se.linkedin.com/in/", "https://it.linkedin.com/in/", "https://pt.linkedin.com/in/")):
+            top_url = "https://www.linkedin.com/search/results/people/?" + parse.urlencode({"keywords": top_name})
+        st.markdown('<a class="lc-person-name" href="' + html.escape(top_url, quote=True) + '" target="_blank" rel="noopener noreferrer">' + html.escape(top_name) + ' ↗</a> · ' + html.escape(str(top.get("role_title") or "Role to verify")) + ' · ' + html.escape(str(top.get("organization") or "Organization to verify")), unsafe_allow_html=True)
         st.caption("Highest indicative relevance among mapped profiles, not a claim of hiring authority or permission to contact. Confirm current role, shared context and an appropriate reason to connect.")
     st.markdown("### Priority relationship actions")
     st.caption("Specific people, why they matter, and the next defensible step. These are research recommendations—not messages sent or verified hiring access.")

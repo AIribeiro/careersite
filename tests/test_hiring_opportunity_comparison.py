@@ -38,6 +38,8 @@ class OpportunityComparisonTests(unittest.TestCase):
             self.assertIn(f'aria-valuenow="{score}"', html)
             self.assertIn(f'width:{score}%', html)
         self.assertIn("Subsequent interview completed", html)
+        self.assertIn('<span role="columnheader">Meetings to offer</span>', html)
+        self.assertIn("grid-area:meeting", html)
         self.assertIn("First interview completed", html)
         self.assertIn("Recruiter / human response", html)
         self.assertIn("@media(max-width:760px)", html)

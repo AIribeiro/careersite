@@ -164,5 +164,29 @@ class HiringV2Tests(unittest.TestCase):
         self.assertEqual(summary["shift_days"], 2)
 
 
+
+
+class ReconciledOutcomeTests(unittest.TestCase):
+    def test_closed_sportsbook_is_excluded_but_separate_head_ai_survives(self):
+        from page_hiring_prediction_v2 import _live_opportunities
+        snapshot = {"top_processes": [
+            {"process_key": "betsson group|head of sb product - data & ai",
+             "stage": "first_interview_completed", "status": "active_unknown_decision"},
+            {"process_key": "betsson group|head of artificial intelligence",
+             "stage": "human_response", "status": "active_unknown_decision"},
+            {"process_key": "leovegas mobile gaming group|ai strategy and transformation lead",
+             "stage": "final_interview_scheduled", "status": "active_unknown_decision"},
+        ]}
+        plans = {
+            "betsson group|head of sb product - data & ai": {"outcome": "rejected"},
+            "betsson group|head of artificial intelligence": {"outcome": "in_progress"},
+            "leovegas mobile gaming group|ai strategy and transformation lead": {"outcome": "in_progress"},
+        }
+        self.assertEqual(
+            [p["process_key"] for p in _live_opportunities(snapshot, plans)],
+            ["betsson group|head of artificial intelligence",
+             "leovegas mobile gaming group|ai strategy and transformation lead"],
+        )
+
 if __name__ == "__main__":
     unittest.main()

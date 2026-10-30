@@ -11,6 +11,7 @@ import altair as alt
 import streamlit as st
 
 from site_cms import _request_json, _rest_url
+from hiring_opportunity_comparison import opportunity_comparison_html, opportunity_evidence_score
 
 VERSION = "hiring-v2-stage-review-v1"  # Accepted historical stage model
 CURRENT_VERSION = "hiring-v4-stage-review-market-live-v1"
@@ -248,18 +249,15 @@ def render_hiring_prediction_v2(data: dict) -> dict:
     else:
         st.info("No confirmed active interview or human-response process is available.")
 
-    relevant = [p for p in live if float(p.get("credibility_index") or 0) >= 10][:7]
+    relevant = [
+        p for p in live if opportunity_evidence_score(p) is not None
+        and opportunity_evidence_score(p) >= 10
+    ][:7]
     if relevant:
-        st.markdown("**Where current opportunities stand**")
-        for position, process in enumerate(relevant, 1):
-            score = max(0.0, min(100.0, float(process.get("credibility_index") or 0)))
-            with st.container(border=True):
-                st.markdown(f"#### {position}. {process['employer']}")
-                st.caption(process["role"])
-                st.markdown(f"**{_stage_title(process.get('stage'))}**")
-                st.progress(score / 100, text=f"Evidence strength · {score:.1f} / 100")
-                if process.get("next_interview"):
-                    st.caption("Confirmed interview · " + _pretty_date(process["next_interview"]))
+        st.markdown(
+            opportunity_comparison_html(relevant, STAGE_NAMES),
+            unsafe_allow_html=True,
+        )
         st.caption("Higher scores mean stronger documented progression. "
                    "Scores reflect stage, role fit, evidence recency and finalized "
                    "interview reviews; they are not offer probabilities.")

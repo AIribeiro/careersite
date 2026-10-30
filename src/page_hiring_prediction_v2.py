@@ -75,7 +75,7 @@ def _assessment_rows(access_token: str, prediction: dict) -> list[dict]:
     opportunities = _request_json(
         "GET", _rest_url(
             "careersite_recruiting_opportunities?"
-            "select=id,forecast_process_key"
+            "select=id,forecast_process_key,outcome"
             "&forecast_process_key=not.is.null"
         ), token=access_token, timeout=18,
     )
@@ -85,6 +85,7 @@ def _assessment_rows(access_token: str, prediction: dict) -> list[dict]:
     by_review = {row["id"]: row for row in reviews}
     by_opportunity = {row["id"]: row.get("forecast_process_key")
                       for row in opportunities}
+    outcome_by_id = {row["id"]: row.get("outcome") for row in opportunities}
     by_process = {row.get("process_key"): row
                   for row in prediction.get("top_processes", [])}
     weights = {"mandate_fit": .25, "answer_evidence": .25,
@@ -101,6 +102,7 @@ def _assessment_rows(access_token: str, prediction: dict) -> list[dict]:
             continue
         process_key = by_opportunity.get(review.get("opportunity_id"))
         matched = by_process.get(process_key) if process_key else None
+        process_outcome = str(outcome_by_id.get(review.get("opportunity_id")) or "unknown")
         final = (entry.get("status") == "final"
                  and review.get("review_status") == "reviewed")
         adjusted = float(matched.get("post_interview_delta_points") or 0) if matched else 0.
@@ -110,6 +112,7 @@ def _assessment_rows(access_token: str, prediction: dict) -> list[dict]:
             "Employer / role": f"{review.get('employer') or 'Unlinked'} · {review.get('role_title') or 'Unknown role'}",
             "Interview": str(review.get("interview_date") or "Not established"),
             "Round": stage if stage else "Unknown",
+            "Process outcome": process_outcome.replace("_", " ").capitalize(),
             "Status": "Final · counted" if final and matched and
                       int(matched.get("post_interview_reviews_used") or 0) > 0
                       else ("Final · excluded" if final else "Draft · not counted"),
@@ -117,7 +120,9 @@ def _assessment_rows(access_token: str, prediction: dict) -> list[dict]:
             "Evidence confidence": f"{float(entry.get('confidence') or 0)*100:.0f}%",
             "Forecast effect": f"{adjusted:+.1f} points" if final and matched else "None",
             "Process credibility": f"{float(matched['credibility_index']):.1f}/100"
-                                    if matched else "Not in live shortlist",
+                                    if matched else "Closed — no active forecast"
+                                    if process_outcome in ("rejected", "withdrawn", "closed")
+                                    else "Not in live shortlist",
         })
     return sorted(rows, key=lambda item:item["Interview"], reverse=True)
 
@@ -257,12 +262,15 @@ def _stage_title(stage: str | None) -> str:
     return STAGE_NAMES.get(stage or "", (stage or "Unverified").replace("_", " ").capitalize())
 
 
-def _live_opportunities(data: dict) -> list[dict]:
-    """Only verified or human-engaged processes, not application-volume noise."""
+def _live_opportunities(data: dict, plans: dict | None = None) -> list[dict]:
+    """Cross-check snapshot candidates against newer source-of-truth decisions."""
+    closed = {"rejected", "withdrawn", "closed", "offer_accepted", "hired"}
     return [
         p for p in data.get("top_processes", [])
         if p.get("stage") not in (None, "application_only")
         and p.get("status") not in ("employer_rejection", "stale_unknown", "closed_unreconciled")
+        and str(((plans or {}).get(str(p.get("process_key") or "").strip().casefold()) or {})
+                .get("outcome") or "").strip().casefold() not in closed
     ]
 
 
@@ -347,7 +355,6 @@ def render_hiring_prediction_v2(data: dict) -> dict:
             + " Directional planning evidence, not calibrated offer probabilities."
         )
 
-    live = _live_opportunities(data)
     owner_session = st.session_state.get("cms_auth") or {}
     owner_token = str(owner_session.get("access_token") or "") if isinstance(owner_session, dict) else ""
     meeting_counts = None
@@ -360,6 +367,7 @@ def render_hiring_prediction_v2(data: dict) -> dict:
         except (RuntimeError, TimeoutError, ValueError, PermissionError):
             st.caption("Meeting ledger unavailable; counts are not inferred from interview stages.")
 
+    live = _live_opportunities(data, employer_plans)
     if live:
         top = live[0]
         top_plan = employer_plans.get(str(top.get("process_key") or "").strip().casefold(), {})

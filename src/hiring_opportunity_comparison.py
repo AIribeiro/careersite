@@ -50,17 +50,20 @@ def _mark_for_employer(name: str) -> tuple[str, str]:
 
 # MTO means the estimated TOTAL of candidate meetings before an offer, not
 # meetings remaining, a time forecast or the probability of receiving an offer.
-# Known routes use the employer's published sequence and the candidate's
-# documented process; ranges remain estimates until a recruiter confirms them.
+# Known routes prioritize the authority of verified interviewers, not just
+# their sequence: seeing the accountable functional executive is a potential
+# final-decision milestone. A more senior interview changes the expected number
+# of remaining meetings without claiming an offer or a confirmed final round.
+# Ranges remain estimates until the employer confirms its process.
 _KNOWN_MTO = {
     "leovegas mobile gaming group|ai strategy and transformation lead": (
-        3, 4, "Recruiter interview and Chief AI Officer interview held; allow one or two further stakeholder or final conversations. LeoVegas publishes a general recruiter, specialist and final-manager sequence; this role may differ."
+        2, 3, "Decision-authority assessment: a recruiter screening on 2 October was followed by the Chief AI Officer, Jörgen Ericsson, on 28 October. The CAIO leads the AI Hub and is the senior known functional stakeholder for this role. A decision after his interview is plausible; one final HR/stakeholder meeting is also plausible. There is no verified role-specific requirement for two further interviews."
     ),
     "kpmg|ai lead - manager - tax & legal technology": (
-        4, 5, "Two completed interviews; candidate was told the next conversations could involve the Tax Transformation partner and Head of Tax & Legal. KPMG Sweden's published recruitment guide supports senior/final interviews but does not confirm a fixed count."
+        3, 4, "Decision-authority assessment: hiring-manager interview with Thérèse Schultze on 7 October and a cross-functional interview with Niklas Elofsson and Carl Svalstedt on 22 October. A Tax Transformation partner discussion and possibly the Head of Tax & Legal were discussed as potential next steps. They could be one joint meeting or two meetings; neither is confirmed."
     ),
     "betsson group|head of sb product - data & ai": (
-        3, 4, "Recruiter screening held. Betsson's published process lists hiring-manager interview and final HR/stakeholder interview; a case or panel review could add a meeting."
+        3, 4, "Authority assessment: the first completed meeting was with recruiter Adrian Korpi on 23 October, not yet with the Director of Sports Product or other final hiring stakeholders. Betsson's official process includes a hiring-manager conversation and, for senior roles, stakeholder/final HR interviews; a case review is possible."
     ),
 }
 

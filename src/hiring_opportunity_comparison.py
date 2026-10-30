@@ -89,7 +89,7 @@ def _meeting_progress_html(
     )
     explanation = (
         f"Meetings to offer (MTO): {low}–{high} estimated total meetings, "
-        f"including {completed_label}. {remaining}. "
+        f"including verified completed meetings where available. {remaining}. "
         f"Evidence: {estimate.evidence_level.replace('_', ' ')}; "
         f"confidence: {estimate.confidence}. {estimate.explanation} "
         "Cancellations, invitations, assessments and follow-up emails do not count."

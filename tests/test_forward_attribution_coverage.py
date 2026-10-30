@@ -118,7 +118,9 @@ class AttributionMonitoringTests(unittest.TestCase):
     def test_owner_navigation_and_schema_migration_are_private(self):
         from page_admin import _PRIVATE_VIEW_ROUTES
         from page_analytics_v2 import _resolve_workspace
-        self.assertEqual(_PRIVATE_VIEW_ROUTES["attribution"], "Attribution quality")
+        self.assertNotIn("attribution", _PRIVATE_VIEW_ROUTES)
+        from page_owner_workspaces import _PORTFOLIO_VIEWS
+        self.assertEqual(_PORTFOLIO_VIEWS["quality"], "Measurement quality")
         self.assertEqual(_resolve_workspace("private", False), "public")
         sql = (ROOT / "supabase/migrations/"
                "20261016_forward_attribution_medium_and_coverage.sql").read_text()

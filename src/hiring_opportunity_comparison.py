@@ -82,7 +82,14 @@ def meetings_to_offer_estimate(process: dict) -> tuple[int, int, str]:
 
 def _meeting_progress_html(process: dict, meeting_counts: dict[str, int] | None) -> str:
     key = str(process.get("process_key") or "").strip().casefold()
-    count = meeting_counts.get(key) if meeting_counts is not None else None
+    if meeting_counts is None:
+        count = None  # Ledger not loaded: never imply zero attendance.
+    elif key in meeting_counts:
+        count = meeting_counts[key]
+    elif str(process.get("stage") or "").endswith("interview_completed"):
+        count = None  # Stage and meeting ledger must not be silently reconciled.
+    else:
+        count = 0  # No attended meeting has been recorded for this early-stage role.
     low, high, basis = meetings_to_offer_estimate(process)
     # Do not show a completed count beyond the estimated total. A longer-than-
     # expected live process extends the range rather than rewriting history.

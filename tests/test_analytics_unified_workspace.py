@@ -18,11 +18,16 @@ class UnifiedAnalyticsWorkspaceTests(unittest.TestCase):
         from page_analytics_v2 import _VIEWS, _WORKSPACE_LABELS, _resolve_workspace
 
         self.assertEqual(set(_VIEWS), {"overview", "portfolio"})
-        self.assertEqual(set(_WORKSPACE_LABELS), {"public", "private", "cms"})
+        self.assertEqual(set(_WORKSPACE_LABELS), {"public", "private", "linkedin", "cms"})
+        self.assertEqual(_WORKSPACE_LABELS["public"], "Portfolio Analytics")
+        self.assertEqual(_WORKSPACE_LABELS["private"], "Job Hiring Analytics")
+        self.assertEqual(_WORKSPACE_LABELS["linkedin"], "Social Media Presence")
+        self.assertEqual(_WORKSPACE_LABELS["cms"], "Content Studio")
         for requested in ("public", "private", "cms", "unknown", None):
             self.assertEqual(_resolve_workspace(requested, False), "public")
         self.assertEqual(_resolve_workspace("private", True), "private")
         self.assertEqual(_resolve_workspace("cms", True), "cms")
+        self.assertEqual(_resolve_workspace("linkedin", True), "linkedin")
         self.assertEqual(_resolve_workspace("unknown", True), "public")
 
     def test_existing_private_reports_and_cms_stay_in_place(self):

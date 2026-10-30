@@ -55,7 +55,7 @@ def _panel(title, body, accent=False):
     border = "#d5b49c" if accent else "#dedbd5"
     return f'<div class="lc-panel" style="border-color:{border}"><div class="lc-eyebrow">{html.escape(title)}</div><div class="lc-body">{body}</div></div>'
 
-def render_linkedin_career_scorecard():
+def render_linkedin_career_scorecard(*, embedded: bool = False):
     st.markdown("""<style>
     .lc-hero{padding:24px 28px;background:linear-gradient(120deg,#19212a,#29343e);color:#fff;border-radius:15px;margin:10px 0 18px}
     .lc-kicker{color:#dfb596;font-size:.73rem;letter-spacing:.14em;font-weight:700;text-transform:uppercase}
@@ -92,9 +92,10 @@ def render_linkedin_career_scorecard():
     .lc-action-next{font-size:.86rem;color:#38444b;line-height:1.55;border-top:1px solid #eee7df;padding-top:12px}
     .lc-action-next strong{color:#a06443;margin-right:5px}
     </style>""", unsafe_allow_html=True)
-    st.markdown("""<div class="lc-hero"><div class="lc-kicker">Private career intelligence</div>
-    <h1>LinkedIn Career Conversion</h1>
-    <p>From professional visibility to meaningful relationships and hiring opportunities. Focus on the next decision, not vanity metrics.</p></div>""", unsafe_allow_html=True)
+    if not embedded:
+        st.markdown("""<div class="lc-hero"><div class="lc-kicker">Private career intelligence</div>
+        <h1>LinkedIn Career Conversion</h1>
+        <p>From professional visibility to meaningful relationships and hiring opportunities. Focus on the next decision, not vanity metrics.</p></div>""", unsafe_allow_html=True)
     period = st.segmented_control("Evidence window", ["Today", "Yesterday", "This week", "30 days", "90 days", "All history"], default="90 days", key="linkedin_scorecard_period")
     now = datetime.now(ZoneInfo("Europe/Stockholm"))
     midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)

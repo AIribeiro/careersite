@@ -8,6 +8,7 @@ Only confirmed attendance contributes to the completed meeting count.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any
 
 METHOD_VERSION = "mto-v2-evidence-authority-20261030"
@@ -30,7 +31,7 @@ def _prior(role: str, process: dict[str, Any]) -> tuple[int, int, str]:
     employment = str(process.get("employment_type") or "").casefold()
     if any(t in f"{title} {employment}" for t in ("contract", "interim", "temporary assignment", "freelance")):
         return 2, 3, "contract / interim assignment"
-    if any(t in title for t in ("chief ", "ceo", "cfo", "cto", "cio", "cdo", "president", "executive vice president")):
+    if "executive vice president" in title or re.search(r"\b(?:chief|ceo|cfo|cto|cio|cdo|president)\b", title):
         return 4, 6, "executive role"
     if any(t in title for t in ("director", "head of", "vice president", " vp ", "global head")):
         return 3, 5, "senior functional leadership"

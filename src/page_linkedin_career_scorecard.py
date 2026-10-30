@@ -147,12 +147,13 @@ def render_linkedin_career_scorecard():
             role = html.escape(str(person.get("role_title") or "Role not verified"))
             org = html.escape(str(person.get("organization") or "Organization not verified"))
             link = str(person.get("profile_url") or "").strip()
-            if link.startswith(("https://www.linkedin.com/in/", "https://linkedin.com/in/")):
-                name = "<a href=" + html.escape(json.dumps(link), quote=True) + " target=_blank rel=noopener>" + name + "</a>"
-            st.markdown(f'<div class="lc-person"><strong>{name}</strong> <span class="lc-chip">{html.escape(state)}</span><p>{role} · {org}</p><p>{html.escape(rationale)}</p></div>', unsafe_allow_html=True)
-            link = str(person.get("profile_url") or "")
-            if link.startswith("https://www.linkedin.com/") or link.startswith("https://linkedin.com/"):
-                st.link_button("Review profile", link, key=f"lc_profile_{pid}")
+            is_direct = link.startswith(("https://www.linkedin.com/in/", "https://linkedin.com/in/"))
+            if not is_direct:
+                link = "https://www.linkedin.com/search/results/people/?" + parse.urlencode({"keywords": str(person.get("full_name") or "")})
+            st.link_button(str(person.get("full_name") or "LinkedIn profile"), link, help="Open verified profile" if is_direct else "Find person on LinkedIn; direct URL not verified", key=f"lc_profile_{pid}")
+            st.markdown(f'<div class="lc-person"><span class="lc-chip">{html.escape(state)}</span><p>{role} · {org}</p><p>{html.escape(rationale)}</p></div>', unsafe_allow_html=True)
+            if not is_direct:
+                st.caption("LinkedIn people search · exact profile URL not yet verified")
     st.subheader("What to do next")
     if not actions:
         steps = [

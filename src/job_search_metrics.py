@@ -109,6 +109,17 @@ def scheduled_interview(row):
     """Scheduled/invited but not yet completed, separate from progression."""
     if progression(row) or completed_interview(row):
         return False
+    # Some imported calendar evidence uses an explicit stage state rather than
+    # the legacy is_interview/interaction_direction flags. Only trust a named
+    # recruiter/employer confirmation, never a candidate assumption.
+    evidence = row.get('raw_data') or {}
+    if (isinstance(evidence, dict)
+            and norm(evidence.get('stage_state')) == 'scheduled'
+            and norm(evidence.get('stage_source')) in
+                ('recruiter_explicit', 'employer_explicit', 'calendar_confirmed')
+            and norm(row.get('event_type')) in ('interview scheduled', 'interview confirmed')
+            and evidence.get('attended') is not True):
+        return True
     # An explicit employer invitation/confirmation is necessary. An outbound
     # acceptance, reminder or self-scheduled preparation is not evidence.
     employer_side = (norm(row.get('interaction_direction')) in ('inbound','two_way')

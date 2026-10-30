@@ -84,6 +84,13 @@ def render_linkedin_career_scorecard():
     .lc-company small{font-size:.75rem;color:#847d76}
     .lc-company-status{font-size:.69rem;color:#81746c;font-weight:650}
     .lc-company-status.lc-live{color:#326b56}
+    .lc-action-card{background:#fffdfa;border:1px solid #e3ddd6;border-radius:14px;padding:18px 22px;margin:11px 0;box-shadow:0 2px 10px rgba(34,40,45,.035)}
+    .lc-action-meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.7rem;font-weight:700;letter-spacing:.055em;color:#8b6b52;margin-bottom:9px}
+    .lc-action-name{font-size:1.12rem;font-weight:730;color:#25313b!important;text-decoration:none!important}
+    .lc-action-name:hover{color:#a36540!important;text-decoration:underline!important}
+    .lc-action-role{font-size:.84rem;color:#706a64;margin:5px 0 13px}
+    .lc-action-next{font-size:.86rem;color:#38444b;line-height:1.55;border-top:1px solid #eee7df;padding-top:12px}
+    .lc-action-next strong{color:#a06443;margin-right:5px}
     </style>""", unsafe_allow_html=True)
     st.markdown("""<div class="lc-hero"><div class="lc-kicker">Private career intelligence</div>
     <h1>LinkedIn Career Conversion</h1>
@@ -174,18 +181,53 @@ def render_linkedin_career_scorecard():
         top = ranked[0][1]
         st.markdown("**" + html.escape(str(top.get("full_name") or "Unidentified person")) + "** · " + html.escape(str(top.get("role_title") or "Role to verify")) + " · " + html.escape(str(top.get("organization") or "Organization to verify")))
         st.caption("Highest indicative relevance among mapped profiles, not a claim of hiring authority or permission to contact. Confirm current role, shared context and an appropriate reason to connect.")
-    st.markdown("### Relationship coverage")
-    st.caption("Employer-level research coverage. A mapped person is not an introduction, relationship or confirmed hiring stakeholder.")
-    if organizations:
-        tiles = []
-        for org, members in sorted(organizations.items(), key=lambda item: (-any(p.get("id") in contacted for p in item[1]), item[0].lower())):
-            involved = any(p.get("id") in contacted for p in members)
-            label = "Interaction recorded" if involved else "Research only"
-            tiles.append('<div class="lc-company"><span class="lc-company-status ' + ("lc-live" if involved else "") + '">' + label + '</span><strong>' + html.escape(org) + '</strong><small>' + ("Review recorded interaction" if involved else "No confirmed relationship yet") + '</small></div>')
-        st.markdown('<div class="lc-company-grid">' + "".join(tiles) + '</div>', unsafe_allow_html=True)
+    st.markdown("### Priority relationship actions")
+    st.caption("Specific people, why they matter, and the next defensible step. These are research recommendations—not messages sent or verified hiring access.")
+    suggested_ids = {item.get("person_id") for item in suggestions_all}
+    engaged_ids = {item.get("person_id") for item in actions_all}
+    priority = sorted(
+        (p for p in verified_people if p.get("role_title") and p.get("organization")),
+        key=lambda p: (-_score(p)[0], str(p.get("full_name") or "")),
+    )
+    if priority:
+        for index, person in enumerate(priority[:3], 1):
+            role = str(person.get("role_title") or "")
+            org = str(person.get("organization") or "")
+            name = str(person.get("full_name") or "Profile")
+            pid = person.get("id")
+            role_lower = role.lower()
+            if any(t in role_lower for t in ("chief data", "vp data", "head of data", "data & ai")):
+                angle = "Enterprise data and AI leadership"
+                action = "Review their recent work on data/AI operating models. If a genuine shared topic emerges, engage with a specific point rather than sending a generic invitation."
+            elif "responsible ai" in role_lower:
+                angle = "Responsible AI and governance"
+                action = "Look for a current governance discussion where your portfolio decision-rights experience adds a specific perspective."
+            elif "technology strategist" in role_lower:
+                angle = "Enterprise AI adoption"
+                action = "Check their latest original post on AI adoption. Respond only if you can connect it to a concrete enterprise rollout lesson."
+            elif "ceo" in role_lower:
+                angle = "Executive decision-making"
+                action = "Identify a current executive AI decision or business trade-off they have discussed before considering contact."
+            else:
+                angle = "Professional peer network"
+                action = "Confirm current remit and a substantive shared interest before considering any invitation."
+            state = "Interaction recorded" if pid in engaged_ids else ("Previously recommended" if pid in suggested_ids else "Research before outreach")
+            url = str(person.get("profile_url") or "").strip()
+            direct = url.startswith(("https://www.linkedin.com/in/", "https://linkedin.com/in/", "https://se.linkedin.com/in/", "https://it.linkedin.com/in/", "https://pt.linkedin.com/in/"))
+            if not direct:
+                url = "https://www.linkedin.com/search/results/people/?" + parse.urlencode({"keywords": name})
+            st.markdown(
+                '<div class="lc-action-card"><div class="lc-action-meta"><span>PRIORITY ' + str(index) + ' · ' + html.escape(angle) +
+                '</span><span>' + html.escape(state) + '</span></div><a class="lc-action-name" href="' + html.escape(url, quote=True) +
+                '" target="_blank" rel="noopener noreferrer">' + html.escape(name) + ' ↗</a><div class="lc-action-role">' +
+                html.escape(role) + ' · ' + html.escape(org) + '</div><div class="lc-action-next"><strong>Next step</strong> ' +
+                html.escape(action) + '</div></div>', unsafe_allow_html=True,
+            )
+        with st.expander("Explore other mapped organizations", expanded=False):
+            for org, members in sorted(organizations.items()):
+                st.markdown("**" + html.escape(org) + "** · " + ", ".join(html.escape(str(p.get("full_name") or "Profile")) for p in members))
     else:
-        st.info("No verified employer relationships available yet.")
-    st.caption("Company presence is not proof of a vacancy or access to a hiring decision-maker.")
+        st.info("No verified, role-qualified professional contacts available. Complete profile research before outreach.")
     st.subheader("Who deserves attention next?")
     st.caption("All-time verified profiles ranked by recorded seniority, AI/data remit and Swedish-market proximity. Research priority is not evidence of hiring authority, a vacancy or personal interest.")
     suggested_ids = {s.get("person_id") for s in suggestions_all}
@@ -207,7 +249,7 @@ def render_linkedin_career_scorecard():
             role = html.escape(str(person.get("role_title") or "Role not verified"))
             org = html.escape(str(person.get("organization") or "Organization not verified"))
             link = str(person.get("profile_url") or "").strip()
-            is_direct = link.startswith(("https://www.linkedin.com/in/", "https://linkedin.com/in/"))
+            is_direct = link.startswith(("https://www.linkedin.com/in/", "https://linkedin.com/in/", "https://se.linkedin.com/in/", "https://it.linkedin.com/in/", "https://pt.linkedin.com/in/"))
             if not is_direct:
                 link = "https://www.linkedin.com/search/results/people/?" + parse.urlencode({"keywords": str(person.get("full_name") or "")})
             destination = html.escape(link, quote=True)

@@ -449,6 +449,23 @@ def render_owner_stage_dashboard(session: dict) -> None:
         )
 
     progressed, applied = _current_stage_groups(prediction, plans)
+    # Exact requisition deep links from the private salary board focus one process.
+    focus = str(st.query_params.get("process", "")).strip().casefold()
+    if focus:
+        matching = [p for p in progressed + applied
+                    if str(p.get("process_key") or "").strip().casefold() == focus]
+        if matching:
+            st.caption("Focused hiring process · " + str(matching[0].get("employer") or focus))
+            if st.button("Show all hiring processes", key="owner_stage_clear_focus"):
+                st.query_params.pop("process", None)
+                st.rerun()
+            progressed = [p for p in progressed if p in matching]
+            applied = [p for p in applied if p in matching]
+        else:
+            st.warning("This exact requisition is not present in the latest stage snapshot; no stage was inferred.")
+            if st.button("Show all current stages", key="owner_stage_clear_missing_focus"):
+                st.query_params.pop("process", None)
+                st.rerun()
     assessment_day = str(latest.get("forecast_day") or prediction.get("as_of") or "Unknown")
     today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
     st.caption(

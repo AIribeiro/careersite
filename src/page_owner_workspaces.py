@@ -92,39 +92,68 @@ def _reporting_window() -> str:
     ))
 
 
+def _portfolio_action_totals(report: dict) -> dict[str, int] | None:
+    """Count actual tracked CTA events, not inferred recruiter intent or sessions."""
+    events = report.get("events")
+    if not isinstance(events, list):
+        return None
+    totals = {"cv_download": 0, "email_click": 0, "linkedin_click": 0}
+    for row in events:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("event_name") or "")
+        if name not in totals:
+            continue
+        try:
+            totals[name] += max(0, int(row.get("events") or 0))
+        except (TypeError, ValueError):
+            continue
+    return totals
+
+
 def _quality_cards() -> None:
+    """Portfolio overview KPIs: measured attention and actual CV/contact actions."""
     try:
-        report = _fetch_hiring_intelligence("30d")
+        quality_report = _fetch_hiring_intelligence("30d")
+        quality = quality_report.get("quality_summary") or {}
     except (RuntimeError, ValueError, TimeoutError, PermissionError):
-        st.caption("Qualified portfolio behaviour could not be checked in this session.")
-        return
-    quality = report.get("quality_summary") or {}
-    if not quality:
-        st.caption("Qualified behavioural evidence is not available for this period.")
-        return
-    eligible = int(quality.get("analysis_eligible_sessions") or 0)
-    verified = int(quality.get("evidence_verified_sessions") or 0)
-    intent = int(quality.get("hiring_intent_sessions") or 0)
-    engaged = int(quality.get("engaged_sessions") or 0)
-    columns = st.columns(4, gap="small")
-    for col, label, count, note in zip(
-        columns,
-        ("Qualified sessions", "Engaged", "Evidence verified", "On-site hiring intent"),
-        (eligible, engaged, verified, intent),
-        (
-            "V5 eligible sessions",
-            f"{engaged / eligible:.0%} of qualified" if eligible else "No eligible denominator",
-            f"{verified / eligible:.0%} of qualified" if eligible else "No eligible denominator",
-            "Actions, not recruiter identities",
-        ),
-    ):
+        quality = {}
+
+    try:
+        lifetime_actions = _portfolio_action_totals(_fetch_dashboard("all"))
+    except (RuntimeError, ValueError, TimeoutError, PermissionError):
+        lifetime_actions = None
+
+    eligible = int(quality.get("analysis_eligible_sessions") or 0) if quality else None
+    engaged = int(quality.get("engaged_sessions") or 0) if quality else None
+    cv = lifetime_actions["cv_download"] if lifetime_actions is not None else None
+    email = lifetime_actions["email_click"] if lifetime_actions is not None else None
+    linkedin = lifetime_actions["linkedin_click"] if lifetime_actions is not None else None
+    contact = email + linkedin if email is not None and linkedin is not None else None
+
+    cards = (
+        ("Qualified sessions", f"{eligible:,}" if eligible is not None else "—",
+         "Last 30 days · valid v5 visits"),
+        ("Engaged sessions", f"{engaged:,}" if engaged is not None else "—",
+         f"Last 30 days · {engaged / eligible:.0%} of qualified"
+         if eligible else "Last 30 days · qualified cohort unavailable or empty"),
+        ("CV downloads", f"{cv:,}" if cv is not None else "—",
+         "All recorded history · CV-link clicks"),
+        ("Contact clicks", f"{contact:,}" if contact is not None else "—",
+         f"All recorded history · {email:,} email · {linkedin:,} LinkedIn"
+         if contact is not None else "All recorded history · tracking unavailable"),
+    )
+    for col, (label, value, note) in zip(st.columns(4, gap="small"), cards):
         with col:
             with st.container(border=True):
-                st.metric(label, f"{count:,}")
+                st.metric(label, value)
                 st.caption(note)
+
     st.caption(
-        "Last 30 days · quality-filtered browser sessions. On-site intent cannot "
-        "prove who visited or whether an employer considered an application."
+        "Qualified/engaged sessions use the last 30 days of quality-filtered v5 tracking. "
+        "CV and contact figures are all recorded click events, not unique people, "
+        "confirmed document transfers or identified recruiters. An unavailable source "
+        "shows —, never a fabricated zero."
     )
 
 

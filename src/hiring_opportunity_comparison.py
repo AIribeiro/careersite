@@ -48,6 +48,64 @@ def _mark_for_employer(name: str) -> tuple[str, str]:
     return "".join(letters[:2]).upper() or "•", "neutral"
 
 
+# MTO means the estimated TOTAL of candidate meetings before an offer, not
+# meetings remaining, a time forecast or the probability of receiving an offer.
+# Known routes use the employer's published sequence and the candidate's
+# documented process; ranges remain estimates until a recruiter confirms them.
+_KNOWN_MTO = {
+    "leovegas mobile gaming group|ai strategy and transformation lead": (
+        3, 4, "Recruiter interview and Chief AI Officer interview held; allow one or two further stakeholder or final conversations. LeoVegas publishes a general recruiter, specialist and final-manager sequence; this role may differ."
+    ),
+    "kpmg|ai lead - manager - tax & legal technology": (
+        4, 5, "Two completed interviews; candidate was told the next conversations could involve the Tax Transformation partner and Head of Tax & Legal. KPMG Sweden's published recruitment guide supports senior/final interviews but does not confirm a fixed count."
+    ),
+    "betsson group|head of sb product - data & ai": (
+        3, 4, "Recruiter screening held. Betsson's published process lists hiring-manager interview and final HR/stakeholder interview; a case or panel review could add a meeting."
+    ),
+}
+
+
+def meetings_to_offer_estimate(process: dict) -> tuple[int, int, str]:
+    """Return a conservative estimated total interview-meeting range and basis."""
+    key = str(process.get("process_key") or "").strip().casefold()
+    if key in _KNOWN_MTO:
+        return _KNOWN_MTO[key]
+    role = str(process.get("role") or "").casefold()
+    if "contract" in role or "interim" in role:
+        return (2, 3, "Contract assignment estimate: recruiter/client discussion and possible final client interview; no employer-specific interview plan verified.")
+    if "head of" in role or "director" in role or "chief" in role:
+        return (3, 5, "Senior leadership estimate: screening, executive/hiring-manager interview and one or two stakeholder/final conversations; no employer-specific plan verified.")
+    if "product owner" in role or "manager" in role or "lead" in role:
+        return (3, 4, "Professional or functional lead estimate: recruiter, hiring-manager and final/team meeting, with a possible case review; no employer-specific plan verified.")
+    return (2, 4, "General experienced-hire interview estimate; no employer-specific plan verified.")
+
+
+def _meeting_progress_html(process: dict, meeting_counts: dict[str, int] | None) -> str:
+    key = str(process.get("process_key") or "").strip().casefold()
+    count = meeting_counts.get(key) if meeting_counts is not None else None
+    low, high, basis = meetings_to_offer_estimate(process)
+    # Do not show a completed count beyond the estimated total. A longer-than-
+    # expected live process extends the range rather than rewriting history.
+    if isinstance(count, int) and count > high:
+        high = count + 1
+        low = count
+    if count is None:
+        completed_label = "— verified"
+    else:
+        completed_label = f"{max(0, count)} held" if count else "0 verified"
+    estimate = f"~{low}–{high}" if low != high else f"~{low}"
+    hint = (
+        f"Meetings to offer (MTO): estimated {low}–{high} total meetings, including those already completed. "
+        f"{basis} Attended meetings only; cancellations, invitations, tests and follow-up emails do not count."
+    )
+    return (
+        f'<span class="op-compare__mto" title="{escape(hint, quote=True)}" '
+        f'aria-label="{escape(hint, quote=True)}">'
+        f'<strong>{escape(completed_label)}</strong> <span aria-hidden="true">/</span> '
+        f'MTO {escape(estimate)}</span>'
+    )
+
+
 def _next_interview_label(value: object) -> str:
     if not isinstance(value, str) or not value:
         return ""
@@ -90,6 +148,8 @@ _COMPARISON_STYLE = """
 .op-compare__pill--first{background:#eaf3ff;border-color:#dae9fc;color:#235da5}
 .op-compare__pill--offer{background:#e7f6eb;border-color:#c9ead2;color:#287543}
 .op-next{display:block;margin-top:4px;color:#69778b;font-size:.66rem;line-height:1.25}
+.op-compare__mto{display:block;margin-top:5px;color:#718095;font-size:.66rem;line-height:1.3;white-space:normal;font-variant-numeric:tabular-nums}
+.op-compare__mto strong{font-weight:750;color:#34455c}
 .op-compare__score{white-space:nowrap;font-variant-numeric:tabular-nums}
 .op-compare__number{font-size:1.12rem;line-height:1.1;font-weight:800;color:#17203a;letter-spacing:-.025em}
 .op-compare__denominator{margin-left:3px;font-size:.72rem;color:#8190a2}
@@ -117,7 +177,7 @@ _COMPARISON_STYLE = """
 """
 
 
-def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, str]) -> str:
+def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, str], meeting_counts: dict[str, int] | None = None) -> str:
     """Build ranked rows from the supplied live forecast without static company scores."""
     rows: list[str] = []
     for position, process in enumerate(processes, 1):
@@ -157,6 +217,7 @@ def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, st
             '<span class="op-compare__dot" aria-hidden="true"></span>'
             f'<span>{escape(stage_title)}</span></span>'
             f'{_next_interview_label(process.get("next_interview"))}'
+            f'{_meeting_progress_html(process, meeting_counts)}'
             '</div>'
             f'<div class="op-compare__score" role="cell">{score_html}</div>'
             f'<div class="op-compare__bar" role="cell">{bar_html}</div>'
@@ -168,7 +229,7 @@ def opportunity_comparison_html(processes: list[dict], stage_names: dict[str, st
         + '<section class="op-compare" aria-label="Current hiring opportunities">'
         + '<div class="op-compare__intro"><div>'
         + '<h3 class="op-compare__title">Where current opportunities stand</h3>'
-        + '<p class="op-compare__detail">Compare verified hiring stages and evidence strength.</p>'
+        + '<p class="op-compare__detail">Compare verified hiring stages, interview meetings and evidence strength.</p>'
         + '</div>'
         + f'<span class="op-compare__count">{count} active {"process" if count == 1 else "processes"}</span>'
         + '</div>'

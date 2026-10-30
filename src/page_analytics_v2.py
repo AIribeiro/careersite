@@ -127,7 +127,7 @@ def _workspace_from_url(authenticated: bool) -> str:
     # Pre-migration bookmarks to job reports are private even when the old
     # link does not carry an explicit workspace parameter.
     requested = str(st.query_params.get("view", "")).lower().strip()
-    if explicit is None and requested in ("jobs", "market", "predictions", "hiring", "deep", "attribution", "meetings", "followups"):
+    if explicit is None and requested in ("jobs", "market", "predictions", "hiring", "stages", "deep", "attribution", "meetings", "followups"):
         explicit = "private"
     # Attribution quality belongs to Portfolio Analytics, even for older
     # bookmarked /?workspace=private&view=attribution links.

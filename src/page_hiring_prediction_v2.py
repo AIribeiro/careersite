@@ -158,7 +158,7 @@ def _verified_meetings_by_process(access_token: str) -> dict[str, int]:
         if event_id is None:
             continue
         unique.setdefault(key, set()).add(str(event_id))
-    return {key: len(event_ids) for key, event_ids in unique.items()}
+    return {key: len(unique.get(key, set())) for key in set(keys.values())}
 
 
 def _credibility_gradient_101() -> list[str]:

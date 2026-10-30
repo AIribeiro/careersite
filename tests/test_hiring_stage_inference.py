@@ -22,7 +22,7 @@ class StageInferenceTests(unittest.TestCase):
             signals=[{"kind": "stage_progression", "anchor_date": "2026-10-30",
                       "source_kind": "outlook",
                       "event_label": "Final culture fit interview scheduled with Giulio Calleja"}])
-        self.assertEqual(current["label"], "Culture fit interview")
+        self.assertEqual(current["label"], "Final culture fit interview")
         self.assertEqual(current["state"], "scheduled")
         self.assertEqual(current["date"], "2026-11-09")
         self.assertEqual(current["confidence"], "high")
@@ -60,7 +60,7 @@ class StageInferenceTests(unittest.TestCase):
                    "process_key": "example|ai lead",
                    "stage": "subsequent_interview_completed", "credibility_index": 75.0,
                    "next_interview": None}
-        plan = {"pending_stage_label": "Culture fit interview",
+        plan = {"pending_stage_label": "Final culture fit interview",
                 "pending_stage_source": "outlook",
                 "pending_stage_confidence": "high",
                 "pending_stage_state": "scheduled",
@@ -73,7 +73,7 @@ class StageInferenceTests(unittest.TestCase):
             meeting_counts={"example|ai lead": 2},
             meeting_details={"example|ai lead": []},
             process_plans={"example|ai lead": plan})
-        self.assertIn("Culture fit interview", html)
+        self.assertIn("Final culture fit interview", html)
         self.assertIn("Confirmed next interview", html)
         self.assertIn("09 Nov 2026", html)
         self.assertIn("Stage source: outlook", html)
@@ -89,6 +89,7 @@ class StageInferenceTests(unittest.TestCase):
     def test_new_employer_can_get_specific_stage(self):
         self.assertEqual(classify_stage("We invite you to the case study interview"), "Case interview")
         self.assertEqual(classify_stage("Culture-fit with our process lead"), "Culture fit interview")
+        self.assertEqual(classify_stage("The next and final culture fit interview is scheduled"), "Final culture fit interview")
         self.assertEqual(classify_stage("Partner interview with our regional leader"), "Partner interview")
         self.assertIsNone(classify_stage("We will update you later"))
 

@@ -155,7 +155,7 @@ def _get_rows(token: str, status: str) -> list[dict]:
         raise PermissionError("Authenticated owner access is required.")
     selector = {
         "Active": "current_process_outcome=eq.in_progress",
-        "Historical": "current_process_outcome=neq.in_progress",
+        "Historical": "current_process_outcome=not.in.(in_progress,unknown)",
         "Unconfirmed": "current_process_outcome=eq.unknown",
     }[status]
     uri = (f"{ALIGNMENT_VIEW}?select={FIELDS}&{selector}"
@@ -397,10 +397,17 @@ def _contract_lane(rows: list[dict], token: str, today: date) -> None:
         days = _number(row.get("monthly_billable_days_expected"))
         invoice = row.get("expected_invoice_monthly_sek")
         is_contract = row.get("employment_model") == "contract_umbrella"
+        billing_terms = (
+            f"{rate:g} {currency} per day × {days:g} billable days × "
+            f"{_number(row.get('fx_to_sek')):g} SEK/{currency}"
+            if all(row.get(key) is not None for key in (
+                "daily_rate_amount", "daily_rate_currency",
+                "monthly_billable_days_expected", "fx_to_sek"))
+            else "Day rate, billable days or FX assumption not confirmed"
+        )
         text = (
             f'<b class="money">{_sek(invoice, compact=False)}</b> provisional monthly invoice revenue'
-            f'<p>{rate:g} {currency} per day × {days:g} assumed billable days '
-            f'× {_number(row.get("fx_to_sek")):g} SEK/{currency}. '
+            f'<p>{escape(billing_terms)}. '
             'Before umbrella fees, employer contributions, pension, tax and time off.</p>'
             f'<p>Modeled umbrella gross equivalent: <b>{_sek(row.get("expected_sek"), compact=False)}</b>. '
             'Not directly comparable to permanent employee base pay.</p>'

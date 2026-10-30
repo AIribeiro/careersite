@@ -789,6 +789,7 @@ def _import_existing(access_token: str, current: list[CmsArticle]) -> None:
 
 _PRIVATE_VIEW_ROUTES = {
     "hiring": "Hiring overview",
+    "stages": "Stages & MTO",
     "meetings": "Recruiter meetings",
     "followups": "Follow-up manager",
     "jobs": "Job search",
@@ -954,6 +955,10 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
     if workspace == "Hiring overview":
         from page_owner_workspaces import render_owner_hiring_home
         render_owner_hiring_home(session)
+        return
+    if workspace == "Stages & MTO":
+        from page_owner_workspaces import render_owner_stage_dashboard
+        render_owner_stage_dashboard(session)
         return
     if workspace == "Job search":
         from page_public_analytics import render_public_job_search

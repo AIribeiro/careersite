@@ -141,7 +141,7 @@ def estimate_mto(
         level = "decision_authority"
         decision_reason = "A senior executive has been interviewed, but their final decision rights are unverified."
     elif "hiring_manager" in has and "stakeholder" in has:
-        remaining_low, remaining_high = 0, min(2, max(1, remaining_high))
+        remaining_low, remaining_high = 1, min(2, max(2, remaining_high))
         level = "stakeholder_progression"
         decision_reason = "The hiring manager and another stakeholder/panel have already met the candidate."
     elif "hiring_manager" in has:

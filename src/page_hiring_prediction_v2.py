@@ -119,36 +119,47 @@ def _assessment_rows(access_token: str, prediction: dict) -> list[dict]:
         })
     return sorted(rows, key=lambda item:item["Interview"], reverse=True)
 
-def _verified_meetings_by_process(access_token: str) -> dict[str, int]:
-    """Count only attended meetings linked to the exact recruiting opportunity.
+def _verified_meetings_by_process(access_token: str, *, with_details: bool = False):
+    """Owner-private exact-requisition meeting evidence for the universal MTO model.
 
-    A calendar invitation, cancelled event, draft review or future meeting does
-    not establish attendance. This function only reads owner-private evidence.
+    Existing callers get a count mapping; with_details includes verified
+    interviewer-role evidence and optional employer-confirmed stage ranges.
     """
     if not access_token:
         raise ValueError("An owner access token is required.")
     opportunities = _request_json(
         "GET", _rest_url(
             "careersite_recruiting_opportunities?"
-            "select=id,forecast_process_key&forecast_process_key=not.is.null"
+            "select=id,forecast_process_key,mto_total_min,mto_total_max,"
+            "mto_remaining_min,mto_remaining_max,mto_source_type,mto_source_note"
+            "&forecast_process_key=not.is.null"
         ), token=access_token, timeout=18,
     )
     meetings = _request_json(
         "GET", _rest_url(
             "careersite_recruiter_meetings?"
-            "select=id,opportunity_id,scheduled_date,attendance,source_event_id"
+            "select=id,opportunity_id,scheduled_date,attendance,source_event_id,"
+            "meeting_type,interviewer_role,decision_authority,role_evidence_basis"
             "&attendance=eq.attended"
         ), token=access_token, timeout=18,
     )
     if not isinstance(opportunities, list) or not isinstance(meetings, list):
-        raise RuntimeError("Verified recruiter meetings are temporarily unavailable.")
-    keys = {row.get("id"): str(row["forecast_process_key"]).strip().casefold()
-            for row in opportunities if isinstance(row, dict)
-            and row.get("forecast_process_key") and row.get("id") is not None}
-    unique: dict[str, set[str]] = {}
+        raise RuntimeError("Verified recruiting meeting evidence is temporarily unavailable.")
+    keys = {
+        row.get("id"): str(row["forecast_process_key"]).strip().casefold()
+        for row in opportunities if isinstance(row, dict)
+        and row.get("forecast_process_key") and row.get("id") is not None
+    }
+    plans = {
+        str(row["forecast_process_key"]).strip().casefold(): row
+        for row in opportunities if isinstance(row, dict) and row.get("forecast_process_key")
+    }
+    unique: dict[str, dict[str, dict]] = {}
     today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
     for meeting in meetings:
         if not isinstance(meeting, dict) or meeting.get("attendance") != "attended":
+            continue
+        if str(meeting.get("meeting_type") or "").casefold() == "networking":
             continue
         key = keys.get(meeting.get("opportunity_id"))
         meeting_date = str(meeting.get("scheduled_date") or "")
@@ -157,8 +168,12 @@ def _verified_meetings_by_process(access_token: str) -> dict[str, int]:
         event_id = meeting.get("source_event_id") or meeting.get("id")
         if event_id is None:
             continue
-        unique.setdefault(key, set()).add(str(event_id))
-    return {key: len(unique.get(key, set())) for key in set(keys.values())}
+        unique.setdefault(key, {}).setdefault(str(event_id), meeting)
+    counts = {key: len(unique.get(key, {})) for key in set(keys.values())}
+    if with_details:
+        details = {key: list(unique.get(key, {}).values()) for key in set(keys.values())}
+        return counts, details, plans
+    return counts
 
 
 def _credibility_gradient_101() -> list[str]:
@@ -295,9 +310,12 @@ def render_hiring_prediction_v2(data: dict) -> dict:
     owner_session = st.session_state.get("cms_auth") or {}
     owner_token = str(owner_session.get("access_token") or "") if isinstance(owner_session, dict) else ""
     meeting_counts = None
+    meeting_details = {}
+    employer_plans = {}
     if owner_token:
         try:
-            meeting_counts = _verified_meetings_by_process(owner_token)
+            meeting_counts, meeting_details, employer_plans = _verified_meetings_by_process(
+                owner_token, with_details=True)
         except (RuntimeError, TimeoutError, ValueError, PermissionError):
             st.caption("Meeting ledger unavailable; counts are not inferred from interview stages.")
 
@@ -307,38 +325,37 @@ def render_hiring_prediction_v2(data: dict) -> dict:
     ][:7]
     if relevant:
         st.markdown(
-            opportunity_comparison_html(relevant, STAGE_NAMES, meeting_counts),
+            opportunity_comparison_html(relevant, STAGE_NAMES, meeting_counts, meeting_details, employer_plans),
             unsafe_allow_html=True,
         )
         st.caption("Held = documented attended meetings (cancelled or scheduled meetings excluded). "
                    "MTO = estimated total meetings to an offer, not meetings remaining; "
-                   "ranges are role- and employer-specific planning assumptions.")
+                   "ranges use role seniority, verified interviewer authority and confirmed hiring steps.")
         st.caption("Higher scores mean stronger documented progression. "
                    "Scores reflect stage, role fit, evidence recency and finalized "
                    "interview reviews; they are not offer probabilities.")
-        with st.expander("How meeting-to-offer estimates were set", expanded=False):
+        with st.expander("How MTO is estimated for every new hiring process", expanded=False):
             st.markdown(
-                "MTO is **not a probability or a confirmed recruiting plan**. "
-                "Each total includes meetings already held. "
-                "The ledger counts distinct attended calendar-backed records "
-                "linked to the specific vacancy, not different interviewers in one meeting."
+                "**The engine is generic, not employer-coded.** A new vacancy starts "
+                "with a broad role-based meeting range (contract 2–3, senior functional "
+                "leader 3–5, manager/lead 3–4, executive 4–6, general hire 2–4). "
+                "These are transparent planning assumptions, **not calibrated market averages**."
             )
             st.markdown(
-                "- **LeoVegas:** 3–4 estimated meetings; recruiter and Chief AI Officer interviews "
-                "are held, with a possible stakeholder/final round. "
-                "[Published general sequence](https://justjoin.it/brands/story/leovegas-group) "
-                "is not confirmed for this AI leadership vacancy.\n"
-                "- **KPMG:** 4–5 estimated meetings based on the two completed conversations "
-                "and possible partner and practice-head discussions. "
-                "[KPMG Sweden's general recruitment process]"
-                "(https://kpmg.com/se/en/insights/career/prepare-for-your-job-application-and-interview.html).\n"
-                "- **Betsson:** 3–4 estimated meetings: recruiter screening, director/hiring-manager "
-                "interview and final HR/stakeholder step; an extra case review may be required. "
-                "[Betsson's recruitment process](https://betssongroup.com/careers/).\n"
-                "- **Other roles:** estimated from seniority and contract versus permanent recruitment "
-                "where the employer has not confirmed an interview sequence."
+                "Each recorded, distinct **attended** interview is counted once. "
+                "Interviewer decision authority changes what may remain: recruiter "
+                "screening is early; hiring manager and stakeholder panels signal progress; "
+                "an accountable functional executive may be the final substantive conversation. "
+                "The executive title alone never proves formal final approval."
             )
-
+            st.markdown(
+                "Employer-confirmed role-specific stage counts take precedence when documented. "
+                "A confirmed next interview sets a minimum of one further meeting. "
+                "Cancelled meetings, assessments, follow-ups and unverified calendar entries "
+                "never advance the count. New evidence updates the estimate automatically; "
+                "the title tooltip shows the reasoning, confidence and remaining range. "
+                "**MTO measures meetings conditional on continued selection, not offer probability.**"
+            )
 
     st.markdown("**Post-interview assessment impact**")
     st.caption("Assessment quality and employer progression are separate signals. "

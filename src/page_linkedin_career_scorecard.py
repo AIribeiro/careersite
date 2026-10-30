@@ -75,6 +75,15 @@ def render_linkedin_career_scorecard():
     .lc-verify{font-size:.74rem!important;color:#857d76!important;margin-top:9px!important}
     .lc-person p{font-size:.82rem;color:#655f5b;margin:5px 0}
     .lc-chip{font-size:.69rem;font-weight:700;color:#76543c;background:#f4e8dc;padding:4px 8px;border-radius:20px}
+    .lc-insight{background:linear-gradient(115deg,#202b35,#34424b);border:1px solid #3d4b52;border-radius:16px;padding:23px 26px;margin:12px 0 24px;color:white}
+    .lc-insight h2{font-size:1.32rem;color:#fff;margin:9px 0 8px;font-weight:650}
+    .lc-insight p{color:#d9e0e1;font-size:.93rem;line-height:1.55;margin:0;max-width:850px}
+    .lc-company-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:10px;margin:12px 0 18px}
+    .lc-company{display:flex;flex-direction:column;gap:9px;background:#fffdfa;border:1px solid #e4ded6;border-radius:12px;padding:15px 17px;min-height:115px}
+    .lc-company strong{font-size:.96rem;color:#28333b;font-weight:700}
+    .lc-company small{font-size:.75rem;color:#847d76}
+    .lc-company-status{font-size:.69rem;color:#81746c;font-weight:650}
+    .lc-company-status.lc-live{color:#326b56}
     </style>""", unsafe_allow_html=True)
     st.markdown("""<div class="lc-hero"><div class="lc-kicker">Private career intelligence</div>
     <h1>LinkedIn Career Conversion</h1>
@@ -111,36 +120,40 @@ def render_linkedin_career_scorecard():
     confirmed = count("reply", "accepted", "conversation", "referral", "introduction", "interview")
     interviews = count("interview")
     verified = sum("verified" in str(p.get("verification_status") or "").lower() for p in people)
-    st.subheader("Executive readout")
-    if not actions:
-        assessment = ("Relationship outcomes are not yet measurable", "The discovery ledger has candidates, but no confirmed outreach or responses. This is an evidence gap, not proof that LinkedIn is ineffective.")
-    elif confirmed == 0:
-        assessment = ("Activity recorded; relationship progress unconfirmed", "There are logged actions but no recorded replies, conversations or interviews. Check outcomes before changing the strategy.")
+    st.markdown("### Relationship intelligence")
+    if confirmed:
+        headline = "Relationships are progressing"
+        narrative = "Confirmed professional responses exist. Prioritize the people already engaging rather than increasing outreach volume."
+    elif actions:
+        headline = "Activity without a confirmed response"
+        narrative = "Review outstanding conversations before contacting more people. The available evidence does not yet show a relationship outcome."
     else:
-        assessment = ("Verified relationship progress is visible", "Some relationship outcomes are recorded. Review who responded and whether any introductions or interviews followed.")
-    left, right = st.columns([1.55, 1])
-    with left:
-        st.markdown(_panel(assessment[0], html.escape(assessment[1]), True), unsafe_allow_html=True)
-    with right:
-        st.markdown(_panel("Career conversion signal", f'<div class="lc-number">{interviews if interviews else "—"}</div><div class="lc-muted">Verified LinkedIn-attributed interviews. {"No attribution recorded yet" if not interviews else "Recorded evidence"}</div>'), unsafe_allow_html=True)
-    c1,c2,c3 = st.columns(3)
-    with c1:
-        st.markdown(_panel("Relevant network mapped", f'<div class="lc-number">{verified}</div><div class="lc-muted">Verified profiles in selected window · {len(people)} total identified</div>'), unsafe_allow_html=True)
-    with c2:
-        st.markdown(_panel("Outreach pipeline", f'<div class="lc-number">{len(set(s.get("person_id") for s in suggestions))}</div><div class="lc-muted">Distinct people recommended for contact · not messages sent</div>'), unsafe_allow_html=True)
-    with c3:
-        st.markdown(_panel("Verified engagement", f'<div class="lc-number">{len(actions)}</div><div class="lc-muted">Recorded actions · {confirmed} relationship outcome signals</div>'), unsafe_allow_html=True)
-
-    st.subheader("Employer relationship coverage")
-    st.caption("Verified people grouped by employer; this is not evidence of an open vacancy.")
+        headline = "Build the first meaningful conversation"
+        narrative = "Relevant people have been identified, but no confirmed conversation is recorded. The priority is a credible introduction, not more impressions."
+    st.markdown(
+        '<div class="lc-insight"><div class="lc-kicker">Current assessment</div><h2>' + html.escape(headline) +
+        '</h2><p>' + html.escape(narrative) + '</p></div>',
+        unsafe_allow_html=True,
+    )
     organizations = {}
-    for person in people:
+    for person in people_all:
         employer = str(person.get("organization") or "").strip()
-        if employer:
+        if employer and "verified" in str(person.get("verification_status") or "").lower():
             organizations.setdefault(employer, []).append(person)
+    contacted = {a.get("person_id") for a in actions_all}
+    active_employers = [org for org, members in organizations.items() if any(p.get("id") in contacted for p in members)]
+    st.markdown("### Relationship coverage")
+    st.caption("Where professional access exists, and where it is still only a research lead.")
     if organizations:
-        st.dataframe([{"Employer": employer, "Known people": len(members), "Confirmed interaction": "Yes" if any(a.get("person_id") in {p.get("id") for p in members} for a in actions) else "Not recorded"} for employer, members in sorted(organizations.items())], hide_index=True, use_container_width=True)
-    st.caption("Recruiter approaches, profile impressions, time spent and external hiring attribution remain unavailable without confirmed source data.")
+        tiles = []
+        for org, members in sorted(organizations.items(), key=lambda item: (-any(p.get("id") in contacted for p in item[1]), item[0].lower())):
+            involved = any(p.get("id") in contacted for p in members)
+            label = "Interaction recorded" if involved else "Research only"
+            tiles.append('<div class="lc-company"><span class="lc-company-status ' + ("lc-live" if involved else "") + '">' + label + '</span><strong>' + html.escape(org) + '</strong><small>' + ("Review recorded interaction" if involved else "No confirmed relationship yet") + '</small></div>')
+        st.markdown('<div class="lc-company-grid">' + "".join(tiles) + '</div>', unsafe_allow_html=True)
+    else:
+        st.info("No verified employer relationships available yet.")
+    st.caption("Company presence is not proof of a vacancy or access to a hiring decision-maker.")
     st.subheader("Who deserves attention next?")
     st.caption("Indicative relevance ranking based on recorded seniority, AI/data remit and Swedish-market proximity. This is not evidence of hiring authority, an open vacancy or personal interest.")
     suggested_ids = {s.get("person_id") for s in suggestions}

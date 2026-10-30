@@ -70,9 +70,9 @@ def completed_interview(row):
     text = norm(' '.join(str(row.get(field) or '') for field in ('activity', 'stage_outcome')))
     return norm(row.get('event_type')) == 'interview_completed' or bool(
         re.search(
-            r'interview (?:held|completed)|interview.*\\bcompleted\\b|\\bcompleted interview\\b'
-            r'|\\b(?:recruiter|talent acquisition|hr) screening (?:held|completed)\\b'
-            r'|\\bscreening (?:call|interview) (?:held|completed)\\b',
+            r'interview (?:held|completed)|interview.*\bcompleted\b|\bcompleted interview\b'
+            r'|\b(?:recruiter|talent acquisition|hr) screening (?:held|completed)\b'
+            r'|\bscreening (?:call|interview) (?:held|completed)\b',
             text,
         )
     )

@@ -13,6 +13,7 @@ import streamlit as st
 
 from site_cms import _request_json, _rest_url
 from hiring_opportunity_comparison import opportunity_comparison_html, opportunity_evidence_score
+from hiring_stage_inference import resolve_stage
 
 VERSION = "hiring-v2-stage-review-v1"  # Accepted historical stage model
 CURRENT_VERSION = "hiring-v4-stage-review-market-live-v1"
@@ -120,10 +121,10 @@ def _assessment_rows(access_token: str, prediction: dict) -> list[dict]:
     return sorted(rows, key=lambda item:item["Interview"], reverse=True)
 
 def _verified_meetings_by_process(access_token: str, *, with_details: bool = False):
-    """Owner-private exact-requisition meeting evidence for the universal MTO model.
+    """Reconcile attended meetings separately from stage invitations and bookings.
 
-    Existing callers get a count mapping; with_details includes verified
-    interviewer-role evidence and optional employer-confirmed stage ranges.
+    The specific displayed stage is resolved from employer signals, calendar
+    bookings and interviewer roles; it never increases attended meeting counts.
     """
     if not access_token:
         raise ValueError("An owner access token is required.")
@@ -139,7 +140,7 @@ def _verified_meetings_by_process(access_token: str, *, with_details: bool = Fal
         "GET", _rest_url(
             "careersite_recruiter_meetings?"
             "select=id,opportunity_id,scheduled_date,attendance,source_event_id,"
-            "meeting_type,interviewer_role,decision_authority,role_evidence_basis"
+            "meeting_type,title,interviewer_role,decision_authority,role_evidence_basis"
             "&attendance=eq.attended"
         ), token=access_token, timeout=18,
     )
@@ -166,59 +167,63 @@ def _verified_meetings_by_process(access_token: str, *, with_details: bool = Fal
         if not key or not meeting_date or meeting_date > today:
             continue
         event_id = meeting.get("source_event_id") or meeting.get("id")
-        if event_id is None:
-            continue
-        unique.setdefault(key, {}).setdefault(str(event_id), meeting)
+        if event_id is not None:
+            unique.setdefault(key, {}).setdefault(str(event_id), meeting)
     counts = {key: len(unique.get(key, {})) for key in set(keys.values())}
-    if with_details:
-        details = {key: list(unique.get(key, {}).values()) for key in set(keys.values())}
-        # A later employer invitation describes the current next stage more precisely
-        # than the last *completed* meeting in a dated forecast snapshot.
-        # Do not count invitations as attended meetings or change the MTO figures.
-        try:
-            signals = _request_json(
-                "GET", _rest_url(
-                    "careersite_recruiting_step_signals?"
-                    "select=opportunity_id,kind,event_label,anchor_date"
-                    "&kind=eq.stage_progression&order=anchor_date.desc"
-                ), token=access_token, timeout=18,
-            )
-        except (RuntimeError, TimeoutError, ValueError, PermissionError):
-            signals = []
-        if isinstance(signals, list):
-            for signal in signals:
-                if not isinstance(signal, dict):
-                    continue
-                key = keys.get(signal.get("opportunity_id"))
-                plan = plans.get(key) if key else None
-                if not plan or str(plan.get("outcome") or "").casefold() != "in_progress":
-                    continue
-                if plan.get("pending_stage_label"):
-                    continue
-                label = " ".join(str(signal.get("event_label") or "").casefold().replace("-", " ").split())
-                if "interview" not in label or not ("invit" in label):
-                    continue
-                invitation_day = str(signal.get("anchor_date") or "")
-                latest_held = max(
-                    (str(m.get("scheduled_date") or "") for m in details.get(key, [])),
-                    default="",
-                )
-                if not invitation_day or invitation_day <= latest_held:
-                    continue
-                if "culture fit" in label:
-                    stage_label = "Culture fit interview"
-                elif "final interview" in label:
-                    stage_label = "Final interview"
-                elif "second interview" in label:
-                    stage_label = "Second interview"
-                elif "third interview" in label:
-                    stage_label = "Third interview"
-                else:
-                    stage_label = "Interview invited"
-                plan["pending_stage_label"] = stage_label
-                plan["pending_stage_evidence_date"] = invitation_day
-        return counts, details, plans
-    return counts
+    if not with_details:
+        return counts
+    details = {key: list(unique.get(key, {}).values()) for key in set(keys.values())}
+    try:
+        signals = _request_json(
+            "GET", _rest_url(
+                "careersite_recruiting_step_signals?"
+                "select=opportunity_id,kind,event_label,anchor_date,source_kind,source_reference"
+                "&kind=eq.stage_progression&order=anchor_date.desc"
+            ), token=access_token, timeout=18,
+        )
+    except (RuntimeError, TimeoutError, ValueError, PermissionError):
+        signals = []
+    try:
+        scheduled = _request_json(
+            "GET", _rest_url(
+                "careersite_recruiter_meetings?"
+                "select=id,opportunity_id,title,meeting_type,scheduled_date,"
+                "attendance,interviewer_role,source_kind"
+                "&attendance=eq.unverified&order=scheduled_date.asc"
+            ), token=access_token, timeout=18,
+        )
+    except (RuntimeError, TimeoutError, ValueError, PermissionError):
+        scheduled = []
+    by_signal: dict[str, list[dict]] = {}
+    for signal in signals if isinstance(signals, list) else []:
+        if isinstance(signal, dict):
+            key = keys.get(signal.get("opportunity_id"))
+            if key:
+                by_signal.setdefault(key, []).append(signal)
+    by_scheduled: dict[str, list[dict]] = {}
+    for meeting in scheduled if isinstance(scheduled, list) else []:
+        if isinstance(meeting, dict):
+            key = keys.get(meeting.get("opportunity_id"))
+            if key:
+                by_scheduled.setdefault(key, []).append(meeting)
+    for key, plan in plans.items():
+        if str(plan.get("outcome") or "").casefold() != "in_progress":
+            continue
+        stage = resolve_stage(
+            outcome=str(plan.get("outcome") or ""),
+            attended=details.get(key, []),
+            scheduled=by_scheduled.get(key, []),
+            signals=by_signal.get(key, []),
+            today=today,
+        )
+        if stage["source"] == "forecast":
+            continue
+        plan["pending_stage_label"] = stage["label"]
+        plan["pending_stage_state"] = stage["state"]
+        plan["pending_stage_date"] = stage.get("date")
+        plan["pending_stage_source"] = stage["source"]
+        plan["pending_stage_confidence"] = stage["confidence"]
+    return counts, details, plans
 
 
 def _credibility_gradient_101() -> list[str]:
@@ -342,16 +347,6 @@ def render_hiring_prediction_v2(data: dict) -> dict:
         )
 
     live = _live_opportunities(data)
-    if live:
-        top = live[0]
-        st.markdown(f"**Strongest verified route:** {top['employer']} — "
-                    f"{top['role']} ({_stage_title(top.get('stage')).lower()}).")
-        if top.get("next_interview"):
-            st.caption(f"Next confirmed interview: {_pretty_date(top['next_interview'])}. "
-                       "A scheduled interview is not counted as completed.")
-    else:
-        st.info("No confirmed active interview or human-response process is available.")
-
     owner_session = st.session_state.get("cms_auth") or {}
     owner_token = str(owner_session.get("access_token") or "") if isinstance(owner_session, dict) else ""
     meeting_counts = None
@@ -363,6 +358,19 @@ def render_hiring_prediction_v2(data: dict) -> dict:
                 owner_token, with_details=True)
         except (RuntimeError, TimeoutError, ValueError, PermissionError):
             st.caption("Meeting ledger unavailable; counts are not inferred from interview stages.")
+
+    if live:
+        top = live[0]
+        top_plan = employer_plans.get(str(top.get("process_key") or "").strip().casefold(), {})
+        current_label = top_plan.get("pending_stage_label") or _stage_title(top.get("stage"))
+        st.markdown(f"**Strongest verified route:** {top['employer']} — "
+                    f"{top['role']} ({current_label.lower()}).")
+        upcoming = top_plan.get("pending_stage_date") if top_plan.get("pending_stage_state") == "scheduled" else top.get("next_interview")
+        if upcoming:
+            st.caption(f"Next confirmed interview: {_pretty_date(upcoming)}. "
+                       "A scheduled interview is not counted as completed.")
+    else:
+        st.info("No confirmed active interview or human-response process is available.")
 
     relevant = [
         p for p in live if opportunity_evidence_score(p) is not None
@@ -484,9 +492,9 @@ def render_hiring_prediction_v2(data: dict) -> dict:
             details = [{
                 "Employer": p.get("employer"),
                 "Role": p.get("role"),
-                "Verified stage": _stage_title(p.get("stage")),
+                "Verified stage": employer_plans.get(str(p.get("process_key") or "").strip().casefold(), {}).get("pending_stage_label") or _stage_title(p.get("stage")),
                 "Last progression": p.get("last_progress") or "Undated",
-                "Next interview": p.get("next_interview") or "Not confirmed",
+                "Next interview": employer_plans.get(str(p.get("process_key") or "").strip().casefold(), {}).get("pending_stage_date") or p.get("next_interview") or "Not confirmed",
                 "Credibility index": float(p.get("credibility_index") or 0),
             } for p in data.get("top_processes", [])]
             if details:

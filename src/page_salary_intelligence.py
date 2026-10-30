@@ -200,6 +200,70 @@ def _get_due(token: str) -> list[dict]:
     return payload
 
 
+
+def _get_versions(token: str, opportunity_id: object) -> tuple[list[dict], list[dict]]:
+    """Read versioned salary and market snapshots for one exact requisition."""
+    if not token:
+        raise PermissionError("Authenticated owner access is required.")
+    oid = int(opportunity_id)
+    queries = (
+        "careersite_salary_assessments?select=assessment_date,assessment_version,"
+        "employment_model,comparability_group,minimum_gross_monthly_sek,"
+        "expected_gross_monthly_sek,ideal_gross_monthly_sek,confidence_tier,"
+        f"negotiation_anchor_gross_monthly_sek&opportunity_id=eq.{oid}"
+        "&order=assessment_date.desc,created_at.desc&limit=40",
+        "careersite_salary_market_benchmarks?select=benchmark_on,benchmark_version,"
+        "comparison_basis,band_low_sek,band_central_sek,band_high_sek,"
+        f"confidence_tier,source_check_on,next_review_on&opportunity_id=eq.{oid}"
+        "&order=benchmark_on.desc,created_at.desc&limit=40",
+    )
+    assessments = _request_json("GET", _rest_url(queries[0]), token=token)
+    benchmarks = _request_json("GET", _rest_url(queries[1]), token=token)
+    if not isinstance(assessments, list) or not isinstance(benchmarks, list):
+        raise RuntimeError("Salary history did not return versioned records.")
+    return assessments, benchmarks
+
+
+def _history_panel(row: dict, token: str) -> None:
+    key = f"salary_history_{row.get('opportunity_id')}"
+    if not st.checkbox("Show dated salary and market versions", key=key):
+        return
+    try:
+        assessments, benchmarks = _get_versions(token, row["opportunity_id"])
+    except (ValueError, RuntimeError, PermissionError, TimeoutError):
+        st.warning("Version history could not be verified from the private source tables.")
+        return
+    if assessments:
+        st.markdown("**Candidate salary assessment history**")
+        st.dataframe([{
+            "Assessment": a.get("assessment_date"),
+            "Version": a.get("assessment_version"),
+            "Employment basis": a.get("comparability_group") or a.get("employment_model"),
+            "Minimum gross": a.get("minimum_gross_monthly_sek"),
+            "Expected gross": a.get("expected_gross_monthly_sek"),
+            "Ideal gross": a.get("ideal_gross_monthly_sek"),
+            "Ask": a.get("negotiation_anchor_gross_monthly_sek"),
+            "Confidence": a.get("confidence_tier"),
+        } for a in assessments], hide_index=True, width="stretch")
+    else:
+        st.caption("No dated candidate assessment versions returned.")
+    if benchmarks:
+        st.markdown("**Independent Swedish market benchmark history**")
+        st.dataframe([{
+            "Researched": b.get("benchmark_on"),
+            "Version": b.get("benchmark_version"),
+            "Comparison basis": b.get("comparison_basis"),
+            "Inferred low": b.get("band_low_sek"),
+            "Modeled center": b.get("band_central_sek"),
+            "Inferred high": b.get("band_high_sek"),
+            "Confidence": b.get("confidence_tier"),
+            "Source checked": b.get("source_check_on"),
+            "Review due": b.get("next_review_on"),
+        } for b in benchmarks], hide_index=True, width="stretch")
+    else:
+        st.caption("No dated market benchmark versions returned.")
+    st.caption("Versions are read-only, in their recorded economic basis. New research does not rewrite prior snapshots.")
+
 def _summary(rows: list[dict], today: date) -> tuple[int, int, int, int]:
     active = [r for r in rows if r.get("current_process_outcome") == "in_progress"]
     return (len(active),
@@ -431,6 +495,7 @@ def _contract_lane(rows: list[dict], token: str, today: date) -> None:
         if st.session_state.get("salary_inspect_process") == row.get("process_key"):
             with st.container(border=True):
                 _evidence(row, token)
+                _history_panel(row, token)
 
 
 def render_salary_intelligence(session: dict | None) -> None:
@@ -617,6 +682,7 @@ def render_salary_intelligence(session: dict | None) -> None:
                 st.link_button("Open this hiring process · Stages & MTO",
                                _process_url(str(row.get("process_key") or "")))
                 _evidence(row, token)
+                _history_panel(row, token)
 
     with st.expander("Research coverage and refresh status", expanded=False):
         st.caption("The external Swedish Salary Research Watch processes queued work on its schedule. "

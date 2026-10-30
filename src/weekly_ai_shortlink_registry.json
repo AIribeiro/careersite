@@ -43,6 +43,26 @@
         "OpenAI",
         "Reuters"
       ]
+    },
+    {
+      "iso_year": 2026,
+      "iso_week": 44,
+      "slug": "weekly-ai-2026-10-30",
+      "distribution_mode": "friday_wrap",
+      "story_keys": [
+        "truist_agent_ownership",
+        "serval_workflow_approvals",
+        "goldman_deployer_accountability",
+        "acemoglu_pro_worker_ai"
+      ],
+      "edition_title": "AI at Work: Ownership Comes First",
+      "cover_subtitle": "Friday perspective · one minute",
+      "publisher_names": [
+        "Microsoft",
+        "Reuters",
+        "Goldman Sachs",
+        "World Economic Forum"
+      ]
     }
   ]
 }

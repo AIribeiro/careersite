@@ -1,0 +1,51 @@
+name: Executive Briefings regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'main.py'
+      - 'src/page_executive_briefings.py'
+      - 'src/briefings_visual.py'
+      - 'src/site_cms.py'
+      - 'src/seven_questions_guide.py'
+      - 'src/thinking_landing.py'
+      - 'tests/test_executive_ai_briefings.py'
+      - 'tests/test_executive_briefing_reader.py'
+      - 'tests/test_executive_briefings_navigation_contract.py'
+      - '.github/workflows/executive-briefings-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'main.py'
+      - 'src/page_executive_briefings.py'
+      - 'src/briefings_visual.py'
+      - 'src/site_cms.py'
+      - 'src/seven_questions_guide.py'
+      - 'src/thinking_landing.py'
+      - 'tests/test_executive_ai_briefings.py'
+      - 'tests/test_executive_briefing_reader.py'
+      - 'tests/test_executive_briefings_navigation_contract.py'
+      - '.github/workflows/executive-briefings-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  briefings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile application and focused regressions
+        run: python -m py_compile main.py src/page_executive_briefings.py src/briefings_visual.py src/site_cms.py tests/test_executive_briefing_reader.py tests/test_executive_ai_briefings.py tests/test_executive_briefings_navigation_contract.py
+      - name: Verify independent pages, content, icons and navigation
+        run: python -m unittest -v tests.test_executive_ai_briefings tests.test_executive_briefing_reader tests.test_executive_briefings_navigation_contract

@@ -1114,6 +1114,9 @@ def render_cms_social_image(article: CmsArticle) -> bytes:
 
 def _render_executive_social_image(article: CmsArticle) -> bytes:
     """Original capability-and-decision illustration, not the generic agent motif."""
+    if article.slug == "seven-questions-for-better-ai-decisions":
+        from executive_questions_visuals import social_image
+        return social_image(article, _social_font, _wrap_social_text)
     width, height = CMS_SOCIAL_SIZE
     image = Image.new("RGB", CMS_SOCIAL_SIZE, (12, 28, 45))
     draw = ImageDraw.Draw(image)
@@ -1158,6 +1161,9 @@ def _render_executive_social_image(article: CmsArticle) -> bytes:
 
 
 def _cms_fallback_cover(article: CmsArticle, css_class: str) -> str:
+    if article.kind == "Executive Briefing" and article.slug == "seven-questions-for-better-ai-decisions":
+        from executive_questions_visuals import cover
+        return cover(article, css_class)
     subtitle = article.subtitle or article.excerpt
     if article.kind == "Executive Briefing":
         return f'''<div class="{escape(css_class, quote=True)} cms-fallback-cover cms-briefing-cover" role="img" aria-label="{escape(article.header_image_alt or article.title, quote=True)}">
@@ -1245,6 +1251,11 @@ def render_cms_article(article: CmsArticle) -> str:
         keyword_lines = ''.join(f'<div>{escape(keyword)}</div>' for keyword in article.keywords[:5])
         aside = f'''<span>{escape(article.category or "Article")}</span><strong>{read_metadata}</strong><div class="article-questions">{keyword_lines}</div><p>Published in Jair Ribeiro's selected Thinking portfolio.</p>'''
 
+    questions_styles = ""
+    if article.kind == "Executive Briefing" and article.slug == "seven-questions-for-better-ai-decisions":
+        from executive_questions_visuals import QUESTIONS_STYLES
+        questions_styles = QUESTIONS_STYLES
+
     briefing_back_href = "?page=briefings" if article.kind == "Executive Briefing" else "?page=thinking"
     briefing_back_text = "← Back to Executive AI Briefings" if article.kind == "Executive Briefing" else "← Back to Thinking"
 
@@ -1267,7 +1278,7 @@ def render_cms_article(article: CmsArticle) -> str:
             cms_css=CMS_FALLBACK_CSS + css,
         )
 
-    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="{briefing_back_href}" target="_self">{briefing_back_text}</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
+    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{questions_styles}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="{briefing_back_href}" target="_self">{briefing_back_text}</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
 
 
 def select_auto_featured_article(

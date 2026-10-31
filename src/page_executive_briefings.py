@@ -8,7 +8,7 @@ Original article bodies, citations and attribution remain available on demand.
 
 from html import escape
 
-from briefings_visual import briefing_icon, briefing_visual
+from briefings_visual import PROMO_CSS, briefing_icon, briefing_visual
 from site_assets import EMAIL
 from site_components import nav, footer, journey_next
 from site_cms import fetch_published_articles, article_relative_url
@@ -230,7 +230,7 @@ def executive_briefings() -> str:
         f'<div class="briefings-others" style="margin-top:24px">{others}</div></div></section>'
     ) if others else ''
     return (
-        BRIEFINGS_CSS + nav("thinking")
+        BRIEFINGS_CSS + PROMO_CSS + nav("thinking")
         + '<main><section class="pagehero briefings-hero" data-analytics-section="briefings-introduction">'
         '<div class="container"><p class="eyebrow">Thinking · Executive AI Briefings</p>'
         '<h1>Better AI decisions. Less noise.</h1>'

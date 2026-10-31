@@ -80,6 +80,15 @@ BRIEFINGS_CSS = r'''<style>
 .site .briefings-other h3{margin:0;font:500 26px/1.18 Georgia,serif}
 .site .briefings-other p{color:var(--muted);font-size:13px;line-height:1.55;margin:0}
 .site .briefings-other span{font-size:10px;color:#965633;font-weight:800}
+.site .briefings-questions-feature{grid-column:1/-1;position:relative;overflow:hidden;isolation:isolate;min-height:228px;border:1px solid #385367;border-top:3px solid #c58c66;padding:32px 36px;background:linear-gradient(117deg,#101f32,#1a3d50);color:#fff;align-items:flex-start;justify-content:center}
+.site .briefings-questions-feature:before{content:"?";position:absolute;z-index:-1;right:9%;top:-25px;font:500 260px/1 Georgia,serif;color:rgba(221,179,144,.17)}
+.site .briefings-questions-feature:after{content:"";position:absolute;right:3%;bottom:-50%;width:37%;aspect-ratio:1;border:1px solid rgba(226,185,146,.25);border-radius:50%;box-shadow:0 0 0 28px rgba(226,185,146,.04),0 0 0 60px rgba(226,185,146,.03);pointer-events:none}
+.site .briefings-questions-feature span{color:#e7b793}
+.site .briefings-questions-feature h3{font:500 clamp(28px,3vw,39px)/1.13 Georgia,serif;color:#fff;max-width:65%;margin:6px 0}
+.site .briefings-questions-feature p{max-width:65%;font-size:14px;line-height:1.6;color:#cbd6df}
+.site .briefings-questions-feature:hover,.site .briefings-questions-feature:focus-visible{border-color:#d7a47c}
+@media(max-width:650px){.site .briefings-questions-feature{min-height:220px;padding:26px}.site .briefings-questions-feature h3,.site .briefings-questions-feature p{max-width:87%}.site .briefings-questions-feature:before{right:-9%;top:0;font-size:210px}}
+
 .site .briefings-conversation{background:#102238;color:#fff;padding:48px 0}
 .site .briefings-conversation-inner{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:30px;align-items:center}
 .site .briefings-conversation .briefings-index{color:#e6ba98}
@@ -205,11 +214,11 @@ def executive_briefings() -> str:
         for category, name, description, icon in CAPABILITIES
     )
     others = ''.join(
-        '<a class="briefings-other" href="'
+        '<a class="briefings-other' + (' briefings-questions-feature' if article.slug == 'seven-questions-for-better-ai-decisions' else '') + '" href="'
         + escape(article_relative_url(article), quote=True)
         + '" target="_self" data-hq-event="briefings_article_open" data-hq-content-slug="'
         + escape(article.slug, quote=True) + '">'
-        + '<span>Executive AI Briefing</span>'
+        + ('<span>New · Executive field guide</span>' if article.slug == 'seven-questions-for-better-ai-decisions' else '<span>Executive AI Briefing</span>')
         + f'<h3>{escape(article.title)}</h3><p>{escape(article.excerpt)}</p>'
         + f'<span>Read executive view →</span></a>'
         for article in items if not featured or article.slug != featured.slug

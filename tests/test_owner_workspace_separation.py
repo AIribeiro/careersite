@@ -78,11 +78,11 @@ class OwnerWorkspaceSeparationTests(unittest.TestCase):
         ui.query_params = {}
         def render_names(processes, *args):
             return ", ".join(p["employer"] for p in processes)
-        with patch("page_owner_workspaces.st", ui), \\
+        with patch("page_owner_workspaces.st", ui), \
              patch("page_hiring_prediction_v2.fetch_hiring_prediction_v2",
-                   return_value=live) as fetch, \\
+                   return_value=live) as fetch, \
              patch("page_hiring_prediction_v2._verified_meetings_by_process",
-                   return_value=({}, {}, {})), \\
+                   return_value=({}, {}, {})), \
              patch("hiring_opportunity_comparison.opportunity_comparison_html",
                    side_effect=render_names):
             render_owner_stage_dashboard({"access_token": "owner-jwt"})

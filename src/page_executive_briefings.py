@@ -294,6 +294,33 @@ def executive_briefing_article(
     """
     from thinking_core import THINKING_CSS
 
+    # This article is a complete seven-lens executive playbook, not a three-check
+    # summary. Give it its own responsive reading surface and keep the original
+    # published Content Studio body + references available as supplemental depth.
+    if article.slug == "seven-questions-for-better-ai-decisions":
+        from seven_questions_guide import SEVEN_QUESTIONS_CSS, seven_questions_body
+
+        return (
+            THINKING_CSS + cms_css + BRIEFINGS_CSS + SEVEN_QUESTIONS_CSS
+            + nav("thinking")
+            + '<main class="briefing-reader aiq-guide-reader">'
+            '<section class="briefing-reader-hero" data-analytics-section="briefing-reader-introduction">'
+            '<div class="container"><a class="briefing-reader-back" href="?page=briefings" '
+            'target="_self">← Executive AI Briefings</a>'
+            '<span class="briefings-index">Executive field guide · seven decision lenses</span>'
+            f'<h1>{escape(article.title)}</h1>'
+            '<p>A field-tested way to challenge AI proposals, expose assumptions '
+            'and leave the room with a defensible decision, clear ownership and measurable next steps.</p>'
+            '</div></section>'
+            + seven_questions_body()
+            + '<div class="aiq-guide-container aiq-research">'
+            '<details class="briefing-reader-detail" data-analytics-section="briefing-reader-depth">'
+            '<summary>Background reading, editorial context and source references</summary>'
+            f'<div class="article-body briefing-reader-research">{article.content_html}{tags}{source}</div>'
+            '</details><div class="briefing-reader-share">' + share_footer + '</div>'
+            '</div>' + contact_block() + '</main>' + footer()
+        )
+
     guide = FIRST_DECISION if article.slug == FIRST_SLUG else {
         "call": "Make the business decision explicit.",
         "move": "Name the accountable owner, decide which evidence would change your answer and test the assumption before expanding.",

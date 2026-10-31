@@ -54,7 +54,7 @@ class BriefingsNavigationContract(unittest.TestCase):
             page = executive_briefings()
         html = page.rsplit("</style>", 1)[-1]
         self.assertEqual(html.count('class="briefings-library-card"'), 2)
-        self.assertIn("page=briefing&amp;article=", html.replace("&", "&amp;"))
+        self.assertIn("page=briefing&amp;article=", html)
         self.assertIn("AI capabilities", html)
         self.assertIn("Seven questions", html)
         self.assertNotIn('class="briefing-full-content"', html)

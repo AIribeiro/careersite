@@ -436,3 +436,30 @@ def executive_briefing_article(
         f'<div class="briefing-reader-share">{share_footer}</div>'
         '</div></section>' + contact_block() + '</main>' + footer()
     )
+
+
+def executive_briefing_page() -> str:
+    """Dedicated publication route; never accidentally show an unrelated article."""
+    import streamlit as st
+    from site_cms import fetch_public_article, render_cms_article
+
+    slug = st.query_params.get("article", "")
+    if isinstance(slug, list):
+        slug = slug[0] if slug else ""
+    slug = str(slug).strip().lower()
+    try:
+        article = fetch_public_article(slug) if slug else None
+    except (RuntimeError, ValueError, TimeoutError):
+        article = None
+    if article is not None and article.kind.strip().casefold() == BRIEFING_KIND.casefold():
+        return render_cms_article(article)
+    return (
+        BRIEFINGS_CSS + nav("thinking")
+        + '<main><section class="briefings-library-hero"><div class="container">'
+        '<p class="eyebrow">Executive AI Briefings</p>'
+        '<h1>This briefing is not available.</h1>'
+        '<p class="briefings-library-deck">It may have been unpublished or the link may have changed.</p>'
+        '<p><a class="btn" href="?page=briefings" target="_self">'
+        'Return to the briefing library →</a></p>'
+        '</div></section></main>' + footer()
+    )

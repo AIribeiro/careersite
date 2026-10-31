@@ -1011,6 +1011,8 @@ def _draw_social_arrow(draw: ImageDraw.ImageDraw, start: tuple[int, int], end: t
 
 def render_cms_social_image(article: CmsArticle) -> bytes:
     """Render a crawler-safe, article-specific Open Graph card for CMS articles."""
+    if article.kind == "Executive Briefing":
+        return _render_executive_social_image(article)
     width, height = CMS_SOCIAL_SIZE
     navy = (7, 22, 39)
     navy_2 = (10, 42, 70)
@@ -1109,8 +1111,60 @@ def render_cms_social_image(article: CmsArticle) -> bytes:
     return output.getvalue()
 
 
+
+def _render_executive_social_image(article: CmsArticle) -> bytes:
+    """Original capability-and-decision illustration, not the generic agent motif."""
+    width, height = CMS_SOCIAL_SIZE
+    image = Image.new("RGB", CMS_SOCIAL_SIZE, (12, 28, 45))
+    draw = ImageDraw.Draw(image)
+    navy = (12, 28, 45)
+    white = (249, 247, 243)
+    muted = (185, 199, 209)
+    copper = (226, 169, 123)
+    for y in range(height):
+        blend = y / max(1, height - 1)
+        draw.line((0, y, width, y), fill=(int(12 + blend * 11), int(28 + blend * 18), int(45 + blend * 20)))
+    draw.line((68, 87, 1134, 87), fill=(100, 117, 130), width=1)
+    draw.text((70, 47), "EXECUTIVE AI BRIEFINGS  /  01", font=_social_font(19, bold=True), fill=copper)
+    title = article.social_title or article.title
+    y = 126
+    title_font = _social_font(49, serif=True)
+    for line in _wrap_social_text(draw, title, title_font, 625, 4):
+        draw.text((70, y), line, font=title_font, fill=white)
+        y += 64
+    subtitle = "The right capability. The right autonomy. A defensible business decision."
+    for line in _wrap_social_text(draw, subtitle, _social_font(22), 625, 3):
+        draw.text((72, y + 20), line, font=_social_font(22), fill=muted)
+        y += 32
+    labels = ["PREDICT", "INTERPRET", "GENERATE", "GROUND", "ACT", "GOVERN"]
+    for index, label in enumerate(labels):
+        col = index % 2
+        row = index // 2
+        x1 = 764 + col * 189
+        y1 = 133 + row * 118
+        x2, y2 = x1 + 174, y1 + 101
+        draw.rounded_rectangle((x1, y1, x2, y2), radius=8,
+                               fill=(24, 50, 67), outline=copper if index == 5 else (70, 110, 131), width=2)
+        font = _social_font(18, bold=True)
+        w = draw.textbbox((0, 0), label, font=font)[2]
+        draw.text(((x1 + x2 - w) / 2, y1 + 40), label, font=font, fill=white)
+    draw.line((760, 516, 1126, 516), fill=copper, width=2)
+    draw.text((764, 530), "BUSINESS OWNER  ·  EVIDENCE  ·  VALUE", font=_social_font(14), fill=muted)
+    draw.text((71, 562), "Jair Ribeiro  ·  Enterprise AI & Data Leadership",
+              font=_social_font(20, serif=True), fill=white)
+    output = BytesIO()
+    image.save(output, format="PNG", optimize=True)
+    return output.getvalue()
+
+
 def _cms_fallback_cover(article: CmsArticle, css_class: str) -> str:
     subtitle = article.subtitle or article.excerpt
+    if article.kind == "Executive Briefing":
+        return f'''<div class="{escape(css_class, quote=True)} cms-fallback-cover cms-briefing-cover" role="img" aria-label="{escape(article.header_image_alt or article.title, quote=True)}">
+<div class="cms-cover-copy"><span>Executive AI Briefings · 01</span><strong>{escape(article.title)}</strong><p>Capabilities, ownership, autonomy and business value.</p></div>
+<div class="cms-briefing-visual" aria-hidden="true"><span>FROM CAPABILITY TO DECISION</span>
+<div class="cms-briefing-tiles"><i>Predict</i><i>Interpret</i><i>Generate</i><i>Ground</i><i>Act</i><i>Govern</i></div>
+<small>Business owner · Evidence · Value</small></div></div>'''
     return f'''<div class="{escape(css_class, quote=True)} cms-fallback-cover" role="img" aria-label="{escape(article.header_image_alt or article.title, quote=True)}">
 <div class="cms-cover-copy"><span>People · Data · AI · Real Impact</span><strong>{escape(article.title)}</strong><p>{escape(subtitle)}</p></div>
 <div class="cms-cover-network" aria-hidden="true"><i>AI</i><b>CIO</b><b>CDO</b><b>Business</b><b>Risk</b><b>HR</b><b>CoE</b></div>
@@ -1121,6 +1175,19 @@ CMS_FALLBACK_CSS = '''<style>
 .cms-fallback-cover{position:relative;overflow:hidden;min-width:0;width:100%;max-width:100%;box-sizing:border-box;min-height:330px;aspect-ratio:2/1;background:radial-gradient(circle at 82% 28%,rgba(255,185,118,.28),transparent 26%),linear-gradient(122deg,#07182b 0%,#173750 62%,#7b6658 100%);color:#fff;border:1px solid rgba(255,255,255,.17);box-shadow:0 20px 48px rgba(0,0,0,.20)}
 .cms-cover-copy{position:absolute;left:5%;top:9%;width:55%;max-width:calc(100% - 32px);min-width:0;z-index:2}.cms-cover-copy span{display:block;font:750 11px/1.2 Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#c9d7e3;margin-bottom:34px}.cms-cover-copy strong{display:block;max-width:100%;overflow-wrap:anywhere;font:650 clamp(28px,4.1vw,58px)/1.02 Georgia,serif;letter-spacing:-.025em}.cms-cover-copy p{max-width:700px;margin:20px 0 0;overflow-wrap:anywhere;font:400 clamp(13px,1.45vw,20px)/1.42 Arial,sans-serif;color:#e4ebef}
 .cms-cover-network{position:absolute;right:4%;bottom:8%;width:34%;height:72%;border:1px solid rgba(255,255,255,.16);border-radius:50%}.cms-cover-network:before,.cms-cover-network:after{content:"";position:absolute;left:50%;top:50%;width:86%;height:1px;background:rgba(255,255,255,.30);transform:translate(-50%,-50%) rotate(30deg)}.cms-cover-network:after{transform:translate(-50%,-50%) rotate(-30deg)}.cms-cover-network i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:86px;height:86px;border-radius:50%;background:#f1eee8;color:#132331;font:800 30px/1 Arial,sans-serif;font-style:normal;z-index:2}.cms-cover-network b{position:absolute;padding:8px 11px;border:1px solid rgba(255,255,255,.35);background:rgba(7,24,43,.75);font:650 11px/1 Arial,sans-serif;letter-spacing:.04em}.cms-cover-network b:nth-of-type(1){left:7%;top:13%}.cms-cover-network b:nth-of-type(2){right:9%;top:10%}.cms-cover-network b:nth-of-type(3){right:-2%;top:45%}.cms-cover-network b:nth-of-type(4){right:8%;bottom:9%}.cms-cover-network b:nth-of-type(5){left:10%;bottom:8%}.cms-cover-network b:nth-of-type(6){left:-3%;top:46%}
+
+.cms-briefing-cover{min-height:410px;aspect-ratio:2.1/1;background:linear-gradient(115deg,#081b30 0%,#16364b 69%,#36536a 100%)}
+.cms-briefing-cover .cms-cover-copy{left:5%;top:10%;width:52%}
+.cms-briefing-cover .cms-cover-copy span{color:#efbe96;margin-bottom:22px}
+.cms-briefing-cover .cms-cover-copy strong{font:500 clamp(31px,3.4vw,49px)/1.08 Georgia,serif}
+.cms-briefing-cover .cms-cover-copy p{font-size:clamp(13px,1.25vw,16px);line-height:1.6}
+.cms-briefing-visual{position:absolute;right:4%;top:17%;width:36%;display:flex;flex-direction:column;gap:17px;color:#fff}
+.cms-briefing-visual>span{font:750 10px/1.3 Arial,sans-serif;letter-spacing:.14em;color:#efbe96}
+.cms-briefing-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.cms-briefing-tiles i{display:flex;align-items:center;justify-content:center;min-height:61px;padding:8px;background:#1c465c;border:1px solid rgba(235,194,163,.48);font:700 clamp(11px,1.1vw,15px)/1.2 Arial,sans-serif;font-style:normal}
+.cms-briefing-tiles i:last-child{border-color:#efbe96;background:#705842}
+.cms-briefing-visual small{font:650 11px/1.4 Arial,sans-serif;letter-spacing:.03em;color:#cbd8e1}
+@media(max-width:760px){.cms-briefing-cover{min-height:520px}.cms-briefing-cover .cms-cover-copy{top:7%;width:91%}.cms-briefing-cover .cms-cover-copy strong{font-size:clamp(29px,7vw,39px)}.cms-briefing-visual{left:5%;right:5%;width:90%;top:auto;bottom:7%;gap:10px}.cms-briefing-tiles i{min-height:42px}.cms-briefing-visual>span,.cms-briefing-visual small{display:none}}
 @media(max-width:760px){.cms-fallback-cover{min-height:390px;aspect-ratio:auto}.cms-cover-copy{width:88%}.cms-cover-network{opacity:.28;width:58%;right:-12%}.cms-cover-copy strong{font-size:34px}}
 </style>'''
 

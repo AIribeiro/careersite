@@ -52,7 +52,9 @@ class ExecutiveAiBriefingTests(unittest.TestCase):
         self.assertIn('"briefings": "Executive AI Briefings', content("src/site_meta.py"))
         page = content("src/page_executive_briefings.py")
         self.assertIn('data-analytics-section="briefings-capability-map"', page)
-        self.assertIn('data-hq-event="briefings_featured_open"', page)
+        self.assertIn('briefings_featured_open', page)
+        self.assertIn('class="briefings-library-grid"', page)
+        self.assertIn('def executive_briefing_page()', page)
 
 
 if __name__ == "__main__":

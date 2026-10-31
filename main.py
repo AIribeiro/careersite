@@ -32,7 +32,7 @@ import site_cv_runtime  # noqa: F401
 from page_home import home
 from page_impact import impact
 from page_thinking import thinking
-from page_executive_briefings import executive_briefings
+from page_executive_briefings import executive_briefings, executive_briefing_page
 from page_about import about
 from page_contact import contact
 from page_ai_data_governance import ai_data_governance
@@ -65,11 +65,11 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "about", "certifications", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance"}
+PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
-ARTICLE_QUERY = st.query_params.get("article", "") if PAGE == "thinking" else ""
+ARTICLE_QUERY = st.query_params.get("article", "") if PAGE in {"thinking", "briefing"} else ""
 if isinstance(ARTICLE_QUERY, list):
     ARTICLE_QUERY = ARTICLE_QUERY[0] if ARTICLE_QUERY else ""
 CMS_ARTICLE_META = None
@@ -87,6 +87,7 @@ TITLES = {
     "impact": "Selected Experience | Jair Ribeiro",
     "thinking": "Articles & Perspectives | Jair Ribeiro",
     "briefings": "Executive AI Briefings | Jair Ribeiro",
+    "briefing": "Executive AI Briefing | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
     "contact": "Contact | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
@@ -142,6 +143,7 @@ else:
         "impact": impact,
         "thinking": thinking,
         "briefings": executive_briefings,
+        "briefing": executive_briefing_page,
         "about": about,
         "contact": contact,
         "ai-data-governance": ai_data_governance,

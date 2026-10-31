@@ -17,6 +17,7 @@ DESCRIPTIONS = {
     "home": "Selected experience and writing from Jair Ribeiro across enterprise AI, Data & Analytics, governance, adoption and operating models.",
     "impact": "Selected enterprise AI and Data experience showing responsibilities, trade-offs, cross-functional work and what changed.",
     "thinking": "Articles by Jair Ribeiro on enterprise AI and data leadership, governance, adoption, portfolio decisions, operating models and business value.",
+    "briefings": "Executive AI Briefings by Jair Ribeiro: plain-language explanations of AI capabilities, enterprise operating choices, ownership and business value.",
     "about": "The professional story of Jair Ribeiro: from enterprise technology foundations into business-facing AI, Data and Analytics leadership across international organizations.",
     "certifications": "Selected AI, data and leadership credentials covering agentic AI, Responsible AI, GenAI strategy, data platforms, product and technical foundations.",
     "presence": "Selected speaking, publications and externally documented contributions across enterprise AI, Data, responsible adoption and governance.",
@@ -102,7 +103,9 @@ def inject_metadata(page: str, title: str) -> None:
     ? base
     : page === 'ai-data-governance'
       ? base.replace(/\/$/, '') + '/ai-data-governance'
-      : base + '?page=' + encodeURIComponent(page);
+      : page === 'briefings'
+        ? base.replace(/\/$/, '') + '/briefings'
+        : base + '?page=' + encodeURIComponent(page);
   doc.title = title;
 
   const meta = (selector, attr, key, value) => {{

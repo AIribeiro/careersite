@@ -32,6 +32,7 @@ import site_cv_runtime  # noqa: F401
 from page_home import home
 from page_impact import impact
 from page_thinking import thinking
+from page_executive_briefings import executive_briefings
 from page_about import about
 from page_contact import contact
 from page_ai_data_governance import ai_data_governance
@@ -64,7 +65,7 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"home", "impact", "thinking", "about", "certifications", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance"}
+PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "about", "certifications", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -85,6 +86,7 @@ TITLES = {
     "home": "Jair Ribeiro | Enterprise AI & Data Leader",
     "impact": "Selected Experience | Jair Ribeiro",
     "thinking": "Articles & Perspectives | Jair Ribeiro",
+    "briefings": "Executive AI Briefings | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
     "contact": "Contact | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
@@ -139,6 +141,7 @@ else:
         "home": home,
         "impact": impact,
         "thinking": thinking,
+        "briefings": executive_briefings,
         "about": about,
         "contact": contact,
         "ai-data-governance": ai_data_governance,

@@ -611,7 +611,7 @@ def _editor(article: CmsArticle, access_token: str) -> None:
         st.text_input("Category / topic", key=f"{prefix}_category")
         st.selectbox(
             "Format",
-            ["Article", "Point of view", "Field note", "Decision note", "Framework"],
+            ["Article", "Executive Briefing", "Point of view", "Field note", "Decision note", "Framework"],
             key=f"{prefix}_kind",
         )
         st.text_area("Excerpt", key=f"{prefix}_excerpt", height=120)

@@ -44,7 +44,7 @@ def current_home_article() -> HomeArticlePreview:
         published = ()
 
     if published:
-        featured = select_auto_featured_article(list(published), _public_reads_or_none())
+        featured = select_auto_featured_article([article for article in published if article.kind != "Executive Briefing"], _public_reads_or_none())
         if featured is not None:
             return HomeArticlePreview(
                 slug=featured.slug,

@@ -1178,12 +1178,15 @@ def render_cms_article(article: CmsArticle) -> str:
         keyword_lines = ''.join(f'<div>{escape(keyword)}</div>' for keyword in article.keywords[:5])
         aside = f'''<span>{escape(article.category or "Article")}</span><strong>{read_metadata}</strong><div class="article-questions">{keyword_lines}</div><p>Published in Jair Ribeiro's selected Thinking portfolio.</p>'''
 
+    briefing_back_href = "?page=briefings" if article.kind == "Executive Briefing" else "?page=thinking"
+    briefing_back_text = "← Back to Executive AI Briefings" if article.kind == "Executive Briefing" else "← Back to Thinking"
+
     css = '''<style>
 .cms-article-image{margin:26px 0 0}.cms-article-image img{display:block;width:100%;max-height:620px;object-fit:cover;border:1px solid rgba(255,255,255,.16);box-shadow:0 20px 48px rgba(0,0,0,.22)}
 .cms-source{margin-top:28px!important;padding-top:18px;border-top:1px solid var(--line)}.cms-source a{font-size:11px;font-weight:850;text-decoration:none}.article-signature{margin:38px 0 0;padding-top:18px;border-top:1px solid var(--line)}.article-signature a{color:var(--copper)!important;text-decoration:none!important;font:600 19px/1.2 Georgia,serif}.article-signature a:hover{text-decoration:underline!important}.article-body h3{margin:34px 0 14px;font:500 26px/1.15 Georgia,serif}.article-body ul,.article-body ol{margin:0 0 24px;padding-left:24px;color:#343b43;font-size:16px;line-height:1.75}.article-body li{margin:7px 0}.article-body hr{border:0;border-top:1px solid var(--line);margin:34px 0}
 </style>'''
 
-    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="?page=thinking" target="_self">← Back to Thinking</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
+    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="{briefing_back_href}" target="_self">{briefing_back_text}</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
 
 
 def select_auto_featured_article(
@@ -1244,7 +1247,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
     from thinking_weekly_brief import is_weekly_brief, inject_weekly_brief_landing
     weekly_briefs = [article for article in published if is_weekly_brief(article)]
     # Rank every published article, including the older CMS-migrated essays.
-    cms_articles = [article for article in published if not is_weekly_brief(article)]
+    cms_articles = [article for article in published if not is_weekly_brief(article) and article.kind != "Executive Briefing"]
     read_counts = _public_reads_or_none()
     document = inject_weekly_brief_landing(document, weekly_briefs, read_counts=read_counts)
     # Use the same canonical highlight on Thinking and Home.

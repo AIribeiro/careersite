@@ -184,6 +184,53 @@ async def _ai_data_governance_share(request):
     )
 
 
+async def _briefings_share(request):
+    """First-party SEO/share entry for the Executive AI Briefings series."""
+    canonical = f"{BASE_URL}/briefings"
+    title = "Executive AI Briefings | Jair Ribeiro"
+    description = (
+        "AI explained through business decisions: capabilities, ownership, "
+        "operating trade-offs, responsible adoption and evidence of value."
+    )
+    if not _is_crawler(request):
+        params = [("page", "briefings")]
+        params.extend(
+            (key, value)
+            for key, value in request.query_params.multi_items()
+            if key != "page"
+        )
+        return RedirectResponse(
+            f"{BASE_URL}/?{urlencode(params)}",
+            status_code=302,
+            headers={"Cache-Control": "no-store"},
+        )
+    document = f"""<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{escape(title)}</title>
+<meta name="description" content="{escape(description)}">
+<link rel="canonical" href="{escape(canonical)}">
+<meta property="og:title" content="{escape(title)}">
+<meta property="og:description" content="{escape(description)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jair Ribeiro">
+<meta property="og:url" content="{escape(canonical)}">
+<meta property="og:image" content="{escape(SITE_SOCIAL_IMAGE)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{escape(title)}">
+<meta name="twitter:description" content="{escape(description)}">
+<meta name="twitter:image" content="{escape(SITE_SOCIAL_IMAGE)}">
+</head><body><p><a href="{escape(canonical)}">Executive AI Briefings — Jair Ribeiro</a></p></body></html>"""
+    return HTMLResponse(
+        document,
+        headers={
+            "Cache-Control": "public, max-age=900, stale-while-revalidate=3600",
+            "X-Robots-Tag": "index, follow, max-image-preview:large",
+        },
+    )
+
+
 async def _thinking_social_image(request):
     article = resolve_article(request.path_params.get("slug"))
     if article is None:
@@ -258,6 +305,7 @@ async def _sitemap(_request):
     entries = [
         (f"{BASE_URL}/", "2026-09-17"),
         (f"{BASE_URL}/ai-data-governance", "2026-09-27"),
+        (f"{BASE_URL}/briefings", "2026-10-31"),
     ] + [
         (article_url(article), article.published_iso) for article in ARTICLES
     ]
@@ -291,6 +339,7 @@ app = App(
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),
         Route("/weekly-ai-audio/{slug}.mp3", _weekly_ai_audio_file, methods=["GET", "HEAD"]),
         Route("/ai-data-governance", _ai_data_governance_share, methods=["GET", "HEAD"]),
+        Route("/briefings", _briefings_share, methods=["GET", "HEAD"]),
         Route("/social/{slug}.png", _thinking_social_image, methods=["GET", "HEAD"]),
         Route("/cms-header/{slug}.webp", _cms_header_image, methods=["GET", "HEAD"]),
         Route("/cms-social/{slug}.png", _cms_social_image, methods=["GET", "HEAD"]),

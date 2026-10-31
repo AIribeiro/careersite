@@ -436,5 +436,20 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
  .site .hbr-latest-courses .hbr-course-grid{grid-template-columns:minmax(0,1fr)}
  .site .hbr-latest-actions{align-items:stretch;flex-direction:column}
 }
+
+/* Executive AI Briefing article diagram — original decision framework. */
+.site .article-body .executive-decision-intro{padding:22px 24px;border-left:4px solid var(--copper);background:#eee6db;margin:28px 0 32px}
+.site .article-body .executive-decision-intro p{margin:0;color:#27313c}
+.site .article-body .executive-capability-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:30px 0}
+.site .article-body .executive-capability-card{padding:19px 20px;background:#fffdf8;border:1px solid rgba(17,21,27,.15);min-width:0}
+.site .article-body .executive-capability-card .executive-capability-label{display:block;color:#ad5f39;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:9px}
+.site .article-body .executive-capability-card strong{display:block;font:500 21px/1.23 Georgia,serif;color:#132238;margin-bottom:9px}
+.site .article-body .executive-capability-card p{font-size:14px;line-height:1.65;margin:0;color:#515964}
+.site .article-body .executive-judgment{padding:24px 26px;margin:34px 0;background:#111d2d;color:#fff}
+.site .article-body .executive-judgment strong{display:block;color:#efbd99;font:700 11px/1.4 Inter,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.site .article-body .executive-judgment p{color:#e5eaf0;margin:14px 0 0}
+.site .article-body .executive-sources{padding-top:20px;border-top:1px solid var(--line);font-size:13px;line-height:1.7}
+.site .article-body .executive-sources a{color:#225375;text-underline-offset:3px}
+@media(max-width:700px){.site .article-body .executive-capability-grid{grid-template-columns:minmax(0,1fr)}.site .article-body .executive-decision-intro,.site .article-body .executive-judgment{padding:20px}}
 </style>
 """

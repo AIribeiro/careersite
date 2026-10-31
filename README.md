@@ -148,6 +148,16 @@ Home is intentionally limited to three complementary perspectives:
 
 No ratings, stars, testimonial-wall language, praise carousel or “trusted by industry leaders” framing.
 
+## Executive AI Briefings
+
+**Executive AI Briefings** is a distinct public editorial series under Thinking, not a seventh primary-navigation item or a consulting offer. It explains AI capabilities through the business decisions leaders need to make, supported by original decision visuals and field-informed judgment.
+
+- The index route is `?page=briefings`; its social/search permalink is `/briefings`. The first CMS-published briefing uses the canonical `/thinking/<slug>` article route.
+- `src/page_executive_briefings.py` renders the collection and a deliberately non-linear capability map. Future published Content Studio entries with format `Executive Briefing` appear automatically; planned editorial questions are visibly marked as upcoming.
+- The Content Studio `Format` selector includes `Executive Briefing`; no separate database or public write permission is needed.
+- The original series keeps the current public six-item navigation, restrained navy/copper visual identity, owner-only administration and existing source attribution/analytics discipline.
+- The first briefing's warranty/service scenario is an illustrative composite, not a confidential account of an employer's implementation. Technical background is distinguished from operational judgment; grounding is not presented as a guarantee of accuracy; agent autonomy is bounded by permissions, human review and measurement.
+
 ## About, Thinking and Contact
 
 **About** carries the continuity of the career: how it evolved, why AI/Data became the focus, how technical foundations still influence leadership, how international experience shaped working style and which leadership principles emerged. The timeline stays compact and subordinate to the narrative.

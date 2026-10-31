@@ -38,7 +38,9 @@ class ExecutiveBriefingReaderTests(unittest.TestCase):
         self.assertIn("Accountability", visuals)
         self.assertIn("Adoption", visuals)
         self.assertIn("aspect-ratio:16/9", visuals)
-        self.assertIn("BRIEFINGS_CSS + PROMO_CSS", briefings)
+        self.assertIn('BRIEFINGS_CSS + nav("thinking")', briefings)
+        self.assertIn("BRIEFINGS_CSS", briefings)
+        self.assertIn("PROMO_CSS", source("src/thinking_landing.py"))
         self.assertNotIn('src="/executive-ai-briefings.svg"', visuals)
         self.assertNotIn("<img", visuals)
 

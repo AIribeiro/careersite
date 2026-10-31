@@ -6,6 +6,7 @@ from site_assets import THINKING_PANEL_URI, PANEL_DIALOGUE_URI, LINKEDIN, MEDIUM
 from site_components import nav, footer, journey_next, opportunity, THOUGHTS, thought_grid
 from thinking_articles import article_by_key, article_relative_url
 from thinking_core import THINKING_CSS
+from briefings_visual import PROMO_CSS, briefing_visual
 
 
 CURRENT_PRIMARY = "stop_ai_use_case"
@@ -156,12 +157,20 @@ THINKING_APPROACH_CSS = r'''<style>
 def landing() -> str:
     primary = article_by_key(CURRENT_PRIMARY)
     secondary = article_by_key(CURRENT_SECONDARY)
-    return f'''{THINKING_CSS}{SPEAKING_CSS}{THINKING_APPROACH_CSS}{nav("thinking")}<main>
+    return f'''{THINKING_CSS}{SPEAKING_CSS}{THINKING_APPROACH_CSS}{PROMO_CSS}{nav("thinking")}<main>
 <section class="pagehero"><div class="container"><p class="eyebrow">Thinking · Articles &amp; Knowledge Sharing</p><h1>What I’ve learned about AI—and what I’m still questioning.</h1><p>My articles draw on the decisions and trade-offs I’ve faced in enterprise AI and Data leadership: what to prioritize, how to govern responsibly, what makes adoption real, and how to judge business value.</p><p>I share these perspectives to make practical experience useful to others, challenge my own assumptions and keep learning through conversation.</p></div></section>
-<section class="section paper" data-analytics-section="thinking-executive-briefings"><div class="container">
-<div class="head"><div><p class="eyebrow">Executive AI Briefings</p><h2>AI, explained through business decisions.</h2></div><p>A distinct series of concise executive explanations, informed by enterprise leadership experience and organized around the next decision—not technology terminology alone.</p></div>
-<div class="actions"><a class="btn dark" href="?page=briefings" target="_self" data-hq-event="thinking_briefings_open">Explore Executive AI Briefings →</a></div>
-</div></section>
+<section class="section paper" data-analytics-section="thinking-executive-briefings">
+<div class="container"><div class="thinking-briefing-card">
+<div class="thinking-briefing-copy">
+<p class="eyebrow">Executive AI Briefings · A decision-first series</p>
+<h2>Clarity before the next AI decision.</h2>
+<p>Executives rarely need another explanation of AI terminology. They need to know which business problem a capability can address, what trade-offs it introduces, who will be accountable and which evidence should justify the investment. These short briefings turn complex AI choices into practical leadership questions.</p>
+<ul class="thinking-briefing-points"><li>Understand the choice</li><li>Challenge the trade-off</li><li>Decide what comes next</li></ul>
+<div class="thinking-briefing-ctas">
+<a href="?page=briefings" target="_self" data-hq-event="thinking_briefings_open">Explore executive briefings →</a>
+<a href="?page=contact" target="_self" data-hq-event="thinking_briefings_contact">Discuss an AI decision →</a></div>
+</div><figure class="thinking-briefing-art">{briefing_visual()}<figcaption>Business value · Ownership · Decision quality</figcaption></figure>
+</div></div></section>
 <section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Selected writing</p><h2>Explore the articles.</h2></div><p>Explore practical perspectives on AI priorities, accountability, adoption, governance and business value.</p></div>{_recent_cards()}{_upcoming_preview()}</div></section>
 <section class="section paper"><div class="container"><div class="head"><div><p class="eyebrow">Further reading</p><h2>Longer perspectives behind the decisions.</h2></div><p>Longer pieces on strategy, value, operating models, governance, data readiness and adoption. They give more context to the shorter, current material above.</p></div>{thought_grid(THOUGHTS,"articles")}<div class="actions"><a class="btn dark" href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_thinking">More writing on Medium ↗</a><a class="btn dark" href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_thinking">LinkedIn ↗</a></div></div></section>
 <section class="section white thinking-approach" data-analytics-section="thinking-approach"><div class="container">

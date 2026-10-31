@@ -15,6 +15,10 @@ This section is **authoritative** wherever older text below describes Monday pub
 - **One issue per week**: Check Supabase `public.careersite_articles` in project `rnqweoxtynelfirffmlr` for a published issue matching ISO week and slug before any insert. Never duplicate, overwrite or rewrite historical issues. Failure of a verification stage is a reported blocker, not permission to fabricate success.
 
 
+## Relationship to Executive AI Briefings
+
+Follow [`docs/editorial_channel_selection.md`](editorial_channel_selection.md) when recommending contextual portfolio follow-up reading. Executive AI Briefings are independent, evergreen, decision-first Content Studio publications, not extra Friday news items or substitutes for verified original publishers. A link to a relevant **already-published individual briefing** may be offered as supplementary leadership reading only where it materially helps the reader; never force a briefing, alter the established Friday release, introduce a second weekly social post, or count a briefing as one of the 3–5 original external reports. The first-party editorial/distribution URL rules and no-fabricated-verification gates remain in force.
+
 ## Editorial contract
 
 The dedicated **Weekly AI** feature is the first editorial section immediately below the Thinking navigation, above the regular essays and page introduction. It uses a distinct navy/copper treatment with a large **Week** identifier, a prominent one-minute reading link and a permanent **Browse all weeks** link. It must never appear as a regular "Latest articles" card. The all-weeks page groups every published edition by ISO 8601 week-year; any new issue is automatically discoverable without modifying the page or making a separate archive record.

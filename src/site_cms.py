@@ -1253,6 +1253,20 @@ def render_cms_article(article: CmsArticle) -> str:
 .cms-source{margin-top:28px!important;padding-top:18px;border-top:1px solid var(--line)}.cms-source a{font-size:11px;font-weight:850;text-decoration:none}.article-signature{margin:38px 0 0;padding-top:18px;border-top:1px solid var(--line)}.article-signature a{color:var(--copper)!important;text-decoration:none!important;font:600 19px/1.2 Georgia,serif}.article-signature a:hover{text-decoration:underline!important}.article-body h3{margin:34px 0 14px;font:500 26px/1.15 Georgia,serif}.article-body ul,.article-body ol{margin:0 0 24px;padding-left:24px;color:#343b43;font-size:16px;line-height:1.75}.article-body li{margin:7px 0}.article-body hr{border:0;border-top:1px solid var(--line);margin:34px 0}
 </style>'''
 
+    if article.kind == "Executive Briefing":
+        # Preserve CMS publication and sources, but offer a concise executive
+        # decision view before optional supporting depth.
+        from page_executive_briefings import executive_briefing_article
+        return executive_briefing_article(
+            article=article,
+            read_metadata=read_metadata,
+            image=image,
+            tags=tags,
+            source=source,
+            share_footer=_share_footer(article),
+            cms_css=CMS_FALLBACK_CSS + css,
+        )
+
     return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="{briefing_back_href}" target="_self">{briefing_back_text}</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
 
 

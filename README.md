@@ -150,6 +150,8 @@ No ratings, stars, testimonial-wall language, praise carousel or “trusted by i
 
 ## Executive AI Briefings
 
+Editorial **format selection is governed by** [`docs/editorial_channel_selection.md`](docs/editorial_channel_selection.md). Executive Briefings are selected for specific high-value management decisions, not as a mandatory additional publication slot. Select the relevant individual published briefing for contextual posts/newsletters; link the library index only for collection-level introductions. The LinkedIn and Weekly AI cadences remain unchanged.
+
 **Executive AI Briefings** is a distinct public editorial series under Thinking, not a seventh primary-navigation item or a consulting offer. It explains AI capabilities through the business decisions leaders need to make, supported by original decision visuals and field-informed judgment.
 
 - The index route is `?page=briefings`; its social/search permalink is `/briefings`. The first CMS-published briefing uses the canonical `/thinking/<slug>` article route.

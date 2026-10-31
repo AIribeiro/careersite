@@ -904,7 +904,8 @@ def embedded_header_image_src(article: CmsArticle) -> str:
 
 
 def article_relative_url(article: CmsArticle) -> str:
-    return f"?page=thinking&article={parse.quote(article.slug, safe='')}"
+    page = "briefing" if article.kind.strip().casefold() == "executive briefing" else "thinking"
+    return f"?page={page}&article={parse.quote(article.slug, safe='')}"
 
 
 def article_url(article: CmsArticle) -> str:

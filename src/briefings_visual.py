@@ -26,9 +26,9 @@ def briefing_icon(name: str) -> str:
     )
 
 
-def briefing_visual() -> str:
+def briefing_image_svg() -> str:
     """A purpose-built executive decision image; labels are part of the artwork."""
-    return '''<svg class="briefing-visual" viewBox="0 0 680 440" role="img" 
+    return '''<svg class="briefing-visual" viewBox="0 28.75 680 382.5" role="img" 
         aria-label="Executive decision illustration connecting business value, risk, ownership and adoption"
         xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -73,6 +73,17 @@ def briefing_visual() -> str:
     </svg>'''
 
 
+
+def briefing_visual() -> str:
+    """First-party image element: reliable in Streamlit HTML and Safari."""
+    return (
+        '<img class="briefing-visual" src="/executive-ai-briefings.svg" '
+        'width="680" height="383" role="img" '
+        'alt="Executive decision diagram connecting business value, exposure and risk, '
+        'accountability, and adoption" loading="eager" decoding="async">'
+    )
+
+
 PROMO_CSS = r'''<style>
 .site .thinking-briefing-card{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(325px,.94fr);background:#0e1d2d;color:#f8f6f2;border:1px solid #324355;overflow:hidden;box-shadow:0 24px 60px rgba(11,18,32,.13)}
 .site .thinking-briefing-copy{padding:clamp(30px,4.3vw,58px);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-width:0}
@@ -85,10 +96,10 @@ PROMO_CSS = r'''<style>
 .site .thinking-briefing-ctas a{display:inline-flex;align-items:center;min-height:46px;text-decoration:none!important;font:750 12px/1.3 Arial,sans-serif;padding:12px 17px;border:1px solid #d6a47e}
 .site .thinking-briefing-ctas a:first-child{background:#e4b48e;color:#101f30!important}
 .site .thinking-briefing-ctas a:last-child{color:#f9f1ea!important}
-.site .thinking-briefing-art{margin:0;position:relative;display:flex;align-items:center;background:#132c40;min-height:440px;overflow:hidden}
-.site .thinking-briefing-art .briefing-visual{display:block;width:100%;height:100%;object-fit:cover}
-.site .thinking-briefing-art figcaption{position:absolute;left:22px;bottom:18px;padding:9px 12px;background:rgba(10,27,42,.88);color:#e3c0a6;font:750 10px/1.5 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
-@media(max-width:980px){.site .thinking-briefing-card{grid-template-columns:minmax(0,1fr)}.site .thinking-briefing-art{min-height:0;aspect-ratio:16/9;order:-1}.site .thinking-briefing-copy{padding:32px}}
-@media(max-width:650px){.site .thinking-briefing-copy{padding:27px 24px}.site .thinking-briefing-copy p{font-size:14px}.site .thinking-briefing-points{gap:10px}.site .thinking-briefing-points li{font-size:10px}.site .thinking-briefing-art{aspect-ratio:1.5/1}.site .thinking-briefing-art figcaption{display:none}.site .thinking-briefing-ctas{display:grid;width:100%}.site .thinking-briefing-ctas a{justify-content:center}}
+.site .thinking-briefing-art{margin:0;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-width:0;min-height:0;padding:24px 19px;background:radial-gradient(ellipse at center,#24445b 0%,#132c40 72%);overflow:hidden}
+.site .thinking-briefing-art .briefing-visual{display:block;flex:0 0 auto;width:min(100%,600px);max-width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;box-shadow:0 12px 38px rgba(0,0,0,.24);border:1px solid rgba(238,191,151,.24)}
+.site .thinking-briefing-art figcaption{position:static;box-sizing:border-box;display:block;width:min(100%,600px);padding:0;background:transparent;color:#e3c0a6;font:750 10px/1.5 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+@media(max-width:980px){.site .thinking-briefing-card{grid-template-columns:minmax(0,1fr)}.site .thinking-briefing-art{order:-1;padding:17px 17px 21px;aspect-ratio:auto;min-height:0}.site .thinking-briefing-copy{padding:32px}}
+@media(max-width:650px){.site .thinking-briefing-copy{padding:27px 24px}.site .thinking-briefing-copy p{font-size:14px}.site .thinking-briefing-points{gap:10px}.site .thinking-briefing-points li{font-size:10px}.site .thinking-briefing-art{padding:11px 11px 15px;aspect-ratio:auto}.site .thinking-briefing-art figcaption{font-size:8px}.site .thinking-briefing-ctas{display:grid;width:100%}.site .thinking-briefing-ctas a{justify-content:center}}
 @media(prefers-reduced-motion:reduce){.site .thinking-briefing-ctas a{transition:none}}
 </style>'''

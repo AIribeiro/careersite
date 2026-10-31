@@ -85,7 +85,7 @@ PROMO_CSS = r'''<style>
 .site .thinking-briefing-ctas a{display:inline-flex;align-items:center;min-height:46px;text-decoration:none!important;font:750 12px/1.3 Arial,sans-serif;padding:12px 17px;border:1px solid #d6a47e}
 .site .thinking-briefing-ctas a:first-child{background:#e4b48e;color:#101f30!important}
 .site .thinking-briefing-ctas a:last-child{color:#f9f1ea!important}
-.site .thinking-briefing-art{position:relative;display:flex;align-items:center;background:#132c40;min-height:440px;overflow:hidden}
+.site .thinking-briefing-art{margin:0;position:relative;display:flex;align-items:center;background:#132c40;min-height:440px;overflow:hidden}
 .site .thinking-briefing-art .briefing-visual{display:block;width:100%;height:100%;object-fit:cover}
 .site .thinking-briefing-art figcaption{position:absolute;left:22px;bottom:18px;padding:9px 12px;background:rgba(10,27,42,.88);color:#e3c0a6;font:750 10px/1.5 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
 @media(max-width:980px){.site .thinking-briefing-card{grid-template-columns:minmax(0,1fr)}.site .thinking-briefing-art{min-height:0;aspect-ratio:16/9;order:-1}.site .thinking-briefing-copy{padding:32px}}

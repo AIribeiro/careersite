@@ -15,14 +15,22 @@ ICON_PATHS = {
     "compass": '<circle cx="12" cy="12" r="9"/><path d="m15 9-2 5-4 1 2-5z"/>',
 }
 
+# Text-first icons survive Streamlit's HTML sanitizer. Inline SVGs did not:
+# removing an SVG node collapsed adjacent CSS grid text into a 31px column.
+ICON_GLYPHS = {
+    "target": "◎", "shield": "◇", "users": "◉", "chart": "↗",
+    "layers": "▤", "spark": "✦", "search": "⌕", "workflow": "⇢",
+    "check": "✓", "compass": "◈",
+}
+
+
 def briefing_icon(name: str) -> str:
-    """Decorative line symbols, kept local instead of relying on icon CDNs."""
-    paths = ICON_PATHS.get(name, ICON_PATHS["compass"])
+    """A stable decorative HTML element (not an SVG or remote icon)."""
+    from html import escape
+    safe_name = name if name in ICON_GLYPHS else "compass"
     return (
-        '<svg class="briefing-icon" viewBox="0 0 24 24" width="23" height="23" '
-        'fill="none" stroke="currentColor" stroke-width="1.6" '
-        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-        f'{paths}</svg>'
+        f'<span class="briefing-icon briefing-icon-{safe_name}" aria-hidden="true">'
+        f'{escape(ICON_GLYPHS[safe_name])}</span>'
     )
 
 

@@ -16,6 +16,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from thinking_articles import ARTICLES, BASE_URL, article_app_url, article_url, resolve_article
+from briefings_visual import briefing_image_svg
 from thinking_social import ensure_article_share_page, ensure_article_social_image
 from site_cms import bundled_header_bytes, cms_share_document, cms_sitemap_entries, fetch_public_article, render_cms_social_image
 from site_social_preview import PUBLIC_URL as SITE_SOCIAL_IMAGE
@@ -246,6 +247,19 @@ async def _thinking_social_image(request):
     )
 
 
+
+async def _executive_briefing_image(_request):
+    """First-party SVG served as an image to avoid inline-SVG sanitization."""
+    return Response(
+        briefing_image_svg(),
+        media_type="image/svg+xml",
+        headers={
+            "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
 async def _cms_header_image(request):
     slug = str(request.path_params.get("slug") or "").strip().lower()
     data = bundled_header_bytes(slug)
@@ -341,6 +355,7 @@ app = App(
         Route("/ai-data-governance", _ai_data_governance_share, methods=["GET", "HEAD"]),
         Route("/briefings", _briefings_share, methods=["GET", "HEAD"]),
         Route("/social/{slug}.png", _thinking_social_image, methods=["GET", "HEAD"]),
+        Route("/executive-ai-briefings.svg", _executive_briefing_image, methods=["GET", "HEAD"]),
         Route("/cms-header/{slug}.webp", _cms_header_image, methods=["GET", "HEAD"]),
         Route("/cms-social/{slug}.png", _cms_social_image, methods=["GET", "HEAD"]),
         Route("/robots.txt", _robots, methods=["GET", "HEAD"]),

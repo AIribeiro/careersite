@@ -28,6 +28,17 @@ class ExecutiveBriefingReaderTests(unittest.TestCase):
         self.assertIn('data-analytics-section="thinking-executive-briefings"', page)
         self.assertIn('data-hq-event="thinking_briefings_contact"', page)
 
+    def test_promo_banner_uses_first_party_image_with_compact_sixteen_nine_ratio(self):
+        visuals = source("src/briefings_visual.py")
+        app = source("app.py")
+        self.assertIn('src="/executive-ai-briefings.svg"', visuals)
+        self.assertIn("aspect-ratio:16/9", visuals)
+        self.assertIn('viewBox="0 28.75 680 382.5"', visuals)
+        self.assertIn("def briefing_image_svg()", visuals)
+        self.assertIn('Route("/executive-ai-briefings.svg"', app)
+        self.assertIn("media_type=\"image/svg+xml\"", app)
+        self.assertNotIn("min-height:440px", visuals)
+
     def test_index_is_short_and_only_lists_published_work(self):
         page = source("src/page_executive_briefings.py")
         self.assertIn('BRIEFING_KIND = "Executive Briefing"', page)

@@ -28,16 +28,19 @@ class ExecutiveBriefingReaderTests(unittest.TestCase):
         self.assertIn('data-analytics-section="thinking-executive-briefings"', page)
         self.assertIn('data-hq-event="thinking_briefings_contact"', page)
 
-    def test_promo_banner_uses_first_party_image_with_compact_sixteen_nine_ratio(self):
+    def test_promo_banner_is_self_contained_and_compact_sixteen_nine(self):
         visuals = source("src/briefings_visual.py")
-        app = source("app.py")
-        self.assertIn('src="/executive-ai-briefings.svg"', visuals)
+        briefings = source("src/page_executive_briefings.py")
+        self.assertIn('class="briefing-visual"', visuals)
+        self.assertIn('class="bv-board"', visuals)
+        self.assertIn("Business value", visuals)
+        self.assertIn("Exposure &amp; risk", visuals)
+        self.assertIn("Accountability", visuals)
+        self.assertIn("Adoption", visuals)
         self.assertIn("aspect-ratio:16/9", visuals)
-        self.assertIn('viewBox="0 28.75 680 382.5"', visuals)
-        self.assertIn("def briefing_image_svg()", visuals)
-        self.assertIn('Route("/executive-ai-briefings.svg"', app)
-        self.assertIn("media_type=\"image/svg+xml\"", app)
-        self.assertNotIn("min-height:440px", visuals)
+        self.assertIn("BRIEFINGS_CSS + PROMO_CSS", briefings)
+        self.assertNotIn('src="/executive-ai-briefings.svg"', visuals)
+        self.assertNotIn("<img", visuals)
 
     def test_index_is_short_and_only_lists_published_work(self):
         page = source("src/page_executive_briefings.py")
@@ -62,7 +65,8 @@ class ExecutiveBriefingReaderTests(unittest.TestCase):
         visual = source("src/briefings_visual.py")
         self.assertIn('role="img"', visual)
         self.assertIn("aria-label=", visual)
-        self.assertIn("viewBox=", visual)
+        self.assertIn('class="bv-board"', visual)
+        self.assertIn("Pure HTML/CSS artwork", visual)
         self.assertIn("prefers-reduced-motion", visual)
         self.assertNotIn("<script", visual)
 

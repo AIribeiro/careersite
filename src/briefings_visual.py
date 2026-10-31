@@ -34,6 +34,54 @@ def briefing_icon(name: str) -> str:
     )
 
 
+def briefing_image_svg() -> str:
+    """A purpose-built executive decision image; labels are part of the artwork."""
+    return '''<svg class="briefing-visual" viewBox="0 28.75 680 382.5" role="img" 
+        aria-label="Executive decision illustration connecting business value, risk, ownership and adoption"
+        xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="br-canvas" x1="0" x2="1" y1="0" y2="1">
+          <stop stop-color="#0a2033"/><stop offset=".56" stop-color="#163248"/>
+          <stop offset="1" stop-color="#213b50"/>
+        </linearGradient>
+        <linearGradient id="br-copper" x1="0" x2="1"><stop stop-color="#eac5a5"/><stop offset="1" stop-color="#b8734f"/></linearGradient>
+        <pattern id="br-grid" width="34" height="34" patternUnits="userSpaceOnUse">
+          <path d="M34 0H0V34" fill="none" stroke="#8ca2af" stroke-opacity=".09"/>
+        </pattern>
+        <radialGradient id="br-halo"><stop stop-color="#a9e0ec" stop-opacity=".2"/><stop offset="1" stop-color="#a9e0ec" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="680" height="440" rx="2" fill="url(#br-canvas)"/>
+      <rect width="680" height="440" fill="url(#br-grid)"/>
+      <circle cx="337" cy="227" r="225" fill="url(#br-halo)"/>
+      <path d="M118 118H562M118 335H562" stroke="#d6ae8b" opacity=".26" stroke-dasharray="4 8"/>
+      <circle cx="337" cy="220" r="132" fill="none" stroke="#9eb5c6" opacity=".30" stroke-dasharray="3 8"/>
+      <circle cx="337" cy="220" r="93" fill="none" stroke="#d4a987" opacity=".58"/>
+      <path d="M222 149 275 185M455 149 399 185M220 302 275 258M455 302 399 258" fill="none" stroke="url(#br-copper)" stroke-width="2"/>
+      <g fill="#d4a987"><circle cx="275" cy="185" r="4"/><circle cx="399" cy="185" r="4"/><circle cx="275" cy="258" r="4"/><circle cx="399" cy="258" r="4"/></g>
+      <circle cx="337" cy="220" r="77" fill="#0d2235" stroke="#e0b695" stroke-width="1.5"/>
+      <path d="m318 222 15 15 29-33" fill="none" stroke="#e3b99a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="337" y="278" text-anchor="middle" fill="#f8f4ed" font-size="13" font-family="Arial,sans-serif" font-weight="700" letter-spacing="2">DECISION</text>
+      <g font-family="Arial,sans-serif" text-anchor="middle">
+       <rect x="58" y="92" width="166" height="76" rx="4" fill="#183649" stroke="#748ca0" stroke-opacity=".64"/>
+       <text x="141" y="123" fill="#e8b991" font-weight="700" font-size="11" letter-spacing="2">01</text>
+       <text x="141" y="145" fill="#f2f5f5" font-size="15" font-weight="700">Business value</text>
+       <rect x="456" y="92" width="166" height="76" rx="4" fill="#183649" stroke="#748ca0" stroke-opacity=".64"/>
+       <text x="539" y="123" fill="#e8b991" font-weight="700" font-size="11" letter-spacing="2">02</text>
+       <text x="539" y="145" fill="#f2f5f5" font-size="15" font-weight="700">Exposure &amp; risk</text>
+       <rect x="58" y="278" width="166" height="76" rx="4" fill="#183649" stroke="#748ca0" stroke-opacity=".64"/>
+       <text x="141" y="309" fill="#e8b991" font-weight="700" font-size="11" letter-spacing="2">03</text>
+       <text x="141" y="331" fill="#f2f5f5" font-size="15" font-weight="700">Accountability</text>
+       <rect x="456" y="278" width="166" height="76" rx="4" fill="#183649" stroke="#748ca0" stroke-opacity=".64"/>
+       <text x="539" y="309" fill="#e8b991" font-weight="700" font-size="11" letter-spacing="2">04</text>
+       <text x="539" y="331" fill="#f2f5f5" font-size="15" font-weight="700">Adoption</text>
+      </g>
+      <path d="M38 39h28M614 399h28" stroke="#e5b48e" stroke-width="2"/>
+      <text x="76" y="43" fill="#c1ced6" font-family="Arial,sans-serif" font-weight="700" letter-spacing="2.1" font-size="11">THE EXECUTIVE LENS</text>
+      <text x="608" y="404" text-anchor="end" fill="#c1ced6" font-family="Arial,sans-serif" letter-spacing="1.3" font-size="10">AI · WORK · OUTCOME</text>
+    </svg>'''
+
+
+
 def briefing_visual() -> str:
     """Self-contained visual: no SVG sanitization, image fetch, or CDN dependency.
 

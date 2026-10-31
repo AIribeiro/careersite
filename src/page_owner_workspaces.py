@@ -412,10 +412,9 @@ def _current_stage_groups(prediction: dict, plans: dict | None) -> tuple[list[di
 
 
 def render_owner_stage_dashboard(session: dict) -> None:
-    """Owner-only stage/MTO board: scheduled snapshot plus current meeting evidence."""
-    from page_hiring_daily import read_daily_history
+    """Owner-only stage/MTO board: fresh owner forecast plus current meeting evidence."""
     from page_hiring_prediction_v2 import (
-        STAGE_NAMES, validate_prediction_v2, _verified_meetings_by_process,
+        STAGE_NAMES, fetch_hiring_prediction_v2, _verified_meetings_by_process,
     )
     from hiring_opportunity_comparison import opportunity_comparison_html
 
@@ -429,14 +428,16 @@ def render_owner_stage_dashboard(session: dict) -> None:
         st.warning("Sign in as the portfolio owner to see hiring stages and MTO.")
         return
     try:
-        snapshots = read_daily_history(token, limit=1)
-        if not snapshots:
-            st.warning("No dated hiring-stage assessment is available. Earlier forecasts are not substituted.")
-            return
-        latest = snapshots[0]
-        prediction = validate_prediction_v2(latest.get("scenario"))
-    except (RuntimeError, ValueError, TimeoutError, PermissionError, KeyError) as exc:
-        st.warning("The hiring-stage snapshot is unavailable; the board cannot verify process stages.")
+        # This must be a fresh owner-authorized forecast read, not the last
+        # scheduled daily snapshot. Snapshots belong to historical reporting;
+        # they can retain a superseded closed/reconciled classification after
+        # the live recruiting data has already been corrected.
+        prediction = fetch_hiring_prediction_v2(token)
+    except (RuntimeError, ValueError, TimeoutError, PermissionError, KeyError):
+        st.warning(
+            "The live hiring-stage forecast is unavailable. A stored daily "
+            "snapshot is not shown as current hiring evidence."
+        )
         return
 
     counts = details = plans = None
@@ -444,8 +445,8 @@ def render_owner_stage_dashboard(session: dict) -> None:
         counts, details, plans = _verified_meetings_by_process(token, with_details=True)
     except (RuntimeError, TimeoutError, ValueError, PermissionError):
         st.warning(
-            "Live meeting/outcome records are unavailable. The stage snapshot may include "
-            "a process subsequently closed, and attended meeting counts cannot be verified."
+            "Live meeting/outcome records are unavailable. The forecast is current, "
+            "but recently closed opportunities and attendance counts cannot be verified."
         )
 
     progressed, applied = _current_stage_groups(prediction, plans)
@@ -462,21 +463,21 @@ def render_owner_stage_dashboard(session: dict) -> None:
             progressed = [p for p in progressed if p in matching]
             applied = [p for p in applied if p in matching]
         else:
-            st.warning("This exact requisition is not present in the latest stage snapshot; no stage was inferred.")
+            st.warning("This exact requisition is not present in the live stage forecast; no stage was inferred.")
             if st.button("Show all current stages", key="owner_stage_clear_missing_focus"):
                 st.query_params.pop("process", None)
                 st.rerun()
-    assessment_day = str(latest.get("forecast_day") or prediction.get("as_of") or "Unknown")
+    assessment_day = str(prediction.get("as_of") or "Unknown")
     today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
     st.caption(
-        f"Stage assessment: {assessment_day} · Meeting attendance and employer outcomes: "
+        f"Live stage assessment: {assessment_day} · Meeting attendance and employer outcomes: "
         + ("latest owner records" if plans is not None else "unavailable")
         + ". A scheduled interview is not a held meeting."
     )
     if assessment_day < today:
         st.warning(
-            "The stage assessment predates today. Current outcomes are checked separately "
-            "when the recruiting ledger is available."
+            "The live stage assessment date predates today. Current outcomes are checked "
+            "separately when the recruiting ledger is available."
         )
 
     if progressed:

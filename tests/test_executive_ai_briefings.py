@@ -35,6 +35,19 @@ class ExecutiveAiBriefingTests(unittest.TestCase):
         self.assertIn("executive-capability-grid", content("src/site_styles.py"))
         self.assertIn("def _render_executive_social_image", cms)
 
+    def test_seven_question_visuals_and_article_route(self):
+        visuals = content("src/executive_questions_visuals.py")
+        cms = content("src/site_cms.py")
+        self.assertIn('SLUG = "seven-questions-for-better-ai-decisions"', visuals)
+        self.assertIn("aiq-flow-items", visuals)
+        self.assertIn("aiq-cards", visuals)
+        self.assertIn("aiq-cover-orbit", visuals)
+        for icon in ("focus", "clarify", "test", "evidence", "cause", "effect", "act"):
+            self.assertIn("aiq-icon-" + icon, visuals)
+        self.assertIn("from executive_questions_visuals import cover", cms)
+        self.assertIn("from executive_questions_visuals import QUESTIONS_STYLES", cms)
+        self.assertIn("from executive_questions_visuals import social_image", cms)
+
     def test_seo_and_analytics_discovery(self):
         self.assertIn('"briefings": "Executive AI Briefings', content("src/site_meta.py"))
         page = content("src/page_executive_briefings.py")

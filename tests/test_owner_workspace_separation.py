@@ -15,6 +15,7 @@ from page_analytics_v2 import _WORKSPACE_LABELS, _resolve_workspace
 from page_owner_workspaces import (
     _PORTFOLIO_VIEWS, _SOCIAL_VIEWS, _social_rows,
     render_owner_portfolio, render_owner_social, render_owner_hiring_home,
+    render_owner_stage_dashboard,
 )
 
 
@@ -53,6 +54,45 @@ class OwnerWorkspaceSeparationTests(unittest.TestCase):
         self.assertIn("_action_queue", source)
         self.assertIn("fetch_job_records", source)
         self.assertIn("include_portfolio: bool = True", inspect.getsource(render_public_job_search))
+
+    def test_stage_dashboard_uses_current_owner_forecast_not_daily_snapshot(self):
+        from unittest.mock import MagicMock
+        live = {
+            "model_version": "hiring-v4-stage-review-market-live-v1",
+            "as_of": "2026-10-31", "portfolio_credibility_index": 80.3,
+            "cohort": {"eligible_scored": 2},
+            "top_processes": [
+                {"process_key": "leovegas mobile gaming group|ai strategy and transformation lead",
+                 "employer": "LeoVegas Mobile Gaming Group",
+                 "role": "AI Strategy and Transformation Lead",
+                 "status": "active_unknown_decision", "stage": "final_interview_scheduled"},
+                {"process_key": "kpmg|ai lead - manager - tax & legal technology",
+                 "employer": "KPMG", "role": "AI Lead – Manager, Tax & Legal Technology",
+                 "status": "active_unknown_decision", "stage": "subsequent_interview_completed"},
+                {"process_key": "betsson group|head of sb product - data & ai",
+                 "employer": "Betsson Group", "role": "Head of SB Product",
+                 "status": "employer_rejection", "stage": "first_interview_completed"},
+            ],
+        }
+        ui = MagicMock()
+        ui.query_params = {}
+        def render_names(processes, *args):
+            return ", ".join(p["employer"] for p in processes)
+        with patch("page_owner_workspaces.st", ui), \\
+             patch("page_hiring_prediction_v2.fetch_hiring_prediction_v2",
+                   return_value=live) as fetch, \\
+             patch("page_hiring_prediction_v2._verified_meetings_by_process",
+                   return_value=({}, {}, {})), \\
+             patch("hiring_opportunity_comparison.opportunity_comparison_html",
+                   side_effect=render_names):
+            render_owner_stage_dashboard({"access_token": "owner-jwt"})
+        fetch.assert_called_once_with("owner-jwt")
+        markdown = [str(c.args[0]) for c in ui.markdown.call_args_list if c.args]
+        self.assertTrue(any("KPMG" in m and "LeoVegas" in m for m in markdown))
+        self.assertFalse(any("Betsson" in m for m in markdown))
+        source = inspect.getsource(render_owner_stage_dashboard)
+        self.assertNotIn("read_daily_history", source)
+        self.assertIn("fetch_hiring_prediction_v2", source)
 
     def test_social_source_aggregates_exclude_unknown_and_non_social(self):
         report = {"campaigns": [

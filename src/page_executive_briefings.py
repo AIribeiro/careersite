@@ -337,10 +337,10 @@ def executive_briefing_article(
     article, read_metadata: str, image: str, tags: str, source: str,
     share_footer: str, cms_css: str,
 ) -> str:
-    """A readable executive synopsis with the complete publication optional.
+    """Render an independent article, exposing its principal content directly.
 
-    CMS remains the source of truth. The full article and references are
-    preserved in a native disclosure rather than removed or rewritten.
+    The CMS remains authoritative for editorial content and source references.
+    The seven-question guide has a curated executive structure of its own.
     """
     from thinking_core import THINKING_CSS
 
@@ -425,7 +425,7 @@ def executive_briefing_article(
         + '<article class="briefing-full-content" data-analytics-section="briefing-reader-full-article">'
         '<div class="briefing-full-content-head"><span class="briefings-index">The full briefing</span>'
         '<h2>Reasoning, examples and practical considerations</h2>'
-        '<p>The complete published briefing is below—no hidden body text or broken image dependency.</p></div>'
+        '<p>The complete published perspective, with the reasoning and operational considerations behind the decision.</p></div>'
         f'<div class="article-body briefing-reader-research">{article.content_html}{tags}{source}</div>'
         '</article>'
         '<div class="briefing-reader-bottom"><p>'

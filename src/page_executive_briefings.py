@@ -15,6 +15,7 @@ from site_cms import fetch_published_articles, article_relative_url
 
 BRIEFING_KIND = "Executive Briefing"
 FIRST_SLUG = "ai-capabilities-executive-decisions"
+GOVERNANCE_SLUG = "ai-governance-explained-to-executives"
 
 # Capability categories are complementary tools, not a ladder of sophistication.
 CAPABILITIES = (
@@ -35,6 +36,16 @@ FIRST_DECISION = {
         ("Business outcome", "What will improve in cost, quality, speed or productivity?", "target"),
         ("Permission to act", "Is AI informing, recommending or executing—and who approves?", "shield"),
         ("Evidence of value", "How will changed work and its results be measured?", "chart"),
+    ),
+}
+
+GOVERNANCE_DECISION = {
+    "call": "Govern the business decision, not only the AI model.",
+    "move": "Pick one real workflow, name its business owner, verify the data it depends on, define what AI may do and set a review gate before scaling.",
+    "checks": (
+        ("Trusted information", "Who owns the definitions, quality, access and provenance of the data this use case needs?", "layers"),
+        ("Decision rights", "Who approves the use case, its risk, exceptions and any action taken by AI?", "users"),
+        ("Operating controls", "Which tests, monitoring, human reviews and stop rules make this system accountable?", "shield"),
     ),
 }
 
@@ -264,6 +275,14 @@ def _briefing_catalog_art(slug: str) -> str:
             '<span>Generate</span><span>Act</span></div>'
             '<div class="briefings-art-connector">Business outcome · Permission · Evidence</div></div>'
         )
+    if slug == GOVERNANCE_SLUG:
+        return (
+            '<div class="briefings-catalog-art briefings-catalog-art--governance" aria-hidden="true">'
+            '<span class="briefings-catalog-art-kicker">The operating governance test</span>'
+            '<div class="briefings-governance-art"><span>Ownership</span>'
+            '<span>Assurance</span><span>Actions</span></div>'
+            '<div class="briefings-governance-art-rule">Built on trusted data · accountable decisions</div></div>'
+        )
     if slug == "seven-questions-for-better-ai-decisions":
         return (
             '<div class="briefings-catalog-art briefings-catalog-art--questions" aria-hidden="true">'
@@ -371,7 +390,8 @@ def executive_briefing_article(
             '</div>' + contact_block() + '</main>' + footer()
         )
 
-    guide = FIRST_DECISION if article.slug == FIRST_SLUG else {
+    guide = (FIRST_DECISION if article.slug == FIRST_SLUG else
+             GOVERNANCE_DECISION if article.slug == GOVERNANCE_SLUG else {
         "call": "Make the business decision explicit.",
         "move": "Name the accountable owner, decide which evidence would change your answer and test the assumption before expanding.",
         "checks": (
@@ -379,7 +399,7 @@ def executive_briefing_article(
             ("The trade-off", "What could go wrong, and who can authorize the decision?", "shield"),
             ("The evidence", "What would justify the next investment?", "chart"),
         ),
-    }
+    })
     checks = ''.join(
         '<div class="briefing-reader-check">' + briefing_icon(symbol)
         + f'<div><strong>{escape(title)}</strong><p>{escape(question)}</p></div></div>'
@@ -402,7 +422,8 @@ def executive_briefing_article(
         'Machine learning, generative AI, retrieval-augmented generation and '
         'agents are complementary approaches—not a ladder of sophistication.</p>'
         f'<div class="briefings-map">{capabilities}</div></section>'
-    ) if article.slug == FIRST_SLUG else ''
+    ) if article.slug == FIRST_SLUG else (governance_decision_map()
+                                         if article.slug == GOVERNANCE_SLUG else '')
     return (
         THINKING_CSS + cms_css + BRIEFINGS_CSS + nav("thinking")
         + '<main class="briefing-reader">'
@@ -416,8 +437,8 @@ def executive_briefing_article(
         '<div class="container"><section class="briefing-reader-summary">'
         '<div><span class="briefings-index">The executive judgment</span>'
         f'<h2>{escape(guide["call"])}</h2>'
-        '<p>Frame the work before the technology. These questions make the '
-        'business outcome, permissions and evaluation criteria explicit.</p>'
+        '<p>Make the operating permissions, business outcome and '
+        'evidence for approval explicit before expanding AI use.</p>'
         '<div class="briefing-reader-next"><strong>Next move</strong>'
         f'<p>{escape(guide["move"])}</p></div></div>'
         f'<div class="briefing-reader-checks">{checks}</div></section>'

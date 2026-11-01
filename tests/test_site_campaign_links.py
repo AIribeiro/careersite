@@ -53,6 +53,75 @@ class AttributionLinkTests(unittest.TestCase):
         self.assertEqual(parsed.path, "/thinking/ai-portfolio")
         self.assertEqual(parse_qs(parsed.query)["source"], ["linkedin"])
 
+    def test_executive_briefing_reader_links_keep_the_briefing_route(self):
+        slug = "ai-governance-explained-to-executives"
+        canonical = f"https://jairribeiro-ai.streamlit.app/briefing/{slug}"
+        for channel in ("linkedin", "x", "email"):
+            with self.subTest(channel=channel):
+                url = make_distribution_link(
+                    canonical, channel=channel, campaign="thinking",
+                    content=slug,
+                )
+                parsed = urlparse(url)
+                self.assertEqual(parsed.path, "/")
+                params = parse_qs(parsed.query)
+                self.assertEqual(params["page"], ["briefing"])
+                self.assertEqual(params["article"], [slug])
+                self.assertEqual(params["utm_source"], [channel])
+                self.assertEqual(params["utm_campaign"], ["thinking"])
+                self.assertEqual(params["utm_content"], [slug])
+
+    def test_executive_briefing_social_preview_preserves_canonical_permalink(self):
+        slug = "ai-governance-explained-to-executives"
+        url = make_distribution_link(
+            f"https://jairribeiro-ai.streamlit.app/briefing/{slug}",
+            channel="linkedin", campaign="thinking", content=slug,
+            preview=True,
+        )
+        parsed = urlparse(url)
+        self.assertEqual(parsed.path, f"/briefing/{slug}")
+        self.assertEqual(parse_qs(parsed.query)["utm_source"], ["linkedin"])
+
+    def test_executive_briefing_footer_does_not_crash_and_links_to_briefing(self):
+        from html import unescape
+        import re
+        from site_cms import CmsArticle, _share_footer
+
+        slug = "ai-governance-explained-to-executives"
+        markup = _share_footer(CmsArticle(
+            title="AI Governance Explained to Executives",
+            slug=slug, kind="Executive Briefing", status="published",
+        ))
+        self.assertIn(
+            f'data-copy-url="https://jairribeiro-ai.streamlit.app/?page=briefing&amp;article={slug}"',
+            markup,
+        )
+        self.assertIn("More Executive AI Briefings", markup)
+        linkedin = re.search(
+            r'href="([^"]+)"[^>]+data-hq-event="article_share_linkedin"',
+            markup,
+        )
+        self.assertIsNotNone(linkedin)
+        target = parse_qs(urlparse(unescape(linkedin.group(1))).query)["url"][0]
+        parsed = urlparse(target)
+        self.assertEqual(parsed.path, f"/briefing/{slug}")
+        self.assertEqual(parse_qs(parsed.query)["utm_source"], ["linkedin"])
+
+    def test_full_length_cms_slugs_remain_valid_and_untrusted_paths_are_rejected(self):
+        slug = "b" * 150
+        url = make_distribution_link(
+            f"https://jairribeiro-ai.streamlit.app/briefing/{slug}",
+            channel="x", campaign="thinking", content=slug,
+        )
+        params = parse_qs(urlparse(url).query)
+        self.assertEqual(params["article"], [slug])
+        self.assertEqual(params["utm_content"], [slug])
+        with self.assertRaises(ValueError):
+            make_distribution_link(
+                "https://jairribeiro-ai.streamlit.app/briefing/../../admin",
+                channel="x", campaign="thinking",
+            )
+
     def test_reported_spinning_url_is_generated_as_native_streamlit_link(self):
         slug = "ai-is-turning-data-definitions-into-a-leadership-problem"
         link = make_distribution_link(

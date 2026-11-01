@@ -6,6 +6,7 @@ Only published Content Studio records are presented as published briefings.
 Original article bodies, citations and attribution remain available on demand.
 """
 
+import base64
 from html import escape
 from functools import lru_cache
 from pathlib import Path
@@ -320,7 +321,7 @@ BRIEFINGS_CSS = r'''<style>
 /* The governance SVG is injected inline, never requested from /app/static. */
 .site .gov-visual{margin:19px 0 0;padding:0;background:#fff;border:1px solid #dae1df}
 .site .gov-visual-art{width:100%;min-width:0;overflow:hidden;background:#fff}
-.site .gov-visual-art svg{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:16/9}
+.site .gov-visual-art img{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:16/9;object-fit:contain}
 .site .gov-visual figcaption{padding:12px 20px;border-top:1px solid #e4e7e5;color:#51616b;font:400 12px/1.55 Arial,sans-serif}
 .site .gov-visual figcaption strong{color:#193449}
 .site .gov-visual-fallback{padding:24px;background:#f5f8f7;color:#193449}
@@ -457,24 +458,40 @@ def _embedded_governance_svg() -> str:
 
 
 def governance_visual_map() -> str:
-    """Embed the complete scalable SVG in the page; never serve it by URL."""
+    """Render the checked-in SVG as a self-contained image data URL.
+
+    Streamlit static hosting returns SVG as text/plain with nosniff, while
+    st.html may sanitize inline SVG markup. An <img> data URI avoids both
+    problems and requires no additional network fetch or JS.
+    """
     svg = _embedded_governance_svg()
-    if not svg:
-        # No broken-image icon or blank 16:9 frame if an asset is missing.
-        fallback = "".join(
+    if svg:
+        image_data = base64.b64encode(svg.encode("utf-8")).decode("ascii")
+        graphic = (
+            '<img src="data:image/svg+xml;base64,' + image_data + '" '
+            'width="1536" height="864" loading="eager" decoding="async" '
+            'alt="Seven-layer AI governance model. Foundation: information '
+            'integrity and accountable ownership. Decisions: authority to '
+            'decide, rules in the workflow, risk and obligations. Execution: '
+            'system assurance and bounded AI action. Business outcome, risk '
+            'appetite and ownership apply across all layers.">'
+        )
+    else:
+        # If the file is not deployed, show content instead of an empty frame.
+        layers = "".join(
             '<li><strong>' + escape(title) + '</strong><span>' +
             escape(question) + '</span></li>'
             for _number, title, question, *_rest in GOVERNANCE_LAYERS
         )
-        svg = (
-            '<div class="gov-visual-fallback" role="img" aria-label="Seven layers '
-            'of AI governance from trusted information through bounded AI action">'
+        graphic = (
+            '<div class="gov-visual-fallback" role="group" '
+            'aria-label="Seven layers of AI governance">'
             '<p>The seven layers of AI governance</p><ol>'
-            + fallback + '</ol></div>'
+            + layers + '</ol></div>'
         )
     return (
         '<figure class="gov-visual" data-analytics-section="briefings-governance-visual">'
-        '<div class="gov-visual-art">' + svg + '</div>'
+        '<div class="gov-visual-art">' + graphic + '</div>'
         '<figcaption><strong>At-a-glance governance map.</strong> '
         'Seven connected layers to govern AI as a business decision, '
         'not only a technical system.</figcaption>'

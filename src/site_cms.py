@@ -1220,10 +1220,32 @@ def _share_footer(article: CmsArticle) -> str:
     return f'''<section class="article-share"><div class="article-share-grid"><div><p class="eyebrow">Share this article</p><h3>Useful for someone working through the same decision?</h3><p>Share it directly, or copy the permanent article link.</p></div><div class="share-actions"><a class="share-btn primary" href="{escape(linkedin, quote=True)}" target="_blank" rel="noopener noreferrer" data-hq-event="article_share_linkedin">LinkedIn ↗</a><a class="share-btn" href="{escape(x_url, quote=True)}" target="_blank" rel="noopener noreferrer" data-hq-event="article_share_x">X ↗</a><a class="share-btn" href="{escape(mailto, quote=True)}" data-hq-event="article_share_email">Email</a><button class="share-btn" type="button" data-copy-url="{escape(reader_url, quote=True)}" data-hq-event="article_share_copy">Copy link</button></div></div><div class="share-meta"><span>{escape(article.kind_topic)}</span><span>·</span><span>{escape(article.published_label)}</span><span>·</span><a href="{browse_url}" target="_self">{browse_label}</a><span class="share-copy-status" data-copy-status></span></div></section>'''
 
 
+
+def _safe_share_footer(article: CmsArticle) -> str:
+    """Keep published content readable when optional distribution links fail."""
+    try:
+        return _share_footer(article)
+    except ValueError:
+        # A malformed or newly introduced canonical path should never take
+        # down a published article or Executive Briefing.
+        import logging
+        logging.getLogger(__name__).exception(
+            "Article distribution links failed for slug %s", article.slug
+        )
+        reader = f"{BASE_URL}/{article_relative_url(article)}"
+        return (
+            '<section class="article-share"><div class="share-actions">'
+            '<button class="share-btn" type="button" '
+            f'data-copy-url="{escape(reader, quote=True)}" '
+            'data-hq-event="article_share_copy">Copy article link</button>'
+            '</div></section>'
+        )
+
+
 def render_cms_article(article: CmsArticle) -> str:
     from thinking_weekly_brief import is_weekly_brief, render_weekly_brief_article
     if is_weekly_brief(article):
-        return render_weekly_brief_article(article, _share_footer(article))
+        return render_weekly_brief_article(article, _safe_share_footer(article))
     from site_components import footer, nav, opportunity, journey_next
     from thinking_core import THINKING_CSS
 
@@ -1278,11 +1300,11 @@ def render_cms_article(article: CmsArticle) -> str:
             image=image,
             tags=tags,
             source=source,
-            share_footer=_share_footer(article),
+            share_footer=_safe_share_footer(article),
             cms_css=CMS_FALLBACK_CSS + css,
         )
 
-    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{questions_styles}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="{briefing_back_href}" target="_self">{briefing_back_text}</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
+    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{questions_styles}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="{briefing_back_href}" target="_self">{briefing_back_text}</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_safe_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
 
 
 def select_auto_featured_article(

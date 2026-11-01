@@ -73,7 +73,7 @@ async def _thinking_article(request):
         # tags on its human redirect; otherwise tagged social shares lose
         # their source and campaign before browser analytics sees them.
         params = [
-            ("page", "thinking"),
+            ("page", "briefing" if request.url.path.startswith("/briefing/") else "thinking"),
             ("article", slug),
         ]
         attribution_fields = {
@@ -351,6 +351,7 @@ app = App(
     routes=[
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),
+        Route("/briefing/{slug}", _thinking_article, methods=["GET", "HEAD"]),
         Route("/weekly-ai-audio/{slug}.mp3", _weekly_ai_audio_file, methods=["GET", "HEAD"]),
         Route("/ai-data-governance", _ai_data_governance_share, methods=["GET", "HEAD"]),
         Route("/briefings", _briefings_share, methods=["GET", "HEAD"]),

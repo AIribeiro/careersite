@@ -197,6 +197,23 @@ class AttributionLinkTests(unittest.TestCase):
         bundled = bundled_footer(ARTICLES[0].key)
         self.assertIn("utm_source%3Demail", bundled)
 
+    def test_failing_optional_share_links_do_not_take_down_a_briefing(self):
+        from unittest.mock import patch
+        from site_cms import CmsArticle, _safe_share_footer
+
+        slug = "ai-governance-explained-to-executives"
+        article = CmsArticle(
+            title="AI Governance Explained to Executives",
+            slug=slug, kind="Executive Briefing", status="published",
+        )
+        with patch("site_cms._share_footer", side_effect=ValueError("invalid destination")):
+            markup = _safe_share_footer(article)
+        self.assertIn("Copy article link", markup)
+        self.assertIn(
+            f'data-copy-url="https://jairribeiro-ai.streamlit.app/?page=briefing&amp;article={slug}"',
+            markup,
+        )
+
     def test_linkedin_share_offsite_uses_crawlable_cms_article_permalink(self):
         from html import unescape
         import re

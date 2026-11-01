@@ -909,7 +909,8 @@ def article_relative_url(article: CmsArticle) -> str:
 
 
 def article_url(article: CmsArticle) -> str:
-    return f"{BASE_URL}/thinking/{parse.quote(article.slug, safe='')}"
+    page = "briefing" if article.kind.strip().casefold() == "executive briefing" else "thinking"
+    return f"{BASE_URL}/{page}/{parse.quote(article.slug, safe='')}"
 
 
 def article_preview_url(article: CmsArticle) -> str:

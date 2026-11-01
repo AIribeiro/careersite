@@ -321,7 +321,7 @@ BRIEFINGS_CSS = r'''<style>
 /* The governance SVG is injected inline, never requested from /app/static. */
 .site .gov-visual{margin:19px 0 0;padding:0;background:#fff;border:1px solid #dae1df}
 .site .gov-visual-art{width:100%;min-width:0;overflow:hidden;background:#fff}
-.site .gov-visual-art img{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:16/9;object-fit:contain}
+.site .gov-visual-art img{display:block;width:100%;height:auto;max-width:100%;object-fit:contain}
 .site .gov-visual figcaption{padding:12px 20px;border-top:1px solid #e4e7e5;color:#51616b;font:400 12px/1.55 Arial,sans-serif}
 .site .gov-visual figcaption strong{color:#193449}
 .site .gov-visual-fallback{padding:24px;background:#f5f8f7;color:#193449}
@@ -469,7 +469,7 @@ def governance_visual_map() -> str:
         image_data = base64.b64encode(svg.encode("utf-8")).decode("ascii")
         graphic = (
             '<img src="data:image/svg+xml;base64,' + image_data + '" '
-            'width="1536" height="864" loading="eager" decoding="async" '
+            'loading="eager" decoding="async" '
             'alt="Seven-layer AI governance model. Foundation: information '
             'integrity and accountable ownership. Decisions: authority to '
             'decide, rules in the workflow, risk and obligations. Execution: '

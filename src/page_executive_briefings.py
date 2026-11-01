@@ -577,6 +577,21 @@ def executive_briefing_article(
         f'<div class="briefings-map">{capabilities}</div></section>'
     ) if article.slug == FIRST_SLUG else (governance_decision_map()
                                          if article.slug == GOVERNANCE_SLUG else '')
+    # The seven-layer operating architecture stays visible. Detailed rationale
+    # remains accessible but does not duplicate its seven proof points on screen.
+    full_article = (
+        '<details class="briefing-reader-detail" data-analytics-section="briefing-reader-full-article">'
+        '<summary>Read the full reasoning, application example and source references</summary>'
+        f'<div class="article-body briefing-reader-research">{article.content_html}{tags}{source}</div>'
+        '</details>'
+    ) if article.slug == GOVERNANCE_SLUG else (
+        '<article class="briefing-full-content" data-analytics-section="briefing-reader-full-article">'
+        '<div class="briefing-full-content-head"><span class="briefings-index">The full briefing</span>'
+        '<h2>Reasoning, examples and practical considerations</h2>'
+        '<p>The complete published perspective, with the reasoning and operational considerations behind the decision.</p></div>'
+        f'<div class="article-body briefing-reader-research">{article.content_html}{tags}{source}</div>'
+        '</article>'
+    )
     return (
         THINKING_CSS + cms_css + BRIEFINGS_CSS + nav("thinking")
         + '<main class="briefing-reader">'
@@ -596,12 +611,7 @@ def executive_briefing_article(
         f'<p>{escape(guide["move"])}</p></div></div>'
         f'<div class="briefing-reader-checks">{checks}</div></section>'
         + decision_map
-        + '<article class="briefing-full-content" data-analytics-section="briefing-reader-full-article">'
-        '<div class="briefing-full-content-head"><span class="briefings-index">The full briefing</span>'
-        '<h2>Reasoning, examples and practical considerations</h2>'
-        '<p>The complete published perspective, with the reasoning and operational considerations behind the decision.</p></div>'
-        f'<div class="article-body briefing-reader-research">{article.content_html}{tags}{source}</div>'
-        '</article>'
+        + full_article
         '<div class="briefing-reader-bottom"><p>'
         'Use the framework to challenge one real decision. If the answer depends '
         'on your business context, the next step is a conversation.</p>'

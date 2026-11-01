@@ -119,6 +119,8 @@ class BriefingsNavigationContract(unittest.TestCase):
         self.assertIn("Ask to see", html)
         self.assertIn("One service workflow. Three different levels of AI authority.", html)
         self.assertIn("Test one live workflow.", html)
+        self.assertIn('class="briefing-reader-detail"', html)
+        self.assertIn("Published full text, not a preview.", html)
         self.assertNotIn("Three operating controls. One trustworthy foundation.", html)
         self.assertIn("Govern the business decision, not only the AI model.", html)
         self.assertIn("Who owns the definitions, quality, access", html)

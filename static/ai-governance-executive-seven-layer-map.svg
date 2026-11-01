@@ -8,7 +8,7 @@
 .stage-detail{font:400 24px Arial,Helvetica,sans-serif;fill:#263542}
 .row-num{font:750 34px Arial,Helvetica,sans-serif;fill:#fff}
 .row-label{font:750 28px Arial,Helvetica,sans-serif;letter-spacing:-.3px;fill:#0b1730}
-.row-desc{font:400 22px Arial,Helvetica,sans-serif;fill:#374251}
+.row-desc{font:400 19px Arial,Helvetica,sans-serif;fill:#374251}
 .vertical{font:750 22px Arial,Helvetica,sans-serif;fill:#fff}
 </style></defs>
 <rect width="1536" height="864" fill="#fff"/>

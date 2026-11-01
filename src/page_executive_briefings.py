@@ -612,7 +612,7 @@ def executive_briefing_article(
         f'<div class="briefing-reader-checks">{checks}</div></section>'
         + decision_map
         + full_article
-        '<div class="briefing-reader-bottom"><p>'
+        + '<div class="briefing-reader-bottom"><p>'
         'Use the framework to challenge one real decision. If the answer depends '
         'on your business context, the next step is a conversation.</p>'
         '<a href="?page=contact" target="_self" '

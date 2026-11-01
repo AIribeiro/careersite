@@ -16,6 +16,8 @@ from page_executive_briefings import (
     governance_20_minute_review,
     governance_decision_map,
     governance_decision_record,
+    governance_case_example,
+    governance_visual_map,
 )
 from site_cms import CmsArticle
 
@@ -28,8 +30,24 @@ class GovernanceBriefingTests(unittest.TestCase):
         self.assertEqual(markup.count('class="gov-seven-layer gov-seven-layer--'), 7)
         self.assertEqual(markup.count("<strong>Executive question</strong>"), 7)
         self.assertEqual(markup.count("<strong>Ask to see</strong>"), 7)
-        self.assertEqual(markup.count('<div class="gov-seven-mode">'), 3)
-        self.assertEqual(markup.count("One service workflow."), 1)
+        self.assertEqual(markup.count('<div class="gov-seven-mode">'), 0)
+        self.assertEqual(markup.count("One service workflow."), 0)
+        example = governance_case_example()
+        self.assertEqual(example.count('<div class="gov-seven-mode">'), 3)
+        self.assertEqual(example.count("One service workflow."), 1)
+
+    def test_full_resolution_vector_asset_and_accessible_caption(self):
+        asset = Path(__file__).resolve().parents[1] / "static" / "ai-governance-executive-seven-layer-map.svg"
+        self.assertTrue(asset.is_file())
+        svg = asset.read_text(encoding="utf-8")
+        self.assertIn('viewBox="0 0 1536 864"', svg)
+        self.assertIn("Information integrity", svg)
+        self.assertIn("Accountable ownership", svg)
+        self.assertIn("Bounded AI action", svg)
+        markup = governance_visual_map()
+        self.assertIn('src="/app/static/ai-governance-executive-seven-layer-map.svg"', markup)
+        self.assertIn('width="1536" height="864"', markup)
+        self.assertIn("At-a-glance governance map.", markup)
 
     def test_record_has_six_fields_and_decision_gates(self):
         self.assertEqual(len(GOVERNANCE_RECORD_FIELDS), 6)
@@ -66,6 +84,9 @@ class GovernanceBriefingTests(unittest.TestCase):
         self.assertEqual(markup.count('class="gov-seven-layer gov-seven-layer--'), 7)
         self.assertEqual(markup.count('class="gov-record-field"'), 6)
         self.assertEqual(markup.count("One service workflow."), 1)
+        self.assertEqual(markup.count('<figure class="gov-visual"'), 1)
+        self.assertEqual(markup.count('<div class="gov-seven-mode">'), 3)
+        self.assertIn("Explore the seven executive questions and evidence to request", markup)
         self.assertIn("A 20-minute governance review.", markup)
         self.assertIn("Application notes and source references", markup)
         self.assertIn("<p>Supporting sources, not a repeated seven-layer list.</p>", markup)

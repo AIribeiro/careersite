@@ -113,8 +113,8 @@ class BriefingsNavigationContract(unittest.TestCase):
         cms = (SRC / "site_cms.py").read_text(encoding="utf-8")
         self.assertIn('"briefing": executive_briefing_page', main)
         app = (SRC.parent / "app.py").read_text(encoding="utf-8")
-        self.assertIn('Route("/briefing/{slug}", _thinking_article', app)
-        self.assertIn('request.url.path.startswith("/briefing/")', app)
+        self.assertIn('Route("/briefing/{slug}", _briefing_article', app)
+        self.assertIn('return await _thinking_article(request, page_override="briefing")', app)
         from site_cms import CmsArticle, article_url, article_relative_url
         article = CmsArticle(
             slug="ai-governance-explained-to-executives",

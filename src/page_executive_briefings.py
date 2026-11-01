@@ -226,7 +226,57 @@ BRIEFINGS_CSS = r'''<style>
 @media(max-width:900px){.site .briefings-library-grid{grid-template-columns:minmax(0,1fr)}.site .briefing-reader-summary{grid-template-columns:1fr}.site .briefings-library-card h3{font-size:clamp(26px,4vw,34px)}.site .briefings-art-options{max-width:100%}}
 @media(max-width:650px){.site .briefings-library-hero{padding:40px 0}.site .briefings-library-section{padding:29px 0 45px}.site .briefings-library-heading{align-items:start}.site .briefings-library-count{white-space:normal;text-align:right}.site .briefings-library-card-body{padding:22px}.site .briefings-catalog-art{height:160px;padding:19px}.site .briefings-art-numbers{gap:4px}.site .briefings-art-numbers b{height:36px;font-size:13px}.site .briefing-reader-summary,.site .briefing-reader-decision-map{padding:20px}.site .briefing-reader-decision-map .briefings-map{grid-template-columns:minmax(0,1fr)}.site .briefing-full-content{padding:21px}.site .briefing-reader-bottom{flex-direction:column;align-items:start;padding:22px}.site .briefing-reader-bottom a{width:100%;box-sizing:border-box;text-align:center}.site .briefings-library-card-foot{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.site .briefings-library-card{transition:none}}
+.site .briefings-catalog-art--governance{background:radial-gradient(ellipse at 70% 25%,#33526a,#102238 72%)}
+.site .briefings-governance-art{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-width:520px}
+.site .briefings-governance-art span{border:1px solid rgba(230,187,154,.55);background:#1e3b50;color:#f4e8de;padding:13px 9px;text-align:center;font:750 12px/1.3 Arial,sans-serif}
+.site .briefings-governance-art-rule{color:#e4b995!important;font:750 11px/1.4 Arial,sans-serif!important}
+.site .gov-map{padding:28px 30px;margin-top:24px;background:#eef1ef;border:1px solid #cdd8d8}
+.site .gov-map-head h2{margin:8px 0 8px;font:500 clamp(26px,3.2vw,37px)/1.15 Georgia,serif;color:#163046}
+.site .gov-map-head p{max-width:800px;color:#475968;font:400 14px/1.65 Arial,sans-serif;margin:0 0 22px}
+.site .gov-map-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.site .gov-map-control{min-width:0;background:#fffdf8;border:1px solid #d1d6d5;padding:21px 19px 19px;border-top:3px solid #b57a53}
+.site .gov-map-control .briefing-icon{display:inline-flex;color:#a4613b}
+.site .gov-map-control h3{font:500 23px/1.18 Georgia,serif;color:#1e3447;margin:12px 0 7px}
+.site .gov-map-control p{font:400 13px/1.62 Arial,sans-serif;color:#445765;margin:0}
+.site .gov-map-control strong{display:block;margin-top:12px;padding-top:10px;border-top:1px solid #e5e3df;font:750 11px/1.55 Arial,sans-serif;color:#855337}
+.site .gov-map-foundation{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:start;gap:14px;margin-top:10px;padding:19px 22px;background:#142d40;color:#fff}
+.site .gov-map-foundation .briefing-icon{color:#e6b28f}
+.site .gov-map-foundation h3{margin:0 0 6px;color:#fff;font:500 21px/1.2 Georgia,serif}
+.site .gov-map-foundation p{margin:0;color:#d8e2e9;font:400 13px/1.55 Arial,sans-serif}
+.site .gov-map-bottom{margin:15px 0 0!important;font:400 12px/1.6 Arial,sans-serif!important;color:#576572!important}
+@media(max-width:800px){.site .gov-map-controls{grid-template-columns:1fr}.site .gov-map-control{padding:18px}.site .gov-map{padding:20px}}
+@media(max-width:530px){.site .briefings-governance-art span{font-size:10px;padding:9px 5px}.site .gov-map-foundation{padding:17px}}
 </style>'''
+
+
+def governance_decision_map() -> str:
+    """First-party governance map: operating controls on shared data foundations."""
+    controls = (
+        ("Ownership & authority", "Name a business owner, decision-maker, exception approver and escalation route.", "Evidence: signed decision rights", "users"),
+        ("Policy, risk & model", "Approve the purpose; test representative cases, errors and access; review incidents.", "Evidence: risk assessment and evaluation", "shield"),
+        ("Actions & oversight", "Limit tools and permissions; require approval where needed; log, monitor and stop.", "Evidence: action boundaries and audit", "workflow"),
+    )
+    cards = ''.join(
+        '<div class="gov-map-control">' + briefing_icon(icon)
+        + f'<h3>{escape(title)}</h3><p>{escape(detail)}</p>'
+        + f'<strong>{escape(evidence)}</strong></div>'
+        for title, detail, evidence, icon in controls
+    )
+    return (
+        '<section class="gov-map" aria-label="AI governance operating controls" '
+        'data-analytics-section="briefings-governance-map">'
+        '<div class="gov-map-head"><span class="briefings-index">Executive governance map</span>'
+        '<h2>Three operating controls. One trustworthy foundation.</h2>'
+        '<p>Governance only works when these controls connect to the business process. '
+        'They are not a maturity ladder or separate committees to create.</p></div>'
+        f'<div class="gov-map-controls">{cards}</div>'
+        '<div class="gov-map-foundation">' + briefing_icon("layers")
+        + '<div><h3>The data foundation supports all three.</h3>'
+        '<p>Named owners · agreed definitions · use-case data quality · traceable sources '
+        '· role-based access</p></div></div>'
+        '<p class="gov-map-bottom">The more consequential or autonomous the action, '
+        'the more explicit approval, oversight and rollback need to become.</p></section>'
+    )
 
 
 def published_briefings():

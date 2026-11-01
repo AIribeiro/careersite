@@ -7,6 +7,8 @@ Original article bodies, citations and attribution remain available on demand.
 """
 
 from html import escape
+from functools import lru_cache
+from pathlib import Path
 
 from briefings_visual import PROMO_CSS, briefing_icon, briefing_visual
 from site_assets import EMAIL
@@ -315,20 +317,23 @@ BRIEFINGS_CSS = r'''<style>
 @media(max-width:1050px){.site .gov-seven-layer{grid-template-columns:44px minmax(160px,.9fr) minmax(190px,1.15fr)}.site .gov-seven-proof{grid-column:2 / -1;border-top:1px solid #e2e6e2;padding-top:9px}.site .gov-seven-proof p{margin:0}}
 @media(max-width:720px){.site .gov-seven-layer{grid-template-columns:38px minmax(0,1fr);gap:10px 12px;padding:15px}.site .gov-seven-title,.site .gov-seven-question,.site .gov-seven-proof{grid-column:2}.site .gov-seven-question{padding-top:4px}.site .gov-seven-proof{padding-top:9px}.site .gov-seven-modes{grid-template-columns:1fr}.site .gov-seven-actions{grid-template-columns:1fr}.site .gov-seven-head{display:block}.site .gov-seven-count{display:none}.site .gov-seven-group-head{display:block}.site .gov-seven-group-head span{display:block;margin-top:3px}}
 
-/* Full-width, resolution-independent governance map based on supplied artwork. */
+/* The governance SVG is injected inline, never requested from /app/static. */
 .site .gov-visual{margin:19px 0 0;padding:0;background:#fff;border:1px solid #dae1df}
-.site .gov-visual-open{display:block;width:100%;overflow:hidden;text-decoration:none!important}
-.site .gov-visual img{width:100%;max-width:100%;height:auto;display:block;aspect-ratio:16/9;object-fit:contain;background:#fff}
+.site .gov-visual-art{width:100%;min-width:0;overflow:hidden;background:#fff}
+.site .gov-visual-art svg{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:16/9}
 .site .gov-visual figcaption{padding:12px 20px;border-top:1px solid #e4e7e5;color:#51616b;font:400 12px/1.55 Arial,sans-serif}
 .site .gov-visual figcaption strong{color:#193449}
-.site .gov-visual figcaption span{display:block;margin-top:3px;color:#65737a}
-.site .governance-reader>.gov-seven-example{margin-top:16px}
+.site .gov-visual-fallback{padding:24px;background:#f5f8f7;color:#193449}
+.site .gov-visual-fallback p{font:600 22px/1.25 Georgia,serif;margin:0 0 15px}
+.site .gov-visual-fallback ol{margin:0;padding-left:22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 30px}
+.site .gov-visual-fallback li{font:600 14px/1.5 Arial,sans-serif}
+.site .gov-visual-fallback li span{display:block;font-weight:400;color:#55646c}
 .site .governance-reader .gov-seven-example{margin-top:17px}
 .site .gov-layer-detail .gov-seven{margin:0;border:0;background:#f3f5f2}
 .site .gov-layer-detail .gov-seven-head{display:none}
 .site .gov-layer-detail .gov-seven-thread{margin:0 0 14px}
 .site .gov-layer-detail>.gov-seven{padding:18px}
-@media(max-width:650px){.site .gov-visual figcaption{padding:11px 14px}.site .gov-layer-detail .gov-seven{padding:14px}}
+@media(max-width:650px){.site .gov-visual figcaption{padding:11px 14px}.site .gov-visual-fallback ol{grid-template-columns:1fr}.site .gov-layer-detail .gov-seven{padding:14px}}
 
 /* Executive governance edition: scan first, examine proof when needed. */
 .site .gov-judgment{padding:clamp(22px,3.5vw,34px);border-left:4px solid #b9815d;background:#fffdf8;border-top:1px solid #e0dbd4;border-right:1px solid #e0dbd4;border-bottom:1px solid #e0dbd4}
@@ -434,22 +439,45 @@ def governance_case_example() -> str:
     )
 
 
+@lru_cache(maxsize=1)
+def _embedded_governance_svg() -> str:
+    """Read the checked-in diagram at render time, without requesting a static URL.
+
+    Streamlit Cloud can return SVG assets with MIME headers that browsers will
+    not render as images. Inlining this first-party SVG avoids that dependency.
+    """
+    asset = Path(__file__).resolve().parent.parent / "static" / (
+        "ai-governance-executive-seven-layer-map.svg"
+    )
+    try:
+        svg = asset.read_text(encoding="utf-8").strip()
+    except (FileNotFoundError, OSError, UnicodeError):
+        return ""
+    return svg if svg.startswith("<svg ") and svg.endswith("</svg>") else ""
+
+
 def governance_visual_map() -> str:
-    """User-supplied seven-layer visual, rebuilt as resolution-independent SVG."""
-    asset = "/app/static/ai-governance-executive-seven-layer-map.svg"
+    """Embed the complete scalable SVG in the page; never serve it by URL."""
+    svg = _embedded_governance_svg()
+    if not svg:
+        # No broken-image icon or blank 16:9 frame if an asset is missing.
+        fallback = "".join(
+            '<li><strong>' + escape(title) + '</strong><span>' +
+            escape(question) + '</span></li>'
+            for _number, title, question, *_rest in GOVERNANCE_LAYERS
+        )
+        svg = (
+            '<div class="gov-visual-fallback" role="img" aria-label="Seven layers '
+            'of AI governance from trusted information through bounded AI action">'
+            '<p>The seven layers of AI governance</p><ol>'
+            + fallback + '</ol></div>'
+        )
     return (
         '<figure class="gov-visual" data-analytics-section="briefings-governance-visual">'
-        '<a class="gov-visual-open" href="' + asset + '" target="_blank" '
-        'rel="noopener noreferrer" title="Open full-resolution governance map">'
-        '<img src="' + asset + '" width="1536" height="864" loading="eager" '
-        'decoding="async" alt="AI governance operating model: Foundation contains '
-        'information integrity and accountable ownership; Decisions contains '
-        'authority to decide, rules in the workflow, and risk and obligations; '
-        'Execution contains system assurance and bounded AI action. Business '
-        'outcome, risk appetite and accountable ownership apply throughout.">'
-        '</a><figcaption><strong>At-a-glance governance map.</strong> Seven connected '
-        'layers to govern AI as a business decision, not only a technical system. '
-        '<span>Open the image to inspect it at full resolution.</span></figcaption>'
+        '<div class="gov-visual-art">' + svg + '</div>'
+        '<figcaption><strong>At-a-glance governance map.</strong> '
+        'Seven connected layers to govern AI as a business decision, '
+        'not only a technical system.</figcaption>'
         '</figure>'
     )
 

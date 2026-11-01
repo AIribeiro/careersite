@@ -82,13 +82,16 @@ class BriefingsNavigationContract(unittest.TestCase):
 
     def test_governance_briefing_has_its_own_decision_and_accessible_visual(self):
         from page_executive_briefings import (
-            GOVERNANCE_SLUG, GOVERNANCE_DECISION, _briefing_catalog_art,
+            GOVERNANCE_SLUG, GOVERNANCE_DECISION, GOVERNANCE_LAYERS, _briefing_catalog_art,
         )
         self.assertEqual(GOVERNANCE_SLUG, "ai-governance-explained-to-executives")
         self.assertEqual(len(GOVERNANCE_DECISION["checks"]), 3)
+        self.assertEqual(len(GOVERNANCE_LAYERS), 7)
+        self.assertEqual([item[0] for item in GOVERNANCE_LAYERS], [f"{i:02d}" for i in range(1, 8)])
+        self.assertEqual(len({item[1] for item in GOVERNANCE_LAYERS}), 7)
         art = _briefing_catalog_art(GOVERNANCE_SLUG)
         self.assertIn("briefings-catalog-art--governance", art)
-        self.assertIn("Built on trusted data", art)
+        self.assertIn("7 layers · One accountable business outcome", art)
         self.assertNotIn("<img", art)
         self.assertNotIn("<svg", art)
 
@@ -102,7 +105,21 @@ class BriefingsNavigationContract(unittest.TestCase):
                 article, "4 min", "", "", "", "", "",
             ).rsplit("</style>", 1)[-1]
         self.assertIn('data-analytics-section="briefings-governance-map"', html)
-        self.assertIn("Three operating controls. One trustworthy foundation.", html)
+        self.assertIn("Seven layers. One accountable business decision.", html)
+        self.assertEqual(html.count('class="gov-seven-layer gov-seven-layer--'), 7)
+        self.assertIn("Seven operating layers of AI governance", html)
+        self.assertIn("Information integrity", html)
+        self.assertIn("Accountable ownership", html)
+        self.assertIn("Authority to decide", html)
+        self.assertIn("Rules in the workflow", html)
+        self.assertIn("Risk and obligations", html)
+        self.assertIn("System assurance", html)
+        self.assertIn("Bounded AI action", html)
+        self.assertIn("Executive question", html)
+        self.assertIn("Ask to see", html)
+        self.assertIn("One service workflow. Three different levels of AI authority.", html)
+        self.assertIn("Test one live workflow.", html)
+        self.assertNotIn("Three operating controls. One trustworthy foundation.", html)
         self.assertIn("Govern the business decision, not only the AI model.", html)
         self.assertIn("Who owns the definitions, quality, access", html)
         self.assertNotIn("Which capability does your decision actually need?", html)

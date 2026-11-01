@@ -408,7 +408,7 @@ def governance_decision_map() -> str:
         '<span>Business outcome</span><span>Risk appetite</span>'
         '<span>Real adoption</span><span>Ownership of consequences</span></div>'
         + "".join(rows)
-        '<p class="gov-seven-note">Executive operating model by Jair Ribeiro. '
+        + '<p class="gov-seven-note">Executive operating model by Jair Ribeiro. '
         'The layers are a practical management view, not a claim that every use case '
         'faces identical legal obligations. Apply relevant requirements based on '
         'context, risk and jurisdiction.</p></section>'

@@ -80,6 +80,34 @@ class BriefingsNavigationContract(unittest.TestCase):
         self.assertNotIn("broken-external-cover.jpg", html)
         self.assertNotIn("<details", html)
 
+    def test_governance_briefing_has_its_own_decision_and_accessible_visual(self):
+        from page_executive_briefings import (
+            GOVERNANCE_SLUG, GOVERNANCE_DECISION, _briefing_catalog_art,
+        )
+        self.assertEqual(GOVERNANCE_SLUG, "ai-governance-explained-to-executives")
+        self.assertEqual(len(GOVERNANCE_DECISION["checks"]), 3)
+        art = _briefing_catalog_art(GOVERNANCE_SLUG)
+        self.assertIn("briefings-catalog-art--governance", art)
+        self.assertIn("Built on trusted data", art)
+        self.assertNotIn("<img", art)
+        self.assertNotIn("<svg", art)
+
+        article = fake_article(GOVERNANCE_SLUG, "AI Governance Explained to Executives")
+        with (
+            patch("page_executive_briefings.nav", return_value=""),
+            patch("page_executive_briefings.footer", return_value=""),
+            patch("page_executive_briefings.contact_block", return_value=""),
+        ):
+            html = executive_briefing_article(
+                article, "4 min", "", "", "", "", "",
+            ).rsplit("</style>", 1)[-1]
+        self.assertIn('data-analytics-section="briefings-governance-map"', html)
+        self.assertIn("Three operating controls. One trustworthy foundation.", html)
+        self.assertIn("Govern the business decision, not only the AI model.", html)
+        self.assertIn("Who owns the definitions, quality, access", html)
+        self.assertNotIn("Which capability does your decision actually need?", html)
+        self.assertNotIn('class="briefings-catalog-art--questions"', html)
+
     def test_main_has_dedicated_route_and_cms_preserves_other_article_routes(self):
         main = (SRC.parent / "main.py").read_text(encoding="utf-8")
         cms = (SRC / "site_cms.py").read_text(encoding="utf-8")

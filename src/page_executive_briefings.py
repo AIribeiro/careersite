@@ -315,6 +315,21 @@ BRIEFINGS_CSS = r'''<style>
 @media(max-width:1050px){.site .gov-seven-layer{grid-template-columns:44px minmax(160px,.9fr) minmax(190px,1.15fr)}.site .gov-seven-proof{grid-column:2 / -1;border-top:1px solid #e2e6e2;padding-top:9px}.site .gov-seven-proof p{margin:0}}
 @media(max-width:720px){.site .gov-seven-layer{grid-template-columns:38px minmax(0,1fr);gap:10px 12px;padding:15px}.site .gov-seven-title,.site .gov-seven-question,.site .gov-seven-proof{grid-column:2}.site .gov-seven-question{padding-top:4px}.site .gov-seven-proof{padding-top:9px}.site .gov-seven-modes{grid-template-columns:1fr}.site .gov-seven-actions{grid-template-columns:1fr}.site .gov-seven-head{display:block}.site .gov-seven-count{display:none}.site .gov-seven-group-head{display:block}.site .gov-seven-group-head span{display:block;margin-top:3px}}
 
+/* Full-width, resolution-independent governance map based on supplied artwork. */
+.site .gov-visual{margin:19px 0 0;padding:0;background:#fff;border:1px solid #dae1df}
+.site .gov-visual-open{display:block;width:100%;overflow:hidden;text-decoration:none!important}
+.site .gov-visual img{width:100%;max-width:100%;height:auto;display:block;aspect-ratio:16/9;object-fit:contain;background:#fff}
+.site .gov-visual figcaption{padding:12px 20px;border-top:1px solid #e4e7e5;color:#51616b;font:400 12px/1.55 Arial,sans-serif}
+.site .gov-visual figcaption strong{color:#193449}
+.site .gov-visual figcaption span{display:block;margin-top:3px;color:#65737a}
+.site .governance-reader>.gov-seven-example{margin-top:16px}
+.site .governance-reader .gov-seven-example{margin-top:17px}
+.site .gov-layer-detail .gov-seven{margin:0;border:0;background:#f3f5f2}
+.site .gov-layer-detail .gov-seven-head{display:none}
+.site .gov-layer-detail .gov-seven-thread{margin:0 0 14px}
+.site .gov-layer-detail>.gov-seven{padding:18px}
+@media(max-width:650px){.site .gov-visual figcaption{padding:11px 14px}.site .gov-layer-detail .gov-seven{padding:14px}}
+
 /* Executive governance edition: scan first, examine proof when needed. */
 .site .gov-judgment{padding:clamp(22px,3.5vw,34px);border-left:4px solid #b9815d;background:#fffdf8;border-top:1px solid #e0dbd4;border-right:1px solid #e0dbd4;border-bottom:1px solid #e0dbd4}
 .site .gov-judgment h2{font:500 clamp(27px,3.5vw,38px)/1.16 Georgia,serif;color:#193449;margin:9px 0 11px;max-width:850px}
@@ -385,15 +400,25 @@ def governance_decision_map() -> str:
         '<section class="gov-seven" aria-label="Seven operating layers of AI governance" '
         'data-analytics-section="briefings-governance-map">'
         '<div class="gov-seven-head"><div><span class="briefings-index">The operating architecture</span>'
-        '<h2>Seven layers. One accountable business decision.</h2>'
-        '<p>These are seven connected responsibilities, not seven new committees or '
-        'a maturity ladder. For each, ask one question and request one proof point.</p></div>'
+        '<h2>Seven questions to test with your team.</h2>'
+        '<p>Use this optional reference to inspect the evidence behind the visual map. '
+        'Request only the proof needed for the proposed use and its risk.</p></div>'
         '<span class="gov-seven-count" aria-hidden="true">07</span></div>'
         '<div class="gov-seven-thread"><strong>Across every layer</strong>'
         '<span>Business outcome</span><span>Risk appetite</span>'
         '<span>Real adoption</span><span>Ownership of consequences</span></div>'
         + "".join(rows)
-        + '<div class="gov-seven-example"><span class="briefings-index">A practical distinction</span>'
+        '<p class="gov-seven-note">Executive operating model by Jair Ribeiro. '
+        'The layers are a practical management view, not a claim that every use case '
+        'faces identical legal obligations. Apply relevant requirements based on '
+        'context, risk and jurisdiction.</p></section>'
+    )
+
+
+def governance_case_example() -> str:
+    """The single worked example: recommend, prepare, or execute within limits."""
+    return (
+        '<div class="gov-seven-example"><span class="briefings-index">A practical distinction</span>'
         '<h3>One service workflow. Three different levels of AI authority.</h3>'
         '<p>Imagine an AI assistant supporting customer service credits. '
         'The technical capability may look similar, but the business control '
@@ -406,10 +431,26 @@ def governance_decision_map() -> str:
         '<div class="gov-seven-mode"><b>Execute within limits</b><p>AI may issue only '
         'pre-approved, low-value credits within a defined cap, with logging, '
         'monitoring and an immediate stop route.</p></div></div></div>'
-        '<p class="gov-seven-note">Executive operating model by Jair Ribeiro. '
-        'The layers are a practical management view, not a claim that every use case '
-        'faces identical legal obligations. Apply relevant requirements based on '
-        'context, risk and jurisdiction.</p></section>'
+    )
+
+
+def governance_visual_map() -> str:
+    """User-supplied seven-layer visual, rebuilt as resolution-independent SVG."""
+    asset = "/app/static/ai-governance-executive-seven-layer-map.svg"
+    return (
+        '<figure class="gov-visual" data-analytics-section="briefings-governance-visual">'
+        '<a class="gov-visual-open" href="' + asset + '" target="_blank" '
+        'rel="noopener noreferrer" title="Open full-resolution governance map">'
+        '<img src="' + asset + '" width="1536" height="864" loading="eager" '
+        'decoding="async" alt="AI governance operating model: Foundation contains '
+        'information integrity and accountable ownership; Decisions contains '
+        'authority to decide, rules in the workflow, and risk and obligations; '
+        'Execution contains system assurance and bounded AI action. Business '
+        'outcome, risk appetite and accountable ownership apply throughout.">'
+        '</a><figcaption><strong>At-a-glance governance map.</strong> Seven connected '
+        'layers to govern AI as a business decision, not only a technical system. '
+        '<span>Open the image to inspect it at full resolution.</span></figcaption>'
+        '</figure>'
     )
 
 
@@ -480,9 +521,15 @@ def governance_briefing_article(article, share_footer: str, cms_css: str) -> str
         '<p>AI governance decides what the system may do, who owns the result '
         'and what evidence earns permission to proceed. The more consequential '
         'the AI action, the stronger the approval and oversight required.</p></section>'
-        + governance_decision_map()
+        + governance_visual_map()
+        + governance_case_example()
         + governance_decision_record()
         + governance_20_minute_review()
+        + '<details class="briefing-reader-detail gov-notes gov-layer-detail" '
+        'data-analytics-section="briefings-governance-layer-reference">'
+        '<summary>Explore the seven executive questions and evidence to request</summary>'
+        + governance_decision_map()
+        + '</details>'
         + '<details class="briefing-reader-detail gov-notes" '
         'data-analytics-section="briefings-governance-references">'
         '<summary>Application notes and source references</summary>'

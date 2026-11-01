@@ -63,19 +63,24 @@ def make_distribution_link(
             or target.port is not None or target.username is not None \
             or target.password is not None:
         raise ValueError("Destination must be the public portfolio site.")
-    is_article = bool(re.fullmatch(r"/thinking/[a-z0-9][a-z0-9-]{0,130}/?", target.path))
-    if target.path not in ("", "/", "/~/+/") and not is_article:
+    # Both Thinking articles and independent Executive Briefings use canonical
+    # preview permalinks; ordinary readers must open the native Streamlit route.
+    # CMS slugify permits up to 150 characters.
+    article_match = re.fullmatch(
+        r"/(thinking|briefing)/([a-z0-9][a-z0-9-]{0,149})/?", target.path
+    )
+    if target.path not in ("", "/", "/~/+/") and not article_match:
         raise ValueError("Unsupported portfolio destination path.")
     original = parse_qsl(target.query, keep_blank_values=False)
     params = [(key, val) for key, val in original
               if key.lower() not in _TRACKING_KEYS and key.lower() != "role"]
     path = target.path or "/"
-    if is_article and not preview:
+    if article_match and not preview:
         # Reader links must load Streamlit from its native app root rather
         # than depending on a custom ASGI permalink route. Keep that route
         # only for server-rendered social preview crawlers.
-        slug = target.path.strip("/").split("/", 1)[1]
-        params = [("page", "thinking"), ("article", slug)] + [
+        page, slug = article_match.groups()
+        params = [("page", page), ("article", slug)] + [
             (key, val) for key, val in params
             if key.lower() not in {"page", "article"}
         ]
@@ -88,7 +93,7 @@ def make_distribution_link(
     ))
     if content:
         clean = str(content).strip().lower()
-        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,99}", clean):
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,149}", clean):
             raise ValueError("Content tag must be a short non-personal slug.")
         params.append(("utm_content", clean))
     if role:

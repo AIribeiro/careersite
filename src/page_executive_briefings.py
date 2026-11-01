@@ -53,34 +53,43 @@ GOVERNANCE_DECISION = {
 # Original executive governance architecture: seven concurrent control surfaces,
 # not a redraw or a maturity sequence borrowed from a reference illustration.
 GOVERNANCE_LAYERS = (
-    ("01", "Information integrity",
-     "Can we defend the information behind this decision?",
-     "Assign domain owners, agree key definitions and check whether the inputs are fit for the specific use.",
-     "Data steward · quality checks · source traceability", "layers", "foundation"),
-    ("02", "Accountable ownership",
-     "Who owns the business result when AI is involved?",
-     "Name the process owner and system owner. Give exceptions and incidents an escalation route.",
-     "Accountable owner · operating forum · escalation", "users", "foundation"),
-    ("03", "Authority to decide",
-     "Who can approve a use case, a release or a stop?",
-     "Set clear authority for acceptance of risk, go-live, major changes and the right to pause.",
-     "Decision record · release gate · stop authority", "target", "decisions"),
-    ("04", "Rules in the workflow",
-     "Can people explain what is allowed and what is not?",
-     "Convert policy into usable boundaries, access rules, training and a recorded exception path.",
-     "Usage rules · access permissions · exception log", "check", "decisions"),
+    ("01", "Trusted information",
+     "Can we rely on the information behind this decision?",
+     "Check the sources, shared definitions, quality and who can access them.",
+     "Data owner · source list · quality check", "layers", "foundation"),
+    ("02", "Business ownership",
+     "Who is accountable for the business result?",
+     "Name the process owner and system operator, including who handles failures.",
+     "Process owner · operator · escalation contact", "users", "foundation"),
+    ("03", "Decision authority",
+     "Who may approve, change or stop this use?",
+     "Set approval rights for launch, exceptions and increases in AI autonomy.",
+     "Approval record · change gate · stop authority", "target", "decisions"),
+    ("04", "Working rules",
+     "What are people and AI allowed to do?",
+     "Put access limits, human checks and exception handling into daily work.",
+     "Usage rules · access permissions · exception route", "check", "decisions"),
     ("05", "Risk and obligations",
-     "What could go wrong here, and which duties apply?",
-     "Assess harm, privacy, security, vendor exposure and applicable law by use case—not by product name.",
-     "Risk classification · obligation check · response owner", "shield", "decisions"),
-    ("06", "System assurance",
-     "What evidence shows this works reliably in real conditions?",
-     "Evaluate representative cases and failure modes before release; monitor quality, drift and incidents after.",
-     "Test results · monitoring limits · incident review", "chart", "execution"),
-    ("07", "Bounded AI action",
-     "What can AI execute without further human approval?",
-     "Restrict tools, data, transaction limits and access. Log actions; test intervention and rollback.",
-     "Action permissions · approval triggers · stop test", "workflow", "execution"),
+     "What could go wrong, and which legal duties apply?",
+     "Assess customer harm, privacy, security and legal exposure for this use case.",
+     "Risk assessment · legal check · response owner", "shield", "decisions"),
+    ("06", "Testing and monitoring",
+     "How do we know it works and stays reliable?",
+     "Test representative cases and failures; monitor quality and incidents after release.",
+     "Test results · quality thresholds · incident process", "chart", "execution"),
+    ("07", "Permission to act",
+     "What can AI execute without another approval?",
+     "Limit tool access and transactions; log actions and test the stop mechanism.",
+     "Action limits · approval triggers · stop test", "workflow", "execution"),
+)
+
+GOVERNANCE_RECORD_FIELDS = (
+    ("01", "Business outcome", "Target result and today's baseline for cost, quality or speed."),
+    ("02", "Accountable owner", "One named business owner, plus the system operator."),
+    ("03", "AI authority", "May it read, recommend, prepare or execute? Where is approval required?"),
+    ("04", "Risk and controls", "Most consequential failure, access limits, human checks and recovery."),
+    ("05", "Evidence of readiness", "Relevant tests, success threshold, monitoring and adoption evidence."),
+    ("06", "Decision and next review", "Proceed, hold or stop; approver, deadline and review trigger."),
 )
 
 BRIEFINGS_CSS = r'''<style>
@@ -305,6 +314,38 @@ BRIEFINGS_CSS = r'''<style>
 .site .gov-seven-note{color:#627079!important;font:400 11px/1.6 Arial,sans-serif!important;margin:13px 0 0!important}
 @media(max-width:1050px){.site .gov-seven-layer{grid-template-columns:44px minmax(160px,.9fr) minmax(190px,1.15fr)}.site .gov-seven-proof{grid-column:2 / -1;border-top:1px solid #e2e6e2;padding-top:9px}.site .gov-seven-proof p{margin:0}}
 @media(max-width:720px){.site .gov-seven-layer{grid-template-columns:38px minmax(0,1fr);gap:10px 12px;padding:15px}.site .gov-seven-title,.site .gov-seven-question,.site .gov-seven-proof{grid-column:2}.site .gov-seven-question{padding-top:4px}.site .gov-seven-proof{padding-top:9px}.site .gov-seven-modes{grid-template-columns:1fr}.site .gov-seven-actions{grid-template-columns:1fr}.site .gov-seven-head{display:block}.site .gov-seven-count{display:none}.site .gov-seven-group-head{display:block}.site .gov-seven-group-head span{display:block;margin-top:3px}}
+
+/* Executive governance edition: scan first, examine proof when needed. */
+.site .gov-judgment{padding:clamp(22px,3.5vw,34px);border-left:4px solid #b9815d;background:#fffdf8;border-top:1px solid #e0dbd4;border-right:1px solid #e0dbd4;border-bottom:1px solid #e0dbd4}
+.site .gov-judgment h2{font:500 clamp(27px,3.5vw,38px)/1.16 Georgia,serif;color:#193449;margin:9px 0 11px;max-width:850px}
+.site .gov-judgment p{font:400 15px/1.66 Arial,sans-serif;color:#405566;margin:0;max-width:850px}
+.site .governance-reader .gov-seven{margin-top:19px}
+.site .governance-reader .gov-seven-head p{max-width:800px}
+.site .gov-record{margin-top:19px;padding:clamp(20px,3.4vw,33px);background:#fffdf9;border:1px solid #d8d7d1}
+.site .gov-record-head h2{font:500 clamp(28px,3.4vw,39px)/1.16 Georgia,serif;color:#1b3549;margin:9px 0 10px}
+.site .gov-record-head p{font:400 14px/1.65 Arial,sans-serif;color:#53616a;max-width:830px;margin:0}
+.site .gov-record-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:#dbe0dc;border:1px solid #dbe0dc;margin:21px 0 0;padding:0;list-style:none}
+.site .gov-record-field{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;padding:19px 20px;background:#fffefa;min-width:0}
+.site .gov-record-index{font:600 24px/1 Georgia,serif;color:#b0764d}
+.site .gov-record-field h3{font:500 21px/1.2 Georgia,serif;color:#193449;margin:0 0 7px}
+.site .gov-record-field p{font:400 13px/1.55 Arial,sans-serif;color:#4b5d68;margin:0}
+.site .gov-record-gates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.site .gov-record-gates>div{padding:17px;background:#e9efec;border-top:3px solid #6f8c80}
+.site .gov-record-gates>div:nth-child(2){background:#f3ece2;border-top-color:#b28a58}
+.site .gov-record-gates>div:nth-child(3){background:#f4ebe7;border-top-color:#a47765}
+.site .gov-record-gates strong{font:750 13px/1.35 Arial,sans-serif;color:#193448}
+.site .gov-record-gates p{font:400 12px/1.55 Arial,sans-serif;color:#425363;margin:5px 0 0}
+.site .gov-review{display:grid;grid-template-columns:minmax(210px,.72fr) minmax(0,1.28fr);gap:25px;padding:25px 28px;margin-top:17px;background:#163247;color:#fff}
+.site .gov-review h2{font:500 28px/1.18 Georgia,serif;color:#fff;margin:8px 0 10px}
+.site .gov-review>div>p{font:400 13px/1.6 Arial,sans-serif;color:#d5e2e7;margin:0}
+.site .gov-review ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;list-style:none;padding:0;margin:0}
+.site .gov-review li{padding:13px 15px;border:1px solid #547082;min-width:0}
+.site .gov-review li b{display:block;font:750 10px/1.35 Arial,sans-serif;letter-spacing:.09em;color:#ecc5a2}
+.site .gov-review li strong{display:block;font:500 20px/1.24 Georgia,serif;margin:5px 0;color:#fff}
+.site .gov-review li span{display:block;font:400 12px/1.55 Arial,sans-serif;color:#d9e3e9}
+.site .gov-notes{margin-top:16px}
+@media(max-width:850px){.site .gov-review{grid-template-columns:1fr}.site .gov-record-gates{grid-template-columns:1fr}}
+@media(max-width:650px){.site .gov-record-grid,.site .gov-review ol{grid-template-columns:1fr}.site .gov-record-field{padding:16px}.site .gov-review{padding:22px}}
 </style>'''
 
 
@@ -345,10 +386,8 @@ def governance_decision_map() -> str:
         'data-analytics-section="briefings-governance-map">'
         '<div class="gov-seven-head"><div><span class="briefings-index">The operating architecture</span>'
         '<h2>Seven layers. One accountable business decision.</h2>'
-        '<p>AI governance is not a policy binder or a model review meeting. It is the '
-        'set of decisions, permissions and evidence that lets people use AI safely '
-        'while remaining responsible for the business result. These seven layers work '
-        'together; they are not a maturity staircase or seven new committees.</p></div>'
+        '<p>These are seven connected responsibilities, not seven new committees or '
+        'a maturity ladder. For each, ask one question and request one proof point.</p></div>'
         '<span class="gov-seven-count" aria-hidden="true">07</span></div>'
         '<div class="gov-seven-thread"><strong>Across every layer</strong>'
         '<span>Business outcome</span><span>Risk appetite</span>'
@@ -367,18 +406,95 @@ def governance_decision_map() -> str:
         '<div class="gov-seven-mode"><b>Execute within limits</b><p>AI may issue only '
         'pre-approved, low-value credits within a defined cap, with logging, '
         'monitoring and an immediate stop route.</p></div></div></div>'
-        '<div class="gov-seven-actions"><div><span class="briefings-index">Executive next move</span>'
-        '<h3>Test one live workflow.</h3><p>A short review with the process owner '
-        'is more useful than another enterprise-wide policy presentation.</p></div>'
-        '<ol><li>Select a consequential use case; state the result, baseline and owner.</li>'
-        '<li>Ask for the evidence listed across all seven layers. Record gaps and '
-        'assign decisions, rather than forming seven committees.</li>'
-        '<li>Approve a bounded trial, with measurable operating results and a '
-        'reassessment whenever data, scope or autonomy changes.</li></ol></div>'
         '<p class="gov-seven-note">Executive operating model by Jair Ribeiro. '
         'The layers are a practical management view, not a claim that every use case '
         'faces identical legal obligations. Apply relevant requirements based on '
         'context, risk and jurisdiction.</p></section>'
+    )
+
+
+def governance_decision_record() -> str:
+    """Compact, reusable management record: one page, six decisions."""
+    fields = ''.join(
+        '<li class="gov-record-field"><span class="gov-record-index">'
+        f'{escape(number)}</span><div><h3>{escape(title)}</h3>'
+        f'<p>{escape(detail)}</p></div></li>'
+        for number, title, detail in GOVERNANCE_RECORD_FIELDS
+    )
+    return (
+        '<section class="gov-record" data-analytics-section="briefings-governance-decision-record">'
+        '<div class="gov-record-head"><span class="briefings-index">The executive decision record</span>'
+        '<h2>One page before permission expands.</h2>'
+        '<p>Ask the team to complete these six fields for one real workflow. '
+        'A blank answer is a decision gap, not a reason to launch another committee.</p></div>'
+        f'<ol class="gov-record-grid">{fields}</ol>'
+        '<div class="gov-record-gates" aria-label="Governance decision outcomes">'
+        '<div><strong>Proceed</strong><p>Owner, value and controls are credible. '
+        'Authorize a bounded trial with a review date.</p></div>'
+        '<div><strong>Hold</strong><p>A correctable gap remains. '
+        'Assign an owner and condition for reconsideration.</p></div>'
+        '<div><strong>Stop</strong><p>No accountable owner, unacceptable exposure '
+        'or no defensible business case.</p></div></div></section>'
+    )
+
+
+def governance_20_minute_review() -> str:
+    """A timed conversation, not a new governance committee."""
+    steps = (
+        ("0–5 min", "Outcome", "Name the workflow, baseline and business owner."),
+        ("5–10 min", "Authority", "Check trusted inputs, permissions and who can stop the AI."),
+        ("10–15 min", "Proof", "Examine realistic tests, risks, controls and exceptions."),
+        ("15–20 min", "Decision", "Complete the record. Proceed, hold or stop; set the next review."),
+    )
+    items = ''.join(
+        f'<li><b>{escape(time)}</b><strong>{escape(title)}</strong>'
+        f'<span>{escape(detail)}</span></li>'
+        for time, title, detail in steps
+    )
+    return (
+        '<section class="gov-review" data-analytics-section="briefings-governance-review">'
+        '<div><span class="briefings-index">Put it to work</span>'
+        '<h2>A 20-minute governance review.</h2>'
+        '<p>Start with a live business decision. End with recorded ownership, '
+        'permission and the evidence required before the next step.</p></div>'
+        f'<ol>{items}</ol></section>'
+    )
+
+
+def governance_briefing_article(article, share_footer: str, cms_css: str) -> str:
+    """Governance-specific editorial reader with one map and no repeated article."""
+    from thinking_core import THINKING_CSS
+    return (
+        THINKING_CSS + cms_css + BRIEFINGS_CSS + nav("thinking")
+        + '<main class="briefing-reader governance-reader">'
+        '<section class="briefing-reader-hero" data-analytics-section="briefing-reader-introduction">'
+        '<div class="container"><a class="briefing-reader-back" href="?page=briefings" '
+        'target="_self">← All Executive AI Briefings</a>'
+        '<span class="briefings-index">Executive AI Briefing · Governance</span>'
+        f'<h1>{escape(article.title)}</h1>'
+        f'<p>{escape(article.subtitle or article.excerpt)}</p></div></section>'
+        '<section class="section paper briefing-reader-body"><div class="container">'
+        '<section class="gov-judgment" data-analytics-section="briefings-governance-judgment">'
+        '<span class="briefings-index">The executive judgment</span>'
+        '<h2>Govern the business decision, not just the model.</h2>'
+        '<p>AI governance decides what the system may do, who owns the result '
+        'and what evidence earns permission to proceed. The more consequential '
+        'the AI action, the stronger the approval and oversight required.</p></section>'
+        + governance_decision_map()
+        + governance_decision_record()
+        + governance_20_minute_review()
+        + '<details class="briefing-reader-detail gov-notes" '
+        'data-analytics-section="briefings-governance-references">'
+        '<summary>Application notes and source references</summary>'
+        f'<div class="article-body briefing-reader-research">{article.content_html}</div>'
+        '</details>'
+        '<div class="briefing-reader-bottom"><p>'
+        'Your data, processes and risk appetite determine the control design. '
+        'Discuss a real governance decision and what would make it safe to scale.</p>'
+        '<a href="?page=contact" target="_self" '
+        'data-hq-event="briefing_reader_contact">Discuss your decision →</a></div>'
+        f'<div class="briefing-reader-share">{share_footer}</div>'
+        '</div></section></main>' + footer()
     )
 
 
@@ -515,6 +631,9 @@ def executive_briefing_article(
     The seven-question guide has a curated executive structure of its own.
     """
     from thinking_core import THINKING_CSS
+
+    if article.slug == GOVERNANCE_SLUG:
+        return governance_briefing_article(article, share_footer, cms_css)
 
     # This article is a complete seven-lens executive playbook, not a three-check
     # summary. Give it its own responsive reading surface and keep the original

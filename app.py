@@ -59,7 +59,7 @@ def _is_crawler(request) -> bool:
     return any(token in user_agent for token in CRAWLER_TOKENS)
 
 
-async def _thinking_article(request):
+async def _thinking_article(request, page_override="thinking"):
     slug = str(request.path_params.get("slug") or "").strip().lower()
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,149}", slug):
         return PlainTextResponse("Article not found", status_code=404)
@@ -73,7 +73,7 @@ async def _thinking_article(request):
         # tags on its human redirect; otherwise tagged social shares lose
         # their source and campaign before browser analytics sees them.
         params = [
-            ("page", "briefing" if request.url.path.startswith("/briefing/") else "thinking"),
+            ("page", page_override),
             ("article", slug),
         ]
         attribution_fields = {
@@ -122,6 +122,11 @@ async def _thinking_article(request):
             "X-Robots-Tag": "index, follow, max-image-preview:large",
         },
     )
+
+
+async def _briefing_article(request):
+    """Public briefing permalink: share metadata and dedicated Streamlit reader."""
+    return await _thinking_article(request, page_override="briefing")
 
 
 async def _ai_data_governance_share(request):
@@ -351,7 +356,7 @@ app = App(
     routes=[
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),
-        Route("/briefing/{slug}", _thinking_article, methods=["GET", "HEAD"]),
+        Route("/briefing/{slug}", _briefing_article, methods=["GET", "HEAD"]),
         Route("/weekly-ai-audio/{slug}.mp3", _weekly_ai_audio_file, methods=["GET", "HEAD"]),
         Route("/ai-data-governance", _ai_data_governance_share, methods=["GET", "HEAD"]),
         Route("/briefings", _briefings_share, methods=["GET", "HEAD"]),

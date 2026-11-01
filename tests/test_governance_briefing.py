@@ -45,9 +45,24 @@ class GovernanceBriefingTests(unittest.TestCase):
         self.assertIn("Accountable ownership", svg)
         self.assertIn("Bounded AI action", svg)
         markup = governance_visual_map()
-        self.assertIn('src="/app/static/ai-governance-executive-seven-layer-map.svg"', markup)
-        self.assertIn('width="1536" height="864"', markup)
+        # The SVG markup is self-contained. A separate /app/static SVG
+        # request is forbidden: it caused a large broken-image placeholder.
+        self.assertIn('<svg xmlns="http://www.w3.org/2000/svg"', markup)
+        self.assertIn('viewBox="0 0 1536 864"', markup)
+        self.assertNotIn('<img ', markup)
+        self.assertNotIn('/app/static/', markup)
+        self.assertEqual(markup.count('class="row-label"'), 7)
         self.assertIn("At-a-glance governance map.", markup)
+
+    def test_missing_svg_displays_seven_readable_layers_without_blank_space(self):
+        from unittest.mock import patch
+        with patch("page_executive_briefings._embedded_governance_svg", return_value=""):
+            markup = governance_visual_map()
+        self.assertIn("gov-visual-fallback", markup)
+        self.assertNotIn("<svg ", markup)
+        self.assertNotIn("<img ", markup)
+        for _number, title, *_rest in GOVERNANCE_LAYERS:
+            self.assertIn(title, markup)
 
     def test_record_has_six_fields_and_decision_gates(self):
         self.assertEqual(len(GOVERNANCE_RECORD_FIELDS), 6)

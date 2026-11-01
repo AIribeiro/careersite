@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="864" viewBox="0 0 1536 864" role="img" aria-labelledby="gov-title gov-description">
+<title id="gov-title">AI Governance Explained to Executives — seven connected governance layers</title>
+<desc id="gov-description">A seven-layer AI governance operating model grouped into Foundation, Decisions and Execution, with business outcome, risk appetite and accountable ownership across all three. Foundation: information integrity and accountable ownership. Decisions: authority to decide, rules in the workflow, and risk and obligations. Execution: system assurance and bounded AI action.</desc>
+<defs><style>
+.headline{font:700 67px/1 Arial,Helvetica,sans-serif;letter-spacing:-2.5px;fill:#0b1a2f}
+.subtitle{font:400 28px Arial,Helvetica,sans-serif;fill:#596574}
+.stage-title{font:750 34px Arial,Helvetica,sans-serif;fill:#101a2d}
+.stage-detail{font:400 24px Arial,Helvetica,sans-serif;fill:#263542}
+.row-num{font:750 34px Arial,Helvetica,sans-serif;fill:#fff}
+.row-label{font:750 28px Arial,Helvetica,sans-serif;letter-spacing:-.3px;fill:#0b1730}
+.row-desc{font:400 22px Arial,Helvetica,sans-serif;fill:#374251}
+.vertical{font:750 22px Arial,Helvetica,sans-serif;fill:#fff}
+</style></defs>
+<rect width="1536" height="864" fill="#fff"/>
+<text x="148" y="65" class="headline">AI Governance Explained to Executives</text>
+<rect x="149" y="88" width="91" height="9" rx="2" fill="#a86131"/>
+<text x="258" y="111" class="subtitle">A practical operating system to use AI safely, responsibly and for business value.</text>
+<rect x="25" y="147" width="69" height="678" rx="25" fill="#00334c"/>
+<text class="vertical" transform="translate(71 802) rotate(-90)">Business outcome • Risk appetite • Accountable ownership</text>
+<path d="M94 485 H112 V260 H140 M112 485 V495 H140 M112 485 V727 H140" fill="none" stroke="#0c6876" stroke-width="3.2"/>
+<circle cx="140" cy="260" r="8" fill="#fff" stroke="#086676" stroke-width="4"/>
+<circle cx="140" cy="495" r="8" fill="#fff" stroke="#b87336" stroke-width="4"/>
+<circle cx="140" cy="727" r="8" fill="#fff" stroke="#086676" stroke-width="4"/>
+<g>
+<rect x="140" y="163" width="369" height="188" rx="29" fill="#e5f4f3" />
+<g stroke="#006277" stroke-width="5" fill="none" stroke-linejoin="round"><path d="m178 224 30-18 32 18-32 18z"/><path d="m178 241 30 18 32-18M178 258l30 18 32-18"/></g>
+<text x="262" y="228" class="stage-title">FOUNDATION</text>
+<text x="263" y="264" class="stage-detail">Trusted data, clear</text>
+<text x="263" y="292" class="stage-detail">ownership and</text>
+<text x="263" y="320" class="stage-detail">the right guardrails.</text>
+<path d="M509 259 H526 V208 H549" fill="none" stroke="#006277" stroke-width="3.5"/>
+</g>
+<g>
+<rect x="140" y="385" width="369" height="215" rx="29" fill="#fcf1e8" />
+<g stroke="#a96532" stroke-width="4.5" fill="none" stroke-linecap="round"><path d="M205 433v79M178 457h54M205 433h5M183 457l-17 35h34zM228 457l-17 35h34zM176 516h58"/><circle cx="205" cy="432" r="5" fill="#fff"/></g>
+<text x="262" y="450" class="stage-title">DECISIONS</text>
+<text x="263" y="486" class="stage-detail">Clear decision rights,</text>
+<text x="263" y="514" class="stage-detail">operating rules</text>
+<text x="263" y="542" class="stage-detail">and managed risk.</text>
+<path d="M509 486 H526 V411 H549" fill="none" stroke="#a96532" stroke-width="3.5"/>
+</g>
+<g>
+<rect x="140" y="634" width="369" height="188" rx="29" fill="#e5f2f0" />
+<g stroke="#006775" stroke-width="5" fill="none" stroke-linejoin="round"><circle cx="207" cy="718" r="35"/><circle cx="207" cy="718" r="16"/><path d="M207 672v11M207 753v11M161 718h11M242 718h11M175 686l8 8M231 742l8 8M239 686l-8 8M183 742l-8 8"/><path d="m199 720 7 8 12-17" stroke="#c07b43"/></g>
+<text x="262" y="699" class="stage-title">EXECUTION</text>
+<text x="263" y="735" class="stage-detail">Assurance in operation</text>
+<text x="263" y="763" class="stage-detail">and AI that stays</text>
+<text x="263" y="791" class="stage-detail">within agreed limits.</text>
+<path d="M509 725 H526 V689 H549" fill="none" stroke="#006775" stroke-width="3.5"/>
+</g>
+<g>
+<rect x="551" y="166" width="963" height="79" rx="23" fill="#fffefe" stroke="#075d6d" stroke-width="1.8" />
+<rect x="561" y="179" width="67" height="47" rx="13" fill="#075d6d"/>
+<text x="594.5" y="213" text-anchor="middle" class="row-num">01</text>
+<g transform="translate(665 176) scale(.95)" fill="none" stroke="#075d6d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="18" cy="9" rx="17" ry="7"/><path d="M1 9v33c0 10 34 10 34 0V9M1 21c0 9 34 9 34 0M1 33c0 9 34 9 34 0"/><circle cx="44" cy="43" r="11" stroke="#ba763e"/><path d="m39 43 4 4 7-8" stroke="#ba763e"/></g>
+<path d="M754 180 V231" stroke="#314d5a" stroke-width="1.8"/>
+<text x="781" y="215" class="row-label">Information integrity</text>
+<path d="M1109 182 V229" stroke="#314d5a" stroke-width="1.5"/>
+<text x="1131" y="213" class="row-desc">Use reliable, fit-for-purpose data.</text>
+</g>
+<g>
+<rect x="551" y="258" width="963" height="79" rx="23" fill="#fffefe" stroke="#075d6d" stroke-width="1.8" />
+<rect x="561" y="271" width="67" height="47" rx="13" fill="#075d6d"/>
+<text x="594.5" y="305" text-anchor="middle" class="row-num">02</text>
+<g transform="translate(665 268) scale(.95)" fill="none" stroke="#075d6d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="26" cy="10" r="8"/><circle cx="5" cy="15" r="6"/><circle cx="47" cy="15" r="6"/><path d="M11 53V43c0-12 30-12 30 0v10M-3 43v-8c0-8 12-11 17-7M54 43v-8c0-8-12-11-17-7"/></g>
+<path d="M754 272 V323" stroke="#314d5a" stroke-width="1.8"/>
+<text x="781" y="307" class="row-label">Accountable ownership</text>
+<path d="M1109 274 V321" stroke="#314d5a" stroke-width="1.5"/>
+<text x="1131" y="305" class="row-desc">Assign clear end-to-end responsibility.</text>
+</g>
+<g>
+<rect x="551" y="372" width="963" height="79" rx="23" fill="#fffefe" stroke="#a66632" stroke-width="1.8" />
+<rect x="561" y="385" width="67" height="47" rx="13" fill="#a66632"/>
+<text x="594.5" y="419" text-anchor="middle" class="row-num">03</text>
+<g transform="translate(665 382) scale(.95)" fill="none" stroke="#a66632" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="m2 24 16-16 27 27-16 16zM13 4l7-7 29 29-7 7M19 47 7 59M0 61h38M29 15 52 38" /></g>
+<path d="M754 386 V437" stroke="#314d5a" stroke-width="1.8"/>
+<text x="781" y="421" class="row-label">Authority to decide</text>
+<path d="M1109 388 V435" stroke="#314d5a" stroke-width="1.5"/>
+<text x="1131" y="419" class="row-desc">Define who can approve and what.</text>
+</g>
+<g>
+<rect x="551" y="460" width="963" height="79" rx="23" fill="#fffefe" stroke="#a66632" stroke-width="1.8" />
+<rect x="561" y="473" width="67" height="47" rx="13" fill="#a66632"/>
+<text x="594.5" y="507" text-anchor="middle" class="row-num">04</text>
+<g transform="translate(665 470) scale(.95)" fill="none" stroke="#a66632" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><rect x="17" y="0" width="19" height="20" rx="2"/><rect x="-1" y="37" width="20" height="20" rx="2"/><rect x="35" y="37" width="20" height="20" rx="2"/><path d="M27 20v9M9 29h36M9 29v8M45 29v8"/></g>
+<path d="M754 474 V525" stroke="#314d5a" stroke-width="1.8"/>
+<text x="781" y="509" class="row-label">Rules in the workflow</text>
+<path d="M1109 476 V523" stroke="#314d5a" stroke-width="1.5"/>
+<text x="1131" y="507" class="row-desc">Embed policies and controls in daily work.</text>
+</g>
+<g>
+<rect x="551" y="546" width="963" height="79" rx="23" fill="#fffefe" stroke="#a66632" stroke-width="1.8" />
+<rect x="561" y="559" width="67" height="47" rx="13" fill="#a66632"/>
+<text x="594.5" y="593" text-anchor="middle" class="row-num">05</text>
+<g transform="translate(665 556) scale(.95)" fill="none" stroke="#a66632" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M27 0c8 8 20 10 20 10v19c0 15-9 24-20 29C16 53 7 44 7 29V10S19 8 27 0Z"/><path d="m17 28 7 7 14-17" stroke="#ba763e"/></g>
+<path d="M754 560 V611" stroke="#314d5a" stroke-width="1.8"/>
+<text x="781" y="595" class="row-label">Risk and obligations</text>
+<path d="M1109 562 V609" stroke="#314d5a" stroke-width="1.5"/>
+<text x="1131" y="593" class="row-desc">Manage legal, regulatory and ethical risk.</text>
+</g>
+<g>
+<rect x="551" y="648" width="963" height="79" rx="23" fill="#fffefe" stroke="#0a686f" stroke-width="1.8" />
+<rect x="561" y="661" width="67" height="47" rx="13" fill="#0a686f"/>
+<text x="594.5" y="695" text-anchor="middle" class="row-num">06</text>
+<g transform="translate(665 658) scale(.95)" fill="none" stroke="#0a686f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 54V39M10 54V30M19 54V41M28 54V14M37 54V25" stroke-width="6"/><circle cx="50" cy="48" r="12" stroke="#ba763e"/><path d="m59 57 9 9" stroke="#ba763e"/></g>
+<path d="M754 662 V713" stroke="#314d5a" stroke-width="1.8"/>
+<text x="781" y="697" class="row-label">System assurance</text>
+<path d="M1109 664 V711" stroke="#314d5a" stroke-width="1.5"/>
+<text x="1131" y="695" class="row-desc">Monitor, test and keep AI fit for use.</text>
+</g>
+<g>
+<rect x="551" y="734" width="963" height="79" rx="23" fill="#fffefe" stroke="#0a686f" stroke-width="1.8" />
+<rect x="561" y="747" width="67" height="47" rx="13" fill="#0a686f"/>
+<text x="594.5" y="781" text-anchor="middle" class="row-num">07</text>
+<g transform="translate(665 744) scale(.95)" fill="none" stroke="#0a686f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M-1 12V-1h14M43-1h14v13M57 42v14H43M13 56H-1V42"/><path d="m27 6 5 15 15 5-15 5-5 15-5-15-15-5 15-5z" stroke="#bc793a"/></g>
+<path d="M754 748 V799" stroke="#314d5a" stroke-width="1.8"/>
+<text x="781" y="783" class="row-label">Bounded AI action</text>
+<path d="M1109 750 V797" stroke="#314d5a" stroke-width="1.5"/>
+<text x="1131" y="781" class="row-desc">Set and enforce clear operating limits.</text>
+</g>
+</svg>

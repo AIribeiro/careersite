@@ -1,6 +1,7 @@
 """Editorial and rendering regression checks for the governance briefing."""
 from __future__ import annotations
 
+import base64
 from pathlib import Path
 import sys
 import unittest
@@ -45,13 +46,15 @@ class GovernanceBriefingTests(unittest.TestCase):
         self.assertIn("Accountable ownership", svg)
         self.assertIn("Bounded AI action", svg)
         markup = governance_visual_map()
-        # The SVG markup is self-contained. A separate /app/static SVG
-        # request is forbidden: it caused a large broken-image placeholder.
-        self.assertIn('<svg xmlns="http://www.w3.org/2000/svg"', markup)
-        self.assertIn('viewBox="0 0 1536 864"', markup)
-        self.assertNotIn('<img ', markup)
+        # st.html sanitizes inline SVG and Streamlit static SVG files are
+        # served with a MIME type that browsers refuse to render.
+        self.assertIn('<img src="data:image/svg+xml;base64,', markup)
         self.assertNotIn('/app/static/', markup)
-        self.assertEqual(markup.count('class="row-label"'), 7)
+        self.assertNotIn('<svg ', markup)
+        encoded = markup.split('data:image/svg+xml;base64,', 1)[1].split('"', 1)[0]
+        decoded = base64.b64decode(encoded).decode("utf-8")
+        self.assertIn('viewBox="0 0 1536 864"', decoded)
+        self.assertEqual(decoded.count('class="row-label"'), 7)
         self.assertIn("At-a-glance governance map.", markup)
 
     def test_missing_svg_displays_seven_readable_layers_without_blank_space(self):

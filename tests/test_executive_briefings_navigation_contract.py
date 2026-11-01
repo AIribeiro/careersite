@@ -112,6 +112,24 @@ class BriefingsNavigationContract(unittest.TestCase):
         main = (SRC.parent / "main.py").read_text(encoding="utf-8")
         cms = (SRC / "site_cms.py").read_text(encoding="utf-8")
         self.assertIn('"briefing": executive_briefing_page', main)
+        app = (SRC.parent / "app.py").read_text(encoding="utf-8")
+        self.assertIn('Route("/briefing/{slug}", _thinking_article', app)
+        self.assertIn('request.url.path.startswith("/briefing/")', app)
+        from site_cms import CmsArticle, article_url, article_relative_url
+        article = CmsArticle(
+            slug="ai-governance-explained-to-executives",
+            kind="Executive Briefing",
+        )
+        self.assertEqual(
+            article_relative_url(article),
+            "?page=briefing&article=ai-governance-explained-to-executives",
+        )
+        self.assertEqual(
+            article_url(article),
+            "https://jairribeiro-ai.streamlit.app/briefing/ai-governance-explained-to-executives",
+        )
+        article.kind = "Article"
+        self.assertIn("/thinking/", article_url(article))
         self.assertIn('if PAGE in {"thinking", "briefing"}', main)
         self.assertIn('page = "briefing" if article.kind.strip().casefold()', cms)
         self.assertIn('else "thinking"', cms)

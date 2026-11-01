@@ -49,6 +49,40 @@ GOVERNANCE_DECISION = {
     ),
 }
 
+
+# Original executive governance architecture: seven concurrent control surfaces,
+# not a redraw or a maturity sequence borrowed from a reference illustration.
+GOVERNANCE_LAYERS = (
+    ("01", "Information integrity",
+     "Can we defend the information behind this decision?",
+     "Assign domain owners, agree key definitions and check whether the inputs are fit for the specific use.",
+     "Data steward · quality checks · source traceability", "layers", "foundation"),
+    ("02", "Accountable ownership",
+     "Who owns the business result when AI is involved?",
+     "Name the process owner and system owner. Give exceptions and incidents an escalation route.",
+     "Accountable owner · operating forum · escalation", "users", "foundation"),
+    ("03", "Authority to decide",
+     "Who can approve a use case, a release or a stop?",
+     "Set clear authority for acceptance of risk, go-live, major changes and the right to pause.",
+     "Decision record · release gate · stop authority", "target", "decisions"),
+    ("04", "Rules in the workflow",
+     "Can people explain what is allowed and what is not?",
+     "Convert policy into usable boundaries, access rules, training and a recorded exception path.",
+     "Usage rules · access permissions · exception log", "check", "decisions"),
+    ("05", "Risk and obligations",
+     "What could go wrong here, and which duties apply?",
+     "Assess harm, privacy, security, vendor exposure and applicable law by use case—not by product name.",
+     "Risk classification · obligation check · response owner", "shield", "decisions"),
+    ("06", "System assurance",
+     "What evidence shows this works reliably in real conditions?",
+     "Evaluate representative cases and failure modes before release; monitor quality, drift and incidents after.",
+     "Test results · monitoring limits · incident review", "chart", "execution"),
+    ("07", "Bounded AI action",
+     "What can AI execute without further human approval?",
+     "Restrict tools, data, transaction limits and access. Log actions; test intervention and rollback.",
+     "Action permissions · approval triggers · stop test", "workflow", "execution"),
+)
+
 BRIEFINGS_CSS = r'''<style>
 .site .briefings-index{font:800 10px/1.45 Arial,sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#ac663e}
 .site .briefings-hero{padding:65px 0 63px}
@@ -230,52 +264,121 @@ BRIEFINGS_CSS = r'''<style>
 .site .briefings-governance-art{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-width:520px}
 .site .briefings-governance-art span{border:1px solid rgba(230,187,154,.55);background:#1e3b50;color:#f4e8de;padding:13px 9px;text-align:center;font:750 12px/1.3 Arial,sans-serif}
 .site .briefings-governance-art-rule{color:#e4b995!important;font:750 11px/1.4 Arial,sans-serif!important}
-.site .gov-map{padding:28px 30px;margin-top:24px;background:#eef1ef;border:1px solid #cdd8d8}
-.site .gov-map-head h2{margin:8px 0 8px;font:500 clamp(26px,3.2vw,37px)/1.15 Georgia,serif;color:#163046}
-.site .gov-map-head p{max-width:800px;color:#475968;font:400 14px/1.65 Arial,sans-serif;margin:0 0 22px}
-.site .gov-map-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.site .gov-map-control{min-width:0;background:#fffdf8;border:1px solid #d1d6d5;padding:21px 19px 19px;border-top:3px solid #b57a53}
-.site .gov-map-control .briefing-icon{display:inline-flex;color:#a4613b}
-.site .gov-map-control h3{font:500 23px/1.18 Georgia,serif;color:#1e3447;margin:12px 0 7px}
-.site .gov-map-control p{font:400 13px/1.62 Arial,sans-serif;color:#445765;margin:0}
-.site .gov-map-control strong{display:block;margin-top:12px;padding-top:10px;border-top:1px solid #e5e3df;font:750 11px/1.55 Arial,sans-serif;color:#855337}
-.site .gov-map-foundation{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:start;gap:14px;margin-top:10px;padding:19px 22px;background:#142d40;color:#fff}
-.site .gov-map-foundation .briefing-icon{color:#e6b28f}
-.site .gov-map-foundation h3{margin:0 0 6px;color:#fff;font:500 21px/1.2 Georgia,serif}
-.site .gov-map-foundation p{margin:0;color:#d8e2e9;font:400 13px/1.55 Arial,sans-serif}
-.site .gov-map-bottom{margin:15px 0 0!important;font:400 12px/1.6 Arial,sans-serif!important;color:#576572!important}
-@media(max-width:800px){.site .gov-map-controls{grid-template-columns:1fr}.site .gov-map-control{padding:18px}.site .gov-map{padding:20px}}
-@media(max-width:530px){.site .briefings-governance-art span{font-size:10px;padding:9px 5px}.site .gov-map-foundation{padding:17px}}
+
+/* Independent, text-first executive governance diagram. No borrowed stack artwork. */
+.site .gov-seven{margin-top:25px;padding:clamp(20px,3vw,34px);background:#f1f3f1;border:1px solid #cfd9d8}
+.site .gov-seven-head{display:flex;justify-content:space-between;align-items:start;gap:25px}
+.site .gov-seven-head h2{font:500 clamp(28px,3.8vw,43px)/1.12 Georgia,serif;color:#173046;max-width:750px;margin:10px 0 13px}
+.site .gov-seven-head p{font:400 14px/1.67 Arial,sans-serif;color:#4c5f6a;max-width:770px;margin:0}
+.site .gov-seven-count{font:700 45px/1 Georgia,serif;color:#a16b48;white-space:nowrap;border-left:1px solid #c5cfcd;padding-left:19px}
+.site .gov-seven-thread{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;background:#163247;color:#fff;padding:16px 19px;margin:22px 0 26px}
+.site .gov-seven-thread strong{color:#e6ba96;font:750 10px/1.5 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.site .gov-seven-thread span{font:600 12px/1.55 Arial,sans-serif;color:#eff5f6}
+.site .gov-seven-group{margin-top:21px}
+.site .gov-seven-group-head{display:flex;gap:12px;align-items:center;border-bottom:1px solid #cbd5d2;padding:0 0 10px;margin-bottom:8px}
+.site .gov-seven-group-head b{font:850 10px/1.5 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#7d563b}
+.site .gov-seven-group-head span{font:400 12px/1.5 Arial,sans-serif;color:#63717a}
+.site .gov-seven-list{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.site .gov-seven-layer{display:grid;grid-template-columns:49px minmax(155px,.85fr) minmax(180px,1fr) minmax(165px,.95fr);gap:14px;align-items:start;padding:18px 20px;background:#fffdf9;border:1px solid #d8dedc;border-left:4px solid #52788c;min-width:0}
+.site .gov-seven-layer--decisions{border-left-color:#b87c52}
+.site .gov-seven-layer--execution{border-left-color:#46766d}
+.site .gov-seven-number{color:#987054;font:500 29px/1.1 Georgia,serif}
+.site .gov-seven-title{display:flex;gap:10px;align-items:start}
+.site .gov-seven-title .briefing-icon{flex-shrink:0;width:26px;height:26px;font-size:17px}
+.site .gov-seven-title h3{font:500 clamp(18px,1.9vw,23px)/1.2 Georgia,serif;color:#183247;margin:0}
+.site .gov-seven-question strong,.site .gov-seven-proof strong{display:block;font:850 10px/1.4 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#986344;margin:0 0 6px}
+.site .gov-seven-question p{font:750 13px/1.48 Arial,sans-serif;color:#1d3446;margin:0 0 7px}
+.site .gov-seven-question span{display:block;font:400 12px/1.55 Arial,sans-serif;color:#586671}
+.site .gov-seven-proof p{font:600 12px/1.6 Arial,sans-serif;color:#415667;margin:0}
+.site .gov-seven-example{margin-top:25px;padding:22px 24px;background:#e3e9e8;border:1px solid #cad5d3}
+.site .gov-seven-example h3{font:500 25px/1.2 Georgia,serif;color:#1b3546;margin:8px 0}
+.site .gov-seven-example>p{font:400 13px/1.65 Arial,sans-serif;color:#425662;margin:0 0 16px;max-width:830px}
+.site .gov-seven-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.site .gov-seven-mode{padding:15px;background:#fffdf9;border-top:3px solid #c18c66}
+.site .gov-seven-mode b{font:500 19px/1.2 Georgia,serif;color:#1e3647;display:block;margin-bottom:6px}
+.site .gov-seven-mode p{font:400 12px/1.55 Arial,sans-serif;color:#52636b;margin:0}
+.site .gov-seven-actions{display:grid;grid-template-columns:minmax(190px,.75fr) 1fr;gap:23px;margin-top:16px;padding:22px 24px;background:#173247;color:#fff}
+.site .gov-seven-actions h3{font:500 26px/1.2 Georgia,serif;color:#fff;margin:5px 0 8px}
+.site .gov-seven-actions p{font:400 12px/1.55 Arial,sans-serif;color:#d7e0e6;margin:0}
+.site .gov-seven-actions ol{margin:0;padding-left:20px;font:400 13px/1.6 Arial,sans-serif;color:#edf3f5}
+.site .gov-seven-actions li+li{margin-top:7px}
+.site .gov-seven-note{color:#627079!important;font:400 11px/1.6 Arial,sans-serif!important;margin:13px 0 0!important}
+@media(max-width:1050px){.site .gov-seven-layer{grid-template-columns:44px minmax(160px,.9fr) minmax(190px,1.15fr)}.site .gov-seven-proof{grid-column:2 / -1;border-top:1px solid #e2e6e2;padding-top:9px}.site .gov-seven-proof p{margin:0}}
+@media(max-width:720px){.site .gov-seven-layer{grid-template-columns:38px minmax(0,1fr);gap:10px 12px;padding:15px}.site .gov-seven-title,.site .gov-seven-question,.site .gov-seven-proof{grid-column:2}.site .gov-seven-question{padding-top:4px}.site .gov-seven-proof{padding-top:9px}.site .gov-seven-modes{grid-template-columns:1fr}.site .gov-seven-actions{grid-template-columns:1fr}.site .gov-seven-head{display:block}.site .gov-seven-count{display:none}.site .gov-seven-group-head{display:block}.site .gov-seven-group-head span{display:block;margin-top:3px}}
 </style>'''
 
 
 def governance_decision_map() -> str:
-    """First-party governance map: operating controls on shared data foundations."""
-    controls = (
-        ("Ownership & authority", "Name a business owner, decision-maker, exception approver and escalation route.", "Evidence: signed decision rights", "users"),
-        ("Policy, risk & model", "Approve the purpose; test representative cases, errors and access; review incidents.", "Evidence: risk assessment and evaluation", "shield"),
-        ("Actions & oversight", "Limit tools and permissions; require approval where needed; log, monitor and stop.", "Evidence: action boundaries and audit", "workflow"),
-    )
-    cards = ''.join(
-        '<div class="gov-map-control">' + briefing_icon(icon)
-        + f'<h3>{escape(title)}</h3><p>{escape(detail)}</p>'
-        + f'<strong>{escape(evidence)}</strong></div>'
-        for title, detail, evidence, icon in controls
-    )
+    """Original seven-layer operating map with executive checks and proof points."""
+    groups = {
+        "foundation": ("Make AI accountable", "Trusted inputs and clear ownership"),
+        "decisions": ("Make permissions explicit", "Who may approve, challenge and stop"),
+        "execution": ("Keep behaviour controlled", "Proof before release and oversight afterwards"),
+    }
+    rows = []
+    current_group = None
+    for number, title, question, move, evidence, icon, group in GOVERNANCE_LAYERS:
+        if group != current_group:
+            if current_group is not None:
+                rows.append("</ol></div>")
+            heading, deck = groups[group]
+            rows.append(
+                '<div class="gov-seven-group">'
+                f'<div class="gov-seven-group-head"><b>{escape(heading)}</b>'
+                f'<span>{escape(deck)}</span></div>'
+                '<ol class="gov-seven-list">'
+            )
+            current_group = group
+        rows.append(
+            f'<li class="gov-seven-layer gov-seven-layer--{escape(group)}">'
+            f'<span class="gov-seven-number" aria-hidden="true">{escape(number)}</span>'
+            '<div class="gov-seven-title">' + briefing_icon(icon)
+            + f'<h3>{escape(title)}</h3></div>'
+            '<div class="gov-seven-question"><strong>Executive question</strong>'
+            f'<p>{escape(question)}</p><span>{escape(move)}</span></div>'
+            '<div class="gov-seven-proof"><strong>Ask to see</strong>'
+            f'<p>{escape(evidence)}</p></div></li>'
+        )
+    rows.append("</ol></div>")
     return (
-        '<section class="gov-map" aria-label="AI governance operating controls" '
+        '<section class="gov-seven" aria-label="Seven operating layers of AI governance" '
         'data-analytics-section="briefings-governance-map">'
-        '<div class="gov-map-head"><span class="briefings-index">Executive governance map</span>'
-        '<h2>Three operating controls. One trustworthy foundation.</h2>'
-        '<p>Governance only works when these controls connect to the business process. '
-        'They are not a maturity ladder or separate committees to create.</p></div>'
-        f'<div class="gov-map-controls">{cards}</div>'
-        '<div class="gov-map-foundation">' + briefing_icon("layers")
-        + '<div><h3>The data foundation supports all three.</h3>'
-        '<p>Named owners · agreed definitions · use-case data quality · traceable sources '
-        '· role-based access</p></div></div>'
-        '<p class="gov-map-bottom">The more consequential or autonomous the action, '
-        'the more explicit approval, oversight and rollback need to become.</p></section>'
+        '<div class="gov-seven-head"><div><span class="briefings-index">The operating architecture</span>'
+        '<h2>Seven layers. One accountable business decision.</h2>'
+        '<p>AI governance is not a policy binder or a model review meeting. It is the '
+        'set of decisions, permissions and evidence that lets people use AI safely '
+        'while remaining responsible for the business result. These seven layers work '
+        'together; they are not a maturity staircase or seven new committees.</p></div>'
+        '<span class="gov-seven-count" aria-hidden="true">07</span></div>'
+        '<div class="gov-seven-thread"><strong>Across every layer</strong>'
+        '<span>Business outcome</span><span>Risk appetite</span>'
+        '<span>Real adoption</span><span>Ownership of consequences</span></div>'
+        + "".join(rows)
+        + '<div class="gov-seven-example"><span class="briefings-index">A practical distinction</span>'
+        '<h3>One service workflow. Three different levels of AI authority.</h3>'
+        '<p>Imagine an AI assistant supporting customer service credits. '
+        'The technical capability may look similar, but the business control '
+        'must change as its permission to act expands.</p>'
+        '<div class="gov-seven-modes">'
+        '<div class="gov-seven-mode"><b>Recommend</b><p>AI proposes a credit with supporting '
+        'facts. A person decides and records the outcome.</p></div>'
+        '<div class="gov-seven-mode"><b>Prepare</b><p>AI completes the draft transaction, '
+        'but cannot submit it until an authorised person approves.</p></div>'
+        '<div class="gov-seven-mode"><b>Execute within limits</b><p>AI may issue only '
+        'pre-approved, low-value credits within a defined cap, with logging, '
+        'monitoring and an immediate stop route.</p></div></div></div>'
+        '<div class="gov-seven-actions"><div><span class="briefings-index">Executive next move</span>'
+        '<h3>Test one live workflow.</h3><p>A short review with the process owner '
+        'is more useful than another enterprise-wide policy presentation.</p></div>'
+        '<ol><li>Select a consequential use case; state the result, baseline and owner.</li>'
+        '<li>Ask for the evidence listed across all seven layers. Record gaps and '
+        'assign decisions, rather than forming seven committees.</li>'
+        '<li>Approve a bounded trial, with measurable operating results and a '
+        'reassessment whenever data, scope or autonomy changes.</li></ol></div>'
+        '<p class="gov-seven-note">Executive operating model by Jair Ribeiro. '
+        'The layers are a practical management view, not a claim that every use case '
+        'faces identical legal obligations. Apply relevant requirements based on '
+        'context, risk and jurisdiction.</p></section>'
     )
 
 
@@ -329,9 +432,9 @@ def _briefing_catalog_art(slug: str) -> str:
         return (
             '<div class="briefings-catalog-art briefings-catalog-art--governance" aria-hidden="true">'
             '<span class="briefings-catalog-art-kicker">The operating governance test</span>'
-            '<div class="briefings-governance-art"><span>Ownership</span>'
-            '<span>Assurance</span><span>Actions</span></div>'
-            '<div class="briefings-governance-art-rule">Built on trusted data · accountable decisions</div></div>'
+            '<div class="briefings-governance-art"><span>Trusted inputs</span>'
+            '<span>Decision authority</span><span>Bounded action</span></div>'
+            '<div class="briefings-governance-art-rule">7 layers · One accountable business outcome</div></div>'
         )
     if slug == "seven-questions-for-better-ai-decisions":
         return (
@@ -408,7 +511,7 @@ def executive_briefing_article(
 ) -> str:
     """Render an independent article, exposing its principal content directly.
 
-    The CMS remains authoritative for editorial content and source references.
+    The CMS supplies editorial context and source references; the dedicated decision map supplies the primary operating architecture.
     The seven-question guide has a curated executive structure of its own.
     """
     from thinking_core import THINKING_CSS

@@ -15,6 +15,7 @@ from page_content_intelligence import (
 )
 from portfolio_signal_brief import ranked_portfolio_signals
 from portfolio_metric_cards import portfolio_metric_grid
+from page_executive_briefings_analytics import published_briefings
 from page_home_journey import render_home_journey
 
 # Routes retired in the October 2026 six-page navigation redesign.
@@ -185,6 +186,9 @@ def render_public_portfolio_overview() -> None:
     weekly_item_sessions = sum(row["Sessions"] for row in weekly_editions)
     briefing_views = sum(row["Views"] for row in briefing_rows)
     briefing_item_sessions = sum(row["Sessions"] for row in briefing_rows)
+    published_briefing_count = (
+        len(published_briefings(published_editions)) if catalogue_available else None
+    )
     rows_reconcile = regular_views + weekly_views + briefing_views == article_views
     lifetime_pages = lifetime_articles = lifetime_weekly = lifetime_briefings = None
     try:
@@ -245,8 +249,8 @@ def render_public_portfolio_overview() -> None:
             "sessions": regular_item_sessions,
             "sessions_label": "article-item sessions",
             "items": len(regular_articles),
-            "item_unit": "articles read",
-            "rank_title": "Most-read articles",
+            "item_unit": "articles viewed",
+            "rank_title": "Most-viewed articles",
             "rows": regular_articles,
             "available": catalogue_available,
         },
@@ -259,8 +263,8 @@ def render_public_portfolio_overview() -> None:
             "sessions": weekly_item_sessions,
             "sessions_label": "edition-item sessions",
             "items": len(weekly_editions),
-            "item_unit": "editions read",
-            "rank_title": "Most-read editions",
+            "item_unit": "editions viewed",
+            "rank_title": "Most-viewed editions",
             "rows": weekly_editions,
             "available": catalogue_available,
         },
@@ -273,12 +277,15 @@ def render_public_portfolio_overview() -> None:
             "sessions": briefing_item_sessions,
             "sessions_label": "briefing-item sessions",
             "items": len(briefing_rows),
-            "item_unit": "briefings read",
-            "rank_title": "Most-read briefings",
+            "total_items": published_briefing_count,
+            "item_unit": "published briefings viewed",
+            "rank_title": "Most-viewed briefings",
             "rows": briefing_rows,
             "available": catalogue_available,
         },
     ]
+    for card in cards:
+        card["period_label"] = REPORTING_WINDOW_LABELS.get(str(window), "Selected period")
     st.html(portfolio_metric_grid(cards))
 
     if catalogue_available and not rows_reconcile:
@@ -291,7 +298,8 @@ def render_public_portfolio_overview() -> None:
         "Articles, Weekly AI and Executive Briefings are separate partitions of "
         "existing article views, not extra website traffic. The Briefings library "
         "is included in Portfolio visits. Item-session observations may overlap "
-        "across publications and are not unique readers. Ranking bars are "
+        "across publications and are not unique readers. Rankings show only "
+        "content with recorded views in the selected period. Ranking bars are "
         "scaled within each card, not across categories."
     )
 

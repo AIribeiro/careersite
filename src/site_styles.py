@@ -148,8 +148,8 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 }
 
 
-/* Home editorial feature: the current Thinking highlight is an elegant, contained
-   two-column story through tablet sizes, rather than a huge stacked header. */
+/* Home editorial feature: one rotating Thinking article or Executive AI Briefing,
+   contained in a premium two-column story through tablet sizes. */
 .site .home-featured{padding:54px 0 64px;background:var(--paper)}
 .site .home-featured>.container{width:min(980px,calc(100% - 44px));max-width:100%}
 .site .home-featured-topline{display:flex;justify-content:space-between;align-items:baseline;gap:24px;margin:0 0 19px}
@@ -170,6 +170,11 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 .site a.home-featured-read{display:inline-flex;align-items:center;align-self:flex-start;gap:16px;min-height:42px;margin-top:17px;padding:9px 0 7px;color:#f3bc96!important;text-decoration:none!important;font-size:13px;font-weight:750;border-bottom:1px solid rgba(243,188,150,.68);transition:border-color .2s,color .2s}
 .site a.home-featured-read:hover{color:#fff!important;border-color:#fff}
 .site a.home-featured-media:focus-visible,.site .home-featured-copy a:focus-visible{outline:3px solid #f3bc96;outline-offset:4px}
+.site .home-featured-paths{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px 23px;padding:17px 0 0}
+.site .home-featured-paths>span{margin-right:auto;color:var(--muted);font:700 10px/1.5 Arial,sans-serif;letter-spacing:.09em;text-transform:uppercase}
+.site .home-featured-paths a{color:var(--ink)!important;text-decoration:none!important;font:750 12px/1.5 Arial,sans-serif;border-bottom:1px solid rgba(154,96,58,.5);padding-bottom:4px}
+.site .home-featured-paths a:hover{color:var(--copper)!important;border-bottom-color:var(--copper)}
+.site .home-featured-paths a:focus-visible{outline:3px solid var(--copper);outline-offset:4px}
 /* The iPad portrait viewport still has room for two balanced columns. */
 @media(min-width:701px) and (max-width:980px){
   .site .home-featured-copy{padding:clamp(23px,3vw,34px)}
@@ -187,6 +192,8 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .home-featured-deck{font-size:14px}
 }
 @media(max-width:520px){
+  .site .home-featured-paths{justify-content:flex-start;gap:12px 20px}
+  .site .home-featured-paths>span{width:100%;margin:0}
   .site .home-featured>.container{width:calc(100% - 30px)}
   .site .home-featured-topline{display:block}
   .site .home-featured-topline>p:last-child{margin-top:8px}

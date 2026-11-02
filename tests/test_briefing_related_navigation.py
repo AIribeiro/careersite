@@ -74,21 +74,34 @@ class ContextualBriefingNavigationTests(unittest.TestCase):
         self.assertEqual(len(recommendations), 2)
         self.assertEqual(len({a.slug for a, reason in recommendations}), 2)
 
-    def test_read_next_is_final_section_before_main_closes_and_is_idempotent(self):
+    def test_read_next_precedes_final_contact_footer_and_is_idempotent(self):
         current = self.published[0]
         document = (
             '<main><section class="body">Briefing</section>'
-            '<section class="contact">Contact the author</section></main>'
+            '<section class="earlier-contact">Discuss your decision</section>'
+            '<section class="briefings-conversation" '
+            'data-analytics-section="briefings-contact">'
+            '<h2>Have an AI choice that needs a clearer answer?</h2>'
+            '</section></main>'
             '<footer>Site footer</footer>'
         )
         result = insert_related_navigation(document, current, self.published)
         self.assertEqual(result.count('data-analytics-section="briefings-related-reading"'), 1)
         self.assertIn("Where to go next", result)
-        self.assertLess(result.index("Contact the author"), result.index('class="ebr-related"'))
-        self.assertLess(result.index('class="ebr-related"'), result.index("</main>"))
+        self.assertLess(result.index("Discuss your decision"), result.index('class="ebr-related"'))
+        self.assertLess(result.index('class="ebr-related"'), result.index('class="briefings-conversation"'))
+        self.assertLess(result.index("Have an AI choice that needs a clearer answer?"), result.index("</main>"))
         self.assertLess(result.index("</main>"), result.index("<footer>"))
         self.assertEqual(result, insert_related_navigation(result, current, self.published))
         self.assertEqual(result.count('data-hq-event="briefing_related_open"'), 2)
+
+    def test_missing_contact_marker_has_safe_fallback(self):
+        current = self.published[0]
+        doc = '<main><section class="body">Briefing</section></main><footer>Footer</footer>'
+        result = insert_related_navigation(doc, current, self.published)
+        self.assertIn("Where to go next", result)
+        self.assertEqual(result.count("briefings-related-reading"), 1)
+        self.assertLess(result.index("Where to go next"), result.index("</main>"))
 
     def test_links_use_canonical_routes_and_existing_tracking_conventions(self):
         current = self.published[0]

@@ -10,6 +10,7 @@ from analytics_reporting_period import initialize_reporting_period, remember_rep
 from page_article_analytics import render_article_analytics, render_reader_sources
 from page_content_intelligence import render_content_intelligence
 from page_weekly_ai_analytics import render_weekly_ai_analytics
+from page_executive_briefings_analytics import render_executive_briefings_analytics
 from page_public_portfolio_overview import render_public_portfolio_overview
 from page_linkedin_career_scorecard import render_linkedin_career_scorecard
 
@@ -79,9 +80,9 @@ def _render_public_analytics() -> None:
     st.caption("Understand which content earns qualified attention and what visitors do next. "
                "A recorded visit is not a person or a recruiter identification.")
     kind = st.segmented_control(
-        "Portfolio focus", options=["page","article","weekly_ai"],
+        "Portfolio focus", options=["page","article","weekly_ai","briefings"],
         default="page",
-        format_func=lambda value: {"page": "Pages & profile", "article": "Articles & thinking", "weekly_ai": "WEEKLY AI"}[value],
+        format_func=lambda value: {"page": "Pages & profile", "article": "Articles & thinking", "weekly_ai": "WEEKLY AI", "briefings": "Executive Briefings"}[value],
         key="analytics_portfolio_kind", width="stretch",
     ) or "page"
     window_options = [key for key, _ in REPORTING_WINDOWS]
@@ -99,6 +100,9 @@ def _render_public_analytics() -> None:
         st.caption("Short windows are useful for monitoring, not for judging hiring or content outcomes.")
     if kind == "weekly_ai":
         render_weekly_ai_analytics(str(window))
+        return
+    if kind == "briefings":
+        render_executive_briefings_analytics(str(window))
         return
     render_content_intelligence(str(kind), str(window))
     # Source-level attribution audits and unfiltered legacy detail belong in

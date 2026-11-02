@@ -46,7 +46,7 @@ BRIEFING_REVIEW_CRITERIA = (
     "Sources: dated facts verified against primary authorities; limitations explicit.",
     "Originality: independent reasoning, no borrowed diagram or invented case.",
     "Visual quality: meaningful branded decision aid, mobile readability and accessibility.",
-    "Publishing: independent reader, correct references, links and contact action.",
+    "Publishing: independent reader, working references and contact action, plus contextual next-briefing links.",
 )
 
 

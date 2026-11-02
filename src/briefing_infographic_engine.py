@@ -88,7 +88,9 @@ def validate_spec(spec: Mapping) -> None:
             raise ValueError("Each proof point needs specific, explanatory evidence.")
         if len(_clean(item.get("detail"))) > 176:
             raise ValueError("Use concise detail text (176 characters maximum).")
-    if spec.get("pattern") == "timeline" and len(items) > 5:\n        raise ValueError("Timelines support at most five milestones.")\n    if len(_clean(spec.get("conclusion"))) < 12:
+    if spec.get("pattern") == "timeline" and len(items) > 5:
+        raise ValueError("Timelines support at most five milestones.")
+    if len(_clean(spec.get("conclusion"))) < 12:
         raise ValueError("State the executive conclusion, not just a topic.")
     from briefing_content_policy import validate_briefing_employer_anonymity
     from types import SimpleNamespace

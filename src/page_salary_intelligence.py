@@ -21,6 +21,7 @@ STOCKHOLM_TIMEZONE = "Europe/Stockholm"
 FIELDS = (
     "opportunity_id,process_key,employer,role_title,current_process_outcome,"
     "employment_model,comparability_group,comparison_basis,role_family,seniority_bucket,"
+    "market_country,market_city,assumptions,"
     "assessment_id,assessment_date,minimum_sek,expected_sek,ideal_sek,"
     "career_floor_gross_monthly_sek,negotiation_anchor_gross_monthly_sek,"
     "employer_reported_band_min_sek,employer_reported_band_max_sek,employer_band_confirmation,"
@@ -120,6 +121,10 @@ def _pct(row: dict) -> str:
 
 
 def _question(row: dict, today: date) -> str:
+    if str(row.get("market_country") or "").lower() == "denmark":
+        return ("What is the approved DKK base salary, grade, employer pension percentage, "
+                "annual bonus, WESOP terms and Copenhagen hybrid arrangement? "
+                "The available model is total remuneration, not Swedish base salary.")
     if row.get("employment_model") == "contract_umbrella":
         return ("Can you confirm the umbrella provider's full payroll breakdown, including "
                 "fees, employer contributions, pension, holiday pay and billable-day assumptions?")
@@ -137,6 +142,8 @@ def _question(row: dict, today: date) -> str:
 
 
 def _priority(row: dict, today: date) -> tuple[int, str]:
+    if str(row.get("market_country") or "").lower() == "denmark":
+        return (0, "Danish compensation basis verification")
     if not _direct(row):
         return (0, "Confirm employment economics")
     if not _benchmarked(row):
@@ -402,6 +409,10 @@ def _style() -> None:
 
 def _evidence(row: dict, token: str) -> None:
     st.markdown("**Evidence and assumptions**")
+    if str(row.get("market_country") or "").lower() == "denmark":
+        st.warning("Danish total monthly remuneration may include employer pension, bonuses and "
+                   "benefits. Approximate SEK conversion is for reference only: it must not be "
+                   "compared directly with Swedish gross base salary or the Swedish salary floor.")
     st.caption(
         "An inferred role-adjusted range is not an employer-approved offer band or an "
         "exact-role salary distribution. Source observations and modeled adjustments are separate."
@@ -463,13 +474,24 @@ def _evidence(row: dict, token: str) -> None:
                 f"Observed published range {_sek(source['observed_range_low_sek'], compact=False)} "
                 f"to {_sek(source['observed_range_high_sek'], compact=False)}"
             )
-        for field, label in (
-            ("observed_p10_sek", "P10"), ("observed_p25_sek", "P25"),
-            ("observed_median_sek", "Median"), ("observed_p75_sek", "P75"),
-            ("observed_p90_sek", "P90"), ("observed_mean_sek", "Mean"),
-        ):
-            if source.get(field) is not None:
-                observed.append(f"{label} {_sek(source[field], compact=False)}")
+        metadata = source.get("source_metadata") if isinstance(source.get("source_metadata"), dict) else {}
+        if metadata.get("original_currency") == "DKK":
+            native = metadata.get("native_metrics") if isinstance(metadata.get("native_metrics"), dict) else {}
+            observed = [
+                f"{label} {int(_number(native[key])):,.0f} DKK/month"
+                for key, label in (("p25", "P25"), ("median", "Median"),
+                                   ("p75", "P75"), ("mean", "Mean"))
+                if native.get(key) is not None
+            ]
+            observed.append(f"Converted at {metadata.get('fx_to_sek') or 'unknown'} SEK/DKK for storage only")
+        else:
+            for field, label in (
+                ("observed_p10_sek", "P10"), ("observed_p25_sek", "P25"),
+                ("observed_median_sek", "Median"), ("observed_p75_sek", "P75"),
+                ("observed_p90_sek", "P90"), ("observed_mean_sek", "Mean"),
+            ):
+                if source.get(field) is not None:
+                    observed.append(f"{label} {_sek(source[field], compact=False)}")
         unit = ((source.get("source_metadata") or {}).get("unit")
                 if isinstance(source.get("source_metadata"), dict) else None)
         if unit == "SEK/hour":
@@ -491,7 +513,7 @@ def _evidence(row: dict, token: str) -> None:
 def _contract_lane(rows: list[dict], token: str, today: date) -> None:
     if not rows:
         return
-    st.markdown('<div class="salary-section-title">Contract and conditional economics</div>', unsafe_allow_html=True)
+    st.markdown('<div class="salary-section-title">Cross-border, contract and conditional economics</div>', unsafe_allow_html=True)
     st.caption(
         "Separate economic bases. Contract invoicing, modeled umbrella payroll and hypothetical "
         "employee benchmarks are not interchangeable or market-gap-ranked."
@@ -512,7 +534,25 @@ def _contract_lane(rows: list[dict], token: str, today: date) -> None:
                 "monthly_billable_days_expected", "fx_to_sek"))
             else "Day rate, billable days or FX assumption not confirmed"
         )
-        text = (
+        denmark = str(row.get("market_country") or "").lower() == "denmark"
+        native = (row.get("assumptions") or {}) if isinstance(row.get("assumptions"), dict) else {}
+        native_market = native.get("native_market_scenarios") or {}
+        native_candidate = native.get("native_candidate_scenarios") or {}
+        if denmark:
+            fmt_dkk = lambda value: f"{_number(value):,.0f} DKK"
+            text = (
+                f'<b class="money">{fmt_dkk(native_market.get("central"))}/month</b>'
+                ' — inferred Danish total-remuneration center'
+                f'<p>Market scenario: {fmt_dkk(native_market.get("low"))}–'
+                f'{fmt_dkk(native_market.get("high"))}/month.'
+                ' Includes pension and may include bonus/benefits in the source.'
+                f' Approximate SEK-equivalent center: {_sek(row.get("market_central_sek"), compact=False)}.'
+                '</p><p>Planning target (analyst estimate, not user-stated or employer confirmed): '
+                f'{fmt_dkk(native_candidate.get("expected"))}/month.'
+                ' Danish residence/tax, gross base and pension need separate verification.</p>'
+            )
+        else:
+            text = (
             f'<b class="money">{_sek(invoice, compact=False)}</b> provisional monthly invoice revenue'
             f'<p>{escape(billing_terms)}. '
             'Before umbrella fees, employer contributions, pension, tax and time off.</p>'
@@ -523,7 +563,7 @@ def _contract_lane(rows: list[dict], token: str, today: date) -> None:
             f'salary expectation<p>Hypothetical Swedish employee benchmark: '
             f'{_sek(row.get("market_low_sek"))}–{_sek(row.get("market_high_sek"))} '
             'gross monthly SEK. Employment type and economic basis not confirmed.</p>'
-        )
+            )
         st.markdown(
             f'<div class="salary-contract"><strong>{employer} · {role}</strong>'
             f'<div>{text}</div><p class="warning">Not directly comparable · '
@@ -552,8 +592,8 @@ def render_salary_intelligence(session: dict | None) -> None:
     _style()
     st.markdown(
         '<div class="salary-hero"><div class="eyebrow">Hiring decision desk / compensation</div>'
-        '<h2>Salary Intelligence</h2><p>Compare earning scenarios with independent Swedish '
-        'market evidence, identify negotiation room and confirm employment economics '
+        '<h2>Salary Intelligence</h2><p>Compare earning scenarios using verified Swedish and Danish '
+        'market sources, identify negotiation room and confirm employment economics '
         'before drawing conclusions.</p></div>', unsafe_allow_html=True,
     )
     scope_col, _, refresh_col = st.columns([2, .35, .8], vertical_alignment="bottom")
@@ -587,14 +627,16 @@ def render_salary_intelligence(session: dict | None) -> None:
                              type="primary" if st.session_state.get("salary_kpi_filter", "all") == value else "secondary"):
                     st.session_state["salary_kpi_filter"] = value
                     st.rerun()
-        st.caption("Benchmarked means linked Swedish occupational references, not verified employer salary bands.")
+        st.caption("Benchmarked means linked occupational evidence, not verified employer salary bands. "
+                   "Denmark, contractor and unknown employment arrangements are separated from Swedish base salary.")
         sourced = sum(1 for r in rows if _direct(r) and
                       _number(r.get("independent_employee_salary_dataset_families")) >= 3)
         exact = sum(1 for r in rows if _number(r.get("direct_role_observations")) > 0)
         st.caption(
             f"Independent source depth: {sourced} comparable roles have ≥3 linked salary-data families; "
             f"{exact} of {active} active roles have exact-role salary distributions. "
-            "The current center formula uses two underlying survey families; Unionen is a separate cross-check."
+            "Swedish model uses SCB and Saco-family data for central estimates; Unionen serves as a cross-check."
+            " Danish payroll sources use a separate local-currency methodology."
         )
     else:
         st.caption(f"{len(rows)} {scope.lower()} requisitions · shown separately from in-progress salary opportunities.")

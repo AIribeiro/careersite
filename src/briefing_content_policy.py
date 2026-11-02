@@ -8,6 +8,7 @@ human review for sensitive or recognizable operational details.
 """
 
 from html import unescape
+from urllib.parse import unquote
 import re
 
 
@@ -45,7 +46,7 @@ def validate_briefing_employer_anonymity(article: object) -> None:
 
     for field in _PUBLIC_ARTICLE_FIELDS:
         value = str(getattr(article, field, "") or "")
-        if _EMPLOYER_NAME_RE.search(unescape(value)):
+        if _EMPLOYER_NAME_RE.search(unquote(unescape(value))):
             raise ValueError(
                 "Executive AI Briefings must not identify current or former "
                 "employers, including in examples, references, links, "

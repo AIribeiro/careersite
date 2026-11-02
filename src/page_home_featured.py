@@ -140,7 +140,12 @@ def home_featured_article() -> str:
 
 
 def compact_writing_footer(*, exclude_slug: str = "") -> str:
-    """Quiet, low-height writing discovery strip for secondary public pages."""
+    """A restrained editorial continuation for public pages.
+
+    The small cover is CSS-only on purpose: CMS cover images are much too large
+    and may be unavailable in cross-page footers. A deterministic typographic
+    cover prevents broken assets, full-size images and layout shifts.
+    """
     article = current_home_article(exclude_slug=exclude_slug)
     is_briefing = article.content_type == "briefing"
     href = escape(article.href, quote=True)
@@ -148,16 +153,12 @@ def compact_writing_footer(*, exclude_slug: str = "") -> str:
     title = escape(article.title)
     deck = escape(article.deck)
     published = escape(article.published_label)
-    kind = escape("Executive AI Briefing" if is_briefing else "Thinking article")
-    image_url = escape(article.image_url, quote=True)
-    image_alt = escape(article.image_alt, quote=True)
+    kind = "Executive AI Briefing" if is_briefing else "Thinking article"
+    cover_label = "BRIEFING" if is_briefing else "THINKING"
     content_type = "briefing" if is_briefing else "article"
     read_label = "Read briefing" if is_briefing else "Read article"
-    image = (
-        f'<img src="{image_url}" alt="{image_alt}" loading="lazy" decoding="async">'
-        if article.image_url else
-        '<span aria-hidden="true">AI · Data</span>'
-    )
+    readable_title = escape(article.title, quote=True)
+
     return (
         '<section class="writing-footer" data-analytics-section="site-writing-footer" '
         'aria-label="From my writing">'
@@ -165,19 +166,25 @@ def compact_writing_footer(*, exclude_slug: str = "") -> str:
         f'<a class="writing-footer-art" href="{href}" target="_self" '
         f'data-hq-event="writing_footer_image" data-hq-content-slug="{slug}" '
         f'data-hq-content-type="{content_type}" '
-        f'aria-label="Read {escape(article.title, quote=True)}">{image}</a>'
+        f'aria-label="Read {readable_title}">'
+        '<span class="writing-footer-art-rule" aria-hidden="true"></span>'
+        '<span class="writing-footer-art-mark" aria-hidden="true">AI</span>'
+        f'<span class="writing-footer-art-label" aria-hidden="true">{cover_label}</span>'
+        '</a>'
         '<div class="writing-footer-copy">'
         '<div class="writing-footer-overline"><span>From my writing</span>'
         f'<span class="writing-footer-separator" aria-hidden="true">/</span><span>{kind}</span></div>'
-        f'<h2><a href="{href}" target="_self" data-hq-event="writing_footer_title" '
-        f'data-hq-content-slug="{slug}" data-hq-content-type="{content_type}">{title}</a></h2>'
-        f'<p>{deck}</p>'
+        f'<h2><a href="{href}" target="_self" title="{readable_title}" '
+        f'data-hq-event="writing_footer_title" data-hq-content-slug="{slug}" '
+        f'data-hq-content-type="{content_type}">{title}</a></h2>'
+        f'<p class="writing-footer-deck">{deck}</p>'
         f'<span class="writing-footer-meta">{published} · {article.read_minutes} min read</span>'
         '</div>'
         '<div class="writing-footer-action">'
-        f'<a href="{href}" target="_self" data-hq-event="writing_footer_open" '
+        f'<a class="writing-footer-open" href="{href}" target="_self" '
+        f'data-hq-event="writing_footer_open" '
         f'data-hq-content-slug="{slug}" data-hq-content-type="{content_type}">'
-        f'{read_label} <span aria-hidden="true">→</span></a>'
+        f'{read_label} <span aria-hidden="true">↗</span></a>'
         '<nav aria-label="Writing collections">'
         '<a href="?page=thinking" target="_self" data-hq-event="writing_footer_thinking">Thinking</a>'
         '<a href="?page=briefings" target="_self" data-hq-event="writing_footer_briefings">Briefings</a>'

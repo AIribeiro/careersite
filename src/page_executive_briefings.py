@@ -1088,7 +1088,7 @@ def executive_briefing_article(
         + _article_infographic(article)
         + decision_map
         + full_article
-        f'<div class="briefing-reader-share">{share_footer}</div>'
+        + f'<div class="briefing-reader-share">{share_footer}</div>'
         '</div></section>' + contact_block() + '</main>' + footer()
     )
 

@@ -3,7 +3,7 @@
 **Edition slug:** `data-governance-what-deserves-funding`  
 **Prepared:** 2 November 2026  
 **Format:** Executive AI Briefing  
-**CMS state:** Saved draft. Do not represent as a live publication until the publication gate is passed.
+**CMS state:** Published on 2 November 2026 at 13:37:50 UTC (14:37:50 CET), verified by an independent database read. **Live reader visual state:** Not verified because the deployed Streamlit site was inaccessible to the available web checks.
 
 ## Reader decision
 
@@ -30,8 +30,8 @@ The complete briefing considers alternatives, full recurring cost, conservative 
 | Evidence | Direct primary links in CMS article, limits and scope stated | Pass, source review |
 | Originality | Independent management model, authored article, scenario disclosed | Pass, editorial review |
 | Visual craft | Dedicated GitHub reader module, original HTML/CSS diagram, 650px and 850px responsive rules, contrast correction | Source-reviewed only; **live desktop/mobile visual inspection pending** |
-| Publication integrity | Distinct catalog art and article route branch committed. CMS item exists as draft. | **Public reader/library verification pending** |
+| Publication integrity | Distinct catalog art and article route branch committed. CMS item has been published in Supabase and independently re-read; GitHub reader and catalog branch are committed. | **Public reader/library verification pending** |
 
-**Release decision:** HOLD as a Content Studio draft. Publish only after review of the live desktop and narrow-screen reader, the card/page navigation, citations, contact action and analytics metadata; check the public catalog still shows no more than four items per page. Confirm the specific page route only when it can actually be opened. Code deployment must be confirmed independently.
+**Release decision:** The owner explicitly requested publication on 2 November 2026. CMS status was changed from draft to published and the result verified. The repository's catalog uses uniform, paginated cards (four editions per page when the library contains at least four) and the edition has an independent reader route. The deployed app, mobile/desktop appearance, CTA, analytics and runtime behavior remain unverified and must not be reported as passed. No separate deployment action was claimed.
 
-This review record documents observed stages; it is not evidence of live deployment.
+This record distinguishes Supabase publication, committed repository code and unverified live deployment. The newest article may be assigned featured=true automatically by the existing CMS trigger; the Executive Briefings catalog itself displays all editions with the same card treatment.

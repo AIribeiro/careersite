@@ -22,6 +22,7 @@ GOVERNANCE_SLUG = "ai-governance-explained-to-executives"
 AI_ACT_SLUG = "eu-ai-act-what-executives-must-decide"
 FUNDING_SLUG = "data-governance-what-deserves-funding"
 DUAL_GOV_SLUG = "data-governance-vs-ai-governance-executive-decisions"
+SECURITY_SLUG = "secure-enterprise-ai-ten-failures-to-control"
 
 # Capability categories are complementary tools, not a ladder of sophistication.
 CAPABILITIES = (
@@ -56,6 +57,17 @@ GOVERNANCE_DECISION = {
 }
 
 
+
+SECURITY_DECISION = {
+    "call": "Grant only the authority the evidence supports.",
+    "move": "Select a real workflow. Demonstrate information permissions, permitted actions, failure tests, traceability and an effective stop mechanism before expanding authority.",
+    "checks": (
+        ("Information trust", "Can untrusted material redirect the AI, expose sensitive data or bypass user access?", "layers"),
+        ("Bounded authority", "Which tools, transactions and costs can the AI incur without human approval?", "shield"),
+        ("Behavioral assurance", "What evaluation and change evidence shows that answers remain fit for the task?", "chart"),
+        ("Operating accountability", "Who can reconstruct, restrict and stop the workflow when something goes wrong?", "users"),
+    ),
+}
 
 AI_ACT_DECISION = {
     "call": "Classify the use, then decide the controls.",
@@ -1013,6 +1025,7 @@ def executive_briefing_article(
         )
 
     guide = (FIRST_DECISION if article.slug == FIRST_SLUG else
+             SECURITY_DECISION if article.slug == SECURITY_SLUG else
              AI_ACT_DECISION if article.slug == AI_ACT_SLUG else
              GOVERNANCE_DECISION if article.slug == GOVERNANCE_SLUG else {
         "call": "Make the business decision explicit.",
@@ -1063,6 +1076,9 @@ def executive_briefing_article(
         '</article>'
     )
     summary_text = (
+        "A safe release requires evidence at four boundaries: information trust, authority to act, "
+        "behavioral assurance and operational accountability. Controls reduce risk but cannot guarantee it away."
+        if article.slug == SECURITY_SLUG else
         "The AI Act does not classify products by their marketing label. Start with purpose, "
         "context, legal role and evidence; apply controls proportionate to the actual duty."
         if article.slug == AI_ACT_SLUG else

@@ -714,7 +714,7 @@ def _briefing_catalog_art(slug: str) -> str:
         return (
             '<div class="briefings-catalog-art briefings-catalog-art--funding" aria-hidden="true">'
             '<span class="briefings-catalog-art-kicker">Funding the right control</span>'
-            '<div class="dgf-card-diagram"><span>LOSS</span><b>→</b><span>CAUSE</span><b>→</b><span>PROOF</span></div>'
+            '<div class="dgf-card-diagram"><span>EXPOSURE</span><b>→</b><span>CONTROL</span><b>→</b><span>PROOF</span></div>'
             '<div class="briefings-art-connector">Accountability · Cost · Decision gate</div></div>'
         )
     if slug == "seven-questions-for-better-ai-decisions":

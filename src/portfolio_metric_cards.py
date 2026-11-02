@@ -127,9 +127,12 @@ def _card(spec: dict, index: int) -> str:
     lifetime_line = "Lifetime unavailable" if lifetime == "—" else f"Lifetime · {lifetime} views"
     sessions = _formatted(spec.get("sessions") if available else None)
     items = _formatted(spec.get("items") if available else None)
+    if available and spec.get("total_items") is not None:
+        items = f'{items} of {_formatted(spec["total_items"])}'
     title = escape(str(spec["title"]))
     category = escape(str(spec["category"]))
     measure = escape(str(spec["measure"]))
+    period = escape(str(spec.get("period_label", "selected period")))
     unit = escape(str(spec["item_unit"]))
     sessions_label = escape(str(spec.get("sessions_label", "recorded sessions")))
     rank_title = escape(str(spec["rank_title"]))
@@ -140,7 +143,7 @@ def _card(spec: dict, index: int) -> str:
         f'<h3 class="pv-card__title">{title}</h3>'
         '</header>'
         '<div class="pv-card__metric">'
-        f'<span class="pv-card__metric-label">{measure} · selected period</span>'
+        f'<span class="pv-card__metric-label">{measure} · {period}</span>'
         f'<strong class="pv-card__value">{primary}</strong>'
         f'<span class="pv-card__lifetime">{lifetime_line}</span>'
         '</div>'

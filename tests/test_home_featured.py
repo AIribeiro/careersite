@@ -147,7 +147,7 @@ class HomeFeaturedArticleTests(unittest.TestCase):
         self.assertEqual(selected.slug, other.slug)
         self.assertEqual([item.slug for item in picker.call_args.args[0]], [other.slug])
 
-    def test_compact_footer_has_small_image_and_contextual_briefing_action(self) -> None:
+    def test_compact_footer_uses_native_micro_cover_and_contextual_briefing_action(self) -> None:
         from page_home_featured import HomeArticlePreview, compact_writing_footer
         sample = HomeArticlePreview(
             slug="a-briefing", title="An executive AI decision", deck="A compact explanation",
@@ -161,6 +161,12 @@ class HomeFeaturedArticleTests(unittest.TestCase):
             html = compact_writing_footer()
         self.assertIn('data-analytics-section="site-writing-footer"', html)
         self.assertIn('class="writing-footer-art"', html)
+        self.assertIn('class="writing-footer-art-mark"', html)
+        self.assertIn('class="writing-footer-art-label"', html)
+        self.assertIn('>BRIEFING</span>', html)
+        self.assertNotIn("<img", html)
+        self.assertNotIn('src="', html)
+        self.assertNotIn("https://example.org/executive.webp", html)
         self.assertIn('class="writing-footer-copy"', html)
         self.assertIn('class="writing-footer-action"', html)
         self.assertIn("From my writing", html)
@@ -169,6 +175,25 @@ class HomeFeaturedArticleTests(unittest.TestCase):
         self.assertEqual(html.count('href="?page=briefing&amp;article=a-briefing"'), 3)
         self.assertIn('href="?page=thinking"', html)
         self.assertIn('href="?page=briefings"', html)
+
+    def test_compact_footer_article_uses_thinking_motif_without_remote_assets(self) -> None:
+        from page_home_featured import HomeArticlePreview, compact_writing_footer
+        sample = HomeArticlePreview(
+            slug="operations-essay", title='AI & data decisions',
+            deck="A perspective", kind_topic="AI Leadership",
+            published_label="1 Nov 2026", read_minutes=4,
+            href="?page=thinking&article=operations-essay",
+            image_url="https://broken.example.invalid/enormous-hero.jpg",
+            image_alt="Unreachable image",
+            content_type="article",
+        )
+        with patch("page_home_featured.current_home_article", return_value=sample):
+            html = compact_writing_footer()
+        self.assertIn('>THINKING</span>', html)
+        self.assertIn("Read article", html)
+        self.assertNotIn("<img", html)
+        self.assertNotIn("broken.example.invalid", html)
+        self.assertEqual(html.count('href="?page=thinking&amp;article=operations-essay"'), 3)
 
     def test_injection_covers_public_pages_but_not_home_or_private_analytics(self) -> None:
         from page_home_featured import inject_writing_footer
@@ -219,11 +244,15 @@ class HomeFeaturedArticleTests(unittest.TestCase):
         main = (root / "main.py").read_text(encoding="utf-8")
         styles = (root / "src" / "site_styles.py").read_text(encoding="utf-8")
         self.assertIn("inject_writing_footer(RENDER[PAGE](), PAGE", main)
-        self.assertIn(".site .writing-footer{padding:19px 0 21px;", styles)
-        self.assertIn(".site .writing-footer-art{display:flex;", styles)
-        self.assertIn("width:126px;height:85px", styles)
+        self.assertIn(".site .writing-footer{padding:0;background:var(--paper)", styles)
+        self.assertIn(".site .writing-footer-inner{display:grid;grid-template-columns:58px", styles)
+        self.assertIn(".site a.writing-footer-art{position:relative;isolation:isolate", styles)
+        self.assertIn("width:58px;height:72px", styles)
+        self.assertIn("max-width:58px;max-height:72px", styles)
+        self.assertIn("@media(max-width:820px)", styles)
         self.assertIn("@media(max-width:560px)", styles)
-        self.assertIn("width:78px;height:77px", styles)
+        self.assertIn("width:46px;min-width:46px;max-width:46px;height:61px", styles)
+        self.assertNotIn(".site .writing-footer-art img", styles)
 
     def test_article_artwork_is_confined_to_a_responsive_frame(self) -> None:
         """The image cannot expand the Home featured card to its native size."""

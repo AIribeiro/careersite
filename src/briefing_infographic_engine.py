@@ -213,7 +213,9 @@ def _desktop(spec):
     items=spec["items"]
     n=len(items)
     pattern=spec["pattern"]
-    width=1200\n    height=1040 if (n>=7 and pattern not in ("layers", "timeline")) or (pattern=="comparison" and n>4) else 810\n    p=_base_start(width,height,spec)
+    width=1200
+    height=1040 if (n>=7 and pattern not in ("layers", "timeline")) or (pattern=="comparison" and n>4) else 810
+    p=_base_start(width,height,spec)
     if pattern=="comparison":
         # Two editorial columns. Not a restatement of the source infographic.
         p.extend([_rect(64,206,530,40,"#d9edf0",r=8),

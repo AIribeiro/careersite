@@ -20,6 +20,7 @@ BRIEFING_KIND = "Executive Briefing"
 FIRST_SLUG = "ai-capabilities-executive-decisions"
 GOVERNANCE_SLUG = "ai-governance-explained-to-executives"
 AI_ACT_SLUG = "eu-ai-act-what-executives-must-decide"
+FUNDING_SLUG = "data-governance-what-deserves-funding"
 
 # Capability categories are complementary tools, not a ladder of sophistication.
 CAPABILITIES = (
@@ -418,6 +419,12 @@ BRIEFINGS_CSS = r'''<style>
 .site .aia-record p{margin:6px 0 0!important;font:400 12px/1.58 Arial,sans-serif!important}
 @media(max-width:650px){.site .aia-path,.site .aia-duties,.site .aia-record{grid-template-columns:1fr}.site .aia-path>div{padding:11px 14px}.site .aia-date{grid-template-columns:1fr;gap:3px;padding:12px 14px}.site .aia-diagram{padding:19px 16px}.site .aia-art-steps span{font-size:11px;padding:10px 7px}}
 
+/* Editorial cover treatment for the data-governance funding edition. */
+.site .briefings-catalog-art--funding{background:radial-gradient(ellipse at 90% 10%,#345c6a,#132e42 73%);border-top:3px solid #c39b75}
+.site .dgf-card-diagram{display:flex;align-items:center;gap:5px;max-width:530px}
+.site .dgf-card-diagram span{flex:1;padding:12px 4px;text-align:center;background:#244456;border:1px solid #79909b;color:#f8f3ec;font:800 11px/1.35 Arial,sans-serif;letter-spacing:.05em}
+.site .dgf-card-diagram b{color:#dfb997;font:600 18px/1 Arial,sans-serif}
+@media(max-width:500px){.site .dgf-card-diagram span{font-size:9px;padding:9px 3px}}
 </style>'''
 
 
@@ -703,6 +710,13 @@ def _briefing_catalog_art(slug: str) -> str:
             '<span><b>02</b> ASSIGN</span><span><b>03</b> PROVE</span></div>'
             '<div class="aia-art-foot">The law is in force. Evidence precedes permission.</div></div>'
         )
+    if slug == FUNDING_SLUG:
+        return (
+            '<div class="briefings-catalog-art briefings-catalog-art--funding" aria-hidden="true">'
+            '<span class="briefings-catalog-art-kicker">Funding the right control</span>'
+            '<div class="dgf-card-diagram"><span>LOSS</span><b>→</b><span>CAUSE</span><b>→</b><span>PROOF</span></div>'
+            '<div class="briefings-art-connector">Accountability · Cost · Decision gate</div></div>'
+        )
     if slug == "seven-questions-for-better-ai-decisions":
         return (
             '<div class="briefings-catalog-art briefings-catalog-art--questions" aria-hidden="true">'
@@ -769,6 +783,7 @@ def executive_briefings() -> str:
     def edition_theme(article) -> str:
         themes = {
             AI_ACT_SLUG: "Regulation & responsibility",
+            FUNDING_SLUG: "Data governance & investment",
             GOVERNANCE_SLUG: "Governance & ownership",
             FIRST_SLUG: "AI capability decisions",
             "seven-questions-for-better-ai-decisions": "Executive decision-making",
@@ -934,6 +949,12 @@ def executive_briefing_article(
 
     if article.slug == GOVERNANCE_SLUG:
         return governance_briefing_article(article, share_footer, cms_css)
+
+    if article.slug == FUNDING_SLUG:
+        from data_governance_funding_briefing import funding_briefing_article
+        return funding_briefing_article(
+            article, tags, source, share_footer, cms_css, BRIEFINGS_CSS, contact_block(),
+        )
 
     # This article is a complete seven-lens executive playbook, not a three-check
     # summary. Give it its own responsive reading surface and keep the original

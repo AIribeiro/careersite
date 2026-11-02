@@ -115,7 +115,8 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
             patch("page_public_portfolio_overview.initialize_reporting_period",
                   side_effect=lambda state, f: state.setdefault(
                       "careersite_analytics_reporting_window", "30d")),
-            patch("page_public_portfolio_overview._ranking_chart") as chart,
+            patch("page_public_portfolio_overview.portfolio_metric_grid",
+                  return_value="<div>Dashboard cards</div>") as grid,
             patch("page_public_portfolio_overview.render_home_journey") as journey,
             patch("page_public_portfolio_overview.fetch_published_articles", return_value=[]),
             patch("page_public_portfolio_overview._recent_content_report",
@@ -125,12 +126,18 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
                 "from page_public_portfolio_overview import render_public_portfolio_overview\n"
                 "render_public_portfolio_overview()\n"
             ).run(timeout=20)
-            self.assertEqual(chart.call_count, 3)
+            grid.assert_called_once()
+            cards = grid.call_args.args[0]
+            self.assertEqual([x["title"] for x in cards], [
+                "Portfolio visits", "Articles", "Weekly AI", "Executive Briefings"
+            ])
+            self.assertEqual(cards[0]["views"], 933)
+            self.assertEqual(cards[0]["sessions_label"], "page-view sessions")
             journey.assert_called_once_with("30d")
         self.assertFalse(app.exception)
         self.assertIn("What changed and why it matters", [x.value for x in app.subheader])
         self.assertIn("Other relevant portfolio signals", [x.value for x in app.subheader])
-        self.assertEqual(len(app.metric), 3)
+        self.assertEqual(len(app.metric), 0)  # Shared HTML metric grid
         self.assertEqual(len(app.get("vega_lite_chart")), 0)
 
 

@@ -98,6 +98,7 @@ DUAL_GOV_CSS = r"""<style>
 def dual_governance_briefing_article(
     article, tags: str, source: str, share_footer: str,
     cms_css: str, briefings_css: str, contact_html: str,
+    infographic_html: str = "",
 ) -> str:
     """A self-contained editorial issue with original evidence-handoff visual."""
 
@@ -160,7 +161,7 @@ def dual_governance_briefing_article(
         '<p>Give data ownership and AI oversight distinct evidence requirements, then bring them together in one accountable business release decision. Neither the data catalogue nor the model score is the approval.</p></div>'
         '<aside class="dga-move"><strong>Next management move</strong>'
         '<p>Choose one AI-enabled workflow. Request its data-fitness proof, its AI behavior and permission proof, and the named sponsor who will decide to proceed, restrict, test or stop.</p></aside></section>'
-        + stage + counterexamples
+        + (infographic_html or stage) + counterexamples
         + '<article class="dga-article" data-analytics-section="briefing-reader-full-article">'
         '<div class="dga-body-title"><span class="dga-eyebrow">The complete perspective</span>'
         '<h2>Where the responsibilities meet—and where they do not.</h2>'

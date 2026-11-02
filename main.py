@@ -30,6 +30,7 @@ import site_media  # noqa: F401
 import site_cv_runtime  # noqa: F401
 
 from page_home import home
+from page_home_featured import inject_writing_footer
 from page_impact import impact
 from page_thinking import thinking
 from page_executive_briefings import executive_briefings, executive_briefing_page
@@ -149,7 +150,8 @@ else:
         "ai-data-governance": ai_data_governance,
     }
 
-    st.html(CSS + IMAGE_CSS + '<div class="site">' + RENDER[PAGE]() + '</div>')
+    page_document = inject_writing_footer(RENDER[PAGE](), PAGE, article_slug=str(ARTICLE_QUERY or ""))
+    st.html(CSS + IMAGE_CSS + '<div class="site">' + page_document + '</div>')
 
     # Bind article interactions before the generic analytics listener. The
     # share guard then prevents social-share controls from being misclassified

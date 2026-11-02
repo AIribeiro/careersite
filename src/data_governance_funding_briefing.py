@@ -74,6 +74,7 @@ FUNDING_CSS = r"""<style>
 def funding_briefing_article(
     article, tags: str, source: str, share_footer: str,
     cms_css: str, briefings_css: str, contact_html: str,
+    infographic_html: str = "",
 ) -> str:
     """A complete independent publication route with original decision visual."""
     title = escape(article.title)
@@ -129,7 +130,7 @@ def funding_briefing_article(
         '<div class="dgf-scan-side"><strong>The next move</strong>'
         '<p>Ask for a dated baseline, one accountable business owner, the least costly credible remedy '
         'and a review date before committing the next funding tranche.</p></div></section>'
-        + bridge + decisions
+        + (infographic_html or bridge) + decisions
         + '<article class="dgf-content" data-analytics-section="briefing-reader-full-article">'
         '<div class="dgf-content-head"><span class="dgf-eyebrow">The full briefing</span>'
         '<h2>Build the case from evidence.</h2>'

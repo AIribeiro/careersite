@@ -88,7 +88,7 @@ def validate_spec(spec: Mapping) -> None:
             raise ValueError("Each proof point needs specific, explanatory evidence.")
         if len(_clean(item.get("detail"))) > 176:
             raise ValueError("Use concise detail text (176 characters maximum).")
-    if len(_clean(spec.get("conclusion"))) < 12:
+    if spec.get("pattern") == "timeline" and len(items) > 5:\n        raise ValueError("Timelines support at most five milestones.")\n    if len(_clean(spec.get("conclusion"))) < 12:
         raise ValueError("State the executive conclusion, not just a topic.")
     from briefing_content_policy import validate_briefing_employer_anonymity
     from types import SimpleNamespace
@@ -129,7 +129,7 @@ def generate_infographic_spec(article) -> dict:
     items = [
         {"label": f"{i:02d}", "title": _clean(heading, 39),
          "detail": f"Check the relevant evidence and decision owner for {heading.lower().rstrip('.')}."}
-        for i, heading in enumerate(headings[:6], start=1)
+        for i, heading in enumerate(headings[:5] if pattern == "timeline" else headings[:7], start=1)
     ]
     return {
         "pattern": pattern, "title": title,
@@ -211,8 +211,7 @@ def _desktop(spec):
     items=spec["items"]
     n=len(items)
     pattern=spec["pattern"]
-    width,height=1200,810
-    p=_base_start(width,height,spec)
+    width=1200\n    height=1040 if n>=7 and pattern not in ("layers", "timeline") else 810\n    p=_base_start(width,height,spec)
     if pattern=="comparison":
         # Two editorial columns. Not a restatement of the source infographic.
         p.extend([_rect(64,206,530,40,"#d9edf0",r=8),
@@ -259,7 +258,7 @@ def _desktop(spec):
             p.append(_node(item,i,x,y,cell_w,h,accent,compact=True))
             if pattern=="flow" and i<n-1 and col<cols-1:
                 p.append(_svg_text(x+cell_w+2,y+107,"›",size=25,color=COPPER,weight=800,chars=2,lines=1))
-    p.append(_conclusion(spec,691,width))
+    p.append(_conclusion(spec,height-119,width))
     p.append('</svg>')
     return "".join(p)
 

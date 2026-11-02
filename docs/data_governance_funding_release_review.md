@@ -13,13 +13,17 @@ A senior leader should decide whether to fund a bounded corrective control, fund
 
 **Exposure → Cause → Control → Proof** is an independently written management decision bridge. The catalog preview abbreviates this as Exposure → Control → Proof. It does not copy the supplied third-party five-section business-case infographic or its icons/graphic arrangement.
 
-The complete briefing considers alternatives, full recurring cost, conservative benefit assumptions, operational measures, risk and the decision gate. The warranty claim example is explicitly hypothetical, not an employer case or an observed business outcome.
+The complete briefing considers alternatives, full recurring cost, conservative benefit assumptions, operational measures, risk and the decision gate. The warranty-claim example is a field-informed, anonymized illustrative composite. It names no company or client and does not claim a measured business outcome.
 
 ## Evidence checked (2 November 2026)
 
 - EDM Association, **DCAM v3**: https://edmcouncil.org/frameworks/dcam/ — data strategy, operating model, investment case, funding and capability evidence.
 - UK Government, **Implementing a Data Quality Action Plan** (updated April 2026): https://www.gov.uk/government/publications/implement-a-data-quality-action-plan/data-quality-action-plan-implementation-guide — data criticality, business use, measurement, causes, owners, controls and reassessment. Government guidance is not treated as universal private-sector law.
 - NIST, **AI Risk Management Framework Core**: https://airc.nist.gov/airmf-resources/airmf/5-sec-core/ — data suitability, risk, benefit and cost considerations for AI uses. The AI RMF is voluntary; it is not described as a legal mandate.
+
+## Employer-anonymity review — 2 November 2026
+
+All five published Executive AI Briefings were audited across titles, excerpts, body, supporting HTML, source links and public metadata for the author's known former employers; no matches remained after correcting the funding briefing and the capabilities briefing. The publishing path now calls `briefing_content_policy.validate_briefing_employer_anonymity` on save and publication. This programmatic screen supplements—not replaces—the human requirement that every scenario be grounded in field experience and exclude identifying operational detail. Live front-end verification is separate and remains unconfirmed.
 
 ## Editorial and technical gate
 

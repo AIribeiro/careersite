@@ -113,7 +113,7 @@ class WeeklyAiAnalyticsTests(unittest.TestCase):
 
     def test_analytics_focus_is_public_and_explicit(self):
         source = (ROOT / "src" / "page_analytics_v2.py").read_text()
-        self.assertIn('options=["page","article","weekly_ai"]', source)
+        self.assertIn('options=["page","article","weekly_ai","briefings"]', source)
         self.assertIn("render_weekly_ai_analytics(str(window))", source)
         self.assertNotIn("_owner_session()", source)
 

@@ -71,15 +71,10 @@ DUAL_GOV_CSS = r"""<style>
 .site .dga-article .article-body li{padding-left:5px;margin:0 0 10px}
 .site .dga-article .article-body li::marker{color:#a67656}
 .site .dga-article .article-body a{color:#875c3d;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
-.site .dga-contact{background:#18374b;color:#fff;padding:clamp(23px,3.3vw,35px);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;align-items:center;margin-bottom:22px}
-.site .dga-contact h2{font:500 28px/1.2 Georgia,serif;color:#fff;margin:9px 0}
-.site .dga-contact p{font:400 13px/1.65 Arial,sans-serif;color:#cedce3;margin:0}
-.site .dga-contact a{display:inline-block;background:#e4bb98;color:#1b384b!important;font:800 12px/1.45 Arial,sans-serif;text-decoration:none!important;padding:15px 19px;white-space:nowrap}
 .site .dga-share{padding:5px 0 24px}
 @media(max-width:850px){
- .site .dga-judgment,.site .dga-gate,.site .dga-contact{grid-template-columns:1fr}
+ .site .dga-judgment,.site .dga-gate{grid-template-columns:1fr}
  .site .dga-move{border-left:0;border-top:1px solid #d5d9d5;padding:17px 0 0}
- .site .dga-contact a{justify-self:start}
 }
 @media(max-width:650px){
  .site .dga-hero{padding:32px 0 39px}.site .dga-shell{padding-top:16px}
@@ -89,7 +84,6 @@ DUAL_GOV_CSS = r"""<style>
  .site .dga-stage{padding:20px 16px}.site .dga-stage-ref{display:none}
  .site .dga-gate{padding:19px 17px}
  .site .dga-article{padding:24px 17px}.site .dga-article .article-body{font-size:14px}
- .site .dga-contact a{justify-self:stretch;text-align:center;white-space:normal}
  .site .dga-merge span{white-space:normal;text-align:center}
 }
 </style>"""
@@ -167,11 +161,6 @@ def dual_governance_briefing_article(
         '<h2>Where the responsibilities meet—and where they do not.</h2>'
         '<p>Decision authority, real-world failure modes, evidence, ownership and a field-informed operating example.</p></div>'
         f'<div class="article-body">{article.content_html}{tags}{source}</div></article>'
-        '<section class="dga-contact" data-analytics-section="briefing-reader-contact"><div>'
-        '<span class="dga-eyebrow">From distinction to operating decision</span>'
-        '<h2>Who owns the next decision?</h2>'
-        '<p>These responsibilities matter when an actual workflow and its consequences are on the table. Start with that decision, not another policy document.</p></div>'
-        '<a href="?page=contact" target="_self" data-hq-event="briefing_reader_contact">Discuss the decision →</a>'
-        '</section><div class="dga-share">' + share_footer + '</div>'
+        '<div class="dga-share">' + share_footer + '</div>'
         '</div></section>' + contact_html + '</main>' + footer()
     )

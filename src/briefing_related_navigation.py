@@ -256,13 +256,27 @@ def render_related_briefings(current, published: Iterable) -> str:
 
 
 def insert_related_navigation(document: str, current, published: Iterable) -> str:
-    """Insert once as the final content section inside any independent reader."""
+    """Insert the reading path before the shared final contact footer.
+
+    All independent readers close with the 'Have an AI choice that needs a
+    clearer answer?' section. That call to action must remain the final
+    content section, followed only by the site footer.
+    """
     if 'data-analytics-section="briefings-related-reading"' in document:
         return document
     related = render_related_briefings(current, published)
     if not related:
         return document
-    before, marker, after = document.rpartition("</main>")
-    if not marker:
+    main, main_close, trailing = document.rpartition("</main>")
+    if not main_close:
         return document
-    return before + related + marker + after
+    contact_anchor = (
+        '<section class="briefings-conversation" '
+        'data-analytics-section="briefings-contact">'
+    )
+    lead, marker, contact_and_after = main.rpartition(contact_anchor)
+    if marker:
+        return lead + related + marker + contact_and_after + main_close + trailing
+    # Safety fallback for a future reader without the standard contact footer.
+    # Keep the document intact rather than adding an unexpected second CTA.
+    return main + related + main_close + trailing

@@ -131,6 +131,7 @@ def _card(spec: dict, index: int) -> str:
     category = escape(str(spec["category"]))
     measure = escape(str(spec["measure"]))
     unit = escape(str(spec["item_unit"]))
+    sessions_label = escape(str(spec.get("sessions_label", "recorded sessions")))
     rank_title = escape(str(spec["rank_title"]))
     return (
         f'<section class="pv-card" aria-label="{title} analytics">'
@@ -145,7 +146,7 @@ def _card(spec: dict, index: int) -> str:
         '</div>'
         '<div class="pv-card__activity">'
         f'<div class="pv-card__activity-block"><strong class="pv-card__activity-number">{sessions}</strong>'
-        '<span class="pv-card__activity-label">recorded sessions</span></div>'
+        f'<span class="pv-card__activity-label">{sessions_label}</span></div>'
         f'<div class="pv-card__activity-block"><strong class="pv-card__activity-number">{items}</strong>'
         f'<span class="pv-card__activity-label">{unit}</span></div>'
         '</div>'

@@ -46,7 +46,7 @@ If the subject needs depth, publish a Thinking article and, only if a genuinely 
 
 ## Briefing writing and reader experience
 
-- Lead with **the decision** and **the executive call**. Follow with **why it matters**, the decision questions, concise evidence/operating trade-offs and **what to do next**. Keep the core briefing at roughly **2–4 minutes** when the topic permits; don't turn it into a dissertation.
+- Lead with **the decision** and **the executive call**. A reader must understand the judgment and immediate next move in roughly **one minute**. Follow with enough verified evidence, exceptions, trade-offs and a concrete decision record to make the full edition credible: typically **4–7 minutes when justified**, shorter for a straightforward choice or longer when the subject demands it. Remove filler, not necessary substance.
 - Make it self-contained and actionable: one focused question, an informed recommendation, a readable decision map/checklist/table only where it clarifies the choice, a realistic example with explicit evidence status, and a concise contact CTA for business-specific depth.
 - Use restrained navy/copper portfolio visuals, readable enterprise-grade icons and graphics that actually explain the decision. Never substitute decorative art or technical diagrams for content. Check desktop/mobile hierarchy and content integrity before publishing.
 - Every published briefing is an **independent Content Studio item** with `kind='Executive Briefing'`, visible as its own card on `?page=briefings` and opening in its own reader route. Preserve its title, metadata, references and page URL. Do not render all briefing bodies inline on the library page or link to a missing draft.

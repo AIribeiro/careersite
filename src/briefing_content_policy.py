@@ -18,9 +18,9 @@ _EMPLOYER_NAME_RE = re.compile(
     r"(?<!\w)(?:"
     r"volvo(?:\s+(?:group|trucks))?"
     r"|msx(?:i)?(?:\s+international)?"
-    r"|kimberly[\s-]?clark"
+    r"|kimberly.{0,3}clark"
     r"|ibm"
-    r"|hewlett[\s-]?packard(?:\s+enterprise)?"
+    r"|hewlett.{0,3}packard(?:\s+enterprise)?"
     r"|hpe"
     r")(?!\w)",
     flags=re.IGNORECASE,
@@ -30,6 +30,7 @@ _PUBLIC_ARTICLE_FIELDS = (
     "title", "slug", "subtitle", "excerpt", "content_html", "aside_html",
     "source_url", "header_image_url", "header_image_alt", "seo_title",
     "meta_description", "social_title", "social_description",
+    "category", "keywords", "hashtags", "legacy_key",
 )
 
 

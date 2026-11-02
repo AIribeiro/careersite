@@ -155,6 +155,40 @@ def render_briefing_infographic_editor(article, draft, access_token: str, prefix
 
         if row and row.get("editorial_note"):
             st.caption("Last review note: "+str(row["editorial_note"])[:320])
+        with st.expander("Infographic readership analytics",expanded=False):
+            try:
+                from site_cms import _request_json, _rest_url
+                from urllib.parse import quote
+                query=_rest_url(
+                    "careersite_briefing_infographic_analytics_v1?"
+                    "select=article_view_sessions,infographic_view_sessions,"
+                    "view_reach_pct,seconds_per_exposed_session,revision"
+                    f"&slug=eq.{quote(article.slug,safe='')}&limit=1"
+                )
+                metrics=_request_json("GET",query,token=access_token)
+                if isinstance(metrics,list) and metrics:
+                    m=metrics[0]
+                    cols=st.columns(3)
+                    cols[0].metric("Visual readers",int(m.get("infographic_view_sessions") or 0))
+                    cols[1].metric(
+                        "Article reach",
+                        str(m["view_reach_pct"])+"%" if m.get("view_reach_pct") is not None else "—"
+                    )
+                    cols[2].metric(
+                        "Attention per reader",
+                        str(m["seconds_per_exposed_session"])+"s"
+                        if m.get("seconds_per_exposed_session") is not None else "—"
+                    )
+                    st.caption(
+                        "Observed first-party section exposure and attention; "
+                        "not evidence of comprehension or conversion. "
+                        "Historical views before infographic deployment are in the denominator."
+                    )
+                else:
+                    st.caption("No infographic readership records yet.")
+            except (RuntimeError,ValueError,TypeError) as exc:
+                st.caption("Analytics unavailable: "+str(exc)[:150])
+
         approved=has_approved_visual(draft,access_token) and same_source
         if approved:
             st.success("An approved infographic is current. New drafts do not remove it from the published reader.")

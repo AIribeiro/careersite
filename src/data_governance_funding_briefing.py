@@ -61,13 +61,9 @@ FUNDING_CSS = r"""<style>
 .site .dgf-content .article-body li{padding-left:5px;margin-bottom:9px}
 .site .dgf-content .article-body li::marker{color:#ae7958}
 .site .dgf-content .article-body strong{color:#193b4d}
-.site .dgf-next{display:grid;grid-template-columns:1.15fr auto;gap:24px;align-items:center;background:#183549;color:#fff;padding:clamp(22px,3vw,34px);margin-bottom:24px}
-.site .dgf-next h2{font:500 27px/1.2 Georgia,serif;color:#fff;margin:8px 0}
-.site .dgf-next p{font:400 13px/1.6 Arial,sans-serif;color:#d5e2e8;margin:0;max-width:680px}
-.site .dgf-next a{display:inline-block;padding:14px 19px;background:#e7be9a;color:#193548!important;text-decoration:none!important;font:800 12px/1.4 Arial,sans-serif;white-space:nowrap}
 .site .dgf-share{padding:3px 0 26px}
-@media(max-width:850px){.site .dgf-scan{grid-template-columns:1fr}.site .dgf-scan-side{border-left:0;border-top:1px solid #dcded9;padding:16px 0 0}.site .dgf-bridge-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.site .dgf-node:nth-child(2):after{display:none}.site .dgf-node{min-height:130px}.site .dgf-next{grid-template-columns:1fr}.site .dgf-next a{justify-self:start}}
-@media(max-width:650px){.site .dgf-hero{padding:31px 0 38px}.site .dgf-hero .briefing-reader-back{margin-bottom:25px}.site .dgf-map-index{display:none}.site .dgf-bridge-grid,.site .dgf-paths{grid-template-columns:1fr}.site .dgf-node{min-height:0;padding:15px}.site .dgf-node:after{display:none!important}.site .dgf-bridge-footer{display:block}.site .dgf-bridge-footer p{margin-top:5px}.site .dgf-content{padding:21px 18px}.site .dgf-content .article-body{font-size:14px}.site .dgf-next a{width:100%;box-sizing:border-box;text-align:center}}
+@media(max-width:850px){.site .dgf-scan{grid-template-columns:1fr}.site .dgf-scan-side{border-left:0;border-top:1px solid #dcded9;padding:16px 0 0}.site .dgf-bridge-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.site .dgf-node:nth-child(2):after{display:none}.site .dgf-node{min-height:130px}}
+@media(max-width:650px){.site .dgf-hero{padding:31px 0 38px}.site .dgf-hero .briefing-reader-back{margin-bottom:25px}.site .dgf-map-index{display:none}.site .dgf-bridge-grid,.site .dgf-paths{grid-template-columns:1fr}.site .dgf-node{min-height:0;padding:15px}.site .dgf-node:after{display:none!important}.site .dgf-bridge-footer{display:block}.site .dgf-bridge-footer p{margin-top:5px}.site .dgf-content{padding:21px 18px}.site .dgf-content .article-body{font-size:14px}}
 </style>"""
 
 
@@ -136,12 +132,6 @@ def funding_briefing_article(
         '<h2>Build the case from evidence.</h2>'
         '<p>Business exposure, full cost, accountable ownership and the conditions for the next decision.</p></div>'
         f'<div class="article-body">{article.content_html}{tags}{source}</div></article>'
-        '<section class="dgf-next" data-analytics-section="briefing-reader-contact">'
-        '<div><span class="dgf-eyebrow">From investment claim to decision</span>'
-        '<h2>Have a governance proposal to challenge?</h2>'
-        '<p>Bring one operating failure, its current evidence and the investment being proposed. '
-        'That is enough to start a more useful executive discussion.</p></div>'
-        '<a href="?page=contact" target="_self" data-hq-event="briefing_reader_contact">Discuss the decision →</a>'
-        '</section><div class="dgf-share">' + share_footer + '</div>'
+        '<div class="dgf-share">' + share_footer + '</div>'
         '</div></section>' + contact_html + '</main>' + footer()
     )

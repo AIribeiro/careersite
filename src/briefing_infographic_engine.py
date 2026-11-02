@@ -196,14 +196,16 @@ def _base_start(width, height, spec, mobile=False):
 
 
 def _conclusion(spec, y, width, mobile=False):
-    x=32 if mobile else 64
-    w=width-64 if mobile else width-128
+    x=20 if mobile else 64
+    w=width-40 if mobile else width-128
+    h=142 if mobile else 96
     return "".join([
-        _rect(x,y,w,103 if mobile else 96,NAVY,r=14),
+        _rect(x,y,w,h,NAVY,r=14),
         _svg_text(x+22,y+28,"EXECUTIVE DECISION",size=13,color=SAND,weight=800,
                   chars=50,lines=1),
         _svg_text(x+22,y+59,spec.get("conclusion",""),size=21 if mobile else 23,
-                  color=WHITE,weight=600,chars=38 if mobile else 81,lines=2),
+                  color=WHITE,weight=600,chars=30 if mobile else 81,
+                  lines=3 if mobile else 2),
     ])
 
 
@@ -264,16 +266,35 @@ def _desktop(spec):
 
 
 def _mobile(spec):
+    """A genuinely narrow SVG canvas: type stays legible at phone CSS widths."""
     items=spec["items"]
-    width=720
-    height=305+len(items)*152+129
-    p=_base_start(width,height,spec,True)
-    y0=258
+    width=420
+    title=_clean(spec.get("title"),115)
+    deck=_clean(spec.get("deck"),150)
+    title_lines=textwrap.wrap(title,width=22,break_long_words=False,break_on_hyphens=False)
+    deck_lines=textwrap.wrap(deck,width=40,break_long_words=False,break_on_hyphens=False)
+    deck_y=84+max(0,len(title_lines)-1)*35+42
+    first_y=deck_y+max(0,len(deck_lines)-1)*24+56
+    conclusion_y=first_y+len(items)*174+12
+    height=conclusion_y+160
+    p=[
+        '<svg xmlns="http://www.w3.org/2000/svg" '
+        f'width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+        'role="img" aria-label="Executive decision infographic">',
+        _rect(0,0,width,height,CREAM,r=0),
+        _rect(0,0,width,8,COPPER,r=0),
+        _svg_text(22,42,"EXECUTIVE DECISION GRAPHIC",size=12,color=TEAL,
+                  weight=800,chars=40,lines=1),
+        _svg_text(22,84,title,size=29,color=NAVY,weight=700,
+                  chars=22,lines=6,leading=1.21,
+                  family="Georgia,Times New Roman,serif"),
+        _svg_text(22,deck_y,deck,size=17,color=MUTED,chars=40,lines=4),
+    ]
     for i,item in enumerate(items):
-        y=y0+i*152
-        p.append(_node(item,i,32,y,656,139,TEAL if i%2==0 else COPPER,compact=False))
-    p.append(_conclusion(spec,y0+len(items)*152+14,width,True))
-    p.append('</svg>')
+        y=first_y+i*174
+        p.append(_node(item,i,20,y,380,160,TEAL if i%2==0 else COPPER,compact=True))
+    p.append(_conclusion(spec,conclusion_y,width,True))
+    p.append("</svg>")
     return "".join(p)
 
 

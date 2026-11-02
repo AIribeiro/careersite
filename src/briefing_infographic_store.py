@@ -17,12 +17,17 @@ TABLE="careersite_briefing_infographics"
 
 def _url(article_id: str) -> str:
     return _rest_url(
-        f"{TABLE}?select=*&article_id=eq.{quote(str(article_id),safe='')}&limit=1"
+        f"{TABLE}?select=*&article_id=eq.{quote(str(article_id),safe='')}"
+        "&order=revision.desc&limit=1"
     )
 
 
-def fetch_owner_infographic(article_id: str, access_token: str) -> dict | None:
-    result=_request_json("GET", _url(article_id),token=access_token)
+def fetch_owner_infographic(article_id: str, access_token: str, *,
+                            approved_only: bool=False) -> dict | None:
+    url=_url(article_id)
+    if approved_only:
+        url=url.replace("&order=revision.desc", "&status=eq.approved&order=revision.desc")
+    result=_request_json("GET", url,token=access_token)
     return result[0] if isinstance(result,list) and result else None
 
 
@@ -30,7 +35,7 @@ def fetch_owner_infographic(article_id: str, access_token: str) -> dict | None:
 def fetch_public_infographic(article_id: str) -> dict | None:
     query=_rest_url(
         f"{TABLE}?select=*&article_id=eq.{quote(str(article_id),safe='')}"
-        "&status=eq.approved&limit=1"
+        "&status=eq.approved&order=revision.desc&limit=1"
     )
     result=_request_json("GET",query)
     return result[0] if isinstance(result,list) and result else None
@@ -59,9 +64,9 @@ def save_infographic_draft(access_token: str, article, spec: dict,
         "editorial_note": note.strip()[:1000],
         "approved_at": None,
     }
-    result=_request_json("POST",_rest_url(f"{TABLE}?on_conflict=article_id"),
+    result=_request_json("POST",_rest_url(TABLE),
         token=access_token,payload=payload,
-        prefer="resolution=merge-duplicates,return=representation")
+        prefer="return=representation")
     fetch_public_infographic.clear()
     if not isinstance(result,list) or not result:
         raise RuntimeError("Infographic save did not return a record.")
@@ -123,7 +128,7 @@ def approved_infographic_for(article, *, row: dict | None=None) -> str:
 
 def has_approved_visual(article, token: str) -> bool:
     try:
-        row=fetch_owner_infographic(article.id,token) if article.id else None
+        row=fetch_owner_infographic(article.id,token,approved_only=True) if article.id else None
     except (RuntimeError,ValueError,TimeoutError):
         return False
     return bool(row and row.get("status")=="approved"

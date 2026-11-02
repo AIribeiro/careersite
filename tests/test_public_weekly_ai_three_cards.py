@@ -1,4 +1,4 @@
-"""Three aligned public content cards, mutually exclusive article/Weekly AI views."""
+"""Four public content cards; essays, Weekly AI and briefings partition reads."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,7 +9,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from site_cms import CmsArticle
-from page_public_portfolio_overview import split_reader_rows, portfolio_visit_rows
+from page_public_portfolio_overview import split_reader_rows, split_editorial_rows, portfolio_visit_rows
 
 
 def edition(slug: str, *, kind: str = "Weekly Brief", category: str = "Weekly AI",
@@ -36,7 +36,7 @@ def report() -> dict:
     }
 
 
-class ThreeColumnPortfolioTests(unittest.TestCase):
+class FourColumnPortfolioTests(unittest.TestCase):
     def test_published_weekly_brief_is_split_from_essays_without_double_counting(self):
         articles = portfolio_visit_rows(report(), "article")
         regular, weekly = split_reader_rows(
@@ -65,7 +65,7 @@ class ThreeColumnPortfolioTests(unittest.TestCase):
             self.assertEqual(len(regular), 1)
             self.assertEqual(weekly, [])
 
-    def test_analytics_displays_three_metrics_one_row_with_weekly_as_subset(self):
+    def test_analytics_displays_four_metrics_one_row_with_distinct_subsets(self):
         from streamlit.testing.v1 import AppTest
         with (
             patch("page_public_portfolio_overview.fetch_intelligence", return_value=report()),
@@ -83,14 +83,14 @@ class ThreeColumnPortfolioTests(unittest.TestCase):
             ).run(timeout=20)
         self.assertFalse(at.exception)
         self.assertEqual([metric.label for metric in at.metric],
-                         ["Page views", "Article views", "Edition views"])
-        self.assertEqual([metric.value for metric in at.metric], ["6", "6", "4"])
-        self.assertEqual(chart.call_count, 3)
+                         ["Page views", "Article views", "Weekly AI", "Briefing views"])
+        self.assertEqual([metric.value for metric in at.metric], ["6", "6", "4", "0"])
+        self.assertEqual(chart.call_count, 4)
         self.assertTrue(all(call.kwargs.get("compact") is True
                             for call in chart.call_args_list))
         self.assertIn("WEEKLY AI", [x.value for x in at.markdown
                                     if x.value.startswith("####")][2])
-        self.assertTrue(any("Article readership excludes WEEKLY AI editions"
+        self.assertTrue(any("Articles, Weekly AI and Executive Briefings"
                             in x.value for x in at.caption))
 
     def test_no_metadata_means_unknown_not_illusory_zero_editions(self):
@@ -110,7 +110,7 @@ class ThreeColumnPortfolioTests(unittest.TestCase):
                 "render_public_portfolio_overview()\n"
             ).run(timeout=20)
         self.assertFalse(at.exception)
-        self.assertEqual([metric.value for metric in at.metric], ["6", "—", "—"])
+        self.assertEqual([metric.value for metric in at.metric], ["6", "—", "—", "—"])
 
 
 if __name__ == "__main__":

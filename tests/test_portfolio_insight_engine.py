@@ -133,7 +133,7 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
             ])
             self.assertEqual(cards[0]["views"], 933)
             self.assertEqual(cards[0]["sessions_label"], "page-view sessions")
-            journey.assert_called_once_with("30d")
+            journey.assert_called_once_with(app.selectbox[0].value)
         self.assertFalse(app.exception)
         self.assertIn("What changed and why it matters", [x.value for x in app.subheader])
         self.assertIn("Other relevant portfolio signals", [x.value for x in app.subheader])

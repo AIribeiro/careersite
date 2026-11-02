@@ -55,6 +55,23 @@ Avoid repetitive introductions, seven generic questions padded into a list, “A
 - Do not claim a source was checked, a live page was rendered, a business outcome occurred, or an edit is published unless independently verified in this workflow.
 - Give links to the specific authoritative documents/articles; avoid citation theatre or uncited sensitive claims. Include an expert/legal-advice boundary where the topic demands it.
 
+## Mandatory infographic — generated, reviewed, versioned, inserted
+
+Every published Executive AI Briefing must have **one primary, original, strategic, premium infographic** that makes its executive decision logic easier to understand. It is part of the content, not optional decoration. Each must explain a real tension, sequence, decision gate, control boundary, evidence requirement, ownership split or relevant timeline. **The subject chooses the visual grammar:** comparison, flow, layers, decision map, timeline or questioning framework; no fixed six-row template, copied source diagrams, arbitrary icons, invented outcomes or generic decorative art.
+
+The **Executive Briefing Infographic Engine** is the standard authoring route:
+1. Save the article draft; generate an editable structured visual proposal from its own headings and decision text.
+2. An editor rewrites/curates its title, labels, proof points and conclusion; generation itself is not fact-checking or approval.
+3. Render desktop and mobile as self-contained original first-party SVGs from the approved specification. No remote image, separate deployment or binary font dependencies.
+4. Review all six criteria: factual accuracy; original structure; employer/client anonymity; scan/readability; actual mobile-preview readability; and direct relevance to the executive decision. Require an informative alt text and caption.
+5. Approve a specific revision tied cryptographically to the article title, deck and body. A changed article invalidates the approval; public readers must fail closed rather than showing an outdated infographic.
+6. Insert immediately after the executive judgment, before full reasoning. Keep a prior approved graphic visible while a replacement is being drafted. The newest current approved revision replaces it.
+7. A new briefing cannot publish without an approved current infographic. Existing editions remain public while revisions are prepared; their six initial specifications were backfilled with source-level editorial review on 2 November 2026. **This does not constitute independently verified live-browser or real-device appearance.**
+
+**No false review claims.** A stored editorial check is not a claim that Streamlit deployment, browser behavior, responsive device rendering or CI succeeded; report those separately. If the preview reveals clipping, meaningless labels, misleading comparisons, conflicting legal claims or a diagram that adds no understanding, reject and revise before approval. The original visual concept must remain sufficiently distinct from any supplied reference.
+
+**Infographic measurement:** the first-party `briefing-infographic` section reports exposure and observed attention in the owner-only analytics view. This is attention instrumentation, not evidence that the reader comprehended the infographic. Do not infer causal conversion improvements from simple before/after counts.
+
 ## Visual language: premium, restrained and readable
 
 The approved portfolio identity remains **deep navy, muted copper, warm cream/white**, with editorial typography, measured contrast and generous spacing. Visual quality is assessed against the EU AI Act edition, not against stock graphics or a copied infographic.

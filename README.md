@@ -150,7 +150,7 @@ No ratings, stars, testimonial-wall language, praise carousel or “trusted by i
 
 ## Executive AI Briefings
 
-Editorial **format selection is governed by** [`docs/editorial_channel_selection.md`](docs/editorial_channel_selection.md). Executive Briefings are selected for specific high-value management decisions, not as a mandatory additional publication slot. Select the relevant individual published briefing for contextual posts/newsletters; link the library index only for collection-level introductions. The LinkedIn and Weekly AI cadences remain unchanged.
+Editorial **format selection is governed by** [`docs/editorial_channel_selection.md`](docs/editorial_channel_selection.md). **Publication quality is governed by** [`docs/executive_briefings_editorial_standard.md`](docs/executive_briefings_editorial_standard.md), with the November 2026 EU AI Act executive briefing as the quality reference for substance, verification, original visual design and decision usefulness. Executive Briefings are selected for specific high-value management decisions, not as a mandatory additional publication slot. Select the relevant individual published briefing for contextual posts/newsletters; link the library index only for collection-level introductions. The LinkedIn and Weekly AI cadences remain unchanged.
 
 **Executive AI Briefings** is a distinct public editorial series under Thinking, not a seventh primary-navigation item or a consulting offer. It explains AI capabilities through the business decisions leaders need to make, supported by original decision visuals and field-informed judgment.
 

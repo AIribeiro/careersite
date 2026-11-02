@@ -863,6 +863,12 @@ def executive_briefing_article(
         f'<div class="article-body briefing-reader-research">{article.content_html}{tags}{source}</div>'
         '</article>'
     )
+    summary_text = (
+        "The AI Act does not classify products by their marketing label. Start with purpose, "
+        "context, legal role and evidence; apply controls proportionate to the actual duty."
+        if article.slug == AI_ACT_SLUG else
+        "Make the operating permissions, business outcome and evidence for approval explicit before expanding AI use."
+    )
     return (
         THINKING_CSS + cms_css + BRIEFINGS_CSS + nav("thinking")
         + '<main class="briefing-reader">'
@@ -876,9 +882,7 @@ def executive_briefing_article(
         '<div class="container"><section class="briefing-reader-summary">'
         '<div><span class="briefings-index">The executive judgment</span>'
         f'<h2>{escape(guide["call"])}</h2>'
-        ('<p>The AI Act does not classify products by their marketing label. Start with purpose, context, legal role and evidence; apply controls proportionate to the actual duty.</p>'
-        if article.slug == AI_ACT_SLUG else
-        '<p>Make the operating permissions, business outcome and evidence for approval explicit before expanding AI use.</p>')
+        f'<p>{escape(summary_text)}</p>'
         '<div class="briefing-reader-next"><strong>Next move</strong>'
         f'<p>{escape(guide["move"])}</p></div></div>'
         f'<div class="briefing-reader-checks">{checks}</div></section>'

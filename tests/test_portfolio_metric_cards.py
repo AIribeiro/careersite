@@ -79,6 +79,36 @@ class PortfolioMetricCardTests(unittest.TestCase):
         self.assertIn("article-item sessions", content)
         self.assertIn("Lifetime unavailable", content)
 
+    def test_briefing_coverage_distinguishes_viewed_from_published(self):
+        briefings = spec("Executive Briefings")
+        briefings.update({
+            "views": 1,
+            "lifetime": 7,
+            "sessions": 1,
+            "items": 1,
+            "total_items": 6,
+            "item_unit": "published briefings viewed",
+            "period_label": "Today",
+            "rank_title": "Most-viewed briefings",
+        })
+        content = portfolio_metric_grid([
+            spec("Portfolio visits"), spec("Articles"), spec("Weekly AI"), briefings,
+        ])
+        self.assertIn("Views · Today", content)
+        self.assertIn("1 of 6", content)
+        self.assertIn("published briefings viewed", content)
+        self.assertIn("Lifetime · 7 views", content)
+        self.assertIn("Most-viewed briefings", content)
+
+    def test_period_label_is_escaped(self):
+        card = spec("Executive Briefings")
+        card["period_label"] = '<custom>'
+        content = portfolio_metric_grid([
+            spec("Portfolio visits"), spec("Articles"), spec("Weekly AI"), card,
+        ])
+        self.assertNotIn('<custom>', content)
+        self.assertIn("&lt;custom&gt;", content)
+
     def test_rejects_incomplete_category_groups(self):
         with self.assertRaises(ValueError):
             portfolio_metric_grid([spec("One")])

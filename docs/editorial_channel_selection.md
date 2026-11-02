@@ -23,6 +23,14 @@ The **Executive AI Briefings** library is a distinct public editorial format:
 
 A news event may *inspire* an evergreen Executive Briefing, but avoid treating a press summary or general primer as a decision guide. A valuable topic can produce a briefing first and, only if materially different, a later essay/newsletter. Never repackage the same copy across all channels.
 
+## Executive Briefings — mandatory release standard
+
+The authoritative writing, fact-checking, design and release checks for every new or substantially revised edition are in **[Executive AI Briefings — editorial and visual quality standard](executive_briefings_editorial_standard.md)** (effective 2 November 2026).
+
+The [EU AI Act decision briefing](https://jairribeiro-ai.streamlit.app/?page=briefing&article=eu-ai-act-what-executives-must-decide) is the quality benchmark for **content depth, independent analysis, official-source verification, executive applicability and premium visual finish**. It is **not** a reusable layout or a license to borrow third-party infographic structures. The executive scan must be quick, but the complete edition may run 4–7 minutes or longer when complexity justifies it. Accuracy, original explanation and useful next steps take precedence over any rigid length target.
+
+No new briefing should be called publication-ready until the six mandatory review criteria are addressed. Keep database publication, code deployment and live visual verification as distinct states; never assert unobserved checks. Do not publish merely to keep a cadence.
+
 ## Executive Briefing selection gate
 
 Select or propose an Executive Briefing **when most of these conditions hold**:

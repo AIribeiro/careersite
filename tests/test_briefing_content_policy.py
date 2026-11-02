@@ -30,6 +30,11 @@ class ExecutiveBriefingAnonymityTests(unittest.TestCase):
             ("subtitle", "Hewlett Packard Enterprise experience"),
             ("meta_description", "HPE was the starting point"),
             ("title", "MSX International data case"),
+            ("content_html", "<p>Kimberly‑Clark operations</p>"),
+            ("source_url", "https://example.org/?context=%56olvo"),
+            ("keywords", ("AI governance", "IBM programme")),
+            ("category", "HPE operating model"),
+            ("hashtags", ("#MSXi",)),
         )
         for field, value in cases:
             with self.subTest(field=field, value=value):

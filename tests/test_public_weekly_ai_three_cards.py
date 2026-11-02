@@ -88,8 +88,10 @@ class FourColumnPortfolioTests(unittest.TestCase):
         self.assertEqual(chart.call_count, 4)
         self.assertTrue(all(call.kwargs.get("compact") is True
                             for call in chart.call_args_list))
-        self.assertIn("WEEKLY AI", [x.value for x in at.markdown
-                                    if x.value.startswith("####")][2])
+        self.assertIn("Weekly AI", [x.value for x in at.markdown
+                                     if x.value.startswith("####")][2])
+        self.assertIn("Executive Briefings", [x.value for x in at.markdown
+                                              if x.value.startswith("####")][3])
         self.assertTrue(any("Articles, Weekly AI and Executive Briefings"
                             in x.value for x in at.caption))
 

@@ -2,7 +2,7 @@
 
 WINDOW_KEY = "careersite_analytics_reporting_window"
 PREFERENCE_KEY = "careersite_analytics_reporting_preference"
-DEFAULT_WINDOWS = ("last_hour", "today", "this_week", "last_week",
+DEFAULT_WINDOWS = ("last_hour", "today", "yesterday", "this_week", "last_week",
                    "this_month", "last_month", "this_year", "all")
 MANUAL_KEY = "careersite_reporting_manual_v2"
 

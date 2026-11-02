@@ -22,6 +22,7 @@ PUBLIC_BASE_URL = "https://jairribeiro-ai.streamlit.app/"
 REPORTING_WINDOWS = (
     ("last_hour", "Last hour"),
     ("today", "Today"),
+    ("yesterday", "Yesterday"),
     ("this_week", "This Week"),
     ("last_week", "Last Week"),
     ("this_month", "This Month"),

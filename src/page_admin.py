@@ -10,6 +10,8 @@ import re
 import streamlit as st
 import streamlit.components.v1 as components
 
+from briefing_infographic_admin import render_briefing_infographic_editor
+
 from cms_header_generator import background_palette_for, configured_image_model, generate_templated_ai_header
 from site_owner_persistence import (
     persistent_owner_session, show_owner_login_or_refresh, browser_owner_signout,
@@ -48,12 +50,12 @@ BRIEFING_REVIEW_CRITERIA = (
 )
 
 
-def briefing_release_ready(kind: str, review_acknowledged: bool) -> bool:
+def briefing_release_ready(kind: str, review_acknowledged: bool, infographic_ready: bool = False) -> bool:
     """Human sign-off gate for the Content Studio publish action.
 
     This does not claim automated source or visual verification.
     """
-    return kind.strip().casefold() != "executive briefing" or review_acknowledged
+    return kind.strip().casefold() != "executive briefing" or (review_acknowledged and infographic_ready)
 
 
 def _noindex() -> None:
@@ -662,6 +664,7 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             st.text_area("Aside HTML", key=f"{prefix}_aside", height=160)
 
         draft = _article_from_state(article, prefix)
+        infographic_ready = render_briefing_infographic_editor(article, draft, access_token, prefix)
         review_acknowledged = False
         if draft.kind.strip().casefold() == "executive briefing":
             review_acknowledged = st.checkbox(
@@ -674,7 +677,7 @@ def _editor(article: CmsArticle, access_token: str) -> None:
                 ),
             )
             if not review_acknowledged:
-                st.caption("Complete the editorial review to enable publishing. Draft saving remains available.")
+                st.caption("Complete the editorial review and approve the infographic before publishing. Draft saving remains available.")
 
         pub_label = "Update published article" if article.status == "published" else "Publish"
         save_col, pub_col = st.columns(2)
@@ -689,7 +692,7 @@ def _editor(article: CmsArticle, access_token: str) -> None:
         if pub_col.button(
             pub_label, type="primary", use_container_width=True,
             key=f"{prefix}_publish",
-            disabled=not briefing_release_ready(draft.kind, review_acknowledged),
+            disabled=not briefing_release_ready(draft.kind, review_acknowledged, infographic_ready),
         ):
             try:
                 saved = save_article(access_token, replace(draft, status="published"))

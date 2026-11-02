@@ -24,6 +24,7 @@ FUNDING_CSS = r"""<style>
 .site .dgf-scan{display:grid;grid-template-columns:1.45fr 1fr;gap:28px;background:#fffdf9;border:1px solid #ddd8d1;border-left:5px solid #ba8057;padding:clamp(20px,3.4vw,36px);margin-top:-2px}
 .site .dgf-scan h2{font:500 clamp(26px,3vw,38px)/1.17 Georgia,serif;margin:8px 0 12px;color:#1a3447}
 .site .dgf-scan p{font:400 14px/1.65 Arial,sans-serif;color:#405662;margin:0}
+.site .dgf-scan .dgf-eyebrow,.site .dgf-content-head .dgf-eyebrow{color:#8e5939}
 .site .dgf-scan-side{border-left:1px solid #dcded9;padding:3px 0 3px 23px}
 .site .dgf-scan-side strong{display:block;font:800 10px/1.4 Arial,sans-serif;color:#9b6846;text-transform:uppercase;letter-spacing:.12em;margin-bottom:9px}
 .site .dgf-scan-side p{font-weight:600;color:#263e4e}
@@ -78,6 +79,7 @@ def funding_briefing_article(
     title = escape(article.title)
     deck = escape(article.subtitle or article.excerpt)
     read_minutes = escape(str(article.read_minutes))
+    published_label = escape(article.published_label)
     bridge = (
         '<section class="dgf-bridge" aria-label="Four-stage evidence bridge for a data governance investment" '
         'data-analytics-section="briefings-funding-bridge">'
@@ -116,7 +118,7 @@ def funding_briefing_article(
         '<a class="briefing-reader-back" href="?page=briefings" target="_self">← All Executive AI Briefings</a>'
         '<span class="dgf-eyebrow">Executive AI Briefing / Investment & governance</span>'
         f'<h1>{title}</h1><p class="dgf-deck">{deck}</p>'
-        f'<p class="dgf-hero-meta">Jair Ribeiro · {read_minutes} min read · November 2026</p>'
+        f'<p class="dgf-hero-meta">Jair Ribeiro · {read_minutes} min read · {published_label}</p>'
         '</div></section>'
         '<section class="section paper briefing-reader-body"><div class="container">'
         '<section class="dgf-scan" data-analytics-section="briefing-reader-summary">'

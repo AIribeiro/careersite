@@ -513,6 +513,13 @@ def save_article(access_token: str, article: CmsArticle) -> CmsArticle:
     if not strip_html(article.content_html):
         raise ValueError("Article body is required.")
     payload = _article_payload(article)
+    if article.kind.strip().casefold() == "executive briefing" and article.status == "published":
+        from briefing_infographic_store import has_approved_visual
+        if not article.id or not has_approved_visual(article, access_token):
+            raise ValueError(
+                "Publish blocked: approve an infographic that matches the saved "
+                "Executive Briefing content before publication."
+            )
     if article.id:
         result = _request_json(
             "PATCH",
@@ -564,7 +571,12 @@ def change_article_status(access_token: str, article_id: str, status: str) -> Cm
         )
         if not isinstance(current, list) or not current:
             raise RuntimeError("Briefing publication check could not read the article.")
-        validate_briefing_employer_anonymity(CmsArticle.from_row(current[0]))
+        saved_for_review = CmsArticle.from_row(current[0])
+        validate_briefing_employer_anonymity(saved_for_review)
+        if saved_for_review.kind.strip().casefold() == "executive briefing":
+            from briefing_infographic_store import has_approved_visual
+            if not has_approved_visual(saved_for_review, access_token):
+                raise ValueError("Approve a current infographic before publishing this briefing.")
     result = _request_json(
         "PATCH",
         _rest_url(f"{TABLE}?id=eq.{parse.quote(article_id, safe='')}"),

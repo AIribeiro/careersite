@@ -19,6 +19,18 @@ A senior reader should be able to answer five questions after reading:
 4. **What should I ask to see?** Evidence, responsible people, control, test or proof required.
 5. **What happens next?** Proceed / hold / stop, next inquiry or other bounded action.
 
+## Field-informed examples without employer identification — mandatory
+
+Executive AI Briefings must **never name, link to or otherwise identify any of Jair Ribeiro's current or former employers**. This rule applies to the title, excerpt, article body, scenario, disclaimer, sources and links, diagrams, captions, image alt text, metadata and social excerpts—not only to a visible case-study heading. Do not use an employer's name even in a negative disclaimer such as “this is not a case from [company].” Do not identify a previous employer as a reference provider; prefer suitable independent standards, public authorities, neutral sources or another verifiable primary source.
+
+All operational examples must be **field-informed**: derived from the kinds of enterprise AI, data, analytics, governance, service, commercial and process situations that Jair has actually encountered in his career. Translate experience into **unbranded, anonymized examples** that illuminate the decision, without making the reader able to infer the organization. Do not mention business names, client names, supplier brands, recognizable products, unique projects, locations, named individuals, proprietary operating details or identifying metrics in the example.
+
+Write an example as an **illustrative composite** when it synthesizes several real patterns, and state that it is not an account of one specific engagement or verified outcome. If the user has supplied a demonstrably verifiable, publishable first-person event and authorizes its use, state only what is substantiated and anonymizable; never invent first-person accomplishments, figures, decisions or outcomes to make a case vivid. If there is no field-grounded example, omit it rather than manufacture a case.
+
+Separate **examples** from **external evidence**: an authority or research publisher may be named and linked when attribution is necessary and it is not an employer of Jair's; such source attribution must not disguise an employer-specific story or vendor promotion. Do not strip proper names from official legal instruments or original primary evidence when essential to accuracy. No brands or company names inside case narratives.
+
+**Pre-release check:** inspect all publicly rendered fields and their hyperlinks against the prohibited-employer list, including abbreviations and legacy company names. Check that each example has a credible field-experience basis, is anonymous and makes no unsupported result claim. Any breach is a publication blocker. Apply this rule to updates of previously published briefings as well as new editions.
+
 ## Content architecture: one issue, two speeds
 
 Design a **one-minute executive scan** with a direct title, sharp deck, explicit judgment, and a meaningful visual decision aid. The full briefing may reasonably take **4–7 minutes or longer when the evidence warrants it**. Concision means *no wasted text*, not thin content or arbitrary word counts. A senior leader must not have to expand a hidden section to discover the central answer. Place deeper legal, technical or methodological detail after the decision path.

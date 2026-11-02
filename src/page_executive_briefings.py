@@ -21,6 +21,7 @@ FIRST_SLUG = "ai-capabilities-executive-decisions"
 GOVERNANCE_SLUG = "ai-governance-explained-to-executives"
 AI_ACT_SLUG = "eu-ai-act-what-executives-must-decide"
 FUNDING_SLUG = "data-governance-what-deserves-funding"
+DUAL_GOV_SLUG = "data-governance-vs-ai-governance-executive-decisions"
 
 # Capability categories are complementary tools, not a ladder of sophistication.
 CAPABILITIES = (
@@ -425,6 +426,13 @@ BRIEFINGS_CSS = r'''<style>
 .site .dgf-card-diagram span{flex:1;padding:12px 4px;text-align:center;background:#244456;border:1px solid #79909b;color:#f8f3ec;font:800 11px/1.35 Arial,sans-serif;letter-spacing:.05em}
 .site .dgf-card-diagram b{color:#dfb997;font:600 18px/1 Arial,sans-serif}
 @media(max-width:500px){.site .dgf-card-diagram span{font-size:9px;padding:9px 3px}}
+/* Unique collection artwork: two evidence streams converging into one gate. */
+.site .briefings-catalog-art--dual{background:radial-gradient(ellipse at 83% 10%,#36576a,#142c40 75%);border-top:3px solid #bd906f}
+.site .dual-catalog-split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;max-width:520px}
+.site .dual-catalog-split span{padding:13px 11px;text-align:center;color:#f7eee7;font:800 12px/1.42 Arial,sans-serif;letter-spacing:.07em;background:#24485b;border:1px solid #718d9a}
+.site .dual-catalog-split span+span{background:#3b4455;border-color:#ac8d77}
+.site .dual-catalog-gate{margin:9px auto 0;max-width:325px;padding:8px 12px;background:#e6c1a1;color:#243e4e;font:850 10px/1.3 Arial,sans-serif;text-align:center;letter-spacing:.08em}
+@media(max-width:540px){.site .dual-catalog-split span{font-size:11px;padding:10px 6px}}
 </style>'''
 
 
@@ -711,6 +719,15 @@ def _briefing_catalog_art(slug: str) -> str:
             '<span><b>02</b> ASSIGN</span><span><b>03</b> PROVE</span></div>'
             '<div class="aia-art-foot">The law is in force. Evidence precedes permission.</div></div>'
         )
+    if slug == DUAL_GOV_SLUG:
+        return (
+            '<div class="briefings-catalog-art briefings-catalog-art--dual" aria-hidden="true">'
+            '<span class="briefings-catalog-art-kicker">Two disciplines · One release decision</span>'
+            '<div class="dual-catalog-split"><span>DATA<br>FITNESS</span>'
+            '<span>AI<br>ASSURANCE</span></div>'
+            '<div class="dual-catalog-gate">BUSINESS RELEASE GATE</div>'
+            '</div>'
+        )
     if slug == FUNDING_SLUG:
         return (
             '<div class="briefings-catalog-art briefings-catalog-art--funding" aria-hidden="true">'
@@ -785,6 +802,7 @@ def executive_briefings() -> str:
         themes = {
             AI_ACT_SLUG: "Regulation & responsibility",
             FUNDING_SLUG: "Data governance & investment",
+            DUAL_GOV_SLUG: "Data & AI decision rights",
             GOVERNANCE_SLUG: "Governance & ownership",
             FIRST_SLUG: "AI capability decisions",
             "seven-questions-for-better-ai-decisions": "Executive decision-making",
@@ -950,6 +968,12 @@ def executive_briefing_article(
 
     if article.slug == GOVERNANCE_SLUG:
         return governance_briefing_article(article, share_footer, cms_css)
+
+    if article.slug == DUAL_GOV_SLUG:
+        from data_vs_ai_governance_briefing import dual_governance_briefing_article
+        return dual_governance_briefing_article(
+            article, tags, source, share_footer, cms_css, BRIEFINGS_CSS, contact_block(),
+        )
 
     if article.slug == FUNDING_SLUG:
         from data_governance_funding_briefing import funding_briefing_article

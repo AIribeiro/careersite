@@ -721,25 +721,38 @@ def _briefing_catalog_art(slug: str) -> str:
 
 
 def executive_briefings() -> str:
-    """Premium editorial collection; one published CMS item per independent URL.
+    """Uniform, paginated catalog of independently published CMS briefings.
 
-    Latest publication takes the feature position; the other editions retain
-    equal discoverability in a separate library. All markup is first-party,
-    sanitizer-safe HTML, with no scripts, external assets or inline article body.
+    Each published edition receives the same card treatment, including the
+    newest one. Page selection uses a normal link/query parameter so it works
+    with Streamlit's sanitized HTML and without JavaScript.
     """
+    import streamlit as st
+    from urllib.parse import urlencode
     from briefings_landing_premium import PREMIUM_BRIEFINGS_CSS
 
-    items = published_briefings()
-    featured = max(
-        items,
+    items = tuple(sorted(
+        published_briefings(),
         key=lambda article: str(
             getattr(article, "published_at", "")
             or getattr(article, "updated_at", "")
             or ""
         ),
-        default=None,
-    )
-    remaining = [article for article in items if article is not featured]
+        reverse=True,
+    ))
+    total = len(items)
+    page_size = 4 if total >= 4 else 2
+    page_count = max(1, (total + page_size - 1) // page_size)
+    raw_page = st.query_params.get("briefings_page", "1")
+    if isinstance(raw_page, list):
+        raw_page = raw_page[0] if raw_page else "1"
+    try:
+        requested_page = int(str(raw_page))
+    except (ValueError, TypeError):
+        requested_page = 1
+    current_page = min(max(requested_page, 1), page_count)
+    start_index = (current_page - 1) * page_size
+    visible = items[start_index:start_index + page_size]
 
     def edition_url(article) -> str:
         return escape(article_relative_url(article), quote=True)
@@ -762,30 +775,8 @@ def executive_briefings() -> str:
         }
         return escape(themes.get(article.slug, "Executive perspective"))
 
-    feature_html = ""
-    if featured is not None:
-        feature_html = (
-            '<div class="be-feature">'
-            f'<a class="briefings-library-card" href="{edition_url(featured)}" target="_self" '
-            'data-hq-event="briefings_featured_open" '
-            f'data-hq-content-slug="{escape(featured.slug, quote=True)}" '
-            f'aria-label="Read {escape(featured.title, quote=True)}">'
-            '<div class="be-feature-copy">'
-            '<div class="be-feature-top"><span>Featured briefing</span>'
-            f'<span>{edition_theme(featured)}</span></div>'
-            f'<h3>{escape(featured.title)}</h3>'
-            f'<p>{edition_description(featured)}</p>'
-            '<div class="be-feature-bottom">'
-            f'<span>{edition_meta(featured)}</span>'
-            '<strong>Read the briefing <span aria-hidden="true">↗</span></strong>'
-            '</div></div>'
-            '<div class="be-feature-art">'
-            + _briefing_catalog_art(featured.slug)
-            + '</div></a></div>'
-        )
-
     cards = []
-    for index, article in enumerate(remaining, 1):
+    for index, article in enumerate(visible, start_index + 1):
         cards.append(
             f'<a class="briefings-library-card" href="{edition_url(article)}" target="_self" '
             'data-hq-event="briefings_article_open" '
@@ -796,7 +787,7 @@ def executive_briefings() -> str:
             + '</div>'
             '<div class="be-card-copy">'
             '<div class="be-card-meta">'
-            f'<span>Edition {index:02d}</span>'
+            f'<span>Edition {total - index + 1:02d}</span>'
             f'<span>{edition_theme(article)}</span></div>'
             f'<h3>{escape(article.title)}</h3>'
             f'<p>{edition_description(article)}</p>'
@@ -806,22 +797,60 @@ def executive_briefings() -> str:
             '</div></a>'
         )
 
-    # Keep this as the catalog container for existing navigation/analytics contracts.
+    # Keep the existing catalog class and card events for analytics continuity.
     catalog = (
         '<div class="briefings-library-grid">' + ''.join(cards) + '</div>'
-        if cards else (
-            '<div class="be-empty"><strong>More decisions, when they matter.</strong>'
-            'Each future briefing will appear here when published and verified.'
-            '</div>'
-            if featured else
-            '<div class="be-empty"><strong>The library is being prepared.</strong>'
-            'Briefings will appear here when published.</div>'
+        if cards else
+        '<div class="be-empty"><strong>The library is being prepared.</strong>'
+        'Briefings will appear here when published.</div>'
+    )
+    count_label = f"{total:02d} PUBLISHED " + (
+        "BRIEFING" if total == 1 else "BRIEFINGS"
+    )
+
+    def page_url(number: int) -> str:
+        # Preserve recognized campaign attribution across library pages.
+        params = [("page", "briefings"), ("briefings_page", str(number))]
+        for key in ("utm_source", "utm_medium", "utm_campaign", "utm_content",
+                    "source", "role"):
+            value = st.query_params.get(key, "")
+            if isinstance(value, list):
+                value = value[0] if value else ""
+            if value:
+                params.append((key, str(value)[:120]))
+        return escape("?" + urlencode(params) + "#briefings-library", quote=True)
+
+    def page_anchor(number: int, text: str, selected: bool = False) -> str:
+        current = ' aria-current="page"' if selected else ""
+        class_name = "be-page-link is-current" if selected else "be-page-link"
+        return (
+            f'<a class="{class_name}" href="{page_url(number)}" target="_self"'
+            f'{current} data-hq-event="briefings_library_page"'
+            f' aria-label="Library page {number}">{escape(text)}</a>'
         )
-    )
-    count_label = f"{len(items):02d} PUBLISHED " + (
-        "BRIEFING" if len(items) == 1 else "BRIEFINGS"
-    )
-    remaining_title = "Explore the library" if remaining else "The next edition"
+
+    pagination = ""
+    if page_count > 1:
+        previous = (
+            page_anchor(current_page - 1, "← Previous")
+            if current_page > 1 else
+            '<span class="be-page-link is-disabled" aria-disabled="true">← Previous</span>'
+        )
+        following = (
+            page_anchor(current_page + 1, "Next →")
+            if current_page < page_count else
+            '<span class="be-page-link is-disabled" aria-disabled="true">Next →</span>'
+        )
+        numbers = "".join(
+            page_anchor(number, str(number), selected=number == current_page)
+            for number in range(1, page_count + 1)
+        )
+        pagination = (
+            '<nav class="be-pagination" aria-label="Briefing library pagination">'
+            f'<span class="be-pagination-status">Page {current_page} of {page_count}</span>'
+            '<div class="be-pagination-links">'
+            + previous + numbers + following + '</div></nav>'
+        )
 
     return (
         BRIEFINGS_CSS + PREMIUM_BRIEFINGS_CSS + nav("thinking")
@@ -876,11 +905,11 @@ def executive_briefings() -> str:
         '<h2>Decisions worth getting right.</h2></div>'
         '<p>Each issue stands on its own: a real question, '
         'a reasoned perspective and a useful next step.</p></div>'
-        + feature_html
         + '<div class="be-collection-subheading">'
-        f'<h2>{remaining_title}</h2>'
+        '<h2>Explore the library</h2>'
         f'<span>{count_label}</span></div>'
         + catalog
+        + pagination
         + '<div class="be-afterword">'
         '<p><strong>Built for executive attention.</strong> '
         'Read the judgment first; go deeper into the rationale, '

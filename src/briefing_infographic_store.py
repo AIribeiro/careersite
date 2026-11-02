@@ -34,7 +34,8 @@ def fetch_owner_infographic(article_id: str, access_token: str, *,
 @st.cache_data(ttl=60,show_spinner=False)
 def fetch_public_infographic(article_id: str) -> dict | None:
     query=_rest_url(
-        f"{TABLE}?select=*&article_id=eq.{quote(str(article_id),safe='')}"
+        f"{TABLE}?select=article_id,slug,pattern,spec,alt_text,caption,status,revision,source_fingerprint"
+        f"&article_id=eq.{quote(str(article_id),safe='')}"
         "&status=eq.approved&order=revision.desc&limit=1"
     )
     result=_request_json("GET",query)

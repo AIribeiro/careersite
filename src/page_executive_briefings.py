@@ -659,7 +659,9 @@ def governance_briefing_article(article, share_footer: str, cms_css: str) -> str
         '<a href="?page=contact" target="_self" '
         'data-hq-event="briefing_reader_contact">Discuss your decision →</a></div>'
         f'<div class="briefing-reader-share">{share_footer}</div>'
-        '</div></section></main>' + footer()
+        '</div></section>'
+        + contact_block()
+        + '</main>' + footer()
     )
 
 

@@ -38,6 +38,23 @@ from site_cms import (
     upload_header_image,
 )
 
+BRIEFING_REVIEW_CRITERIA = (
+    "Decision and judgment: one clear business choice and defensible position.",
+    "Substance: relevant exceptions, trade-offs, evidence and a next action.",
+    "Sources: dated facts verified against primary authorities; limitations explicit.",
+    "Originality: independent reasoning, no borrowed diagram or invented case.",
+    "Visual quality: meaningful branded decision aid, mobile readability and accessibility.",
+    "Publishing: independent reader, correct references, links and contact action.",
+)
+
+
+def briefing_release_ready(kind: str, review_acknowledged: bool) -> bool:
+    """Human sign-off gate for the Content Studio publish action.
+
+    This does not claim automated source or visual verification.
+    """
+    return kind.strip().casefold() != "executive briefing" or review_acknowledged
+
 
 def _noindex() -> None:
     components.html(
@@ -614,6 +631,20 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             ["Article", "Executive Briefing", "Point of view", "Field note", "Decision note", "Framework"],
             key=f"{prefix}_kind",
         )
+        if st.session_state.get(f"{prefix}_kind", "").strip().casefold() == "executive briefing":
+            with st.expander("Executive briefing · editorial quality standard", expanded=True):
+                st.caption(
+                    "Reference: EU AI Act — What Executives Must Decide Now. "
+                    "Treat its depth, source discipline, original visual explanation and decision "
+                    "usefulness as the benchmark. Do not copy its content or design."
+                )
+                for criterion in BRIEFING_REVIEW_CRITERIA:
+                    st.markdown(f"- {criterion}")
+                st.caption(
+                    "Full editorial contract: docs/executive_briefings_editorial_standard.md "
+                    "(portfolio GitHub repository). The review below is a human acknowledgement, "
+                    "not automated fact checking or a claim that the deployed page was inspected."
+                )
         st.text_area("Excerpt", key=f"{prefix}_excerpt", height=120)
         st.text_input("SEO title", key=f"{prefix}_seo_title")
         st.text_area("Meta description", key=f"{prefix}_meta_description", height=100)
@@ -631,6 +662,19 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             st.text_area("Aside HTML", key=f"{prefix}_aside", height=160)
 
         draft = _article_from_state(article, prefix)
+        review_acknowledged = False
+        if draft.kind.strip().casefold() == "executive briefing":
+            review_acknowledged = st.checkbox(
+                "I have reviewed this briefing against all six editorial release criteria.",
+                key=f"{prefix}_briefing_release_reviewed",
+                help=(
+                    "Verify content, primary sources, original explanatory visuals, "
+                    "mobile readability, publication links and the decision record. "
+                    "A checked box is human sign-off, not an automated validation."
+                ),
+            )
+            if not review_acknowledged:
+                st.caption("Complete the editorial review to enable publishing. Draft saving remains available.")
 
         pub_label = "Update published article" if article.status == "published" else "Publish"
         save_col, pub_col = st.columns(2)
@@ -642,7 +686,11 @@ def _editor(article: CmsArticle, access_token: str) -> None:
                 st.rerun()
             except Exception as exc:
                 st.error(str(exc))
-        if pub_col.button(pub_label, type="primary", use_container_width=True, key=f"{prefix}_publish"):
+        if pub_col.button(
+            pub_label, type="primary", use_container_width=True,
+            key=f"{prefix}_publish",
+            disabled=not briefing_release_ready(draft.kind, review_acknowledged),
+        ):
             try:
                 saved = save_article(access_token, replace(draft, status="published"))
                 st.session_state["cms_edit_id"] = saved.id
@@ -1089,7 +1137,14 @@ def _dashboard(session: dict, workspace_mode: str | None = None) -> None:
                 st.rerun()
             cols[3].link_button("Open", article_preview_url(article), use_container_width=True)
         else:
-            if cols[2].button("Publish", key=f"status_{article.id}", use_container_width=True):
+            if article.kind.strip().casefold() == "executive briefing":
+                if cols[2].button(
+                    "Review to publish", key=f"status_{article.id}", use_container_width=True,
+                    help="Executive AI Briefings require the six-point editorial review in the editor.",
+                ):
+                    st.session_state["cms_edit_id"] = article.id
+                    st.rerun()
+            elif cols[2].button("Publish", key=f"status_{article.id}", use_container_width=True):
                 change_article_status(token, article.id, "published")
                 st.rerun()
             cols[3].button("Open", disabled=True, key=f"open_{article.id}", use_container_width=True)

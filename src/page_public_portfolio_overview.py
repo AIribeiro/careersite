@@ -201,11 +201,24 @@ def render_public_portfolio_overview() -> None:
     except (RuntimeError, ValueError, TimeoutError, PermissionError):
         pass  # Keep selected-period reports usable when lifetime loading fails.
 
-    st.caption("Portfolio structure changed on 23 October 2026: six public destinations now replace the former nested navigation. Selected windows spanning that date mix two different navigation designs; compare journeys on complete days within each design, not raw historical page rankings.")
-    if historical_routes:
-        with st.expander("Historical routes in this reporting window", expanded=False):
-            st.caption("These retired routes are preserved as historical observations. Their older views are not silently reassigned to About or Experience; new visits through legacy links are attributed to the destination actually rendered.")
-            st.dataframe([{"Former destination": row["Content"], "Recorded views": row["Views"], "Page sessions": row["Sessions"]} for row in historical_routes], hide_index=True, use_container_width=True)
+    with st.expander("Reporting context · October navigation change", expanded=False):
+        st.caption(
+            "The portfolio changed to six public destinations on 23 October 2026. "
+            "Windows spanning that date contain two navigation structures. "
+            "Compare complete days within each structure, not raw historical page rankings."
+        )
+        if historical_routes:
+            st.markdown("**Retired destinations in the selected period**")
+            st.caption(
+                "Retired route observations remain historical; their views are not "
+                "reassigned to About or Experience."
+            )
+            st.dataframe(
+                [{"Former destination": row["Content"],
+                  "Recorded views": row["Views"],
+                  "Page sessions": row["Sessions"]} for row in historical_routes],
+                hide_index=True, use_container_width=True,
+            )
     # One responsive grid keeps the four categories visually identical.
     # No cross-category additions: briefing library views remain page views,
     # while individual published briefings remain article-content views.
@@ -278,7 +291,8 @@ def render_public_portfolio_overview() -> None:
         "Articles, Weekly AI and Executive Briefings are separate partitions of "
         "existing article views, not extra website traffic. The Briefings library "
         "is included in Portfolio visits. Item-session observations may overlap "
-        "across publications and are not unique readers."
+        "across publications and are not unique readers. Ranking bars are "
+        "scaled within each card, not across categories."
     )
 
     if st.button("Refresh insights", key="portfolio_refresh_insights"):

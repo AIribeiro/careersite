@@ -21,7 +21,9 @@ class DualGovernanceExecutiveBriefingTests(unittest.TestCase):
 
     def test_reader_keeps_full_cms_content_visible(self):
         html = dual_governance_briefing_article(
-            self.make_article(), "", "", "", "", "", "",
+            self.make_article(), "", "", "", "", "",
+            '<section class="briefings-conversation"><h2>Have an AI choice that needs a clearer answer?</h2>'
+            '<a href="?page=contact">Contact</a></section>',
         )
         self.assertIn("Full original perspective", html)
         self.assertIn("Field-informed anonymized service example.", html)
@@ -29,6 +31,10 @@ class DualGovernanceExecutiveBriefingTests(unittest.TestCase):
         self.assertIn("Should this workflow be allowed to operate?", html)
         self.assertIn("Proceed · Restrict · Test · Stop", html)
         self.assertIn('href="?page=contact"', html)
+        self.assertEqual(html.count('href="?page=contact"'), 1)
+        self.assertEqual(html.count("Have an AI choice that needs a clearer answer?"), 1)
+        self.assertNotIn("Who owns the next decision?", html)
+        self.assertNotIn('class="dga-contact"', html)
         self.assertIn("data-analytics-section", html)
         self.assertNotIn('<details class="briefing-reader-detail"', html)
 
@@ -41,7 +47,9 @@ class DualGovernanceExecutiveBriefingTests(unittest.TestCase):
 
     def test_no_employer_references_or_borrowed_six_row_visual(self):
         html = dual_governance_briefing_article(
-            self.make_article(), "", "", "", "", "", "",
+            self.make_article(), "", "", "", "", "",
+            '<section class="briefings-conversation"><h2>Have an AI choice that needs a clearer answer?</h2>'
+            '<a href="?page=contact">Contact</a></section>',
         )
         self.assertNotIn("Six differences", html)
         self.assertNotIn("Volvo", html)

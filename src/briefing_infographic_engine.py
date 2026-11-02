@@ -189,7 +189,7 @@ def _base_start(width, height, spec, mobile=False):
                      size=35 if mobile else 41,color=NAVY,weight=700,
                      chars=31 if mobile else 55,lines=2,
                      family="Georgia,Times New Roman,serif"),
-           _svg_text(50 if mobile else 64,165 if mobile else 145,deck,
+           _svg_text(50 if mobile else 64,165 if mobile else 175,deck,
                      size=18 if mobile else 19,color=MUTED,
                      chars=45 if mobile else 105,lines=2)]
     return top

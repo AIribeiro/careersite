@@ -304,12 +304,13 @@ def infographic_html(spec: Mapping, alt: str, caption: str, slug: str) -> str:
     desktop=svg_image_data(render_svg(spec))
     mobile=svg_image_data(render_svg(spec,mobile=True))
     return (INFOGRAPHIC_CSS
-            + '<figure class="ebi-figure" data-analytics-section="briefing-infographic" '
+            + '<section class="ebi-section" data-analytics-section="briefing-infographic" '
             + f'data-hq-content-slug="{html.escape(_clean(slug,150),quote=True)}">'
+            + '<figure class="ebi-figure">'
             + '<span class="ebi-kicker">The executive visual</span>'
             + '<picture class="ebi-picture">'
             + f'<source media="(max-width: 700px)" srcset="{mobile}"/>'
             + f'<img src="{desktop}" alt="{html.escape(alt,quote=True)}" loading="eager" decoding="async"/>'
             + '</picture><figcaption>'
             + html.escape(_clean(caption,300))
-            + '</figcaption></figure>')
+            + '</figcaption></figure></section>')

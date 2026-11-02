@@ -1319,7 +1319,8 @@ def render_cms_article(article: CmsArticle) -> str:
         # Preserve CMS publication and sources, but offer a concise executive
         # decision view before optional supporting depth.
         from page_executive_briefings import executive_briefing_article
-        return executive_briefing_article(
+        from briefing_related_navigation import insert_related_navigation
+        reader = executive_briefing_article(
             article=article,
             read_metadata=read_metadata,
             image=image,
@@ -1328,6 +1329,13 @@ def render_cms_article(article: CmsArticle) -> str:
             share_footer=_safe_share_footer(article),
             cms_css=CMS_FALLBACK_CSS + css,
         )
+        # This is the single insertion point for all independent reader styles.
+        # Recommendations are restricted to published Executive Briefings only.
+        try:
+            available = fetch_published_articles()
+        except (RuntimeError, ValueError, TimeoutError):
+            available = ()
+        return insert_related_navigation(reader, article, available)
 
     return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{questions_styles}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="{briefing_back_href}" target="_self">{briefing_back_text}</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_safe_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
 

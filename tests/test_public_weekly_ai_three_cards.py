@@ -75,23 +75,25 @@ class FourColumnPortfolioTests(unittest.TestCase):
                   side_effect=lambda state, f: state.setdefault(
                       "careersite_analytics_reporting_window", "7d")),
             patch("page_public_portfolio_overview.render_home_journey"),
-            patch("page_public_portfolio_overview._ranking_chart") as chart,
+            patch("page_public_portfolio_overview.portfolio_metric_grid",
+                  return_value="<div>Four analytics cards</div>") as grid,
         ):
             at = AppTest.from_string(
                 "from page_public_portfolio_overview import render_public_portfolio_overview\n"
                 "render_public_portfolio_overview()\n"
             ).run(timeout=20)
         self.assertFalse(at.exception)
-        self.assertEqual([metric.label for metric in at.metric],
-                         ["Page views", "Article views", "Weekly AI", "Briefing views"])
-        self.assertEqual([metric.value for metric in at.metric], ["6", "6", "4", "0"])
-        self.assertEqual(chart.call_count, 4)
-        self.assertTrue(all(call.kwargs.get("compact") is True
-                            for call in chart.call_args_list))
-        self.assertIn("Weekly AI", [x.value for x in at.markdown
-                                     if x.value.startswith("####")][2])
-        self.assertIn("Executive Briefings", [x.value for x in at.markdown
-                                              if x.value.startswith("####")][3])
+        grid.assert_called_once()
+        cards = grid.call_args.args[0]
+        self.assertEqual([card["title"] for card in cards], [
+            "Portfolio visits", "Articles", "Weekly AI", "Executive Briefings"
+        ])
+        self.assertEqual([card["views"] for card in cards], [6, 6, 4, 0])
+        self.assertTrue(all(card.get("available", True) for card in cards))
+        self.assertEqual([card["rank_title"] for card in cards], [
+            "Top destinations", "Most-read articles",
+            "Most-read editions", "Most-read briefings",
+        ])
         self.assertTrue(any("Articles, Weekly AI and Executive Briefings"
                             in x.value for x in at.caption))
 
@@ -105,14 +107,19 @@ class FourColumnPortfolioTests(unittest.TestCase):
                   side_effect=lambda state, f: state.setdefault(
                       "careersite_analytics_reporting_window", "7d")),
             patch("page_public_portfolio_overview.render_home_journey"),
-            patch("page_public_portfolio_overview._ranking_chart"),
+            patch("page_public_portfolio_overview.portfolio_metric_grid",
+                  return_value="<div>Four analytics cards</div>") as grid,
         ):
             at = AppTest.from_string(
                 "from page_public_portfolio_overview import render_public_portfolio_overview\n"
                 "render_public_portfolio_overview()\n"
             ).run(timeout=20)
         self.assertFalse(at.exception)
-        self.assertEqual([metric.value for metric in at.metric], ["6", "—", "—", "—"])
+        grid.assert_called_once()
+        cards = grid.call_args.args[0]
+        self.assertEqual(cards[0]["views"], 6)
+        self.assertEqual([card["available"] for card in cards[1:]],
+                         [False, False, False])
 
 
 if __name__ == "__main__":

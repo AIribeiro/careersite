@@ -95,17 +95,47 @@ def render_briefing_infographic_editor(article, draft, access_token: str, prefix
             f"Version: {row.get('revision',0) if row else 0} · "
             f"Source: {'current' if same_source else 'unsaved edits'}"
         )
-        generate=st.button(
-            "Generate visual strategy from the article",
-            key=f"{prefix}_ebi_generate",use_container_width=True,
-            disabled=not same_source,
+        from briefing_infographic_ai import (
+            configured_infographic_model, infographic_model_key,
+            generate_strategic_infographic_spec,
         )
-        if generate:
+        g_ai,g_rules=st.columns(2)
+        ai_requested=g_ai.button(
+            "Generate strategic concept with AI",
+            key=f"{prefix}_ebi_generate_ai",
+            use_container_width=True,disabled=not same_source,
+        )
+        rules_requested=g_rules.button(
+            "Generate structured fallback",
+            key=f"{prefix}_ebi_generate_rules",
+            use_container_width=True,disabled=not same_source,
+        )
+        st.caption(
+            "AI concept: explicit owner request via OpenRouter · "
+            + configured_infographic_model()
+            + " · ZDR and data collection denied. The article text is sent to "
+              "the selected provider only when clicked. Both methods require human review."
+        )
+        if ai_requested:
+            key=infographic_model_key()
+            if not key:
+                st.warning("OPENROUTER_API_KEY unavailable. Use structured fallback.")
+            else:
+                try:
+                    with st.spinner("Drafting a subject-specific visual decision model…"):
+                        proposed=generate_strategic_infographic_spec(key,draft)
+                    st.session_state[state_key]=json.dumps(
+                        proposed,indent=2,ensure_ascii=False
+                    )
+                    st.info("AI-generated concept ready for editorial correction, preview and review.")
+                except (RuntimeError,ValueError) as exc:
+                    st.error(str(exc))
+        if rules_requested:
             st.session_state[state_key]=json.dumps(
                 generate_infographic_spec(draft),
                 indent=2,ensure_ascii=False
             )
-            st.info("Concept regenerated from article structure. Edit proof points before saving.")
+            st.info("Rule-based structure ready. Rewrite generic proof points before approval.")
         st.text_area(
             "Infographic strategy and proof points (JSON)",
             key=state_key,height=235,

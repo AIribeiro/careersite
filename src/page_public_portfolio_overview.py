@@ -14,6 +14,7 @@ from page_content_intelligence import (
     _article_metadata, _fetch_rpc, content_label, fetch_intelligence,
 )
 from portfolio_signal_brief import ranked_portfolio_signals
+from portfolio_metric_cards import portfolio_metric_grid
 from page_home_journey import render_home_journey
 
 # Routes retired in the October 2026 six-page navigation redesign.
@@ -205,61 +206,67 @@ def render_public_portfolio_overview() -> None:
         with st.expander("Historical routes in this reporting window", expanded=False):
             st.caption("These retired routes are preserved as historical observations. Their older views are not silently reassigned to About or Experience; new visits through legacy links are attributed to the destination actually rendered.")
             st.dataframe([{"Former destination": row["Content"], "Recorded views": row["Views"], "Page sessions": row["Sessions"]} for row in historical_routes], hide_index=True, use_container_width=True)
-    # Four non-overlapping measurement categories. The briefing library
-    # remains inside Portfolio visits; its reader items appear only here.
-    # Streamlit naturally stacks the equal-height cards on narrow screens.
-    pages_col, articles_col, weekly_col, briefings_col = st.columns(4, gap="small")
-    with pages_col:
-        with st.container(border=True, height=510):
-            st.markdown("#### Portfolio visits")
-            st.metric("Page views", f"{page_views:,}")
-            st.caption(lifetime_caption(lifetime_pages, "page views"))
-            st.caption(f"{page_sessions:,} page-view sessions · {len(current_routes)} active destinations with recorded views")
-            st.markdown("**Pages receiving attention**")
-            _ranking_chart(current_routes, compact=True)
-    with articles_col:
-        with st.container(border=True, height=510):
-            st.markdown("#### Articles")
-            st.metric("Article views", f"{regular_views:,}" if catalogue_available else "—")
-            if catalogue_available:
-                st.caption(lifetime_caption(lifetime_articles, "article views"))
-                st.caption(
-                    f"{regular_item_sessions:,} article-item sessions · "
-                    f"{len(regular_articles)} read articles"
-                )
-                st.markdown("**Most-read articles**")
-                _ranking_chart(regular_articles, compact=True)
-            else:
-                st.caption("Article/edition breakdown temporarily unavailable.")
-    with weekly_col:
-        with st.container(border=True, height=510):
-            st.markdown("#### Weekly AI")
-            st.metric("Weekly AI", f"{weekly_views:,}" if catalogue_available else "—")
-            if catalogue_available:
-                st.caption(lifetime_caption(lifetime_weekly, "edition views"))
-                st.caption(
-                    f"{weekly_item_sessions:,} edition-item sessions · "
-                    f"{len(weekly_editions)} read editions"
-                )
-                st.markdown("**Most-read WEEKLY AI editions**")
-                _ranking_chart(weekly_editions, compact=True)
-            else:
-                st.caption("Published edition metadata is temporarily unavailable.")
-
-    with briefings_col:
-        with st.container(border=True, height=510):
-            st.markdown("#### Executive Briefings")
-            st.metric("Briefing views", f"{briefing_views:,}" if catalogue_available else "—")
-            if catalogue_available:
-                st.caption(lifetime_caption(lifetime_briefings, "briefing views"))
-                st.caption(
-                    f"{briefing_item_sessions:,} briefing-item sessions · "
-                    f"{len(briefing_rows)} read briefings"
-                )
-                st.markdown("**Most-read briefings**")
-                _ranking_chart(briefing_rows, compact=True)
-            else:
-                st.caption("Published briefing metadata is temporarily unavailable.")
+    # One responsive grid keeps the four categories visually identical.
+    # No cross-category additions: briefing library views remain page views,
+    # while individual published briefings remain article-content views.
+    cards = [
+        {
+            "title": "Portfolio visits",
+            "category": "Reach",
+            "measure": "Page views",
+            "views": page_views,
+            "lifetime": lifetime_pages,
+            "sessions": page_sessions,
+            "sessions_label": "page-view sessions",
+            "items": len(current_routes),
+            "item_unit": "active destinations",
+            "rank_title": "Top destinations",
+            "rows": current_routes,
+        },
+        {
+            "title": "Articles",
+            "category": "Thinking",
+            "measure": "Article views",
+            "views": regular_views,
+            "lifetime": lifetime_articles,
+            "sessions": regular_item_sessions,
+            "sessions_label": "article-item sessions",
+            "items": len(regular_articles),
+            "item_unit": "articles read",
+            "rank_title": "Most-read articles",
+            "rows": regular_articles,
+            "available": catalogue_available,
+        },
+        {
+            "title": "Weekly AI",
+            "category": "Editorial",
+            "measure": "Edition views",
+            "views": weekly_views,
+            "lifetime": lifetime_weekly,
+            "sessions": weekly_item_sessions,
+            "sessions_label": "edition-item sessions",
+            "items": len(weekly_editions),
+            "item_unit": "editions read",
+            "rank_title": "Most-read editions",
+            "rows": weekly_editions,
+            "available": catalogue_available,
+        },
+        {
+            "title": "Executive Briefings",
+            "category": "Executive",
+            "measure": "Briefing views",
+            "views": briefing_views,
+            "lifetime": lifetime_briefings,
+            "sessions": briefing_item_sessions,
+            "sessions_label": "briefing-item sessions",
+            "items": len(briefing_rows),
+            "item_unit": "briefings read",
+            "rank_title": "Most-read briefings",
+            "rows": briefing_rows,
+            "available": catalogue_available,
+        },
+    ]
+    st.html(portfolio_metric_grid(cards))
 
     if catalogue_available and not rows_reconcile:
         st.caption(

@@ -484,17 +484,18 @@ def governance_case_example() -> str:
     return (
         '<div class="gov-seven-example"><span class="briefings-index">A practical distinction</span>'
         '<h3>One service workflow. Three different levels of AI authority.</h3>'
-        '<p>Imagine an AI assistant supporting customer service credits. '
-        'The technical capability may look similar, but the business control '
-        'must change as its permission to act expands.</p>'
+        '<p>This field-informed illustrative composite follows recurring enterprise service-case patterns. '
+        'Imagine an AI assistant helping teams classify and route technical service cases; '
+        'the scenario does not represent any identifiable organisation, deployment or measured result. '
+        'The control must change as the system gains permission to act.</p>'
         '<div class="gov-seven-modes">'
-        '<div class="gov-seven-mode"><b>Recommend</b><p>AI proposes a credit with supporting '
-        'facts. A person decides and records the outcome.</p></div>'
-        '<div class="gov-seven-mode"><b>Prepare</b><p>AI completes the draft transaction, '
-        'but cannot submit it until an authorised person approves.</p></div>'
-        '<div class="gov-seven-mode"><b>Execute within limits</b><p>AI may issue only '
-        'pre-approved, low-value credits within a defined cap, with logging, '
-        'monitoring and an immediate stop route.</p></div></div></div>'
+        '<div class="gov-seven-mode"><b>Recommend</b><p>AI proposes a routing destination with '
+        'the relevant case evidence. A person decides and records the outcome.</p></div>'
+        '<div class="gov-seven-mode"><b>Prepare</b><p>AI drafts the case assignment and '
+        'reason, but cannot submit it until an authorised person approves.</p></div>'
+        '<div class="gov-seven-mode"><b>Execute within limits</b><p>AI may route only '
+        'clearly defined, low-consequence case categories under approved rules, '
+        'with logging, monitoring, manual correction and a stop route.</p></div></div></div>'
     )
 
 
@@ -971,7 +972,7 @@ def executive_briefing_article(
             'target="_self">← Executive AI Briefings</a>'
             '<span class="briefings-index">Executive field guide · seven decision lenses</span>'
             f'<h1>{escape(article.title)}</h1>'
-            '<p>A field-tested way to challenge AI proposals, expose assumptions '
+            '<p>A field-informed way to challenge AI proposals, expose assumptions '
             'and leave the room with a defensible decision, clear ownership and measurable next steps.</p>'
             '</div></section>'
             + seven_questions_body()

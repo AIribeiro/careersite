@@ -248,7 +248,8 @@ def render_related_briefings(current, published: Iterable) -> str:
         '<a class="ebr-related-more" href="?page=briefings" target="_self" '
         'data-hq-event="briefing_related_library">Explore the briefing library →</a>'
         '</div>'
-        '<div class="ebr-related-grid">'
+        '<div class="ebr-related-grid" role="navigation" '
+        'aria-label="Recommended Executive AI Briefings">'
         + "".join(cards)
         + '</div></div></section>'
     )

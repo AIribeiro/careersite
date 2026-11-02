@@ -280,11 +280,8 @@ BRIEFINGS_CSS = r'''<style>
 .site .briefing-full-content .article-body h2{font:500 clamp(24px,2.8vw,32px)/1.24 Georgia,serif;margin:28px 0 14px}
 .site .briefing-full-content .article-body p,.site .briefing-full-content .article-body li{font:400 15px/1.73 Arial,sans-serif;color:#394c5c}
 .site .briefing-full-content .article-body img{max-width:100%;height:auto}
-.site .briefing-reader-bottom{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:22px 0 8px;padding:23px 27px;background:#1a3144;color:#fff}
-.site .briefing-reader-bottom p{margin:0;max-width:700px;color:#d5e0e7;font:400 13px/1.6 Arial,sans-serif}
-.site .briefing-reader-bottom a{display:inline-block;flex:0 0 auto;color:#13283a!important;background:#e6bc99;padding:13px 17px;text-decoration:none!important;font:800 12px/1.3 Arial,sans-serif}
 @media(max-width:900px){.site .briefings-library-grid{grid-template-columns:minmax(0,1fr)}.site .briefing-reader-summary{grid-template-columns:1fr}.site .briefings-library-card h3{font-size:clamp(26px,4vw,34px)}.site .briefings-art-options{max-width:100%}}
-@media(max-width:650px){.site .briefings-library-hero{padding:40px 0}.site .briefings-library-section{padding:29px 0 45px}.site .briefings-library-heading{align-items:start}.site .briefings-library-count{white-space:normal;text-align:right}.site .briefings-library-card-body{padding:22px}.site .briefings-catalog-art{height:160px;padding:19px}.site .briefings-art-numbers{gap:4px}.site .briefings-art-numbers b{height:36px;font-size:13px}.site .briefing-reader-summary,.site .briefing-reader-decision-map{padding:20px}.site .briefing-reader-decision-map .briefings-map{grid-template-columns:minmax(0,1fr)}.site .briefing-full-content{padding:21px}.site .briefing-reader-bottom{flex-direction:column;align-items:start;padding:22px}.site .briefing-reader-bottom a{width:100%;box-sizing:border-box;text-align:center}.site .briefings-library-card-foot{flex-wrap:wrap}}
+@media(max-width:650px){.site .briefings-library-hero{padding:40px 0}.site .briefings-library-section{padding:29px 0 45px}.site .briefings-library-heading{align-items:start}.site .briefings-library-count{white-space:normal;text-align:right}.site .briefings-library-card-body{padding:22px}.site .briefings-catalog-art{height:160px;padding:19px}.site .briefings-art-numbers{gap:4px}.site .briefings-art-numbers b{height:36px;font-size:13px}.site .briefing-reader-summary,.site .briefing-reader-decision-map{padding:20px}.site .briefing-reader-decision-map .briefings-map{grid-template-columns:minmax(0,1fr)}.site .briefing-full-content{padding:21px}.site .briefings-library-card-foot{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.site .briefings-library-card{transition:none}}
 .site .briefings-catalog-art--governance{background:radial-gradient(ellipse at 70% 25%,#33526a,#102238 72%)}
 .site .briefings-governance-art{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-width:520px}
@@ -653,11 +650,6 @@ def governance_briefing_article(article, share_footer: str, cms_css: str) -> str
         '<summary>Application notes and source references</summary>'
         f'<div class="article-body briefing-reader-research">{article.content_html}</div>'
         '</details>'
-        '<div class="briefing-reader-bottom"><p>'
-        'Your data, processes and risk appetite determine the control design. '
-        'Discuss a real governance decision and what would make it safe to scale.</p>'
-        '<a href="?page=contact" target="_self" '
-        'data-hq-event="briefing_reader_contact">Discuss your decision →</a></div>'
         f'<div class="briefing-reader-share">{share_footer}</div>'
         '</div></section>'
         + contact_block()
@@ -1096,11 +1088,6 @@ def executive_briefing_article(
         + _article_infographic(article)
         + decision_map
         + full_article
-        + '<div class="briefing-reader-bottom"><p>'
-        'Use the framework to challenge one real decision. If the answer depends '
-        'on your business context, the next step is a conversation.</p>'
-        '<a href="?page=contact" target="_self" '
-        'data-hq-event="briefing_reader_contact">Discuss your decision →</a></div>'
         f'<div class="briefing-reader-share">{share_footer}</div>'
         '</div></section>' + contact_block() + '</main>' + footer()
     )

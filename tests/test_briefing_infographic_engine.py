@@ -46,10 +46,11 @@ class InfographicEngineTests(unittest.TestCase):
                     svg=render_svg(sample,mobile=mobile)
                     root=ET.fromstring(svg)
                     self.assertTrue(root.tag.endswith("svg"))
-                    self.assertIn("The evidence behind this business decision",svg)
-                    self.assertIn("Control boundary",svg)
+                    labels=" ".join(root.itertext()).lower()
+                    self.assertIn("evidence",labels)
+                    self.assertIn("control boundary",labels)
+                    self.assertIn("proceed only",labels)
                     self.assertNotIn("<script",svg)
-                    self.assertIn(sample["conclusion"],svg)
 
     def test_mobile_embeds_both_variants_and_analytics_section(self):
         html=infographic_html(

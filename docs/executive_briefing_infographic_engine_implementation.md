@@ -12,6 +12,7 @@ One original, premium, strategic decision infographic per Executive AI Briefing.
 ## Core architecture
 
 - `src/briefing_infographic_engine.py`: deterministic article-headings-to-visual specification, six visual grammars, specification validation, HTML-safe first-party SVG desktop/mobile renderers, data-URI image fallback and accessible caption.
+- `src/briefing_infographic_ai.py`: optional **explicitly triggered** structured editorial planning via existing OpenRouter key, with JSON schema constraints, provider ZDR, denied data collection, local spec validation and no automatic approval. If unavailable or rejected, use deterministic fallback.
 - `src/briefing_infographic_store.py`: authenticated owner save, approval, rejection, content fingerprinting, approved/current asset selection; public read-only lookup with fail-closed behavior.
 - `src/briefing_infographic_admin.py`: Content Studio editing, desktop/mobile preview, accessible alt-text editing, six review criteria, approval/rejection and owner-only readership metrics.
 - `src/page_admin.py`: integrated editor, mandatory reviewed infographic before the Executive Briefing publish/update action.
@@ -20,7 +21,7 @@ One original, premium, strategic decision infographic per Executive AI Briefing.
 - `src/data_governance_funding_briefing.py`, `src/data_vs_ai_governance_briefing.py`: preserve original reader visuals as fallback; use approved CMS infographic as the primary graphic.
 - `tests/test_briefing_infographic_engine.py`: six-pattern, semantic XML, mobile, anonymity, stale-version and analytics-markup tests, committed but execution not verified.
 
-The generator uses documented rules and the article's own content. **It does not call a language/image model and must not be described as AI-verified artwork or automated fact-checking.** The ability to edit the structured visual proposal is intentionally part of the editorial process.
+The engine supports two concept routes: **optional AI-assisted planning** (only on explicit editor click, using the configured OpenRouter text model) and a deterministic article-heading fallback. Both produce a restricted, editable specification; neither performs independent fact-checking, legal validation or automatic approval. For AI planning, article text is sent to the configured provider with ZDR and data collection denied; do not send confidential material without the necessary authority. SVG production itself remains local and deterministic.
 
 ## Database and privacy
 
@@ -50,6 +51,7 @@ All six records were inserted as approved *editorial specifications* and confirm
 
 1. Save the new Executive Briefing text as a draft so it has a persistent article ID.
 2. Expand **Executive Briefing · Infographic Engine**.
+3. Choose **Generate strategic concept with AI** (owner-triggered external request) or **Generate structured fallback** (no model call). Confirm that the concept is based on the article's own evidence, not source artwork.
 3. Generate a structured proposal from the article or revise an existing one.
 4. Edit JSON title/deck/items/conclusion so every label earns its position and the diagram is genuinely strategic. Required fields: `pattern`, `title`, `deck`, `items` (2–7), `conclusion`.
 5. Add meaningful alt text (40+ characters) and caption.

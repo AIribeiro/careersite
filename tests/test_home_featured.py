@@ -137,6 +137,94 @@ class HomeFeaturedArticleTests(unittest.TestCase):
         self.assertEqual(html.count('href="?page=thinking&amp;article=a-slug"'), 3)
         self.assertIn('data-hq-event="home_featured_article_open"', html)
 
+    def test_footer_excludes_current_reader_from_random_choice(self) -> None:
+        from page_home_featured import current_home_article
+        current = self.article("the-current-briefing", 2, kind="Executive Briefing")
+        other = self.article("another-article", 30)
+        with patch("site_cms.fetch_published_articles", return_value=(current, other)), \
+             patch("page_home_featured.choice", side_effect=lambda pool: pool[0]) as picker:
+            selected = current_home_article(exclude_slug=current.slug)
+        self.assertEqual(selected.slug, other.slug)
+        self.assertEqual([item.slug for item in picker.call_args.args[0]], [other.slug])
+
+    def test_compact_footer_has_small_image_and_contextual_briefing_action(self) -> None:
+        from page_home_featured import HomeArticlePreview, compact_writing_footer
+        sample = HomeArticlePreview(
+            slug="a-briefing", title="An executive AI decision", deck="A compact explanation",
+            kind_topic="Executive Briefing · Enterprise AI",
+            published_label="2 Nov 2026", read_minutes=6,
+            href="?page=briefing&article=a-briefing",
+            image_url="https://example.org/executive.webp", image_alt="Executive artwork",
+            content_type="briefing",
+        )
+        with patch("page_home_featured.current_home_article", return_value=sample):
+            html = compact_writing_footer()
+        self.assertIn('data-analytics-section="site-writing-footer"', html)
+        self.assertIn('class="writing-footer-art"', html)
+        self.assertIn('class="writing-footer-copy"', html)
+        self.assertIn('class="writing-footer-action"', html)
+        self.assertIn("From my writing", html)
+        self.assertIn("Read briefing", html)
+        self.assertIn('data-hq-content-type="briefing"', html)
+        self.assertEqual(html.count('href="?page=briefing&amp;article=a-briefing"'), 3)
+        self.assertIn('href="?page=thinking"', html)
+        self.assertIn('href="?page=briefings"', html)
+
+    def test_injection_covers_public_pages_but_not_home_or_private_analytics(self) -> None:
+        from page_home_featured import inject_writing_footer
+        document = '<nav></nav><main><article>Page contents</article></main><footer></footer>'
+        with patch("page_home_featured.compact_writing_footer",
+                   return_value='<section id="writing-test"></section>') as render:
+            for page in ("impact", "thinking", "briefings", "briefing", "about",
+                         "contact", "ai-data-governance"):
+                with self.subTest(page=page):
+                    enhanced = inject_writing_footer(document, page)
+                    self.assertEqual(enhanced.count('id="writing-test"'), 1)
+                    self.assertLess(enhanced.index('id="writing-test"'), enhanced.index('</main>'))
+                    self.assertLess(enhanced.index('</main>'), enhanced.index('<footer>'))
+            for page in ("home", "analytics", "admin"):
+                self.assertEqual(inject_writing_footer(document, page), document)
+        self.assertEqual(render.call_count, 7)
+
+    def test_briefing_writing_footer_precedes_the_final_contact_call(self) -> None:
+        from page_home_featured import inject_writing_footer
+        document = (
+            '<main><article>Briefing</article>'
+            '<section class="briefings-conversation" data-analytics-section="briefings-contact">'
+            'Have an AI choice that needs a clearer answer?</section>'
+            '</main><footer></footer>'
+        )
+        with patch("page_home_featured.compact_writing_footer",
+                   return_value='<section id="writing-test"></section>'):
+            enhanced = inject_writing_footer(document, "briefing")
+        self.assertLess(enhanced.index('id="writing-test"'),
+                        enhanced.index('data-analytics-section="briefings-contact"'))
+        self.assertEqual(enhanced.count("Have an AI choice that needs a clearer answer?"), 1)
+        self.assertEqual(enhanced.count('id="writing-test"'), 1)
+
+    def test_injection_is_idempotent_and_reader_slug_is_forwarded(self) -> None:
+        from page_home_featured import inject_writing_footer
+        document = '<main><article>Reader</article></main><footer></footer>'
+        with patch("page_home_featured.compact_writing_footer",
+                   return_value='<section data-analytics-section="site-writing-footer"></section>') as render:
+            once = inject_writing_footer(document, "thinking", article_slug="reader-slug")
+            twice = inject_writing_footer(once, "thinking", article_slug="reader-slug")
+        self.assertEqual(once, twice)
+        self.assertEqual(render.call_count, 1)
+        self.assertEqual(render.call_args.kwargs["exclude_slug"], "reader-slug")
+
+    def test_compact_footer_is_mounted_in_the_shared_public_renderer(self) -> None:
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[1]
+        main = (root / "main.py").read_text(encoding="utf-8")
+        styles = (root / "src" / "site_styles.py").read_text(encoding="utf-8")
+        self.assertIn("inject_writing_footer(RENDER[PAGE](), PAGE", main)
+        self.assertIn(".site .writing-footer{padding:19px 0 21px;", styles)
+        self.assertIn(".site .writing-footer-art{display:flex;", styles)
+        self.assertIn("width:126px;height:85px", styles)
+        self.assertIn("@media(max-width:560px)", styles)
+        self.assertIn("width:78px;height:77px", styles)
+
     def test_article_artwork_is_confined_to_a_responsive_frame(self) -> None:
         """The image cannot expand the Home featured card to its native size."""
         from site_styles import CSS

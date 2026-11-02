@@ -24,7 +24,7 @@ class HomeArticlePreview:
     content_type: str = "article"
 
 
-def current_home_article() -> HomeArticlePreview:
+def current_home_article(*, exclude_slug: str = "") -> HomeArticlePreview:
     """Select one published Thinking article or Executive AI Briefing per render.
 
     CMS publication status is authoritative. The legacy Thinking catalog remains
@@ -50,7 +50,9 @@ def current_home_article() -> HomeArticlePreview:
         and not is_weekly_brief(article)
     )
     if eligible:
-        selected = choice(eligible)
+        # On a reader page, suggest another publication whenever possible.
+        alternatives = tuple(item for item in eligible if item.slug != exclude_slug)
+        selected = choice(alternatives if alternatives else eligible)
         is_briefing = selected.kind.strip().casefold() == "executive briefing"
         return HomeArticlePreview(
             slug=selected.slug,
@@ -68,7 +70,9 @@ def current_home_article() -> HomeArticlePreview:
     from thinking_articles import article_relative_url as legacy_relative_url
     from thinking_articles import article_social_image_url, published_articles
 
-    legacy = choice(tuple(published_articles()))
+    legacy_pool = tuple(published_articles())
+    alternatives = tuple(item for item in legacy_pool if item.slug != exclude_slug)
+    legacy = choice(alternatives if alternatives else legacy_pool)
     return HomeArticlePreview(
         slug=legacy.slug,
         title=legacy.title,
@@ -133,3 +137,69 @@ def home_featured_article() -> str:
         '</nav>'
         '</div></section>'
     )
+
+
+def compact_writing_footer(*, exclude_slug: str = "") -> str:
+    """Quiet, low-height writing discovery strip for secondary public pages."""
+    article = current_home_article(exclude_slug=exclude_slug)
+    is_briefing = article.content_type == "briefing"
+    href = escape(article.href, quote=True)
+    slug = escape(article.slug, quote=True)
+    title = escape(article.title)
+    deck = escape(article.deck)
+    published = escape(article.published_label)
+    kind = escape("Executive AI Briefing" if is_briefing else "Thinking article")
+    image_url = escape(article.image_url, quote=True)
+    image_alt = escape(article.image_alt, quote=True)
+    content_type = "briefing" if is_briefing else "article"
+    read_label = "Read briefing" if is_briefing else "Read article"
+    image = (
+        f'<img src="{image_url}" alt="{image_alt}" loading="lazy" decoding="async">'
+        if article.image_url else
+        '<span aria-hidden="true">AI · Data</span>'
+    )
+    return (
+        '<section class="writing-footer" data-analytics-section="site-writing-footer" '
+        'aria-label="From my writing">'
+        '<div class="container writing-footer-inner">'
+        f'<a class="writing-footer-art" href="{href}" target="_self" '
+        f'data-hq-event="writing_footer_image" data-hq-content-slug="{slug}" '
+        f'data-hq-content-type="{content_type}" '
+        f'aria-label="Read {escape(article.title, quote=True)}">{image}</a>'
+        '<div class="writing-footer-copy">'
+        '<div class="writing-footer-overline"><span>From my writing</span>'
+        f'<span class="writing-footer-separator" aria-hidden="true">/</span><span>{kind}</span></div>'
+        f'<h2><a href="{href}" target="_self" data-hq-event="writing_footer_title" '
+        f'data-hq-content-slug="{slug}" data-hq-content-type="{content_type}">{title}</a></h2>'
+        f'<p>{deck}</p>'
+        f'<span class="writing-footer-meta">{published} · {article.read_minutes} min read</span>'
+        '</div>'
+        '<div class="writing-footer-action">'
+        f'<a href="{href}" target="_self" data-hq-event="writing_footer_open" '
+        f'data-hq-content-slug="{slug}" data-hq-content-type="{content_type}">'
+        f'{read_label} <span aria-hidden="true">→</span></a>'
+        '<nav aria-label="Writing collections">'
+        '<a href="?page=thinking" target="_self" data-hq-event="writing_footer_thinking">Thinking</a>'
+        '<a href="?page=briefings" target="_self" data-hq-event="writing_footer_briefings">Briefings</a>'
+        '</nav></div></div></section>'
+    )
+
+
+def inject_writing_footer(document: str, page: str, *, article_slug: str = "") -> str:
+    """Attach the compact feature once, within main and above the site footer.
+
+    Executive Briefings retain the decision-contact block as their final
+    editorial section, so insert the writing strip just before that block.
+    """
+    if page in {"home", "analytics", "admin"} or 'data-analytics-section="site-writing-footer"' in document:
+        return document
+    if "<main" not in document or "</main>" not in document:
+        return document
+
+    feature = compact_writing_footer(exclude_slug=article_slug)
+    briefing_contact = '<section class="briefings-conversation"'
+    if briefing_contact in document:
+        return document.replace(briefing_contact, feature + briefing_contact, 1)
+
+    index = document.rfind("</main>")
+    return document[:index] + feature + document[index:]

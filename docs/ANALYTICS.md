@@ -267,3 +267,20 @@ Lovable should use the same endpoint, table, event taxonomy, attribution paramet
 - Do selected application links produce stronger engagement than generic LinkedIn/CV traffic?
 
 The site intentionally does not implement heatmaps, session recordings, advertising pixels, raw-IP retention, raw-user-agent retention or durable visitor fingerprinting.
+
+## Executive Briefings editorial analytics (2 November 2026)
+
+Portfolio Analytics now has **four** overview cards: **Portfolio visits**, **Articles**, **Weekly AI**, and **Executive Briefings**, all controlled by the same reporting-period selector (including Yesterday). Both the anonymous Explore content focus and the authenticated owner Portfolio Analytics > Content & readers focus offer a dedicated **Executive Briefings** report. No new database table, tracking event, visitor ID or cookie is created.
+
+The published Content Studio catalogue determines the classifications:
+
+- **Portfolio visits** are existing page-view events, including the `briefings` library. The library is a *page*, not an extra article.
+- **Articles** exclude published `Weekly Brief` / `Weekly AI` and `Executive Briefing` entries.
+- **Weekly AI** only counts published verified weekly issues.
+- **Executive Briefings** only count published CMS entries with `kind='Executive Briefing'`; newly published briefings appear without hardcoded slugs. Unpublished drafts never appear as published content. If the CMS catalogue is unavailable, the three classified reading categories display unavailable values, not guessed zeros.
+
+Each reading category reuses the `careersite_content_intelligence_v2` first-party `article_view` rows, classified by slug. **Articles + Weekly AI + Executive Briefings = the same existing article-view total**, if the catalog and per-content report reconcile. Reading one briefing and one article in a browser session produces one item-session in each category; it does not establish two distinct users. Library page views already belong to the portfolio-page total and must not be added to reading views or site visitors.
+
+The Executive Briefings detail uses existing per-content aggregates and instrumented `briefings-library` / `home-executive-briefings` section reach and briefing-card exposures/clicks. Its four primary measures are library visits, published-briefing item-session reads, engaged-read rate (active ≥10 seconds) and *subsequent within-session contact actions*, where the last is **not** evidence of a causal conversion. The detail also shows card exposure-based CTR, item views, measured read depth, shares, later CV actions, a comparative readership chart and a link to each individual published briefing. Scroll rates use only observed depth denominators; average confirmed time may be unavailable. Direct visitors can bypass the library; discovery and readership are *not* a linear funnel.
+
+All measures respect the current reporting window, established test-traffic and attribution exclusions. Historic periods cannot retroactively acquire card impressions that were not instrumented. The dashboard does not identify people or infer recruiter interest. If reporting is unreachable, display an explicit unavailable state rather than claiming no traffic.

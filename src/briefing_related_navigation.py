@@ -16,6 +16,16 @@ from typing import Iterable
 # Relevance stays stable as new editions are published; missing or unpublished
 # references are skipped and filled by the topic-based fallback.
 EDITORIAL_PATHS: dict[str, tuple[tuple[str, str], ...]] = {
+    "secure-enterprise-ai-ten-failures-to-control": (
+        (
+            "ai-governance-explained-to-executives",
+            "Extend the security controls into a wider ownership and governance model.",
+        ),
+        (
+            "data-governance-vs-ai-governance-executive-decisions",
+            "Clarify which information controls and AI assurances require distinct owners.",
+        ),
+    ),
     "ai-capabilities-executive-decisions": (
         (
             "seven-questions-for-better-ai-decisions",
@@ -79,6 +89,9 @@ EDITORIAL_PATHS: dict[str, tuple[tuple[str, str], ...]] = {
 }
 
 EDITORIAL_INTROS: dict[str, str] = {
+    "secure-enterprise-ai-ten-failures-to-control": (
+        "A release decision requires more than technical safeguards. Continue into ownership, evidence and governance."
+    ),
     "ai-capabilities-executive-decisions": (
         "Once the capability is clear, test whether the work justifies it and what controls it needs."
     ),

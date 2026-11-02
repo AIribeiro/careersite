@@ -45,6 +45,19 @@ Recommended sequence — adapt it rather than applying mechanically:
 
 Avoid repetitive introductions, seven generic questions padded into a list, “AI will change everything” framing, inflated case-study outcomes, theatrical first-person claims, lengthy research dumps, and jargon that cannot be turned into a test or decision.
 
+## Contextual navigation — mandatory at the end of every briefing
+
+A briefing is an independent executive decision guide **and a deliberate entry point to the wider portfolio**. Every published reader ends with a contextual **“Where to go next”** section, after its main article, source material, share and contact opportunities and before the site footer.
+
+- Recommend up to **two distinct published Executive AI Briefings** that extend the decision the reader has just considered. Never recommend the current edition, unpublished drafts or generic popularity lists.
+- Make the link **editorial, not algorithmic decoration**: each card must state *why that particular briefing is the next useful decision*. The six current editions have curated reading paths; future editions fall back to topic overlap until their path is curated.
+- Derive destination titles, reading time, publication status and canonical URLs from the published CMS record rather than duplicating content in a hard-coded card. Stop recommending an edition as soon as it is unpublished.
+- Keep the navigation calm and premium: two equal-priority cards, a short transition, a library link and a one-column mobile layout. Preserve keyboard focus, useful link labels and readable contrast.
+- Use the existing first-party analytics: `briefings-related-reading` section exposure, `briefing_related_open` card clicks, destination article identity and page attribution. Do not add marketing UTMs to internal reading links, and do not treat link clicks as verified destination reading.
+- The recommendation section is injected **once centrally** through the CMS renderer so that all independent briefing readers inherit it and new visual layouts cannot accidentally omit it. If there are no other published editions, do not show empty recommendation cards.
+
+Before releasing a reader or changing its routing, verify the related links open published editions, the current edition is excluded, the section follows the actual article and contact content, and desktop/mobile navigation remains usable.
+
 ## Evidence, accuracy and originality are release blockers
 
 - Verify material factual claims against **current primary sources** wherever available: official regulations, government and regulator documents, published standards, company filings and original research. Use corroborating reputable secondary reporting only where helpful. Quote sparingly, paraphrase independently.

@@ -1,4 +1,4 @@
-"""Home featured article follows the existing Thinking highlight, not a new ranking."""
+"""Home writing feature rotates independently across Thinking and Executive Briefings."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -23,48 +23,96 @@ class HomeFeaturedArticleTests(unittest.TestCase):
             **kwargs,
         )
 
-    def test_home_uses_current_thinking_highlight_not_a_hardcoded_slug(self) -> None:
+    def test_home_can_select_either_a_thinking_article_or_an_executive_briefing(self) -> None:
         from page_home_featured import current_home_article
-        popular = self.article("popular-essay", 150)
-        fresh = self.article("new-perspective", 3, subtitle="The original article deck.")
-        with patch("site_cms.fetch_published_articles", return_value=(popular, fresh)), \
-             patch("site_cms._public_reads_or_none",
-                   return_value={"popular-essay": 500, "new-perspective": 0}):
+        essay = self.article("thinking-perspective", 80, kind="Article")
+        briefing = self.article(
+            "boardroom-decision", 2, kind="Executive Briefing",
+            subtitle="Three decisions leadership must own.",
+        )
+        with patch("site_cms.fetch_published_articles", return_value=(essay, briefing)), \
+             patch("page_home_featured.choice", side_effect=lambda pool: pool[1]) as picker:
             selected = current_home_article()
-        self.assertEqual(selected.slug, "new-perspective")
-        self.assertEqual(selected.deck, "The original article deck.")
-        self.assertEqual(selected.href, "?page=thinking&article=new-perspective")
-        self.assertEqual(selected.read_minutes, 1)
+        self.assertEqual(selected.slug, "boardroom-decision")
+        self.assertEqual(selected.href, "?page=briefing&article=boardroom-decision")
+        self.assertEqual(selected.deck, "Three decisions leadership must own.")
+        self.assertEqual(selected.content_type, "briefing")
+        self.assertEqual({item.slug for item in picker.call_args.args[0]},
+                         {"thinking-perspective", "boardroom-decision"})
 
-    def test_home_uses_most_read_when_no_new_publication(self) -> None:
+    def test_home_selection_ignores_latest_and_readership_rankings(self) -> None:
         from page_home_featured import current_home_article
-        older = self.article("older-most-read", 150)
-        newer = self.article("newer-fewer-reads", 30)
-        with patch("site_cms.fetch_published_articles", return_value=(older, newer)), \
+        older = self.article("older-essay", 150)
+        latest = self.article("latest-essay", 2)
+        with patch("site_cms.fetch_published_articles", return_value=(latest, older)), \
+             patch("page_home_featured.choice", return_value=older), \
              patch("site_cms._public_reads_or_none",
-                   return_value={"older-most-read": 30, "newer-fewer-reads": 3}):
+                   side_effect=AssertionError("Home must not query readership")):
             selected = current_home_article()
-        self.assertEqual(selected.slug, "older-most-read")
+        self.assertEqual(selected.slug, "older-essay")
         self.assertEqual(selected.deck, older.excerpt)
+        self.assertEqual(selected.href, "?page=thinking&article=older-essay")
 
-    def test_weekly_ai_is_never_home_highlight(self) -> None:
+    def test_home_randomizes_on_each_render_instead_of_caching_selection(self) -> None:
+        from page_home_featured import current_home_article
+        first = self.article("first-essay", 48)
+        second = self.article("second-essay", 72)
+        with patch("site_cms.fetch_published_articles", return_value=(first, second)), \
+             patch("page_home_featured.choice", side_effect=(first, second)) as picker:
+            selected_first = current_home_article()
+            selected_second = current_home_article()
+        self.assertEqual([selected_first.slug, selected_second.slug],
+                         ["first-essay", "second-essay"])
+        self.assertEqual(picker.call_count, 2)
+
+    def test_weekly_ai_and_drafts_are_never_eligible(self) -> None:
         from page_home_featured import current_home_article
         weekly = self.article("weekly-ai-2026-10-19", 2, kind="Weekly Brief", category="Weekly AI")
+        draft = self.article("draft-essay", 3)
+        draft.status = "draft"
         ordinary = self.article("ordinary-essay", 40)
-        with patch("site_cms.fetch_published_articles", return_value=(weekly, ordinary)), \
-             patch("site_cms._public_reads_or_none",
-                   return_value={"weekly-ai-2026-10-19": 500, "ordinary-essay": 4}):
+        briefing = self.article("another-briefing", 25, kind="Executive Briefing")
+        with patch("site_cms.fetch_published_articles",
+                   return_value=(weekly, draft, ordinary, briefing)), \
+             patch("page_home_featured.choice", side_effect=lambda pool: pool[0]) as picker:
             selected = current_home_article()
         self.assertEqual(selected.slug, "ordinary-essay")
+        self.assertEqual({item.slug for item in picker.call_args.args[0]},
+                         {"ordinary-essay", "another-briefing"})
 
-    def test_cms_outage_gracefully_uses_thinking_fallback(self) -> None:
+    def test_cms_outage_rotates_through_legacy_thinking_fallback(self) -> None:
         from page_home_featured import current_home_article
-        from thinking_landing import CURRENT_PRIMARY
-        from thinking_articles import article_by_key
-        with patch("site_cms.fetch_published_articles", side_effect=RuntimeError("offline")):
+        from thinking_articles import published_articles
+        legacy = tuple(published_articles())[1]
+        with patch("site_cms.fetch_published_articles", side_effect=RuntimeError("offline")), \
+             patch("page_home_featured.choice", return_value=legacy) as picker:
             selected = current_home_article()
-        self.assertEqual(selected.slug, article_by_key(CURRENT_PRIMARY).slug)
+        self.assertEqual(selected.slug, legacy.slug)
         self.assertIn("page=thinking&article=", selected.href)
+        self.assertGreater(len(picker.call_args.args[0]), 1)
+
+    def test_briefing_card_links_and_cta_match_its_content_type(self) -> None:
+        from page_home_featured import HomeArticlePreview, home_featured_article
+        briefing = HomeArticlePreview(
+            slug="executive-choice",
+            title="The Executive Decision",
+            deck="An executive-level assessment",
+            kind_topic="Executive Briefing · AI Governance",
+            published_label="2 Nov 2026",
+            read_minutes=6,
+            href="?page=briefing&article=executive-choice",
+            image_url="https://example.org/briefing.webp",
+            image_alt="Briefing cover",
+            content_type="briefing",
+        )
+        with patch("page_home_featured.current_home_article", return_value=briefing):
+            html = home_featured_article()
+        self.assertEqual(html.count('href="?page=briefing&amp;article=executive-choice"'), 3)
+        self.assertIn("Read the briefing", html)
+        self.assertIn('data-hq-content-type="briefing"', html)
+        self.assertIn('href="?page=briefings"', html)
+        self.assertIn('href="?page=thinking"', html)
+        self.assertNotIn("Read the article", html)
 
     def test_premium_panel_contains_live_title_deck_art_and_article_link(self) -> None:
         from page_home_featured import HomeArticlePreview, home_featured_article

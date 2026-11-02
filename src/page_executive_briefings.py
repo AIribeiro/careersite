@@ -19,6 +19,7 @@ from site_cms import fetch_published_articles, article_relative_url
 BRIEFING_KIND = "Executive Briefing"
 FIRST_SLUG = "ai-capabilities-executive-decisions"
 GOVERNANCE_SLUG = "ai-governance-explained-to-executives"
+AI_ACT_SLUG = "eu-ai-act-what-executives-must-decide"
 
 # Capability categories are complementary tools, not a ladder of sophistication.
 CAPABILITIES = (
@@ -52,6 +53,17 @@ GOVERNANCE_DECISION = {
     ),
 }
 
+
+
+AI_ACT_DECISION = {
+    "call": "Classify the use, then decide the controls.",
+    "move": "Take one live or proposed AI use case. Record its intended purpose, your role, the relevant legal duties, a named owner and the evidence required before approval.",
+    "checks": (
+        ("Intended purpose", "What does the system actually do, to whom and in which decision?", "target"),
+        ("Legal position", "Is this use prohibited, high-risk, subject to disclosure or subject to other duties?", "shield"),
+        ("Accountable evidence", "Who owns the use, vendor controls, records and oversight?", "layers"),
+    ),
+}
 
 # Original executive governance architecture: seven concurrent control surfaces,
 # not a redraw or a maturity sequence borrowed from a reference illustration.
@@ -367,6 +379,45 @@ BRIEFINGS_CSS = r'''<style>
 .site .gov-notes{margin-top:16px}
 @media(max-width:850px){.site .gov-review{grid-template-columns:1fr}.site .gov-record-gates{grid-template-columns:1fr}}
 @media(max-width:650px){.site .gov-record-grid,.site .gov-review ol{grid-template-columns:1fr}.site .gov-record-field{padding:16px}.site .gov-review{padding:22px}}
+
+/* EU AI Act edition: editorial diagrams, not a reproduction of a third-party infographic. */
+.site .briefings-catalog-art--aia{background:radial-gradient(ellipse at 82% 14%,#315669 0%,#102238 76%);border-top:3px solid #c49a74}
+.site .aia-art-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:530px}
+.site .aia-art-steps span{min-width:0;padding:12px 10px;border:1px solid rgba(232,192,153,.54);background:rgba(7,27,46,.58);color:#f7f1eb;font:750 13px/1.25 Arial,sans-serif}
+.site .aia-art-steps b{display:block;font:850 10px/1.3 Arial,sans-serif;color:#e9bf98;margin-bottom:6px}
+.site .aia-art-foot{color:#d4e1e6;font:650 11px/1.45 Arial,sans-serif}
+.site .aia-diagram{position:relative;isolation:isolate;overflow:hidden;margin:22px 0 25px;padding:24px 23px;background:radial-gradient(ellipse at 84% 8%,#285063,#122b40 68%);color:#fff;border-top:3px solid #d4a47e}
+.site .aia-diagram-caption{display:block;color:#e9c2a3;font:800 10px/1.4 Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase;margin-bottom:13px}
+.site .aia-diagram h3{font:500 clamp(22px,3vw,30px)/1.23 Georgia,serif;color:#fff;margin:0 0 18px}
+.site .aia-path{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.site .aia-path>div{background:rgba(8,29,45,.72);border:1px solid #557286;padding:16px 11px;min-width:0}
+.site .aia-path b{display:block;color:#f0bc93;font:850 10px/1 Arial,sans-serif;letter-spacing:.08em;margin-bottom:10px}
+.site .aia-path strong{display:block;color:#fff;font:750 15px/1.25 Arial,sans-serif}
+.site .aia-path small{display:block;color:#c7d7de;font:400 11px/1.55 Arial,sans-serif;margin-top:8px}
+.site .aia-diagram>p{font:400 11px/1.58 Arial,sans-serif;color:#b8ccd7!important;margin:16px 0 0}
+.site .aia-duties{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:18px 0 23px}
+.site .aia-duty{padding:19px 21px;border:1px solid #d7deda;background:#f6f7f5;min-width:0}
+.site .aia-duty:nth-child(1){border-top:3px solid #9e5e53}
+.site .aia-duty:nth-child(2){border-top:3px solid #b3844f}
+.site .aia-duty:nth-child(3){border-top:3px solid #638193}
+.site .aia-duty:nth-child(4){border-top:3px solid #5f887b}
+.site .aia-duty span{display:block;font:850 10px/1.4 Arial,sans-serif;letter-spacing:.09em;color:#926643;text-transform:uppercase}
+.site .aia-duty h3{font:500 23px/1.2 Georgia,serif;color:#193449;margin:9px 0 9px}
+.site .aia-duty p{font:400 13px/1.6 Arial,sans-serif;color:#455c68;margin:0}
+.site .aia-important{background:#f3e8d9;padding:18px 20px;border-left:4px solid #ad7652;margin:18px 0}
+.site .aia-important p{margin:0!important;color:#2b3f4e!important}
+.site .aia-timeline{display:grid;gap:0;border:1px solid #d5dedb;margin:17px 0 22px}
+.site .aia-date{display:grid;grid-template-columns:125px 1fr;gap:16px;padding:12px 16px;border-bottom:1px solid #dbe0dc;background:#f8f8f4}
+.site .aia-date:last-child{border-bottom:0}
+.site .aia-date b{color:#965a38;font:800 12px/1.5 Arial,sans-serif}
+.site .aia-date span{font:400 13px/1.55 Arial,sans-serif;color:#344a59}
+.site .aia-record{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:18px 0 22px}
+.site .aia-record>div{background:#edf1ed;border:1px solid #d3ded7;padding:15px 17px}
+.site .aia-record b{display:block;font:850 10px/1.4 Arial,sans-serif;color:#9b673e;letter-spacing:.11em;margin-bottom:7px}
+.site .aia-record strong{display:block;color:#19394a;font:750 14px/1.35 Arial,sans-serif}
+.site .aia-record p{margin:6px 0 0!important;font:400 12px/1.58 Arial,sans-serif!important}
+@media(max-width:650px){.site .aia-path,.site .aia-duties,.site .aia-record{grid-template-columns:1fr}.site .aia-path>div{padding:11px 14px}.site .aia-date{grid-template-columns:1fr;gap:3px;padding:12px 14px}.site .aia-diagram{padding:19px 16px}.site .aia-art-steps span{font-size:11px;padding:10px 7px}}
+
 </style>'''
 
 
@@ -644,6 +695,14 @@ def _briefing_catalog_art(slug: str) -> str:
             '<span>Decision authority</span><span>Bounded action</span></div>'
             '<div class="briefings-governance-art-rule">7 layers · One accountable business outcome</div></div>'
         )
+    if slug == AI_ACT_SLUG:
+        return (
+            '<div class="briefings-catalog-art briefings-catalog-art--aia" aria-hidden="true">'
+            '<span class="briefings-catalog-art-kicker">EU AI ACT / EXECUTIVE DECISION GUIDE</span>'
+            '<div class="aia-art-steps"><span><b>01</b> CLASSIFY</span>'
+            '<span><b>02</b> ASSIGN</span><span><b>03</b> PROVE</span></div>'
+            '<div class="aia-art-foot">The law is in force. Evidence precedes permission.</div></div>'
+        )
     if slug == "seven-questions-for-better-ai-decisions":
         return (
             '<div class="briefings-catalog-art briefings-catalog-art--questions" aria-hidden="true">'
@@ -755,6 +814,7 @@ def executive_briefing_article(
         )
 
     guide = (FIRST_DECISION if article.slug == FIRST_SLUG else
+             AI_ACT_DECISION if article.slug == AI_ACT_SLUG else
              GOVERNANCE_DECISION if article.slug == GOVERNANCE_SLUG else {
         "call": "Make the business decision explicit.",
         "move": "Name the accountable owner, decide which evidence would change your answer and test the assumption before expanding.",
@@ -816,8 +876,9 @@ def executive_briefing_article(
         '<div class="container"><section class="briefing-reader-summary">'
         '<div><span class="briefings-index">The executive judgment</span>'
         f'<h2>{escape(guide["call"])}</h2>'
-        '<p>Make the operating permissions, business outcome and '
-        'evidence for approval explicit before expanding AI use.</p>'
+        ('<p>The AI Act does not classify products by their marketing label. Start with purpose, context, legal role and evidence; apply controls proportionate to the actual duty.</p>'
+        if article.slug == AI_ACT_SLUG else
+        '<p>Make the operating permissions, business outcome and evidence for approval explicit before expanding AI use.</p>')
         '<div class="briefing-reader-next"><strong>Next move</strong>'
         f'<p>{escape(guide["move"])}</p></div></div>'
         f'<div class="briefing-reader-checks">{checks}</div></section>'

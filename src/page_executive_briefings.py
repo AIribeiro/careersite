@@ -614,6 +614,12 @@ def governance_20_minute_review() -> str:
     )
 
 
+def _article_infographic(article) -> str:
+    """Approved infographic, source-fingerprint checked and fail-closed."""
+    from briefing_infographic_store import approved_infographic_for
+    return approved_infographic_for(article)
+
+
 def governance_briefing_article(article, share_footer: str, cms_css: str) -> str:
     """Governance-specific editorial reader with one map and no repeated article."""
     from thinking_core import THINKING_CSS
@@ -633,7 +639,7 @@ def governance_briefing_article(article, share_footer: str, cms_css: str) -> str
         '<p>AI governance decides what the system may do, who owns the result '
         'and what evidence earns permission to proceed. The more consequential '
         'the AI action, the stronger the approval and oversight required.</p></section>'
-        + governance_visual_map()
+        + (_article_infographic(article) or governance_visual_map())
         + governance_case_example()
         + governance_decision_record()
         + governance_20_minute_review()
@@ -973,12 +979,14 @@ def executive_briefing_article(
         from data_vs_ai_governance_briefing import dual_governance_briefing_article
         return dual_governance_briefing_article(
             article, tags, source, share_footer, cms_css, BRIEFINGS_CSS, contact_block(),
+            infographic_html=_article_infographic(article),
         )
 
     if article.slug == FUNDING_SLUG:
         from data_governance_funding_briefing import funding_briefing_article
         return funding_briefing_article(
             article, tags, source, share_footer, cms_css, BRIEFINGS_CSS, contact_block(),
+            infographic_html=_article_infographic(article),
         )
 
     # This article is a complete seven-lens executive playbook, not a three-check
@@ -999,6 +1007,8 @@ def executive_briefing_article(
             '<p>A field-informed way to challenge AI proposals, expose assumptions '
             'and leave the room with a defensible decision, clear ownership and measurable next steps.</p>'
             '</div></section>'
+            + '<section class="section paper"><div class="container">'
+            + _article_infographic(article) + '</div></section>'
             + seven_questions_body()
             + '<div class="aiq-guide-container aiq-research">'
             '<details class="briefing-reader-detail" data-analytics-section="briefing-reader-depth">'
@@ -1081,6 +1091,7 @@ def executive_briefing_article(
         '<div class="briefing-reader-next"><strong>Next move</strong>'
         f'<p>{escape(guide["move"])}</p></div></div>'
         f'<div class="briefing-reader-checks">{checks}</div></section>'
+        + _article_infographic(article)
         + decision_map
         + full_article
         + '<div class="briefing-reader-bottom"><p>'

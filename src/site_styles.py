@@ -148,6 +148,43 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 }
 
 
+/* Compact secondary-page writing footer: one quiet discovery module, not a second hero. */
+.site .writing-footer{padding:19px 0 21px;background:#f2eee8;border-top:1px solid #ded9d1;border-bottom:1px solid #ded9d1}
+.site .writing-footer-inner{display:grid;grid-template-columns:126px minmax(0,1fr) auto;gap:21px;align-items:center;max-width:1050px}
+.site .writing-footer-art{display:flex;align-items:center;justify-content:center;width:126px;height:85px;min-width:0;overflow:hidden;background:#14273a;border:1px solid #d5c9bb;text-decoration:none!important}
+.site .writing-footer-art img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
+.site .writing-footer-art>span{color:#e4b997;font:600 15px/1.2 Georgia,serif}
+.site .writing-footer-copy{min-width:0}
+.site .writing-footer-overline{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:#926244;font:800 9px/1.4 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.site .writing-footer-separator{color:#a69d92}
+.site .writing-footer-copy h2{margin:5px 0 4px;color:#203244;font:500 clamp(19px,2vw,23px)/1.17 Georgia,serif;letter-spacing:-.016em;overflow-wrap:anywhere}
+.site .writing-footer-copy h2 a{color:inherit!important;text-decoration:none!important}
+.site .writing-footer-copy h2 a:hover{text-decoration:underline!important;text-underline-offset:4px}
+.site .writing-footer-copy>p{max-width:72ch;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden;margin:0 0 3px;color:#5d6871;font:400 12px/1.5 Arial,sans-serif}
+.site .writing-footer-meta{color:#76818b;font:500 10px/1.4 Arial,sans-serif}
+.site .writing-footer-action{display:flex;flex-direction:column;align-items:flex-end;gap:13px;padding-left:17px;border-left:1px solid #d8d0c6}
+.site .writing-footer-action>a{white-space:nowrap;color:#9d613b!important;text-decoration:none!important;font:800 12px/1.35 Arial,sans-serif;border-bottom:1px solid #bc8a68;padding:4px 0}
+.site .writing-footer-action nav{display:flex;gap:15px}
+.site .writing-footer-action nav a{color:#64707a!important;text-decoration:none!important;font:700 10px/1.4 Arial,sans-serif}
+.site .writing-footer-action nav a:hover{color:#9d613b!important}
+.site .writing-footer a:focus-visible{outline:3px solid #b87751;outline-offset:4px}
+@media(max-width:860px){
+  .site .writing-footer-inner{grid-template-columns:112px minmax(0,1fr);gap:12px 17px}
+  .site .writing-footer-art{width:112px;height:82px;grid-row:1/3}
+  .site .writing-footer-action{flex-direction:row;align-items:center;gap:18px;padding:0;border:0}
+}
+@media(max-width:560px){
+  .site .writing-footer{padding:15px 0 17px}
+  .site .writing-footer-inner{grid-template-columns:78px minmax(0,1fr);gap:8px 13px}
+  .site .writing-footer-art{width:78px;height:77px;grid-row:1/3}
+  .site .writing-footer-overline{font-size:8px;gap:6px}
+  .site .writing-footer-copy h2{font-size:18px;margin:3px 0}
+  .site .writing-footer-copy>p{display:none}
+  .site .writing-footer-action{flex-wrap:wrap;gap:10px 15px}
+  .site .writing-footer-action>a{font-size:11px}
+  .site .writing-footer-action nav{gap:12px}
+  .site .writing-footer-action nav a{font-size:9px}
+}
 /* Home editorial feature: one rotating Thinking article or Executive AI Briefing,
    contained in a premium two-column story through tablet sizes. */
 .site .home-featured{padding:54px 0 64px;background:var(--paper)}

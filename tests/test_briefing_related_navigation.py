@@ -96,6 +96,7 @@ class ContextualBriefingNavigationTests(unittest.TestCase):
         for expected, _ in EDITORIAL_PATHS[current.slug]:
             self.assertIn(f"article={expected}", html)
         self.assertIn("data-hq-content-slug=", html)
+        self.assertIn('aria-label="Recommended Executive AI Briefings"', html)
         self.assertIn('data-hq-event="briefing_related_library"', html)
         self.assertIn('href="?page=briefings"', html)
         self.assertNotIn(f"article={current.slug}", html)

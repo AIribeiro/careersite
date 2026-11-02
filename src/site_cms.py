@@ -22,6 +22,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
 from site_cms_links import refresh_article_html
+from briefing_content_policy import validate_briefing_employer_anonymity
 
 OWNER_EMAIL = "jair.ribeiro@outlook.it"
 TABLE = "careersite_articles"
@@ -506,6 +507,7 @@ def _article_payload(article: CmsArticle) -> dict[str, object]:
 
 
 def save_article(access_token: str, article: CmsArticle) -> CmsArticle:
+    validate_briefing_employer_anonymity(article)
     if not article.title.strip():
         raise ValueError("Title is required.")
     if not strip_html(article.content_html):
@@ -552,6 +554,17 @@ def delete_article(access_token: str, article_id: str) -> None:
 def change_article_status(access_token: str, article_id: str, status: str) -> CmsArticle:
     if status not in {"draft", "published"}:
         raise ValueError("Unsupported article status.")
+    if status == "published":
+        # Validate the persisted record immediately before publication. A
+        # status-only update must not bypass the save-time editorial guard.
+        current = _request_json(
+            "GET",
+            _rest_url(f"{TABLE}?select=*&id=eq.{parse.quote(article_id, safe='')}&limit=1"),
+            token=access_token,
+        )
+        if not isinstance(current, list) or not current:
+            raise RuntimeError("Briefing publication check could not read the article.")
+        validate_briefing_employer_anonymity(CmsArticle.from_row(current[0]))
     result = _request_json(
         "PATCH",
         _rest_url(f"{TABLE}?id=eq.{parse.quote(article_id, safe='')}"),

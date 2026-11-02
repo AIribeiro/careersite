@@ -95,7 +95,6 @@ def generate_strategic_infographic_spec(api_key: str, article, timeout: int=65) 
             "type":"json_schema",
             "json_schema":{"name":"executive_infographic","strict":True,"schema":SCHEMA},
         },
-        "temperature":0.35,
         "provider":{
             "zdr":True,"data_collection":"deny",
             "allow_fallbacks":False,"require_parameters":True,

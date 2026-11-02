@@ -6,11 +6,13 @@ on:
     paths:
       - 'main.py'
       - 'src/page_executive_briefings.py'
+      - 'src/briefings_landing_premium.py'
       - 'src/briefings_visual.py'
       - 'src/site_cms.py'
       - 'src/seven_questions_guide.py'
       - 'src/thinking_landing.py'
       - 'tests/test_executive_ai_briefings.py'
+      - 'tests/test_executive_briefings_premium_landing.py'
       - 'tests/test_executive_briefing_reader.py'
       - 'tests/test_executive_briefings_navigation_contract.py'
       - '.github/workflows/executive-briefings-ci.yml'
@@ -19,11 +21,13 @@ on:
     paths:
       - 'main.py'
       - 'src/page_executive_briefings.py'
+      - 'src/briefings_landing_premium.py'
       - 'src/briefings_visual.py'
       - 'src/site_cms.py'
       - 'src/seven_questions_guide.py'
       - 'src/thinking_landing.py'
       - 'tests/test_executive_ai_briefings.py'
+      - 'tests/test_executive_briefings_premium_landing.py'
       - 'tests/test_executive_briefing_reader.py'
       - 'tests/test_executive_briefings_navigation_contract.py'
       - '.github/workflows/executive-briefings-ci.yml'
@@ -46,6 +50,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Compile application and focused regressions
-        run: python -m py_compile main.py src/page_executive_briefings.py src/briefings_visual.py src/site_cms.py tests/test_executive_briefing_reader.py tests/test_executive_ai_briefings.py tests/test_executive_briefings_navigation_contract.py
+        run: python -m py_compile main.py src/page_executive_briefings.py src/briefings_landing_premium.py src/briefings_visual.py src/site_cms.py tests/test_executive_briefing_reader.py tests/test_executive_ai_briefings.py tests/test_executive_briefings_premium_landing.py tests/test_executive_briefings_navigation_contract.py
       - name: Verify independent pages, content, icons and navigation
-        run: python -m unittest -v tests.test_executive_ai_briefings tests.test_executive_briefing_reader tests.test_executive_briefings_navigation_contract
+        run: python -m unittest -v tests.test_executive_ai_briefings tests.test_executive_briefing_reader tests.test_executive_briefings_navigation_contract tests.test_executive_briefings_premium_landing

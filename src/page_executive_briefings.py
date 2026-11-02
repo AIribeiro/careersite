@@ -721,53 +721,173 @@ def _briefing_catalog_art(slug: str) -> str:
 
 
 def executive_briefings() -> str:
-    """Library landing: one independent card and destination per publication."""
+    """Premium editorial collection; one published CMS item per independent URL.
+
+    Latest publication takes the feature position; the other editions retain
+    equal discoverability in a separate library. All markup is first-party,
+    sanitizer-safe HTML, with no scripts, external assets or inline article body.
+    """
+    from briefings_landing_premium import PREMIUM_BRIEFINGS_CSS
+
     items = published_briefings()
+    featured = max(
+        items,
+        key=lambda article: str(
+            getattr(article, "published_at", "")
+            or getattr(article, "updated_at", "")
+            or ""
+        ),
+        default=None,
+    )
+    remaining = [article for article in items if article is not featured]
+
+    def edition_url(article) -> str:
+        return escape(article_relative_url(article), quote=True)
+
+    def edition_meta(article) -> str:
+        return (
+            f"{escape(article.published_label)}"
+            f" · {escape(str(article.read_minutes))} min read"
+        )
+
+    def edition_description(article) -> str:
+        return escape(article.subtitle or article.excerpt or "")
+
+    def edition_theme(article) -> str:
+        themes = {
+            AI_ACT_SLUG: "Regulation & responsibility",
+            GOVERNANCE_SLUG: "Governance & ownership",
+            FIRST_SLUG: "AI capability decisions",
+            "seven-questions-for-better-ai-decisions": "Executive decision-making",
+        }
+        return escape(themes.get(article.slug, "Executive perspective"))
+
+    feature_html = ""
+    if featured is not None:
+        feature_html = (
+            '<div class="be-feature">'
+            f'<a class="briefings-library-card" href="{edition_url(featured)}" target="_self" '
+            'data-hq-event="briefings_featured_open" '
+            f'data-hq-content-slug="{escape(featured.slug, quote=True)}" '
+            f'aria-label="Read {escape(featured.title, quote=True)}">'
+            '<div class="be-feature-copy">'
+            '<div class="be-feature-top"><span>Featured briefing</span>'
+            f'<span>{edition_theme(featured)}</span></div>'
+            f'<h3>{escape(featured.title)}</h3>'
+            f'<p>{edition_description(featured)}</p>'
+            '<div class="be-feature-bottom">'
+            f'<span>{edition_meta(featured)}</span>'
+            '<strong>Read the briefing <span aria-hidden="true">↗</span></strong>'
+            '</div></div>'
+            '<div class="be-feature-art">'
+            + _briefing_catalog_art(featured.slug)
+            + '</div></a></div>'
+        )
+
     cards = []
-    for index, article in enumerate(items, 1):
-        featured = article.slug == FIRST_SLUG
-        url = escape(article_relative_url(article), quote=True)
+    for index, article in enumerate(remaining, 1):
         cards.append(
-            f'<a class="briefings-library-card" href="{url}" target="_self" '
-            f'data-hq-event="{"briefings_featured_open" if featured else "briefings_article_open"}" '
+            f'<a class="briefings-library-card" href="{edition_url(article)}" target="_self" '
+            'data-hq-event="briefings_article_open" '
             f'data-hq-content-slug="{escape(article.slug, quote=True)}" '
             f'aria-label="Read {escape(article.title, quote=True)}">'
+            '<div class="be-card-art">'
             + _briefing_catalog_art(article.slug)
-            + '<div class="briefings-library-card-body">'
-            f'<div class="briefings-library-card-meta"><span>Briefing {index:02d}</span>'
-            '<span>Executive perspective</span></div>'
+            + '</div>'
+            '<div class="be-card-copy">'
+            '<div class="be-card-meta">'
+            f'<span>Edition {index:02d}</span>'
+            f'<span>{edition_theme(article)}</span></div>'
             f'<h3>{escape(article.title)}</h3>'
-            f'<p>{escape(article.subtitle or article.excerpt)}</p>'
-            f'<div class="briefings-library-card-foot"><span>{escape(article.published_label)}'
-            f' · {article.read_minutes} min read</span><strong>Open briefing →</strong></div>'
+            f'<p>{edition_description(article)}</p>'
+            '<div class="be-card-footer">'
+            f'<span>{edition_meta(article)}</span>'
+            '<strong>Read edition ↗</strong></div>'
             '</div></a>'
         )
-    catalogue = (
+
+    # Keep this as the catalog container for existing navigation/analytics contracts.
+    catalog = (
         '<div class="briefings-library-grid">' + ''.join(cards) + '</div>'
-        if cards else
-        '<div class="briefings-library-empty"><h3>No published briefings yet.</h3>'
-        '<p>The library will show each briefing here after publication. '
-        'You can still contact me to discuss a specific executive AI decision.</p></div>'
+        if cards else (
+            '<div class="be-empty"><strong>More decisions, when they matter.</strong>'
+            'Each future briefing will appear here when published and verified.'
+            '</div>'
+            if featured else
+            '<div class="be-empty"><strong>The library is being prepared.</strong>'
+            'Briefings will appear here when published.</div>'
+        )
     )
+    count_label = f"{len(items):02d} PUBLISHED " + (
+        "BRIEFING" if len(items) == 1 else "BRIEFINGS"
+    )
+    remaining_title = "Explore the library" if remaining else "The next edition"
+
     return (
-        BRIEFINGS_CSS + nav("thinking")
-        + '<main><section class="briefings-library-hero" '
-        'data-analytics-section="briefings-introduction"><div class="container">'
-        '<p class="eyebrow">Thinking / Executive AI Briefings</p>'
-        '<h1>Make the next AI decision a better one.</h1>'
-        '<p class="briefings-library-deck">Clear, concise leadership perspectives on '
-        'where AI belongs, what should be challenged and what evidence deserves investment. '
-        'Each briefing stands on its own: a decision, its trade-offs and a practical next move.</p>'
-        '<div class="briefings-library-intent">'
-        '<span>Business value</span><span>Decision rights</span>'
-        '<span>Responsible scale</span></div></div></section>'
-        '<section class="section paper briefings-library-section" '
-        'data-analytics-section="briefings-library"><div class="container">'
-        '<div class="briefings-library-heading"><div>'
-        '<span class="briefings-index">The library</span>'
-        '<h2>Choose the decision you are facing.</h2></div>'
-        f'<p class="briefings-library-count">{len(items)} published briefings</p></div>'
-        + catalogue + '</div></section>'
+        BRIEFINGS_CSS + PREMIUM_BRIEFINGS_CSS + nav("thinking")
+        + '<main>'
+        '<section class="be-hero" data-analytics-section="briefings-introduction">'
+        '<div class="container be-hero-inner">'
+        '<div class="be-hero-copy">'
+        '<p class="be-eyebrow">Thinking / Executive AI Briefings</p>'
+        '<h1>AI changes the options. <em>Leadership makes the call.</em></h1>'
+        '<p class="be-hero-deck">'
+        'Independent perspectives for leaders making consequential AI choices. '
+        'Understand the trade-off, test the evidence and know what to ask next.'
+        '</p>'
+        '<div class="be-hero-actions">'
+        '<a class="be-primary-action" href="#briefings-library" '
+        'data-hq-event="briefings_explore_library">Explore the briefings <span aria-hidden="true">↓</span></a>'
+        '<a class="be-text-action" href="?page=contact" target="_self" '
+        'data-hq-event="briefings_hero_contact">Discuss an AI decision ↗</a>'
+        '</div>'
+        '<p class="be-hero-attribution">An independent editorial series by '
+        '<strong>Jair Ribeiro</strong> · Enterprise AI &amp; Data Leadership</p>'
+        '</div>'
+        '<div class="be-lens" role="group" aria-label="Four questions to guide an AI decision">'
+        '<div class="be-lens-header"><span>The executive decision lens</span>'
+        '<span>01 / 04</span></div>'
+        '<h2 class="be-lens-title">Before a decision moves forward.</h2>'
+        '<ol class="be-lens-steps">'
+        '<li><b>01</b><div><strong>What business result matters?</strong>'
+        '<p>Start with the work that needs to change.</p></div></li>'
+        '<li><b>02</b><div><strong>Who has the authority?</strong>'
+        '<p>Name the decision owner and limits.</p></div></li>'
+        '<li><b>03</b><div><strong>What evidence is enough?</strong>'
+        '<p>Challenge assumptions before committing.</p></div></li>'
+        '<li><b>04</b><div><strong>What happens next?</strong>'
+        '<p>Proceed, hold or change course with intent.</p></div></li>'
+        '</ol>'
+        '<div class="be-lens-footer"><span>Business before technology</span>'
+        '<span>Jair Ribeiro / Briefings</span></div></div>'
+        '</div></section>'
+        '<section class="be-bridge" aria-label="How the briefings help">'
+        '<div class="container be-bridge-inner">'
+        '<div class="be-bridge-label">A short read. A clearer decision.</div>'
+        '<div class="be-bridge-item"><b>01 / FRAME</b><span>Define the choice</span></div>'
+        '<div class="be-bridge-item"><b>02 / TEST</b><span>Examine the evidence</span></div>'
+        '<div class="be-bridge-item"><b>03 / ACT</b><span>Set the next move</span></div>'
+        '</div></section>'
+        '<section class="be-collection" id="briefings-library" '
+        'data-analytics-section="briefings-library">'
+        '<div class="container">'
+        '<div class="be-section-heading"><div>'
+        '<span class="briefings-index">The editor\'s desk</span>'
+        '<h2>Decisions worth getting right.</h2></div>'
+        '<p>Each issue stands on its own: a real question, '
+        'a reasoned perspective and a useful next step.</p></div>'
+        + feature_html
+        + '<div class="be-collection-subheading">'
+        f'<h2>{remaining_title}</h2>'
+        f'<span>{count_label}</span></div>'
+        + catalog
+        + '<div class="be-afterword">'
+        '<p><strong>Built for executive attention.</strong> '
+        'Read the judgment first; go deeper into the rationale, '
+        'decision map and cited sources when you need to.</p>'
+        '<a href="?page=contact" target="_self" '
+        'data-hq-event="briefings_library_contact">Bring your own decision ↗</a>'
+        '</div></div></section>'
         + contact_block() + '</main>' + footer()
     )
 

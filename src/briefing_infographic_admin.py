@@ -157,8 +157,7 @@ def render_briefing_infographic_editor(article, draft, access_token: str, prefix
             st.caption("Last review note: "+str(row["editorial_note"])[:320])
         approved=has_approved_visual(draft,access_token) and same_source
         if approved:
-            st.success("Approved infographic is current and ready for the published reader.")
-            return True
+            st.success("An approved infographic is current. New drafts do not remove it from the published reader.")
 
         if row and row.get("status")=="draft" and same_source:
             st.markdown("**Review the saved version before approval**")
@@ -202,4 +201,4 @@ def render_briefing_infographic_editor(article, draft, access_token: str, prefix
         else:
             st.caption("Publishing requires an approved, current infographic. "
                        "No graphics are auto-approved when generated.")
-        return False
+        return approved

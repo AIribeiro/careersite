@@ -10,7 +10,7 @@ from html import escape
 
 _CARD_STYLES = """
 <style>
-.pv-grid, .pv-grid * {box-sizing:border-box}
+.pv-grid-wrap {width:100%;container-type:inline-size}\n.pv-grid, .pv-grid * {box-sizing:border-box}
 .pv-grid {
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -74,12 +74,12 @@ _CARD_STYLES = """
 .pv-card__fill {display:block;height:100%;background:linear-gradient(90deg,#263f63,#447fa6);border-radius:10px}
 .pv-card__empty {grid-row:1 / span 5;align-self:start;padding-top:9px;font-size:12px;line-height:1.55;color:#657286}
 .pv-card__item--placeholder {visibility:hidden}
-@media(max-width:1250px) {
+@container(max-width:1150px) {
   .pv-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
   .pv-card {min-height:548px}
   .pv-card__value {font-size:43px}
 }
-@media(max-width:640px) {
+@container(max-width:580px) {
   .pv-grid {grid-template-columns:minmax(0,1fr)}
   .pv-card {min-height:540px;padding:21px 20px}
   .pv-card__value {font-size:42px}
@@ -162,6 +162,6 @@ def portfolio_metric_grid(cards: list[dict]) -> str:
     """Build four equal-structure cards; keep every category independent."""
     if len(cards) != 4:
         raise ValueError("The portfolio overview requires exactly four metric groups.")
-    return _CARD_STYLES + '<div class="pv-grid" aria-label="Portfolio readership overview">' + (
+    return _CARD_STYLES + '<div class="pv-grid-wrap"><div class="pv-grid" aria-label="Portfolio readership overview">' + (
         "".join(_card(spec, index) for index, spec in enumerate(cards, 1))
-    ) + '</div>'
+    ) + '</div></div>'

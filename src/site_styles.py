@@ -148,43 +148,50 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 }
 
 
-/* Compact secondary-page writing footer: one quiet discovery module, not a second hero. */
-.site .writing-footer{padding:19px 0 21px;background:#f2eee8;border-top:1px solid #ded9d1;border-bottom:1px solid #ded9d1}
-.site .writing-footer-inner{display:grid;grid-template-columns:126px minmax(0,1fr) auto;gap:21px;align-items:center;max-width:1050px}
-.site .writing-footer-art{display:flex;align-items:center;justify-content:center;width:126px;height:85px;min-width:0;overflow:hidden;background:#14273a;border:1px solid #d5c9bb;text-decoration:none!important}
-.site .writing-footer-art img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
-.site .writing-footer-art>span{color:#e4b997;font:600 15px/1.2 Georgia,serif}
+/* Quiet secondary-page editorial continuation: no remote artwork or oversized cards.
+   The micro-cover is native CSS, so even a failed CMS image cannot change layout. */
+.site .writing-footer{padding:0;background:var(--paper);color:var(--ink)}
+.site .writing-footer-inner{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:20px;align-items:center;width:min(1050px,calc(100% - 44px));max-width:1050px;min-width:0;margin:auto;padding:20px 0 23px;border-top:1px solid rgba(31,48,62,.15)}
+.site a.writing-footer-art{position:relative;isolation:isolate;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;width:58px;height:72px;min-width:58px;min-height:72px;max-width:58px;max-height:72px;margin:0;padding:10px 10px 9px;overflow:hidden;flex-shrink:0;border:1px solid rgba(238,198,166,.22);border-radius:5px;background:linear-gradient(145deg,#263d4b 0%,#132637 72%,#10202d 100%);color:#f6e2d1!important;text-decoration:none!important;box-shadow:0 5px 13px rgba(22,37,48,.10)}
+.site .writing-footer-art:after{content:"";position:absolute;top:7px;right:-36px;width:66px;height:66px;border:1px solid rgba(229,178,137,.27);border-radius:50%;pointer-events:none}
+.site .writing-footer-art-rule{display:block;position:relative;z-index:1;width:17px;height:2px;background:#d8aa84}
+.site .writing-footer-art-mark{display:block;position:relative;z-index:1;font:500 27px/.85 Georgia,serif;letter-spacing:-.065em}
+.site .writing-footer-art-label{display:block;position:relative;z-index:1;color:#dfb695;font:800 6.6px/1.15 Arial,sans-serif;letter-spacing:.14em}
 .site .writing-footer-copy{min-width:0}
-.site .writing-footer-overline{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:#926244;font:800 9px/1.4 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
-.site .writing-footer-separator{color:#a69d92}
-.site .writing-footer-copy h2{margin:5px 0 4px;color:#203244;font:500 clamp(19px,2vw,23px)/1.17 Georgia,serif;letter-spacing:-.016em;overflow-wrap:anywhere}
+.site .writing-footer-overline{display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:#925f41;font:800 9px/1.4 Arial,sans-serif;letter-spacing:.09em;text-transform:uppercase}
+.site .writing-footer-separator{color:#a89d91}
+.site .writing-footer-copy h2{margin:5px 0 5px;max-width:760px;color:#243443;font:500 clamp(18px,2vw,22px)/1.19 Georgia,serif;letter-spacing:-.014em;overflow-wrap:anywhere}
 .site .writing-footer-copy h2 a{color:inherit!important;text-decoration:none!important}
-.site .writing-footer-copy h2 a:hover{text-decoration:underline!important;text-underline-offset:4px}
-.site .writing-footer-copy>p{max-width:72ch;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden;margin:0 0 3px;color:#5d6871;font:400 12px/1.5 Arial,sans-serif}
-.site .writing-footer-meta{color:#76818b;font:500 10px/1.4 Arial,sans-serif}
-.site .writing-footer-action{display:flex;flex-direction:column;align-items:flex-end;gap:13px;padding-left:17px;border-left:1px solid #d8d0c6}
-.site .writing-footer-action>a{white-space:nowrap;color:#9d613b!important;text-decoration:none!important;font:800 12px/1.35 Arial,sans-serif;border-bottom:1px solid #bc8a68;padding:4px 0}
-.site .writing-footer-action nav{display:flex;gap:15px}
-.site .writing-footer-action nav a{color:#64707a!important;text-decoration:none!important;font:700 10px/1.4 Arial,sans-serif}
-.site .writing-footer-action nav a:hover{color:#9d613b!important}
-.site .writing-footer a:focus-visible{outline:3px solid #b87751;outline-offset:4px}
-@media(max-width:860px){
-  .site .writing-footer-inner{grid-template-columns:112px minmax(0,1fr);gap:12px 17px}
-  .site .writing-footer-art{width:112px;height:82px;grid-row:1/3}
-  .site .writing-footer-action{flex-direction:row;align-items:center;gap:18px;padding:0;border:0}
+.site .writing-footer-copy h2 a:hover{color:#9d613b!important}
+.site .writing-footer-deck{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden;max-width:68ch;margin:0 0 4px;color:#66707b;font:400 12px/1.5 Arial,sans-serif}
+.site .writing-footer-meta{color:#78828b;font:500 10px/1.4 Arial,sans-serif}
+.site .writing-footer-action{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:13px;padding-left:20px;border-left:1px solid rgba(31,48,62,.13)}
+.site a.writing-footer-open{display:inline-flex;align-items:center;gap:9px;white-space:nowrap;color:#945b3b!important;text-decoration:none!important;font:800 12px/1.4 Arial,sans-serif}
+.site .writing-footer-open span{font-size:17px;line-height:1;transition:transform .2s ease}
+.site .writing-footer-open:hover span{transform:translate(2px,-2px)}
+.site .writing-footer-action nav{display:flex;align-items:center;gap:15px}
+.site .writing-footer-action nav a{color:#737d86!important;text-decoration:none!important;font:700 10px/1.4 Arial,sans-serif}
+.site .writing-footer-action nav a:hover{color:#945b3b!important}
+.site .writing-footer a:focus-visible{outline:2px solid #b87751;outline-offset:4px;border-radius:2px}
+@media(max-width:820px){
+  .site .writing-footer-inner{grid-template-columns:54px minmax(0,1fr);column-gap:16px;row-gap:7px;padding:18px 0 20px}
+  .site a.writing-footer-art{width:54px;min-width:54px;max-width:54px;height:68px;min-height:68px;max-height:68px;grid-row:1/3}
+  .site .writing-footer-action{grid-column:2;flex-direction:row;justify-content:flex-start;align-items:center;flex-wrap:wrap;gap:8px 21px;padding:0;border:0}
+  .site .writing-footer-action nav{gap:14px}
 }
 @media(max-width:560px){
-  .site .writing-footer{padding:15px 0 17px}
-  .site .writing-footer-inner{grid-template-columns:78px minmax(0,1fr);gap:8px 13px}
-  .site .writing-footer-art{width:78px;height:77px;grid-row:1/3}
-  .site .writing-footer-overline{font-size:8px;gap:6px}
-  .site .writing-footer-copy h2{font-size:18px;margin:3px 0}
-  .site .writing-footer-copy>p{display:none}
-  .site .writing-footer-action{flex-wrap:wrap;gap:10px 15px}
-  .site .writing-footer-action>a{font-size:11px}
-  .site .writing-footer-action nav{gap:12px}
+  .site .writing-footer-inner{grid-template-columns:46px minmax(0,1fr);column-gap:13px;row-gap:7px;padding:16px 0 18px}
+  .site a.writing-footer-art{width:46px;min-width:46px;max-width:46px;height:61px;min-height:61px;max-height:61px;padding:9px 7px 8px;grid-row:1/3}
+  .site .writing-footer-art-mark{font-size:23px}
+  .site .writing-footer-art-label{font-size:6px}
+  .site .writing-footer-overline{font-size:8px;gap:5px}
+  .site .writing-footer-copy h2{font-size:17px;line-height:1.2;margin:4px 0 3px}
+  .site .writing-footer-deck{display:none}
+  .site .writing-footer-meta{font-size:9px}
+  .site a.writing-footer-open{font-size:11px}
   .site .writing-footer-action nav a{font-size:9px}
 }
+@media(prefers-reduced-motion:reduce){.site .writing-footer-open span{transition:none}}
 /* Home editorial feature: one rotating Thinking article or Executive AI Briefing,
    contained in a premium two-column story through tablet sizes. */
 .site .home-featured{padding:54px 0 64px;background:var(--paper)}

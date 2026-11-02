@@ -192,9 +192,10 @@ def render_owner_portfolio(session: dict) -> None:
     if section == "content":
         st.subheader("Reading and content performance")
         kind = st.segmented_control(
-            "Content type", options=["page", "article", "weekly_ai"],
+            "Content type", options=["page", "article", "weekly_ai", "briefings"],
             format_func=lambda k: {
                 "page": "Portfolio pages", "article": "Articles", "weekly_ai": "Weekly AI",
+                "briefings": "Executive Briefings",
             }[k],
             key="analytics_portfolio_kind", default="page", width="stretch",
         ) or "page"
@@ -202,6 +203,9 @@ def render_owner_portfolio(session: dict) -> None:
         if kind == "weekly_ai":
             from page_weekly_ai_analytics import render_weekly_ai_analytics
             render_weekly_ai_analytics(window)
+        elif kind == "briefings":
+            from page_executive_briefings_analytics import render_executive_briefings_analytics
+            render_executive_briefings_analytics(window)
         else:
             from page_content_intelligence import render_content_intelligence
             render_content_intelligence(kind, window)

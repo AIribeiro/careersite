@@ -57,24 +57,24 @@ def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
     return sorted(values, key=lambda row: (-row["Views"], row["Content"]))
 
 
-def split_reader_rows(
-    articles: list[dict], published_editions: list[object],
-) -> tuple[list[dict], list[dict]]:
-    """Separate regular essays from verified WEEKLY AI editions.
+def split_editorial_rows(
+    articles: list[dict], published_catalogue: list[object],
+) -> tuple[list[dict], list[dict], list[dict]]:
+    """Mutually exclusive CMS-backed article, Weekly AI and briefing subsets.
 
-    Both groups retain the existing first-party article-view grain, not a
-    second WEEKLY AI tracker. Only published CMS records with the exact
-    Weekly AI + Weekly Brief classification qualify. Edition-specific
-    reading sessions may overlap between editions and other essays.
+    The briefing *library* is a page, never an article. Only published CMS
+    kind='Executive Briefing' rows qualify; item-session reads may overlap.
     """
+    from page_executive_briefings_analytics import published_briefings
+
     weekly = {
-        edition.slug: edition
-        for edition in published_editions
-        if getattr(edition, "status", "") == "published"
-        and is_weekly_brief(edition)
+        article.slug: article for article in published_catalogue
+        if getattr(article, "status", "") == "published" and is_weekly_brief(article)
     }
+    briefings = {article.slug: article for article in published_briefings(published_catalogue)}
     essays: list[dict] = []
     editions: list[dict] = []
+    briefing_rows: list[dict] = []
     for row in articles:
         slug = str(row.get("Slug") or "")
         if slug in weekly:
@@ -82,9 +82,20 @@ def split_reader_rows(
             item["Title"] = item["Content"]
             item["Content"] = edition_label(weekly[slug])
             editions.append(item)
+        elif slug in briefings:
+            briefing_rows.append(row)
         else:
             essays.append(row)
-    return essays, sorted(editions, key=lambda r: (-r["Views"], r["Content"]))
+    sort = lambda r: (-r["Views"], r["Content"])
+    return sorted(essays, key=sort), sorted(editions, key=sort), sorted(briefing_rows, key=sort)
+
+
+def split_reader_rows(
+    articles: list[dict], published_editions: list[object],
+) -> tuple[list[dict], list[dict]]:
+    """Backward-compatible split for callers expecting only a weekly subset."""
+    essays, weekly, briefings = split_editorial_rows(articles, published_editions)
+    return sorted(essays + briefings, key=lambda r: (-r["Views"], r["Content"])), weekly
 
 
 def _ranking_chart(rows: list[dict], *, compact: bool = False) -> None:
@@ -165,23 +176,27 @@ def render_public_portfolio_overview() -> None:
     except RuntimeError:
         published_editions = []
         catalogue_available = False
-    regular_articles, weekly_editions = split_reader_rows(articles, published_editions)
+    regular_articles, weekly_editions, briefing_rows = split_editorial_rows(
+        articles, published_editions)
     regular_views = sum(row["Views"] for row in regular_articles)
     regular_item_sessions = sum(row["Sessions"] for row in regular_articles)
     weekly_views = sum(row["Views"] for row in weekly_editions)
     weekly_item_sessions = sum(row["Sessions"] for row in weekly_editions)
-    rows_reconcile = regular_views + weekly_views == article_views
-    lifetime_pages = lifetime_articles = lifetime_weekly = None
+    briefing_views = sum(row["Views"] for row in briefing_rows)
+    briefing_item_sessions = sum(row["Sessions"] for row in briefing_rows)
+    rows_reconcile = regular_views + weekly_views + briefing_views == article_views
+    lifetime_pages = lifetime_articles = lifetime_weekly = lifetime_briefings = None
     try:
         lifetime_report = report if str(window) == "all" else _lifetime_content_report()
         lifetime_quality = lifetime_report.get("quality") or {}
         if lifetime_quality.get("page_views") is not None:
             lifetime_pages = max(0, int(lifetime_quality["page_views"]))
         if catalogue_available and "performance" in lifetime_report:
-            lifetime_essays, lifetime_editions = split_reader_rows(
+            lifetime_essays, lifetime_editions, lifetime_briefing_rows = split_editorial_rows(
                 portfolio_visit_rows(lifetime_report, "article"), published_editions)
             lifetime_articles = sum(row["Views"] for row in lifetime_essays)
             lifetime_weekly = sum(row["Views"] for row in lifetime_editions)
+            lifetime_briefings = sum(row["Views"] for row in lifetime_briefing_rows)
     except (RuntimeError, ValueError, TimeoutError, PermissionError):
         pass  # Keep selected-period reports usable when lifetime loading fails.
 
@@ -190,9 +205,10 @@ def render_public_portfolio_overview() -> None:
         with st.expander("Historical routes in this reporting window", expanded=False):
             st.caption("These retired routes are preserved as historical observations. Their older views are not silently reassigned to About or Experience; new visits through legacy links are attributed to the destination actually rendered.")
             st.dataframe([{"Former destination": row["Content"], "Recorded views": row["Views"], "Page sessions": row["Sessions"]} for row in historical_routes], hide_index=True, use_container_width=True)
-    # Identical card heights and chart heights; 3 columns on desktop,
-    # Streamlit naturally stacks them for narrow/mobile viewports.
-    pages_col, articles_col, weekly_col = st.columns(3, gap="medium")
+    # Four non-overlapping measurement categories. The briefing library
+    # remains inside Portfolio visits; its reader items appear only here.
+    # Streamlit naturally stacks the equal-height cards on narrow screens.
+    pages_col, articles_col, weekly_col, briefings_col = st.columns(4, gap="small")
     with pages_col:
         with st.container(border=True, height=510):
             st.markdown("#### Portfolio visits")
@@ -230,16 +246,32 @@ def render_public_portfolio_overview() -> None:
             else:
                 st.caption("Published edition metadata is temporarily unavailable.")
 
+    with briefings_col:
+        with st.container(border=True, height=510):
+            st.markdown("#### Executive Briefings")
+            st.metric("Briefing views", f"{briefing_views:,}" if catalogue_available else "—")
+            if catalogue_available:
+                st.caption(lifetime_caption(lifetime_briefings, "briefing views"))
+                st.caption(
+                    f"{briefing_item_sessions:,} briefing-item sessions · "
+                    f"{len(briefing_rows)} read briefings"
+                )
+                st.markdown("**Most-read briefings**")
+                _ranking_chart(briefing_rows, compact=True)
+            else:
+                st.caption("Published briefing metadata is temporarily unavailable.")
+
     if catalogue_available and not rows_reconcile:
         st.caption(
             "The per-content view breakdown does not reconcile with the overall "
             "article-view total for this window; investigate reporting coverage "
-            "before comparing the two reading categories."
+            "before comparing the three reading categories."
         )
     st.caption(
-        "Article readership excludes WEEKLY AI editions. Both are partitions of "
-        "existing article views, not additional website traffic. Item-session "
-        "observations can overlap across content and are not unique readers."
+        "Articles, Weekly AI and Executive Briefings are separate partitions of "
+        "existing article views, not extra website traffic. The Briefings library "
+        "is included in Portfolio visits. Item-session observations may overlap "
+        "across publications and are not unique readers."
     )
 
     if st.button("Refresh insights", key="portfolio_refresh_insights"):
@@ -322,6 +354,6 @@ def render_public_portfolio_overview() -> None:
         "that any particular employer or recruiter visited."
     )
     st.caption(
-        "For reading depth, distribution sources, WEEKLY AI audio performance "
-        "and measurement diagnostics, open Explore content."
+        "For individual Executive Briefings, reading depth, source attribution, "
+        "WEEKLY AI audio and measurement diagnostics, open Explore content."
     )

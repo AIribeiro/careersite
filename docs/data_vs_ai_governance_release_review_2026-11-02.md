@@ -3,7 +3,7 @@
 **Edition:** Data Governance vs AI Governance: Two Controls, One Business Decision  
 **Slug:** `data-governance-vs-ai-governance-executive-decisions`  
 **Prepared:** 2 November 2026, Europe/Stockholm  
-**Content Studio status:** **draft** — unpublished. Explicit owner publication instruction has not been given for this edition.  
+**Content Studio status:** **published** on 2 November 2026 at 15:10:47 UTC, confirmed by the database status-change response. The owner explicitly requested publication. Live deployment and rendering are **not verified**.  
 **Reading length:** 8 minutes; approximately 1,460 words.
 
 ## Editorial intent and distinction from the library
@@ -40,18 +40,18 @@ The briefing avoids the source infographic's jurisdiction-specific incident-noti
 | Mandatory criterion | Evidence verified | Result |
 | --- | --- | --- |
 | Executive relevance | Explicit judgement, one-minute scan and next management move in reader | Source reviewed |
-| Depth | Four decision questions, operating role boundaries, dual scorecard and one-page action record in CMS draft | Source reviewed |
+| Depth | Four decision questions, operating role boundaries, dual scorecard and one-page action record in CMS article | Source reviewed |
 | Evidence | Primary authority links and distinctions between law, voluntary frameworks and author's judgment | Sources checked |
 | Originality | New two-stream/one-gate model; no copy of six-row reference structure | Source reviewed |
 | Anonymity | Database check for prohibited employer strings returned false; custom Python reader source check found none | Checked; contextual review is still essential |
 | Accessibility | Static first-party HTML/CSS, aria-labelled model, mobile CSS at 850px and 650px, no external image dependencies | Code-only inspection |
 | Publication integrity | Independent slug in router; unique card artwork; complete CMS body included in reader; contact + analytics section markers | Repository and database source checks |
 | Regression | Three new unittest methods committed in `tests/test_dual_governance_executive_briefing.py` | **Not executed here** |
-| Live website | No published page exists for this edition yet. Deployment and real-device/mobile rendering not checked | **Pending** |
+| Live website | The CMS publication is confirmed, but the public Streamlit URL could not be accessed from the available web checks. Deployment and desktop/mobile rendering remain unverified | **Pending** |
 
 ## Release decision
 
-**HOLD as a draft.** Publishing requires the owner's instruction and completing the standard's visual/public route checks. Do not claim the edition is public, deployed, browser-verified or passed CI based solely on source inspection.
+**CMS PUBLISHED at the owner's explicit instruction.** The database status changed to published and the library now contains six published Executive Briefings. The repository has the independent reader route and artwork. The website could not be opened using the available public web checks, so successful deployment, appearance, interactions and CI execution have not been established. Do not conflate CMS publication with browser-verified deployment.
 
 **Committed code:**
 - `src/data_vs_ai_governance_briefing.py` — dedicated responsive reader and original dual-stream evidence model.

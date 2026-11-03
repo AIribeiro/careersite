@@ -60,6 +60,34 @@ jobs:
           cat /tmp/streamlit.log
           exit 1
 
+      - name: Verify optimized photography and Weekly AI cover endpoints
+        run: |
+          curl --fail --silent --show-error \
+            --dump-header /tmp/media-headers.txt \
+            --output /tmp/optimized-photo.webp \
+            "http://127.0.0.1:8501/media/IMG_8281.jpg?w=960"
+          curl --fail --silent --show-error \
+            --output /tmp/weekly-cover.png \
+            "http://127.0.0.1:8501/weekly-ai-cover/weekly-ai-2026-10-30.png"
+          curl --fail --silent --show-error \
+            --output /tmp/weekly-evergreen.webp \
+            "http://127.0.0.1:8501/weekly-ai-cover/evergreen.webp"
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          optimized = Path('/tmp/optimized-photo.webp')
+          with Image.open(optimized) as image:
+              assert image.format == 'WEBP', image.format
+              assert image.width <= 960, image.size
+          assert optimized.stat().st_size < Path('images/IMG_8281.jpg').stat().st_size / 2
+          with Image.open('/tmp/weekly-cover.png') as cover:
+              assert cover.format == 'PNG'
+          with Image.open('/tmp/weekly-evergreen.webp') as evergreen:
+              assert evergreen.format == 'WEBP'
+          print('Cacheable photography and Weekly AI artwork endpoints validated.')
+          PY
+          grep -i '^content-type:.*image/webp' /tmp/media-headers.txt
+
       - name: Verify Weekly AI MP3 playback endpoint and byte-range support
         run: |
           AUDIO_URL="http://127.0.0.1:8501/weekly-ai-audio/weekly-ai-2026-10-11.mp3"

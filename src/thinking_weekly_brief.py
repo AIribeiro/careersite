@@ -149,6 +149,14 @@ WEEKLY_CSS = """
 .weekly-ai-brand h2 span{color:#d99669}
 .weekly-ai-brand-strap{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.21em;color:#f3c29c;margin:0 0 14px}
 .weekly-ai-brand-intro{font-size:15px;line-height:1.65;color:#d2d9e0;max-width:600px;margin:0}
+.weekly-ai-value-points{display:flex;flex-wrap:wrap;gap:8px;margin-top:21px}
+.weekly-ai-value-points span{font:750 10px/1.4 Arial,sans-serif;letter-spacing:.035em;color:#f7d5b7;border-left:2px solid #c38b65;padding:2px 10px 2px 9px;background:rgba(255,255,255,.045)}
+.weekly-ai-next{margin:26px 0;padding:23px 0;border-top:1px solid #d9d0c6;border-bottom:1px solid #d9d0c6}
+.weekly-ai-next strong{display:block;font:500 24px/1.2 Georgia,serif;color:#182b40;margin-bottom:8px}
+.weekly-ai-next p{font:400 13px/1.6 Arial,sans-serif;color:#5b6773;margin:0 0 14px}
+.weekly-ai-next-links{display:flex;gap:10px;flex-wrap:wrap}
+.weekly-ai-next-links a{display:inline-flex;padding:10px 13px;min-height:42px;align-items:center;box-sizing:border-box;border:1px solid #b8ada2;font:750 12px/1.3 Arial,sans-serif;color:#18304a!important;text-decoration:none!important}
+.weekly-ai-next-links a:hover,.weekly-ai-next-links a:focus-visible{border-color:#a86e48;background:#f8f0e8}
 .weekly-ai-brand-art{width:100%;height:100%;min-height:260px;max-height:340px;object-fit:cover;object-position:center 53%;display:block;filter:saturate(.9)}
 .weekly-ai-brand-placeholder{background:radial-gradient(circle at 60% 35%,#366280,#0d2237 60%,#091421 100%)}
 .weekly-ai-feature{margin-top:0}
@@ -238,6 +246,8 @@ WEEKLY_CSS = """
   .weekly-ai-brand h2{font-size:clamp(42px,12vw,65px)}
   .weekly-ai-brand-strap{font-size:11px;letter-spacing:.13em}
   .weekly-ai-brand-intro{font-size:14px}
+  .weekly-ai-value-points{margin-top:15px}
+  .weekly-ai-value-points span{font-size:9px}
   .weekly-ai-brand-art{max-height:120px;min-height:120px;object-position:center 44%}
   .weekly-ai-feature{grid-template-columns:minmax(0,1fr)}
   .weekly-ai-main{padding:27px 24px 26px}
@@ -299,8 +309,9 @@ def inject_weekly_brief_landing(
         '<div class="weekly-ai-brand-copy">'
         '<div class="weekly-ai-brand-eyebrow">THINKING · QUICK CONTEXT</div>'
         '<h2>WEEKLY <span>AI</span></h2>'
-        '<p class="weekly-ai-brand-strap">A Friday perspective · one minute</p>'
-        '<p class="weekly-ai-brand-intro">What this week’s AI developments mean for leaders, with original sources and one practical perspective. New every Friday evening.</p>'
+        '<p class="weekly-ai-brand-strap">The AI week, through a leadership lens.</p>'
+        '<p class="weekly-ai-brand-intro">A concise perspective on the developments that matter to enterprise leaders. Understand what changed, why it matters, and what deserves a closer look. Personally curated, source-linked, and available to read or listen to every Friday.</p>'
+        '<div class="weekly-ai-value-points" aria-label="What readers gain"><span>What changed</span><span>Why it matters</span><span>What to examine next</span></div>'
         '</div>'
         + ('<img class="weekly-ai-brand-art" src="' + _weekly_header_image_uri() 
            + '" alt="AI briefing artwork: digital globe and modern laptop in a workplace" loading="eager" decoding="async">'
@@ -314,7 +325,7 @@ def inject_weekly_brief_landing(
         '<p class="weekly-ai-description">' + escape(latest.excerpt or latest.subtitle) + '</p>'
         '<div class="weekly-ai-actions">'
         '<a class="weekly-ai-action" href="' + link + '" target="_self" data-hq-content-slug="' + escape(latest.slug, quote=True) + '" data-hq-event="weekly_ai_open">'
-        'Start reading · 1 min →</a>'
+        'Read this week’s perspective · 1 min →</a>'
         + listen_cta
         + '<a class="weekly-ai-archive-link" href="' + newest_link
         + '" target="_self" data-hq-event="weekly_ai_archive_open">'
@@ -391,7 +402,7 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
         '<a class="weekly-ai-back" href="?page=thinking#weekly-ai" target="_self">← Back to Thinking</a>'
         '<div class="weekly-ai-label">WEEKLY AI · EVERY EDITION</div>'
         '<h1>The weekly archive.</h1>'
-        '<p>One-minute briefings on the most consequential AI developments for enterprise leaders. '
+        '<p>One-minute leadership perspectives on AI developments and the business questions they raise. '
         'Each edition is labeled by the calendar week it covers, with direct links to the original sources.</p>'
         '</div>' + ''.join(sections) + '</div></section></main>' + footer()
     )
@@ -423,6 +434,13 @@ def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str
         + '<p class="weekly-ai-source-note">Personally curated by Jair Ribeiro. I review the reporting, choose the developments '
         'I consider most relevant, and add my own perspective on what they mean for enterprise AI '
         'leadership. Original reporting remains credited to its publishers.</p></article>'
+        '<nav class="weekly-ai-next" aria-label="Continue exploring AI leadership perspectives" data-analytics-section="weekly-ai-next">'
+        '<strong>Go beyond this week’s headlines.</strong>'
+        '<p>Explore the operating questions behind AI adoption or the decisions executives need to make.</p>'
+        '<div class="weekly-ai-next-links">'
+        '<a href="?page=thinking#thinking-articles" target="_self" data-hq-event="weekly_ai_next_thinking">Explore Thinking articles →</a>'
+        '<a href="?page=briefings" target="_self" data-hq-event="weekly_ai_next_briefings">Executive decision briefings →</a>'
+        '</div></nav>'
         '<p><a class="weekly-ai-back" href="' + escape(WEEKLY_ARCHIVE_URL, quote=True)
         + '" target="_self">← Browse all Weekly AI editions</a></p>'
         + share_footer + '</div></div></section></main>' + footer()

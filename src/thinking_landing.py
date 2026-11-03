@@ -154,12 +154,25 @@ THINKING_APPROACH_CSS = r'''<style>
 </style>'''
 
 
+THINKING_ENTRY_CSS = r'''<style>
+/* Thinking remains the parent page; these are in-page editorial paths, not top navigation. */
+.thinking-entry-nav{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:30px}
+.thinking-entry-nav span{font:750 10px/1.4 Arial,sans-serif;text-transform:uppercase;letter-spacing:.12em;color:#d2ad90;margin-right:8px}
+.thinking-entry-nav a{display:inline-flex;align-items:center;padding:10px 15px;min-height:42px;box-sizing:border-box;border:1px solid rgba(244,229,210,.34);color:#fff!important;text-decoration:none!important;font:700 12px/1.35 Arial,sans-serif;background:rgba(255,255,255,.035)}
+.thinking-entry-nav a:first-of-type{border-color:#d2a180;color:#ffe6d3!important}
+.thinking-entry-nav a:hover,.thinking-entry-nav a:focus-visible{background:rgba(226,170,124,.16);border-color:#e6b18b}
+.pagehero .thinking-purpose{max-width:850px;margin:24px 0 0;color:#bdc7d4;font-size:20px;line-height:1.62}
+#weekly-ai,#thinking-briefings,#thinking-articles{scroll-margin-top:95px}
+@media(max-width:700px){.thinking-entry-nav{gap:8px}.thinking-entry-nav span{width:100%;margin:0}.thinking-entry-nav a{flex:1 1 auto;justify-content:center;padding:10px 12px;font-size:11px}.pagehero .thinking-purpose{font-size:17px}}
+</style>'''
+
+
 def landing() -> str:
     primary = article_by_key(CURRENT_PRIMARY)
     secondary = article_by_key(CURRENT_SECONDARY)
-    return f'''{THINKING_CSS}{SPEAKING_CSS}{THINKING_APPROACH_CSS}{PROMO_CSS}{nav("thinking")}<main>
-<section class="pagehero"><div class="container"><p class="eyebrow">Thinking · Articles &amp; Knowledge Sharing</p><h1>What I’ve learned about AI—and what I’m still questioning.</h1><p>My articles draw on the decisions and trade-offs I’ve faced in enterprise AI and Data leadership: what to prioritize, how to govern responsibly, what makes adoption real, and how to judge business value.</p><p>I share these perspectives to make practical experience useful to others, challenge my own assumptions and keep learning through conversation.</p></div></section>
-<section class="section paper" data-analytics-section="thinking-executive-briefings">
+    return f'''{THINKING_CSS}{SPEAKING_CSS}{THINKING_APPROACH_CSS}{THINKING_ENTRY_CSS}{PROMO_CSS}{nav("thinking")}<main>
+<section class="pagehero"><div class="container"><p class="eyebrow">Thinking · Articles &amp; Knowledge Sharing</p><h1>What I’ve learned about AI—and what I’m still questioning.</h1><p>My articles draw on the decisions and trade-offs I’ve faced in enterprise AI and Data leadership: what to prioritize, how to govern responsibly, what makes adoption real, and how to judge business value.</p><p class="thinking-purpose">I share these perspectives to make practical experience useful to others, challenge my own assumptions and keep learning through conversation.</p><nav class="thinking-entry-nav" aria-label="Explore Thinking formats"><span>Explore Thinking</span><a href="?page=thinking#weekly-ai" target="_self" data-hq-event="thinking_format_weekly_ai">Weekly AI</a><a href="?page=thinking#thinking-briefings" target="_self" data-hq-event="thinking_format_briefings">Executive Briefings</a><a href="?page=thinking#thinking-articles" target="_self" data-hq-event="thinking_format_articles">Articles</a></nav></div></section>
+<section class="section paper" id="thinking-briefings" data-analytics-section="thinking-executive-briefings">
 <div class="container"><div class="thinking-briefing-card">
 <div class="thinking-briefing-copy">
 <p class="eyebrow">Executive AI Briefings · A decision-first series</p>
@@ -171,7 +184,7 @@ def landing() -> str:
 <a href="?page=contact" target="_self" data-hq-event="thinking_briefings_contact">Discuss an AI decision →</a></div>
 </div><figure class="thinking-briefing-art">{briefing_visual()}<figcaption>Business value · Ownership · Decision quality</figcaption></figure>
 </div></div></section>
-<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Selected writing</p><h2>Explore the articles.</h2></div><p>Explore practical perspectives on AI priorities, accountability, adoption, governance and business value.</p></div>{_recent_cards()}{_upcoming_preview()}</div></section>
+<section class="section white" id="thinking-articles"><div class="container"><div class="head"><div><p class="eyebrow">Selected writing</p><h2>Explore the articles.</h2></div><p>Explore practical perspectives on AI priorities, accountability, adoption, governance and business value.</p></div>{_recent_cards()}{_upcoming_preview()}</div></section>
 <section class="section paper"><div class="container"><div class="head"><div><p class="eyebrow">Further reading</p><h2>Longer perspectives behind the decisions.</h2></div><p>Longer pieces on strategy, value, operating models, governance, data readiness and adoption. They give more context to the shorter, current material above.</p></div>{thought_grid(THOUGHTS,"articles")}<div class="actions"><a class="btn dark" href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_thinking">More writing on Medium ↗</a><a class="btn dark" href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_thinking">LinkedIn ↗</a></div></div></section>
 <section class="section white thinking-approach" data-analytics-section="thinking-approach"><div class="container">
 <div class="head"><div><p class="eyebrow">Approach</p><h2>Each piece starts from a concrete operating decision.</h2></div><p>The focus is on the situation, the trade-off, what changes the answer, and what the next decision requires.</p></div>

@@ -433,7 +433,7 @@ app = App(
     "main.py",
     routes=[
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
-        Route("/media/{name:path}", _portfolio_image, methods=["GET", "HEAD"]),
+        Route("/portfolio-image/{name:path}", _portfolio_image, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/evergreen.webp", _weekly_ai_evergreen_image, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/{slug}.png", _weekly_ai_cover, methods=["GET", "HEAD"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),

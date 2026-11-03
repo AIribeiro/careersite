@@ -93,7 +93,7 @@ class CareersiteCmsTests(unittest.TestCase):
             slug=slug,
         )
         self.assertIn(f"/cms-header/{slug}.webp?v=", effective_header_image_url(article))
-        self.assertTrue(embedded_header_image_src(article).startswith("data:image/webp;base64,"))
+        self.assertIn(f"/cms-header/{slug}.webp?v=", embedded_header_image_src(article))
 
     def test_featured_cms_article_replaces_primary_and_has_header_fallback(self) -> None:
         article = CmsArticle(

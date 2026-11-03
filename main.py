@@ -38,7 +38,6 @@ from page_executive_briefings import executive_briefings, executive_briefing_pag
 from page_about import about
 from page_contact import contact
 from page_ai_data_governance import ai_data_governance
-from page_analytics_v2 import render_analytics_dashboard
 
 RUN_STARTED = perf_counter()
 
@@ -130,6 +129,8 @@ if LEGACY_LENS_LINK:
     st.query_params["page"] = "impact"
 
 if PAGE == "analytics":
+    # Heavy, authenticated analytics dependencies are not imported for public pages.
+    from page_analytics_v2 import render_analytics_dashboard
     render_analytics_dashboard()
 else:
     if CMS_ARTICLE_META is not None:

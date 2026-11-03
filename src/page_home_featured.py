@@ -133,10 +133,41 @@ def home_featured_article() -> str:
         '<nav class="home-featured-paths" aria-label="Explore my writing">'
         '<span>Explore the collections</span>'
         '<a href="?page=thinking" target="_self" data-hq-event="home_writing_thinking">Thinking articles <span aria-hidden="true">→</span></a>'
+        '<a href="?page=thinking#weekly-ai" target="_self" data-hq-event="home_writing_weekly_ai">Weekly AI <span aria-hidden="true">→</span></a>'
         '<a href="?page=briefings" target="_self" data-hq-event="home_writing_briefings">Executive AI Briefings <span aria-hidden="true">→</span></a>'
         '</nav>'
         '</div></section>'
     )
+
+
+
+def home_weekly_ai_strip() -> str:
+    """Compact, image-free discovery point. Thinking stays the canonical parent page.
+
+    Always lead to the latest issue within Thinking, rather than linking to a
+    static slug that will become stale at the next Friday publication.
+    """
+    return '''<style>
+.home-weekly-bridge{background:#f8f5ef;padding:8px 0 22px}
+.home-weekly-bridge-inner{display:grid;grid-template-columns:104px minmax(0,1fr) auto;align-items:center;gap:25px;background:#fff;border:1px solid #d8d2c9;border-left:4px solid #bb8460;padding:22px 28px;box-shadow:0 9px 23px rgba(13,29,48,.055)}
+.home-weekly-mark{display:flex;flex-direction:column;gap:0;padding-right:22px;border-right:1px solid #dfd9d2;color:#17304a;font:850 13px/1.1 Arial,sans-serif;letter-spacing:.14em}
+.home-weekly-mark strong{font:500 48px/.94 Georgia,serif;letter-spacing:-.06em;color:#b57951}
+.home-weekly-copy{min-width:0}
+.home-weekly-copy small{display:block;margin-bottom:6px;color:#9a633c;font:800 10px/1.3 Arial,sans-serif;letter-spacing:.09em;text-transform:uppercase}
+.home-weekly-copy h2{font:500 clamp(22px,2.3vw,30px)/1.16 Georgia,serif;letter-spacing:-.025em;color:#192d42;margin:0 0 5px}
+.home-weekly-copy p{margin:0;color:#596570;font:400 13px/1.5 Arial,sans-serif}
+.home-weekly-open{display:inline-flex;white-space:nowrap;align-items:center;justify-content:center;min-height:44px;box-sizing:border-box;padding:12px 18px;color:#fff!important;background:#1a334b;text-decoration:none!important;font:750 12px/1.4 Arial,sans-serif;transition:background .15s}
+.home-weekly-open:hover,.home-weekly-open:focus-visible{background:#315573}
+@media(max-width:850px){.home-weekly-bridge-inner{grid-template-columns:90px minmax(0,1fr);gap:18px;padding:21px}.home-weekly-mark{padding-right:15px}.home-weekly-open{grid-column:2;justify-self:start}}
+@media(max-width:560px){.home-weekly-bridge-inner{grid-template-columns:1fr;gap:12px;padding:20px}.home-weekly-mark{flex-direction:row;align-items:baseline;gap:7px;border-right:0;border-bottom:1px solid #dfd9d2;padding:0 0 12px}.home-weekly-mark strong{font-size:33px}.home-weekly-open{grid-column:1;width:100%}}
+@media(prefers-reduced-motion:reduce){.home-weekly-open{transition:none}}
+</style>
+<section class="home-weekly-bridge" data-analytics-section="home-weekly-ai-promo" aria-label="Weekly AI leadership perspective">
+<div class="container"><div class="home-weekly-bridge-inner">
+<div class="home-weekly-mark" aria-hidden="true"><span>WEEKLY</span><strong>AI</strong></div>
+<div class="home-weekly-copy"><small>Every Friday · One-minute read or listen</small><h2>The AI week, through a leadership lens.</h2><p>What changed, why it matters to the enterprise, and what leaders should examine next.</p></div>
+<a class="home-weekly-open" href="?page=thinking#weekly-ai" target="_self" data-hq-event="home_weekly_ai_open">Read this week’s perspective →</a>
+</div></div></section>'''
 
 
 def compact_writing_footer(*, exclude_slug: str = "") -> str:
@@ -187,6 +218,7 @@ def compact_writing_footer(*, exclude_slug: str = "") -> str:
         f'{read_label} <span aria-hidden="true">↗</span></a>'
         '<nav aria-label="Writing collections">'
         '<a href="?page=thinking" target="_self" data-hq-event="writing_footer_thinking">Thinking</a>'
+        '<a href="?page=thinking#weekly-ai" target="_self" data-hq-event="writing_footer_weekly_ai">Weekly AI</a>'
         '<a href="?page=briefings" target="_self" data-hq-event="writing_footer_briefings">Briefings</a>'
         '</nav></div></div></section>'
     )

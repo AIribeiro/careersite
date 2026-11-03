@@ -89,7 +89,7 @@ def inject_metadata(page: str, title: str) -> None:
     """Add page metadata without third-party tracking."""
     description = DESCRIPTIONS.get(page, DESCRIPTIONS["home"])
     person = _person_schema()
-    script = f"""
+    script = rf"""
 <script>
 (() => {{
   const doc = window.parent.document;
@@ -178,7 +178,7 @@ def inject_article_metadata(article: ArticleMeta) -> None:
     article_schema = _article_schema(article)
     tags = ", ".join(article.tags)
 
-    script = f"""
+    script = rf"""
 <script>
 (() => {{
   const win = window.parent;

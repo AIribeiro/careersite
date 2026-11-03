@@ -67,7 +67,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
         raise ValueError(f"Unsupported analytics source: {source}")
 
     endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/{ANALYTICS_TABLE}"
-    script = f"""
+    script = rf"""
 <script>
 (() => {{
   const win = window.parent;

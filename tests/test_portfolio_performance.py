@@ -32,7 +32,13 @@ class PortfolioPerformanceTests(unittest.TestCase):
             kind="Point of view", category="Enterprise AI",
             published_at="2026-10-15T00:00:00+00:00",
         )
-        with patch("site_cms.fetch_published_articles", return_value=(article,)), \
+        another = CmsArticle(
+            id="another", title="Another article",
+            slug="another-article", status="published",
+            kind="Article", category="Enterprise AI",
+            published_at="2026-10-10T00:00:00+00:00",
+        )
+        with patch("site_cms.fetch_published_articles", return_value=(article, another)), \
              patch("site_cms._public_reads_or_none", return_value={}):
             output = inject_cms_landing(landing())
 

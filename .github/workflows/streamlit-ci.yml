@@ -65,7 +65,7 @@ jobs:
           curl --fail --silent --show-error \
             --dump-header /tmp/media-headers.txt \
             --output /tmp/optimized-photo.webp \
-            "http://127.0.0.1:8501/media/IMG_8281.jpg?w=960"
+            "http://127.0.0.1:8501/portfolio-image/IMG_8281.jpg?w=960"
           curl --fail --silent --show-error \
             --output /tmp/weekly-cover.png \
             "http://127.0.0.1:8501/weekly-ai-cover/weekly-ai-2026-10-30.png"

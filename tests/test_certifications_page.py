@@ -135,7 +135,7 @@ class CertificationsPageTests(unittest.TestCase):
             self.assertEqual(image.size, (2172, 724))
             image.verify()
 
-        self.assertTrue(openai_ai_leadership.startswith("/media/credentials/openai_ai_leadership_premium.jpg?v="))
+        self.assertTrue(openai_ai_leadership.startswith("/portfolio-image/credentials/openai_ai_leadership_premium.jpg?v="))
         page = certifications()
         self.assertIn("Highlighted badge · OpenAI Academy", page)
         self.assertIn("<h3>AI Leadership</h3>", page)
@@ -170,7 +170,7 @@ class CertificationsPageTests(unittest.TestCase):
             self.assertGreaterEqual(image.height, 500)
             image.verify()
         from site_media import microsoft_leadership_innovation_diploma
-        self.assertTrue(microsoft_leadership_innovation_diploma.startswith("/media/credentials/microsoft_leadership_innovation_diploma.png?v="))
+        self.assertTrue(microsoft_leadership_innovation_diploma.startswith("/portfolio-image/credentials/microsoft_leadership_innovation_diploma.png?v="))
 
         self.assertIn("Current credentials across enterprise AI and leadership priorities.", page)
         self.assertIn("Leadership highlight · Microsoft", page)
@@ -201,7 +201,7 @@ class CertificationsPageTests(unittest.TestCase):
             self.assertEqual(image.size, (1280, 720))
             image.verify()
         from site_media import eitca_eu_banner
-        self.assertTrue(eitca_eu_banner.startswith("/media/eitca_eu_banner.webp?v="))
+        self.assertTrue(eitca_eu_banner.startswith("/portfolio-image/eitca_eu_banner.webp?v="))
         self.assertIn("Scope and relevance", page)
         self.assertIn("EITCA/AI adds structured technical breadth", page)
         self.assertIn("The credential supports business-facing work", page)

@@ -19,7 +19,7 @@ class PortfolioPerformanceTests(unittest.TestCase):
             site_media.brand_icon,
             site_media.openai_ai_leadership,
         ):
-            self.assertTrue(url.startswith("/media/"), url[:80])
+            self.assertTrue(url.startswith("/portfolio-image/"), url[:80])
             self.assertIn("?v=", url)
             self.assertIn("&w=", url)
             self.assertNotIn("data:image", url)

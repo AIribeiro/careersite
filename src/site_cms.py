@@ -4,6 +4,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone, timedelta
 from html import escape
 from io import BytesIO
+from functools import lru_cache
 import base64
 import hashlib
 import json
@@ -402,13 +403,26 @@ def ensure_owner_session(session: dict | None) -> dict | None:
         return None
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=180, show_spinner=False)
 def fetch_published_articles() -> tuple[CmsArticle, ...]:
+    """Public catalogue metadata, not entire article bodies on every cache miss.
+
+    Individual article readers still use fetch_public_article for full HTML.
+    Authenticated CMS workspaces retain full-fidelity editing endpoints.
+    """
+    fields = (
+        "id", "title", "slug", "subtitle", "excerpt", "header_image_url",
+        "header_image_alt", "seo_title", "meta_description", "keywords",
+        "hashtags", "category", "kind", "source_url", "status", "featured",
+        "legacy_key", "read_minutes", "social_title", "social_description",
+        "author_name", "show_tags_publicly", "published_at", "created_at",
+        "updated_at",
+    )
     query = (
-        f"{TABLE}?select=*&status=eq.published&"
+        f"{TABLE}?select={','.join(fields)}&status=eq.published&"
         "order=featured.desc,published_at.desc.nullslast,updated_at.desc"
     )
-    result = _request_json("GET", _rest_url(query))
+    result = _request_json("GET", _rest_url(query), timeout=5)
     rows = result if isinstance(result, list) else []
     return tuple(CmsArticle.from_row(row) for row in rows)
 
@@ -417,20 +431,20 @@ def fetch_published_articles() -> tuple[CmsArticle, ...]:
 def fetch_public_article(slug: str) -> CmsArticle | None:
     safe_slug = parse.quote(slugify(slug), safe="")
     query = f"{TABLE}?select=*&slug=eq.{safe_slug}&status=eq.published&limit=1"
-    result = _request_json("GET", _rest_url(query))
+    result = _request_json("GET", _rest_url(query), timeout=5)
     if isinstance(result, list) and result:
         return CmsArticle.from_row(result[0])
     return None
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=180, show_spinner=False)
 def fetch_public_article_reads() -> dict[str, int]:
     """Published-article visits, deduplicated per article/browser session.
 
     The read-only RPC returns counts only, never analytics event rows or visitor
     identifiers. Refresh after 60 seconds, rather than on every page render.
     """
-    result = _request_json("GET", _rest_url("rpc/careersite_public_article_reads"))
+    result = _request_json("GET", _rest_url("rpc/careersite_public_article_reads"), timeout=5)
     if not isinstance(result, list):
         raise RuntimeError("Article readership is temporarily unavailable.")
     counts: dict[str, int] = {}
@@ -743,6 +757,7 @@ def _header_font(size: int, *, bold: bool = False, serif: bool = False, italic: 
     return ImageFont.load_default()
 
 
+@lru_cache(maxsize=1)
 def _render_competitive_advantage_header() -> bytes | None:
     """Render the branded header from Jair's portfolio photo.
 
@@ -874,6 +889,7 @@ def bundled_header_parts(slug: str) -> tuple[Path, ...]:
     return tuple(sorted(directory.glob("part_*.b64")))
 
 
+@lru_cache(maxsize=64)
 def bundled_header_bytes(slug: str) -> bytes | None:
     normalized_slug = slugify(slug)
     if normalized_slug == COMPETITIVE_ADVANTAGE_HEADER_SLUG:
@@ -897,35 +913,39 @@ def bundled_header_bytes(slug: str) -> bytes | None:
 
 
 def effective_header_image_url(article: CmsArticle) -> str:
+    """Return only a URL; catalogue rendering never generates or embeds art."""
     if article.header_image_url:
         return article.header_image_url
-    data = bundled_header_bytes(article.slug)
-    if data is None:
+    normalized = slugify(article.slug)
+    if normalized == COMPETITIVE_ADVANTAGE_HEADER_SLUG:
+        source = (
+            Path(__file__).resolve().parents[1] / "images"
+            / "92A1E13A-B3D2-4153-92B4-836861F9995C.jpg"
+        )
+        if source.is_file():
+            version = parse.quote(COMPETITIVE_ADVANTAGE_HEADER_REVISION, safe="")
+            return f"{BASE_URL}/cms-header/{normalized}.webp?v={version}"
         return ""
-    version_seed = data
-    if slugify(article.slug) == COMPETITIVE_ADVANTAGE_HEADER_SLUG:
-        version_seed += COMPETITIVE_ADVANTAGE_HEADER_REVISION.encode("utf-8")
-    version = hashlib.sha256(version_seed).hexdigest()[:12]
-    return (
-        f"{BASE_URL}/cms-header/{parse.quote(slugify(article.slug), safe='')}.webp"
-        f"?v={version}"
-    )
+
+    parts = bundled_header_parts(normalized)
+    if not parts:
+        return ""
+    try:
+        # Version lookup uses only file metadata, not decoded image bytes.
+        version_input = "|".join(f"{part.name}:{part.stat().st_size}" for part in parts)
+    except OSError:
+        return ""
+    version = hashlib.sha256(version_input.encode("utf-8")).hexdigest()[:12]
+    return f"{BASE_URL}/cms-header/{normalized}.webp?v={version}"
 
 
 def embedded_header_image_src(article: CmsArticle) -> str:
-    """Prefer the current editor/upload image; use bundled art only as a resilient fallback."""
-    uploaded = article.header_image_url.strip()
-    if uploaded.startswith("data:image/"):
-        return uploaded
-    if uploaded and f"/storage/v1/object/public/{IMAGE_BUCKET}/" in uploaded:
-        return uploaded
+    """The editorial image is a cacheable URL except for explicit draft previews.
 
-    data = bundled_header_bytes(article.slug)
-    if data is not None:
-        encoded = base64.b64encode(data).decode("ascii")
-        return f"data:image/webp;base64,{encoded}"
-
-    return uploaded
+    Keep manually uploaded URLs (and draft data URIs) authoritative.
+    Repository-backed headers are delivered via /cms-header, not HTML base64.
+    """
+    return effective_header_image_url(article)
 
 
 def article_relative_url(article: CmsArticle) -> str:
@@ -1595,7 +1615,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
     )
 
     section = (
-        '<section class="section white cms-latest" id="articles-catalog"><div class="container">'
+        '<section class="section white cms-latest" id="thinking-articles"><div class="container" id="articles-catalog">'
         '<div class="head"><div><p class="eyebrow">Selected writing</p>'
         '<h2>Articles I believe are worth your time.</h2></div>'
         '<p>I wrote these pieces to examine the real decisions behind enterprise AI and data. '
@@ -1665,20 +1685,29 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
         '.cms-catalog-footer{align-items:flex-start;flex-direction:column}}'
         '</style>'
     )
-    # Replace the legacy hardcoded list with a complete CMS-backed list
-    # to rank older and newer articles together without duplicates.
-    marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Selected writing</p>'
-    start = document.find(marker)
-    if start < 0:
-        # Compatibility with older Thinking templates.
-        marker = '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">More leadership questions</p>'
-        start = document.find(marker)
-    if start >= 0:
-        end = document.find('<section class="section paper">', start + len(marker))
+    # Current templates have id="thinking-articles"; the former selector did
+    # not include that attribute and incorrectly prepended the catalogue ahead
+    # of the site navigation when no exact match was found.
+    markers = (
+        '<section class="section white" id="thinking-articles">',
+        '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">Selected writing</p>',
+        '<section class="section white"><div class="container"><div class="head"><div><p class="eyebrow">More leadership questions</p>',
+    )
+    selected_marker = next((marker for marker in markers if marker in document), None)
+    if selected_marker is not None:
+        start = document.find(selected_marker)
+        end = document.find('<section class="section paper">', start + len(selected_marker))
         if end >= 0:
             return CMS_FALLBACK_CSS + document[:start] + section + document[end:]
+        main_end = document.rfind("</main>")
+        if main_end >= 0 and main_end > start:
+            return CMS_FALLBACK_CSS + document[:start] + section + document[main_end:]
         return CMS_FALLBACK_CSS + document[:start] + section
-    return CMS_FALLBACK_CSS + section + document
+
+    # Never put a fallback article catalogue ahead of the page's <nav>/<main>.
+    if "</main>" in document:
+        return CMS_FALLBACK_CSS + document.replace("</main>", section + "</main>", 1)
+    return CMS_FALLBACK_CSS + document + section
 
 
 def cms_share_document(article: CmsArticle) -> str:

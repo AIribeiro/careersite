@@ -127,7 +127,7 @@ class ThinkingPublishingTests(unittest.TestCase):
         self.assertIn("linkedinbot", launcher.lower())
         self.assertIn("_is_crawler", launcher)
         self.assertIn("app = App(", launcher)
-        self.assertIn("ensure_all_article_social_assets", main)
+        self.assertNotIn("ensure_all_article_social_assets()", main)
         self.assertIn("ARTICLE_META.seo_title", main)
         self.assertIn("build_article_asset_manifest", builder)
         self.assertIn("--check", builder)

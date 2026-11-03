@@ -1,0 +1,101 @@
+name: Portfolio Performance Regression
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  portfolio-performance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: src
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install runtime dependencies
+        run: |
+          python -m pip install -r requirements.txt
+
+      - name: Compile Python modules
+        run: python -m py_compile app.py main.py src/*.py tests/test_portfolio_performance.py
+
+      - name: Run focused regressions
+        run: |
+          python -m unittest \
+            tests.test_portfolio_performance \
+            tests.test_thinking_catalog \
+            tests.test_cms \
+            tests.test_thinking_publishing \
+            tests.test_linkedin_article_redirect -v
+
+      - name: Start portfolio server
+        run: |
+          streamlit run app.py --server.headless true --server.port 8501 >/tmp/performance-app.log 2>&1 &
+          echo $! > /tmp/performance-app.pid
+          for i in {1..45}; do
+            if curl --fail --silent http://127.0.0.1:8501/_stcore/health >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/performance-app.log
+          exit 1
+
+      - name: Validate media and canonical publication routes
+        run: |
+          curl --fail --silent --show-error --dump-header /tmp/portfolio-image-headers.txt \
+            --output /tmp/portfolio-image.webp \
+            "http://127.0.0.1:8501/portfolio-image/IMG_8281.jpg?w=960"
+          curl --fail --silent --show-error --output /tmp/portfolio-icon.webp \
+            "http://127.0.0.1:8501/portfolio-image/profile_red_bg.jpg.jpg?w=160"
+          curl --fail --silent --show-error --output /tmp/weekly-cover.png \
+            "http://127.0.0.1:8501/weekly-ai-cover/weekly-ai-2026-10-30.png"
+          curl --fail --silent --show-error --output /tmp/weekly-evergreen.webp \
+            "http://127.0.0.1:8501/weekly-ai-cover/evergreen.webp"
+          curl --fail --silent --show-error --output /tmp/competitive-art.webp \
+            "http://127.0.0.1:8501/cms-header/when-everyone-has-ai-what-still-creates-competitive-advantage.webp"
+          curl --silent --show-error --max-time 10 \
+            --user-agent "Mozilla/5.0" \
+            --dump-header /tmp/reader-redirect.txt --output /dev/null \
+            "http://127.0.0.1:8501/thinking/when-an-ai-use-case-should-be-stopped"
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          for file, expected_type, expected_max_width in (
+              ("portfolio-image.webp", "WEBP", 960),
+              ("portfolio-icon.webp", "WEBP", 160),
+              ("weekly-cover.png", "PNG", 1200),
+              ("weekly-evergreen.webp", "WEBP", 1600),
+              ("competitive-art.webp", "WEBP", 1760),
+          ):
+              with Image.open(Path("/tmp") / file) as image:
+                  assert image.format == expected_type, (file, image.format)
+                  assert image.width <= expected_max_width, (file, image.size)
+          original = Path("images/IMG_8281.jpg").stat().st_size
+          optimized = Path("/tmp/portfolio-image.webp").stat().st_size
+          assert optimized < original / 2, (optimized, original)
+          header = Path("/tmp/portfolio-image-headers.txt").read_text().lower()
+          assert "image/webp" in header, header
+          assert "cache-control: public" in header, header
+          redirect = Path("/tmp/reader-redirect.txt").read_text().lower()
+          assert " 302 " in redirect, redirect
+          print(f"Thinking image: {original:,} -> {optimized:,} bytes ({100*(1-optimized/original):.1f}% smaller)")
+          PY
+
+      - name: Show application log on failure
+        if: failure()
+        run: cat /tmp/performance-app.log || true

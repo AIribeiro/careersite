@@ -17,7 +17,7 @@ class WeeklyAiEvergreenHeroTests(unittest.TestCase):
         self.assertGreater(len(data), 1000)
         self.assertEqual(data[:4], b"RIFF")
         self.assertEqual(data[8:12], b"WEBP")
-        self.assertTrue(_weekly_header_image_uri().startswith("data:image/webp;base64,"))
+        self.assertEqual(_weekly_header_image_uri(), "/weekly-ai-cover/evergreen.webp")
 
     def test_banner_is_evergreen_and_current_week_remains_live(self):
         def edition(slug, published_at):
@@ -38,7 +38,8 @@ class WeeklyAiEvergreenHeroTests(unittest.TestCase):
             self.assertIn("weekly-ai-brand", html)
             self.assertIn("A one-minute briefing", html)
             self.assertIn('class="weekly-ai-brand-art"', html)
-            self.assertIn("data:image/webp;base64,", html)
+            self.assertIn("/weekly-ai-cover/evergreen.webp", html)
+            self.assertNotIn("data:image/webp;base64,", html)
             self.assertIn("Browse all weeks (1)", html)
             self.assertLess(html.index("weekly-ai-brand"), html.index("weekly-ai-feature"))
         self.assertIn("Week · 2026", first)

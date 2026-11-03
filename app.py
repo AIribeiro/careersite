@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from pathlib import Path
+from functools import lru_cache
+from io import BytesIO
 import re
+import mimetypes
 import sys
 from urllib.parse import urlencode
 from xml.sax.saxutils import escape
@@ -348,6 +351,81 @@ async def _sitemap(_request):
     )
 
 
+IMAGE_ROOT = (ROOT / "images").resolve()
+IMAGE_WIDTHS = {160, 640, 960, 1280, 1600}
+
+
+@lru_cache(maxsize=128)
+def _resized_portfolio_image(filename: str, width: int) -> bytes:
+    """Encode a photograph once per app process; retain aspect and alpha."""
+    from PIL import Image, ImageOps
+
+    with Image.open(filename) as original:
+        image = ImageOps.exif_transpose(original)
+        image.thumbnail((width, 1600), Image.Resampling.LANCZOS)
+        if image.mode not in ("RGB", "RGBA"):
+            image = image.convert("RGBA" if "A" in image.getbands() else "RGB")
+        result = BytesIO()
+        image.save(result, format="WEBP", quality=84, method=4)
+        return result.getvalue()
+
+
+async def _portfolio_image(request):
+    """Send cacheable WebP image data outside the Streamlit page payload."""
+    name = str(request.path_params.get("name") or "").strip()
+    relative = Path(name)
+    if (
+        not name or relative.is_absolute()
+        or any(part in ("..", ".") for part in relative.parts)
+        or relative.suffix.lower() not in {".jpg", ".jpeg", ".png", ".webp", ".avif"}
+    ):
+        return PlainTextResponse("Image not found", status_code=404)
+    target = (IMAGE_ROOT / relative).resolve()
+    if not target.is_relative_to(IMAGE_ROOT) or not target.is_file():
+        return PlainTextResponse("Image not found", status_code=404)
+    try:
+        width = int(request.query_params.get("w", "1280"))
+    except (TypeError, ValueError):
+        width = 1280
+    if width not in IMAGE_WIDTHS:
+        width = 1280
+    cache_headers = {
+        "Cache-Control": "public, max-age=604800, stale-while-revalidate=604800",
+        "X-Content-Type-Options": "nosniff",
+    }
+    try:
+        return Response(_resized_portfolio_image(str(target), width),
+                        media_type="image/webp", headers=cache_headers)
+    except (OSError, ValueError):
+        media_type = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+        return FileResponse(target, media_type=media_type, headers=cache_headers)
+
+
+async def _weekly_ai_cover(request):
+    slug = str(request.path_params.get("slug") or "").strip().lower()
+    if not re.fullmatch(r"weekly-ai-\d{4}-\d{2}-\d{2}", slug):
+        return PlainTextResponse("Cover not found", status_code=404)
+    path = ROOT / "static" / "weekly-ai" / f"{slug}.png"
+    if not path.is_file():
+        return PlainTextResponse("Cover not found", status_code=404)
+    return FileResponse(
+        path, media_type="image/png",
+        headers={"Cache-Control": "public, max-age=604800, stale-while-revalidate=604800",
+                 "X-Content-Type-Options": "nosniff"},
+    )
+
+
+async def _weekly_ai_evergreen_image(_request):
+    path = ROOT / "assets" / "weekly_ai_evergreen_visual.webp"
+    if not path.is_file():
+        return PlainTextResponse("Image not found", status_code=404)
+    return FileResponse(
+        path, media_type="image/webp",
+        headers={"Cache-Control": "public, max-age=604800, stale-while-revalidate=604800",
+                 "X-Content-Type-Options": "nosniff"},
+    )
+
+
 # Current Streamlit exposes the Starlette ASGI application directly. Keeping
 # the interactive UI in main.py lets this launcher provide crawler-visible
 # article, social-image, robots and sitemap routes on the same public domain.
@@ -355,6 +433,9 @@ app = App(
     "main.py",
     routes=[
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
+        Route("/portfolio-image/{name:path}", _portfolio_image, methods=["GET", "HEAD"]),
+        Route("/weekly-ai-cover/evergreen.webp", _weekly_ai_evergreen_image, methods=["GET", "HEAD"]),
+        Route("/weekly-ai-cover/{slug}.png", _weekly_ai_cover, methods=["GET", "HEAD"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),
         Route("/briefing/{slug}", _briefing_article, methods=["GET", "HEAD"]),
         Route("/weekly-ai-audio/{slug}.mp3", _weekly_ai_audio_file, methods=["GET", "HEAD"]),

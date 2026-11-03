@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import re
 from datetime import date, timedelta
 from functools import lru_cache
@@ -24,31 +23,23 @@ WEEKLY_IMAGE_FILE = Path(__file__).resolve().parents[1] / "assets" / "weekly_ai_
 
 @lru_cache(maxsize=1)
 def _weekly_header_image_uri() -> str:
-    """Embed the original evergreen artwork crop without external hosting or stale week text."""
-    try:
-        payload = WEEKLY_IMAGE_FILE.read_bytes()
-    except OSError:
-        return ""
-    return "data:image/webp;base64," + base64.b64encode(payload).decode("ascii")
-
-
-
+    """Static first-party asset, never a multi-kilobyte inline data URI."""
+    return "/weekly-ai-cover/evergreen.webp" if WEEKLY_IMAGE_FILE.is_file() else ""
 
 
 def _edition_cover_html(slug: str) -> str:
-    """Show a committed, approved Friday edition image; never a guessed URL."""
+    """Deliver the checked-in edition PNG as a browser-cacheable image."""
     if not re.fullmatch(r"weekly-ai-\d{4}-\d{2}-\d{2}", str(slug)):
         return ""
     file = Path(__file__).resolve().parents[1] / "static" / "weekly-ai" / f"{slug}.png"
     if not file.is_file() or file.stat().st_size < 2048:
         return ""
-    payload = base64.b64encode(file.read_bytes()).decode("ascii")
     return (
         '<figure class="weekly-ai-edition-cover" aria-label="Weekly AI branded edition header">'
         '<img alt="WEEKLY AI Friday leadership perspective — '
         + escape(slug, quote=True)
         + '" width="1200" height="627" loading="eager" decoding="async"'
-        + ' src="data:image/png;base64,' + payload + '"></figure>'
+        + ' src="/weekly-ai-cover/' + escape(slug, quote=True) + '.png"></figure>'
     )
 
 

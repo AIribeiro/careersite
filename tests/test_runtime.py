@@ -117,8 +117,10 @@ class RuntimeSmokeTests(unittest.TestCase):
         from site_assets import ABOUT_BW_URI, HERO_URI, PANEL_DIALOGUE_URI, THINKING_PANEL_URI, WORKSHOP_URI
 
         for uri in [HERO_URI, WORKSHOP_URI, PANEL_DIALOGUE_URI, THINKING_PANEL_URI, ABOUT_BW_URI]:
-            self.assertTrue(uri.startswith("data:image/"))
-            self.assertGreater(len(uri), 10000)
+            self.assertTrue(uri.startswith("/portfolio-image/"))
+            self.assertIn("?v=", uri)
+            self.assertIn("&w=", uri)
+            self.assertNotIn("base64,", uri)
 
     def test_all_public_pages_are_in_navigation(self) -> None:
         from site_components import ROLE_LENSES, nav

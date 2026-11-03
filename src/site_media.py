@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Serve curated photographs and credentials through cacheable /media/ URLs."""
+"""Serve curated photographs and credentials through cacheable /portfolio-image/ URLs."""
 
 from functools import lru_cache
 from hashlib import sha256
@@ -23,7 +23,7 @@ def _uri(name: str, max_width: int = 1280) -> str:
         version = sha256(path.read_bytes()).hexdigest()[:12]
     except OSError:
         return ""
-    return f"/media/{quote(name, safe='/')}?v={version}&w={max_width}"
+    return f"/portfolio-image/{quote(name, safe='/')}?v={version}&w={max_width}"
 
 # Curated page-to-image mapping. The intent is to reinforce the message of each
 # page with authentic evidence of executive presence, facilitation and thought

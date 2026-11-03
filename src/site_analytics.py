@@ -370,7 +370,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     const href = String(el.getAttribute('href') || '');
     let qualifies = false;
     try {{ qualifies = el.matches('a.btn, a.journey-card, a.contactlink, footer a[data-hq-event]'); }} catch (_) {{}}
-    qualifies = qualifies || /^(cv_download|contact_|email_|linkedin_|impact_|medium_|weekly_ai_archive_open)/.test(raw);
+    qualifies = qualifies || /^(cv_download|contact_|email_|linkedin_|impact_|medium_|weekly_ai_|home_weekly_ai_open|home_writing_weekly_ai|writing_footer_weekly_ai|thinking_format_)/.test(raw);
     const isWeeklySource = Boolean(el.closest('.weekly-ai-body')) && /^https?:\/\//i.test(href);
     qualifies = qualifies || isWeeklySource;
     if (!qualifies) return null;

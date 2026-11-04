@@ -16,6 +16,12 @@ from typing import Iterable
 # Relevance stays stable as new editions are published; missing or unpublished
 # references are skipped and filled by the topic-based fallback.
 EDITORIAL_PATHS: dict[str, tuple[tuple[str, str], ...]] = {
+    "ai-adoption-four-leadership-responses": (
+        ("seven-questions-for-better-ai-decisions",
+         "Test whether the proposed use case deserves adoption before choosing an intervention."),
+        ("ai-governance-explained-to-executives",
+         "Connect employee readiness to the accountability and safeguards needed in daily work."),
+    ),
     "secure-enterprise-ai-ten-failures-to-control": (
         (
             "ai-governance-explained-to-executives",
@@ -89,6 +95,9 @@ EDITORIAL_PATHS: dict[str, tuple[tuple[str, str], ...]] = {
 }
 
 EDITORIAL_INTROS: dict[str, str] = {
+    "ai-adoption-four-leadership-responses": (
+        "Once the people and work barriers are clear, challenge the use case and its operating controls."
+    ),
     "secure-enterprise-ai-ten-failures-to-control": (
         "A release decision requires more than technical safeguards. Continue into ownership, evidence and governance."
     ),

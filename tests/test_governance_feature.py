@@ -18,6 +18,52 @@ class GovernanceFeatureTests(unittest.TestCase):
         for signal in ('KNOW', 'OWN', 'EXPLAIN', 'RESPOND'):
             self.assertIn(f'<strong>{signal}</strong>', html)
 
+    def test_exact_framework_vocabulary_and_accountability(self):
+        html = GOVERNANCE_FEATURE
+        # The framework belongs to the source page: no generic substitutions.
+        principles = ("Boundaries", "Accountability", "Evidence", "Traceability")
+        mechanisms = (
+            "Trusted inputs",
+            "Decision ownership",
+            "Control by consequence",
+            "Traceable outcomes",
+            "Monitoring after launch",
+            "Material-change review",
+        )
+        accountabilities = (
+            "Business owner",
+            "Data owner / steward",
+            "Product / technology owner",
+            "Appropriate risk authority",
+            "Portfolio / governance authority",
+            "Named operating owner",
+        )
+        questions = ("Purpose", "Data", "Accountability", "Boundaries",
+                     "Evidence", "Traceability", "Monitoring")
+        for label in principles + mechanisms + accountabilities + questions:
+            self.assertIn(f"<strong>{label}</strong>", html)
+        self.assertIn("Four decision tests", html)
+        self.assertIn("Six decision accountabilities", html)
+        self.assertIn("ACCOUNTABILITY BY DESIGN", html)
+        self.assertIn("Continue · constrain · stop", html)
+        self.assertIn("where is human judgment required?", html)
+        self.assertNotIn("Executive Sponsor", html)
+        self.assertNotIn("Policies & Standards", html)
+
+    def test_premium_hierarchy_and_semantic_structure(self):
+        html = GOVERNANCE_FEATURE
+        self.assertIn('class="foundation-head"', html)
+        self.assertEqual(html.count('class="foundation-symbol"'), 2)
+        self.assertIn('class="core"', html)
+        self.assertIn('class="principle-note"', html)
+        self.assertIn('class="signals"', html)
+        self.assertIn('class="takeaway"', html)
+        self.assertIn('max-width:630px', html)
+        self.assertIn('grid-template-columns:1fr 1fr', html)
+        self.assertIn('max-width:480px', html)
+        self.assertNotIn('data:image/', html)
+        self.assertNotIn('http://', html)
+
     def test_fast_responsive_and_no_conflicting_arrow_classes(self):
         html = GOVERNANCE_FEATURE
         self.assertIn('@media(max-width:480px)', html)

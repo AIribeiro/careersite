@@ -60,7 +60,8 @@ class GovernanceFeatureTests(unittest.TestCase):
         self.assertEqual(html.count('class="gf-signal"'), 4)
         self.assertNotIn("<svg ", html)
         self.assertNotIn("</svg>", html)
-        self.assertEqual(html.count('data-glyph="'), 15)
+        body = html.split('</style>', 1)[1]
+        self.assertEqual(body.count('data-glyph="'), 15)
         self.assertEqual(html.count('background-image:url("data:image/svg+xml,'), 18)
         self.assertIn('padding-top:139px', html)
         self.assertIn('height:132px', html)

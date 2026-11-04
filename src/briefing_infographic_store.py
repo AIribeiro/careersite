@@ -8,6 +8,7 @@ from urllib.parse import quote
 
 import streamlit as st
 
+from briefing_adoption_artwork import artwork_data_uri
 from briefing_infographic_engine import (
     REVIEW_KEYS, INFOGRAPHIC_CSS, infographic_html, source_fingerprint, validate_spec,
 )
@@ -137,8 +138,14 @@ def _approved_adoption_studio(article, row: dict) -> str:
     caption = ("Original executive infographic by Jair Ribeiro. The four responses "
                "are situational, not permanent employee types; the work-readiness "
                "checks and thirty-day diagnostic determine the next management step.")
-    asset = "/app/static/briefing-ai-adoption-studio.png"
-    mobile = "/app/static/briefing-ai-adoption-studio-mobile.png"
+    # No separate image request: Safari/Streamlit production has repeatedly
+    # failed to serve /app/static assets inside st.html, despite local HTTP 200.
+    asset = artwork_data_uri("desktop")
+    mobile = artwork_data_uri("mobile") or asset
+    if not asset:
+        # Fail visibly with the already-approved engine visual, never a blank
+        # aspect-ratio placeholder or a browser broken-image icon.
+        return infographic_html(row["spec"], row["alt_text"], row["caption"], article.slug)
     return (
         INFOGRAPHIC_CSS + _STUDIO_ADOPTION_CSS
         + '<section class="ebi-section ebi-studio" data-analytics-section="briefing-infographic" '

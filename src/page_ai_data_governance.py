@@ -17,14 +17,14 @@ def ai_data_governance() -> str:
     )
 
     return f'''{nav("ai-data-governance")}<main>
-{GOVERNANCE_FEATURE}
-
 <section class="pagehero"><div class="container">
 <p class="eyebrow">AI &amp; Data Governance · Operating perspective</p>
 <h1>AI &amp; Data governance that connects accountability with scale.</h1>
 <p>At enterprise scale, governance connects business ownership, data responsibility, lifecycle decisions, risk, evidence and adoption — becoming part of how AI is operated rather than a separate control structure around it.</p>
-<div class="actions"><a class="btn primary" href="#governance-evidence" data-hq-event="governance_hero_evidence">See the evidence →</a><a class="btn ghost" href="#governance-operating-model" data-hq-event="governance_hero_model">Back to the operating model ↑</a><a class="btn ghost" href="{DFM_GOVERNANCE_URL}" target="_blank" rel="noopener" data-hq-event="article_governance_dfm">Read my governance article ↗</a>{cv}</div>
+<div class="actions"><a class="btn primary" href="#governance-evidence" data-hq-event="governance_hero_evidence">See the evidence →</a><a class="btn ghost" href="#governance-operating-model" data-hq-event="governance_hero_model">Explore the operating model ↓</a><a class="btn ghost" href="{DFM_GOVERNANCE_URL}" target="_blank" rel="noopener" data-hq-event="article_governance_dfm">Read my governance article ↗</a>{cv}</div>
 </div></section>
+
+{GOVERNANCE_FEATURE}
 
 <section class="section white" id="governance-evidence"><div class="container">
 <div class="head"><div><p class="eyebrow">Experience behind the perspective</p><h2>Governance shaped by enterprise operating work.</h2></div><p>The perspective on this page comes from building structures around AI and Data, working across business and technology environments, and studying how Responsible AI can move from principles into enterprise practice.</p></div>

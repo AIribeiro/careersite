@@ -50,8 +50,13 @@ class HomeGridLayoutTests(unittest.TestCase):
 
         self.assertNotIn('<p class="eyebrow">Recurring questions</p>', home)
 
-        references = home.split('<p class="eyebrow">References</p>', 1)[1]
-        references = references.split('<section class="cta">', 1)[0]
+        # Endorsements support the leadership evidence, rather than competing
+        # with Home's introduction and the three entry-point cards.
+        self.assertNotIn("Comments from people I worked with.", home)
+        self.assertNotIn('data-hq-event="reference_', home)
+        impact = (ROOT / "src/page_impact.py").read_text(encoding="utf-8")
+        references = impact.split('id="leadership-references"', 1)[1]
+        references = references.split('{journey_next("impact")}', 1)[0]
         self.assertIn('<div class="principles">', references)
         self.assertEqual(references.count('<article class="principle">'), 2)
 

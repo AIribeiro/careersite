@@ -11,6 +11,28 @@ from governance_feature import GOVERNANCE_FEATURE
 
 
 class GovernanceFeatureTests(unittest.TestCase):
+    def test_print_download_is_canonical_static_asset(self):
+        from pypdf import PdfReader
+        from PIL import Image
+        root = Path(__file__).resolve().parents[1]
+        pdf = root / "static" / "ai-data-governance-framework-a4.pdf"
+        portrait = root / "static" / "governance-avatar.webp"
+        self.assertTrue(pdf.is_file())
+        self.assertTrue(portrait.is_file())
+        reader = PdfReader(str(pdf), strict=True)
+        self.assertEqual(len(reader.pages), 1)
+        page = reader.pages[0]
+        self.assertAlmostEqual(float(page.mediabox.width), 595.276, delta=1.0)
+        self.assertAlmostEqual(float(page.mediabox.height), 841.890, delta=1.0)
+        with Image.open(portrait) as picture:
+            self.assertEqual(picture.size, (320, 320))
+            self.assertEqual(picture.format, "WEBP")
+        html = GOVERNANCE_FEATURE
+        self.assertIn('class="gf-download-cta"', html)
+        self.assertIn('href="app/static/ai-data-governance-framework-a4.pdf"', html)
+        self.assertIn('download="Jair_Ribeiro_AI_Data_Governance_Framework_A4.pdf"', html)
+
+
     def test_source_faithful_decision_structure(self):
         html = GOVERNANCE_FEATURE
         self.assertIn('id="governance-operating-model"', html)
@@ -69,8 +91,10 @@ class GovernanceFeatureTests(unittest.TestCase):
         self.assertIn('padding-top:139px', html)
         self.assertIn('height:132px', html)
         self.assertNotIn('class="step"', html)
-        self.assertNotIn('<img ', html)
-        self.assertNotIn('<img ', html)
+        self.assertEqual(html.count('<img '), 1)
+        self.assertIn('src="app/static/governance-avatar.webp"', html)
+        self.assertEqual(html.count('<img '), 1)
+        self.assertIn('src="app/static/governance-avatar.webp"', html)
         self.assertIn('data:image/svg+xml,', html)
 
     def test_css_icon_assets_are_real_parseable_svg_images(self):
@@ -115,7 +139,8 @@ class GovernanceFeatureTests(unittest.TestCase):
         self.assertNotIn('class="step"', html)  # Global site .step:after draws a foreign arrow.
         self.assertIn('data:image/svg+xml,', html)
         self.assertNotIn('<script', html)
-        self.assertNotIn('<img ', html)
+        self.assertEqual(html.count('<img '), 1)
+        self.assertIn('src="app/static/governance-avatar.webp"', html)
 
     def test_feature_is_in_the_center_of_governance_page(self):
         source = (Path(__file__).resolve().parents[1] / 'src' / 'page_ai_data_governance.py').read_text()

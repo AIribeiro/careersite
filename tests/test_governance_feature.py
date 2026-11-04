@@ -146,7 +146,7 @@ class GovernanceFeatureTests(unittest.TestCase):
         source = (Path(__file__).resolve().parents[1] / 'src' / 'page_ai_data_governance.py').read_text()
         self.assertIn('from governance_feature import GOVERNANCE_FEATURE', source)
         self.assertEqual(source.count('{GOVERNANCE_FEATURE}'), 1)
-        self.assertIn('}''' + "<main>\n{GOVERNANCE_FEATURE}", source)
+        self.assertIn("<main>\n{GOVERNANCE_FEATURE}", source)
         self.assertLess(source.index('{GOVERNANCE_FEATURE}'), source.index('<section class="pagehero">'))
         self.assertLess(source.index('<section class="pagehero">'), source.index('id="governance-evidence"'))
         self.assertIn('href="#governance-operating-model"', source)

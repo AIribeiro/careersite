@@ -727,7 +727,7 @@ def _briefing_catalog_art(slug: str) -> str:
             '<div class="briefings-catalog-art briefings-catalog-art--adoption-svg" '
             'aria-hidden="true">'
             '<span>AI adoption · Four leadership responses</span>'
-            '<img src="/app/static/briefing-ai-adoption-studio.svg" alt="" '
+            '<img src="/app/static/briefing-ai-adoption-studio.png" alt="" '
             'loading="lazy" decoding="async"/></div>'
         )
     if slug == FIRST_SLUG:

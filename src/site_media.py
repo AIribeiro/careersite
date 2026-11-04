@@ -17,14 +17,19 @@ PUBLIC_IMAGE_BASE = "https://raw.githubusercontent.com/AIribeiro/careersite/main
 @lru_cache(maxsize=64)
 def _uri(name: str, max_width: int = 1280) -> str:
     """Return a browser-cacheable URL that does not depend on app-side routes."""
-    path = IMAGE_DIR / name
-    if not path.is_file():
+    original = IMAGE_DIR / name
+    if not original.is_file():
         return ""
+    # Prefer a verified, build-generated WebP. The original remains the
+    # immediate fallback during rollout or if an asset has not been generated.
+    optimized = IMAGE_DIR / "optimized" / f"{name}.{max_width}.webp"
+    path = optimized if optimized.is_file() else original
     try:
         version = sha256(path.read_bytes()).hexdigest()[:12]
     except OSError:
         return ""
-    return f"{PUBLIC_IMAGE_BASE}/{quote(name, safe='/')}?v={version}"
+    relative = path.relative_to(IMAGE_DIR).as_posix()
+    return f"{PUBLIC_IMAGE_BASE}/{quote(relative, safe='/')}?v={version}"
 
 # Curated page-to-image mapping. The intent is to reinforce the message of each
 # page with authentic evidence of executive presence, facilitation and thought

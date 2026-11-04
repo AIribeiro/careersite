@@ -37,6 +37,7 @@ These measurements predate some or all of the fixes below. The low-sample Impact
 | About | Full credentials and verification archive now starts collapsed; still available with a disclosure control | All source content retained |
 | Private Analytics | Removed unused eager article and scorecard imports; chart/report modules load only when their specific view is selected | Authentication, reporting-period logic and dashboard calculations preserved |
 | Article metadata | Defer `thinking_social` image-generation import until an article-specific metadata operation is needed | Article image handling remains intact |
+| Social preview | Prebuilt, committed 1200 × 630 PNG; page imports no longer regenerate it or load Pillow just to populate metadata | Public social image URL and visual preserved |
 | Governance framework | Keep text/vector diagram and 18 sanitizer-compatible SVG CSS assets; add 10 KB portrait and prebuilt A4 vector PDF | Framework language, mobile layout and interactive HTML retained |
 | Diagnostics | Log cold startup-inclusive timings plus page build, footer selection, HTML emission and rendered document size for slow runs | No visitor-identifying data |
 

@@ -20,7 +20,8 @@ from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
 ROOT = Path(__file__).resolve().parents[1]
 
 # Release metadata for pages and standalone features, which do not live in the
-# article CMS. Publishing workflows add a record here, NOT on the Home page.
+# article CMS. Major editorial releases can be declared here. New page routes and credential
+# cards are also auto-discovered by the deployment release-feed workflow.
 # Use the date the public item became available, not a routine file edit date.
 SITE_RELEASES = (
     {
@@ -88,6 +89,27 @@ def _static_items() -> tuple[NewsItem, ...]:
                 href=_safe_relative_href(row["href"]),
                 cta=row["cta"],
             ))
+    # GitHub release workflow appends public page/credential launch events here.
+    # This file is tiny, local to the deployment, and requires no network call.
+    try:
+        generated = json.loads((ROOT / "data" / "portfolio_release_feed.json").read_text(encoding="utf-8"))
+        published = generated.get("items", [])
+    except (OSError, ValueError, TypeError, AttributeError):
+        published = []
+    for row in published:
+        if not isinstance(row, dict):
+            continue
+        moment = _timestamp(row.get("date", ""))
+        if moment is None or not all(isinstance(row.get(k), str) and row[k] for k in ("type", "title", "href")):
+            continue
+        items.append(NewsItem(
+            type=row["type"],
+            title=row["title"],
+            description=str(row.get("description") or ""),
+            published_at=moment,
+            href=_safe_relative_href(row["href"]),
+            cta=str(row.get("cta") or "Explore the update"),
+        ))
     return tuple(items)
 
 

@@ -370,7 +370,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     const href = String(el.getAttribute('href') || '');
     let qualifies = false;
     try {{ qualifies = el.matches('a.btn, a.journey-card, a.contactlink, footer a[data-hq-event]'); }} catch (_) {{}}
-    qualifies = qualifies || /^(cv_download|contact_|email_|linkedin_|impact_|governance_|medium_|weekly_ai_|home_weekly_ai_open|home_writing_weekly_ai|writing_footer_weekly_ai|thinking_format_)/.test(raw);
+    qualifies = qualifies || /^(cv_download|contact_|email_|linkedin_|impact_|governance_|medium_|weekly_ai_|home_weekly_ai_open|home_whats_new_open|home_writing_weekly_ai|writing_footer_weekly_ai|thinking_format_)/.test(raw);
     const isWeeklySource = Boolean(el.closest('.weekly-ai-body')) && /^https?:\/\//i.test(href);
     qualifies = qualifies || isWeeklySource;
     if (!qualifies) return null;
@@ -448,7 +448,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       'a[href*="article="], a.recent-card, a.article, .featured-thinking a, .decision-note a, ' +
       'a.btn, a.journey-card, a.contactlink, footer a[data-hq-event], .weekly-ai-body a[href^="https://"], .weekly-ai-body a[href^="http://"], ' +
       'a[data-hq-event^="weekly_ai_"], a[data-hq-event^="cv_download"], ' +
-      'a[data-hq-event^="contact_"], a[data-hq-event^="email_"], a[data-hq-event^="linkedin_"], a[data-hq-event^="impact_"]'
+      'a[data-hq-event^="contact_"], a[data-hq-event^="email_"], a[data-hq-event^="linkedin_"], a[data-hq-event^="impact_"], a[data-hq-event^="home_whats_new_"]'
     );
     for (const el of candidates) {{
       if (articleCardDescriptor(el) || ctaDescriptor(el)) elementObserver.observe(el);

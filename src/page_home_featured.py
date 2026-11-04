@@ -96,7 +96,18 @@ def home_featured_article() -> str:
     kind = escape(article.kind_topic)
     published = escape(article.published_label)
     href = escape(article.href, quote=True)
-    image_url = escape(article.image_url, quote=True)
+    # Legacy /social and generated /cms-* endpoints are not guaranteed to
+    # resolve from the Community Cloud browser, even when local ASGI tests pass.
+    # Preserve independently hosted editorial assets; otherwise use the
+    # intentional graphic cover instead of a broken <img>.
+    image_source = article.image_url
+    if image_source.startswith((
+        "https://jairribeiro-ai.streamlit.app/social/",
+        "https://jairribeiro-ai.streamlit.app/cms-header/",
+        "https://jairribeiro-ai.streamlit.app/cms-social/",
+    )):
+        image_source = ""
+    image_url = escape(image_source, quote=True)
     image_alt = escape(article.image_alt, quote=True)
     content_type = "briefing" if is_briefing else "article"
     read_label = "Read the briefing" if is_briefing else "Read the article"

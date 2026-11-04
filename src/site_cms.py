@@ -1553,12 +1553,15 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
         else:
             thumb = _cms_fallback_cover(article, "cms-thinking-thumb")
         cards.append(
-            f'<a class="recent-card" href="{escape(article_relative_url(article), quote=True)}" '
+            f'<a class="recent-card cms-article-card" href="{escape(article_relative_url(article), quote=True)}" '
             f'target="_self" data-hq-event="cms_article_open" '
             f'data-hq-content-slug="{escape(article.slug, quote=True)}">{thumb}'
+            '<div class="cms-article-card-body">'
             f'<div class="kicker">{escape(article.kind_topic)}</div>'
-            f'<h3>{escape(article.title)}</h3><p>{escape(article.excerpt)}</p>'
-            f'<div class="read">{article_read_metadata(article, read_counts)} →</div></a>'
+            f'<h3>{escape(article.title)}</h3>'
+            f'<p class="cms-article-excerpt">{escape(article.excerpt)}</p>'
+            f'<div class="read">{article_read_metadata(article, read_counts)} →</div>'
+            '</div></a>'
         )
     # Small editorial feature directly under the heading, following the same
     # article selection as the Home feature. Not repeated in the six-card list.
@@ -1646,6 +1649,30 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
         + '<div class="recent-grid">' + ''.join(cards) + '</div>'
         + pagination + '</div></section>'
         '<style>'
+        /* The six-item CMS catalogue must not inherit intrinsic grid track sizes.
+           One oversized cover previously made the adjacent column unreadably narrow. */
+        '.cms-latest .recent-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:stretch}'
+        '.cms-latest .recent-grid>.cms-article-card{box-sizing:border-box;display:flex;flex-direction:column;'
+        'width:100%;min-width:0;max-width:100%;min-height:0;padding:0;overflow:hidden;'
+        'border:1px solid var(--line);background:var(--white);text-decoration:none!important}'
+        '.cms-latest .cms-article-card>.cms-thinking-thumb{position:relative;display:block;flex:0 0 auto;'
+        'width:100%!important;max-width:100%!important;height:auto!important;min-height:0!important;'
+        'margin:0!important;aspect-ratio:16/9!important;overflow:hidden;background:#0b1220;border:0}'
+        '.cms-latest .cms-article-card>.cms-thinking-thumb img{position:absolute;inset:0;display:block!important;'
+        'width:100%!important;max-width:100%!important;height:100%!important;'
+        'object-fit:contain!important;object-position:center center!important}'
+        '.cms-latest .cms-article-card>.cms-fallback-cover{min-height:0!important}'
+        '.cms-latest .cms-article-card-body{box-sizing:border-box;display:flex;flex:1 1 auto;'
+        'flex-direction:column;min-width:0;width:100%;padding:22px 24px 23px}'
+        '.cms-latest .cms-article-card-body h3{margin:14px 0 12px;'
+        'font:500 clamp(23px,2.1vw,29px)/1.16 Georgia,serif;letter-spacing:-.02em;'
+        'text-wrap:balance;overflow-wrap:break-word}'
+        '.cms-latest .cms-article-card-body .cms-article-excerpt{display:-webkit-box;'
+        '-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;'
+        'margin:0;color:var(--muted);font-size:13px;line-height:1.65}'
+        '.cms-latest .cms-article-card-body .read{margin-top:auto;padding-top:22px;line-height:1.5}'
+        '@media(max-width:760px){.cms-latest .recent-grid{grid-template-columns:minmax(0,1fr);gap:16px}'
+        '.cms-latest .cms-article-card-body{padding:20px 21px 22px}}'
         '.editorial-reading-path{margin:0 0 40px}.editorial-reading-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}'
         '.editorial-reading-card{display:flex;flex-direction:column;gap:11px;padding:22px 20px;border:1px solid #d8d1c6;background:#fff;text-decoration:none!important;min-width:0}'
         '.editorial-reading-card:hover,.editorial-reading-card:focus-visible{border-color:#bd8460;background:#faf7f2}'

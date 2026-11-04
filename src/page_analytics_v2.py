@@ -8,6 +8,22 @@ from page_analytics import (
 from analytics_reporting_period import initialize_reporting_period, remember_reporting_period
 
 
+def render_site_analytics_dashboard() -> None:
+    """Legacy compatibility, loaded only if explicitly invoked."""
+    from page_analytics import render_analytics_dashboard as render
+    render()
+
+
+def render_article_analytics() -> None:
+    from page_article_analytics import render_article_analytics as render
+    render()
+
+
+def render_reader_sources(window: str, kind: str = "article") -> None:
+    from page_article_analytics import render_reader_sources as render
+    render(window, kind)
+
+
 def render_public_portfolio_overview() -> None:
     """Compatibility-preserving, on-demand public overview renderer."""
     from page_public_portfolio_overview import render_public_portfolio_overview as render

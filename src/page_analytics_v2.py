@@ -8,6 +8,27 @@ from page_analytics import (
 from analytics_reporting_period import initialize_reporting_period, remember_reporting_period
 
 
+def render_public_portfolio_overview() -> None:
+    """Compatibility-preserving, on-demand public overview renderer."""
+    from page_public_portfolio_overview import render_public_portfolio_overview as render
+    render()
+
+
+def render_weekly_ai_analytics(window: str) -> None:
+    from page_weekly_ai_analytics import render_weekly_ai_analytics as render
+    render(window)
+
+
+def render_executive_briefings_analytics(window: str) -> None:
+    from page_executive_briefings_analytics import render_executive_briefings_analytics as render
+    render(window)
+
+
+def render_content_intelligence(kind: str, window: str) -> None:
+    from page_content_intelligence import render_content_intelligence as render
+    render(kind, window)
+
+
 _VIEWS = {
     "overview": "Visits & reads",
     "portfolio": "Explore content",
@@ -66,7 +87,6 @@ def _render_public_analytics() -> None:
     st.divider()
 
     if section == "overview":
-        from page_public_portfolio_overview import render_public_portfolio_overview
         render_public_portfolio_overview()
         return
 
@@ -93,14 +113,11 @@ def _render_public_analytics() -> None:
     if str(window) in ("last_hour","today"):
         st.caption("Short windows are useful for monitoring, not for judging hiring or content outcomes.")
     if kind == "weekly_ai":
-        from page_weekly_ai_analytics import render_weekly_ai_analytics
         render_weekly_ai_analytics(str(window))
         return
     if kind == "briefings":
-        from page_executive_briefings_analytics import render_executive_briefings_analytics
         render_executive_briefings_analytics(str(window))
         return
-    from page_content_intelligence import render_content_intelligence
     render_content_intelligence(str(kind), str(window))
     # Source-level attribution audits and unfiltered legacy detail belong in
     # the authenticated Private analytics workspace, not the public dashboard.

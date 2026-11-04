@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
+import shutil
+import subprocess
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 import unittest
@@ -81,6 +83,21 @@ class HomeWhatsNewTests(unittest.TestCase):
         self.assertIn("What’s new?", content)
         self.assertIn('data-news-link', content)
 
+    def test_published_executive_briefing_overrides_older_home_announcement(self) -> None:
+        """Execute the real injected browser JS against mock published CMS rows."""
+        if not shutil.which("node"):
+            self.skipTest("Node runtime is unavailable")
+        with patch("streamlit.components.v1.html") as html:
+            news.inject_live_home_update()
+        script = html.call_args.args[0]
+        runner = Path(__file__).resolve().parent / "js" / "test_home_whats_new_live.cjs"
+        result = subprocess.run(
+            ["node", str(runner)], input=script, text=True,
+            capture_output=True, timeout=12, check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Executive Briefing automatic homepage refresh: passed", result.stdout)
+
     def test_live_refresh_is_a_small_client_side_request(self) -> None:
         with patch("streamlit.components.v1.html") as html:
             news.inject_live_home_update()
@@ -91,6 +108,7 @@ class HomeWhatsNewTests(unittest.TestCase):
         self.assertIn("kind === \"weekly brief\"", script)
         self.assertIn("cache: \"no-store\"", script)
         self.assertIn("AbortController", script)
+        self.assertIn('doc.addEventListener("visibilitychange"', script)
         self.assertNotIn("content_html", script)
         self.assertEqual(html.call_args.kwargs["height"], 0)
 

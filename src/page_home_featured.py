@@ -139,9 +139,9 @@ def current_snapshot_writing(*, exclude_slug: str = "") -> HomeArticlePreview:
     )
 
 
-def home_featured_article() -> str:
-    """Render the compact editorial tile ahead of Home's contact CTA."""
-    article = current_home_article()
+def home_featured_article(*, instant: bool = False) -> str:
+    """Render Home editorial preview; instant mode avoids cold CMS latency."""
+    article = current_snapshot_writing() if instant else current_home_article()
     is_briefing = article.content_type == "briefing"
 
     title = escape(article.title)

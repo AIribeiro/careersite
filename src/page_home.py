@@ -48,7 +48,7 @@ def home() -> str:
 
 {home_briefings_strip()}
 
-{home_featured_article()}
+{home_featured_article(instant=True)}
 
 <section class="cta"><div class="container ctain"><div><h2>For enterprise AI and Data mandates.</h2><p>Experience across strategy, adoption, operating models, governance and Data &amp; Analytics in international enterprise environments.</p></div><div class="actions"><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_home_final">Contact →</a><a class="btn ghost" href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_home_final">LinkedIn ↗</a></div></div></section>
 </main>{footer()}'''

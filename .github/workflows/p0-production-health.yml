@@ -1,7 +1,13 @@
 name: P0 production browser smoke check
 on:
   push:
+    branches: [main]
     paths:
+      - "main.py"
+      - "app.py"
+      - "src/**"
+      - "images/**"
+      - "static/**"
       - ".github/workflows/p0-production-health.yml"
   workflow_dispatch:
 
@@ -54,7 +60,52 @@ jobs:
                   except Exception as exc:
                       print(f"Page still loading: {type(exc).__name__}: {str(exc)[:200]}")
                   time.sleep(5)
-              browser.close()
               if not visible:
+                  browser.close()
                   raise SystemExit("ERROR: Portfolio hero did not render within browser-level production smoke check")
+
+              # Warm browser navigation across every major public route,
+              # including a CMS-backed reader. Measure the visible page rather
+              # than relying on the HTTP 200 returned by Streamlit's shell.
+              routes = [
+                  ("AI Leadership", "?page=impact", ".site main"),
+                  ("Thinking", "?page=thinking", ".site main"),
+                  ("Executive Briefings", "?page=briefings", ".site .briefings-library-hero"),
+                  ("Executive Briefing reader", "?page=briefing&article=eu-ai-act-what-executives-must-decide", ".site .briefing-reader"),
+                  ("AI and Data Governance", "?page=ai-data-governance", ".site main"),
+                  ("About", "?page=about", ".site main"),
+                  ("Contact", "?page=contact", ".site main"),
+              ]
+              failed = []
+              timings = []
+              base = os.environ["SITE_URL"].rstrip("/") + "/"
+              for label, query, selector in routes:
+                  started = time.monotonic()
+                  try:
+                      page.goto(base + query, wait_until="domcontentloaded", timeout=30000)
+                      page.wait_for_selector(selector, state="attached", timeout=30000)
+                      elapsed = round((time.monotonic() - started) * 1000)
+                      timings.append((label, elapsed))
+                      print(f"PUBLIC PAGE {label}: content visible after {elapsed} ms", flush=True)
+                  except Exception as exc:
+                      failed.append(f"{label}: {type(exc).__name__}: {str(exc)[:150]}")
+              # The hero is the first meaningful photo on Home. Avoid silently
+              # accepting a missing asset as a passing page smoke test.
+              try:
+                  page.goto(base, wait_until="domcontentloaded", timeout=30000)
+                  page.wait_for_selector(".site .portrait img", timeout=30000)
+                  page.wait_for_function(
+                      "() => { const image = document.querySelector('.site .portrait img'); "
+                      "return !!(image && image.complete && image.naturalWidth > 0); }",
+                      timeout=15000,
+                  )
+                  print("PUBLIC IMAGE: Home hero loaded", flush=True)
+              except Exception as exc:
+                  failed.append(f"Home hero image: {type(exc).__name__}: {str(exc)[:150]}")
+              browser.close()
+              for label, elapsed in timings:
+                  if elapsed > 6000:
+                      print(f"PERFORMANCE WARNING: {label} visible-content time {elapsed} ms exceeds 6000 ms", flush=True)
+              if failed:
+                  raise SystemExit("Live browser smoke failed: " + "; ".join(failed))
           PY

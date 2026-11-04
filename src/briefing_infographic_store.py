@@ -137,8 +137,8 @@ def _approved_adoption_studio(article, row: dict) -> str:
     caption = ("Original executive infographic by Jair Ribeiro. The four responses "
                "are situational, not permanent employee types; the work-readiness "
                "checks and thirty-day diagnostic determine the next management step.")
-    asset = "/briefing-artwork/ai-adoption-desktop.svg"
-    mobile = "/briefing-artwork/ai-adoption-mobile.svg"
+    asset = "/app/static/briefing-ai-adoption-studio.svg"
+    mobile = "/app/static/briefing-ai-adoption-studio-mobile.svg"
     return (
         INFOGRAPHIC_CSS + _STUDIO_ADOPTION_CSS
         + '<section class="ebi-section ebi-studio" data-analytics-section="briefing-infographic" '

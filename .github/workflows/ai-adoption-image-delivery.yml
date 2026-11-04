@@ -4,8 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/ai-adoption-image-delivery.yml'
-      - 'static/briefing-ai-adoption-studio.svg'
-      - 'static/briefing-ai-adoption-studio-mobile.svg'
+      - 'static/ai_adoption_leadership_response_map_source.png'
       - 'src/briefing_adoption_artwork.py'
       - 'src/briefing_infographic_store.py'
       - 'src/page_executive_briefings.py'
@@ -31,39 +30,41 @@ jobs:
           python -m pip install --disable-pip-version-check 'streamlit==1.64.0' 'CairoSVG==2.8.2' 'Pillow==12.3.0' 'playwright==1.58.0'
           python -m playwright install chromium
           python -m playwright install --with-deps webkit
-      - name: Build compressed desktop mobile and library art
+      - name: Rebuild all artwork from the exact approved image
         run: |
           python - <<'PY'
           from pathlib import Path
-          from io import BytesIO
-          from PIL import Image, ImageStat
-          import cairosvg
-          root = Path("static")
-          inputs = (
-              ("briefing-ai-adoption-studio.svg", "briefing-ai-adoption-studio", (1800,2400)),
-              ("briefing-ai-adoption-studio-mobile.svg", "briefing-ai-adoption-studio-mobile", (840,3580)),
-          )
-          for source, stem, size in inputs:
-              rendered = cairosvg.svg2png(
-                  bytestring=(root/source).read_bytes(),
-                  output_width=size[0], output_height=size[1]
-              )
-              image = Image.open(BytesIO(rendered)).convert("RGB")
-              assert image.size == size
-              assert min(ImageStat.Stat(image).stddev) > 20, f"Image is blank: {source}"
-              png = root/(stem + ".png")
-              webp = root/(stem + ".webp")
-              image.save(png, format="PNG", optimize=True)
-              image.save(webp, format="WEBP", quality=85, method=6)
+          from PIL import Image, ImageStat, ImageChops
+          import hashlib
+          root=Path("static")
+          original=root/"ai_adoption_leadership_response_map_source.png"
+          raw=original.read_bytes()
+          expected="5bcacf58c3978e33047a3ed1e1127a11093b73feeac97d8efbea5628a9163a18"
+          assert hashlib.sha256(raw).hexdigest()==expected, "Approved art source mismatch"
+          full=Image.open(original).convert("RGB")
+          assert full.size==(1086,1448), full.size
+          assert min(ImageStat.Stat(full).stddev)>40, "Source appears blank"
+          assets=[
+              ("briefing-ai-adoption-studio",full,92),
+              ("briefing-ai-adoption-studio-mobile",
+                  full.resize((864,1152),Image.Resampling.LANCZOS),90),
+          ]
+          for stem,image,quality in assets:
+              png=root/(stem+".png")
+              webp=root/(stem+".webp")
+              image.save(png,format="PNG",optimize=True)
+              image.save(webp,format="WEBP",quality=quality,method=6)
+              assert webp.stat().st_size<350_000, (stem,webp.stat().st_size)
               with Image.open(webp) as check:
                   check.verify()
-              assert 1024 < webp.stat().st_size < 250_000, f"Artwork too large: {webp}"
-              print(stem, "PNG", png.stat().st_size, "WebP", webp.stat().st_size)
-          image = Image.open(root/"briefing-ai-adoption-studio.png").convert("RGB")
-          thumb = image.crop((0,0,1800,600)).resize((900,300),Image.Resampling.LANCZOS)
-          thumb.save(root/"briefing-ai-adoption-studio-thumbnail.webp",format="WEBP",quality=86,method=6)
-          assert (root/"briefing-ai-adoption-studio-thumbnail.webp").stat().st_size < 70_000
-          print("Thumbnail bytes:", (root/"briefing-ai-adoption-studio-thumbnail.webp").stat().st_size)
+              print(f"APPROVED ART {stem} {image.size}, {webp.stat().st_size:,} webp bytes")
+          # Use a real crop of the new design, not the old library artwork.
+          thumb=full.crop((0,0,1086,445))
+          thumb=thumb.resize((900,369),Image.Resampling.LANCZOS)
+          thumbnail=root/"briefing-ai-adoption-studio-thumbnail.webp"
+          thumb.save(thumbnail,format="WEBP",quality=90,method=6)
+          assert thumbnail.stat().st_size<100_000
+          print("APPROVED THUMBNAIL",thumb.size,thumbnail.stat().st_size)
           PY
       - name: Check approved art contracts
         run: |

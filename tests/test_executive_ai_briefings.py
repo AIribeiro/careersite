@@ -13,7 +13,7 @@ class ExecutiveAiBriefingTests(unittest.TestCase):
     def test_public_route_and_navigation(self):
         main = content("main.py")
         nav = content("src/site_components.py")
-        self.assertIn('"briefings": executive_briefings', main)
+        self.assertIn('render_page = executive_briefing_page if PAGE == "briefing" else executive_briefings', main)
         self.assertIn('"briefings"', main)
         self.assertNotIn('link("briefings"', nav)
         self.assertIn('Route("/briefings", _briefings_share', content("app.py"))

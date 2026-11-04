@@ -1,0 +1,52 @@
+name: AI Adoption image delivery
+on:
+  push:
+    paths:
+      - '.github/workflows/ai-adoption-image-delivery.yml'
+      - 'static/briefing-ai-adoption-studio.svg'
+      - 'static/briefing-ai-adoption-studio-mobile.svg'
+      - 'src/briefing_infographic_store.py'
+      - 'src/page_executive_briefings.py'
+      - 'tests/test_briefing_adoption_studio.py'
+      - '.streamlit/config.toml'
+  workflow_dispatch:
+
+jobs:
+  native-static-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Streamlit
+        run: python -m pip install --disable-pip-version-check 'streamlit==1.64.0'
+      - name: Verify original asset and HTML source contracts
+        run: python -m unittest discover -s tests -p 'test_briefing_adoption_studio.py' -v
+      - name: Start minimal Streamlit server using production static config
+        run: |
+          printf 'import streamlit as st\nst.title("Native static asset smoke")\n' > _static_image_smoke.py
+          python -m streamlit run _static_image_smoke.py --server.headless=true --server.port=8521 > /tmp/ai-adoption-static.log 2>&1 &
+          echo $! > /tmp/ai-adoption-static.pid
+      - name: Request desktop and mobile image as a browser would
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8521/_stcore/health >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          for image in briefing-ai-adoption-studio.svg briefing-ai-adoption-studio-mobile.svg; do
+            url="http://127.0.0.1:8521/app/static/$image"
+            code=$(curl -sS -o "/tmp/$image" -w '%{http_code}' "$url")
+            test "$code" = 200 || { echo "Static image $image returned $code"; exit 1; }
+            grep -q '^<svg' "/tmp/$image"
+            mimetype=$(curl -sSI "$url" | grep -i '^content-type:' | tr -d '\r' | tr '[:upper:]' '[:lower:]')
+            echo "$image: $mimetype"
+            echo "$mimetype" | grep -q 'image/svg+xml' || exit 1
+          done
+      - name: Show Streamlit log on failure
+        if: failure()
+        run: cat /tmp/ai-adoption-static.log || true

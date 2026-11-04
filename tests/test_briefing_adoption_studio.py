@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 from pathlib import Path
 import re
 import unittest
@@ -16,6 +17,30 @@ READER = ROOT / "src" / "page_executive_briefings.py"
 
 
 class AdoptionArtworkTests(unittest.TestCase):
+    def test_editor_approved_source_and_derived_images_match(self):
+        from PIL import Image, ImageChops, ImageStat
+        source=ROOT/"static"/"ai_adoption_leadership_response_map_source.png"
+        self.assertEqual(
+            hashlib.sha256(source.read_bytes()).hexdigest(),
+            "5bcacf58c3978e33047a3ed1e1127a11093b73feeac97d8efbea5628a9163a18",
+        )
+        original=Image.open(source).convert("RGB")
+        self.assertEqual(original.size,(1086,1448))
+        for filename, expected in (
+            ("briefing-ai-adoption-studio.webp", original),
+            ("briefing-ai-adoption-studio-mobile.webp",
+             original.resize((864,1152),Image.Resampling.LANCZOS)),
+            ("briefing-ai-adoption-studio-thumbnail.webp",
+             original.crop((0,0,1086,445)).resize((900,369),Image.Resampling.LANCZOS)),
+        ):
+            asset=ROOT/"static"/filename
+            if not asset.exists():
+                continue
+            rendered=Image.open(asset).convert("RGB")
+            self.assertEqual(rendered.size,expected.size)
+            divergence=ImageStat.Stat(ImageChops.difference(rendered,expected)).mean
+            self.assertLess(max(divergence),6,f"Stale or modified artwork: {filename}")
+
     def test_both_assets_are_self_contained_svg_and_include_original_speaker_photo(self):
         for path, dimensions in ((DESKTOP, "0 0 1800 2400"), (MOBILE, "0 0 420 1790")):
             with self.subTest(path=path.name):
@@ -65,7 +90,7 @@ class AdoptionArtworkTests(unittest.TestCase):
         self.assertIn("row.get(\"source_fingerprint\")!=source_fingerprint(article)", source)
         self.assertIn("if article.slug == _STUDIO_ADOPTION_SLUG:", source)
         self.assertIn('data-analytics-section="briefing-infographic"', source)
-        self.assertIn('download="ai-adoption-executive-infographic.png"', source)
+        self.assertIn('download="ai-adoption-executive-infographic.webp"', source)
         self.assertIn("max-width:700px", source)
         self.assertIn('artwork_data_uri("mobile")', source)
 

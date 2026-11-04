@@ -61,6 +61,36 @@ class ThinkingCatalogPaginationTests(unittest.TestCase):
         self.assertEqual(len(self.card_slugs(page)), 6)
         self.assertNotIn("article-15", self.card_slugs(page))
 
+    def test_catalog_cards_have_equal_tracks_and_compact_text(self):
+        page = self.render(1)
+        self.assertEqual(page.count('class="recent-card cms-article-card"'), 6)
+        self.assertEqual(page.count('class="cms-article-card-body"'), 6)
+        self.assertIn('grid-template-columns:repeat(2,minmax(0,1fr))', page)
+        self.assertIn('@media(max-width:760px){.cms-latest .recent-grid{grid-template-columns:minmax(0,1fr)', page)
+        self.assertIn('-webkit-line-clamp:3', page)
+        self.assertIn('aspect-ratio:16/9!important', page)
+        self.assertIn('object-fit:contain!important', page)
+        self.assertIn('width:100%;min-width:0;max-width:100%', page)
+        # The entire card remains an article link, including its metadata.
+        self.assertIn('data-hq-event="cms_article_open"', page)
+
+    def test_catalog_preserves_lazy_image_loading(self):
+        from dataclasses import replace
+
+        rows = list(articles())
+        rows[0] = replace(
+            rows[0],
+            header_image_url="https://images.example.org/article-cover.webp",
+            header_image_alt="Article cover",
+        )
+        with patch("site_cms.fetch_published_articles", return_value=rows), \\
+             patch("site_cms._public_reads_or_none", return_value={"article-15": 100}), \\
+             patch("thinking_core.query_value", return_value="1"):
+            page = inject_cms_landing(DOCUMENT)
+        self.assertIn('src="https://images.example.org/article-cover.webp"', page)
+        self.assertIn('alt="Article cover"', page)
+        self.assertIn('loading="lazy" decoding="async"', page)
+
     def test_catalog_pages_do_not_repeat_or_omit_articles(self):
         pages = [self.render(p) for p in (1, 2, 3)]
         slugs = [self.card_slugs(page) for page in pages]

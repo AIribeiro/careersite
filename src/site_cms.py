@@ -948,6 +948,21 @@ def embedded_header_image_src(article: CmsArticle) -> str:
     return effective_header_image_url(article)
 
 
+def reader_header_image_src(article: CmsArticle) -> str:
+    """Render one repository-backed editorial image on its reader page.
+
+    The bundled header remains visible even when public custom media routes are
+    unavailable on Cloud. Only the single article reader embeds the image;
+    catalogue pages never inflate their HTML with multiple base64 covers.
+    """
+    if article.header_image_url:
+        return article.header_image_url
+    image = bundled_header_bytes(article.slug)
+    if image:
+        return "data:image/webp;base64," + base64.b64encode(image).decode("ascii")
+    return ""
+
+
 def article_relative_url(article: CmsArticle) -> str:
     page = "briefing" if article.kind.strip().casefold() == "executive briefing" else "thinking"
     return f"?page={page}&article={parse.quote(article.slug, safe='')}"
@@ -1297,7 +1312,7 @@ def render_cms_article(article: CmsArticle) -> str:
     read_counts = _public_reads_or_none()
     read_metadata = article_read_metadata(article, read_counts)
     image = ""
-    header_image_url = embedded_header_image_src(article)
+    header_image_url = reader_header_image_src(article)
     if header_image_url:
         image = f'''<div class="cms-article-image"><img src="{escape(header_image_url, quote=True)}" alt="{escape(article.header_image_alt or article.title, quote=True)}" loading="eager" decoding="async"></div>'''
     elif article.legacy_key:
@@ -1427,7 +1442,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
 
     if featured is not None and legacy_feature_placeholder:
         featured_image = ""
-        featured_header_url = embedded_header_image_src(featured)
+        featured_header_url = featured.header_image_url
         if featured_header_url:
             featured_image = (
                 f'<div class="thinking-thumb cms-thinking-thumb">'
@@ -1520,7 +1535,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
     cards = []
     for article in listed_articles:
         thumb = ""
-        card_header_url = embedded_header_image_src(article)
+        card_header_url = article.header_image_url
         if card_header_url:
             thumb = (
                 f'<div class="cms-thinking-thumb"><img '
@@ -1550,6 +1565,8 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
         href = escape(article_relative_url(featured), quote=True)
         slug = escape(featured.slug, quote=True)
         art_url = cms_feature_image_url(featured)
+        if art_url.startswith((f"{BASE_URL}/cms-header/", f"{BASE_URL}/cms-social/")):
+            art_url = ""
         image = (
             f'<img src="{escape(art_url, quote=True)}" '
             f'alt="{escape(featured.header_image_alt or featured.title, quote=True)}" '

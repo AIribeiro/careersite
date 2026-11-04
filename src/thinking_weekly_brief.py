@@ -24,7 +24,7 @@ WEEKLY_IMAGE_FILE = Path(__file__).resolve().parents[1] / "assets" / "weekly_ai_
 @lru_cache(maxsize=1)
 def _weekly_header_image_uri() -> str:
     """Static first-party asset, never a multi-kilobyte inline data URI."""
-    return "/weekly-ai-cover/evergreen.webp" if WEEKLY_IMAGE_FILE.is_file() else ""
+    return "https://raw.githubusercontent.com/AIribeiro/careersite/main/assets/weekly_ai_evergreen_visual.webp" if WEEKLY_IMAGE_FILE.is_file() else ""
 
 
 def _edition_cover_html(slug: str) -> str:

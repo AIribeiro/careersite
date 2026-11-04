@@ -11,7 +11,7 @@ from thinking_weekly_brief import _edition_cover_html
 
 
 class PortfolioPerformanceTests(unittest.TestCase):
-    def test_photographs_and_badges_use_cacheable_urls(self):
+    def test_photographs_and_badges_use_browser_accessible_urls(self):
         for url in (
             site_media.hero,
             site_media.thinking,
@@ -19,11 +19,11 @@ class PortfolioPerformanceTests(unittest.TestCase):
             site_media.brand_icon,
             site_media.openai_ai_leadership,
         ):
-            self.assertTrue(url.startswith("/portfolio-image/"), url[:80])
+            self.assertTrue(url.startswith("https://raw.githubusercontent.com/AIribeiro/careersite/main/images/"), url[:100])
             self.assertIn("?v=", url)
-            self.assertIn("&w=", url)
             self.assertNotIn("data:image", url)
-        self.assertIn("&w=160", site_media.brand_icon)
+        self.assertTrue(site_media.brand_icon.endswith(".jpg.jpg?v=" + site_media.brand_icon.split("?v=")[-1]))
+        self.assertNotIn("/portfolio-image/", site_media.hero)
 
     def test_thinking_catalogue_keeps_one_correct_anchor_in_main(self):
         article = CmsArticle(
@@ -53,7 +53,7 @@ class PortfolioPerformanceTests(unittest.TestCase):
 
     def test_weekly_cover_does_not_embed_png_bytes(self):
         output = _edition_cover_html("weekly-ai-2026-10-30")
-        self.assertIn('/weekly-ai-cover/weekly-ai-2026-10-30.png', output)
+        self.assertIn('/app/static/weekly-ai/weekly-ai-2026-10-30.png', output)
         self.assertNotIn("base64,", output)
 
 

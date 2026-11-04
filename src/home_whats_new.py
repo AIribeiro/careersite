@@ -262,7 +262,7 @@ def inject_live_home_update() -> None:
     if (busy || doc.visibilityState === "hidden") return;
     busy = true;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2200);
+    const timeout = setTimeout(() => controller.abort(), 5000);
     try {
       const res = await fetch(endpoint + query, {
         headers: {"apikey": apiKey, "Accept": "application/json"},
@@ -312,6 +312,10 @@ def inject_live_home_update() -> None:
 
   refresh();
   const interval = setInterval(refresh, 120000);
+  // Returning to an open tab should reveal newly published briefings promptly.
+  doc.addEventListener("visibilitychange", () => {
+    if (doc.visibilityState === "visible") refresh();
+  });
   window.addEventListener("pagehide", () => clearInterval(interval), {once: true});
 })();
 </script>

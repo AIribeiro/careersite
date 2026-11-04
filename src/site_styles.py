@@ -74,6 +74,13 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 .site .journey-intro{max-width:900px;margin-bottom:28px}
 .site .journey-intro h2{font:500 clamp(31px,4vw,45px)/1.12 Georgia,serif;letter-spacing:-.025em;margin:0}
 .site .journey-intro p:last-child{max-width:820px;color:var(--muted);line-height:1.65;margin:16px 0 0}
+/* The first Home introduction spans the full site container, not a narrow column.
+   Put the identity statement and its context side-by-side on large screens. */
+.site .journey-section .journey-intro{width:100%;max-width:none;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);column-gap:clamp(32px,5vw,78px);align-items:end;margin-bottom:34px}
+.site .journey-section .journey-intro>.eyebrow{grid-column:1;grid-row:1}
+.site .journey-section .journey-intro>h2{grid-column:1;grid-row:2;max-width:none}
+.site .journey-section .journey-intro>p:last-child{grid-column:2;grid-row:1 / span 2;max-width:none;margin:0;font-size:clamp(15px,1.3vw,17px);line-height:1.66}
+@media(max-width:800px){.site .journey-section .journey-intro{display:block;margin-bottom:26px}.site .journey-section .journey-intro>p:last-child{margin-top:16px;font-size:15px}}
 .site .journey-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .site a.journey-card{display:flex;flex-direction:column;min-width:0;min-height:250px;padding:28px 25px;background:var(--white);border:1px solid var(--line);text-decoration:none!important;transition:border-color .18s,box-shadow .18s,transform .18s}
 .site a.journey-card:hover,.site a.journey-card:focus-visible{border-color:var(--copper);box-shadow:0 14px 35px rgba(11,18,32,.09);transform:translateY(-2px)}

@@ -11,7 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DESKTOP = ROOT / "static" / "briefing-ai-adoption-studio.svg"
 MOBILE = ROOT / "static" / "briefing-ai-adoption-studio-mobile.svg"
 STORE = ROOT / "src" / "briefing_infographic_store.py"
-APP = ROOT / "app.py"
+CONFIG = ROOT / ".streamlit" / "config.toml"
+READER = ROOT / "src" / "page_executive_briefings.py"
 
 
 class AdoptionArtworkTests(unittest.TestCase):
@@ -68,15 +69,20 @@ class AdoptionArtworkTests(unittest.TestCase):
         self.assertIn("max-width:700px", source)
         self.assertIn("ai-adoption-mobile.svg", source)
 
-    def test_cached_local_asset_route_is_constrained(self):
-        source = APP.read_text(encoding="utf-8")
-        self.assertIn("def _adoption_studio_infographic", source)
-        self.assertIn("/briefing-artwork/ai-adoption-{variant}.svg", source)
-        self.assertIn('media_type="image/svg+xml"', source)
-        self.assertIn('"mobile": "briefing-ai-adoption-studio-mobile.svg"', source)
-        self.assertIn('"desktop": "briefing-ai-adoption-studio.svg"', source)
-        self.assertIn('"X-Content-Type-Options": "nosniff"', source)
-        self.assertIn("stale-while-revalidate", source)
+    def test_portfolio_uses_native_static_url_for_all_artwork(self):
+        config = CONFIG.read_text(encoding="utf-8")
+        store = STORE.read_text(encoding="utf-8")
+        reader = READER.read_text(encoding="utf-8")
+        self.assertIn("enableStaticServing = true", config)
+        desktop = "/app/static/briefing-ai-adoption-studio.svg"
+        mobile = "/app/static/briefing-ai-adoption-studio-mobile.svg"
+        self.assertIn(desktop, store)
+        self.assertIn(mobile, store)
+        self.assertIn(desktop, reader)
+        self.assertNotIn("/briefing-artwork/", store)
+        self.assertNotIn("/briefing-artwork/", reader)
+        self.assertIn('loading="lazy"', reader)
+        self.assertIn('loading="eager"', store)
 
 
 if __name__ == "__main__":

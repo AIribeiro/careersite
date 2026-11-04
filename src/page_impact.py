@@ -4,10 +4,11 @@ import html
 from site_assets import WORKSHOP_URI
 from site_components import nav, footer, opportunity, journey_next
 from site_artifacts import leadership_frameworks
+from career_facts import KIMBERLY_SCOPE, KIMBERLY_TITLE, MSX_PUBLIC_DATES, MSX_ROADMAP, VOLVO_AI_INITIATIVES, VOLVO_AI_LEARNING_SESSIONS, VOLVO_CURRENT_DATES, VOLVO_SENIOR_AI_DATES, VOLVO_WORKFLOW_SCOPE
+
+
 CLAES_LINKEDIN = "https://se.linkedin.com/in/claes-sandros-1a795512"
 ANNA_LINKEDIN = "https://se.linkedin.com/in/annaborjesson"
-
-from career_facts import KIMBERLY_SCOPE, KIMBERLY_TITLE, MSX_PUBLIC_DATES, MSX_ROADMAP, VOLVO_AI_INITIATIVES, VOLVO_AI_LEARNING_SESSIONS, VOLVO_CURRENT_DATES, VOLVO_SENIOR_AI_DATES, VOLVO_WORKFLOW_SCOPE
 
 
 def case(org: str, role: str, date: str, scope: str, title: str, intro: str, boxes: list[tuple[str, str]]) -> str:

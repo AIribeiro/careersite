@@ -70,6 +70,92 @@ GOVERNANCE_FEATURE = r'''
 .site .gf .after p{max-width:900px;font:480 15px/1.7 Inter,sans-serif;color:#b9d0dd;margin:0}
 .site .gf .after a{border:1px solid #3b829b;padding:13px 16px;color:#c7effa;text-decoration:none;font:700 12px Inter,sans-serif;white-space:nowrap}
 .site .gf .after a:hover{background:#124b63}
+
+/* Premium framework refinement: calm contrast, precise rhythm, a dominant decision hub. */
+.site .gf{background:radial-gradient(ellipse at 8% 0%,rgba(20,78,105,.56),transparent 39%),linear-gradient(135deg,#051727,#071d30 58%,#0a293d)}
+.site .gf .infographic{background:linear-gradient(145deg,#082337,#071d30 56%,#092b42);border-color:#3a7189;box-shadow:0 25px 68px rgba(0,5,14,.28)}
+.site .gf .intro{gap:clamp(28px,4vw,58px)}
+.site .gf .foundation{padding:clamp(20px,2.1vw,29px);border-color:#345f76;background:rgba(17,76,104,.32)}
+.site .gf .foundation-head{display:flex;align-items:center;gap:17px;margin-bottom:13px}
+.site .gf .foundation-symbol{width:47px;height:47px;flex:0 0 47px;display:grid;place-items:center;border-radius:14px;border:1px solid rgba(96,207,234,.36);background:rgba(6,171,211,.09);color:#64e1f5}
+.site .gf .foundation-symbol svg{width:29px;height:29px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.site .gf .foundation h3{font-size:clamp(20px,1.6vw,25px);margin:0}
+.site .gf .foundation h3:before{content:none}
+.site .gf .foundation p{font-size:clamp(13px,1.01vw,15px);line-height:1.75}
+.site .gf .converge{margin:28px 0 17px;color:#83d6e6;font-size:12px}
+.site .gf .account{padding:19px 22px;border-color:#3a8097;background:#103b53;font-size:clamp(13px,1.07vw,16px)}
+.site .gf .operating{grid-template-columns:minmax(205px,1fr) minmax(460px,2.25fr) minmax(220px,1.05fr);gap:17px;margin-top:29px}
+.site .gf .panel{border-color:#345f76;border-radius:17px;background:rgba(5,32,52,.77);padding:clamp(19px,1.5vw,24px)}
+.site .gf .label{font-size:12px;letter-spacing:.11em;line-height:1.4;min-height:35px;margin-bottom:15px;color:#76ddec}
+.site .gf .panel li{padding:13px 0;border-color:rgba(112,184,211,.16)}
+.site .gf .panel li strong{font-size:clamp(13px,1vw,15px);line-height:1.33;letter-spacing:-.005em}
+.site .gf .panel li span{font-size:clamp(11.5px,.87vw,13.5px);line-height:1.55;color:#aec8d7}
+.site .gf .principles{display:flex;flex-direction:column}
+.site .gf .principles .principle-note{margin:auto 0 0;padding:25px 0 0;border-top:1px solid rgba(111,183,211,.2);color:#79c7da;font:600 12.5px/1.7 Inter,sans-serif}
+.site .gf .cycle{background:radial-gradient(circle at 50% 47%,rgba(10,84,113,.23),transparent 62%),#061f33;border-color:#3b89a2;padding:26px 9px 20px}
+.site .gf .cycle .label{margin-bottom:2px}
+.site .gf .stage{max-width:630px;margin:14px auto 17px}
+.site .gf .ring circle{opacity:.64;stroke-width:1.35}
+.site .gf .ring path{stroke-width:3.2;opacity:.76}
+.site .gf .node{width:29%;min-height:89px;background:linear-gradient(148deg,#d7f0f6,#a7d1e1);border-color:#8ccee0;border-radius:13px;box-shadow:0 7px 18px rgba(0,4,11,.14)}
+.site .gf .node b{font-size:clamp(13px,1vw,16px)}
+.site .gf .node span{font-size:clamp(10.5px,.82vw,12px);line-height:1.45}
+.site .gf .core{width:44%;border-color:#68e2ef;background:#092c43;box-shadow:0 0 0 7px rgba(64,195,220,.055)}
+.site .gf .core strong{font-size:clamp(20px,1.7vw,27px);letter-spacing:-.045em;line-height:1.1}
+.site .gf .core span{font-size:clamp(11px,.92vw,14px)}
+.site .gf .cycle .footnote{font-size:12px;line-height:1.6;color:#a5c6d5}
+.site .gf .bottom{grid-template-columns:1.05fr 1.15fr .97fr;gap:17px;margin-top:17px}
+.site .gf .bottom .panel{padding:23px 19px}
+.site .gf .bottom .panel li{background:rgba(20,65,88,.45);border:1px solid rgba(81,139,167,.32);padding:12px 12px;border-radius:9px;margin-bottom:9px}
+.site .gf .bottom .panel li:last-child{border:1px solid rgba(81,139,167,.32)}
+.site .gf .bottom .panel li strong{font-size:13px;color:#f2fbff}
+.site .gf .bottom .panel li span{font-size:12px;line-height:1.52;color:#bed8e4}
+.site .gf .approval i{background:#9bdce9;color:#092b42}
+.site .gf .response{display:flex;flex-direction:column}
+.site .gf .response ol{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:9px}
+.site .gf .response li{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;min-height:76px}
+.site .gf .response li:not(:last-child):after{content:"↓";position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);color:#69ddec;z-index:2;font:800 15px Inter,sans-serif}
+.site .gf .signals{margin-top:19px;padding:30px 20px;border-color:#3a8fa6;background:rgba(14,57,78,.75)}
+.site .gf .signals h3{margin-bottom:25px}
+.site .gf .four div{padding:0 18px}
+.site .gf .four strong{color:#80dff0}
+.site .gf .four span{font-size:clamp(12px,1.02vw,15px);line-height:1.55}
+.site .gf .takeaway{margin-top:17px;border:1px solid rgba(87,209,230,.42);border-left:4px solid #70e5f4;border-radius:11px;background:linear-gradient(90deg,#10445c,#0c354e);color:#e7f8fc;font-size:clamp(17px,1.55vw,23px);padding:21px 24px;box-shadow:none}
+.site .gf figcaption{margin-top:27px}
+@media(max-width:1160px){
+.site .gf .operating{grid-template-columns:1fr 1fr}
+.site .gf .stage{max-width:630px}
+.site .gf .bottom{grid-template-columns:1fr 1fr}
+.site .gf .response{grid-column:1/-1}
+.site .gf .response ol{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.site .gf .response li{min-height:100px;margin-bottom:0}
+.site .gf .response li:not(:last-child):after{content:"→";left:auto;bottom:auto;right:-15px;top:40%;transform:none}
+.site .gf .principles .principle-note{padding-top:16px;margin-top:15px}
+}
+@media(max-width:740px){
+.site .gf .operating,.site .gf .bottom{grid-template-columns:1fr}
+.site .gf .response{grid-column:auto}
+.site .gf .response ol{grid-template-columns:1fr}
+.site .gf .response li{min-height:77px}
+.site .gf .response li:not(:last-child):after{content:"↓";left:50%;right:auto;bottom:-15px;top:auto;transform:translateX(-50%)}
+.site .gf .foundation-head{gap:12px}
+.site .gf .foundation-symbol{width:41px;height:41px;flex-basis:41px}
+.site .gf .foundation-symbol svg{width:25px;height:25px}
+.site .gf .foundation h3{font-size:20px}
+.site .gf .label{min-height:0}
+.site .gf .principles .principle-note{margin-top:19px}
+.site .gf .signals{padding:22px 15px}
+.site .gf .four div{padding:0 11px}
+}
+@media(max-width:480px){
+.site .gf .stage{margin:17px auto 10px}
+.site .gf .node{min-height:98px;width:auto}
+.site .gf .node span{font-size:12px}
+.site .gf .core{height:111px;width:100%}
+.site .gf .meta{flex-wrap:wrap;gap:7px;line-height:1.6}
+.site .gf .account{padding:15px 12px;line-height:1.65}
+.site .gf .takeaway{padding:18px 15px}
+}
 @media(max-width:1160px){
 .site .gf .operating{grid-template-columns:1fr 1fr}
 .site .gf .cycle{grid-column:1/-1;grid-row:1}
@@ -103,14 +189,14 @@ GOVERNANCE_FEATURE = r'''
 <section id="governance-operating-model" class="gf" aria-labelledby="gf-title">
 <div class="gw">
 <header class="intro"><div><p class="ey">The governance operating system</p><h2 id="gf-title">AI &amp; Data Governance.<br><em>Designed to operate.</em></h2></div>
-<p class="deck">From trusted data to accountable AI at scale. A visual operating model for the decisions, controls and ownership that make responsible use possible.</p></header>
+<p class="deck">A practical operating model for turning trusted data into accountable AI at scale — with clear decision rights, proportionate controls and continuous oversight.</p></header>
 <figure class="infographic" aria-label="Executive AI and Data Governance infographic connecting trusted data and AI governance with accountable decisions, a six-stage operating lifecycle, named owners, evidence and continuous assurance">
 <div class="meta"><span>Executive operating model</span><span>Jair Ribeiro · AI Leadership</span></div>
-<div class="two"><article class="foundation"><h3>Data Governance</h3><p>Ownership · Stewardship · Quality · Business definitions · Lineage · Access · Privacy · Retention</p></article><article class="foundation"><h3>AI Governance</h3><p>Use-case ownership · Risk classification · Human oversight · System evidence · Transparency · Monitoring · Incident response · Change control</p></article></div>
+<div class="two"><article class="foundation"><div class="foundation-head"><span class="foundation-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><ellipse cx="16" cy="7" rx="10" ry="4"/><path d="M6 7v18c0 5.5 20 5.5 20 0V7M6 13c0 6 20 6 20 0M6 19c0 6 20 6 20 0"/></svg></span><h3>Data Governance</h3></div><p>Ownership · Stewardship · Quality · Business definitions · Lineage · Access · Privacy · Retention</p></article><article class="foundation"><div class="foundation-head"><span class="foundation-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 6a6 6 0 0 0-10 5 6 6 0 0 0-2 9 6 6 0 0 0 8 8c2 0 3-1 4-2 1 1 2 2 4 2a6 6 0 0 0 8-8 6 6 0 0 0-2-9A6 6 0 0 0 16 6Zm0 0v20M10 12c3 0 5 2 6 4m6-4c-3 0-5 2-6 4M9 20c2 0 5-1 7-4m7 4c-2 0-5-1-7-4"/></svg></span><h3>AI Governance</h3></div><p>Use-case ownership · Risk classification · Human oversight · System evidence · Transparency · Monitoring · Incident response · Change control</p></article></div>
 <div class="converge">Two disciplines, one operating conversation</div>
-<div class="account"><b>SHARED ACCOUNTABILITY</b> &nbsp; Business purpose + Data + System behavior + Decision owner + Evidence</div>
+<div class="account"><b>ACCOUNTABILITY BY DESIGN</b> &nbsp; Business purpose · Trusted data · System behavior · Named decision authority · Evidence</div>
 <div class="operating">
-<aside class="panel principles"><h3 class="label">01 / Four principles</h3><ol><li><strong>Boundaries</strong><span>What is the system permitted to do?</span></li><li><strong>Accountability</strong><span>Who owns the business consequence?</span></li><li><strong>Evidence</strong><span>What proof justifies wider use?</span></li><li><strong>Traceability</strong><span>Can outcomes be reconstructed?</span></li></ol></aside>
+<aside class="panel principles"><h3 class="label">01 / Four decision tests</h3><ol><li><strong>Boundaries</strong><span>What is the system permitted to do?</span></li><li><strong>Accountability</strong><span>Who owns the business consequence?</span></li><li><strong>Evidence</strong><span>What proof justifies wider use?</span></li><li><strong>Traceability</strong><span>Can outcomes be reconstructed?</span></li></ol><p class="principle-note">Every material decision needs clear authority, proportionate evidence and a traceable record.</p></aside>
 <div class="panel cycle"><h3 class="label">02 / Continuous governance lifecycle</h3><p class="sub">From purpose and risk to accountable operation</p>
 <div class="stage">
 <svg class="ring" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
@@ -118,20 +204,20 @@ GOVERNANCE_FEATURE = r'''
 <circle cx="300" cy="300" r="240"/>
 <g marker-end="url(#gov-arrow)"><path d="M370 69 A240 240 0 0 1 499 165"/><path d="M537 271 A240 240 0 0 1 494 446"/><path d="M430 501 A240 240 0 0 1 234 533"/><path d="M166 501 A240 240 0 0 1 64 334"/><path d="M62 267 A240 240 0 0 1 166 101"/><path d="M232 70 A240 240 0 0 1 270 62"/></g>
 </svg>
-<div class="node" style="--x:50%;--y:11%"><small>01</small><b>Frame</b><span>Purpose and consequence</span></div><div class="node" style="--x:81%;--y:29%"><small>02</small><b>Classify</b><span>Risk and data sensitivity</span></div><div class="node" style="--x:81%;--y:70%"><small>03</small><b>Assign</b><span>Business, technical and data owners</span></div><div class="node" style="--x:50%;--y:89%"><small>04</small><b>Evidence</b><span>Controls and proof</span></div><div class="node" style="--x:19%;--y:70%"><small>05</small><b>Decide</b><span>Release or scale</span></div><div class="node" style="--x:19%;--y:29%"><small>06</small><b>Monitor</b><span>Learn and reassess</span></div>
+<div class="node" style="--x:50%;--y:10%"><small>01</small><b>Frame</b><span>Purpose and consequence</span></div><div class="node" style="--x:82%;--y:27%"><small>02</small><b>Classify</b><span>Risk and data sensitivity</span></div><div class="node" style="--x:82%;--y:73%"><small>03</small><b>Assign</b><span>Business, technical and data owners</span></div><div class="node" style="--x:50%;--y:90%"><small>04</small><b>Evidence</b><span>Define stage controls and proof</span></div><div class="node" style="--x:18%;--y:73%"><small>05</small><b>Decide</b><span>Release, constrain or stop</span></div><div class="node" style="--x:18%;--y:27%"><small>06</small><b>Monitor</b><span>Learn and reassess</span></div>
 <div class="core"><small>ACCOUNTABLE</small><strong>Executive<br>decision</strong><span>Release · Scale<br>Constrain · Stop</span></div>
 </div>
 <p class="footnote">Monitor and reassess when a material change means the original approval may no longer apply.</p></div>
-<aside class="panel"><h3 class="label">03 / Six decision owners</h3><ul><li><strong>Business owner</strong><span>Purpose, value and business consequence</span></li><li><strong>Data owner / steward</strong><span>Meaning, quality, access and permitted use</span></li><li><strong>Product / technology owner</strong><span>Behavior, security and technical readiness</span></li><li><strong>Appropriate risk authority</strong><span>Residual exposure and escalation</span></li><li><strong>Portfolio / governance authority</strong><span>Scale, constrain, revise or stop</span></li><li><strong>Named operating owner</strong><span>Thresholds, incidents and reassessment</span></li></ul></aside>
+<aside class="panel"><h3 class="label">03 / Six decision accountabilities</h3><ul><li><strong>Business owner</strong><span>Purpose, value and business consequence</span></li><li><strong>Data owner / steward</strong><span>Meaning, quality, access and permitted use</span></li><li><strong>Product / technology owner</strong><span>Behavior, security and technical readiness</span></li><li><strong>Appropriate risk authority</strong><span>Residual exposure and escalation</span></li><li><strong>Portfolio / governance authority</strong><span>Scale, constrain, revise or stop</span></li><li><strong>Named operating owner</strong><span>Thresholds, incidents and reassessment</span></li></ul></aside>
 </div>
 <div class="bottom">
-<section class="panel"><h3 class="label">04 / Operating mechanisms</h3><ul><li><strong>Trusted inputs</strong><span>Sources, quality, lineage and access</span></li><li><strong>Decision ownership</strong><span>Accountable owner and escalation</span></li><li><strong>Control by consequence</strong><span>Risk tier, evidence and oversight</span></li><li><strong>Traceability</strong><span>Versions and decision records</span></li><li><strong>Monitoring</strong><span>Drift, incidents and review thresholds</span></li><li><strong>Change control</strong><span>New model, data, users or purpose</span></li></ul></section>
-<section class="panel approval"><h3 class="label">05 / Seven questions before “go”</h3><ol><li><i aria-hidden="true">1</i><div><strong>Purpose</strong><span>What workflow changes, and what if wrong?</span></div></li><li><i aria-hidden="true">2</i><div><strong>Data</strong><span>Are sources owned, understood and permitted?</span></div></li><li><i aria-hidden="true">3</i><div><strong>Accountability</strong><span>Who owns the outcome and can stop use?</span></div></li><li><i aria-hidden="true">4</i><div><strong>Boundaries</strong><span>Where is human judgment mandatory?</span></div></li><li><i aria-hidden="true">5</i><div><strong>Evidence</strong><span>What proof supports release and risk acceptance?</span></div></li><li><i aria-hidden="true">6</i><div><strong>Traceability</strong><span>Can material outcomes be reconstructed?</span></div></li><li><i aria-hidden="true">7</i><div><strong>Monitoring</strong><span>Which signals trigger intervention?</span></div></li></ol></section>
-<section class="panel response"><h3 class="label">06 / Change and response</h3><ol><li><strong>Detect change</strong><span>Data, behavior, use or context shifts</span></li><li><strong>Escalate</strong><span>Notify the named decision authority</span></li><li><strong>Reassess</strong><span>Revisit controls and approval evidence</span></li><li><strong>Continue · restrict · stop</strong><span>Document the revised decision</span></li></ol></section>
+<section class="panel"><h3 class="label">04 / Operating mechanisms</h3><ul><li><strong>Trusted inputs</strong><span>Sources, quality, lineage and access</span></li><li><strong>Decision ownership</strong><span>Named authority, decision rights and escalation</span></li><li><strong>Control by consequence</strong><span>Risk tier, evidence and human oversight</span></li><li><strong>Traceable outcomes</strong><span>Versions, sources and decision records</span></li><li><strong>Monitoring after launch</strong><span>Performance, drift and intervention thresholds</span></li><li><strong>Material-change review</strong><span>New model, data sources, users or purpose</span></li></ul></section>
+<section class="panel approval"><h3 class="label">05 / Seven questions before “go”</h3><ol><li><i aria-hidden="true">1</i><div><strong>Purpose</strong><span>What changes — and what if the AI is wrong?</span></div></li><li><i aria-hidden="true">2</i><div><strong>Data</strong><span>Who owns the sources, quality and permitted use?</span></div></li><li><i aria-hidden="true">3</i><div><strong>Accountability</strong><span>Who owns the outcome and who can stop use?</span></div></li><li><i aria-hidden="true">4</i><div><strong>Boundaries</strong><span>Which actions are outside its authority?</span></div></li><li><i aria-hidden="true">5</i><div><strong>Evidence</strong><span>What proof and risk acceptance justify release?</span></div></li><li><i aria-hidden="true">6</i><div><strong>Traceability</strong><span>Could we reconstruct a material outcome?</span></div></li><li><i aria-hidden="true">7</i><div><strong>Monitoring</strong><span>What triggers intervention or reassessment?</span></div></li></ol></section>
+<section class="panel response"><h3 class="label">06 / Change and response</h3><ol><li><strong>Detect change</strong><span>Data, behavior, use or context shifts</span></li><li><strong>Escalate</strong><span>Notify the named decision authority</span></li><li><strong>Reassess</strong><span>Revisit controls and approval evidence</span></li><li><strong>Continue · constrain · stop</strong><span>Document the revised decision</span></li></ol></section>
 </div>
-<div class="signals"><h3>EXECUTIVE ASSURANCE · FOUR OBSERVABLE SIGNALS</h3><div class="four"><div><strong>KNOW</strong><span>Where material AI is used and why</span></div><div><strong>OWN</strong><span>Who owns the consequence</span></div><div><strong>EXPLAIN</strong><span>Evidence behind material outcomes</span></div><div><strong>RESPOND</strong><span>When and how to intervene</span></div></div></div>
+<div class="signals"><h3>EXECUTIVE ASSURANCE · FOUR OBSERVABLE SIGNALS</h3><div class="four"><div><strong>KNOW</strong><span>Where material AI is used and for which purpose</span></div><div><strong>OWN</strong><span>Who owns business, data and technical outcomes</span></div><div><strong>EXPLAIN</strong><span>The evidence and decisions behind material outcomes</span></div><div><strong>RESPOND</strong><span>When to intervene and who can act</span></div></div></div>
 <p class="takeaway">Governance is not a one-time approval. It is a continuous system of accountable decisions.</p>
 <figcaption><div><strong>Jair Ribeiro</strong><small>Enterprise AI Adoption · Governance · Business Transformation</small></div><span class="badge">AI LEADER</span></figcaption>
 </figure>
-<div class="after"><p>A practical connection between data responsibility, AI use, consequence-based controls and continuous executive oversight. These are accountable functions, not prescribed job titles.</p><a href="#governance-evidence" data-hq-event="governance_model_experience">Explore the experience behind the model ↗</a></div>
+<div class="after"><p>An operating perspective linking data responsibility, AI use, decision rights and continuous oversight. These are accountable functions, not prescribed job titles.</p><a href="#governance-evidence" data-hq-event="governance_model_experience">Explore the experience behind the model ↗</a></div>
 </div></section>'''

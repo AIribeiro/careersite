@@ -1549,7 +1549,9 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
                 from page_thinking import _image
                 thumb = _image(article.legacy_key, "thinking-thumb cms-thinking-thumb")
             except (ImportError, KeyError, ValueError):
-                thumb = ""
+                thumb = _cms_fallback_cover(article, "cms-thinking-thumb")
+        else:
+            thumb = _cms_fallback_cover(article, "cms-thinking-thumb")
         cards.append(
             f'<a class="recent-card" href="{escape(article_relative_url(article), quote=True)}" '
             f'target="_self" data-hq-event="cms_article_open" '

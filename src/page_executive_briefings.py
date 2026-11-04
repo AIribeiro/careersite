@@ -23,6 +23,7 @@ AI_ACT_SLUG = "eu-ai-act-what-executives-must-decide"
 FUNDING_SLUG = "data-governance-what-deserves-funding"
 DUAL_GOV_SLUG = "data-governance-vs-ai-governance-executive-decisions"
 SECURITY_SLUG = "secure-enterprise-ai-ten-failures-to-control"
+ADOPTION_SLUG = "ai-adoption-four-leadership-responses"
 
 # Capability categories are complementary tools, not a ladder of sophistication.
 CAPABILITIES = (
@@ -57,6 +58,17 @@ GOVERNANCE_DECISION = {
 }
 
 
+
+ADOPTION_DECISION = {
+    "call": "Diagnose the barrier before prescribing the intervention.",
+    "move": "Choose one approved workflow, assess task-specific capability and willingness, check operating conditions, and measure work outcomes after differentiated support.",
+    "checks": (
+        ("Capability", "Can people apply AI safely and judge its output on a real task?", "chart"),
+        ("Willingness", "What concern, uncertainty or incentive shapes readiness to try this use case?", "users"),
+        ("Work readiness", "Are task fit, data access, permission and manager support in place?", "shield"),
+        ("Evidence", "What changed in quality, time, rework and risk beyond tool usage?", "target"),
+    ),
+}
 
 SECURITY_DECISION = {
     "call": "Grant only the authority the evidence supports.",
@@ -1025,6 +1037,7 @@ def executive_briefing_article(
         )
 
     guide = (FIRST_DECISION if article.slug == FIRST_SLUG else
+             ADOPTION_DECISION if article.slug == ADOPTION_SLUG else
              SECURITY_DECISION if article.slug == SECURITY_SLUG else
              AI_ACT_DECISION if article.slug == AI_ACT_SLUG else
              GOVERNANCE_DECISION if article.slug == GOVERNANCE_SLUG else {
@@ -1076,6 +1089,9 @@ def executive_briefing_article(
         '</article>'
     )
     summary_text = (
+        "Skill and willingness are task-specific starting points, not employee labels. "
+        "Test work readiness before choosing coaching, delegated ownership, evidence-led challenge or trust-building support."
+        if article.slug == ADOPTION_SLUG else
         "A safe release requires evidence at four boundaries: information trust, authority to act, "
         "behavioral assurance and operational accountability. Controls reduce risk but cannot guarantee it away."
         if article.slug == SECURITY_SLUG else

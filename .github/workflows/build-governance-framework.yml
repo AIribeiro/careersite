@@ -1,0 +1,65 @@
+name: Build A4 Governance Framework
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/build_governance_framework.py"
+      - "images/54907620908_f7c872f825_o.jpg"
+      - ".github/workflows/build-governance-framework.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-governance-framework:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PDF and image requirements
+        run: python -m pip install "fpdf2==2.8.8" "Pillow==12.3.0" "pypdf>=5.9,<7"
+      - name: Generate versioned print deliverable
+        run: python scripts/build_governance_framework.py
+      - name: Verify A4, print vector content and portrait
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from pypdf import PdfReader
+          from PIL import Image
+          path=Path("static/ai-data-governance-framework-a4.pdf")
+          reader=PdfReader(str(path),strict=True)
+          assert len(reader.pages)==1
+          page=reader.pages[0]
+          width,height=float(page.mediabox.width),float(page.mediabox.height)
+          assert abs(width-595.276)<1 and abs(height-841.890)<1,(width,height)
+          text=page.extract_text()
+          for label in (
+              "AI & Data Governance","CONTINUOUS LIFECYCLE",
+              "DECISION TESTS","DECISION OWNERS","OPERATING MECHANISMS",
+              "SEVEN APPROVAL QUESTIONS","CHANGE & RESPONSE",
+              "EXECUTIVE ASSURANCE","KNOW","OWN","EXPLAIN","RESPOND"
+          ):
+              assert label in text,label
+          assert path.stat().st_size < 1_000_000
+          with Image.open("static/governance-avatar.webp") as portrait:
+              assert portrait.format=="WEBP"
+              assert portrait.size==(320,320)
+          print("Verified print-ready single-page A4 PDF and 320px portrait")
+          PY
+      - name: Commit canonical PDF and cacheable portrait
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/ai-data-governance-framework-a4.pdf static/governance-avatar.webp
+          if ! git diff --cached --quiet; then
+            git commit -m "build(governance): publish A4 vector infographic and author avatar"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

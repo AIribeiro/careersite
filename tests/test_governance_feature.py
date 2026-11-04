@@ -77,7 +77,7 @@ class GovernanceFeatureTests(unittest.TestCase):
         # Native SVG tags disappear inside st.html; only CSS image URLs
         # are allowed in this feature. Validate every embedded glyph.
         images = re.findall(
-            r'background-image:url\\("data:image/svg\\+xml,([^"]+)"\\)',
+            r'background-image:url\("data:image/svg\+xml,([^"]+)"\)',
             GOVERNANCE_FEATURE,
         )
         self.assertEqual(len(images), 18)

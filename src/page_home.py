@@ -3,7 +3,7 @@ from __future__ import annotations
 from site_assets import AI_PANEL_URI, CV_URI, HERO_URI, LINKEDIN, WORKSHOP_URI
 from site_components import nav, footer, CV_DOWNLOAD_NAME
 from page_home_featured import home_featured_article, home_weekly_ai_strip
-from page_executive_briefings import home_briefings_strip
+from home_briefings_strip import home_briefings_strip
 from career_facts import PROFILE_TECH_YEARS, VOLVO_AI_INITIATIVES, VOLVO_WORKFLOW_SCOPE, MSX_PUBLIC_DATES, VOLVO_CURRENT_DATES, VOLVO_SENIOR_AI_DATES, KIMBERLY_DATES
 
 

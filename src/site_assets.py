@@ -143,5 +143,8 @@ AI_PANEL_URI = WORKSHOP_URI
 PROFILE_URI = HERO_URI
 SPEAKING_URI = PANEL_DIALOGUE_URI
 
-CV_BYTES = build_cv_pdf()
-CV_URI = data_uri(CV_BYTES, "application/pdf")
+# The canonical CV is committed by CI and delivered as a browser-cacheable
+# static file. Do not create a PDF/base64 blob on every cold Streamlit import.
+# build_cv_pdf remains available for explicit development-only use.
+CV_BYTES = b""
+CV_URI = "app/static/Jair_Ribeiro_CV.pdf"

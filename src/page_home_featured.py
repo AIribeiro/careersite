@@ -114,6 +114,31 @@ def current_governance_writing(*, exclude_slug: str = "") -> HomeArticlePreview:
     )
 
 
+def current_snapshot_writing(*, exclude_slug: str = "") -> HomeArticlePreview:
+    """Random current published article/briefing metadata without a network call.
+
+    The full libraries and article pages stay live; this preview-only snapshot
+    keeps non-editorial navigation responsive during backend cache misses.
+    """
+    from site_writing_snapshot import PUBLIC_WRITING_SNAPSHOT
+
+    alternative = tuple(row for row in PUBLIC_WRITING_SNAPSHOT if row["slug"] != exclude_slug)
+    selected = choice(alternative if alternative else PUBLIC_WRITING_SNAPSHOT)
+    is_briefing = selected["kind"].strip().casefold() == "executive briefing"
+    return HomeArticlePreview(
+        slug=selected["slug"],
+        title=selected["title"],
+        deck=selected["deck"],
+        kind_topic=f'{selected["kind"]} · {selected["category"]}',
+        published_label=selected["published_label"],
+        read_minutes=selected["read_minutes"],
+        href=f'?page={"briefing" if is_briefing else "thinking"}&article={selected["slug"]}',
+        image_url="",
+        image_alt=selected["title"],
+        content_type="briefing" if is_briefing else "article",
+    )
+
+
 def home_featured_article() -> str:
     """Render the compact editorial tile ahead of Home's contact CTA."""
     article = current_home_article()
@@ -209,15 +234,18 @@ def home_weekly_ai_strip() -> str:
 </div></div></section>'''
 
 
-def compact_writing_footer(*, exclude_slug: str = "", local_fast: bool = False) -> str:
+def compact_writing_footer(*, exclude_slug: str = "", local_fast: bool = False, fast_public: bool = False) -> str:
     """A restrained editorial continuation for public pages.
 
     The small cover is CSS-only on purpose: CMS cover images are much too large
     and may be unavailable in cross-page footers. A deterministic typographic
     cover prevents broken assets, full-size images and layout shifts.
     """
-    article = (current_governance_writing(exclude_slug=exclude_slug) if local_fast
-               else current_home_article(exclude_slug=exclude_slug))
+    article = (
+        current_governance_writing(exclude_slug=exclude_slug) if local_fast
+        else current_snapshot_writing(exclude_slug=exclude_slug) if fast_public
+        else current_home_article(exclude_slug=exclude_slug)
+    )
     is_briefing = article.content_type == "briefing"
     href = escape(article.href, quote=True)
     slug = escape(article.slug, quote=True)
@@ -278,6 +306,7 @@ def inject_writing_footer(document: str, page: str, *, article_slug: str = "") -
     feature = compact_writing_footer(
         exclude_slug=article_slug,
         local_fast=(page == "ai-data-governance"),
+        fast_public=(page not in {"home", "ai-data-governance"}),
     )
     briefing_contact = '<section class="briefings-conversation"'
     if briefing_contact in document:

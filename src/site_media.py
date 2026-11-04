@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Serve curated photographs and credentials through cacheable /portfolio-image/ URLs."""
+"""Publish curated public photography through the repository CDN, independent of the Streamlit application's ASGI media routes."""
 
 from functools import lru_cache
 from hashlib import sha256
@@ -11,11 +11,12 @@ import site_assets as assets
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE_DIR = ROOT / "images"
+PUBLIC_IMAGE_BASE = "https://raw.githubusercontent.com/AIribeiro/careersite/main/images"
 
 
 @lru_cache(maxsize=64)
 def _uri(name: str, max_width: int = 1280) -> str:
-    """Return a versioned image URL rather than embedding original image bytes."""
+    """Return a browser-cacheable URL that does not depend on app-side routes."""
     path = IMAGE_DIR / name
     if not path.is_file():
         return ""
@@ -23,7 +24,7 @@ def _uri(name: str, max_width: int = 1280) -> str:
         version = sha256(path.read_bytes()).hexdigest()[:12]
     except OSError:
         return ""
-    return f"/portfolio-image/{quote(name, safe='/')}?v={version}&w={max_width}"
+    return f"{PUBLIC_IMAGE_BASE}/{quote(name, safe='/')}?v={version}"
 
 # Curated page-to-image mapping. The intent is to reinforce the message of each
 # page with authentic evidence of executive presence, facilitation and thought

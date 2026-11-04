@@ -23,7 +23,7 @@ WEEKLY_IMAGE_FILE = Path(__file__).resolve().parents[1] / "assets" / "weekly_ai_
 
 @lru_cache(maxsize=1)
 def _weekly_header_image_uri() -> str:
-    """Static first-party asset, never a multi-kilobyte inline data URI."""
+    """A cacheable public asset URL, independent of the app media route."""
     return "https://raw.githubusercontent.com/AIribeiro/careersite/main/assets/weekly_ai_evergreen_visual.webp" if WEEKLY_IMAGE_FILE.is_file() else ""
 
 
@@ -39,7 +39,7 @@ def _edition_cover_html(slug: str) -> str:
         '<img alt="WEEKLY AI Friday leadership perspective — '
         + escape(slug, quote=True)
         + '" width="1200" height="627" loading="eager" decoding="async"'
-        + ' src="/weekly-ai-cover/' + escape(slug, quote=True) + '.png"></figure>'
+        + ' src="/app/static/weekly-ai/' + escape(slug, quote=True) + '.png"></figure>'
     )
 
 

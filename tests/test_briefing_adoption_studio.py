@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DESKTOP = ROOT / "static" / "briefing-ai-adoption-studio.svg"
 MOBILE = ROOT / "static" / "briefing-ai-adoption-studio-mobile.svg"
 STORE = ROOT / "src" / "briefing_infographic_store.py"
-CONFIG = ROOT / ".streamlit" / "config.toml"
+ARTWORK = ROOT / "src" / "briefing_adoption_artwork.py"
 READER = ROOT / "src" / "page_executive_briefings.py"
 
 
@@ -67,22 +67,41 @@ class AdoptionArtworkTests(unittest.TestCase):
         self.assertIn('data-analytics-section="briefing-infographic"', source)
         self.assertIn('download="ai-adoption-executive-infographic.png"', source)
         self.assertIn("max-width:700px", source)
-        self.assertIn("briefing-ai-adoption-studio-mobile.png", source)
+        self.assertIn('artwork_data_uri("mobile")', source)
 
-    def test_portfolio_uses_native_static_url_for_all_artwork(self):
-        config = CONFIG.read_text(encoding="utf-8")
+    def test_portfolio_embeds_cached_compressed_images_without_http_dependencies(self):
+        helper = ARTWORK.read_text(encoding="utf-8")
         store = STORE.read_text(encoding="utf-8")
         reader = READER.read_text(encoding="utf-8")
-        self.assertIn("enableStaticServing = true", config)
-        desktop = "/app/static/briefing-ai-adoption-studio.png"
-        mobile = "/app/static/briefing-ai-adoption-studio-mobile.png"
-        self.assertIn(desktop, store)
-        self.assertIn(mobile, store)
-        self.assertIn(desktop, reader)
-        self.assertNotIn("/briefing-artwork/", store)
-        self.assertNotIn("/briefing-artwork/", reader)
+        self.assertIn("@lru_cache(maxsize=3)", helper)
+        self.assertIn('data:{mime};base64,', helper)
+        self.assertIn('briefing-ai-adoption-studio.webp', helper)
+        self.assertIn('briefing-ai-adoption-studio-mobile.webp', helper)
+        self.assertIn('briefing-ai-adoption-studio-thumbnail.webp', helper)
+        self.assertIn('artwork_data_uri("desktop")', store)
+        self.assertIn('artwork_data_uri("mobile")', store)
+        self.assertIn('artwork_data_uri("thumbnail")', reader)
+        self.assertIn('if not asset:', store)
+        self.assertIn('return infographic_html(', store)
+        self.assertNotIn('/app/static/briefing-ai-adoption-studio', store)
+        self.assertNotIn('/app/static/briefing-ai-adoption-studio', reader)
         self.assertIn('loading="lazy"', reader)
         self.assertIn('loading="eager"', store)
+
+    def test_embedded_webp_assets_are_well_formed_when_available(self):
+        # WebP files are generated in CI and committed as verified repository assets.
+        for name in (
+            "briefing-ai-adoption-studio.webp",
+            "briefing-ai-adoption-studio-mobile.webp",
+            "briefing-ai-adoption-studio-thumbnail.webp",
+        ):
+            path = ROOT / "static" / name
+            if not path.exists():
+                continue
+            blob = path.read_bytes()
+            self.assertGreater(len(blob), 1024)
+            self.assertEqual(blob[:4], b"RIFF")
+            self.assertEqual(blob[8:12], b"WEBP")
 
 
 if __name__ == "__main__":

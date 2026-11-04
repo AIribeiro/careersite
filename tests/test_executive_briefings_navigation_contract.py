@@ -130,7 +130,7 @@ class BriefingsNavigationContract(unittest.TestCase):
     def test_main_has_dedicated_route_and_cms_preserves_other_article_routes(self):
         main = (SRC.parent / "main.py").read_text(encoding="utf-8")
         cms = (SRC / "site_cms.py").read_text(encoding="utf-8")
-        self.assertIn('"briefing": executive_briefing_page', main)
+        self.assertIn('render_page = executive_briefing_page if PAGE == "briefing" else executive_briefings', main)
         app = (SRC.parent / "app.py").read_text(encoding="utf-8")
         self.assertIn('Route("/briefing/{slug}", _briefing_article', app)
         self.assertIn('return await _thinking_article(request, page_override="briefing")', app)

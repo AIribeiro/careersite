@@ -116,7 +116,7 @@ def home_featured_article() -> str:
 
     image = (
         f'<img src="{image_url}" alt="{image_alt}" loading="lazy" decoding="async">'
-        if article.image_url else
+        if image_source else
         '<span class="home-featured-art-fallback" aria-hidden="true">AI · Data · Leadership</span>'
     )
     return (

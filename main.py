@@ -182,8 +182,12 @@ else:
     # Bind article interactions before the generic analytics listener. The
     # share guard then prevents social-share controls from being misclassified
     # as contact or generic article-click conversions.
-    inject_article_analytics(PAGE, CMS_ARTICLE_META or ARTICLE_META, source="streamlit")
-    inject_share_guard()
+    # Only an actual article reader needs the secondary session, heartbeat,
+    # share guard and click listener. Catalogue clicks are captured by the
+    # lightweight base analytics client with the destination article slug.
+    if CMS_ARTICLE_META is not None or ARTICLE_META is not None:
+        inject_article_analytics(PAGE, CMS_ARTICLE_META or ARTICLE_META, source="streamlit")
+        inject_share_guard()
     inject_analytics(PAGE, source="streamlit")
     mount_behavior_telemetry(PAGE, CMS_ARTICLE_META or ARTICLE_META)
     if PAGE == "thinking" and CMS_ARTICLE_META is not None and CMS_ARTICLE_META.slug.startswith("weekly-ai-"):

@@ -723,12 +723,23 @@ def contact_block() -> str:
 def _briefing_catalog_art(slug: str) -> str:
     """Branded, article-specific graphic with no network images or inline SVG."""
     if slug == ADOPTION_SLUG:
+        from briefing_adoption_artwork import artwork_data_uri
+        thumbnail = artwork_data_uri("thumbnail")
+        if thumbnail:
+            return (
+                '<div class="briefings-catalog-art briefings-catalog-art--adoption-svg" '
+                'aria-hidden="true">'
+                '<img src="' + thumbnail + '" alt="" '
+                'loading="lazy" decoding="async"/></div>'
+            )
+        # A readable designed fallback beats a blank card if an asset is absent.
         return (
-            '<div class="briefings-catalog-art briefings-catalog-art--adoption-svg" '
-            'aria-hidden="true">'
-            '<span>AI adoption · Four leadership responses</span>'
-            '<img src="/app/static/briefing-ai-adoption-studio.png" alt="" '
-            'loading="lazy" decoding="async"/></div>'
+            '<div class="briefings-catalog-art" aria-hidden="true">'
+            '<span class="briefings-catalog-art-kicker">Adoption is not one problem</span>'
+            '<div class="briefings-art-options"><span>Develop</span>'
+            '<span>Empower</span><span>Engage</span></div>'
+            '<div class="briefings-art-connector">Support · Assess work readiness</div>'
+            '</div>'
         )
     if slug == FIRST_SLUG:
         return (

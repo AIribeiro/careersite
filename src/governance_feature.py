@@ -161,7 +161,7 @@ GOVERNANCE_FEATURE = r'''
 .site .gf .cycle{grid-column:1/-1;grid-row:1}
 .site .gf .bottom{grid-template-columns:1fr 1fr}
 .site .gf .bottom .response{grid-column:1/-1}
-.site .gf .stage{max-width:580px}
+.site .gf .stage{max-width:630px}
 }
 @media(max-width:740px){
 .site .gf{padding:54px 0}.site .gf .gw{width:calc(100% - 28px)}
@@ -179,8 +179,8 @@ GOVERNANCE_FEATURE = r'''
 @media(max-width:480px){
 .site .gf .ring{display:none}
 .site .gf .stage{aspect-ratio:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:115px}
-.site .gf .node{position:static;transform:none;width:auto;min-height:89px}
-.site .gf .core{left:0;top:0;transform:none;width:100%;height:107px;aspect-ratio:auto;border-radius:13px}
+.site .gf .node{position:static;transform:none;width:auto;min-height:98px}
+.site .gf .core{left:0;top:0;transform:none;width:100%;height:111px;aspect-ratio:auto;border-radius:13px}
 .site .gf .core strong{font-size:19px}.site .gf .core span{font-size:11px}
 .site .gf .cycle .footnote{margin-top:12px}
 .site .gf figcaption strong{font-size:17px}.site .gf figcaption small{font-size:10px}
@@ -212,10 +212,10 @@ GOVERNANCE_FEATURE = r'''
 </div>
 <div class="bottom">
 <section class="panel"><h3 class="label">04 / Operating mechanisms</h3><ul><li><strong>Trusted inputs</strong><span>Sources, quality, lineage and access</span></li><li><strong>Decision ownership</strong><span>Named authority, decision rights and escalation</span></li><li><strong>Control by consequence</strong><span>Risk tier, evidence and human oversight</span></li><li><strong>Traceable outcomes</strong><span>Versions, sources and decision records</span></li><li><strong>Monitoring after launch</strong><span>Performance, drift and intervention thresholds</span></li><li><strong>Material-change review</strong><span>New model, data sources, users or purpose</span></li></ul></section>
-<section class="panel approval"><h3 class="label">05 / Seven questions before “go”</h3><ol><li><i aria-hidden="true">1</i><div><strong>Purpose</strong><span>What changes — and what if the AI is wrong?</span></div></li><li><i aria-hidden="true">2</i><div><strong>Data</strong><span>Who owns the sources, quality and permitted use?</span></div></li><li><i aria-hidden="true">3</i><div><strong>Accountability</strong><span>Who owns the outcome and who can stop use?</span></div></li><li><i aria-hidden="true">4</i><div><strong>Boundaries</strong><span>Which actions are outside its authority?</span></div></li><li><i aria-hidden="true">5</i><div><strong>Evidence</strong><span>What proof and risk acceptance justify release?</span></div></li><li><i aria-hidden="true">6</i><div><strong>Traceability</strong><span>Could we reconstruct a material outcome?</span></div></li><li><i aria-hidden="true">7</i><div><strong>Monitoring</strong><span>What triggers intervention or reassessment?</span></div></li></ol></section>
+<section class="panel approval"><h3 class="label">05 / Seven questions before “go”</h3><ol><li><i aria-hidden="true">1</i><div><strong>Purpose</strong><span>What changes — and what if the AI is wrong?</span></div></li><li><i aria-hidden="true">2</i><div><strong>Data</strong><span>Who owns the sources, quality and permitted use?</span></div></li><li><i aria-hidden="true">3</i><div><strong>Accountability</strong><span>Who owns the outcome and who can stop use?</span></div></li><li><i aria-hidden="true">4</i><div><strong>Boundaries</strong><span>What is outside its authority, and where is human judgment required?</span></div></li><li><i aria-hidden="true">5</i><div><strong>Evidence</strong><span>What proof and risk acceptance justify release?</span></div></li><li><i aria-hidden="true">6</i><div><strong>Traceability</strong><span>Could we reconstruct a material outcome?</span></div></li><li><i aria-hidden="true">7</i><div><strong>Monitoring</strong><span>What triggers intervention or reassessment?</span></div></li></ol></section>
 <section class="panel response"><h3 class="label">06 / Change and response</h3><ol><li><strong>Detect change</strong><span>Data, behavior, use or context shifts</span></li><li><strong>Escalate</strong><span>Notify the named decision authority</span></li><li><strong>Reassess</strong><span>Revisit controls and approval evidence</span></li><li><strong>Continue · constrain · stop</strong><span>Document the revised decision</span></li></ol></section>
 </div>
-<div class="signals"><h3>EXECUTIVE ASSURANCE · FOUR OBSERVABLE SIGNALS</h3><div class="four"><div><strong>KNOW</strong><span>Where material AI is used and for which purpose</span></div><div><strong>OWN</strong><span>Who owns business, data and technical outcomes</span></div><div><strong>EXPLAIN</strong><span>The evidence and decisions behind material outcomes</span></div><div><strong>RESPOND</strong><span>When to intervene and who can act</span></div></div></div>
+<div class="signals"><h3>EXECUTIVE ASSURANCE · FOUR OBSERVABLE SIGNALS</h3><div class="four"><div><strong>KNOW</strong><span>Where material AI is used and for which purpose</span></div><div><strong>OWN</strong><span>Named owners for the business, data and system behavior</span></div><div><strong>EXPLAIN</strong><span>The evidence and decisions behind material outcomes</span></div><div><strong>RESPOND</strong><span>When to intervene and who can act</span></div></div></div>
 <p class="takeaway">Governance is not a one-time approval. It is a continuous system of accountable decisions.</p>
 <figcaption><div><strong>Jair Ribeiro</strong><small>Enterprise AI Adoption · Governance · Business Transformation</small></div><span class="badge">AI LEADER</span></figcaption>
 </figure>

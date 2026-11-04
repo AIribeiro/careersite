@@ -137,8 +137,8 @@ def _approved_adoption_studio(article, row: dict) -> str:
     caption = ("Original executive infographic by Jair Ribeiro. The four responses "
                "are situational, not permanent employee types; the work-readiness "
                "checks and thirty-day diagnostic determine the next management step.")
-    asset = "/app/static/briefing-ai-adoption-studio.svg"
-    mobile = "/app/static/briefing-ai-adoption-studio-mobile.svg"
+    asset = "/app/static/briefing-ai-adoption-studio.png"
+    mobile = "/app/static/briefing-ai-adoption-studio-mobile.png"
     return (
         INFOGRAPHIC_CSS + _STUDIO_ADOPTION_CSS
         + '<section class="ebi-section ebi-studio" data-analytics-section="briefing-infographic" '
@@ -151,7 +151,7 @@ def _approved_adoption_studio(article, row: dict) -> str:
         + '" loading="eager" decoding="async"/></picture>'
         + '<figcaption>' + escape(caption) + '</figcaption>'
         + '<div class="ebi-studio-actions"><a href="' + asset
-        + '" download="ai-adoption-executive-infographic.svg" '
+        + '" download="ai-adoption-executive-infographic.png" '
         + 'aria-label="Download the original executive AI adoption infographic">'
         + 'Download the infographic</a></div>'
         + '</figure></section>'

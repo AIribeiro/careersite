@@ -6,7 +6,6 @@ import streamlit.components.v1 as components
 from site_assets import LINKEDIN, MEDIUM, EMAIL
 from site_social_preview import PUBLIC_URL as SOCIAL_IMAGE, ensure_social_preview
 from thinking_articles import ArticleMeta, article_social_image_url, article_url
-from thinking_social import ensure_article_social_assets
 
 try:
     ensure_social_preview()
@@ -167,6 +166,8 @@ def inject_metadata(page: str, title: str) -> None:
 
 def inject_article_metadata(article: ArticleMeta) -> None:
     """Inject article SEO metadata and bind footer sharing behavior."""
+    from thinking_social import ensure_article_social_assets
+
     try:
         ensure_article_social_assets(article)
     except OSError:

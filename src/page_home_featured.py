@@ -86,6 +86,34 @@ def current_home_article(*, exclude_slug: str = "") -> HomeArticlePreview:
     )
 
 
+def current_governance_writing(*, exclude_slug: str = "") -> HomeArticlePreview:
+    """Instant, governance-relevant reading without a synchronous CMS fetch.
+
+    The shortlist consists only of previously verified published records and
+    includes both Thinking articles and Executive AI Briefings. Selection still
+    rotates on each page render. All other pages retain the live CMS catalogue.
+    """
+    from governance_writing_snapshot import GOVERNANCE_WRITING
+
+    alternatives = tuple(item for item in GOVERNANCE_WRITING if item[1] != exclude_slug)
+    title, slug, deck, kind, category, minutes, published = choice(
+        alternatives if alternatives else GOVERNANCE_WRITING
+    )
+    is_briefing = kind == "Executive Briefing"
+    return HomeArticlePreview(
+        slug=slug,
+        title=title,
+        deck=deck,
+        kind_topic=f"{kind} · {category}",
+        published_label=published,
+        read_minutes=minutes,
+        href=f"?page={'briefing' if is_briefing else 'thinking'}&article={slug}",
+        image_url="",
+        image_alt=title,
+        content_type="briefing" if is_briefing else "article",
+    )
+
+
 def home_featured_article() -> str:
     """Render the compact editorial tile ahead of Home's contact CTA."""
     article = current_home_article()
@@ -181,14 +209,15 @@ def home_weekly_ai_strip() -> str:
 </div></div></section>'''
 
 
-def compact_writing_footer(*, exclude_slug: str = "") -> str:
+def compact_writing_footer(*, exclude_slug: str = "", local_fast: bool = False) -> str:
     """A restrained editorial continuation for public pages.
 
     The small cover is CSS-only on purpose: CMS cover images are much too large
     and may be unavailable in cross-page footers. A deterministic typographic
     cover prevents broken assets, full-size images and layout shifts.
     """
-    article = current_home_article(exclude_slug=exclude_slug)
+    article = (current_governance_writing(exclude_slug=exclude_slug) if local_fast
+               else current_home_article(exclude_slug=exclude_slug))
     is_briefing = article.content_type == "briefing"
     href = escape(article.href, quote=True)
     slug = escape(article.slug, quote=True)
@@ -246,7 +275,10 @@ def inject_writing_footer(document: str, page: str, *, article_slug: str = "") -
     if "<main" not in document or "</main>" not in document:
         return document
 
-    feature = compact_writing_footer(exclude_slug=article_slug)
+    feature = compact_writing_footer(
+        exclude_slug=article_slug,
+        local_fast=(page == "ai-data-governance"),
+    )
     briefing_contact = '<section class="briefings-conversation"'
     if briefing_contact in document:
         return document.replace(briefing_contact, feature + briefing_contact, 1)

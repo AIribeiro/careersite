@@ -1,4 +1,4 @@
-name: AI Adoption image delivery
+name: AI Adoption inline image delivery
 
 on:
   push:
@@ -6,19 +6,19 @@ on:
       - '.github/workflows/ai-adoption-image-delivery.yml'
       - 'static/briefing-ai-adoption-studio.svg'
       - 'static/briefing-ai-adoption-studio-mobile.svg'
+      - 'src/briefing_adoption_artwork.py'
       - 'src/briefing_infographic_store.py'
       - 'src/page_executive_briefings.py'
       - 'tests/test_briefing_adoption_studio.py'
-      - '.streamlit/config.toml'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  render-and-verify:
+  embed-and-render:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 13
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,112 +26,123 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install image and Streamlit dependencies
-        run: python -m pip install --disable-pip-version-check 'streamlit==1.64.0' 'CairoSVG==2.8.2' 'Pillow==12.3.0'
-      - name: Rasterize approved artwork as supported PNG images
+      - name: Install production Streamlit, raster and browser dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'streamlit==1.64.0' 'CairoSVG==2.8.2' 'Pillow==12.3.0' 'playwright==1.58.0'
+          python -m playwright install chromium
+      - name: Build compressed desktop mobile and library art
         run: |
           python - <<'PY'
           from pathlib import Path
           from io import BytesIO
           from PIL import Image, ImageStat
           import cairosvg
+          root = Path("static")
           inputs = (
-              ('briefing-ai-adoption-studio.svg', 'briefing-ai-adoption-studio.png', (1800,2400)),
-              ('briefing-ai-adoption-studio-mobile.svg', 'briefing-ai-adoption-studio-mobile.png', (840,3580)),
+              ("briefing-ai-adoption-studio.svg", "briefing-ai-adoption-studio", (1800,2400)),
+              ("briefing-ai-adoption-studio-mobile.svg", "briefing-ai-adoption-studio-mobile", (840,3580)),
           )
-          for source, dest, size in inputs:
-              src = Path('static') / source
-              output = Path('static') / dest
-              raster = cairosvg.svg2png(bytestring=src.read_bytes(), output_width=size[0], output_height=size[1])
-              image = Image.open(BytesIO(raster)).convert('RGB')
-              assert image.size == size, (source,image.size,size)
-              pixels = ImageStat.Stat(image)
-              assert min(pixels.stddev) > 20, f'Render appears blank: {source}'
-              image.save(output, format='PNG', optimize=True)
-              assert output.stat().st_size > 15000
-              with Image.open(output) as check:
+          for source, stem, size in inputs:
+              rendered = cairosvg.svg2png(
+                  bytestring=(root/source).read_bytes(),
+                  output_width=size[0], output_height=size[1]
+              )
+              image = Image.open(BytesIO(rendered)).convert("RGB")
+              assert image.size == size
+              assert min(ImageStat.Stat(image).stddev) > 20, f"Image is blank: {source}"
+              png = root/(stem + ".png")
+              webp = root/(stem + ".webp")
+              image.save(png, format="PNG", optimize=True)
+              image.save(webp, format="WEBP", quality=85, method=6)
+              with Image.open(webp) as check:
                   check.verify()
-              print(f'Validated {dest}: {image.size}, {output.stat().st_size:,} bytes')
+              assert 1024 < webp.stat().st_size < 250_000, f"Artwork too large: {webp}"
+              print(stem, "PNG", png.stat().st_size, "WebP", webp.stat().st_size)
+          image = Image.open(root/"briefing-ai-adoption-studio.png").convert("RGB")
+          thumb = image.crop((0,0,1800,600)).resize((900,300),Image.Resampling.LANCZOS)
+          thumb.save(root/"briefing-ai-adoption-studio-thumbnail.webp",format="WEBP",quality=86,method=6)
+          assert (root/"briefing-ai-adoption-studio-thumbnail.webp").stat().st_size < 70_000
+          print("Thumbnail bytes:", (root/"briefing-ai-adoption-studio-thumbnail.webp").stat().st_size)
           PY
-      - name: Verify article image contracts and graphics
-        run: python -m unittest discover -s tests -p 'test_briefing_adoption_studio.py' -v
-      - name: Start minimal Streamlit server using production static config
+      - name: Check approved art contracts
         run: |
-          printf 'import streamlit as st\nst.title("Native static asset smoke")\n' > _static_image_smoke.py
-          python -m streamlit run _static_image_smoke.py --server.headless=true --server.port=8521 > /tmp/ai-adoption-static.log 2>&1 &
-      - name: Prove actual HTTP image delivery and raster bytes
+          python -m unittest discover -s tests -p 'test_briefing_adoption_studio.py' -v
+          PYTHONPATH=src python - <<'PY'
+          from briefing_adoption_artwork import artwork_data_uri
+          for variant in ("desktop","mobile","thumbnail"):
+              uri=artwork_data_uri(variant)
+              assert uri.startswith("data:image/webp;base64,"), variant
+              assert len(uri)<355000, (variant,len(uri))
+              print("INLINED ART READY",variant,"characters",len(uri))
+          PY
+      - name: Launch the same st.html markup used by the public article
         run: |
-          set -euo pipefail
-          for attempt in $(seq 1 40); do
-            if curl -fsS http://127.0.0.1:8521/_stcore/health >/dev/null; then
-              break
-            fi
-            sleep 1
-          done
-          for image in briefing-ai-adoption-studio.png briefing-ai-adoption-studio-mobile.png; do
-            url="http://127.0.0.1:8521/app/static/$image"
-            code=$(curl -sS -o "/tmp/$image" -w '%{http_code}' "$url")
-            test "$code" = 200 || { echo "FAIL: $image returned $code"; exit 1; }
-            mimetype=$(curl -sSI "$url" | grep -i '^content-type:' | tr -d '\r' | tr '[:upper:]' '[:lower:]')
-            echo "$image: $mimetype"
-            echo "$mimetype" | grep -q 'image/png' || exit 1
-            python -c 'from PIL import Image; import sys; img=Image.open(sys.argv[1]); img.verify(); print("Verified raster", sys.argv[1])' "/tmp/$image"
-          done
-      - name: Install browser for real image rendering test
-        run: |
-          python -m pip install --quiet playwright==1.58.0
-          python -m playwright install chromium
-      - name: Verify desktop and iPad/mobile image decoding in Streamlit HTML
-        run: |
-          python - <<'PY'
+          cat > _adoption_inline_smoke.py <<'PY'
           from pathlib import Path
-          Path("_static_image_smoke.py").write_text(
-              'import streamlit as st\n'
-              'st.title("Native static asset smoke")\n'
-              'st.html("""<picture>'
-              '<source media="(max-width:700px)" srcset="/app/static/briefing-ai-adoption-studio-mobile.png"/>'
-              '<img id="ai-adoption-test-graphic" src="/app/static/briefing-ai-adoption-studio.png" '
-              'alt="AI Adoption" loading="eager" decoding="async" style="display:block;width:100%;max-width:900px;height:auto"/>'
-              '</picture>""")\n',
-              encoding="utf-8",
+          import sys
+          sys.path.insert(0,str(Path(__file__).resolve().parent/"src"))
+          import streamlit as st
+          from briefing_adoption_artwork import artwork_data_uri
+          desktop=artwork_data_uri("desktop")
+          mobile=artwork_data_uri("mobile")
+          thumb=artwork_data_uri("thumbnail")
+          assert desktop and mobile and thumb
+          st.title("Inline adoption image verification")
+          st.html(
+              '<div class="site"><picture>'
+              '<source media="(max-width:700px)" srcset="' + mobile + '"/>'
+              '<img id="adoption-art" src="' + desktop +
+              '" alt="AI adoption briefing infographic" loading="eager" decoding="async" '
+              'style="display:block;width:100%;max-width:900px;height:auto"/>'
+              '</picture><img id="adoption-thumbnail" src="' + thumb +
+              '" alt="AI adoption library card" loading="eager" decoding="async" '
+              'style="display:block;width:220px;height:auto"/>'
+              '</div>'
           )
           PY
-          python -m streamlit run _static_image_smoke.py --server.headless=true --server.port=8522 > /tmp/ai-adoption-browser.log 2>&1 &
+          python -m streamlit run _adoption_inline_smoke.py --server.headless=true --server.port=8522 > /tmp/adoption-inline-smoke.log 2>&1 &
+      - name: Browser QA of the actual inline picture in desktop and mobile layout
+        run: |
           python - <<'PY'
           from playwright.sync_api import sync_playwright
           with sync_playwright() as p:
-              browser = p.chromium.launch(headless=True)
-              for width, height, expected in [
-                  (1100, 860, "briefing-ai-adoption-studio.png"),
-                  (390, 844, "briefing-ai-adoption-studio-mobile.png"),
-              ]:
-                  page = browser.new_page(viewport={"width":width,"height":height})
+              browser=p.chromium.launch(headless=True)
+              for width,height in ((1200,900),(768,1024),(390,844)):
+                  page=browser.new_page(viewport={"width":width,"height":height})
+                  requests=[]
+                  page.on("request",lambda req: requests.append(req.url) if "/app/static" in req.url else None)
                   page.goto("http://127.0.0.1:8522/",wait_until="domcontentloaded",timeout=30000)
-                  image = page.locator("#ai-adoption-test-graphic")
-                  image.wait_for(timeout=25000)
-                  page.wait_for_function(
-                      '() => { const i=document.getElementById("ai-adoption-test-graphic"); '
-                      'return i && i.complete && i.naturalWidth>0 && i.naturalHeight>0; }',
-                      timeout=25000,
-                  )
-                  actual=image.evaluate("(img) => ({width:img.naturalWidth,height:img.naturalHeight,src:img.currentSrc})")
-                  assert expected in actual["src"], actual
-                  print(f"VISIBLE BROWSER IMAGE {width}px: {actual}",flush=True)
+                  for selector in ("#adoption-art","#adoption-thumbnail"):
+                      page.locator(selector).wait_for(timeout=30000)
+                      page.wait_for_function(
+                          """(selector) => {
+                              const img=document.querySelector(selector);
+                              return !!(img && img.complete && img.naturalWidth>0 && img.naturalHeight>0);
+                          }""",
+                          arg=selector,timeout=30000
+                      )
+                      data=page.locator(selector).evaluate(
+                          "(img) => ({width:img.naturalWidth,height:img.naturalHeight,src:img.currentSrc.slice(0,35)})"
+                      )
+                      assert data["src"].startswith("data:image/webp;base64,"),data
+                      print(f"VISIBLE {width}px {selector}: {data}",flush=True)
+                  assert not requests,requests
                   page.close()
               browser.close()
           PY
-      - name: Commit tested static raster assets
+      - name: Commit compact browser-verified artwork
         if: github.ref == 'refs/heads/main'
         run: |
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           git add static/briefing-ai-adoption-studio.png static/briefing-ai-adoption-studio-mobile.png
+          git add static/briefing-ai-adoption-studio.webp static/briefing-ai-adoption-studio-mobile.webp static/briefing-ai-adoption-studio-thumbnail.webp
           if ! git diff --cached --quiet; then
-            git commit -m "Ship verified first-party PNG assets for AI adoption briefing [skip ci]"
+            git commit -m "Publish compressed browser-verified inline AI Adoption assets [skip ci]"
             git push origin HEAD:main
           fi
-      - name: Show diagnostics on failure
+      - name: Diagnostics if validation fails
         if: failure()
         run: |
-          cat /tmp/ai-adoption-static.log || true
+          cat /tmp/adoption-inline-smoke.log || true
           ls -lah static/briefing-ai-adoption* || true

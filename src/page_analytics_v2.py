@@ -3,16 +3,9 @@ from __future__ import annotations
 import streamlit as st
 
 from page_analytics import (
-    render_analytics_dashboard as render_site_analytics_dashboard,
     _noindex, _dashboard_css, REPORTING_WINDOWS, REPORTING_WINDOW_LABELS, _fetch_dashboard,
 )
 from analytics_reporting_period import initialize_reporting_period, remember_reporting_period
-from page_article_analytics import render_article_analytics, render_reader_sources
-from page_content_intelligence import render_content_intelligence
-from page_weekly_ai_analytics import render_weekly_ai_analytics
-from page_executive_briefings_analytics import render_executive_briefings_analytics
-from page_public_portfolio_overview import render_public_portfolio_overview
-from page_linkedin_career_scorecard import render_linkedin_career_scorecard
 
 
 _VIEWS = {
@@ -73,6 +66,7 @@ def _render_public_analytics() -> None:
     st.divider()
 
     if section == "overview":
+        from page_public_portfolio_overview import render_public_portfolio_overview
         render_public_portfolio_overview()
         return
 
@@ -99,11 +93,14 @@ def _render_public_analytics() -> None:
     if str(window) in ("last_hour","today"):
         st.caption("Short windows are useful for monitoring, not for judging hiring or content outcomes.")
     if kind == "weekly_ai":
+        from page_weekly_ai_analytics import render_weekly_ai_analytics
         render_weekly_ai_analytics(str(window))
         return
     if kind == "briefings":
+        from page_executive_briefings_analytics import render_executive_briefings_analytics
         render_executive_briefings_analytics(str(window))
         return
+    from page_content_intelligence import render_content_intelligence
     render_content_intelligence(str(kind), str(window))
     # Source-level attribution audits and unfiltered legacy detail belong in
     # the authenticated Private analytics workspace, not the public dashboard.

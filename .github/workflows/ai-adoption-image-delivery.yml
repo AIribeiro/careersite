@@ -77,6 +77,49 @@ jobs:
             echo "$mimetype" | grep -q 'image/png' || exit 1
             python -c 'from PIL import Image; import sys; img=Image.open(sys.argv[1]); img.verify(); print("Verified raster", sys.argv[1])' "/tmp/$image"
           done
+      - name: Install browser for real image rendering test
+        run: |
+          python -m pip install --quiet playwright==1.58.0
+          python -m playwright install chromium
+      - name: Verify desktop and iPad/mobile image decoding in Streamlit HTML
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          Path("_static_image_smoke.py").write_text(
+              'import streamlit as st\n'
+              'st.title("Native static asset smoke")\n'
+              'st.html("""<picture>'
+              '<source media="(max-width:700px)" srcset="/app/static/briefing-ai-adoption-studio-mobile.png"/>'
+              '<img id="ai-adoption-test-graphic" src="/app/static/briefing-ai-adoption-studio.png" '
+              'alt="AI Adoption" loading="eager" decoding="async" style="display:block;width:100%;max-width:900px;height:auto"/>'
+              '</picture>""")\n',
+              encoding="utf-8",
+          )
+          PY
+          python -m streamlit run _static_image_smoke.py --server.headless=true --server.port=8522 > /tmp/ai-adoption-browser.log 2>&1 &
+          python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True)
+              for width, height, expected in [
+                  (1100, 860, "briefing-ai-adoption-studio.png"),
+                  (390, 844, "briefing-ai-adoption-studio-mobile.png"),
+              ]:
+                  page = browser.new_page(viewport={"width":width,"height":height})
+                  page.goto("http://127.0.0.1:8522/",wait_until="domcontentloaded",timeout=30000)
+                  image = page.locator("#ai-adoption-test-graphic")
+                  image.wait_for(timeout=25000)
+                  page.wait_for_function(
+                      '() => { const i=document.getElementById("ai-adoption-test-graphic"); '
+                      'return i && i.complete && i.naturalWidth>0 && i.naturalHeight>0; }',
+                      timeout=25000,
+                  )
+                  actual=image.evaluate("(img) => ({width:img.naturalWidth,height:img.naturalHeight,src:img.currentSrc})")
+                  assert expected in actual["src"], actual
+                  print(f"VISIBLE BROWSER IMAGE {width}px: {actual}",flush=True)
+                  page.close()
+              browser.close()
+          PY
       - name: Commit tested static raster assets
         if: github.ref == 'refs/heads/main'
         run: |

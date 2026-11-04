@@ -32,7 +32,7 @@ These measurements predate some or all of the fixes below. The low-sample Impact
 | Startup | Remove import-time fallback CV generation and defer `fpdf` import; canonical committed CV remains served as static PDF | CV download URL preserved |
 | Cross-page editorial footer | A verified snapshot of all **28** published, non-Weekly AI articles and Executive Briefings; no CMS query on routine non-home footers | Random selection, publication links and content types preserved; individual libraries remain live |
 | Governance footer | Governance-specific curated writing selection requires no network call | Contextual recommendations preserved |
-| Home | Home-only Executive Briefings teaser extracted from the approximately 80 KB briefing engine into a small module | Original copy, colors, CSS structure and analytics event preserved |
+| Home | Home-only Executive Briefings teaser extracted from the approximately 80 KB briefing engine; the rotating front-page editorial preview now draws from the same 28-item verified local snapshot | Original copy, CSS structure, randomized Thinking/Briefing selection and analytics events preserved |
 | Public photography | Prebuilt, cacheable, responsive WebP variants for 12 curated JPEG/display-width combinations; fall back to canonical original if a derivative is unavailable | Real photographs, alt text and image-loading safety preserved |
 | About | Full credentials and verification archive now starts collapsed; still available with a disclosure control | All source content retained |
 | Article metadata | Defer `thinking_social` image-generation import until an article-specific metadata operation is needed | Article image handling remains intact |
@@ -50,7 +50,7 @@ Original JPEG/PNG files remain in the repository and are selected automatically 
 
 ## Remaining risk and next measurement
 
-1. **Home:** The main Home editorial feature still prefers live CMS metadata on a cold cache miss (public catalogue request has a five-second timeout). This preserves immediate new-publication visibility. If cold Home loads remain slow, replace it with a publishing-triggered snapshot or a non-blocking client refresh rather than allowing this request to gate the page.
+1. **Home freshness:** The main Home editorial preview now avoids the five-second CMS read and selects randomly from the verified published snapshot. Newly released writing will appear in the canonical libraries immediately, but the preview snapshot should be refreshed by the publication pipeline; this is a remaining freshness improvement, not a reason to add a blocking page-load request.
 2. **Thinking and Executive Briefings:** Actual catalogues must remain CMS-backed for publication accuracy. Their first request can wait on CMS; cached calls have a 180-second TTL, and individual readers have a 60-second TTL. Reassess backend latencies and query response size rather than hiding missing articles.
 3. **Private Analytics:** Read heavy query/range latency from owner-level logs and SQL `EXPLAIN` on the actual reporting views before changing dashboard semantics. No public measurements in the above table.
 4. **Streamlit Community Cloud:** Cold process creation, WebSocket setup, redeploy/wake behavior and network stalls cannot be ruled out from client vitals alone. Page-level Python timers were added to distinguish build/footer/emit durations.

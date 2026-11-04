@@ -23,7 +23,7 @@ def home() -> str:
 {home_whats_new()}
 
 <section class="section paper journey-section" data-analytics-section="home-choose-your-path"><div class="container">
-<div class="journey-intro"><p class="eyebrow">Explore further</p><h2>If you’d like to know a little more</h2><p>I’ve shared examples of what I’ve led, the choices behind the work, and questions I keep exploring about AI and Data.</p></div>
+<div class="journey-intro"><p class="eyebrow">About this portfolio</p><h2>AI strategy is only the beginning.</h2><p>I’m Jair Ribeiro. My focus is the leadership work that follows: choosing which AI and Data opportunities deserve attention, making ownership explicit, and helping organizations turn technology into changes in everyday operations. This portfolio brings together what I’ve led, how I approach governance and adoption, and the perspectives I publish for people making these decisions.</p></div>
 <div class="journey-grid">
 <a class="journey-card" href="?page=impact" target="_self" data-hq-event="journey_home_impact"><span class="journey-step">01 · Experience &amp; impact</span><h3>What I’ve led</h3><p>Explore leadership responsibilities, decisions and practical contributions across international enterprise settings.</p><span class="journey-link">Explore my experience →</span></a>
 <a class="journey-card" href="?page=ai-data-governance" target="_self" data-hq-event="journey_home_governance"><span class="journey-step">02 · Governance &amp; adoption</span><h3>How I make AI work</h3><p>See my approach to ownership, governance and adoption — the operating choices behind responsible enterprise use.</p><span class="journey-link">Explore governance →</span></a>

@@ -120,7 +120,7 @@ _STUDIO_ADOPTION_CSS = """<style>
 .site .ebi-studio-actions a:focus-visible{outline:3px solid #147ba0;outline-offset:3px}
 @media(max-width:700px){
  .site .ebi-studio-picture img.ebi-studio-desktop{display:none}
- .site .ebi-studio-picture img.ebi-studio-mobile{display:block;aspect-ratio:420/1790}
+ .site .ebi-studio-picture img.ebi-studio-mobile{display:block;aspect-ratio:3/4}
  .site .ebi-studio-figure{padding:8px}
  .site .ebi-studio-actions a{width:100%}
 }
@@ -161,7 +161,7 @@ def _approved_adoption_studio(article, row: dict) -> str:
         + '" loading="eager" decoding="async"/></div>'
         + '<figcaption>' + escape(caption) + '</figcaption>'
         + '<div class="ebi-studio-actions"><a href="' + asset
-        + '" download="ai-adoption-executive-infographic.png" '
+        + '" download="ai-adoption-executive-infographic.webp" '
         + 'aria-label="Download the original executive AI adoption infographic">'
         + 'Download the infographic</a></div>'
         + '</figure></section>'

@@ -39,7 +39,7 @@ RECOMMENDATIONS_CSS = """<style>
 .site .about-rec-card details[open] summary{margin-bottom:13px}
 .site .about-rec-full{padding:15px 0 0;margin-top:15px;border-top:1px solid #ece5dd}
 .site .about-rec-full p{font:400 13px/1.75 Arial,sans-serif;white-space:pre-line;margin:0;color:#46525d}
-.site .about-rec-language{font:600 10px/1.5 Arial,sans-serif;color:#82909a;display:block;margin-top:10px}
+.site .about-rec-language{font:600 10px/1.5 Arial,sans-serif;color:#82909a;display:block;margin-top:10px}\n.site .about-rec-translation{margin:12px 0 0!important;font:400 12px/1.6 Arial,sans-serif;color:#596b76}
 .site .about-rec-archive{margin-top:24px;padding:23px 27px;border:1px solid #d8cec4;background:#fefcf9}
 .site .about-rec-archive>summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px;color:#263f54;font:500 22px/1.35 Georgia,serif}
 .site .about-rec-archive>summary::marker{color:#9c6a4a}
@@ -110,7 +110,12 @@ def _quote(item: dict[str, object]) -> str:
     quote = _h(item["quote"])
     note = str(item.get("language_note") or "")
     lang = f'<span class="about-rec-language">{_h(note)}</span>' if note else ""
-    return f'<div class="about-rec-full"><p>{quote}</p>{lang}</div>'
+    translation = str(item.get("translation") or "")
+    translated = (
+        f'<p class="about-rec-translation"><strong>English translation:</strong> {_h(translation)}</p>'
+        if translation else ""
+    )
+    return f'<div class="about-rec-full"><p>{quote}</p>{lang}{translated}</div>'
 
 
 def _featured(item: dict[str, object]) -> str:
@@ -143,7 +148,16 @@ def _archive_item(item: dict[str, object]) -> str:
 
 def recommendations_section() -> str:
     records = load_recommendations()
-    featured = [item for item in records if item.get("featured")]
+    lead_order = {
+        "Claes Sandros": 0,
+        "Anna Börjesson Sandberg": 1,
+        "Kumara Datta": 2,
+        "Jim Edwards": 3,
+    }
+    featured = sorted(
+        (item for item in records if item.get("featured")),
+        key=lambda item: lead_order.get(str(item["name"]), 99),
+    )
     remaining = [item for item in records if not item.get("featured")]
     groups = (
         ("Community & leadership", "Volunteering, developing others, and cross-cultural work."),

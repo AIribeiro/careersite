@@ -415,34 +415,6 @@ async def _weekly_ai_cover(request):
     )
 
 
-async def _adoption_studio_infographic(request):
-    """Serve the approved executive adoption artwork as a tiny, self-contained SVG.
-
-    No remote image dependencies, no image processing during page render, and
-    only two named assets may be read from disk.
-    """
-    variant = str(request.path_params.get("variant") or "")
-    files = {
-        "desktop": "briefing-ai-adoption-studio.svg",
-        "mobile": "briefing-ai-adoption-studio-mobile.svg",
-    }
-    name = files.get(variant)
-    if not name:
-        return PlainTextResponse("Infographic not found", status_code=404)
-    file = (ROOT / "static" / name).resolve()
-    if not file.is_file() or not file.is_relative_to((ROOT / "static").resolve()):
-        return PlainTextResponse("Infographic not found", status_code=404)
-    return FileResponse(
-        file,
-        media_type="image/svg+xml",
-        headers={
-            "Cache-Control": "public, max-age=604800, stale-while-revalidate=604800",
-            "X-Content-Type-Options": "nosniff",
-            "Content-Security-Policy": "default-src 'none'; img-src data:",
-        },
-    )
-
-
 async def _weekly_ai_evergreen_image(_request):
     path = ROOT / "assets" / "weekly_ai_evergreen_visual.webp"
     if not path.is_file():
@@ -462,7 +434,6 @@ app = App(
     routes=[
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
         Route("/portfolio-image/{name:path}", _portfolio_image, methods=["GET", "HEAD"]),
-        Route("/briefing-artwork/ai-adoption-{variant}.svg", _adoption_studio_infographic, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/evergreen.webp", _weekly_ai_evergreen_image, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/{slug}.png", _weekly_ai_cover, methods=["GET", "HEAD"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),

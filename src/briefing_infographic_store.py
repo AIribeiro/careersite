@@ -113,12 +113,14 @@ _STUDIO_ADOPTION_SLUG = "ai-adoption-four-leadership-responses"
 _STUDIO_ADOPTION_CSS = """<style>
 .site .ebi-studio-figure{max-width:900px;margin-inline:auto;background:#fffdf9;padding:clamp(8px,1.4vw,20px);box-shadow:0 14px 38px rgba(19,42,62,.05)}
 .site .ebi-studio-picture img{width:100%;height:auto;display:block;max-width:100%;background:#fbfcfe;aspect-ratio:3/4}
+.site .ebi-studio-picture img.ebi-studio-mobile{display:none}
 .site .ebi-studio-actions{display:flex;justify-content:flex-end;margin-top:12px}
 .site .ebi-studio-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 17px;color:#0b3553!important;text-decoration:none!important;border:1px solid #8cafbf;border-radius:6px;font:700 12px/1.4 Arial,sans-serif;transition:background-color .2s}
 .site .ebi-studio-actions a:hover{background:#e9f4f7}
 .site .ebi-studio-actions a:focus-visible{outline:3px solid #147ba0;outline-offset:3px}
 @media(max-width:700px){
- .site .ebi-studio-picture img{aspect-ratio:420/1790}
+ .site .ebi-studio-picture img.ebi-studio-desktop{display:none}
+ .site .ebi-studio-picture img.ebi-studio-mobile{display:block;aspect-ratio:420/1790}
  .site .ebi-studio-figure{padding:8px}
  .site .ebi-studio-actions a{width:100%}
 }
@@ -152,10 +154,11 @@ def _approved_adoption_studio(article, row: dict) -> str:
         + 'data-hq-content-slug="' + escape(article.slug, quote=True) + '">'
         + '<figure class="ebi-figure ebi-studio-figure">'
         + '<span class="ebi-kicker">The executive visual · Four leadership responses</span>'
-        + '<picture class="ebi-picture ebi-studio-picture">'
-        + '<source media="(max-width:700px)" srcset="' + mobile + '"/>'
-        + '<img src="' + asset + '" alt="' + escape(alt, quote=True)
-        + '" loading="eager" decoding="async"/></picture>'
+        + '<div class="ebi-picture ebi-studio-picture">'
+        + '<img class="ebi-studio-desktop" src="' + asset + '" alt="' + escape(alt, quote=True)
+        + '" loading="eager" decoding="async"/>'
+        + '<img class="ebi-studio-mobile" src="' + mobile + '" alt="' + escape(alt, quote=True)
+        + '" loading="eager" decoding="async"/></div>'
         + '<figcaption>' + escape(caption) + '</figcaption>'
         + '<div class="ebi-studio-actions"><a href="' + asset
         + '" download="ai-adoption-executive-infographic.png" '

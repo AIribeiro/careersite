@@ -67,7 +67,7 @@ class AdoptionArtworkTests(unittest.TestCase):
         self.assertIn('data-analytics-section="briefing-infographic"', source)
         self.assertIn('download="ai-adoption-executive-infographic.svg"', source)
         self.assertIn("max-width:700px", source)
-        self.assertIn("ai-adoption-mobile.svg", source)
+        self.assertIn("briefing-ai-adoption-studio-mobile.svg", source)
 
     def test_portfolio_uses_native_static_url_for_all_artwork(self):
         config = CONFIG.read_text(encoding="utf-8")

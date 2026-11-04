@@ -174,6 +174,10 @@ else:
     page_html_size = len(page_document.encode("utf-8"))
     st.html(CSS + IMAGE_CSS + '<div class="site">' + page_document + '</div>')
     html_done = perf_counter()
+    if PAGE == "home":
+        # Live publications load in the browser, so CMS latency never blocks Home.
+        from home_whats_new import inject_live_home_update
+        inject_live_home_update()
 
     # Bind article interactions before the generic analytics listener. The
     # share guard then prevents social-share controls from being misclassified

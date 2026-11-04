@@ -50,6 +50,21 @@ class GovernanceFeatureTests(unittest.TestCase):
         self.assertNotIn("Executive Sponsor", html)
         self.assertNotIn("Policies & Standards", html)
 
+    def test_semantic_icons_preserve_factual_text_and_mobile_layout(self):
+        html = GOVERNANCE_FEATURE
+        self.assertEqual(html.count('class="gf-icon gf-icon-principle"'), 4)
+        self.assertEqual(html.count('class="gf-icon gf-icon-mechanism"'), 6)
+        self.assertEqual(html.count('class="gf-icon gf-icon-signal"'), 4)
+        self.assertEqual(html.count('class="gf-icon gf-icon-core"'), 1)
+        self.assertEqual(html.count('class="gf-mechanism"'), 6)
+        self.assertEqual(html.count('class="gf-signal"'), 4)
+        self.assertEqual(html.count('<svg '), html.count('</svg>'))
+        self.assertIn('padding-top:139px', html)
+        self.assertIn('height:132px', html)
+        self.assertNotIn('class="step"', html)
+        self.assertNotIn('<img ', html)
+        self.assertNotIn('data:image', html)
+
     def test_premium_hierarchy_and_semantic_structure(self):
         html = GOVERNANCE_FEATURE
         self.assertIn('class="foundation-head"', html)

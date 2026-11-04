@@ -1649,8 +1649,8 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
         + '<div class="recent-grid">' + ''.join(cards) + '</div>'
         + pagination + '</div></section>'
         '<style>'
-        /* The six-item CMS catalogue must not inherit intrinsic grid track sizes.
-           One oversized cover previously made the adjacent column unreadably narrow. */
+        # The six-item catalogue must never allow covers to stretch CSS grid tracks.
+        # Oversized cover images previously squeezed the adjacent text column.
         '.cms-latest .recent-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:stretch}'
         '.cms-latest .recent-grid>.cms-article-card{box-sizing:border-box;display:flex;flex-direction:column;'
         'width:100%;min-width:0;max-width:100%;min-height:0;padding:0;overflow:hidden;'

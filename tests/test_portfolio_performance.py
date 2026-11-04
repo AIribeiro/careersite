@@ -5,9 +5,10 @@ import unittest
 from unittest.mock import patch
 
 import site_media  # Bind public asset URLs before page imports.
-from site_cms import CmsArticle, inject_cms_landing
+from site_cms import CmsArticle, inject_cms_landing, reader_header_image_src
 from thinking_landing import landing
-from thinking_weekly_brief import _edition_cover_html
+from thinking_weekly_brief import _edition_cover_html, _weekly_header_image_uri
+from page_home_featured import HomeArticlePreview, home_featured_article
 
 
 class PortfolioPerformanceTests(unittest.TestCase):
@@ -22,7 +23,8 @@ class PortfolioPerformanceTests(unittest.TestCase):
             self.assertTrue(url.startswith("https://raw.githubusercontent.com/AIribeiro/careersite/main/images/"), url[:100])
             self.assertIn("?v=", url)
             self.assertNotIn("data:image", url)
-        self.assertTrue(site_media.brand_icon.endswith(".jpg.jpg?v=" + site_media.brand_icon.split("?v=")[-1]))
+        self.assertIn("profile_red_bg.jpg.jpg?v=", site_media.brand_icon)
+        self.assertNotIn("&w=", site_media.brand_icon)
         self.assertNotIn("/portfolio-image/", site_media.hero)
 
     def test_thinking_catalogue_keeps_one_correct_anchor_in_main(self):
@@ -55,6 +57,27 @@ class PortfolioPerformanceTests(unittest.TestCase):
         output = _edition_cover_html("weekly-ai-2026-10-30")
         self.assertIn('/app/static/weekly-ai/weekly-ai-2026-10-30.png', output)
         self.assertNotIn("base64,", output)
+        self.assertIn("raw.githubusercontent.com/", _weekly_header_image_uri())
+
+    def test_home_feature_uses_premium_fallback_for_unreliable_social_route(self):
+        preview = HomeArticlePreview(
+            slug="example", title="Example article", deck="A summary.",
+            kind_topic="Point of view · Enterprise AI",
+            published_label="4 Nov 2026", read_minutes=3, href="?page=thinking&article=example",
+            image_url="https://jairribeiro-ai.streamlit.app/social/example.png",
+            image_alt="Example cover",
+        )
+        with patch("page_home_featured.current_home_article", return_value=preview):
+            html = home_featured_article()
+        self.assertIn('class="home-featured-art-fallback"', html)
+        self.assertNotIn('src="https://jairribeiro-ai.streamlit.app/social/example.png"', html)
+
+    def test_reader_preserves_one_original_bundled_webp_without_media_route(self):
+        article = CmsArticle(slug="example", title="Example")
+        with patch("site_cms.bundled_header_bytes", return_value=b"RIFFtestWEBP"):
+            url = reader_header_image_src(article)
+        self.assertTrue(url.startswith("data:image/webp;base64,"))
+        self.assertNotIn("/cms-header/", url)
 
 
 if __name__ == "__main__":

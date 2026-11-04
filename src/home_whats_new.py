@@ -8,6 +8,7 @@ credential catalog are discovered from source metadata at deploy time.
 from __future__ import annotations
 
 import ast
+from functools import lru_cache
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from html import escape
@@ -121,6 +122,18 @@ def _credential_items() -> tuple[NewsItem, ...]:
     first of that month; explicit release events can supply an exact date.
     """
     source = ROOT / "src" / "page_certifications.py"
+    try:
+        stat = source.stat()
+    except OSError:
+        return ()
+    # File content changes only on deployment; avoid reparsing the entire
+    # credential page on every Streamlit rerun. A changed file invalidates
+    # this cache automatically without caching the current date.
+    return _credential_items_cached(source, stat.st_mtime_ns, stat.st_size)
+
+
+@lru_cache(maxsize=16)
+def _credential_items_cached(source: Path, mtime_ns: int, size: int) -> tuple[NewsItem, ...]:
     try:
         tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
     except (OSError, SyntaxError, UnicodeError):

@@ -78,6 +78,12 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   const allowed = new Set({json.dumps(list(ALLOWED_EVENTS))});
   const lenses = new Set({json.dumps(list(LENS_PAGES))});
 
+  // A Streamlit route change keeps the parent document alive. An article
+  // context from the previous reader must not leak into Home or a catalogue.
+  if (!new URL(win.location.href).searchParams.has('article')) {{
+    win.__jairArticleContext = null;
+  }}
+
   win.__jairAnalyticsContext = {{
     page: {json.dumps(page)},
     source: {json.dumps(source)}
@@ -521,7 +527,8 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       session_elapsed_ms: Math.round(elapsedMs),
       engaged_ms: Math.round(Math.min(86400000, Math.max(0, engagedMs))),
       ...clientContext(),
-      article_slug: win.__jairArticleContext ? win.__jairArticleContext.slug : null,
+      article_slug: extra.article_slug ? safeText(extra.article_slug, 160) :
+        (win.__jairArticleContext ? win.__jairArticleContext.slug : null),
       content_kind: win.__jairArticleContext ? 'article' : 'page',
       tracking_version: 5,
       page_engaged_ms: Math.round(pageEngagedMs),
@@ -755,7 +762,19 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       if (raw.startsWith('article_share_') || raw.startsWith('weekly_ai_') ||
           Boolean(el.closest('.weekly-ai-body'))) return;
       try {{
-        if (new URL(el.getAttribute('href') || '', win.location.href).searchParams.has('article')) return;
+        const linkedArticle = new URL(el.getAttribute('href') || '', win.location.href)
+          .searchParams.get('article');
+        if (linkedArticle) {{
+          // Catalogue pages no longer mount the separate reader collector.
+          // Keep the established article_click event and slug for analytics.
+          if (!win.__jairArticleContext && win.__jairAnalyticsSend) {{
+            win.__jairAnalyticsSend('article_click', {{
+              article_slug: safeText(linkedArticle, 160),
+              target: 'portfolio_article',
+            }});
+          }}
+          return;
+        }}
       }} catch (_) {{}}
       const href = String(el.getAttribute('href') || '');
       let eventName = null;

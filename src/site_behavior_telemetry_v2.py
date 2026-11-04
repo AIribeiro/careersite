@@ -695,7 +695,14 @@ export default function({ data }) {
     });
   };
 
-  boot();
+  // Observation can traverse hundreds of editorial DOM nodes. Let the
+  // content paint and become interactive before building those observers.
+  // Preserve the existing collector and its lifecycle, only defer its boot.
+  if (typeof win.requestIdleCallback === 'function') {
+    win.requestIdleCallback(() => { if (state.active) boot(); }, { timeout: 1800 });
+  } else {
+    win.setTimeout(() => { if (state.active) boot(); }, 750);
+  }
 }
 """
 

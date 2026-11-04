@@ -23,9 +23,27 @@ class PortfolioPerformanceTests(unittest.TestCase):
             self.assertTrue(url.startswith("https://raw.githubusercontent.com/AIribeiro/careersite/main/images/"), url[:100])
             self.assertIn("?v=", url)
             self.assertNotIn("data:image", url)
-        self.assertIn("profile_red_bg.jpg.jpg?v=", site_media.brand_icon)
+        self.assertTrue(
+            "profile_red_bg.jpg.jpg?v=" in site_media.brand_icon
+            or "profile_red_bg.jpg.jpg.160.webp?v=" in site_media.brand_icon
+        )
         self.assertNotIn("&w=", site_media.brand_icon)
         self.assertNotIn("/portfolio-image/", site_media.hero)
+
+    def test_optimized_photography_is_reliable_and_bounded(self):
+        from pathlib import Path
+        from PIL import Image
+        root = Path(__file__).resolve().parents[1]
+        original = root / "images" / "profile_red_bg.jpg.jpg"
+        optimized = root / "images" / "optimized" / "profile_red_bg.jpg.jpg.160.webp"
+        if optimized.exists():
+            self.assertLess(optimized.stat().st_size, original.stat().st_size)
+            with Image.open(optimized) as image:
+                self.assertEqual(image.format, "WEBP")
+                self.assertLessEqual(image.width, 160)
+            self.assertIn("optimized/profile_red_bg.jpg.jpg.160.webp?v=", site_media.brand_icon)
+        else:
+            self.assertIn("profile_red_bg.jpg.jpg?v=", site_media.brand_icon)
 
     def test_thinking_catalogue_keeps_one_correct_anchor_in_main(self):
         article = CmsArticle(

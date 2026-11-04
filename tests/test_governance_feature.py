@@ -142,12 +142,15 @@ class GovernanceFeatureTests(unittest.TestCase):
         self.assertEqual(html.count('<img '), 1)
         self.assertIn('src="app/static/governance-avatar.webp"', html)
 
-    def test_feature_is_in_the_center_of_governance_page(self):
+    def test_complete_infographic_is_the_first_section_beneath_navigation(self):
         source = (Path(__file__).resolve().parents[1] / 'src' / 'page_ai_data_governance.py').read_text()
         self.assertIn('from governance_feature import GOVERNANCE_FEATURE', source)
-        self.assertLess(source.index('Two disciplines, one operating conversation.'), source.index('{GOVERNANCE_FEATURE}'))
-        self.assertLess(source.index('{GOVERNANCE_FEATURE}'), source.index('A lifecycle-based governance model.'))
+        self.assertEqual(source.count('{GOVERNANCE_FEATURE}'), 1)
+        self.assertIn('}''' + "<main>\n{GOVERNANCE_FEATURE}", source)
+        self.assertLess(source.index('{GOVERNANCE_FEATURE}'), source.index('<section class="pagehero">'))
+        self.assertLess(source.index('<section class="pagehero">'), source.index('id="governance-evidence"'))
         self.assertIn('href="#governance-operating-model"', source)
+        self.assertIn('Back to the operating model ↑', source)
 
 
 if __name__ == '__main__':

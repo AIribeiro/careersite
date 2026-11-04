@@ -4,6 +4,7 @@ from site_assets import AI_PANEL_URI, CV_URI, HERO_URI, LINKEDIN, WORKSHOP_URI
 from site_components import nav, footer, CV_DOWNLOAD_NAME
 from page_home_featured import home_featured_article, home_weekly_ai_strip
 from home_briefings_strip import home_briefings_strip
+from home_whats_new import home_whats_new
 from career_facts import PROFILE_TECH_YEARS, VOLVO_AI_INITIATIVES, VOLVO_WORKFLOW_SCOPE, MSX_PUBLIC_DATES, VOLVO_CURRENT_DATES, VOLVO_SENIOR_AI_DATES, KIMBERLY_DATES
 
 
@@ -19,18 +20,7 @@ def home() -> str:
 
 
 
-<section class="home-credential-strip" data-analytics-section="home-latest-credential">
-  <div class="container home-credential-inner">
-    <div class="home-credential-text">
-      <span class="home-credential-tag">Latest achievement · October 2026</span>
-      <strong>Strengthen Your Business Savvy</strong>
-      <span>Harvard Business Review · Four-course specialization on Coursera</span>
-    </div>
-    <a href="?page=certifications" target="_self" data-hq-event="home_hbr_certifications">
-      Explore my credentials <span aria-hidden="true">→</span>
-    </a>
-  </div>
-</section>
+{home_whats_new()}
 
 <section class="section paper journey-section" data-analytics-section="home-choose-your-path"><div class="container">
 <div class="journey-intro"><p class="eyebrow">Explore further</p><h2>If you’d like to know a little more</h2><p>I’ve shared examples of what I’ve led, the choices behind the work, and questions I keep exploring about AI and Data.</p></div>

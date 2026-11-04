@@ -17,6 +17,8 @@ def ai_data_governance() -> str:
     )
 
     return f'''{nav("ai-data-governance")}<main>
+{GOVERNANCE_FEATURE}
+
 <section class="pagehero"><div class="container">
 <p class="eyebrow">AI &amp; Data Governance · Operating perspective</p>
 <h1>AI &amp; Data governance that connects accountability with scale.</h1>
@@ -95,8 +97,6 @@ def ai_data_governance() -> str:
 <div><p class="eyebrow">Data governance establishes</p><h2>Whether the foundation can be trusted.</h2><div class="chips" style="margin-top:24px"><span>Data ownership</span><span>Stewardship</span><span>Quality rules</span><span>Business definitions</span><span>Lineage</span><span>Access</span><span>Privacy</span><span>Retention</span></div><p class="muted">The question is not only whether data exists. It is whether the enterprise knows what it means, who is responsible for it and under which conditions it may be used.</p></div>
 <div><p class="eyebrow">AI governance establishes</p><h2>Whether the use and consequence are justified.</h2><div class="chips" style="margin-top:24px"><span>Use-case ownership</span><span>Risk classification</span><span>Human oversight</span><span>System evidence</span><span>Transparency</span><span>Monitoring</span><span>Incident response</span><span>Change control</span></div><p class="muted">The shared layer is accountability: a defensible link between the business purpose, the data, the system behavior, the decision owner and the evidence used to permit continued use.</p></div>
 </div></div></section>
-
-{GOVERNANCE_FEATURE}
 
 <section class="section navy"><div class="container">
 <div class="head"><div><p class="eyebrow">From policy to operating practice</p><h2>A lifecycle-based governance model.</h2></div><p>Policies set intent. Operating governance turns that intent into repeatable decisions with explicit owners, proportionate evidence and a path for exceptions.</p></div>

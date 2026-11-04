@@ -47,7 +47,7 @@ class Diagram(FPDF):
         self.set_font("Dv","B" if bold else "",sz)
         self.set_text_color(*col);self.set_xy(x,y)
         self.cell(0,sz*.41,text=t)
-    def line(self,x,y,w,t,size=7,color=MUTED,lead=3.4):
+    def caption(self,x,y,w,t,size=7,color=MUTED,lead=3.4):
         self.set_font("Dv","",size);self.set_text_color(*color)
         self.set_xy(x,y);self.multi_cell(w,lead,text=t)
     def rule(self,x1,y,x2,color=EDGE):
@@ -88,7 +88,7 @@ def build() -> tuple[Path,Path]:
         ]:
             p.box(x,47,94,31,fill=(16,58,80))
             p.txt(x+4,50,title,10.5,CYAN,True)
-            p.line(x+4,59,85,desc,size=7.7,color=PALE,lead=4.6)
+            p.caption(x+4,59,85,desc,size=7.7,color=PALE,lead=4.6)
         p.box(9,81,192,12,fill=MID)
         p.txt(13,84,"ACCOUNTABILITY BY DESIGN",8.2,CYAN,True)
         p.txt(75,84.3,"Purpose · Trusted data · System behavior · Named authority · Evidence",6.7,WHITE)

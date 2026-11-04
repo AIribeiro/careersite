@@ -35,6 +35,24 @@ class HomeWhatsNewTests(unittest.TestCase):
         self.assertEqual(latest.title, "New verified AI certificate")
         self.assertEqual(latest.href, "?page=about#credentials-evidence")
 
+    def test_generated_release_feed_adds_new_pages_without_home_edits(self) -> None:
+        import json
+        with TemporaryDirectory() as directory:
+            feed = Path(directory) / "data"
+            feed.mkdir()
+            (feed / "portfolio_release_feed.json").write_text(json.dumps({
+                "items": [{
+                    "key": "page:new-public-page", "type": "New page",
+                    "title": "New Public Page", "description": "Newly published.",
+                    "date": "2026-12-07T10:00:00+00:00",
+                    "href": "?page=new-public-page", "cta": "Explore the page"
+                }]
+            }), encoding="utf-8")
+            with patch.object(news, "ROOT", Path(directory)):
+                latest = news.latest_local_release(datetime(2026, 12, 8, tzinfo=timezone.utc))
+        self.assertEqual(latest.title, "New Public Page")
+        self.assertEqual(latest.href, "?page=new-public-page")
+
     def test_dated_future_publications_do_not_appear_early(self) -> None:
         with patch.object(news, "_credential_items", return_value=()):
             current = news.latest_local_release(datetime(2026, 10, 20, tzinfo=timezone.utc))
@@ -60,7 +78,8 @@ class HomeWhatsNewTests(unittest.TestCase):
     def test_render_does_not_wait_for_cms_query(self) -> None:
         with patch.object(news, "inject_live_home_update", side_effect=AssertionError("Home blocked")):
             content = news.home_whats_new()
-        self.assertIn("Explore the framework", content)
+        self.assertIn("What’s new?", content)
+        self.assertIn('data-news-link', content)
 
     def test_live_refresh_is_a_small_client_side_request(self) -> None:
         with patch("streamlit.components.v1.html") as html:

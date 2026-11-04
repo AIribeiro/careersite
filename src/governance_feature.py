@@ -10,7 +10,7 @@ GOVERNANCE_FEATURE = r'''
 .site .gf h2{color:#fff;font:750 clamp(40px,5.5vw,76px)/1.03 Inter,sans-serif;letter-spacing:-.055em;margin:17px 0 0}
 .site .gf h2 em{font-style:normal;color:#69dff6}
 .site .gf .deck{color:#b5d4e3;font:450 clamp(15px,1.45vw,19px)/1.6 Inter,sans-serif;max-width:390px;margin:0}
-.site .gf .infographic{border:1px solid #397999;border-radius:24px;background:linear-gradient(130deg,#09283d,#061b30 60%,#0a3249);padding:clamp(20px,3vw,47px);box-shadow:0 32px 85px rgba(0,0,0,.27)}
+.site .gf .infographic{margin:0;border:1px solid #397999;border-radius:24px;background:linear-gradient(130deg,#09283d,#061b30 60%,#0a3249);padding:clamp(20px,3vw,47px);box-shadow:0 32px 85px rgba(0,0,0,.27)}
 .site .gf .meta{display:flex;justify-content:space-between;gap:12px;color:#75dcef;font:800 10px Inter,sans-serif;letter-spacing:.17em;text-transform:uppercase;margin:0 0 23px}
 .site .gf .two{display:grid;grid-template-columns:1fr 1fr;gap:15px}
 .site .gf .foundation{background:rgba(17,112,153,.18);border:1px solid #326b88;border-radius:16px;padding:24px;min-width:0}
@@ -36,10 +36,10 @@ GOVERNANCE_FEATURE = r'''
 .site .gf .ring{position:absolute;inset:5%;width:90%;height:90%;overflow:visible}
 .site .gf .ring circle{fill:none;stroke:#2389ad;stroke-width:2;stroke-dasharray:5 8}
 .site .gf .ring path{fill:none;stroke:#39d4ee;stroke-width:4;stroke-linecap:round}
-.site .gf .step{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:31%;min-height:82px;background:linear-gradient(145deg,#e8fbff,#b8dfef);color:#0b354c;border-radius:13px;border:1px solid #80d9ef;padding:10px 8px;box-shadow:0 10px 20px #0003}
-.site .gf .step b{font:800 14px Inter,sans-serif}
-.site .gf .step small{font:900 11px Inter,sans-serif;color:#12748f;margin-right:7px}
-.site .gf .step span{display:block;font:500 11px/1.35 Inter,sans-serif;margin-top:5px}
+.site .gf .node{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:31%;min-height:82px;background:linear-gradient(145deg,#e8fbff,#b8dfef);color:#0b354c;border-radius:13px;border:1px solid #80d9ef;padding:10px 8px;box-shadow:0 10px 20px #0003}
+.site .gf .node b{font:800 14px Inter,sans-serif}
+.site .gf .node small{font:900 11px Inter,sans-serif;color:#12748f;margin-right:7px}
+.site .gf .node span{display:block;font:500 11px/1.35 Inter,sans-serif;margin-top:5px}
 .site .gf .core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:41%;aspect-ratio:1;border-radius:50%;border:2px solid #50e7fa;background:#092c43;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;box-shadow:0 0 38px #00c8f326}
 .site .gf .core small{font:850 10px Inter,sans-serif;letter-spacing:.1em;color:#78ecfd}
 .site .gf .core strong{color:#fff;font:850 clamp(18px,1.65vw,25px)/1.06 Inter,sans-serif;margin:8px 0}
@@ -93,7 +93,7 @@ GOVERNANCE_FEATURE = r'''
 @media(max-width:480px){
 .site .gf .ring{display:none}
 .site .gf .stage{aspect-ratio:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:115px}
-.site .gf .step{position:static;transform:none;width:auto;min-height:89px}
+.site .gf .node{position:static;transform:none;width:auto;min-height:89px}
 .site .gf .core{left:0;top:0;transform:none;width:100%;height:107px;aspect-ratio:auto;border-radius:13px}
 .site .gf .core strong{font-size:19px}.site .gf .core span{font-size:11px}
 .site .gf .cycle .footnote{margin-top:12px}
@@ -118,7 +118,7 @@ GOVERNANCE_FEATURE = r'''
 <circle cx="300" cy="300" r="240"/>
 <g marker-end="url(#gov-arrow)"><path d="M370 69 A240 240 0 0 1 499 165"/><path d="M537 271 A240 240 0 0 1 494 446"/><path d="M430 501 A240 240 0 0 1 234 533"/><path d="M166 501 A240 240 0 0 1 64 334"/><path d="M62 267 A240 240 0 0 1 166 101"/><path d="M232 70 A240 240 0 0 1 270 62"/></g>
 </svg>
-<div class="step" style="--x:50%;--y:11%"><small>01</small><b>Frame</b><span>Purpose and consequence</span></div><div class="step" style="--x:81%;--y:29%"><small>02</small><b>Classify</b><span>Risk and data sensitivity</span></div><div class="step" style="--x:81%;--y:70%"><small>03</small><b>Assign</b><span>Business, technical and data owners</span></div><div class="step" style="--x:50%;--y:89%"><small>04</small><b>Evidence</b><span>Controls and proof</span></div><div class="step" style="--x:19%;--y:70%"><small>05</small><b>Decide</b><span>Release or scale</span></div><div class="step" style="--x:19%;--y:29%"><small>06</small><b>Monitor</b><span>Learn and reassess</span></div>
+<div class="node" style="--x:50%;--y:11%"><small>01</small><b>Frame</b><span>Purpose and consequence</span></div><div class="node" style="--x:81%;--y:29%"><small>02</small><b>Classify</b><span>Risk and data sensitivity</span></div><div class="node" style="--x:81%;--y:70%"><small>03</small><b>Assign</b><span>Business, technical and data owners</span></div><div class="node" style="--x:50%;--y:89%"><small>04</small><b>Evidence</b><span>Controls and proof</span></div><div class="node" style="--x:19%;--y:70%"><small>05</small><b>Decide</b><span>Release or scale</span></div><div class="node" style="--x:19%;--y:29%"><small>06</small><b>Monitor</b><span>Learn and reassess</span></div>
 <div class="core"><small>ACCOUNTABLE</small><strong>Executive<br>decision</strong><span>Release · Scale<br>Constrain · Stop</span></div>
 </div>
 <p class="footnote">Monitor and reassess when a material change means the original approval may no longer apply.</p></div>

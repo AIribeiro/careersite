@@ -185,6 +185,41 @@ GOVERNANCE_FEATURE = r'''
 .site .gf .cycle .footnote{margin-top:12px}
 .site .gf figcaption strong{font-size:17px}.site .gf figcaption small{font-size:10px}
 }
+
+/* Executive iconography: consistent 1.65px line weight, restrained tint and semantic placement. */
+.site .gf .gf-icon{display:inline-grid;place-items:center;flex:none;margin:0;color:#77dce9;border:1px solid rgba(114,208,228,.26);background:rgba(77,171,203,.09);border-radius:11px}
+.site .gf .gf-icon svg{display:block;width:23px;height:23px;overflow:visible}
+.site .gf .gf-icon-row{display:flex;align-items:flex-start;gap:13px;min-width:0}
+.site .gf .gf-icon-copy{min-width:0;flex:1}
+.site .gf .panel li .gf-icon-principle{width:39px;height:39px;margin:1px 0 0}
+.site .gf .panel li .gf-icon-principle svg{width:23px;height:23px}
+.site .gf .principles li{padding:15px 0}
+.site .gf .bottom .panel li.gf-mechanism{display:flex;align-items:flex-start;gap:12px;padding:13px}
+.site .gf .bottom .panel li.gf-mechanism .gf-icon-mechanism{width:38px;height:38px;margin:0;border-radius:10px}
+.site .gf .bottom .panel li.gf-mechanism .gf-icon-mechanism svg{width:22px;height:22px}
+.site .gf .bottom .panel li.gf-mechanism .gf-icon-copy{padding-top:1px}
+.site .gf .four .gf-signal{display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.site .gf .four .gf-icon-signal{width:48px;height:48px;margin:0 auto 15px;border:1px solid rgba(112,215,237,.24);background:rgba(76,161,186,.12);border-radius:15px}
+.site .gf .four .gf-icon-signal svg{width:27px;height:27px}
+.site .gf .core .gf-icon-core{width:42px;height:42px;margin:0 auto;border:0;background:transparent;color:#85e7ee}
+.site .gf .core .gf-icon-core svg{width:34px;height:34px}
+.site .gf .core{gap:4px}
+.site .gf .core strong{margin:3px 0}
+@media(max-width:740px){
+.site .gf .panel li .gf-icon-principle{width:39px;height:39px}
+.site .gf .bottom .panel li.gf-mechanism .gf-icon-mechanism{width:39px;height:39px}
+.site .gf .four .gf-icon-signal{width:45px;height:45px;margin-bottom:11px}
+}
+@media(max-width:480px){
+.site .gf .stage{padding-top:139px}
+.site .gf .core{height:132px;gap:2px}
+.site .gf .core .gf-icon-core{width:28px;height:28px}
+.site .gf .core .gf-icon-core svg{width:24px;height:24px}
+.site .gf .core strong{font-size:18px;line-height:1.07;margin:2px 0}
+.site .gf .core span{font-size:10px;line-height:1.25}
+.site .gf .four .gf-icon-signal{width:43px;height:43px}
+.site .gf .four .gf-icon-signal svg{width:24px;height:24px}
+}
 </style>
 <section id="governance-operating-model" class="gf" aria-labelledby="gf-title">
 <div class="gw">

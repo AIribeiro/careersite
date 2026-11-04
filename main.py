@@ -15,7 +15,6 @@ if str(SRC) not in sys.path:
 from site_styles import CSS
 from site_image_styles import IMAGE_CSS
 from site_meta import inject_article_metadata, inject_metadata
-from site_cms import fetch_public_article, inject_cms_article_metadata
 from site_analytics import inject_analytics
 from site_article_analytics import inject_article_analytics
 from site_behavior_telemetry_v2 import mount_behavior_telemetry
@@ -30,14 +29,7 @@ from thinking_articles import resolve_article
 import site_media  # noqa: F401
 import site_cv_runtime  # noqa: F401
 
-from page_home import home
 from page_home_featured import inject_writing_footer
-from page_impact import impact
-from page_thinking import thinking
-from page_executive_briefings import executive_briefings, executive_briefing_page
-from page_about import about
-from page_contact import contact
-from page_ai_data_governance import ai_data_governance
 
 RUN_STARTED = perf_counter()
 
@@ -77,6 +69,8 @@ if isinstance(ARTICLE_QUERY, list):
     ARTICLE_QUERY = ARTICLE_QUERY[0] if ARTICLE_QUERY else ""
 CMS_ARTICLE_META = None
 if ARTICLE_QUERY:
+    # Only individual content readers need the public CMS lookup.
+    from site_cms import fetch_public_article
     try:
         CMS_ARTICLE_META = fetch_public_article(str(ARTICLE_QUERY).strip().lower())
     except RuntimeError:
@@ -134,24 +128,41 @@ if PAGE == "analytics":
     render_analytics_dashboard()
 else:
     if CMS_ARTICLE_META is not None:
+        from site_cms import inject_cms_article_metadata
         inject_cms_article_metadata(CMS_ARTICLE_META)
     elif ARTICLE_META is not None:
         inject_article_metadata(ARTICLE_META)
     else:
         inject_metadata(PAGE, PAGE_TITLE)
 
-    RENDER = {
-        "home": home,
-        "impact": impact,
-        "thinking": thinking,
-        "briefings": executive_briefings,
-        "briefing": executive_briefing_page,
-        "about": about,
-        "contact": contact,
-        "ai-data-governance": ai_data_governance,
-    }
+    # Do not import the entire site on every page visit. The governance page
+    # especially does not need the Thinking, CMS reader or briefing engines.
+    if PAGE == "home":
+        from page_home import home
+        render_page = home
+    elif PAGE == "impact":
+        from page_impact import impact
+        render_page = impact
+    elif PAGE == "thinking":
+        from page_thinking import thinking
+        render_page = thinking
+    elif PAGE in {"briefings", "briefing"}:
+        from page_executive_briefings import executive_briefings, executive_briefing_page
+        render_page = executive_briefing_page if PAGE == "briefing" else executive_briefings
+    elif PAGE == "about":
+        from page_about import about
+        render_page = about
+    elif PAGE == "contact":
+        from page_contact import contact
+        render_page = contact
+    elif PAGE == "ai-data-governance":
+        from page_ai_data_governance import ai_data_governance
+        render_page = ai_data_governance
+    else:
+        from page_home import home
+        render_page = home
 
-    page_document = inject_writing_footer(RENDER[PAGE](), PAGE, article_slug=str(ARTICLE_QUERY or ""))
+    page_document = inject_writing_footer(render_page(), PAGE, article_slug=str(ARTICLE_QUERY or ""))
     page_html_size = len(page_document.encode("utf-8"))
     st.html(CSS + IMAGE_CSS + '<div class="site">' + page_document + '</div>')
 

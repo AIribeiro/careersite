@@ -58,12 +58,16 @@ class GovernanceFeatureTests(unittest.TestCase):
         self.assertEqual(html.count('class="gf-icon gf-icon-core"'), 1)
         self.assertEqual(html.count('class="gf-mechanism"'), 6)
         self.assertEqual(html.count('class="gf-signal"'), 4)
-        self.assertEqual(html.count('<svg '), html.count('</svg>'))
+        self.assertNotIn("<svg ", html)
+        self.assertNotIn("</svg>", html)
+        self.assertEqual(html.count('data-glyph="'), 15)
+        self.assertEqual(html.count('background-image:url("data:image/svg+xml,'), 18)
         self.assertIn('padding-top:139px', html)
         self.assertIn('height:132px', html)
         self.assertNotIn('class="step"', html)
         self.assertNotIn('<img ', html)
-        self.assertNotIn('data:image', html)
+        self.assertNotIn('<img ', html)
+        self.assertIn('data:image/svg+xml,', html)
 
     def test_premium_hierarchy_and_semantic_structure(self):
         html = GOVERNANCE_FEATURE
@@ -76,7 +80,7 @@ class GovernanceFeatureTests(unittest.TestCase):
         self.assertIn('max-width:630px', html)
         self.assertIn('grid-template-columns:1fr 1fr', html)
         self.assertIn('max-width:480px', html)
-        self.assertNotIn('data:image/', html)
+        self.assertIn('data:image/svg+xml,', html)
         self.assertNotIn('http://', html)
 
     def test_fast_responsive_and_no_conflicting_arrow_classes(self):
@@ -85,7 +89,7 @@ class GovernanceFeatureTests(unittest.TestCase):
         self.assertIn('@media(max-width:740px)', html)
         self.assertIn('content-visibility:auto', html)
         self.assertNotIn('class="step"', html)  # Global site .step:after draws a foreign arrow.
-        self.assertNotIn('data:image/', html)
+        self.assertIn('data:image/svg+xml,', html)
         self.assertNotIn('<script', html)
         self.assertNotIn('<img ', html)
 

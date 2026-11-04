@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import unittest
 from pathlib import Path
+from urllib.parse import unquote
+from xml.etree import ElementTree
+import re
 
 from governance_feature import GOVERNANCE_FEATURE
 
@@ -69,6 +72,26 @@ class GovernanceFeatureTests(unittest.TestCase):
         self.assertNotIn('<img ', html)
         self.assertNotIn('<img ', html)
         self.assertIn('data:image/svg+xml,', html)
+
+    def test_css_icon_assets_are_real_parseable_svg_images(self):
+        # Native SVG tags disappear inside st.html; only CSS image URLs
+        # are allowed in this feature. Validate every embedded glyph.
+        images = re.findall(
+            r'background-image:url\\("data:image/svg\\+xml,([^"]+)"\\)',
+            GOVERNANCE_FEATURE,
+        )
+        self.assertEqual(len(images), 18)
+        svg_ns = "{http://www.w3.org/2000/svg}"
+        for encoded in images:
+            document = unquote(encoded)
+            root = ElementTree.fromstring(document)
+            self.assertEqual(root.tag, svg_ns + "svg")
+            self.assertTrue(
+                any(node.tag in (svg_ns + "path", svg_ns + "circle", svg_ns + "ellipse")
+                    for node in root.iter()),
+                "An icon must contain visible vector geometry",
+            )
+            self.assertNotIn('stroke="currentColor"', document)
 
     def test_premium_hierarchy_and_semantic_structure(self):
         html = GOVERNANCE_FEATURE

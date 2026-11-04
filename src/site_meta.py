@@ -4,13 +4,11 @@ import json
 import streamlit.components.v1 as components
 
 from site_assets import LINKEDIN, MEDIUM, EMAIL
-from site_social_preview import PUBLIC_URL as SOCIAL_IMAGE, ensure_social_preview
 from thinking_articles import ArticleMeta, article_social_image_url, article_url
 
-try:
-    ensure_social_preview()
-except OSError:
-    pass
+# CI commits this canonical preview. Public page imports must never open,
+# resize or write images merely to populate a social sharing meta tag.
+SOCIAL_IMAGE = "https://jairribeiro-ai.streamlit.app/app/static/jair-ribeiro-social-preview.png"
 
 DESCRIPTIONS = {
     "home": "Selected experience and writing from Jair Ribeiro across enterprise AI, Data & Analytics, governance, adoption and operating models.",

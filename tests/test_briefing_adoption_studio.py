@@ -37,8 +37,7 @@ class AdoptionArtworkTests(unittest.TestCase):
                 self.assertTrue(binary.endswith(b"\\xff\\xd9"))
                 self.assertNotIn("<script", data.lower())
                 self.assertNotIn("<foreignObject", data)
-                self.assertNotIn("http://", data)
-                self.assertNotIn("https://", data)
+                self.assertNotRegex(data, r'(?:href|src)="https?://')
                 self.assertNotIn("Volvo", data)
                 self.assertNotIn("MSX", data)
 

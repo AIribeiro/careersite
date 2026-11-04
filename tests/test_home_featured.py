@@ -243,7 +243,7 @@ class HomeFeaturedArticleTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         main = (root / "main.py").read_text(encoding="utf-8")
         styles = (root / "src" / "site_styles.py").read_text(encoding="utf-8")
-        self.assertIn("inject_writing_footer(RENDER[PAGE](), PAGE", main)
+        self.assertIn("page_document = inject_writing_footer(raw_document, PAGE", main)
         self.assertIn(".site .writing-footer{padding:0;background:var(--paper)", styles)
         self.assertIn(".site .writing-footer-inner{display:grid;grid-template-columns:58px", styles)
         self.assertIn(".site a.writing-footer-art{position:relative;isolation:isolate", styles)

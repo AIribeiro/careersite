@@ -1,0 +1,43 @@
+name: Home What's new regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'main.py'
+      - 'src/page_home.py'
+      - 'src/home_whats_new.py'
+      - 'src/page_certifications.py'
+      - 'tests/test_home_whats_new.py'
+      - '.github/workflows/home-whats-new.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'main.py'
+      - 'src/page_home.py'
+      - 'src/home_whats_new.py'
+      - 'src/page_certifications.py'
+      - 'tests/test_home_whats_new.py'
+      - '.github/workflows/home-whats-new.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile changed application code
+        run: python -m py_compile main.py src/page_home.py src/home_whats_new.py tests/test_home_whats_new.py
+      - name: Verify release selection and live publication refresh
+        run: python -m unittest -v tests.test_home_whats_new

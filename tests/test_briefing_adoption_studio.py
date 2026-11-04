@@ -65,17 +65,17 @@ class AdoptionArtworkTests(unittest.TestCase):
         self.assertIn("row.get(\"source_fingerprint\")!=source_fingerprint(article)", source)
         self.assertIn("if article.slug == _STUDIO_ADOPTION_SLUG:", source)
         self.assertIn('data-analytics-section="briefing-infographic"', source)
-        self.assertIn('download="ai-adoption-executive-infographic.svg"', source)
+        self.assertIn('download="ai-adoption-executive-infographic.png"', source)
         self.assertIn("max-width:700px", source)
-        self.assertIn("briefing-ai-adoption-studio-mobile.svg", source)
+        self.assertIn("briefing-ai-adoption-studio-mobile.png", source)
 
     def test_portfolio_uses_native_static_url_for_all_artwork(self):
         config = CONFIG.read_text(encoding="utf-8")
         store = STORE.read_text(encoding="utf-8")
         reader = READER.read_text(encoding="utf-8")
         self.assertIn("enableStaticServing = true", config)
-        desktop = "/app/static/briefing-ai-adoption-studio.svg"
-        mobile = "/app/static/briefing-ai-adoption-studio-mobile.svg"
+        desktop = "/app/static/briefing-ai-adoption-studio.png"
+        mobile = "/app/static/briefing-ai-adoption-studio-mobile.png"
         self.assertIn(desktop, store)
         self.assertIn(mobile, store)
         self.assertIn(desktop, reader)

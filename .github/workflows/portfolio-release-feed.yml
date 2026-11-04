@@ -1,0 +1,40 @@
+name: Publish portfolio release feed
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'main.py'
+      - 'src/site_meta.py'
+      - 'src/page_certifications.py'
+      - 'src/page_*.py'
+      - 'scripts/sync_portfolio_releases.py'
+      - '.github/workflows/portfolio-release-feed.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  capture-releases:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Detect new public pages and credential records
+        run: |
+          python scripts/sync_portfolio_releases.py "${{ github.event.before }}" "${{ github.sha }}"
+      - name: Publish generated feed only if new releases exist
+        run: |
+          if ! git diff --quiet -- data/portfolio_release_feed.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/portfolio_release_feed.json
+            git commit -m "Update What's new feed for newly published portfolio items"
+            git push origin HEAD:main
+          fi

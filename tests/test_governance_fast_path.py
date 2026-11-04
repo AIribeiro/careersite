@@ -23,6 +23,17 @@ class GovernanceFastPathTests(unittest.TestCase):
             self.assertTrue(minutes > 0)
             self.assertFalse(slug.startswith("weekly-ai-"))
 
+    def test_home_instant_preview_uses_full_published_snapshot(self):
+        from site_writing_snapshot import PUBLIC_WRITING_SNAPSHOT
+        from page_home_featured import home_featured_article
+        self.assertGreaterEqual(len(PUBLIC_WRITING_SNAPSHOT), 20)
+        self.assertTrue(any(x["kind"] == "Executive Briefing" for x in PUBLIC_WRITING_SNAPSHOT))
+        self.assertTrue(any(x["kind"] != "Executive Briefing" for x in PUBLIC_WRITING_SNAPSHOT))
+        with patch("page_home_featured.current_home_article",
+                   side_effect=AssertionError("CMS must not block instant Home preview")):
+            html = home_featured_article(instant=True)
+        self.assertIn('class="home-featured-story"', html)
+
     def test_governance_footer_does_not_call_live_cms_lookup(self):
         sample = "<main><section>Governance content</section></main>"
         with patch("page_home_featured.current_home_article",

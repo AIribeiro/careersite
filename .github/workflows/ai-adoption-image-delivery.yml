@@ -1,4 +1,5 @@
 name: AI Adoption image delivery
+
 on:
   push:
     paths:
@@ -11,25 +12,54 @@ on:
       - '.streamlit/config.toml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  native-static-images:
+  render-and-verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install Streamlit
-        run: python -m pip install --disable-pip-version-check 'streamlit==1.64.0'
-      - name: Verify original asset and HTML source contracts
+      - name: Install image and Streamlit dependencies
+        run: python -m pip install --disable-pip-version-check 'streamlit==1.64.0' 'CairoSVG==2.8.2' 'Pillow==12.3.0'
+      - name: Rasterize approved artwork as supported PNG images
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from io import BytesIO
+          from PIL import Image, ImageStat
+          import cairosvg
+          inputs = (
+              ('briefing-ai-adoption-studio.svg', 'briefing-ai-adoption-studio.png', (1800,2400)),
+              ('briefing-ai-adoption-studio-mobile.svg', 'briefing-ai-adoption-studio-mobile.png', (840,3580)),
+          )
+          for source, dest, size in inputs:
+              src = Path('static') / source
+              output = Path('static') / dest
+              raster = cairosvg.svg2png(bytestring=src.read_bytes(), output_width=size[0], output_height=size[1])
+              image = Image.open(BytesIO(raster)).convert('RGB')
+              assert image.size == size, (source,image.size,size)
+              pixels = ImageStat.Stat(image)
+              assert min(pixels.stddev) > 20, f'Render appears blank: {source}'
+              image.save(output, format='PNG', optimize=True)
+              assert output.stat().st_size > 15000
+              with Image.open(output) as check:
+                  check.verify()
+              print(f'Validated {dest}: {image.size}, {output.stat().st_size:,} bytes')
+          PY
+      - name: Verify article image contracts and graphics
         run: python -m unittest discover -s tests -p 'test_briefing_adoption_studio.py' -v
       - name: Start minimal Streamlit server using production static config
         run: |
           printf 'import streamlit as st\nst.title("Native static asset smoke")\n' > _static_image_smoke.py
           python -m streamlit run _static_image_smoke.py --server.headless=true --server.port=8521 > /tmp/ai-adoption-static.log 2>&1 &
-          echo $! > /tmp/ai-adoption-static.pid
-      - name: Request desktop and mobile image as a browser would
+      - name: Prove actual HTTP image delivery and raster bytes
         run: |
           set -euo pipefail
           for attempt in $(seq 1 40); do
@@ -38,15 +68,27 @@ jobs:
             fi
             sleep 1
           done
-          for image in briefing-ai-adoption-studio.svg briefing-ai-adoption-studio-mobile.svg; do
+          for image in briefing-ai-adoption-studio.png briefing-ai-adoption-studio-mobile.png; do
             url="http://127.0.0.1:8521/app/static/$image"
             code=$(curl -sS -o "/tmp/$image" -w '%{http_code}' "$url")
-            test "$code" = 200 || { echo "Static image $image returned $code"; exit 1; }
-            grep -q '^<svg' "/tmp/$image"
+            test "$code" = 200 || { echo "FAIL: $image returned $code"; exit 1; }
             mimetype=$(curl -sSI "$url" | grep -i '^content-type:' | tr -d '\r' | tr '[:upper:]' '[:lower:]')
             echo "$image: $mimetype"
-            echo "$mimetype" | grep -q 'image/svg+xml' || exit 1
+            echo "$mimetype" | grep -q 'image/png' || exit 1
+            python -c 'from PIL import Image; import sys; img=Image.open(sys.argv[1]); img.verify(); print("Verified raster", sys.argv[1])' "/tmp/$image"
           done
-      - name: Show Streamlit log on failure
+      - name: Commit tested static raster assets
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add static/briefing-ai-adoption-studio.png static/briefing-ai-adoption-studio-mobile.png
+          if ! git diff --cached --quiet; then
+            git commit -m "Ship verified first-party PNG assets for AI adoption briefing [skip ci]"
+            git push origin HEAD:main
+          fi
+      - name: Show diagnostics on failure
         if: failure()
-        run: cat /tmp/ai-adoption-static.log || true
+        run: |
+          cat /tmp/ai-adoption-static.log || true
+          ls -lah static/briefing-ai-adoption* || true

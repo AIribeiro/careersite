@@ -83,10 +83,10 @@ class ThinkingCatalogPaginationTests(unittest.TestCase):
             header_image_url="https://images.example.org/article-cover.webp",
             header_image_alt="Article cover",
         )
-        with patch("site_cms.fetch_published_articles", return_value=rows), \\
-             patch("site_cms._public_reads_or_none", return_value={"article-15": 100}), \\
-             patch("thinking_core.query_value", return_value="1"):
-            page = inject_cms_landing(DOCUMENT)
+        with patch("site_cms.fetch_published_articles", return_value=rows):
+            with patch("site_cms._public_reads_or_none", return_value={"article-15": 100}):
+                with patch("thinking_core.query_value", return_value="1"):
+                    page = inject_cms_landing(DOCUMENT)
         self.assertIn('src="https://images.example.org/article-cover.webp"', page)
         self.assertIn('alt="Article cover"', page)
         self.assertIn('loading="lazy" decoding="async"', page)

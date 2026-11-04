@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 import base64
 
-from fpdf import FPDF
 from career_facts import (
     MSX_PUBLIC_DATES,
     PROFILE_AI_LEADERSHIP_YEARS,
@@ -38,6 +37,7 @@ def image_uri(name: str) -> str:
 
 
 def build_cv_pdf() -> bytes:
+    from fpdf import FPDF  # Optional build-time dependency, never imported for normal page requests.
     """Create a factual fallback CV; production delivery is bound by site_cv_runtime."""
     pdf = FPDF(format="A4")
     pdf.set_auto_page_break(auto=True, margin=14)

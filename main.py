@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 from time import perf_counter
+
+# Include initial imports in the diagnostic, not just page rendering.
+RUN_STARTED = perf_counter()
+
 import logging
 import sys
 
@@ -30,8 +34,6 @@ import site_media  # noqa: F401
 import site_cv_runtime  # noqa: F401
 
 from page_home_featured import inject_writing_footer
-
-RUN_STARTED = perf_counter()
 
 # Expand registered first-party short links before page selection and analytics.
 # The browser's URL becomes the complete native article URL, so both trackers
@@ -162,9 +164,16 @@ else:
         from page_home import home
         render_page = home
 
-    page_document = inject_writing_footer(render_page(), PAGE, article_slug=str(ARTICLE_QUERY or ""))
+    # Separate Python build, footer selection and Streamlit HTML emission.
+    # This helps distinguish cold imports from content or DOM work in Cloud logs.
+    build_started = perf_counter()
+    raw_document = render_page()
+    build_done = perf_counter()
+    page_document = inject_writing_footer(raw_document, PAGE, article_slug=str(ARTICLE_QUERY or ""))
+    footer_done = perf_counter()
     page_html_size = len(page_document.encode("utf-8"))
     st.html(CSS + IMAGE_CSS + '<div class="site">' + page_document + '</div>')
+    html_done = perf_counter()
 
     # Bind article interactions before the generic analytics listener. The
     # share guard then prevents social-share controls from being misclassified
@@ -180,8 +189,16 @@ else:
 # Slow-only, privacy-preserving diagnostics. No article content or visitors.
 elapsed_ms = round((perf_counter() - RUN_STARTED) * 1000)
 if elapsed_ms >= 750:
+    timings = (
+        (round((build_done - build_started) * 1000),
+         round((footer_done - build_done) * 1000),
+         round((html_done - footer_done) * 1000))
+        if PAGE != "analytics" else (0, 0, 0)
+    )
     logging.getLogger("careersite.performance").warning(
-        "slow_page_render page=%s elapsed_ms=%d html_kib=%d",
+        "slow_page_render page=%s elapsed_ms=%d html_kib=%d "
+        "build_ms=%d footer_ms=%d html_emit_ms=%d",
         PAGE, elapsed_ms,
         round(page_html_size / 1024) if PAGE != "analytics" else 0,
+        *timings,
     )

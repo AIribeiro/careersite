@@ -262,6 +262,9 @@ BRIEFINGS_CSS = r'''<style>
 .site .briefings-library-card:focus-visible{outline:3px solid #bc835d;outline-offset:3px}
 .site .briefings-catalog-art{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:17px;box-sizing:border-box;width:100%;height:178px;overflow:hidden;padding:22px 26px;color:#fff;background:radial-gradient(ellipse at 78% 80%,#2e5365 0%,#182e42 54%,#102238 100%)}
 .site .briefings-catalog-art:after{content:"";position:absolute;z-index:0;inset:13px;border:1px solid rgba(225,185,152,.2);pointer-events:none}
+.site .briefings-catalog-art--adoption-svg{padding:0;background:#082c48}
+.site .briefings-catalog-art--adoption-svg img{position:absolute;inset:0;z-index:2;display:block;width:100%;height:100%;object-fit:cover;object-position:center top}
+.site .briefings-catalog-art--adoption-svg>span{position:absolute;top:28px;left:23px;right:23px;z-index:1;color:#fff;font:800 22px/1.2 Arial,sans-serif}
 .site .briefings-catalog-art>span,.site .briefings-catalog-art>div{position:relative;z-index:1}
 .site .briefings-catalog-art-kicker{font:800 10px/1.4 Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#efc6a3}
 .site .briefings-art-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:460px}
@@ -719,6 +722,14 @@ def contact_block() -> str:
 
 def _briefing_catalog_art(slug: str) -> str:
     """Branded, article-specific graphic with no network images or inline SVG."""
+    if slug == ADOPTION_SLUG:
+        return (
+            '<div class="briefings-catalog-art briefings-catalog-art--adoption-svg" '
+            'aria-hidden="true">'
+            '<span>AI adoption · Four leadership responses</span>'
+            '<img src="/briefing-artwork/ai-adoption-desktop.svg" alt="" '
+            'loading="lazy" decoding="async"/></div>'
+        )
     if slug == FIRST_SLUG:
         return (
             '<div class="briefings-catalog-art" aria-hidden="true">'

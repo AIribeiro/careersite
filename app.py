@@ -450,7 +450,7 @@ async def _authority_infographic(request):
         return Response(artwork_mobile_svg(), media_type="image/svg+xml", headers=headers)
     if ext == "pdf":
         headers["Content-Disposition"] = (
-            'attachment; filename="ai-operating-authority-25-decisions.pdf"'
+            'attachment; filename="ai-operating-authority-20-decisions.pdf"'
         )
         return Response(artwork_pdf(), media_type="application/pdf", headers=headers)
     return PlainTextResponse("Infographic not found", status_code=404)

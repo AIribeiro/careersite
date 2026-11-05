@@ -5,7 +5,18 @@ from __future__ import annotations
 from html import escape
 
 from briefing_infographic_engine import INFOGRAPHIC_CSS, infographic_html
-from briefing_roi_artwork import artwork_data_uri
+# The artwork is built once into the public repository as an immutable artifact.
+# Keep image bytes out of the Streamlit HTML payload; long inline data URLs
+# produced missing images and bloated article rendering on the live site.
+ROI_WEBP = (
+    "https://raw.githubusercontent.com/AIribeiro/careersite/main/"
+    "static/briefing-ai-roi-proof-before-scale.webp"
+)
+ROI_PNG = (
+    "https://raw.githubusercontent.com/AIribeiro/careersite/main/"
+    "static/briefing-ai-roi-proof-before-scale.png"
+)
+
 
 ROI_STUDIO_CSS = """<style>
 .site .roi-artwork-figure{max-width:900px;margin-inline:auto;background:#fffdf9;padding:clamp(8px,1.4vw,20px);box-shadow:0 14px 38px rgba(19,42,62,.05)}
@@ -27,15 +38,10 @@ def approved_roi_studio(article, row: dict) -> str:
     alt = str(row.get("alt_text") or "").strip()
     if len(alt) < 40:
         return ""
-    try:
-        display = artwork_data_uri("display")
-    except (OSError, ValueError, RuntimeError):
-        display = ""
-    if not display:
-        return infographic_html(row["spec"], alt, row.get("caption", ""), article.slug)
-    # Keep the WebP self-contained to avoid the known Streamlit static-path issue.
-    # Route the full-resolution PNG download to a first-party response instead of
-    # a second 300KB base64 string inside the sanitized HTML.
+    # Serve the tested, pre-built image via GitHub's public asset host. Image
+    # delivery no longer depends on a Pillow render or huge data URI inside
+    # the Streamlit HTML document.
+    display = ROI_WEBP
     download = "/briefing-ai-roi/infographic.png"
     caption = str(row.get("caption") or "").strip() or (
         "Original executive AI ROI infographic by Jair Ribeiro. Financial returns "
@@ -53,6 +59,9 @@ def approved_roi_studio(article, row: dict) -> str:
         + '<div class="roi-artwork-actions"><a href="' + download
         + '" download="ai-roi-proof-before-scale-executive-infographic.png" '
         + 'aria-label="Download the full-resolution AI ROI executive infographic as PNG">'
-        + 'Download the infographic (PNG)</a></div>'
+        + 'Download the infographic (PNG)</a>'
+        + '<a class="roi-artwork-full" href="' + ROI_PNG + '" target="_blank" '
+        + 'rel="noopener noreferrer" aria-label="Open full-resolution AI ROI infographic">'
+        + 'Open full-resolution image</a></div>'
         + '</figure></section>'
     )

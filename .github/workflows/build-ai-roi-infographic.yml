@@ -1,0 +1,56 @@
+name: Build permanent AI ROI executive infographic
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/briefing_roi_artwork.py'
+      - 'static/briefing-roi-portrait.webp'
+      - '.github/workflows/build-ai-roi-infographic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-artwork:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install image renderer
+        run: python -m pip install --quiet 'Pillow>=11,<13'
+      - name: Produce permanent WebP and PNG
+        run: |
+          PYTHONPATH=src python - <<'PY'
+          from pathlib import Path
+          from io import BytesIO
+          from PIL import Image
+          from briefing_roi_artwork import artwork_bytes
+          out = Path("static")
+          out.mkdir(exist_ok=True)
+          for variant, suffix in [("display","webp"),("download","png")]:
+              data = artwork_bytes(variant)
+              with Image.open(BytesIO(data)) as im:
+                  im.verify()
+              with Image.open(BytesIO(data)) as im:
+                  assert im.size == (1800,2400), im.size
+              path = out / f"briefing-ai-roi-proof-before-scale.{suffix}"
+              path.write_bytes(data)
+              print(f"Verified {path} with {len(data)} bytes")
+          PY
+      - name: Commit generated public image assets
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/briefing-ai-roi-proof-before-scale.webp static/briefing-ai-roi-proof-before-scale.png
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish permanent AI ROI executive infographic assets'
+            git push origin HEAD:main
+          else
+            echo 'Artwork already current'
+          fi

@@ -226,6 +226,15 @@ def approved_infographic_for(article, *, row: dict | None=None) -> str:
     """Fail closed: an old approved version never renders against newer article text."""
     if not getattr(article,"id",None):
         return ""
+    # The published AI ROI edition has a source-verified, permanently approved
+    # visual. Do not make its primary graphic disappear if a second CMS request
+    # returns an empty list or exceeds its timeout; the article itself is still
+    # checked against the exact reviewed title/subtitle/body fingerprint.
+    if (row is None and getattr(article, "slug", "") == _ROI_SLUG
+            and getattr(article, "status", "") == "published"
+            and source_fingerprint(article) == _ROI_APPROVED_FINGERPRINT):
+        from briefing_roi_studio import approved_roi_studio
+        return approved_roi_studio(article, _ROI_APPROVED_SNAPSHOT)
     if row is None:
         try:
             row=fetch_public_infographic(article.id)

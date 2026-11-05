@@ -65,11 +65,13 @@ class RoiInfographicTests(unittest.TestCase):
         self.assertEqual(html.count("<img "), 1)
         self.assertIn('data-analytics-section="briefing-infographic"', html)
         self.assertIn('download="ai-roi-proof-before-scale-executive-infographic.png"', html)
-        self.assertIn("data:image/webp;base64,", html)
+        self.assertIn("https://raw.githubusercontent.com/AIribeiro/careersite/main/static/briefing-ai-roi-proof-before-scale.webp", html)
+        self.assertNotIn("data:image/webp;base64,", html)
         self.assertIn('/briefing-ai-roi/infographic.png', html)
         self.assertNotIn("data:image/png;base64,", html)
         self.assertIn("@media(max-width:700px)", html)
         self.assertNotIn("/app/static/", html)
+        self.assertLess(len(html), 12000, "Static artwork must not inflate the Streamlit page payload")
 
     def test_full_reader_dispatch_and_guarded_fallback(self):
         from unittest.mock import patch

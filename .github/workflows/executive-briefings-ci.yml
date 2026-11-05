@@ -65,7 +65,7 @@ jobs:
         run: pip install -r requirements.txt
       - name: Compile application and focused regressions
         run: python -m py_compile main.py src/page_executive_briefings.py src/briefings_landing_premium.py src/briefings_visual.py src/site_cms.py src/briefing_roi_artwork.py src/briefing_roi_studio.py tests/test_briefing_roi_studio.py tests/test_executive_briefing_reader.py tests/test_executive_ai_briefings.py tests/test_executive_briefings_premium_landing.py tests/test_executive_briefings_navigation_contract.py
-      - name: Verify new 25-decision artwork, mobile SVG and A4 PDF
+      - name: Verify revised 20-decision artwork, mobile SVG and A4 PDF
         run: python -m unittest -v tests.test_briefing_authority_artwork
       - name: Verify independent pages, content, icons and navigation
         run: python -m unittest -v tests.test_executive_ai_briefings tests.test_executive_briefing_reader tests.test_executive_briefings_navigation_contract tests.test_executive_briefings_premium_landing tests.test_briefing_roi_studio

@@ -11,7 +11,6 @@ import base64
 from functools import lru_cache
 from html import escape
 from pathlib import Path
-from textwrap import wrap
 
 ROOT = Path(__file__).resolve().parent.parent
 PORTRAIT = ROOT / "static" / "briefing-roi-portrait.webp"
@@ -156,7 +155,7 @@ def artwork_pdf() -> bytes:
             pdf.set_font("Helvetica", "B", 11)
             pdf.set_text_color(20, 44, 62)
             pdf.text(18, y+5.8, f"{group_index+1:02d}  {title}")
-            y += 12
+            y += 11
             for name, detail in rows:
                 global_index += 1
                 pdf.set_font("Helvetica", "B", 9)
@@ -165,8 +164,8 @@ def artwork_pdf() -> bytes:
                 pdf.set_font("Helvetica", "", 8.8)
                 pdf.set_text_color(70, 89, 102)
                 pdf.text(20, y+5.3, detail)
-                y += 14.4
-            y += 7
+                y += 10.8
+            y += 4
         pdf.set_fill_color(12, 38, 62)
         pdf.rect(0, 279, 210, 18, "F")
         pdf.set_text_color(255, 255, 255)

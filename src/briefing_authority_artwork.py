@@ -279,7 +279,7 @@ def approved_authority_studio(article, row: dict) -> str:
         '<section data-analytics-section="briefing-infographic" data-hq-content-slug="'
         + e(article.slug,quote=True) + '">'
         '<figure class="auth-infographic"><picture>'
-        '<source media="(max-width:700px)" srcset="/briefing-ai-authority/infographic-mobile.svg"/>'
+        '<source media="(max-width:700px)" srcset="/briefing-ai-authority/infographic.mobile.svg"/>'
         '<img loading="eager" decoding="async" '
         'src="/briefing-ai-authority/infographic.svg" width="1600" height="2220" '
         'alt="' + e(str(row["alt_text"]),quote=True) + '"/></picture>'

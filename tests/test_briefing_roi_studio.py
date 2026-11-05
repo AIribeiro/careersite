@@ -66,9 +66,44 @@ class RoiInfographicTests(unittest.TestCase):
         self.assertIn('data-analytics-section="briefing-infographic"', html)
         self.assertIn('download="ai-roi-proof-before-scale-executive-infographic.png"', html)
         self.assertIn("data:image/webp;base64,", html)
-        self.assertIn("data:image/png;base64,", html)
+        self.assertIn('/briefing-ai-roi/infographic.png', html)
+        self.assertNotIn("data:image/png;base64,", html)
         self.assertIn("@media(max-width:700px)", html)
         self.assertNotIn("/app/static/", html)
+
+    def test_full_reader_dispatch_and_guarded_fallback(self):
+        from unittest.mock import patch
+        from briefing_infographic_store import (
+            approved_infographic_for, source_fingerprint, _ROI_APPROVED_FINGERPRINT
+        )
+        from types import SimpleNamespace
+        article = SimpleNamespace(
+            id="0329b694-b445-4a64-b400-cac7dd395e66",
+            slug="ai-roi-what-executives-must-prove-before-scaling",
+            status="published", title="AI ROI", subtitle="test", content_html="<p>test</p>"
+        )
+        row = {
+            "status": "approved", "source_fingerprint": source_fingerprint(article),
+            "alt_text": "AI ROI decision graphic with seven measurement areas and a financial proof chain.",
+            "caption": "Original executive illustration.", "spec": {},
+        }
+        html = approved_infographic_for(article, row=row)
+        self.assertIn('data-analytics-section="briefing-infographic"', html)
+        self.assertIn("Download the infographic (PNG)", html)
+        self.assertIn("/briefing-ai-roi/infographic.png", html)
+        with patch("briefing_infographic_store.fetch_public_infographic", side_effect=RuntimeError("temporary")), patch(
+            "briefing_infographic_store.source_fingerprint", return_value=_ROI_APPROVED_FINGERPRINT
+        ):
+            fallback = approved_infographic_for(article)
+            self.assertIn("Download the infographic (PNG)", fallback)
+        with patch("briefing_infographic_store.fetch_public_infographic", return_value=None):
+            self.assertEqual(approved_infographic_for(article), "")
+
+    def test_download_route_is_first_party_and_lazy(self):
+        source = (ROOT / "app.py").read_text(encoding="utf-8")
+        self.assertIn('Route("/briefing-ai-roi/infographic.{ext}"', source)
+        self.assertIn("async def _roi_infographic_image(request):", source)
+        self.assertIn('"Content-Disposition"', source)
 
 
 if __name__ == "__main__":

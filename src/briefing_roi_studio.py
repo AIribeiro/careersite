@@ -29,11 +29,14 @@ def approved_roi_studio(article, row: dict) -> str:
         return ""
     try:
         display = artwork_data_uri("display")
-        download = artwork_data_uri("download")
-    except (OSError, ValueError):
-        display = download = ""
-    if not display or not download:
+    except (OSError, ValueError, RuntimeError):
+        display = ""
+    if not display:
         return infographic_html(row["spec"], alt, row.get("caption", ""), article.slug)
+    # Keep the WebP self-contained to avoid the known Streamlit static-path issue.
+    # Route the full-resolution PNG download to a first-party response instead of
+    # a second 300KB base64 string inside the sanitized HTML.
+    download = "/briefing-ai-roi/infographic.png"
     caption = str(row.get("caption") or "").strip() or (
         "Original executive AI ROI infographic by Jair Ribeiro. Financial returns "
         "require a baseline, attribution, realized benefits and complete AI costs."

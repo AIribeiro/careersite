@@ -109,6 +109,60 @@ def reject_infographic(access_token: str, row: dict, reason: str) -> None:
 
 
 _STUDIO_ADOPTION_SLUG = "ai-adoption-four-leadership-responses"
+_ROI_SLUG = "ai-roi-what-executives-must-prove-before-scaling"
+# Exact editorial fingerprint of the published, approved ROI issue (checked
+# against the live CMS/approval records on 5 November 2026).
+_ROI_APPROVED_FINGERPRINT = "26661f9d61e65047394a0fe71b3bd8bd8dbe8f267873b43f1c357c3b5acd57df"
+
+_ROI_APPROVED_SNAPSHOT = {
+    "alt_text": (
+        "Original seven-lens AI ROI executive decision map distinguishing full lifecycle cost, "
+        "monetizable productivity, quality, revenue and risk effects from adoption and strategic signals; "
+        "leaders require baseline, attribution, realized benefit and complete costs before scaling."
+    ),
+    "caption": (
+        "Seven measurement areas feed an evidence-led investment decision. Four categories may produce "
+        "attributable financial benefits; adoption and strategic value are assessed separately until realized. "
+        "Original decision graphic by Jair Ribeiro."
+    ),
+    "spec": {
+        "pattern": "decision", "title": "Seven measures. One investment decision.",
+        "deck": "Costs and monetized effects determine ROI; adoption and strategic value need separate evidence.",
+        "items": [
+            {"label": "01", "title": "Full AI investment",
+             "detail": "Tokens, infrastructure, licences, people, training, governance and running costs."},
+            {"label": "02", "title": "Realized capacity",
+             "detail": "Time, throughput and cycle time; monetize only proven benefits."},
+            {"label": "03", "title": "Cost of poor quality",
+             "detail": "Accuracy, rework and escalations; count verified savings only."},
+            {"label": "04", "title": "Incremental margin",
+             "detail": "Conversion and retention; calculate added contribution margin."},
+            {"label": "05", "title": "Use in actual workflows",
+             "detail": "Active use and process coverage; a signal, not cash return."},
+            {"label": "06", "title": "Credible losses avoided",
+             "detail": "Fraud, errors and security; value defensible changes in expected loss."},
+            {"label": "07", "title": "Options realized",
+             "detail": "Faster launches and decisions; monetize when outcomes materialize."},
+        ],
+        "conclusion": "Scale only when benefits, attribution and total cost are proven.",
+        "version": 1,
+    },
+}
+
+
+def _roi_snapshot_on_transport_error(article) -> str:
+    """Temporary read failures must not erase a previously approved illustration.
+
+    Explicitly missing/revoked approval never uses this fallback. Any body,
+    title, or subtitle change invalidates the editorial fingerprint.
+    """
+    if (getattr(article, "slug", "") != _ROI_SLUG
+            or getattr(article, "status", "") != "published"
+            or source_fingerprint(article) != _ROI_APPROVED_FINGERPRINT):
+        return ""
+    from briefing_roi_studio import approved_roi_studio
+    return approved_roi_studio(article, _ROI_APPROVED_SNAPSHOT)
+
 
 _STUDIO_ADOPTION_CSS = """<style>
 .site .ebi-studio-figure{max-width:900px;margin-inline:auto;background:#fffdf9;padding:clamp(8px,1.4vw,20px);box-shadow:0 14px 38px rgba(19,42,62,.05)}
@@ -176,14 +230,14 @@ def approved_infographic_for(article, *, row: dict | None=None) -> str:
         try:
             row=fetch_public_infographic(article.id)
         except (RuntimeError,ValueError,TimeoutError):
-            return ""
+            return _roi_snapshot_on_transport_error(article)
     if not row or row.get("status")!="approved":
         return ""
     if row.get("source_fingerprint")!=source_fingerprint(article):
         return ""
     if article.slug == _STUDIO_ADOPTION_SLUG:
         return _approved_adoption_studio(article, row)
-    if article.slug == "ai-roi-what-executives-must-prove-before-scaling":
+    if article.slug == _ROI_SLUG:
         from briefing_roi_studio import approved_roi_studio
         return approved_roi_studio(article, row)
     try:

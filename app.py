@@ -415,6 +415,34 @@ async def _weekly_ai_cover(request):
     )
 
 
+async def _roi_infographic_image(request):
+    """Serve the approved AI ROI poster as a small, first-party image response.
+
+    The display remains embedded in the article; the downloadable PNG is served
+    separately so Streamlit HTML sanitization cannot strip a long data-URL link.
+    """
+    ext = str(request.path_params.get("ext") or "").lower()
+    if ext not in ("webp", "png"):
+        return PlainTextResponse("Infographic not found", status_code=404)
+    from briefing_roi_artwork import artwork_bytes
+    try:
+        data = artwork_bytes("download" if ext == "png" else "display")
+    except (OSError, ValueError, RuntimeError):
+        return PlainTextResponse("Infographic temporarily unavailable", status_code=503)
+    if not data:
+        return PlainTextResponse("Infographic temporarily unavailable", status_code=503)
+    headers = {
+        "Cache-Control": "public, max-age=86400, stale-while-revalidate=86400",
+        "X-Content-Type-Options": "nosniff",
+    }
+    if ext == "png":
+        headers["Content-Disposition"] = (
+            'attachment; filename="ai-roi-proof-before-scale-executive-infographic.png"'
+        )
+    return Response(data, media_type="image/png" if ext == "png" else "image/webp",
+                    headers=headers)
+
+
 async def _weekly_ai_evergreen_image(_request):
     path = ROOT / "assets" / "weekly_ai_evergreen_visual.webp"
     if not path.is_file():
@@ -434,6 +462,7 @@ app = App(
     routes=[
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
         Route("/portfolio-image/{name:path}", _portfolio_image, methods=["GET", "HEAD"]),
+        Route("/briefing-ai-roi/infographic.{ext}", _roi_infographic_image, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/evergreen.webp", _weekly_ai_evergreen_image, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/{slug}.png", _weekly_ai_cover, methods=["GET", "HEAD"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),

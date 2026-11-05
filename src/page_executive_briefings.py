@@ -1078,6 +1078,16 @@ def executive_briefing_article(
             ("The evidence", "What would justify the next investment?", "chart"),
         ),
     })
+    if article.slug == "ai-was-approved-who-can-stop-it":
+        guide = {
+            "call": "Operating permission must include the power to intervene.",
+            "move": "Name the accountable owner, test who can pause operations and define when changes trigger a new review.",
+            "checks": (
+                ("Accountability", "Who remains answerable after the project team leaves?", "target"),
+                ("Human authority", "Who may pause or override without waiting for a committee?", "shield"),
+                ("Review gate", "Which changed model, data or purpose withdraws the current approval?", "chart"),
+            ),
+        }
     checks = ''.join(
         '<div class="briefing-reader-check">' + briefing_icon(symbol)
         + f'<div><strong>{escape(title)}</strong><p>{escape(question)}</p></div></div>'
@@ -1132,6 +1142,8 @@ def executive_briefing_article(
         '</article>'
     )
     summary_text = (
+        "A release decision is conditional. Real accountability needs an owner, an effective stop and override route, an auditable decision trail and a review trigger when circumstances change."
+        if article.slug == "ai-was-approved-who-can-stop-it" else
         "Skill and willingness are task-specific starting points, not employee labels. "
         "Test work readiness before choosing coaching, delegated ownership, evidence-led challenge or trust-building support."
         if article.slug == ADOPTION_SLUG else

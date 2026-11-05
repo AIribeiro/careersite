@@ -14,20 +14,20 @@ from briefing_authority_artwork import GROUPS, artwork_svg, artwork_mobile_svg, 
 
 
 class OperatingAuthorityArtworkTests(unittest.TestCase):
-    def test_twenty_five_unique_decisions(self):
-        self.assertEqual(len(GROUPS), 5)
-        self.assertEqual([len(group[3]) for group in GROUPS], [5] * 5)
+    def test_twenty_unique_decisions(self):
+        self.assertEqual(len(GROUPS), 4)
+        self.assertEqual([len(group[3]) for group in GROUPS], [5] * 4)
         titles = [item[0] for group in GROUPS for item in group[3]]
-        self.assertEqual(len(titles), 25)
-        self.assertEqual(len(set(titles)), 25)
+        self.assertEqual(len(titles), 20)
+        self.assertEqual(len(set(titles)), 20)
 
     def test_desktop_mobile_complete_accessible_svg(self):
         for source in (artwork_svg(), artwork_mobile_svg()):
             root = ET.fromstring(source)
             self.assertTrue(root.tag.endswith("svg"))
             svg_text = " ".join(t.text or "" for t in root.iter() if t.tag.endswith("text"))
-            self.assertIn("WHO CAN STOP IT?", svg_text)
-            self.assertIn("CONTINUING PERMISSION", svg_text)
+            self.assertIn("AUTHORITY?", svg_text)
+            self.assertIn("RENEWAL AND EXIT", svg_text)
             for group in GROUPS:
                 for title, _ in group[3]:
                     self.assertIn(title, svg_text)
@@ -41,8 +41,8 @@ class OperatingAuthorityArtworkTests(unittest.TestCase):
         for group in GROUPS:
             for title, _ in group[3]:
                 self.assertIn(title, pdf_text)
-        self.assertIn("AI WAS APPROVED", pdf_text)
-        self.assertIn("THE EXECUTIVE APPROVAL RECORD", pdf_text)
+        self.assertIn("THE AI IS LIVE", pdf_text)
+        self.assertIn("EXECUTIVE GATE", pdf_text)
 
 
 if __name__ == "__main__":

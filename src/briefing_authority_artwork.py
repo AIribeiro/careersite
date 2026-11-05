@@ -122,6 +122,57 @@ def artwork_svg() -> str:
 
 
 @lru_cache(maxsize=1)
+def artwork_mobile_svg() -> str:
+    """Tall, legible mobile composition: five sections and all 25 decisions."""
+    width, height = 900, 4520
+    p = ['<svg xmlns="http://www.w3.org/2000/svg" '
+         f'width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+         'role="img" aria-label="Twenty-five AI governance decisions for mobile readers">',
+         f'<rect width="{width}" height="{height}" fill="{CREAM}"/>',
+         '<rect width="900" height="255" fill="#0c263e"/>',
+         _text(45, 65, "EXECUTIVE AI BRIEFING  /  25 DECISIONS", size=25, color="#92dce5", weight=700),
+         _text(45, 146, "AI WAS APPROVED.", size=57, color="#ffffff", weight=700),
+         _text(45, 214, "WHO CAN STOP IT?", size=57, color="#ffffff", weight=700),
+         _text(45, 300, "Five controls. One continuing permission to operate.",
+               size=28, color=NAVY, weight=600)]
+    top, step = 337, 795
+    count = 0
+    for i, (number, title, headline, rows) in enumerate(GROUPS):
+        y = top + i*step
+        accent = PALETTE[i]
+        p.extend((
+            f'<rect x="27" y="{y}" width="846" height="770" rx="23" fill="white" stroke="{BORDER}" stroke-width="2"/>',
+            f'<rect x="27" y="{y}" width="846" height="11" rx="6" fill="{accent}"/>',
+            _text(57, y+76, f"{number}  {title}", size=42, color=NAVY, weight=700),
+            _text(57, y+117, headline, size=30, color=SLATE)))
+        for j, (name, detail) in enumerate(rows):
+            count += 1
+            ry = y+149+j*119
+            if j:
+                p.append(f'<line x1="58" y1="{ry-11}" x2="842" y2="{ry-11}" stroke="{BORDER}"/>')
+            p.extend((_text(59, ry+25, f"{count:02d}", size=29, color=accent, weight=700),
+                      _text(119, ry+25, name, size=34, color=NAVY, weight=700)))
+            lines = wrap(detail, width=51, break_long_words=False)
+            for k, line in enumerate(lines[:2]):
+                p.append(_text(119, ry+65+37*k, line, size=29, color=SLATE))
+    foot_y = 4320
+    p.extend((f'<rect x="0" y="{foot_y}" width="900" height="200" fill="#0c263e"/>',
+              _text(170, foot_y+77, "Jair Ribeiro", size=42, color="#ffffff", weight=700),
+              _text(170, foot_y+119, "AI LEADER", size=26, color="#8de2eb", weight=700),
+              _text(38, foot_y+172, "Enterprise AI Adoption  •  Governance  •  Business Transformation",
+                    size=25, color="#dce7eb")))
+    if PORTRAIT.is_file():
+        img = base64.b64encode(PORTRAIT.read_bytes()).decode("ascii")
+        p.append(f'<circle cx="96" cy="{foot_y+86}" r="57" fill="white"/>')
+        p.append(f'<defs><clipPath id="mobile-portrait"><circle cx="96" cy="{foot_y+86}" r="53"/></clipPath></defs>')
+        p.append(f'<image x="43" y="{foot_y+33}" width="106" height="106" '
+                 f'href="data:image/webp;base64,{img}" preserveAspectRatio="xMidYMid slice" '
+                 'clip-path="url(#mobile-portrait)"/>')
+    p.append('</svg>')
+    return "".join(p)
+
+
+@lru_cache(maxsize=1)
 def artwork_pdf() -> bytes:
     """Two-page A4 PDF; vector text and cards remain sharp when magnified."""
     from fpdf import FPDF
@@ -197,9 +248,11 @@ def approved_authority_studio(article, row: dict) -> str:
         '@media(max-width:700px){.site .auth-infographic{padding:6px}.site .auth-infographic a{width:100%}}'
         '</style>'
         '<section data-analytics-section="briefing-infographic" data-hq-content-slug="' + e(article.slug,quote=True) + '">'
-        '<figure class="auth-infographic"><img loading="eager" decoding="async" '
+        '<figure class="auth-infographic"><picture>'
+        '<source media="(max-width:700px)" srcset="/briefing-ai-authority/infographic-mobile.svg"/>'
+        '<img loading="eager" decoding="async" '
         'src="/briefing-ai-authority/infographic.svg" width="1600" height="2410" '
-        'alt="' + e(str(row["alt_text"]),quote=True) + '"/>'
+        'alt="' + e(str(row["alt_text"]),quote=True) + '"/></picture>'
         '<figcaption>' + e(caption) + '</figcaption>'
         '<a href="/briefing-ai-authority/infographic.pdf" '
         'download="ai-operating-authority-25-decisions.pdf">'

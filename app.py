@@ -416,28 +416,23 @@ async def _weekly_ai_cover(request):
 
 
 async def _roi_infographic_image(request):
-    """Serve the approved AI ROI poster as a small, first-party image response.
-
-    The display remains embedded in the article; the downloadable PNG is served
-    separately so Streamlit HTML sanitization cannot strip a long data-URL link.
-    """
+    """Deliver the permanent WebP artwork or downloadable A4 PDF."""
     ext = str(request.path_params.get("ext") or "").lower()
-    if ext not in ("webp", "png"):
+    if ext not in ("webp", "pdf"):
         return PlainTextResponse("Infographic not found", status_code=404)
-    # Serve the exact versioned repository asset directly; never draw the
-    # download dynamically during the user's request.
-    image_path = ROOT / "static" / f"briefing-ai-roi-proof-before-scale.{ext}"
-    if not image_path.is_file():
+    asset_path = ROOT / "static" / f"briefing-ai-roi-proof-before-scale.{ext}"
+    if not asset_path.is_file():
         return PlainTextResponse("Infographic asset unavailable", status_code=503)
     headers = {
         "Cache-Control": "public, max-age=604800, stale-while-revalidate=604800",
         "X-Content-Type-Options": "nosniff",
     }
-    if ext == "png":
+    if ext == "pdf":
         headers["Content-Disposition"] = (
-            'attachment; filename="ai-roi-proof-before-scale-executive-infographic.png"'
+            'attachment; filename="ai-roi-proof-before-scale-executive-infographic.pdf"'
         )
-    return FileResponse(image_path, media_type="image/png" if ext == "png" else "image/webp",
+    return FileResponse(asset_path,
+                        media_type="application/pdf" if ext == "pdf" else "image/webp",
                         headers=headers)
 
 

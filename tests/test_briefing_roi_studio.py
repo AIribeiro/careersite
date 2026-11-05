@@ -1,4 +1,4 @@
-"""Regression checks for the exact AI ROI visual and direct PNG download."""
+"""Regression checks for the exact AI ROI visual and A4 PDF download."""
 from __future__ import annotations
 
 import ast
@@ -64,11 +64,13 @@ class RoiInfographicTests(unittest.TestCase):
         )
         self.assertEqual(html.count("<img "), 1)
         self.assertIn('data-analytics-section="briefing-infographic"', html)
-        self.assertIn('download="ai-roi-proof-before-scale-executive-infographic.png"', html)
+        self.assertIn('download="ai-roi-proof-before-scale-executive-infographic.pdf"', html)
         self.assertIn("https://raw.githubusercontent.com/AIribeiro/careersite/main/static/briefing-ai-roi-proof-before-scale.webp", html)
         self.assertNotIn("data:image/webp;base64,", html)
-        self.assertIn('/briefing-ai-roi/infographic.png', html)
+        self.assertIn('/briefing-ai-roi/infographic.pdf', html)
         self.assertNotIn("data:image/png;base64,", html)
+        self.assertNotIn("Open full-resolution image", html)
+        self.assertNotIn("infographic.png", html)
         self.assertIn("@media(max-width:700px)", html)
         self.assertNotIn("/app/static/", html)
         self.assertLess(len(html), 12000, "Static artwork must not inflate the Streamlit page payload")
@@ -91,13 +93,13 @@ class RoiInfographicTests(unittest.TestCase):
         }
         html = approved_infographic_for(article, row=row)
         self.assertIn('data-analytics-section="briefing-infographic"', html)
-        self.assertIn("Download the infographic (PNG)", html)
-        self.assertIn("/briefing-ai-roi/infographic.png", html)
+        self.assertIn("Download the infographic (PDF)", html)
+        self.assertIn("/briefing-ai-roi/infographic.pdf", html)
         with patch("briefing_infographic_store.fetch_public_infographic", side_effect=RuntimeError("temporary")), patch(
             "briefing_infographic_store.source_fingerprint", return_value=_ROI_APPROVED_FINGERPRINT
         ):
             fallback = approved_infographic_for(article)
-            self.assertIn("Download the infographic (PNG)", fallback)
+            self.assertIn("Download the infographic (PDF)", fallback)
         with patch("briefing_infographic_store.fetch_public_infographic", return_value=None):
             self.assertEqual(approved_infographic_for(article), "")
 
@@ -110,7 +112,7 @@ class RoiInfographicTests(unittest.TestCase):
             'static/briefing-ai-roi-proof-before-scale.webp" '
             'width="1800" height="2400" alt="AI ROI executive infographic" />'
             '<figcaption>Original executive infographic.</figcaption>'
-            '<a class="cms-roi-download" href="/briefing-ai-roi/infographic.png">'
+            '<a class="cms-roi-download" href="/briefing-ai-roi/infographic.pdf">'
             'Download the infographic</a></figure>'
         )
         article = SimpleNamespace(
@@ -134,6 +136,7 @@ class RoiInfographicTests(unittest.TestCase):
         self.assertIn('Route("/briefing-ai-roi/infographic.{ext}"', source)
         self.assertIn("async def _roi_infographic_image(request):", source)
         self.assertIn('"Content-Disposition"', source)
+        self.assertIn('"application/pdf"', source)
 
 
 if __name__ == "__main__":

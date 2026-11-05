@@ -23,8 +23,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install image renderer
-        run: python -m pip install --quiet 'Pillow>=11,<13'
-      - name: Produce permanent WebP and PNG
+        run: python -m pip install --quiet 'Pillow>=11,<13' 'reportlab>=4,<5'
+      - name: Produce WebP, PNG source and high-resolution A4 PDF
         run: |
           PYTHONPATH=src python - <<'PY'
           from pathlib import Path
@@ -42,12 +42,32 @@ jobs:
               path = out / f"briefing-ai-roi-proof-before-scale.{suffix}"
               path.write_bytes(data)
               print(f"Verified {path} with {len(data)} bytes")
+          from reportlab.pdfgen import canvas
+          from reportlab.lib.pagesizes import A4
+          from reportlab.lib.units import mm
+          from reportlab.lib.utils import ImageReader
+          page_w, page_h = A4
+          margin = 11 * mm
+          artwork_w, artwork_h = 1800, 2400
+          ratio = min((page_w-2*margin)/artwork_w, (page_h-2*margin)/artwork_h)
+          pdf_path = out / "briefing-ai-roi-proof-before-scale.pdf"
+          pdf = canvas.Canvas(str(pdf_path), pagesize=A4, pageCompression=1)
+          pdf.setTitle("AI ROI: Proof Before Scale | Jair Ribeiro")
+          pdf.setAuthor("Jair Ribeiro")
+          pdf.setSubject("Executive AI Briefing - AI ROI investment measurement")
+          pdf.drawImage(ImageReader(str(out / "briefing-ai-roi-proof-before-scale.png")),
+                        (page_w-artwork_w*ratio)/2, (page_h-artwork_h*ratio)/2,
+                        width=artwork_w*ratio, height=artwork_h*ratio)
+          pdf.showPage()
+          pdf.save()
+          assert pdf_path.read_bytes().startswith(b"%PDF-")
+          print(f"Verified A4 PDF {pdf_path} ({pdf_path.stat().st_size} bytes)")
           PY
       - name: Commit generated public image assets
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add static/briefing-ai-roi-proof-before-scale.webp static/briefing-ai-roi-proof-before-scale.png
+          git add static/briefing-ai-roi-proof-before-scale.webp static/briefing-ai-roi-proof-before-scale.png static/briefing-ai-roi-proof-before-scale.pdf
           if ! git diff --cached --quiet; then
             git commit -m 'Publish permanent AI ROI executive infographic assets'
             git push origin HEAD:main

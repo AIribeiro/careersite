@@ -112,7 +112,7 @@ _STUDIO_ADOPTION_SLUG = "ai-adoption-four-leadership-responses"
 _ROI_SLUG = "ai-roi-what-executives-must-prove-before-scaling"
 # Exact editorial fingerprint of the published, approved ROI issue (checked
 # against the live CMS/approval records on 5 November 2026).
-_ROI_APPROVED_FINGERPRINT = "26661f9d61e65047394a0fe71b3bd8bd8dbe8f267873b43f1c357c3b5acd57df"
+_ROI_APPROVED_FINGERPRINT = "1d49309411934d3e25edbe3e5ba391504ba2b73e23827f93f4d1c9b5ae7ca50a"
 
 _ROI_APPROVED_SNAPSHOT = {
     "alt_text": (

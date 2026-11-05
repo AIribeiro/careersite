@@ -228,7 +228,7 @@ def artwork_pdf() -> bytes:
             pdf.set_font("Helvetica", "", 9)
             pdf.set_text_color(79, 99, 113)
             pdf.text(17, y, subtitle)
-            y += 12
+            y += 9
             for label, detail in rows:
                 count += 1
                 pdf.set_text_color(18, 50, 72)
@@ -237,8 +237,8 @@ def artwork_pdf() -> bytes:
                 pdf.set_text_color(78, 98, 113)
                 pdf.set_font("Helvetica", "", 8.7)
                 pdf.text(23, y+5.5, detail)
-                y += 19.5
-            y += 12
+                y += 11.6
+            y += 8
         if page == 1:
             pdf.set_fill_color(232, 243, 243)
             pdf.rect(12, 245, 186, 23, "F")

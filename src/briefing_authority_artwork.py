@@ -11,6 +11,7 @@ import base64
 from functools import lru_cache
 from html import escape
 from pathlib import Path
+from textwrap import wrap
 
 ROOT = Path(__file__).resolve().parent.parent
 PORTRAIT = ROOT / "static" / "briefing-roi-portrait.webp"

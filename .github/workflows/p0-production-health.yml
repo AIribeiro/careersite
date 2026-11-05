@@ -60,9 +60,10 @@ jobs:
                   except Exception as exc:
                       print(f"Page still loading: {type(exc).__name__}: {str(exc)[:200]}")
                   time.sleep(5)
+              failed = []
               if not visible:
-                  browser.close()
-                  raise SystemExit("ERROR: Portfolio hero did not render within browser-level production smoke check")
+                  failed.append("Portfolio homepage did not render in the browser smoke check")
+                  print("WARNING: Homepage unavailable; continue to independently test individual routes", flush=True)
 
               # Warm browser navigation across every major public route,
               # including a CMS-backed reader. Measure the visible page rather
@@ -76,7 +77,6 @@ jobs:
                   ("About", "?page=about", ".site main"),
                   ("Contact", "?page=contact", ".site main"),
               ]
-              failed = []
               timings = []
               base = os.environ["SITE_URL"].rstrip("/") + "/"
               for label, query, selector in routes:

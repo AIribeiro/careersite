@@ -438,7 +438,7 @@ async def _roi_infographic_image(request):
 
 async def _authority_infographic(request):
     """Deliver original governance decision artwork and its A4 PDF, first-party."""
-    from briefing_authority_artwork import artwork_svg, artwork_pdf
+    from briefing_authority_artwork import artwork_svg, artwork_mobile_svg, artwork_pdf
     ext = str(request.path_params.get("ext") or "").lower()
     headers = {
         "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
@@ -446,6 +446,8 @@ async def _authority_infographic(request):
     }
     if ext == "svg":
         return Response(artwork_svg(), media_type="image/svg+xml", headers=headers)
+    if ext == "mobile.svg":
+        return Response(artwork_mobile_svg(), media_type="image/svg+xml", headers=headers)
     if ext == "pdf":
         headers["Content-Disposition"] = (
             'attachment; filename="ai-operating-authority-25-decisions.pdf"'

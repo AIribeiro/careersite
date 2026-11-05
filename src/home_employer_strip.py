@@ -17,7 +17,7 @@ EMPLOYERS = (
 _STYLE = """
 <style>
 .site .career-employers{
-  background:linear-gradient(110deg,#f8f5ee 0%,#f4eee5 100%);
+  background:#ffffff;
   border-top:1px solid #d8c9b9;
   border-bottom:1px solid #dacbb9;
   color:#172238;

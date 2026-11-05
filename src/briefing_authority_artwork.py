@@ -217,6 +217,38 @@ def artwork_pdf() -> bytes:
                 pdf.text(20, y+5.3, detail)
                 y += 10.8
             y += 4
+        if page == 1:
+            y2 = 194
+            pdf.set_fill_color(238, 246, 247)
+            pdf.rect(12, y2, 186, 73, "F")
+            pdf.set_text_color(15, 44, 64)
+            pdf.set_font("Helvetica", "B", 11)
+            pdf.text(18, y2 + 8, "THE EXECUTIVE APPROVAL RECORD")
+            pdf.set_font("Helvetica", "", 8.5)
+            pdf.set_text_color(75, 96, 111)
+            pdf.text(18, y2 + 14, "Before allowing AI to operate, name the owner and verify the stop rule.")
+            fields = (
+                ("Purpose and limits", "What AI may do and where"),
+                ("Business accountability", "Named outcome owner"),
+                ("Operational steward", "Duty holder and supplier boundary"),
+                ("Human approval line", "Which actions require consent"),
+                ("Stop and override right", "Who can intervene immediately"),
+                ("Evidence and incident trail", "What must be retained"),
+                ("Review trigger and date", "When permission is reconsidered"),
+            )
+            for n, (heading, hint) in enumerate(fields):
+                yy = y2 + 22 + n * 6.2
+                pdf.set_text_color(18, 48, 69)
+                pdf.set_font("Helvetica", "B", 8.5)
+                pdf.text(20, yy, heading)
+                pdf.set_text_color(108, 124, 133)
+                pdf.set_font("Helvetica", "", 7.4)
+                pdf.text(99, yy, hint)
+                pdf.set_draw_color(209, 222, 224)
+                pdf.line(20, yy + 2.3, 190, yy + 2.3)
+            pdf.set_font("Helvetica", "B", 8.5)
+            pdf.set_text_color(29, 89, 110)
+            pdf.text(18, 261, "DECISION: PROCEED / HOLD / RESTRICT OR STOP")
         pdf.set_fill_color(12, 38, 62)
         pdf.rect(0, 279, 210, 18, "F")
         pdf.set_text_color(255, 255, 255)

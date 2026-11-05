@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-"""First-party, source-faithful artwork for the AI operating-authority briefing.
+"""Original twenty-decision operating-mandate infographic for Executive AI Briefings.
 
-Five parallel operating contracts with 25 distinct decisions.
-The SVG is rendered on demand as an image route; PDF is a two-page A4 vector
-document. Neither is embedded as a data URI into the Streamlit article HTML.
+Four parallel obligations, each with five executive decisions. All content lives
+in GROUPS, shared by desktop SVG, mobile SVG and the two-page vector PDF.
+No external image or network dependency is required to render an edition.
 """
-
 import base64
 from functools import lru_cache
 from html import escape
@@ -17,239 +16,237 @@ ROOT = Path(__file__).resolve().parent.parent
 PORTRAIT = ROOT / "static" / "briefing-roi-portrait.webp"
 SLUG = "ai-was-approved-who-can-stop-it"
 
+# Source-locked, original operating-mandate taxonomy: four simultaneous duties.
 GROUPS = (
-    ("01", "VISIBILITY", "Know what AI changes",
-     (("Live inventory", "Locate deployed models, agents and AI-enabled workflows."),
-      ("Supplier entry points", "Track AI introduced through product and model updates."),
-      ("Unapproved use", "Find activity outside the reviewed working route."),
-      ("Decision touchpoints", "Map where AI affects people, actions or outcomes."),
-      ("Concentrated exposure", "Spot failures that could propagate across many workflows."))),
-    ("02", "RESPONSIBILITY", "Put names on outcomes",
-     (("Executive sponsor", "Name who accepts accountability for material consequences."),
-      ("Service steward", "Assign the person who keeps the system within its scope."),
-      ("Decision owner", "Keep accountability with the business decision-maker."),
-      ("Domain challenge", "Identify the expert who can question a wrong result."),
-      ("Supplier boundary", "Separate vendor duties from obligations retained internally."))),
-    ("03", "HUMAN AUTHORITY", "Make intervention possible",
-     (("Human decision line", "Set where automation ends and human approval begins."),
-      ("Immediate stop right", "Name who can pause operations without a committee."),
-      ("Protected override", "Let staff contest, correct or refuse an unsafe output."),
-      ("Escalation trigger", "Define who responds, when and to which warning signal."),
-      ("Reversal path", "Specify rollback, correction or remedy for irreversible harm."))),
-    ("04", "EVIDENCE", "Make decisions explainable",
-     (("Decision trace", "Retain inputs, output, action, time and responsible actor."),
-      ("Approved-use record", "Show which purpose, users and boundaries were agreed."),
-      ("Intervention history", "Capture overrides and investigate recurring patterns."),
-      ("Near-miss learning", "Log weak signals and incidents, not just confirmed harm."),
-      ("Control lineage", "Link outcomes to ownership, rule, review and proof."))),
-    ("05", "CONTINUING PERMISSION", "Review, restrict or retire",
-     (("Operating outcomes", "Check that performance remains acceptable in real work."),
-      ("Change review gate", "Reassess model, vendor, data, permissions or workflow changes."),
-      ("Drift detection", "Watch shifts in behavior, inputs and human reliance."),
-      ("Scheduled reassessment", "Recheck evidence, control fitness and named ownership."),
-      ("Retirement authority", "Document who can restrict, replace or remove the system."))),
+    ("01", "BUSINESS MANDATE", "Permission has an owner and a purpose", (
+        ("Outcome to change", "Name the business result and why AI belongs in the work."),
+        ("Accountable decision-maker", "Keep responsibility for the outcome after the pilot."),
+        ("Authorised operating scope", "Define allowed users, data, actions and exceptions."),
+        ("Workflow consequence", "Locate where AI changes human work or customer outcomes."),
+        ("Supplier and handover duty", "Assign vendor obligations and successor ownership."),
+    )),
+    ("02", "HUMAN CONTROL", "Authority remains exercisable", (
+        ("Action permission", "Separate advice, preparation and autonomous execution."),
+        ("Immediate pause right", "Name who can stop operation without waiting for approval."),
+        ("Protected challenge", "Let people reject, correct or contest outputs safely."),
+        ("Exception response", "Set triggers, responders and decision deadlines."),
+        ("Recovery and remedy", "Define containment, rollback and correction after error."),
+    )),
+    ("03", "OPERATING EVIDENCE", "Assurance comes from what happens in work", (
+        ("Real AI footprint", "Find authorised, embedded and unofficial uses."),
+        ("Reconstructable decision", "Keep input, output, version, approval and action."),
+        ("Human correction signal", "Review override patterns instead of hiding them."),
+        ("Incident and near-miss learning", "Capture weak signals and assign remediation."),
+        ("Shared-dependency exposure", "Know where one failure affects several workflows."),
+    )),
+    ("04", "RENEWAL AND EXIT", "Permission is conditional, not permanent", (
+        ("Business and quality fitness", "Check outcomes and side effects in real operations."),
+        ("Material-change gate", "Reapprove changed model, data, vendor, scope or permissions."),
+        ("Drift response", "Detect deviations and determine when to intervene."),
+        ("Periodic authorisation", "Renew ownership, evidence and controls at agreed gates."),
+        ("Withdrawal and retirement", "Name who removes permission and protects continuity."),
+    )),
 )
 
-NAVY = "#10283e"
-DARK = "#16283c"
-CREAM = "#f8f8f5"
-SLATE = "#566779"
+NAVY = "#0c263e"
+INK = "#1c3449"
+WARM = "#fcfaf6"
+SLATE = "#5b6c7a"
+BORDER = "#d7e2e4"
 CYAN = "#08b9d3"
-COPPER = "#bd8864"
-BORDER = "#dfe8e8"
-PALETTE = (CYAN, COPPER, "#3a8f9c", "#7891ae", COPPER)
+COPPER = "#b98762"
+PALETTE = ("#10b4c4", "#bf8865", "#528897", "#748aa7")
 
 
-def _text(x, y, value, *, size=21, color=DARK, weight=400, anchor=None):
-    a = f' text-anchor="{anchor}"' if anchor else ""
-    return (f'<text x="{x}" y="{y}" fill="{color}" font-family="Arial, Helvetica, sans-serif" '
-            f'font-size="{size}" font-weight="{weight}"{a}>{escape(str(value))}</text>')
+def _text(x, y, s, *, size=24, color=INK, weight=400, anchor="start"):
+    return (f'<text x="{x}" y="{y}" fill="{color}" text-anchor="{anchor}" '
+            'font-family="Arial,Helvetica,sans-serif" '
+            f'font-size="{size}" font-weight="{weight}">{escape(str(s))}</text>')
+
+
+def _portrait_svg(cx, cy, radius):
+    if not PORTRAIT.is_file():
+        return ""
+    encoded = base64.b64encode(PORTRAIT.read_bytes()).decode("ascii")
+    x = cx - radius
+    y = cy - radius
+    return (
+        f'<defs><clipPath id="author-portrait"><circle cx="{cx}" cy="{cy}" r="{radius}"/></clipPath></defs>'
+        f'<circle cx="{cx}" cy="{cy}" r="{radius+5}" fill="#ffffff"/>'
+        f'<image x="{x}" y="{y}" width="{radius*2}" height="{radius*2}" '
+        f'href="data:image/webp;base64,{encoded}" '
+        'preserveAspectRatio="xMidYMid slice" clip-path="url(#author-portrait)"/>'
+    )
+
+
+def _start_svg(width, height, title):
+    return [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}" role="img" aria-label="{escape(title)}">',
+        f'<rect width="{width}" height="{height}" fill="{WARM}"/>',
+    ]
 
 
 @lru_cache(maxsize=1)
 def artwork_svg() -> str:
-    """A 1,600 x 2,410 original decision register, not the supplied 5x5 tile layout."""
-    width, height = 1600, 2410
-    p = ['<svg xmlns="http://www.w3.org/2000/svg" '
-         f'width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
-         'role="img" aria-label="Twenty-five AI operating-authority decisions grouped into five domains">']
-    p.extend((f'<rect width="{width}" height="{height}" fill="{CREAM}"/>',
-              '<rect width="1600" height="295" fill="#0c263e"/>',
-              '<rect x="72" y="43" width="78" height="6" rx="3" fill="#08b9d3"/>',
-              _text(72, 88, "EXECUTIVE AI BRIEFING  /  OPERATING AUTHORITY", size=22, color="#9ad7e0", weight=700),
-              _text(72, 172, "AI WAS APPROVED.", size=78, color="#ffffff", weight=700),
-              _text(72, 247, "WHO CAN STOP IT?", size=78, color="#ffffff", weight=700),
-              _text(1530, 87, "25 DECISIONS  /  5 CONTRACTS", size=23, color="#e8c8a9", weight=700, anchor="end"),
-              _text(73, 337, "Approval to launch is not permanent permission to operate.", size=31, color=NAVY, weight=600),
-              _text(73, 374, "Five concurrent controls, each with five decisions leaders should be able to evidence.", size=23, color=SLATE),
-              ))
-    top, group_h = 414, 357
-    counter = 0
-    for i, (number, title, headline, rows) in enumerate(GROUPS):
-        y = top + i*group_h
-        accent = PALETTE[i]
-        p.extend((f'<rect x="64" y="{y}" width="1472" height="341" rx="19" fill="#ffffff" stroke="{BORDER}" stroke-width="2"/>',
-                  f'<rect x="64" y="{y}" width="14" height="341" rx="7" fill="{accent}"/>',
-                  _text(105, y+81, number, size=67, color=accent, weight=700),
-                  _text(105, y+119, title, size=25, color=NAVY, weight=700),
-                  _text(105, y+164, headline, size=26, color=SLATE, weight=400),
-                  f'<line x1="458" y1="{y+25}" x2="458" y2="{y+315}" stroke="{BORDER}" stroke-width="2"/>'))
-        for j, (name, detail) in enumerate(rows):
-            counter += 1
-            ry = y+31+j*60
-            if j:
-                p.append(f'<line x1="488" y1="{ry-15}" x2="1509" y2="{ry-15}" stroke="#e8eeee" stroke-width="1"/>')
-            p.extend((_text(496, ry+16, f"{counter:02}", size=21, color=accent, weight=700),
-                      _text(547, ry+16, name, size=25, color=NAVY, weight=700),
-                      _text(547, ry+42, detail, size=21, color=SLATE)))
-    foot_y = 2211
-    p.extend(('<rect x="0" y="2211" width="1600" height="199" fill="#0c263e"/>',
-              f'<rect x="64" y="{foot_y+31}" width="1472" height="3" fill="{CYAN}" opacity=".65"/>',
-              _text(220, foot_y+91, "Jair Ribeiro", size=38, color="#ffffff", weight=700),
-              _text(220, foot_y+130, "AI LEADER", size=23, color="#8de2eb", weight=700),
-              _text(220, foot_y+163, "Enterprise AI Adoption  •  Governance  •  Business Transformation",
-                    size=21, color="#dbe7eb")))
-    if PORTRAIT.is_file():
-        img = base64.b64encode(PORTRAIT.read_bytes()).decode("ascii")
-        p.append('<defs><clipPath id="portrait-circle"><circle cx="131" cy="2319" r="63"/></clipPath></defs>')
-        p.append('<circle cx="131" cy="2319" r="68" fill="#ffffff"/>')
-        p.append(f'<image x="68" y="2256" width="126" height="126" '
-                 f'href="data:image/webp;base64,{img}" preserveAspectRatio="xMidYMid slice" '
-                 'clip-path="url(#portrait-circle)"/>')
-    p.append(_text(1530, foot_y+112, "REVIEW  /  HOLD  /  STOP", size=24,
-                   color="#e9c4a5", weight=700, anchor="end"))
-    p.append('</svg>')
+    """The four obligations converge on an operating permission, not a maturity ladder."""
+    width, height = 1600, 2220
+    p = _start_svg(width, height, "20 AI operating decisions in four concurrent obligations")
+    p += [
+        '<rect width="1600" height="308" fill="#0c263e"/>',
+        '<rect x="64" y="42" width="74" height="6" rx="3" fill="#08b9d3"/>',
+        _text(64, 93, "EXECUTIVE AI BRIEFING  /  OPERATING AUTHORITY", size=23,
+              color="#83d6e4", weight=700),
+        _text(64, 180, "THE AI IS LIVE.", size=75, color="#ffffff", weight=700),
+        _text(64, 261, "WHO HOLDS THE AUTHORITY?", size=69, color="#ffffff", weight=700),
+        _text(1532, 91, "20 DECISIONS / 4 DUTIES", size=23,
+              color="#eac3a1", weight=700, anchor="end"),
+        _text(70, 366, "Authority must remain with the business after go-live.",
+              size=37, color=NAVY, weight=700),
+        _text(70, 408, "Four concurrent operating commitments, not a maturity ladder.",
+              size=24, color=SLATE),
+    ]
+    count = 0
+    for gi, (_, name, subtitle, decisions) in enumerate(GROUPS):
+        x = 60 + (gi % 2) * 755
+        y = 454 + (gi // 2) * 710
+        accent = PALETTE[gi]
+        p += [
+            f'<rect x="{x}" y="{y}" width="725" height="686" rx="23" fill="#ffffff" '
+            f'stroke="{BORDER}" stroke-width="2"/>',
+            f'<rect x="{x}" y="{y}" width="725" height="12" rx="6" fill="{accent}"/>',
+            _text(x+34, y+69, f"0{gi+1}   {name}", size=32, color=NAVY, weight=700),
+            _text(x+34, y+110, subtitle, size=21, color=SLATE),
+        ]
+        for ri, (label, detail) in enumerate(decisions):
+            count += 1
+            yy = y+149 + ri*101
+            if ri:
+                p += [f'<line x1="{x+33}" y1="{yy-16}" x2="{x+693}" y2="{yy-16}" '
+                      'stroke="#e7eeee" stroke-width="1"/>']
+            p += [
+                _text(x+33, yy+18, f"{count:02}", size=24, color=accent, weight=700),
+                _text(x+88, yy+17, label, size=28, color=NAVY, weight=700),
+                _text(x+88, yy+52, detail, size=19, color=SLATE),
+            ]
+    p += [
+        '<rect x="60" y="1903" width="1480" height="126" rx="17" fill="#e7f0f0"/>',
+        _text(95, 1951, "OPERATING PERMISSION IS CONDITIONAL", size=27,
+              color=NAVY, weight=700),
+        _text(95, 1995, "Proceed when ownership, intervention, evidence and renewal can be demonstrated.",
+              size=24, color=INK),
+        '<rect x="0" y="2055" width="1600" height="165" fill="#0c263e"/>',
+        '<rect x="62" y="2071" width="1470" height="3" fill="#08b9d3"/>',
+        _portrait_svg(126, 2140, 49),
+        _text(202, 2133, "Jair Ribeiro", size=39, color="#ffffff", weight=700),
+        _text(202, 2173, "AI LEADER  /  Enterprise AI Adoption  •  Governance  •  Business Transformation",
+              size=21, color="#dce7ec"),
+        _text(1530, 2146, "PROCEED  •  HOLD  •  STOP", size=23,
+              color="#e7b992", weight=700, anchor="end"),
+        '</svg>',
+    ]
     return "".join(p)
 
 
 @lru_cache(maxsize=1)
 def artwork_mobile_svg() -> str:
-    """Tall, legible mobile composition: five sections and all 25 decisions."""
-    width, height = 900, 4520
-    p = ['<svg xmlns="http://www.w3.org/2000/svg" '
-         f'width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
-         'role="img" aria-label="Twenty-five AI governance decisions for mobile readers">',
-         f'<rect width="{width}" height="{height}" fill="{CREAM}"/>',
-         '<rect width="900" height="255" fill="#0c263e"/>',
-         _text(45, 65, "EXECUTIVE AI BRIEFING  /  25 DECISIONS", size=25, color="#92dce5", weight=700),
-         _text(45, 146, "AI WAS APPROVED.", size=57, color="#ffffff", weight=700),
-         _text(45, 214, "WHO CAN STOP IT?", size=57, color="#ffffff", weight=700),
-         _text(45, 300, "Five controls. One continuing permission to operate.",
-               size=28, color=NAVY, weight=600)]
-    top, step = 337, 795
+    """Mobile variant retains all twenty decisions with dedicated line wrapping."""
+    width, height = 900, 3850
+    p = _start_svg(width, height, "20 AI operating decisions, mobile")
+    p += [
+        '<rect width="900" height="271" fill="#0c263e"/>',
+        _text(39, 64, "EXECUTIVE AI BRIEFING / 20 DECISIONS", size=26, color="#83d6e4", weight=700),
+        _text(39, 146, "THE AI IS LIVE.", size=61, color="#ffffff", weight=700),
+        _text(39, 219, "WHO HOLDS AUTHORITY?", size=54, color="#ffffff", weight=700),
+        _text(39, 324, "Four responsibilities keep permission", size=29, color=NAVY, weight=700),
+        _text(39, 362, "to operate answerable to people.", size=29, color=NAVY),
+    ]
     count = 0
-    for i, (number, title, headline, rows) in enumerate(GROUPS):
-        y = top + i*step
-        accent = PALETTE[i]
-        p.extend((
-            f'<rect x="27" y="{y}" width="846" height="770" rx="23" fill="white" stroke="{BORDER}" stroke-width="2"/>',
-            f'<rect x="27" y="{y}" width="846" height="11" rx="6" fill="{accent}"/>',
-            _text(57, y+76, f"{number}  {title}", size=42, color=NAVY, weight=700),
-            _text(57, y+117, headline, size=30, color=SLATE)))
-        for j, (name, detail) in enumerate(rows):
+    for gi, (_, name, subtitle, decisions) in enumerate(GROUPS):
+        x, y = 26, 411 + gi*820
+        accent = PALETTE[gi]
+        p += [
+            f'<rect x="{x}" y="{y}" width="848" height="789" rx="20" fill="#ffffff" '
+            f'stroke="{BORDER}" stroke-width="2"/>',
+            f'<rect x="{x}" y="{y}" width="848" height="12" rx="6" fill="{accent}"/>',
+            _text(55, y+66, f"0{gi+1}   {name}", size=37, color=NAVY, weight=700),
+            _text(55, y+107, subtitle, size=26, color=SLATE),
+        ]
+        for ri, (label, detail) in enumerate(decisions):
             count += 1
-            ry = y+149+j*119
-            if j:
-                p.append(f'<line x1="58" y1="{ry-11}" x2="842" y2="{ry-11}" stroke="{BORDER}"/>')
-            p.extend((_text(59, ry+25, f"{count:02d}", size=29, color=accent, weight=700),
-                      _text(119, ry+25, name, size=34, color=NAVY, weight=700)))
-            lines = wrap(detail, width=51, break_long_words=False)
-            for k, line in enumerate(lines[:2]):
-                p.append(_text(119, ry+65+37*k, line, size=29, color=SLATE))
-    foot_y = 4320
-    p.extend((f'<rect x="0" y="{foot_y}" width="900" height="200" fill="#0c263e"/>',
-              _text(170, foot_y+77, "Jair Ribeiro", size=42, color="#ffffff", weight=700),
-              _text(170, foot_y+119, "AI LEADER", size=26, color="#8de2eb", weight=700),
-              _text(38, foot_y+172, "Enterprise AI Adoption  •  Governance  •  Business Transformation",
-                    size=25, color="#dce7eb")))
-    if PORTRAIT.is_file():
-        img = base64.b64encode(PORTRAIT.read_bytes()).decode("ascii")
-        p.append(f'<circle cx="96" cy="{foot_y+86}" r="57" fill="white"/>')
-        p.append(f'<defs><clipPath id="mobile-portrait"><circle cx="96" cy="{foot_y+86}" r="53"/></clipPath></defs>')
-        p.append(f'<image x="43" y="{foot_y+33}" width="106" height="106" '
-                 f'href="data:image/webp;base64,{img}" preserveAspectRatio="xMidYMid slice" '
-                 'clip-path="url(#mobile-portrait)"/>')
-    p.append('</svg>')
+            ry = y+139 + ri*124
+            if ri:
+                p.append(f'<line x1="55" y1="{ry-13}" x2="840" y2="{ry-13}" '
+                         'stroke="#dfe7e8" stroke-width="1"/>')
+            p += [
+                _text(56, ry+27, f"{count:02}", size=31, color=accent, weight=700),
+                _text(122, ry+28, label, size=33, color=NAVY, weight=700),
+            ]
+            for k, line in enumerate(wrap(detail, width=49, break_long_words=False)[:2]):
+                p.append(_text(122, ry+70+k*35, line, size=26, color=SLATE))
+    p += [
+        '<rect x="26" y="3697" width="848" height="57" rx="9" fill="#e1f0f2"/>',
+        _text(53, 3734, "OWNERSHIP  •  INTERVENTION  •  EVIDENCE  •  REVIEW",
+              size=23, color=NAVY, weight=700),
+        '<rect x="0" y="3773" width="900" height="77" fill="#0c263e"/>',
+        _text(35, 3810, "Jair Ribeiro  /  AI LEADER", size=30, color="#ffffff", weight=700),
+        _text(35, 3837, "Enterprise AI Adoption  •  Governance  •  Business Transformation",
+              size=20, color="#dce7ec"),
+        '</svg>',
+    ]
     return "".join(p)
 
 
 @lru_cache(maxsize=1)
 def artwork_pdf() -> bytes:
-    """Two-page A4 PDF; vector text and cards remain sharp when magnified."""
+    """A4, two pages, vector typography: no tiny 20-tile photo of a checklist."""
     from fpdf import FPDF
-    pdf = FPDF(orientation="P", unit="mm", format="A4")
+    pdf = FPDF(unit="mm", format="A4")
     pdf.set_auto_page_break(False)
-    pdf.set_title("AI Was Approved. Who Can Stop It? | 25 Operating Decisions")
+    pdf.set_title("The AI Is Live. Who Holds the Authority? | 20 Decisions")
     pdf.set_author("Jair Ribeiro")
-    pdf.set_subject("Executive AI governance: operating authority, evidence and continual review")
-    for page, groups in enumerate((GROUPS[:3], GROUPS[3:])):
+    for page, selected in enumerate((GROUPS[:2], GROUPS[2:])):
         pdf.add_page()
         pdf.set_fill_color(12, 38, 62)
-        pdf.rect(0, 0, 210, 35, "F")
-        pdf.set_text_color(180, 231, 238)
-        pdf.set_font("Helvetica", "B", 8)
-        pdf.text(13, 11, "EXECUTIVE AI BRIEFING  /  OPERATING AUTHORITY")
+        pdf.rect(0, 0, 210, 42, "F")
+        pdf.set_text_color(174, 224, 233)
+        pdf.set_font("Helvetica", "B", 8.5)
+        pdf.text(13, 12, "EXECUTIVE AI BRIEFING  /  OPERATING AUTHORITY")
         pdf.set_text_color(255, 255, 255)
-        pdf.set_font("Helvetica", "B", 20)
-        pdf.text(13, 24, "AI WAS APPROVED. WHO CAN STOP IT?")
-        pdf.set_text_color(42, 67, 81)
-        pdf.set_font("Helvetica", "", 10)
-        pdf.text(13, 44, "25 operating decisions across five concurrent controls.")
-        y = 54
-        global_index = 0 if page == 0 else 15
-        for i, (_, title, _, rows) in enumerate(groups):
-            rgb = [(8, 153, 170), (174, 120, 83), (42, 125, 137), (81, 112, 146), (174, 120, 83)]
-            group_index = (i if page == 0 else i+3)
-            pdf.set_fill_color(245, 248, 248)
-            pdf.rect(12, y, 186, 8, "F")
-            pdf.set_fill_color(*rgb[group_index])
-            pdf.rect(12, y, 2, 8, "F")
-            pdf.set_font("Helvetica", "B", 11)
-            pdf.set_text_color(20, 44, 62)
-            pdf.text(18, y+5.8, f"{group_index+1:02d}  {title}")
-            y += 11
-            for name, detail in rows:
-                global_index += 1
-                pdf.set_font("Helvetica", "B", 9)
-                pdf.set_text_color(21, 48, 67)
-                pdf.text(16, y, f"{global_index:02d}  {name}")
-                pdf.set_font("Helvetica", "", 8.8)
-                pdf.set_text_color(70, 89, 102)
-                pdf.text(20, y+5.3, detail)
-                y += 10.8
-            y += 4
+        pdf.set_font("Helvetica", "B", 18)
+        pdf.text(13, 25, "THE AI IS LIVE. WHO HOLDS THE AUTHORITY?")
+        pdf.set_font("Helvetica", "", 9)
+        pdf.text(13, 34, "20 decisions across four concurrent operating responsibilities.")
+        y, count = 53, (0 if page == 0 else 10)
+        for gi, (_, name, subtitle, rows) in enumerate(selected):
+            pdf.set_fill_color(238, 244, 246)
+            pdf.rect(12, y, 186, 12, "F")
+            pdf.set_text_color(16, 43, 61)
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.text(17, y+7.8, f"0{gi+1 + page*2}  {name}")
+            y += 18
+            pdf.set_font("Helvetica", "", 9)
+            pdf.set_text_color(79, 99, 113)
+            pdf.text(17, y, subtitle)
+            y += 12
+            for label, detail in rows:
+                count += 1
+                pdf.set_text_color(18, 50, 72)
+                pdf.set_font("Helvetica", "B", 10.4)
+                pdf.text(18, y, f"{count:02d}  {label}")
+                pdf.set_text_color(78, 98, 113)
+                pdf.set_font("Helvetica", "", 8.7)
+                pdf.text(23, y+5.5, detail)
+                y += 19.5
+            y += 12
         if page == 1:
-            y2 = 194
-            pdf.set_fill_color(238, 246, 247)
-            pdf.rect(12, y2, 186, 73, "F")
-            pdf.set_text_color(15, 44, 64)
-            pdf.set_font("Helvetica", "B", 11)
-            pdf.text(18, y2 + 8, "THE EXECUTIVE APPROVAL RECORD")
-            pdf.set_font("Helvetica", "", 8.5)
-            pdf.set_text_color(75, 96, 111)
-            pdf.text(18, y2 + 14, "Before allowing AI to operate, name the owner and verify the stop rule.")
-            fields = (
-                ("Purpose and limits", "What AI may do and where"),
-                ("Business accountability", "Named outcome owner"),
-                ("Operational steward", "Duty holder and supplier boundary"),
-                ("Human approval line", "Which actions require consent"),
-                ("Stop and override right", "Who can intervene immediately"),
-                ("Evidence and incident trail", "What must be retained"),
-                ("Review trigger and date", "When permission is reconsidered"),
-            )
-            for n, (heading, hint) in enumerate(fields):
-                yy = y2 + 22 + n * 6.2
-                pdf.set_text_color(18, 48, 69)
-                pdf.set_font("Helvetica", "B", 8.5)
-                pdf.text(20, yy, heading)
-                pdf.set_text_color(108, 124, 133)
-                pdf.set_font("Helvetica", "", 7.4)
-                pdf.text(99, yy, hint)
-                pdf.set_draw_color(209, 222, 224)
-                pdf.line(20, yy + 2.3, 190, yy + 2.3)
-            pdf.set_font("Helvetica", "B", 8.5)
-            pdf.set_text_color(29, 89, 110)
-            pdf.text(18, 261, "DECISION: PROCEED / HOLD / RESTRICT OR STOP")
+            pdf.set_fill_color(232, 243, 243)
+            pdf.rect(12, 245, 186, 23, "F")
+            pdf.set_text_color(13, 55, 75)
+            pdf.set_font("Helvetica", "B", 9.8)
+            pdf.text(17, 254, "EXECUTIVE GATE: PROCEED / HOLD / RESTRICT / STOP")
+            pdf.set_font("Helvetica", "", 8.3)
+            pdf.text(17, 261, "Record owner, scope, stop right, proof, review date and withdrawal rule.")
         pdf.set_fill_color(12, 38, 62)
         pdf.rect(0, 279, 210, 18, "F")
         pdf.set_text_color(255, 255, 255)
@@ -263,11 +260,10 @@ def artwork_pdf() -> bytes:
 
 
 def approved_authority_studio(article, row: dict) -> str:
-    """One original infographic and a first-party PDF CTA for the approved edition."""
+    """Approved source-fingerprint gated artwork with responsive SVG and A4 PDF."""
     from html import escape as e
     if len(str(row.get("alt_text") or "").strip()) < 40:
         return ""
-    caption = str(row.get("caption") or "").strip()
     return (
         '<style>'
         '.site .auth-infographic{max-width:930px;margin:28px auto 34px;padding:12px;'
@@ -280,15 +276,16 @@ def approved_authority_studio(article, row: dict) -> str:
         '.site .auth-infographic a:hover{background:#e9f5f7}'
         '@media(max-width:700px){.site .auth-infographic{padding:6px}.site .auth-infographic a{width:100%}}'
         '</style>'
-        '<section data-analytics-section="briefing-infographic" data-hq-content-slug="' + e(article.slug,quote=True) + '">'
+        '<section data-analytics-section="briefing-infographic" data-hq-content-slug="'
+        + e(article.slug,quote=True) + '">'
         '<figure class="auth-infographic"><picture>'
         '<source media="(max-width:700px)" srcset="/briefing-ai-authority/infographic-mobile.svg"/>'
         '<img loading="eager" decoding="async" '
-        'src="/briefing-ai-authority/infographic.svg" width="1600" height="2410" '
+        'src="/briefing-ai-authority/infographic.svg" width="1600" height="2220" '
         'alt="' + e(str(row["alt_text"]),quote=True) + '"/></picture>'
-        '<figcaption>' + e(caption) + '</figcaption>'
+        '<figcaption>' + e(str(row.get("caption") or "")) + '</figcaption>'
         '<a href="/briefing-ai-authority/infographic.pdf" '
-        'download="ai-operating-authority-25-decisions.pdf">'
-        'Download the full 25-decision infographic (A4 PDF)</a>'
+        'download="ai-operating-authority-20-decisions.pdf">'
+        'Download the 20-decision operating mandate (A4 PDF)</a>'
         '</figure></section>'
     )

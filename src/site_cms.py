@@ -34,9 +34,13 @@ DEFAULT_SOCIAL_IMAGE = f"{BASE_URL}/app/static/jair-ribeiro-social-preview.png"
 ALLOWED_TAGS = [
     "p", "br", "h2", "h3", "h4", "strong", "b", "em", "i", "u", "s",
     "blockquote", "ul", "ol", "li", "a", "hr", "code", "pre", "div", "span",
+    "figure", "figcaption", "img",
 ]
 ALLOWED_ATTRIBUTES = {
-    "a": ["href", "title", "target", "rel", "data-hq-event"],
+    "a": ["href", "title", "target", "rel", "data-hq-event", "download"],
+    "img": ["src", "alt", "width", "height", "loading", "decoding"],
+    "figure": ["class", "data-analytics-section"],
+    "figcaption": ["class"],
     "div": ["class"],
     "span": ["class"],
 }

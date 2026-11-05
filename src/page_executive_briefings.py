@@ -7,6 +7,7 @@ Original article bodies, citations and attribution remain available on demand.
 """
 
 import base64
+import re
 from html import escape
 from functools import lru_cache
 from pathlib import Path
@@ -215,6 +216,12 @@ BRIEFINGS_CSS = r'''<style>
 .site .briefing-reader-check .briefing-icon{color:#ad6b43}
 .site .briefing-reader-check strong{font-size:13px;color:#203245}
 .site .briefing-reader-check p{font-size:12px;line-height:1.55;color:#58636e;margin:4px 0 0}
+.site .cms-roi-inline-visual{max-width:950px;margin:28px auto 34px;background:#fffdf9;padding:clamp(10px,1.6vw,20px);border:1px solid #d9dedb;box-shadow:0 13px 35px rgba(17,39,59,.06)}
+.site .cms-roi-inline-visual img{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:3/4;background:#fff}
+.site .cms-roi-inline-visual figcaption{font:400 13px/1.6 Arial,sans-serif;color:#476071;margin:13px 0}
+.site .cms-roi-inline-visual .cms-roi-download{display:inline-flex;justify-content:center;align-items:center;min-height:44px;padding:12px 20px;border:1px solid #8daebc;border-radius:6px;font:800 12px/1.4 Arial,sans-serif;color:#0b3553!important;text-decoration:none!important}
+.site .cms-roi-inline-visual .cms-roi-download:hover{background:#e5f4f8}
+@media(max-width:700px){.site .cms-roi-inline-visual{padding:9px}.site .cms-roi-inline-visual .cms-roi-download{width:100%}}
 .site .briefing-reader-side{display:flex;flex-direction:column;gap:14px;min-width:0}
 .site .briefing-reader-cover{height:230px;overflow:hidden;background:#112638}
 .site .briefing-reader-cover>.cms-article-image{height:100%;margin:0}
@@ -1097,17 +1104,31 @@ def executive_briefing_article(
                                          if article.slug == GOVERNANCE_SLUG else '')
     # The seven-layer operating architecture stays visible. Detailed rationale
     # remains accessible but does not duplicate its seven proof points on screen.
+    # The ROI poster is also in the published CMS body, so older Streamlit
+    # deployments can show it without a second infographic-store request.
+    # Move that single figure directly below the executive judgment here,
+    # rather than displaying two graphics after the new reader deploys.
+    roi_inline_visual = ""
+    body_html = article.content_html
+    if article.slug == "ai-roi-what-executives-must-prove-before-scaling":
+        match = re.search(
+            r'<figure\\s+class="cms-roi-inline-visual"[^>]*>.*?</figure>',
+            body_html, flags=re.S,
+        )
+        if match:
+            roi_inline_visual = match.group(0)
+            body_html = body_html[:match.start()] + body_html[match.end():]
     full_article = (
         '<details class="briefing-reader-detail" data-analytics-section="briefing-reader-full-article">'
         '<summary>Read the full reasoning, application example and source references</summary>'
-        f'<div class="article-body briefing-reader-research">{article.content_html}{tags}{source}</div>'
+        f'<div class="article-body briefing-reader-research">{body_html}{tags}{source}</div>'
         '</details>'
     ) if article.slug == GOVERNANCE_SLUG else (
         '<article class="briefing-full-content" data-analytics-section="briefing-reader-full-article">'
         '<div class="briefing-full-content-head"><span class="briefings-index">The full briefing</span>'
         '<h2>Reasoning, examples and practical considerations</h2>'
         '<p>The complete published perspective, with the reasoning and operational considerations behind the decision.</p></div>'
-        f'<div class="article-body briefing-reader-research">{article.content_html}{tags}{source}</div>'
+        
         '</article>'
     )
     summary_text = (
@@ -1139,7 +1160,7 @@ def executive_briefing_article(
         '<div class="briefing-reader-next"><strong>Next move</strong>'
         f'<p>{escape(guide["move"])}</p></div></div>'
         f'<div class="briefing-reader-checks">{checks}</div></section>'
-        + _article_infographic(article)
+        + (roi_inline_visual or _article_infographic(article))
         + decision_map
         + full_article
         + f'<div class="briefing-reader-share">{share_footer}</div>'

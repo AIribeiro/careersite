@@ -101,6 +101,34 @@ class RoiInfographicTests(unittest.TestCase):
         with patch("briefing_infographic_store.fetch_public_infographic", return_value=None):
             self.assertEqual(approved_infographic_for(article), "")
 
+    def test_inline_cms_roi_figure_is_hoisted_without_duplicating(self):
+        from page_executive_briefings import executive_briefing_article
+        from types import SimpleNamespace
+        artwork = (
+            '<figure class="cms-roi-inline-visual" data-analytics-section="briefing-infographic">'
+            '<img src="https://raw.githubusercontent.com/AIribeiro/careersite/main/'
+            'static/briefing-ai-roi-proof-before-scale.webp" '
+            'width="1800" height="2400" alt="AI ROI executive infographic" />'
+            '<figcaption>Original executive infographic.</figcaption>'
+            '<a class="cms-roi-download" href="/briefing-ai-roi/infographic.png">'
+            'Download the infographic</a></figure>'
+        )
+        article = SimpleNamespace(
+            id="roi-test", slug="ai-roi-what-executives-must-prove-before-scaling",
+            title="AI ROI", subtitle="An investment decision", excerpt="Context",
+            kind="Executive Briefing", status="published",
+            content_html=artwork + '<h2>Evidence</h2><p>Body text</p>',
+        )
+        from unittest.mock import patch
+        with patch("page_executive_briefings.nav", return_value=""), patch(
+            "page_executive_briefings.footer", return_value=""
+        ), patch("page_executive_briefings._article_infographic", side_effect=AssertionError("duplicate visual")):
+            html = executive_briefing_article(article, "", "", "", "", "", "")
+        self.assertEqual(html.count('class="cms-roi-inline-visual"'), 1)
+        self.assertIn("Download the infographic", html)
+        self.assertLess(html.index('class="cms-roi-inline-visual"'), html.index('class="briefing-full-content"'))
+        self.assertIn("<p>Body text</p>", html)
+
     def test_download_route_is_first_party_and_lazy(self):
         source = (ROOT / "app.py").read_text(encoding="utf-8")
         self.assertIn('Route("/briefing-ai-roi/infographic.{ext}"', source)

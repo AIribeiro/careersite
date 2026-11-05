@@ -244,6 +244,9 @@ def approved_infographic_for(article, *, row: dict | None=None) -> str:
         return ""
     if row.get("source_fingerprint")!=source_fingerprint(article):
         return ""
+    if article.slug == "ai-was-approved-who-can-stop-it":
+        from briefing_authority_artwork import approved_authority_studio
+        return approved_authority_studio(article, row)
     if article.slug == _STUDIO_ADOPTION_SLUG:
         return _approved_adoption_studio(article, row)
     if article.slug == _ROI_SLUG:

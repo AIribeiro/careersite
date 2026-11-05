@@ -424,23 +424,21 @@ async def _roi_infographic_image(request):
     ext = str(request.path_params.get("ext") or "").lower()
     if ext not in ("webp", "png"):
         return PlainTextResponse("Infographic not found", status_code=404)
-    from briefing_roi_artwork import artwork_bytes
-    try:
-        data = artwork_bytes("download" if ext == "png" else "display")
-    except (OSError, ValueError, RuntimeError):
-        return PlainTextResponse("Infographic temporarily unavailable", status_code=503)
-    if not data:
-        return PlainTextResponse("Infographic temporarily unavailable", status_code=503)
+    # Serve the exact versioned repository asset directly; never draw the
+    # download dynamically during the user's request.
+    image_path = ROOT / "static" / f"briefing-ai-roi-proof-before-scale.{ext}"
+    if not image_path.is_file():
+        return PlainTextResponse("Infographic asset unavailable", status_code=503)
     headers = {
-        "Cache-Control": "public, max-age=86400, stale-while-revalidate=86400",
+        "Cache-Control": "public, max-age=604800, stale-while-revalidate=604800",
         "X-Content-Type-Options": "nosniff",
     }
     if ext == "png":
         headers["Content-Disposition"] = (
             'attachment; filename="ai-roi-proof-before-scale-executive-infographic.png"'
         )
-    return Response(data, media_type="image/png" if ext == "png" else "image/webp",
-                    headers=headers)
+    return FileResponse(image_path, media_type="image/png" if ext == "png" else "image/webp",
+                        headers=headers)
 
 
 async def _weekly_ai_evergreen_image(_request):

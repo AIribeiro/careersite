@@ -164,6 +164,43 @@ def _roi_snapshot_on_transport_error(article) -> str:
     return approved_roi_studio(article, _ROI_APPROVED_SNAPSHOT)
 
 
+
+# Approved version of the 20-decision operating-mandate edition, checked
+# against its current title/subtitle/body on 5 November 2026. This may be
+# used only after a transport failure; an explicit missing/revoked approval
+# must not be converted into a fabricated approval.
+_AUTHORITY_SLUG = "ai-was-approved-who-can-stop-it"
+_AUTHORITY_APPROVED_FINGERPRINT = "0cfd234c21293c09046a4734dc08a3c4348080bc1c097b25c69e347740f1c901"
+_AUTHORITY_APPROVED_SNAPSHOT = {
+    "alt_text": (
+        "Original four-panel executive operating-mandate map with twenty decisions. "
+        "Business mandate, human control, operating evidence and renewal or exit "
+        "each contain five carefully selected questions. The graphic explains "
+        "that all four obligations remain active after go-live."
+    ),
+    "caption": (
+        "Twenty original operating decisions across four continuing executive "
+        "responsibilities. The illustrated map and two-page A4 reference are "
+        "designed for live AI governance reviews. Original graphic and framework "
+        "by Jair Ribeiro."
+    ),
+}
+
+
+def _authority_snapshot_on_transport_error(article) -> str:
+    """Show a previously verified approved visual during a transient CMS outage.
+
+    A changed edition fails this exact fingerprint check. If the CMS returns
+    no approved record normally, the caller still returns an empty string.
+    """
+    if (getattr(article, "slug", "") != _AUTHORITY_SLUG
+            or getattr(article, "status", "") != "published"
+            or source_fingerprint(article) != _AUTHORITY_APPROVED_FINGERPRINT):
+        return ""
+    from briefing_authority_artwork import approved_authority_studio
+    return approved_authority_studio(article, _AUTHORITY_APPROVED_SNAPSHOT)
+
+
 _STUDIO_ADOPTION_CSS = """<style>
 .site .ebi-studio-figure{max-width:900px;margin-inline:auto;background:#fffdf9;padding:clamp(8px,1.4vw,20px);box-shadow:0 14px 38px rgba(19,42,62,.05)}
 .site .ebi-studio-picture img{width:100%;height:auto;display:block;max-width:100%;background:#fbfcfe;aspect-ratio:3/4}
@@ -239,7 +276,8 @@ def approved_infographic_for(article, *, row: dict | None=None) -> str:
         try:
             row=fetch_public_infographic(article.id)
         except (RuntimeError,ValueError,TimeoutError):
-            return _roi_snapshot_on_transport_error(article)
+            return (_authority_snapshot_on_transport_error(article)
+                    or _roi_snapshot_on_transport_error(article))
     if not row or row.get("status")!="approved":
         return ""
     if row.get("source_fingerprint")!=source_fingerprint(article):

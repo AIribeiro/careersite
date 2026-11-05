@@ -436,6 +436,24 @@ async def _roi_infographic_image(request):
                         headers=headers)
 
 
+async def _authority_infographic(request):
+    """Deliver original governance decision artwork and its A4 PDF, first-party."""
+    from briefing_authority_artwork import artwork_svg, artwork_pdf
+    ext = str(request.path_params.get("ext") or "").lower()
+    headers = {
+        "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+        "X-Content-Type-Options": "nosniff",
+    }
+    if ext == "svg":
+        return Response(artwork_svg(), media_type="image/svg+xml", headers=headers)
+    if ext == "pdf":
+        headers["Content-Disposition"] = (
+            'attachment; filename="ai-operating-authority-25-decisions.pdf"'
+        )
+        return Response(artwork_pdf(), media_type="application/pdf", headers=headers)
+    return PlainTextResponse("Infographic not found", status_code=404)
+
+
 async def _weekly_ai_evergreen_image(_request):
     path = ROOT / "assets" / "weekly_ai_evergreen_visual.webp"
     if not path.is_file():
@@ -456,6 +474,7 @@ app = App(
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
         Route("/portfolio-image/{name:path}", _portfolio_image, methods=["GET", "HEAD"]),
         Route("/briefing-ai-roi/infographic.{ext}", _roi_infographic_image, methods=["GET", "HEAD"]),
+        Route("/briefing-ai-authority/infographic.{ext}", _authority_infographic, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/evergreen.webp", _weekly_ai_evergreen_image, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/{slug}.png", _weekly_ai_cover, methods=["GET", "HEAD"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),

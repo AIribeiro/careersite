@@ -1112,7 +1112,7 @@ def executive_briefing_article(
     body_html = article.content_html
     if article.slug == "ai-roi-what-executives-must-prove-before-scaling":
         match = re.search(
-            r'<figure\\s+class="cms-roi-inline-visual"[^>]*>.*?</figure>',
+            r'<figure\s+class="cms-roi-inline-visual"[^>]*>.*?</figure>',
             body_html, flags=re.S,
         )
         if match:
@@ -1128,7 +1128,7 @@ def executive_briefing_article(
         '<div class="briefing-full-content-head"><span class="briefings-index">The full briefing</span>'
         '<h2>Reasoning, examples and practical considerations</h2>'
         '<p>The complete published perspective, with the reasoning and operational considerations behind the decision.</p></div>'
-        
+        f'<div class="article-body briefing-reader-research">{body_html}{tags}{source}</div>'
         '</article>'
     )
     summary_text = (

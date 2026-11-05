@@ -133,6 +133,7 @@ def render() -> Image.Image:
     draw.rectangle((0, 2167, 1800, 2400), fill=NAVY)
     draw.rectangle((0, 2167, 1800, 2175), fill=CYAN)
     for photo in (
+        ROOT / "static" / "briefing-roi-portrait.webp",
         ROOT / "static" / "governance-avatar.webp",
         ROOT / "images" / "optimized" / "profile_red_bg.jpg.jpg.160.webp",
     ):

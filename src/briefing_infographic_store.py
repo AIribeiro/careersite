@@ -183,6 +183,9 @@ def approved_infographic_for(article, *, row: dict | None=None) -> str:
         return ""
     if article.slug == _STUDIO_ADOPTION_SLUG:
         return _approved_adoption_studio(article, row)
+    if article.slug == "ai-roi-what-executives-must-prove-before-scaling":
+        from briefing_roi_studio import approved_roi_studio
+        return approved_roi_studio(article, row)
     try:
         return infographic_html(
             row["spec"],row["alt_text"],row["caption"],article.slug

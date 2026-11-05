@@ -7,7 +7,7 @@ from html import escape
 # External original logos remain separate lightweight assets rather than
 # increasing the size of the Streamlit page HTML with embedded base64 images.
 EMPLOYERS = (
-    ("MSX International", "https://www.msxi.com/", "https://www.msxi.com/favicon.ico", "msx"),
+    ("MSX International", "https://www.msxi.com/", "https://www.onetrust.com/content/dam/onetrust/brand/content/graphic/thumbnail/customer/OT-customer-logo-MSX-international.png", "msx"),
     ("Volvo Group", "https://www.volvogroup.com/", "https://commons.wikimedia.org/wiki/Special:FilePath/Volvo_logo.svg", "volvo"),
     ("Kimberly-Clark", "https://www.kimberly-clark.com/", "https://commons.wikimedia.org/wiki/Special:FilePath/Kimberly-Clark_logo.svg", "kimberly"),
     ("IBM", "https://www.ibm.com/", "https://commons.wikimedia.org/wiki/Special:FilePath/IBM_logo.svg", "ibm"),
@@ -54,15 +54,8 @@ _STYLE = """
   display:block;width:auto;max-width:100%;height:auto;max-height:48px;
   object-fit:contain
 }
-.site .career-employer--msx .career-employer-logo{gap:9px}
-.site .career-employer--msx .career-employer-logo img{height:42px;width:42px;max-width:42px}
-.site .career-employer--msx .career-msx-wordmark{
-  font-size:clamp(19px,2.4vw,29px);letter-spacing:-.06em;
-  font-weight:850;line-height:.9;color:#20283a
-}
-.site .career-employer--msx .career-msx-wordmark small{
-  display:block;font-size:10px;letter-spacing:.005em;font-weight:500;margin-top:5px
-}
+.site .career-employer--msx .career-employer-logo{gap:0}
+.site .career-employer--msx .career-employer-logo img{max-width:172px;max-height:51px}
 .site .career-employer--volvo .career-employer-logo img{max-width:145px;max-height:39px}
 .site .career-employer--kimberly .career-employer-logo img{max-width:167px;max-height:36px}
 .site .career-employer--ibm .career-employer-logo img{max-width:97px;max-height:44px}
@@ -82,7 +75,6 @@ _STYLE = """
   .site .career-employers-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .site .career-employers-grid li:nth-child(odd){border-left:0}
   .site .career-employers-grid li:nth-child(even){border-left:1px solid rgba(38,50,65,.16)}
-  .site .career-employer--msx .career-msx-wordmark{font-size:24px}
 }
 @media(prefers-reduced-motion:reduce){
   .site .career-employer{transition:none}
@@ -98,8 +90,6 @@ def home_employer_strip() -> str:
             f'<img src="{escape(image_url, quote=True)}" alt="" '
             'loading="lazy" decoding="async">'
         )
-        if logo_kind == "msx":
-            image += '<span class="career-msx-wordmark" aria-hidden="true">msx<small>international</small></span>'
         cards.append(
             '<li>'
             f'<a class="career-employer career-employer--{logo_kind}" '

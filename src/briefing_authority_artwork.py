@@ -260,32 +260,75 @@ def artwork_pdf() -> bytes:
 
 
 def approved_authority_studio(article, row: dict) -> str:
-    """Approved source-fingerprint gated artwork with responsive SVG and A4 PDF."""
+    """Approved, first-party infographic immediately after executive judgment.
+
+    The A4 download is positioned before the tall graphic so a reader can
+    obtain the useful asset without scrolling through the entire poster.
+    Versioned resource URLs avoid a previously cached 25-decision illustration.
+    """
     from html import escape as e
+
     if len(str(row.get("alt_text") or "").strip()) < 40:
         return ""
+    slug = e(article.slug, quote=True)
+    alt = e(str(row["alt_text"]), quote=True)
+    caption = e(str(row.get("caption") or "Original executive infographic by Jair Ribeiro."))
+    image = "/briefing-ai-authority/infographic.svg?v=operating-mandate-20-v2"
+    mobile_image = "/briefing-ai-authority/infographic.mobile.svg?v=operating-mandate-20-v2"
+    download = "/briefing-ai-authority/infographic.pdf?v=operating-mandate-20-v2"
+
     return (
         '<style>'
-        '.site .auth-infographic{max-width:930px;margin:28px auto 34px;padding:12px;'
-        'background:#fffdf8;border:1px solid #d8e2e3;box-shadow:0 14px 38px rgba(14,37,57,.06)}'
-        '.site .auth-infographic img{display:block;width:100%;height:auto;max-width:100%;background:#fff}'
-        '.site .auth-infographic figcaption{font:13px/1.6 Arial,sans-serif;color:#536573;margin:12px 0}'
-        '.site .auth-infographic a{display:inline-flex;justify-content:center;min-height:43px;'
-        'align-items:center;padding:11px 18px;border:1px solid #7caabb;border-radius:6px;'
-        'color:#0c3452!important;font:700 12px/1.4 Arial,sans-serif;text-decoration:none!important}'
-        '.site .auth-infographic a:hover{background:#e9f5f7}'
-        '@media(max-width:700px){.site .auth-infographic{padding:6px}.site .auth-infographic a{width:100%}}'
+        '.site .auth-infographic{max-width:970px;margin:28px auto 38px;'
+        'background:#fffdf9;border:1px solid #d6e2e4;'
+        'box-shadow:0 15px 38px rgba(14,37,57,.065);padding:clamp(10px,1.6vw,22px)}'
+        '.site .auth-infographic-top{display:flex;align-items:center;'
+        'justify-content:space-between;gap:23px;padding:6px 6px 22px}'
+        '.site .auth-infographic-intro{max-width:670px;min-width:0}'
+        '.site .auth-infographic-kicker{display:block;text-transform:uppercase;'
+        'letter-spacing:.13em;font:800 10px/1.5 Arial,sans-serif;color:#9b643d}'
+        '.site .auth-infographic h2{margin:8px 0 7px;'
+        'font:500 clamp(24px,2.8vw,34px)/1.17 Georgia,serif;color:#132b40}'
+        '.site .auth-infographic-intro p{margin:0;color:#536776;'
+        'font:13px/1.6 Arial,sans-serif}'
+        '.site .auth-infographic .auth-download{display:inline-flex;'
+        'flex:0 0 auto;min-height:46px;align-items:center;justify-content:center;'
+        'gap:9px;padding:12px 19px;background:#13354b;'
+        'border:1px solid #13354b;border-radius:5px;color:#fff!important;'
+        'font:750 12px/1.45 Arial,sans-serif;text-decoration:none!important}'
+        '.site .auth-infographic .auth-download:hover{background:#204f68}'
+        '.site .auth-infographic .auth-download:focus-visible{'
+        'outline:3px solid #3b91a5;outline-offset:3px}'
+        '.site .auth-infographic picture{display:block;min-width:0}'
+        '.site .auth-infographic img{display:block;width:100%;height:auto;'
+        'max-width:100%;background:#f8faf9;border:1px solid #e0e7e7}'
+        '.site .auth-infographic figcaption{font:12px/1.6 Arial,sans-serif;'
+        'color:#566b77;margin:15px 5px 3px}'
+        '@media(max-width:750px){.site .auth-infographic{padding:8px}'
+        '.site .auth-infographic-top{display:block;padding:12px 10px 16px}'
+        '.site .auth-infographic .auth-download{width:100%;margin-top:17px}'
+        '.site .auth-infographic h2{font-size:26px}}'
         '</style>'
-        '<section data-analytics-section="briefing-infographic" data-hq-content-slug="'
-        + e(article.slug,quote=True) + '">'
-        '<figure class="auth-infographic"><picture>'
-        '<source media="(max-width:700px)" srcset="/briefing-ai-authority/infographic.mobile.svg"/>'
-        '<img loading="eager" decoding="async" '
-        'src="/briefing-ai-authority/infographic.svg" width="1600" height="2220" '
-        'alt="' + e(str(row["alt_text"]),quote=True) + '"/></picture>'
-        '<figcaption>' + e(str(row.get("caption") or "")) + '</figcaption>'
-        '<a href="/briefing-ai-authority/infographic.pdf" '
-        'download="ai-operating-authority-20-decisions.pdf">'
-        'Download the 20-decision operating mandate (A4 PDF)</a>'
+        '<section class="ebi-section auth-infographic-section" '
+        'id="briefing-operating-mandate" '
+        'data-analytics-section="briefing-infographic" '
+        'data-hq-content-slug="' + slug + '">'
+        '<figure class="auth-infographic">'
+        '<div class="auth-infographic-top"><div class="auth-infographic-intro">'
+        '<span class="auth-infographic-kicker">Original executive infographic</span>'
+        '<h2>20 decisions. Four continuing responsibilities.</h2>'
+        '<p>The operating mandate: business ownership, human control, evidence '
+        'from real work, and the authority to renew or end permission.</p>'
+        '</div>'
+        '<a class="auth-download" href="' + download + '" '
+        'download="ai-operating-authority-20-decisions.pdf" '
+        'aria-label="Download the 20-decision executive operating mandate as a two-page A4 PDF">'
+        '&#8595; Download infographic · A4 PDF</a></div>'
+        '<picture>'
+        '<source media="(max-width:700px)" srcset="' + mobile_image + '"/>'
+        '<img src="' + image + '" width="1600" height="2220" '
+        'loading="eager" decoding="async" alt="' + alt + '"/>'
+        '</picture>'
+        '<figcaption>' + caption + '</figcaption>'
         '</figure></section>'
     )

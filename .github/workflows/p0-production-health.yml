@@ -89,6 +89,39 @@ jobs:
                       print(f"PUBLIC PAGE {label}: content visible after {elapsed} ms", flush=True)
                   except Exception as exc:
                       failed.append(f"{label}: {type(exc).__name__}: {str(exc)[:150]}")
+              # Check the exact briefing artwork, not merely the presence of its page.
+              # A CMS approval or a Git commit cannot substitute for a rendered image.
+              roi_issue = "ai-roi-what-executives-must-prove-before-scaling"
+              roi_error = None
+              for attempt in range(4):
+                  try:
+                      page.goto(base + "?page=briefing&article=" + roi_issue,
+                                wait_until="domcontentloaded", timeout=30000)
+                      page.wait_for_selector(".site .roi-artwork-figure img",
+                                             state="attached", timeout=12000)
+                      page.wait_for_function(
+                          "() => { const im = document.querySelector('.site .roi-artwork-figure img'); "
+                          "return !!(im && im.complete && im.naturalWidth >= 1200 && im.naturalHeight >= 1600); }",
+                          timeout=12000,
+                      )
+                      download = page.locator(".site .roi-artwork-actions a")
+                      if download.count() != 1 or download.first.get_attribute("href") != "/briefing-ai-roi/infographic.png":
+                          raise RuntimeError("AI ROI PNG download CTA is absent or points to the wrong asset")
+                      response = page.request.get(base + "briefing-ai-roi/infographic.png", timeout=20000)
+                      if response.status != 200 or "image/png" not in response.headers.get("content-type", ""):
+                          raise RuntimeError(f"PNG download returned HTTP {response.status}, not image/png")
+                      if not response.body().startswith(bytes.fromhex("89504e470d0a1a0a")):
+                          raise RuntimeError("PNG download response did not contain a valid PNG signature")
+                      print("PUBLIC AI ROI: full infographic visible and PNG download working", flush=True)
+                      roi_error = None
+                      break
+                  except Exception as exc:
+                      roi_error = f"{type(exc).__name__}: {str(exc)[:200]}"
+                      print(f"AI ROI browser check {attempt+1}/4: {roi_error}", flush=True)
+                      if attempt < 3:
+                          time.sleep(8)
+              if roi_error:
+                  failed.append("AI ROI infographic: " + roi_error)
               # The hero is the first meaningful photo on Home. Avoid silently
               # accepting a missing asset as a passing page smoke test.
               try:

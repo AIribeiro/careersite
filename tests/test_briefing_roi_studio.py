@@ -50,7 +50,7 @@ class RoiInfographicTests(unittest.TestCase):
         source = (ROOT / "src" / "briefing_infographic_store.py").read_text(encoding="utf-8")
         ast.parse(source)
         self.assertIn('row.get("source_fingerprint")!=source_fingerprint(article)', source)
-        self.assertIn('if article.slug == "ai-roi-what-executives-must-prove-before-scaling":', source)
+        self.assertIn('if article.slug == _ROI_SLUG:', source)
         row = {
             "alt_text": (
                 "AI ROI executive decision infographic with seven lenses, cost baseline, "

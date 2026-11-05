@@ -33,6 +33,17 @@ class OperatingAuthorityArtworkTests(unittest.TestCase):
                     self.assertIn(title, svg_text)
             self.assertIn("Jair Ribeiro", svg_text)
 
+    def test_mobile_and_pdf_cta_match_first_party_route(self):
+        from types import SimpleNamespace
+        from briefing_authority_artwork import approved_authority_studio
+        html = approved_authority_studio(SimpleNamespace(slug="ai-was-approved-who-can-stop-it"), {
+            "alt_text": "Original graphic with twenty operating decisions across four duties.",
+            "caption": "Twenty executive governance decisions.",
+        })
+        self.assertIn("/briefing-ai-authority/infographic.mobile.svg", html)
+        self.assertIn("/briefing-ai-authority/infographic.pdf", html)
+        self.assertNotIn("25-decision", html)
+
     def test_two_page_a4_pdf_contains_all_decisions(self):
         from pypdf import PdfReader
         reader = PdfReader(BytesIO(artwork_pdf()))

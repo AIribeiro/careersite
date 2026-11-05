@@ -1,4 +1,4 @@
-"""Complete, readable 25-decision executive infographic and printable PDF."""
+"""Complete, readable 20-decision executive infographic and printable PDF."""
 from __future__ import annotations
 
 import sys
@@ -43,6 +43,11 @@ class OperatingAuthorityArtworkTests(unittest.TestCase):
         self.assertIn("/briefing-ai-authority/infographic.mobile.svg", html)
         self.assertIn("/briefing-ai-authority/infographic.pdf", html)
         self.assertNotIn("25-decision", html)
+        self.assertEqual(html.count('class="auth-download"'), 1)
+        self.assertEqual(html.count('<picture>'), 1)
+        self.assertLess(html.index('class="auth-download"'), html.index('<picture>'))
+        self.assertIn("20 decisions. Four continuing responsibilities.", html)
+        self.assertIn("operating-mandate-20-v2", html)
 
     def test_two_page_a4_pdf_contains_all_decisions(self):
         from pypdf import PdfReader

@@ -152,3 +152,32 @@ def test_advanced_insights_are_visual_dashboards_not_raw_tables():
     assert "def _decision_note(" in deep
     assert 'st.vega_lite_chart(' in deep
     assert "Measured sessions" in deep
+
+
+def test_every_public_portfolio_analytics_renderer_is_visual_first():
+    """No unbounded tables, including Explore Content, Weekly AI, Briefings."""
+    paths = (
+        "page_public_portfolio_overview.py",
+        "page_public_legacy_insights.py",
+        "page_public_legacy_intelligence.py",
+        "page_content_intelligence.py",
+        "page_weekly_ai_analytics.py",
+        "page_executive_briefings_analytics.py",
+        "page_article_analytics.py",
+    )
+    for filename in paths:
+        source = (ROOT / "src" / filename).read_text(encoding="utf-8")
+        assert "st.dataframe(" not in source, f"Raw table returned to {filename}"
+        assert "st.table(" not in source, f"Raw table returned to {filename}"
+
+
+def test_advanced_dashboard_has_executive_visual_contract():
+    text = (ROOT / "src" / "page_public_legacy_intelligence.py").read_text(encoding="utf-8")
+    for signature in ("def _channels(", "def _content(", "def _ctas(",
+                      "def _experience(", "def _behavior(", "def _coverage("):
+        assert signature in text
+    assert text.count("_ranked_chart(") >= 14
+    assert text.count("_kpi_strip(") >= 6
+    assert text.count("_decision_note(") >= 5
+    assert "st.vega_lite_chart(" in text
+    assert "page / error category" not in text.lower() or "error" in text.lower()

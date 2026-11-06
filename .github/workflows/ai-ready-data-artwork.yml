@@ -1,0 +1,59 @@
+name: Build AI-ready data infographic bundle
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate_ai_ready_data_release.py'
+      - '.github/workflows/ai-ready-data-artwork.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish-approved-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install image and PDF dependencies
+        run: python -m pip install 'Pillow==12.3.0' 'reportlab==4.4.4' 'pypdf==6.1.1'
+      - name: Generate separate desktop and mobile artwork
+        run: python scripts/generate_ai_ready_data_release.py --output /tmp/ai-ready
+      - name: Package source-locked release
+        run: |
+          python scripts/build_briefing_artwork_bundle.py \
+            --slug ai-ready-data-the-release-decision-behind-scale \
+            --article-fingerprint 75c42162f37f41ec80967ad19dfd84924eade20afd6e84ad3810084f8fa91055 \
+            --revision 2026-11-06-r1 \
+            --desktop /tmp/ai-ready/desktop.png \
+            --mobile /tmp/ai-ready/mobile.png \
+            --pdf /tmp/ai-ready/infographic.pdf \
+            --heading "AI can scale. Can its data?" \
+            --deck "The use-case data contract: six checks before widening AI authority."
+      - name: Validate real image bytes, source hashes and HTML renderer
+        run: |
+          PYTHONPATH=src python -m unittest -v tests.test_briefing_approved_asset_renderer
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          from PIL import Image
+          p=Path('static/briefing-artwork/ai-ready-data-the-release-decision-behind-scale')
+          j=json.loads((p/'manifest.json').read_text())
+          for k in ('desktop','mobile'):
+              b=(p/j[k]['file']).read_bytes()
+              assert hashlib.sha256(b).hexdigest()==j[k]['sha256']
+              im=Image.open(p/j[k]['file']);im.verify()
+          print('Validated:',j['slug'],j['article_fingerprint'])
+          PY
+      - name: Commit immutable artifact bundle
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/briefing-artwork/ai-ready-data-the-release-decision-behind-scale/
+          if ! git diff --cached --quiet; then
+            git commit -m "Build approved-ready AI data release visual bundle"
+            git push origin HEAD:main
+          fi

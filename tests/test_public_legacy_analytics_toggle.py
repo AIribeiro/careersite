@@ -46,13 +46,17 @@ def test_legacy_renderer_never_invokes_owner_or_raw_campaign_reports():
 
 def test_legacy_sections_load_one_at_a_time():
     source = LEGACY.read_text(encoding="utf-8")
-    assert "st.selectbox(" in source
-    assert "portfolio_legacy_insights_section" in source
+    assert "tabs = st.tabs(" in source
+    assert 'on_change="rerun"' in source
+    assert 'key="portfolio_legacy_insights_tabs"' in source
+    assert "if tab.open" in source
+    assert "with active_tab:" in source
+    assert '"Explore historical analytics"' not in source
     for section in ("signals", "overview", "audience", "discovery", "engagement",
                     "actions", "channels", "content", "ctas", "experience",
                     "behavior", "coverage"):
         assert f'"{section}"' in source
-    assert "st.tabs(" not in source
+    assert "st.tabs(" in source
     assert "render_public_deep_insights(section, window, data)" in source
 
 

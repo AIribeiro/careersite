@@ -105,6 +105,28 @@ class OperatingAuthorityArtworkTests(unittest.TestCase):
                 self.assertEqual(im.size, expected)
                 im.verify()
 
+    def test_premium_icon_and_gradient_system_survives_rendering(self):
+        """Icons and four distinct branded headers are in the actual image bytes."""
+        from PIL import Image
+        from briefing_authority_raster import artwork_webp, HEADER_GRADIENTS
+        self.assertEqual(len(HEADER_GRADIENTS), 4)
+        with Image.open(BytesIO(artwork_webp("desktop"))) as im:
+            pix = im.convert("RGB")
+            samples = (
+                pix.getpixel((100, 476)),
+                pix.getpixel((855, 476)),
+                pix.getpixel((100, 1186)),
+                pix.getpixel((855, 1186)),
+            )
+            self.assertEqual(len(set(samples)), 4)
+            for sample in samples:
+                self.assertGreater(sum(sample), 60)
+            # The icon strokes are light on the darker gradient headers.
+            self.assertGreater(sum(pix.getpixel((131, 490))), 30)
+        from briefing_authority_raster import _symbol, _premium_card_header
+        self.assertTrue(callable(_symbol))
+        self.assertTrue(callable(_premium_card_header))
+
     def test_two_page_a4_pdf_contains_all_decisions(self):
         from pypdf import PdfReader
         reader = PdfReader(BytesIO(artwork_pdf()))

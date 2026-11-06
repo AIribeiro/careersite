@@ -31,6 +31,8 @@ from site_cms import (
     # Session restored from verified same-site HttpOnly cookies.
     generate_metadata,
     normalize_header_image,
+    premium_artwork_ready,
+    premium_artwork_required,
     owner_signin,
     save_article,
     sanitize_article_html,
@@ -665,6 +667,17 @@ def _editor(article: CmsArticle, access_token: str) -> None:
 
         draft = _article_from_state(article, prefix)
         infographic_ready = render_briefing_infographic_editor(article, draft, access_token, prefix)
+        premium_ready = premium_artwork_ready(draft)
+        if premium_artwork_required(draft):
+            if premium_ready:
+                st.caption("Premium infographic package verified: desktop/mobile images and A4 PDF match the article.")
+            else:
+                st.warning(
+                    "A source-matched premium infographic bundle is required before publishing "
+                    "this new Executive Briefing. Save the approved desktop/mobile artwork and "
+                    "A4 PDF using scripts/build_briefing_artwork_bundle.py, then complete "
+                    "the CMS infographic review. See docs/executive_briefings_premium_visual_release.md."
+                )
         review_acknowledged = False
         if draft.kind.strip().casefold() == "executive briefing":
             review_acknowledged = st.checkbox(
@@ -692,7 +705,8 @@ def _editor(article: CmsArticle, access_token: str) -> None:
         if pub_col.button(
             pub_label, type="primary", use_container_width=True,
             key=f"{prefix}_publish",
-            disabled=not briefing_release_ready(draft.kind, review_acknowledged, infographic_ready),
+            disabled=(not briefing_release_ready(draft.kind, review_acknowledged, infographic_ready)
+                      or not premium_ready),
         ):
             try:
                 saved = save_article(access_token, replace(draft, status="published"))

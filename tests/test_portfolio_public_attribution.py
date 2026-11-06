@@ -71,6 +71,27 @@ def test_campaign_breakdown_uses_only_its_own_collector():
                and row["Campaign"] == "Thinking articles" for row in cross)
 
 
+def test_known_social_channels_remain_separate():
+    from portfolio_legacy_signal_model import channel_label, channel_rollup
+    expected = {
+        "LinkedIn": "LinkedIn",
+        "facebook": "Facebook",
+        "Threads": "Threads",
+        "x": "X",
+        "whatsapp": "WhatsApp",
+        "chatgpt.com": "AI assistants",
+        "cv": "CV distribution",
+        "direct/unknown": "Direct / unattributed",
+    }
+    for source, group in expected.items():
+        assert channel_label(source) == group
+    rows = [{"attribution_source": source, "sessions": 3}
+            for source in expected]
+    result = channel_rollup(rows)
+    assert sum(row["sessions"] for row in result) == 3 * len(expected)
+    assert {row["Channel"] for row in result} == set(expected.values())
+
+
 def test_referer_hosts_are_coarse_and_not_people():
     assert referrer_origin("www.linkedin.com") == "LinkedIn"
     assert referrer_origin("m.facebook.com") == "Facebook"

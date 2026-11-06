@@ -282,6 +282,13 @@ def approved_infographic_for(article, *, row: dict | None=None) -> str:
         return ""
     if row.get("source_fingerprint")!=source_fingerprint(article):
         return ""
+    # One manifest-driven renderer for all future premium visual releases.
+    # Missing manifest preserves the existing approved legacy reader;
+    # invalid/stale manifest fails closed without a broken-image placeholder.
+    from briefing_approved_asset_renderer import render_approved_bundle
+    shared_visual = render_approved_bundle(article, row)
+    if shared_visual is not None:
+        return shared_visual
     if article.slug == "ai-was-approved-who-can-stop-it":
         from briefing_authority_artwork import approved_authority_studio
         return approved_authority_studio(article, row)

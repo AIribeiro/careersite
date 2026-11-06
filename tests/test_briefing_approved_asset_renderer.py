@@ -86,6 +86,39 @@ class ApprovedAssetContractTests(unittest.TestCase):
         self.assertTrue(reader_pdf.startswith(b"%PDF-"))
         self.assertIn(b"%%EOF", reader_pdf[-2048:])
 
+    def test_cms_to_reader_bridge_uses_shared_renderer_for_unknown_slug(self):
+        from unittest.mock import patch
+        from briefing_infographic_store import approved_infographic_for
+        import briefing_approved_asset_renderer as shared
+        self.create()
+        with patch.object(shared, "ROOT", self.root / "published"):
+            with patch("briefing_infographic_store.fetch_public_infographic",
+                       return_value=self.approved):
+                html = approved_infographic_for(self.article)
+        self.assertEqual(html.count("data:image/webp;base64,"), 2)
+        self.assertEqual(html.count('class="canonical-infographic-download"'), 1)
+
+    def test_new_content_studio_release_gate_requires_complete_bundle(self):
+        from unittest.mock import patch
+        import briefing_approved_asset_renderer as shared
+        from site_cms import CmsArticle, premium_artwork_required, premium_artwork_ready
+        future = CmsArticle(
+            title=self.article.title, subtitle=self.article.subtitle,
+            content_html=self.article.content_html, slug=self.article.slug,
+            kind="Executive Briefing", status="draft", created_at="2026-11-06T14:00:00+00:00",
+        )
+        legacy = CmsArticle(
+            title=future.title, subtitle=future.subtitle, content_html=future.content_html,
+            slug=future.slug, kind=future.kind, created_at="2026-11-05T12:00:00+00:00",
+        )
+        self.assertTrue(premium_artwork_required(future))
+        self.assertFalse(premium_artwork_required(legacy))
+        with patch.object(shared, "ROOT", self.root / "published"):
+            self.assertFalse(premium_artwork_ready(future))
+            self.create()
+            self.assertTrue(premium_artwork_ready(future))
+        self.assertTrue(premium_artwork_ready(legacy))
+
     def test_stale_or_unapproved_row_never_displays_old_image(self):
         self.create()
         root = self.root / "published"

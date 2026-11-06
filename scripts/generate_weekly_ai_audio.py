@@ -118,7 +118,7 @@ def publish(article: dict, *, dry_run: bool) -> bool:
             phrase in editorial_text.casefold()
             for phrase in (
                 "from my experience", "my leadership takeaway", "my takeaway",
-                "i see ", "i believe ", "i find ", "i would ",
+                "i see ", "i believe ", "i find ", "i would ", "for me,",
             )
         )
         if not 145 <= word_count <= 210:

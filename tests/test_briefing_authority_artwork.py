@@ -63,6 +63,36 @@ class OperatingAuthorityArtworkTests(unittest.TestCase):
                 self.assertEqual(im.size,dimensions)
                 im.verify()
 
+    def test_published_reader_bridge_contains_inline_images(self):
+        """Prove the briefing reader actually includes images, not just the studio helper."""
+        import hashlib
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from page_executive_briefings import _article_infographic
+
+        article = SimpleNamespace(
+            id="known-article",
+            slug="ai-was-approved-who-can-stop-it",
+            title="The AI Is Live. Who Holds the Authority?",
+            subtitle="Original twenty-decision operating mandate.",
+            content_html="<p>Twenty operating decisions.</p>",
+            status="published",
+        )
+        fingerprint = hashlib.sha256(
+            "|".join((article.title,article.subtitle,article.content_html)).encode()
+        ).hexdigest()
+        approved = {
+            "status":"approved",
+            "source_fingerprint":fingerprint,
+            "alt_text":"Original artwork, twenty AI decisions across four operating commitments.",
+            "caption":"A twenty-decision operating mandate by Jair Ribeiro.",
+        }
+        with patch("briefing_infographic_store.fetch_public_infographic",return_value=approved):
+            html = _article_infographic(article)
+        self.assertEqual(html.count('data:image/webp;base64,'), 2)
+        self.assertIn('class="auth-download"', html)
+        self.assertNotIn('src="/briefing-ai-authority/',html)
+
     def test_raster_images_decode_without_missing_artwork(self):
         from PIL import Image
         from briefing_authority_raster import artwork_webp

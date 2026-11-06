@@ -444,6 +444,10 @@ async def _authority_infographic(request):
         "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
         "X-Content-Type-Options": "nosniff",
     }
+    if ext in ("webp", "mobile.webp"):
+        from briefing_authority_raster import artwork_webp
+        variant = "mobile" if ext == "mobile.webp" else "desktop"
+        return Response(artwork_webp(variant), media_type="image/webp", headers=headers)
     if ext == "svg":
         return Response(artwork_svg(), media_type="image/svg+xml", headers=headers)
     if ext == "mobile.svg":

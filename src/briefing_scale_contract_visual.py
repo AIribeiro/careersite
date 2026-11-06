@@ -60,7 +60,7 @@ def _portrait():
         path = Path(__file__).resolve().parent.parent / "images" / "profile_red_bg.jpg.jpg"
         with Image.open(path) as pic:
             w, h = pic.size
-            crop = pic.crop((int(w*.2875),int(h*.101),int(w*.545),int(h*.488)))
+            crop = pic.crop((int(w*.4225),int(h*.169),int(w*.695),int(h*.578)))
             crop = crop.resize((110,110), Image.Resampling.LANCZOS).convert("RGB")
             out = BytesIO()
             crop.save(out,format="JPEG",quality=72,optimize=True)

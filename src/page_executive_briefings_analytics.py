@@ -217,24 +217,41 @@ def render_executive_briefings_analytics(window: str) -> None:
     else:
         st.info("No recorded briefing reads in the selected reporting period.")
 
-    st.markdown("#### Individual briefing performance")
-    st.dataframe(
-        [{
-            "Briefing": row["Title"],
-            "Read briefing": row["URL"],
-            "Views": row["Views"],
-            "Reader sessions": row["Read sessions"],
-            "Engaged ≥10s": row["Engaged reads"],
-            "Engaged rate": row["Engagement"],
-            "Avg confirmed seconds": row["Avg confirmed seconds"] if row["Avg confirmed seconds"] is not None else "—",
-            "Reached 75%": row["Depth rate"],
-            "Shares": row["Share sessions"],
-            "Later CV": row["Later CV"],
-            "Later contact": row["Later contact"],
-        } for row in ranked],
-        hide_index=True, use_container_width=True,
-        column_config={"Read briefing": st.column_config.LinkColumn("Read briefing")},
-    )
+    st.markdown("#### Reading quality and editorial attention")
+    if ranked:
+        leader = ranked[0]
+        with st.container(border=True):
+            st.markdown(f"**Most-read briefing:** [{leader['Title']}]({leader['URL']})")
+            k1, k2, k3, k4 = st.columns(4)
+            k1.metric("Item-session reads", f"{leader['Read sessions']:,}")
+            k2.metric("Engaged reads", leader["Engagement"])
+            k3.metric("Reached 75% depth", leader["Depth rate"])
+            k4.metric("Sharing sessions", f"{leader['Share sessions']:,}")
+            st.caption(
+                "The top briefing is ranked by item-session reads. "
+                "Engagement and depth use their own measured denominators."
+            )
+    deep_rows = [{
+        "Briefing": row["Title"],
+        "Engaged": row["Engaged reads"],
+        "Reads": row["Read sessions"],
+        "Depth sessions": row["Depth measured"],
+        "Reached 75%": row["Reached 75%"],
+    } for row in ranked if row["Read sessions"]]
+    if len(deep_rows) > 1:
+        st.altair_chart(
+            alt.Chart(alt.Data(values=deep_rows))
+            .mark_bar(cornerRadiusEnd=5, size=21)
+            .encode(
+                x=alt.X("Engaged:Q", title="Engaged item-session reads",
+                        axis=alt.Axis(tickMinStep=1)),
+                y=alt.Y("Briefing:N", title=None, sort="-x",
+                        axis=alt.Axis(labelLimit=310)),
+                tooltip=["Briefing:N", "Reads:Q", "Engaged:Q",
+                         "Depth sessions:Q", "Reached 75%:Q"],
+            ).properties(height=max(200, 42 * len(deep_rows))),
+            use_container_width=True,
+        )
     st.caption(
         "Read sessions and shares are per briefing; the same session may contribute "
         "to several rows. The ≥75% rate uses only depth-measured reading sessions. "
@@ -243,21 +260,33 @@ def render_executive_briefings_analytics(window: str) -> None:
         "evidence that a briefing caused them."
     )
 
-    with st.expander("Library-card detail and measurement definitions", expanded=False):
-        st.dataframe(
-            [{
-                "Briefing": row["Title"],
-                "Card seen": row["Card exposures"],
-                "Opened after exposure": row["Card clicks"],
-                "Observed CTR": row["Card CTR"],
-            } for row in ranked], hide_index=True, use_container_width=True,
-        )
+    with st.expander("Library-card reach and measurement definitions", expanded=False):
+        card_data = [{
+            "Briefing": row["Title"],
+            "Card seen": row["Card exposures"],
+            "Opened after exposure": row["Card clicks"],
+        } for row in ranked if row["Card exposures"]]
+        if card_data:
+            st.altair_chart(
+                alt.Chart(alt.Data(values=card_data))
+                .mark_bar(cornerRadiusEnd=5, size=22)
+                .encode(
+                    x=alt.X("Card seen:Q", title="Card exposure sessions",
+                            axis=alt.Axis(tickMinStep=1)),
+                    y=alt.Y("Briefing:N", sort="-x", title=None,
+                            axis=alt.Axis(labelLimit=300)),
+                    tooltip=["Briefing:N", "Card seen:Q", "Opened after exposure:Q"],
+                ).properties(height=max(180, 40 * len(card_data))),
+                use_container_width=True,
+            )
+        else:
+            st.caption("No measured briefing-card exposures in this period.")
         st.caption(
             f"Library-page sessions: {report['library_sessions']:,}; "
             f"home-page briefing-strip reach: {report['home_reached']:,}. "
-            "These are separate content events, not a deduplicated visitor journey."
+            "These are separate observations, not a deduplicated visitor path."
         )
         st.caption(
-            "Reporting follows the existing source and test-traffic exclusions. "
-            "No new visitor identifiers, database tables or tracking cookies are introduced."
+            "Source and test-traffic exclusions remain unchanged. "
+            "No new visitor identifiers, database tables or tracking cookies."
         )

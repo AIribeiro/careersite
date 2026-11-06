@@ -1,0 +1,95 @@
+name: Weekly AI cover delivery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.py'
+      - 'src/thinking_weekly_brief.py'
+      - 'src/site_cms.py'
+      - 'static/weekly-ai/**'
+      - 'assets/weekly_ai_evergreen_visual.webp'
+      - 'tests/test_weekly_ai_cover_delivery.py'
+      - '.github/workflows/weekly-ai-cover-delivery.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app.py'
+      - 'src/thinking_weekly_brief.py'
+      - 'src/site_cms.py'
+      - 'static/weekly-ai/**'
+      - 'assets/weekly_ai_evergreen_visual.webp'
+      - 'tests/test_weekly_ai_cover_delivery.py'
+      - '.github/workflows/weekly-ai-cover-delivery.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-cover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: src
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install application dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Verify slug-based cover fallback and social metadata
+        run: python -m unittest tests.test_weekly_ai_cover_delivery -v
+
+      - name: Start first-party media server
+        run: |
+          streamlit run app.py --server.headless true --server.port 8501 > /tmp/weekly-cover-app.log 2>&1 &
+          for attempt in {1..45}; do
+            if curl --fail --silent http://127.0.0.1:8501/_stcore/health >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/weekly-cover-app.log
+          exit 1
+
+      - name: Verify latest Friday cover and evergreen are HTTP-served
+        run: |
+          SLUG="$(find static/weekly-ai -maxdepth 1 -name 'weekly-ai-*.png' -printf '%f\n' | sort | tail -n 1 | sed 's/\.png$//')"
+          test -n "$SLUG"
+          curl --fail --silent --show-error \
+            --dump-header /tmp/weekly-cover.headers \
+            --output /tmp/weekly-cover-served.png \
+            "http://127.0.0.1:8501/weekly-ai-cover/$SLUG.png"
+          curl --fail --silent --show-error \
+            --output /tmp/weekly-evergreen-served.webp \
+            'http://127.0.0.1:8501/weekly-ai-cover/evergreen.webp'
+          python - "$SLUG" <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import sys
+
+          slug = sys.argv[1]
+          expected = (Path("static") / "weekly-ai" / f"{slug}.png").read_bytes()
+          served = Path("/tmp/weekly-cover-served.png").read_bytes()
+          assert served == expected, "The public media route changed the approved cover bytes"
+          with Image.open("/tmp/weekly-cover-served.png") as image:
+              assert image.format == "PNG" and image.size == (1200, 627), image.size
+          with Image.open("/tmp/weekly-evergreen-served.webp") as image:
+              assert image.format == "WEBP"
+          headers = Path("/tmp/weekly-cover.headers").read_text().lower()
+          assert "content-type: image/png" in headers, headers
+          assert "cache-control: public" in headers, headers
+          print("First-party Friday and evergreen cover delivery passed:", slug)
+          PY
+
+      - name: Show server log on failure
+        if: failure()
+        run: cat /tmp/weekly-cover-app.log || true

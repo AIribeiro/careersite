@@ -260,22 +260,27 @@ def artwork_pdf() -> bytes:
 
 
 def approved_authority_studio(article, row: dict) -> str:
-    """Approved, first-party infographic immediately after executive judgment.
+    """Approved inline artwork below the executive judgment, with PDF download.
 
-    The A4 download is positioned before the tall graphic so a reader can
-    obtain the useful asset without scrolling through the entire poster.
-    Versioned resource URLs avoid a previously cached 25-decision illustration.
+    We deliberately avoid all remote or first-party image requests in st.html.
+    The same iPad Safari screen has repeatedly displayed broken SVG and WebP
+    image icons even while the PDF route worked and direct HTTP tests passed.
+    The images are cached, verified WebP data URIs in the HTML itself, as in
+    the working AI Adoption infographic reader.
     """
     from html import escape as e
+    from briefing_authority_raster import artwork_data_uri
 
-    if len(str(row.get("alt_text") or "").strip()) < 40:
+    alt = str(row.get("alt_text") or "").strip()
+    if len(alt) < 40:
         return ""
+
+    desktop = artwork_data_uri("desktop")
+    mobile = artwork_data_uri("mobile")
     slug = e(article.slug, quote=True)
-    alt = e(str(row["alt_text"]), quote=True)
     caption = e(str(row.get("caption") or "Original executive infographic by Jair Ribeiro."))
-    image = "/briefing-ai-authority/infographic.webp?v=operating-mandate-20-v3"
-    mobile_image = "/briefing-ai-authority/infographic.mobile.webp?v=operating-mandate-20-v3"
-    download = "/briefing-ai-authority/infographic.pdf?v=operating-mandate-20-v3"
+    alt = e(alt, quote=True)
+    download = "/briefing-ai-authority/infographic.pdf?v=operating-mandate-20-v4"
 
     return (
         '<style>'
@@ -299,15 +304,18 @@ def approved_authority_studio(article, row: dict) -> str:
         '.site .auth-infographic .auth-download:hover{background:#204f68}'
         '.site .auth-infographic .auth-download:focus-visible{'
         'outline:3px solid #3b91a5;outline-offset:3px}'
-        '.site .auth-infographic picture{display:block;min-width:0}'
-        '.site .auth-infographic img{display:block;width:100%;height:auto;'
+        '.site .auth-infographic .auth-artwork{width:100%;height:auto;'
         'max-width:100%;background:#f8faf9;border:1px solid #e0e7e7}'
+        '.site .auth-infographic .auth-artwork-desktop{display:block}'
+        '.site .auth-infographic .auth-artwork-mobile{display:none}'
         '.site .auth-infographic figcaption{font:12px/1.6 Arial,sans-serif;'
         'color:#566b77;margin:15px 5px 3px}'
         '@media(max-width:750px){.site .auth-infographic{padding:8px}'
         '.site .auth-infographic-top{display:block;padding:12px 10px 16px}'
         '.site .auth-infographic .auth-download{width:100%;margin-top:17px}'
-        '.site .auth-infographic h2{font-size:26px}}'
+        '.site .auth-infographic h2{font-size:26px}'
+        '.site .auth-infographic .auth-artwork-desktop{display:none}'
+        '.site .auth-infographic .auth-artwork-mobile{display:block}}'
         '</style>'
         '<section class="ebi-section auth-infographic-section" '
         'id="briefing-operating-mandate" '
@@ -324,11 +332,14 @@ def approved_authority_studio(article, row: dict) -> str:
         'download="ai-operating-authority-20-decisions.pdf" '
         'aria-label="Download the 20-decision executive operating mandate as a two-page A4 PDF">'
         '&#8595; Download infographic · A4 PDF</a></div>'
-        '<picture>'
-        '<source media="(max-width:700px)" srcset="' + mobile_image + '"/>'
-        '<img src="' + image + '" width="1600" height="2220" '
+        '<div class="auth-artwork-container">'
+        '<img class="auth-artwork auth-artwork-desktop" '
+        'src="' + desktop + '" width="1600" height="2220" '
         'loading="eager" decoding="async" alt="' + alt + '"/>'
-        '</picture>'
+        '<img class="auth-artwork auth-artwork-mobile" '
+        'src="' + mobile + '" width="900" height="3850" '
+        'loading="eager" decoding="async" alt="' + alt + '"/>'
+        '</div>'
         '<figcaption>' + caption + '</figcaption>'
         '</figure></section>'
     )

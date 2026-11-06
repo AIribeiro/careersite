@@ -246,9 +246,7 @@ def render_reader_sources(window: str, kind: str = "article") -> None:
         st.caption("One reading visit = one browser session opening one article. Across articles, the same session can count more than once. "
                    "Source tags are retained in the browser tab.")
     st.caption("Tags identify the shared link, not the visitor's identity or employer. Direct / untagged means no recorded source tag.")
-    with st.expander("Exact source counts", expanded=False):
-        st.dataframe([{"Source": row["Source"], f"{noun} visits": row["Reading visits"],
-                       "Share": f"{row['Share']:.1%}"} for row in rows], hide_index=True, use_container_width=True)
+    st.caption("Source counts and shares are available on chart hover; no raw source table is displayed.")
     st.divider()
 
 

@@ -273,9 +273,9 @@ def approved_authority_studio(article, row: dict) -> str:
     slug = e(article.slug, quote=True)
     alt = e(str(row["alt_text"]), quote=True)
     caption = e(str(row.get("caption") or "Original executive infographic by Jair Ribeiro."))
-    image = "/briefing-ai-authority/infographic.svg?v=operating-mandate-20-v2"
-    mobile_image = "/briefing-ai-authority/infographic.mobile.svg?v=operating-mandate-20-v2"
-    download = "/briefing-ai-authority/infographic.pdf?v=operating-mandate-20-v2"
+    image = "/briefing-ai-authority/infographic.webp?v=operating-mandate-20-v3"
+    mobile_image = "/briefing-ai-authority/infographic.mobile.webp?v=operating-mandate-20-v3"
+    download = "/briefing-ai-authority/infographic.pdf?v=operating-mandate-20-v3"
 
     return (
         '<style>'

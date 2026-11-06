@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import re
 from datetime import date, timedelta
 from functools import lru_cache
@@ -19,30 +20,48 @@ ENGLISH_MONTHS = (
 )
 WEEKLY_ARCHIVE_URL = "?page=thinking&weekly_ai=archive"
 WEEKLY_IMAGE_FILE = Path(__file__).resolve().parents[1] / "assets" / "weekly_ai_evergreen_visual.webp"
+WEEKLY_COVER_DIR = Path(__file__).resolve().parents[1] / "static" / "weekly-ai"
 
 
 @lru_cache(maxsize=1)
 def _weekly_header_image_uri() -> str:
     """A cacheable public asset URL, independent of the app media route."""
-    return "https://raw.githubusercontent.com/AIribeiro/careersite/main/assets/weekly_ai_evergreen_visual.webp" if WEEKLY_IMAGE_FILE.is_file() else ""
+    return "/weekly-ai-cover/evergreen.webp" if WEEKLY_IMAGE_FILE.is_file() else ""
 
 
-def _edition_cover_html(slug: str) -> str:
-    """Deliver the checked-in edition PNG as a browser-cacheable image."""
+def weekly_edition_cover_url(slug: str) -> str:
+    """Canonical CDN-cacheable edition cover, independent of optional CMS fields.
+
+    Use the same application route as the working audio player. The original
+    /app/static/weekly-ai/ path is not a reliable public media endpoint.
+    Check each request rather than caching a missing cover: Friday audio/image
+    assets can arrive after the article has already been published.
+    """
     if not re.fullmatch(r"weekly-ai-\d{4}-\d{2}-\d{2}", str(slug)):
         return ""
-    file = Path(__file__).resolve().parents[1] / "static" / "weekly-ai" / f"{slug}.png"
-    if not file.is_file() or file.stat().st_size < 2048:
+    file = WEEKLY_COVER_DIR / f"{slug}.png"
+    try:
+        payload = file.read_bytes()
+    except OSError:
         return ""
+    if len(payload) < 2048 or not payload.startswith(b"\x89PNG\r\n\x1a\n"):
+        return ""
+    from thinking_articles import BASE_URL
+    revision = hashlib.sha256(payload).hexdigest()[:12]
+    return f"{BASE_URL}/weekly-ai-cover/{slug}.png?v={revision}"
+
+
+def _edition_cover_html(article: "CmsArticle") -> str:
+    """Prefer an explicit editorial header, otherwise the checked-in Friday cover."""
+    url = (article.header_image_url or "").strip() or weekly_edition_cover_url(article.slug)
+    if not url:
+        return ""
+    alt = article.header_image_alt or f"WEEKLY AI branded edition header — {article.title}"
     return (
         '<figure class="weekly-ai-edition-cover" aria-label="Weekly AI branded edition header">'
-        '<img alt="WEEKLY AI Friday leadership perspective — '
-        + escape(slug, quote=True)
-        + '" width="1200" height="627" loading="eager" decoding="async"'
-        + ' src="/app/static/weekly-ai/' + escape(slug, quote=True) + '.png"></figure>'
+        '<img src="' + escape(url, quote=True) + '" alt="' + escape(alt, quote=True)
+        + '" width="1200" height="627" loading="eager" decoding="async"></figure>'
     )
-
-
 
 def is_weekly_brief(article: "CmsArticle") -> bool:
     """Only the dedicated weekly news format is lifted from the regular essay feed."""
@@ -419,7 +438,7 @@ def render_weekly_brief_article(article: "CmsArticle", share_footer: str) -> str
         '<div class="weekly-ai-bylines">' + escape(_english_range(start, end))
         + ' · 1 min read · ' + article_read_count_label(article.slug, read_counts)
         + ' · Curated by ' + escape(article.author_name) + '</div>'
-        + _edition_cover_html(article.slug)
+        + _edition_cover_html(article)
         + audio_player_html(article.slug)
         + '<article class="weekly-ai-body">' + article.content_html
         + '<p class="weekly-ai-source-note">Personally curated by Jair Ribeiro. I review the reporting, choose the developments '

@@ -524,66 +524,102 @@ def _ctas(report: dict) -> None:
 
 
 def _experience(report: dict) -> None:
-    st.markdown("#### Browser loading and visual stability")
-    st.caption(
-        "Historical device-level browser telemetry, including p75 values (75th percentile). "
-        "These are observations, not a fresh site audit or a Google CrUX field report."
+    _dashboard_header(
+        "Site performance and visual stability",
+        "Historical browser field measurements by device. P75 means that 75% "
+        "of measured observations were at or below the stated value.",
     )
     rows = []
-    for row in report.get("experience", []):
-        if not isinstance(row, dict):
+    for item in report.get("experience", []):
+        if not isinstance(item, dict):
             continue
-        measured = n(row.get("measured_sessions"))
+        measured = n(item.get("measured_sessions"))
         if measured < 10:
             continue
-        lcp = row.get("p75_lcp_ms")
-        ttfb = row.get("p75_ttfb_ms")
-        cls = row.get("p75_cls")
-        slow = percentage(row.get("slow_lcp_sessions"), measured)
-        unstable = percentage(row.get("unstable_cls_sessions"), measured)
+        try:
+            lcp = float(item.get("p75_lcp_ms")) if item.get("p75_lcp_ms") is not None else None
+            ttfb = float(item.get("p75_ttfb_ms")) if item.get("p75_ttfb_ms") is not None else None
+            cls = float(item.get("p75_cls")) if item.get("p75_cls") is not None else None
+        except (TypeError, ValueError):
+            continue
+        if lcp is not None and not (0 <= lcp < float("inf")):
+            lcp = None
+        if ttfb is not None and not (0 <= ttfb < float("inf")):
+            ttfb = None
+        if cls is not None and not (0 <= cls < float("inf")):
+            cls = None
         rows.append({
-            "Device": str(row.get("device_type") or "Unknown").title(),
+            "Device": str(item.get("device_type") or "Unknown").title()[:30],
             "Measured sessions": measured,
-            "p75 LCP": f"{float(lcp)/1000:.2f}s" if lcp is not None else "—",
-            "p75 TTFB": f"{float(ttfb)/1000:.2f}s" if ttfb is not None else "—",
-            "p75 CLS": f"{float(cls):.3f}" if cls is not None else "—",
-            "LCP > 2.5s": f"{slow:.1f}%" if slow is not None else "—",
-            "CLS > 0.1": f"{unstable:.1f}%" if unstable is not None else "—",
-            "_lcp": float(lcp) if lcp is not None else None,
+            "P75 LCP (seconds)": round(lcp / 1000, 2) if lcp is not None else None,
+            "P75 TTFB (ms)": round(ttfb, 0) if ttfb is not None else None,
+            "P75 CLS": round(cls, 3) if cls is not None else None,
+            "Slow LCP (%)": percentage(item.get("slow_lcp_sessions"), measured),
+            "Unstable CLS (%)": percentage(item.get("unstable_cls_sessions"), measured),
+            "Slow sessions": n(item.get("slow_lcp_sessions")),
         })
     if not rows:
-        st.caption("Insufficient browser timing observations for this reporting window.")
+        st.info("Not enough browser performance measurements in this reporting period.")
         return
-    st.dataframe([{k: v for k, v in row.items() if not k.startswith("_")}
-                  for row in rows], hide_index=True, use_container_width=True)
-    chart_rows = [
-        {"Device": row["Device"], "p75 load time (s)": round(row["_lcp"]/1000, 2)}
-        for row in rows if row["_lcp"] is not None
+    total = sum(row["Measured sessions"] for row in rows)
+    slow = sum(row["Slow sessions"] for row in rows)
+    valid_lcp = [row for row in rows if row["P75 LCP (seconds)"] is not None]
+    worst = max(valid_lcp, key=lambda row: row["P75 LCP (seconds)"]) if valid_lcp else None
+    _kpi_strip([
+        ("Measured sessions", f"{total:,}", "Across device-specific browser cohorts"),
+        ("Slow-LCP share",
+         f"{percentage(slow,total):.1f}%" if percentage(slow,total) is not None else "—",
+         f"{slow:,} of {total:,} with LCP over 2.5 seconds"),
+        ("Slowest P75 device", worst["Device"] if worst else "—",
+         f"{worst['P75 LCP (seconds)']:.2f}s LCP" if worst else "No LCP timing available"),
+    ])
+    left, right = st.columns(2, gap="large")
+    with left:
+        _ranked_chart([row for row in rows if row["P75 LCP (seconds)"] is not None],
+                      "Device", "P75 LCP (seconds)",
+                      title="Largest-content loading time",
+                      note="P75 LCP in seconds. Reference for a good field measurement: 2.5s or less.",
+                      color=ACCENT, limit=5)
+    with right:
+        _ranked_chart([row for row in rows if row["Slow LCP (%)"] is not None],
+                      "Device", "Slow LCP (%)",
+                      title="Share experiencing slower loading",
+                      note="Portion of measured device sessions with LCP over 2.5 seconds.",
+                      percentage_axis=True, color=BLUE, limit=5)
+    left, right = st.columns(2, gap="large")
+    with left:
+        _ranked_chart([row for row in rows if row["P75 CLS"] is not None],
+                      "Device", "P75 CLS",
+                      title="Visual layout movement",
+                      note="P75 Cumulative Layout Shift (CLS). Lower is better; 0.1 or less is the good threshold.",
+                      color=GREEN, limit=5)
+    with right:
+        _ranked_chart([row for row in rows if row["P75 TTFB (ms)"] is not None],
+                      "Device", "P75 TTFB (ms)",
+                      title="Server-response timing",
+                      note="P75 Time to First Byte (TTFB), measured in milliseconds.",
+                      color=BLUE, limit=5)
+    bottlenecks = [
+        row for row in rows if row["Measured sessions"] >= 30
+        and (row["P75 LCP (seconds)"] is not None and row["P75 LCP (seconds)"] > 2.5
+             or row["P75 CLS"] is not None and row["P75 CLS"] > .1)
     ]
-    if chart_rows:
-        _chart(chart_rows, "Device", "p75 load time (s)")
-    priority = [row for row in rows if row["Measured sessions"] >= 30
-                and row["_lcp"] is not None and row["_lcp"] > 2500]
-    if priority:
-        st.markdown("**Areas to investigate first**")
-        for row in sorted(priority, key=lambda r: -r["_lcp"]):
-            st.write(
-                f"{row['Device']}: p75 LCP {row['p75 LCP']} across "
-                f"{row['Measured sessions']:,} measured sessions. "
-                "Recheck current navigation, hero images, fonts and page hydration."
-            )
-    unstable = [row for row in rows if row["Measured sessions"] >= 30
-                and row["p75 CLS"] != "—" and float(row["p75 CLS"]) > 0.1]
-    if unstable:
-        for row in unstable:
-            st.write(
-                f"{row['Device']}: p75 layout-shift score {row['p75 CLS']}. "
-                "Check late-loading images, dynamic sections and font swaps."
-            )
+    if bottlenecks:
+        target = max(
+            bottlenecks,
+            key=lambda row: (row["P75 LCP (seconds)"] or 0),
+        )
+        _decision_note(
+            f"{target['Device']} shows P75 LCP of "
+            f"{target['P75 LCP (seconds)']:.2f}s" if target["P75 LCP (seconds)"] is not None
+            else f"{target['Device']} shows elevated visual layout shift",
+            "Re-measure current page load and inspect large images, delayed layout changes "
+            "and browser resources before assigning a root cause.",
+        )
     st.caption(
-        "LCP reflects loading of the largest rendered element; CLS reflects unexpected "
-        "layout movement. Historical browser/support coverage may differ by device. "
-        "Do not infer that performance caused a change in engagement from this chart alone."
+        "These are retrospective observations, not a fresh production speed audit. "
+        "Changes in instrumentation, browser support and site releases can change "
+        "who is represented. Device differences do not establish that speed caused disengagement."
     )
 
 

@@ -75,6 +75,97 @@ def _chart(rows: list[dict], name: str, value: str, limit: int = 12) -> None:
     _bar_chart(rows, name, value=value, limit=limit, color=BLUE, height=310)
 
 
+def _dashboard_header(title: str, evidence: str) -> None:
+    st.markdown(f"#### {title}")
+    st.caption(evidence)
+
+
+def _kpi_strip(items: list[tuple[str, str, str]]) -> None:
+    """Headline + denominator/context, without exposing underlying records."""
+    if not items:
+        return
+    cols = st.columns(len(items), gap="medium")
+    for col, (label, value, context) in zip(cols, items):
+        with col:
+            with st.container(border=True):
+                st.metric(label, value)
+                st.caption(context)
+
+
+def _ranked_chart(
+    rows: list[dict], label: str, measure: str, *,
+    title: str, note: str = "", color: str = BLUE,
+    limit: int = 9, percentage_axis: bool = False,
+) -> None:
+    """Compact aggregate bar chart, with precise counts in hover tooltips.
+
+    Charts rank measured cohorts, not individual sessions. No raw tables,
+    unbounded category lists, or private source labels are rendered.
+    """
+    st.markdown(f"**{title}**")
+    if note:
+        st.caption(note)
+    clean = []
+    for row in rows:
+        if not isinstance(row, dict) or not str(row.get(label) or "").strip():
+            continue
+        try:
+            value = float(row.get(measure))
+        except (TypeError, ValueError):
+            continue
+        if not (0 <= value < float("inf")):
+            continue
+        clean.append({
+            **row,
+            label: str(row[label])[:85],
+            measure: value,
+        })
+    clean.sort(key=lambda item: (-item[measure], item[label]))
+    clean = clean[:limit]
+    if not clean:
+        st.caption("Not enough recorded observations for this comparison.")
+        return
+    ordered = [row[label] for row in clean]
+    max_value = max(row[measure] for row in clean)
+    height = max(180, min(420, len(clean) * 37))
+    tooltip = [
+        {"field": label, "type": "nominal", "title": label},
+        {"field": measure, "type": "quantitative",
+         "title": measure, "format": ".1f" if percentage_axis else ",.0f"},
+    ]
+    for dimension in ("Sessions", "Exposed", "Clicked", "Measured sessions", "Page sessions", "Recorded transitions"):
+        if dimension in clean[0] and dimension != measure:
+            tooltip.append({"field": dimension, "type": "quantitative",
+                            "title": dimension, "format": ",.0f"})
+    st.vega_lite_chart(
+        data=clean,
+        spec={
+            "height": height,
+            "mark": {"type": "bar", "cornerRadiusEnd": 5, "color": color},
+            "encoding": {
+                "y": {"field": label, "type": "nominal", "sort": ordered,
+                      "axis": {"title": None, "labelLimit": 230, "labelColor": "#625e59"}},
+                "x": {"field": measure, "type": "quantitative",
+                      "scale": {"domain": [0, max(1.0, max_value * 1.12)]},
+                      "axis": {"title": "%" if percentage_axis else None,
+                               "gridColor": "#eee9e3",
+                               "format": ".1f" if percentage_axis else ",.0f"}},
+                "tooltip": tooltip,
+            },
+            "config": {"view": {"stroke": None},
+                       "axis": {"ticks": False, "domain": False, "labelFontSize": 12}},
+        },
+        use_container_width=True,
+        theme=None,
+    )
+
+
+def _decision_note(observation: str, next_check: str) -> None:
+    with st.container(border=True):
+        st.markdown(f"**What the evidence suggests:** {observation}")
+        st.caption(f"Next to examine: {next_check}")
+
+
 def _metric_rate(label: str, top: object, bottom: object,
                  *, number: bool = True) -> None:
     rate = percentage(top, bottom)

@@ -32,10 +32,11 @@ collected evidence—not a deletion of data or a new event collector.
 
 ### Attribution semantics
 
-- **Source / channel:** first recorded UTM-style source label. Groups are
-  LinkedIn, CV distribution, Search, Email/newsletter, Other social,
-  Direct/unattributed, and Other. These are tracking tags, not verified
-  visitor origins or employer identities.
+- **Source / channel:** first recorded UTM-style source label. Where
+  measured, LinkedIn, Facebook, Threads, X, WhatsApp, AI assistants, Search,
+  CV distribution, Email/newsletter and application-link traffic are shown as
+  separate broad source categories. Unrecognized sources remain grouped.
+  These are tracking tags, not verified visitor origins or employer identities.
 - **Referrer:** an observed browser referral host, grouped to known platforms.
   Missing referrer is explicitly retained in the untagged/no-referrer KPI.
   Referrers and source tags need not match.
@@ -91,9 +92,9 @@ represented as zero. Browser sessions are not identified people.
   totals or use one collector's total as another's denominator.
 - **Recorded engagement**: session engagement as reported by that specific
   collector, not verified human attention.
-- **Channel**: first-touch source cohorts grouped into LinkedIn, CV distribution,
-  Search, Email/newsletter, Other social, Direct/unattributed and Other sources.
-  Raw source/role/campaign labels are discarded before rendering.
+- **Channel**: first-touch UTM source cohorts grouped into recognized platforms
+  (with Facebook, Threads, X and WhatsApp shown separately), search, CV,
+  email and untagged/other sources. Raw unknown labels are not rendered.
 - **Completed-week comparison**: most recent seven complete Stockholm dates
   versus the preceding seven complete dates, excluding today. Display the
   relative change only with a prior count of at least 20, and only if the

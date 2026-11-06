@@ -963,6 +963,12 @@ def effective_header_image_url(article: CmsArticle) -> str:
     """Return only a URL; catalogue rendering never generates or embeds art."""
     if article.header_image_url:
         return article.header_image_url
+    # Friday covers are generated after CMS publication. Derive the canonical
+    # image from the edition slug so a null header_image_url never hides it
+    # from the reader, featured previews or social/crawler metadata.
+    from thinking_weekly_brief import is_weekly_brief, weekly_edition_cover_url
+    if is_weekly_brief(article):
+        return weekly_edition_cover_url(article.slug)
     normalized = slugify(article.slug)
     if normalized == COMPETITIVE_ADVANTAGE_HEADER_SLUG:
         source = (
@@ -1004,6 +1010,9 @@ def reader_header_image_src(article: CmsArticle) -> str:
     """
     if article.header_image_url:
         return article.header_image_url
+    from thinking_weekly_brief import is_weekly_brief, weekly_edition_cover_url
+    if is_weekly_brief(article):
+        return weekly_edition_cover_url(article.slug)
     image = bundled_header_bytes(article.slug)
     if image:
         return "data:image/webp;base64," + base64.b64encode(image).decode("ascii")
@@ -1055,6 +1064,11 @@ def cms_feature_image_meta(article: CmsArticle) -> tuple[str, str, int, int]:
     """Return canonical image URL plus Open Graph media metadata."""
     header = effective_header_image_url(article)
     if header:
+        # Repository-backed Friday covers are 1200 x 627 PNGs, not WebP.
+        # Keep accurate Open Graph metadata for social cards and crawlers.
+        from thinking_weekly_brief import is_weekly_brief
+        if is_weekly_brief(article) and not article.header_image_url:
+            return header, "image/png", CMS_SOCIAL_SIZE[0], CMS_SOCIAL_SIZE[1]
         return header, "image/webp", HEADER_IMAGE_SIZE[0], HEADER_IMAGE_SIZE[1]
     return cms_social_image_url(article), "image/png", CMS_SOCIAL_SIZE[0], CMS_SOCIAL_SIZE[1]
 

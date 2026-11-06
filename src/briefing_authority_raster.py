@@ -7,6 +7,7 @@ image/webp bytes, cached once per running application process.
 """
 
 from functools import lru_cache
+import base64
 from io import BytesIO
 from pathlib import Path
 
@@ -157,10 +158,28 @@ def _mobile():
 
 @lru_cache(maxsize=2)
 def artwork_webp(mode: str = "desktop") -> bytes:
-    """Pre-rasterised WebP encoded once per process, never inside Streamlit HTML."""
+    """WebP image encoded once per process; source for the HTTP and inline modes."""
     if mode not in ("desktop", "mobile"):
         raise ValueError("Unknown infographic size")
     img = _mobile() if mode == "mobile" else _desktop()
     stream=BytesIO()
     img.save(stream,format="WEBP",quality=89,method=4)
     return stream.getvalue()
+
+
+
+@lru_cache(maxsize=2)
+def artwork_data_uri(mode: str = "desktop") -> str:
+    """Embed validated WebP bytes directly into Streamlit's HTML.
+
+    In iPad Safari, the infographic's separate /briefing-ai-authority image
+    request repeatedly failed even though the same route passed HTTP tests.
+    A bounded data URI avoids that extra request, matching the working AI
+    adoption infographic reader. The rendered image and PDF remain independent.
+    """
+    data = artwork_webp(mode)
+    if not (15_000 < len(data) < 2_000_000):
+        raise ValueError("AI authority infographic is missing or unexpectedly large")
+    if not (data[:4] == b"RIFF" and data[8:12] == b"WEBP"):
+        raise ValueError("AI authority infographic has invalid WebP signature")
+    return "data:image/webp;base64," + base64.b64encode(data).decode("ascii")

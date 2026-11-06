@@ -107,7 +107,8 @@ class WeeklyAiCoverDeliveryTests(unittest.TestCase):
     def test_real_week45_asset_and_media_route_are_committed(self):
         image = ROOT / "static" / "weekly-ai" / "weekly-ai-2026-11-06.png"
         self.assertGreater(image.stat().st_size, 2048)
-        self.assertEqual(image.open("rb").read(8), b"\x89PNG\r\n\x1a\n")
+        with image.open("rb") as asset:
+            self.assertEqual(asset.read(8), b"\x89PNG\r\n\x1a\n")
         self.assertIn(
             'Route("/weekly-ai-cover/{slug}.png", _weekly_ai_cover',
             (ROOT / "app.py").read_text(encoding="utf-8"),

@@ -654,6 +654,10 @@ def _article_infographic(article) -> str:
 def governance_briefing_article(article, share_footer: str, cms_css: str) -> str:
     """Governance-specific editorial reader with one map and no repeated article."""
     from thinking_core import THINKING_CSS
+    if article.slug == "beyond-ai-pilots-operating-decisions-to-scale":
+        summary_text = (
+            "The proof of a pilot is not the proof of an operating service. Fund scale only when the receiving business team can own the workflow, supervise decisions, measure outcomes and withdraw permission when conditions change."
+        )
     return (
         THINKING_CSS + cms_css + BRIEFINGS_CSS + nav("thinking")
         + '<main class="briefing-reader governance-reader">'
@@ -1086,6 +1090,16 @@ def executive_briefing_article(
                 ("Accountability", "Who remains answerable after the project team leaves?", "target"),
                 ("Human authority", "Who may pause or override without waiting for a committee?", "shield"),
                 ("Review gate", "Which changed model, data or purpose withdraws the current approval?", "chart"),
+            ),
+        }
+    if article.slug == "beyond-ai-pilots-operating-decisions-to-scale":
+        guide = {
+            "call": "Scale the operating service, not the demonstration.",
+            "move": "Select one proven use case; approve its receiving process owner, redesigned workflow, bounded AI authority, operating controls and outcome measures before expanding.",
+            "checks": (
+                ("Business outcome", "What changed in cost, quality, speed or service relative to the baseline?", "target"),
+                ("Operating ownership", "Who owns the process, exception handling and the service after project handover?", "workflow"),
+                ("Authority and evidence", "What can AI do, who can stop it, and what results justify continued use?", "shield"),
             ),
         }
     checks = ''.join(

@@ -45,20 +45,38 @@ def test_legacy_renderer_never_invokes_owner_or_raw_campaign_reports():
         assert forbidden not in source
 
 
-def test_legacy_sections_load_one_at_a_time():
+def test_six_related_analytics_tabs_load_one_at_a_time():
     source = LEGACY.read_text(encoding="utf-8")
     assert "tabs = st.tabs(" in source
     assert 'on_change="rerun"' in source
-    assert 'key="portfolio_advanced_insights_tabs"' in source
+    assert 'key="portfolio_advanced_insights_tabs_v2"' in source
     assert "if tab.open" in source
     assert "with active_tab:" in source
-    assert '"Explore historical analytics"' not in source
-    for section in ("signals", "overview", "audience", "discovery", "engagement",
-                    "actions", "channels", "content", "ctas", "experience",
-                    "behavior", "coverage"):
-        assert f'"{section}"' in source
-    assert "st.tabs(" in source
-    assert "render_public_deep_insights(section, window, data)" in source
+    assert 'st.selectbox("Explore historical analytics"' not in source
+    expected = (
+        ("overview", "Overview & trends"),
+        ("audience", "Audience & origins"),
+        ("attribution", "Attribution & campaigns"),
+        ("content", "Content & actions"),
+        ("experience", "Engagement & UX"),
+        ("quality", "Data quality"),
+    )
+    for name, label in expected:
+        assert f'"{name}": "{label}"' in source
+        assert f'section == "{name}"' in source
+    tree = ast.parse(source)
+    sections = next(
+        node for node in tree.body
+        if isinstance(node, ast.Assign)
+        and any(isinstance(t, ast.Name) and t.id == "_SECTIONS" for t in node.targets)
+    )
+    assert isinstance(sections.value, ast.Dict)
+    assert len(sections.value.keys) == 6
+    assert "_attribution_families(data, content)" in source
+    assert "_content(content)" in source and "_ctas(content)" in source
+    assert 'render_public_deep_insights("experience", window, data)' in source
+    assert 'render_public_deep_insights("behavior", window, data)' in source
+    assert "fetch_public_content_aggregate(window)" in source
 
 
 def test_channel_grouping_hides_exact_source_and_campaign_labels():

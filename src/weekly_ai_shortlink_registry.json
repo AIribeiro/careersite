@@ -63,6 +63,26 @@
         "Goldman Sachs",
         "World Economic Forum"
       ]
+    },
+    {
+      "iso_year": 2026,
+      "iso_week": 45,
+      "slug": "weekly-ai-2026-11-06",
+      "distribution_mode": "friday_wrap",
+      "story_keys": [
+        "openai_enterprise_revenue_shift",
+        "perplexity_teammates_work_agents",
+        "reuters_databricks_licensed_provenance",
+        "metr_anthropic_ai_research_pace"
+      ],
+      "edition_title": "AI's Next Test Is Operational Trust",
+      "cover_subtitle": "Friday perspective · one minute",
+      "publisher_names": [
+        "Reuters",
+        "The Verge",
+        "Reuters",
+        "Reuters"
+      ]
     }
   ]
 }

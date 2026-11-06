@@ -110,6 +110,29 @@ def role_cohorts(traffic_attribution: object) -> list[dict]:
     )
 
 
+def channel_role_cohorts(rows: object) -> list[dict]:
+    """Traffic-source × link-purpose co-occurrence, never visitor job roles."""
+    grouped: dict[tuple[str, str], dict] = {}
+    for row in rows if isinstance(rows, list) else []:
+        if not isinstance(row, dict):
+            continue
+        channel = channel_label(row.get("attribution_source"))
+        purpose = role_tag(row.get("attribution_role"))
+        key = (channel, purpose)
+        if key not in grouped:
+            grouped[key] = {"Channel": channel, "Link purpose": purpose,
+                            "sessions": 0, "engaged_sessions": 0}
+        grouped[key]["sessions"] += n(row.get("sessions"))
+        grouped[key]["engaged_sessions"] += n(row.get("engaged_sessions"))
+    return [
+        record for record in sorted(
+            grouped.values(),
+            key=lambda record: (-record["sessions"], record["Channel"], record["Link purpose"]),
+        )
+        if record["sessions"] > 0
+    ]
+
+
 def campaign_cohorts(content_campaigns: object) -> list[dict]:
     """Content RPC campaign cohorts; never merge with traffic RPC sessions."""
     return _cohort(

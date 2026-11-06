@@ -212,17 +212,12 @@ def render_public_portfolio_overview() -> None:
             "Compare complete days within each structure, not raw historical page rankings."
         )
         if historical_routes:
-            st.markdown("**Retired destinations in the selected period**")
+            st.markdown("**Earlier portfolio destinations**")
             st.caption(
-                "Retired route observations remain historical; their views are not "
-                "reassigned to About or Experience."
+                "Retired destination observations are preserved as their own historical "
+                "cohorts. Views are not reassigned to About or Experience."
             )
-            st.dataframe(
-                [{"Former destination": row["Content"],
-                  "Recorded views": row["Views"],
-                  "Page sessions": row["Sessions"]} for row in historical_routes],
-                hide_index=True, use_container_width=True,
-            )
+            _ranking_chart(historical_routes, compact=True)
     # One responsive grid keeps the four categories visually identical.
     # No cross-category additions: briefing library views remain page views,
     # while individual published briefings remain article-content views.
@@ -288,8 +283,8 @@ def render_public_portfolio_overview() -> None:
         card["period_label"] = REPORTING_WINDOW_LABELS.get(str(window), "Selected period")
     st.html(portfolio_metric_grid(cards))
 
-    # Keep historical analytics tabs visible by default. Individual tabs
-    # render only their active report and cache anonymous aggregate reads.
+    # Advanced Insights tabs are visible by default. Individual tabs render
+    # only their active report and reuse cached anonymous aggregate reads.
     from page_public_legacy_insights import render_public_legacy_insights
     render_public_legacy_insights(str(window))
     st.divider()

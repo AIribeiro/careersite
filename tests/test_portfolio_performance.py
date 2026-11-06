@@ -73,9 +73,10 @@ class PortfolioPerformanceTests(unittest.TestCase):
 
     def test_weekly_cover_does_not_embed_png_bytes(self):
         output = _edition_cover_html("weekly-ai-2026-10-30")
-        self.assertIn('/app/static/weekly-ai/weekly-ai-2026-10-30.png', output)
+        self.assertIn('/weekly-ai-cover/weekly-ai-2026-10-30.png?v=', output)
+        self.assertNotIn('/app/static/weekly-ai/', output)
         self.assertNotIn("base64,", output)
-        self.assertIn("raw.githubusercontent.com/", _weekly_header_image_uri())
+        self.assertEqual(_weekly_header_image_uri(), "/weekly-ai-cover/evergreen.webp")
 
     def test_home_feature_uses_premium_fallback_for_unreliable_social_route(self):
         preview = HomeArticlePreview(

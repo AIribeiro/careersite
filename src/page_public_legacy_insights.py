@@ -45,12 +45,17 @@ def _source_channel(label: object) -> str:
     raw = str(label or "").strip().lower().split("?", 1)[0].split("&", 1)[0]
     if any(value in raw for value in ("linkedin", "lnkd.in")):
         return "LinkedIn"
+    if raw in ("cv", "resume", "résumé", "curriculum-vitae") or raw.startswith("cv-"):
+        return "CV distribution"
     if any(value in raw for value in ("google", "bing", "search", "duckduckgo")):
         return "Search"
     if any(value in raw for value in ("newsletter", "email", "outlook", "gmail")):
         return "Email / newsletter"
-    if any(value in raw for value in ("facebook", "instagram", "threads", "twitter", "x.com")):
-        return "Social platforms"
+    if raw in ("x", "wa", "fb") or any(value in raw for value in (
+        "facebook", "instagram", "threads", "twitter", "x.com",
+        "whatsapp", "reddit", "bluesky",
+    )):
+        return "Other social"
     if raw in ("", "direct", "direct/unknown", "unattributed", "unknown", "none", "(direct)"):
         return "Direct / unattributed"
     return "Other sources"
@@ -115,7 +120,7 @@ def render_public_legacy_insights(window: str) -> None:
         options=list(_SECTIONS),
         format_func=lambda name: _SECTIONS[name],
         index=0,
-        key="portfolio_legacy_insights_section",
+        key="portfolio_legacy_insights_section_v2",
     ) or "signals"
     if st.button("Refresh legacy reports", key="portfolio_legacy_refresh"):
         _cached_public_traffic.clear()

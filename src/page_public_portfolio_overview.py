@@ -288,6 +288,24 @@ def render_public_portfolio_overview() -> None:
         card["period_label"] = REPORTING_WINDOW_LABELS.get(str(window), "Selected period")
     st.html(portfolio_metric_grid(cards))
 
+    # Restore the historical switch directly in the public Portfolio visits view.
+    # Only the public aggregate RPC is used; private source audits and hiring
+    # intelligence are never loaded for anonymous readers. Keep this lazy so
+    # the default four-card dashboard retains its lightweight render path.
+    if st.toggle(
+        "Show legacy visitor analytics",
+        value=False,
+        key="portfolio_show_legacy_analytics",
+        help=(
+            "Explore historical traffic, audience, discovery paths, engagement "
+            "and action reports without signing in. Private hiring and raw "
+            "campaign-level data remain owner-only."
+        ),
+    ):
+        from page_public_legacy_insights import render_public_legacy_insights
+        render_public_legacy_insights(str(window))
+        st.divider()
+
     if catalogue_available and not rows_reconcile:
         st.caption(
             "The per-content view breakdown does not reconcile with the overall "

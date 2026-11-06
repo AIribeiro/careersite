@@ -215,47 +215,85 @@ def _insights(data: dict, window: str) -> None:
 
 def _channels(data: dict) -> None:
     totals = data.get("totals") or {}
-    all_sessions = n(totals.get("sessions"))
+    sessions = n(totals.get("sessions"))
     grouped = channel_rollup(data.get("attribution", []))
-    st.markdown("#### Acquisition channel outcomes")
-    st.caption(
-        "First-touch source/role cohorts are consolidated into broad channels. "
-        "Exact source tags, employer names, campaigns and contact data are not published. "
-        "Engagement and article-reach counts can overlap within a channel."
+    _dashboard_header(
+        "Acquisition and attention by channel",
+        "A channel is the first observed traffic source, grouped to protect "
+        "campaign and relationship details. Outcomes are browser-session signals.",
     )
-    rows = []
-    for item in grouped:
-        rows.append({
-            "Channel": item["Channel"],
-            "Sessions": item["sessions"],
-            "Share of sessions": f"{percentage(item['sessions'],all_sessions):.1f}%"
-                if percentage(item["sessions"],all_sessions) is not None else "—",
-            "Engaged sessions": item["engaged_sessions"],
-            "Engagement rate": (
-                f"{item['Engagement rate']:.1f}%" if item["Engagement rate"] is not None else "—"),
-            "Recorded article-reach sessions": item["article_sessions"],
-            "CV-opening sessions": item["cv_sessions"],
-        })
-    if rows:
-        st.dataframe(rows, hide_index=True, use_container_width=True)
-        _chart([{"Channel": r["Channel"], "Sessions": r["Sessions"]} for r in rows],
-               "Channel", "Sessions")
-        rate_rows = [
-            {"Channel": r["Channel"], "Engagement %": r0["Engagement rate"]}
-            for r, r0 in zip(rows, grouped)
-            if r["Sessions"] >= 20 and r0["Engagement rate"] is not None
+    if not grouped:
+        st.info("No comparable channel observations in this period.")
+        return
+    direct = next((r["sessions"] for r in grouped
+                   if r["Channel"] == "Direct / unattributed"), 0)
+    measured = sum(row["sessions"] for row in grouped)
+    credited = max(0, sessions - direct) if measured == sessions else max(0, measured - direct)
+    leader = max((r for r in grouped if r["Channel"] != "Direct / unattributed"),
+                 key=lambda r: r["sessions"], default=None)
+    _kpi_strip([
+        ("Recorded sessions", f"{sessions:,}", "Traffic collector; not unique people"),
+        ("Source-tagged sessions", f"{credited:,}",
+         "First-touch attribution outside direct / unattributed"),
+        ("Largest tagged channel", leader["Channel"] if leader else "—",
+         f"{leader['sessions']:,} sessions" if leader else "No named channel observed"),
+    ])
+    if measured != sessions:
+        st.caption("Grouped channels do not reconcile to the traffic total in this window. "
+                   "Shares use the grouped source cohort only.")
+
+    left, right = st.columns([1.05, 1], gap="large")
+    with left:
+        _ranked_chart(
+            [{"Channel": r["Channel"], "Sessions": r["sessions"],
+              "Measured sessions": r["sessions"]} for r in grouped],
+            "Channel", "Sessions", title="Reach by broad channel", color=ACCENT,
+            note="Mutually exclusive first-touch cohorts; exact counts on hover.",
+        )
+    with right:
+        eligible = [
+            {"Channel": r["Channel"],
+             "Engagement rate (%)": r["Engagement rate"],
+             "Sessions": r["sessions"],
+             "Engaged sessions": r["engaged_sessions"]}
+            for r in grouped if r["sessions"] >= 20
+            and r["Engagement rate"] is not None
         ]
-        if rate_rows:
-            st.markdown("**Recorded engagement by channel (20+ sessions)**")
-            _chart(rate_rows, "Channel", "Engagement %")
-    else:
-        st.caption("No channel counts are available.")
-    st.caption(
-        "These are observed attribution tags. Direct/unattributed traffic is not proven "
-        "direct navigation. Recorded article-reach sessions use this traffic collector's "
-        "definitions and are not directly comparable to content-reader sessions in the "
-        "newer publication collector."
-    )
+        _ranked_chart(
+            eligible, "Channel", "Engagement rate (%)",
+            title="Recorded engagement by channel", percentage_axis=True,
+            note="Only channels with 20+ recorded sessions; not a measure of visitor identity.",
+            color=GREEN,
+        )
+
+    st.markdown("**What happens after acquisition?**")
+    cohorts = [
+        {"Channel": r["Channel"],
+         "Article reach (%)": percentage(r["article_sessions"], r["sessions"]),
+         "CV-opening sessions": r["cv_sessions"],
+         "Sessions": r["sessions"]}
+        for r in grouped if r["sessions"] >= 20
+        and percentage(r["article_sessions"], r["sessions"]) is not None
+    ]
+    _ranked_chart(cohorts, "Channel", "Article reach (%)",
+                  title="Recorded article reach among source cohorts",
+                  note="Uses the traffic collector's article definition, not the publication reader total.",
+                  percentage_axis=True, limit=7, color=BLUE)
+    if direct and sessions >= 50 and direct / sessions >= .35:
+        _decision_note(
+            f"{direct:,} of {sessions:,} sessions are direct / unattributed. "
+            "This is an acquisition measurement gap, not proof of direct navigation.",
+            "Check tagging consistency across shared portfolio links before comparing channels.",
+        )
+    elif leader and leader["sessions"] >= 20:
+        _decision_note(
+            f"{leader['Channel']} has the largest recorded source-tagged cohort "
+            f"({leader['sessions']:,} sessions). Reach alone does not measure qualified attention.",
+            "Compare engagement and subsequent article reach before increasing distribution.",
+        )
+    st.caption("Channel groups are aggregated, not individual campaigns. Channel-specific "
+               "engagement and article sessions can overlap. Do not combine these counts "
+               "or equate them with identified visitors, employers or hiring intent.")
 
 
 def _article_rows(report: dict) -> list[dict]:

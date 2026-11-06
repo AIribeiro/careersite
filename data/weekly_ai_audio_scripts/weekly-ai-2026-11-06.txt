@@ -1,0 +1,11 @@
+Welcome to Weekly A I, the Friday perspective from my A I and Data Portfolio. This week, the central question is shifting. It is no longer just how capable an A I system can become, but whether a business can trust it with actual work.
+
+Reuters reports that Open A I now gets most of its revenue from enterprise customers, according to its president. That shows commercial demand, not necessarily proven returns for buyers.
+
+The Verge reports that Perplexity has introduced Teammates, agents that can work on several assignments while people monitor their progress. It is an ambitious product claim; its value still needs testing.
+
+Reuters also announced that its licensed, timestamped journalism is becoming available through Databricks Marketplace. That is a reminder that reliable inputs and clear provenance matter when A I supports decisions.
+
+And Reuters covered a METR study suggesting A I may be accelerating Anthropic's model development, although the researchers emphasize considerable uncertainty and limits.
+
+For me, these developments point to one practical leadership test. Before delegating work to agents, identify the process owner, verify the information they use, decide when human approval is required, and measure the outcomes that actually change.

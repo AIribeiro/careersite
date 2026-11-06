@@ -128,10 +128,19 @@ def _ranked_chart(
     ordered = [row[label] for row in clean]
     max_value = max(row[measure] for row in clean)
     height = max(180, min(420, len(clean) * 37))
+    value_format = (
+        ".3f" if "CLS" in measure else
+        ".2f" if "LCP (seconds)" in measure else
+        ".1f" if (percentage_axis or "(s)" in measure
+                 or "Avg focus" in measure) else ",.0f"
+    )
+    axis_floor = (0.001 if "CLS" in measure else
+                  0.1 if "(seconds)" in measure or "(s)" in measure
+                  else 1.0)
     tooltip = [
         {"field": label, "type": "nominal", "title": label},
         {"field": measure, "type": "quantitative",
-         "title": measure, "format": ".1f" if percentage_axis else ",.0f"},
+         "title": measure, "format": value_format},
     ]
     for dimension in ("Sessions", "Exposed", "Clicked", "Measured sessions", "Page sessions", "Recorded transitions"):
         if dimension in clean[0] and dimension != measure:
@@ -146,10 +155,10 @@ def _ranked_chart(
                 "y": {"field": label, "type": "nominal", "sort": ordered,
                       "axis": {"title": None, "labelLimit": 230, "labelColor": "#625e59"}},
                 "x": {"field": measure, "type": "quantitative",
-                      "scale": {"domain": [0, max(1.0, max_value * 1.12)]},
+                      "scale": {"domain": [0, max(axis_floor, max_value * 1.12)]},
                       "axis": {"title": "%" if percentage_axis else None,
                                "gridColor": "#eee9e3",
-                               "format": ".1f" if percentage_axis else ",.0f"}},
+                               "format": value_format}},
                 "tooltip": tooltip,
             },
             "config": {"view": {"stroke": None},

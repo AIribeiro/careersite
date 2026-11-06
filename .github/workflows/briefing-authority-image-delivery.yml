@@ -1,0 +1,84 @@
+name: AI Briefing infographic delivery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.py'
+      - 'src/briefing_authority_artwork.py'
+      - 'src/briefing_authority_raster.py'
+      - 'src/briefing_infographic_store.py'
+      - 'tests/test_briefing_authority_artwork.py'
+      - '.github/workflows/briefing-authority-image-delivery.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app.py'
+      - 'src/briefing_authority_artwork.py'
+      - 'src/briefing_authority_raster.py'
+      - 'src/briefing_infographic_store.py'
+      - 'tests/test_briefing_authority_artwork.py'
+      - '.github/workflows/briefing-authority-image-delivery.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test-real-http-image-delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Validate original image and PDF output
+        run: python -m unittest -v tests.test_briefing_authority_artwork
+      - name: Start production-style Starlette / Streamlit server
+        run: |
+          streamlit run app.py --server.headless true --server.port 8501 > /tmp/authority-server.log 2>&1 &
+          echo $! > /tmp/authority-server.pid
+      - name: Wait for server health
+        run: |
+          for i in $(seq 1 45); do
+            if curl --fail --silent http://127.0.0.1:8501/_stcore/health >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/authority-server.log
+          exit 1
+      - name: Fetch actual images and PDF over HTTP
+        run: |
+          set -euxo pipefail
+          BASE="http://127.0.0.1:8501/briefing-ai-authority"
+          curl --fail --silent --show-error --max-time 60 -D /tmp/desktop.headers \
+            -o /tmp/authority-desktop.webp "$BASE/infographic.webp?v=operating-mandate-20-v3"
+          curl --fail --silent --show-error --max-time 60 -D /tmp/mobile.headers \
+            -o /tmp/authority-mobile.webp "$BASE/infographic.mobile.webp?v=operating-mandate-20-v3"
+          curl --fail --silent --show-error --max-time 60 -D /tmp/pdf.headers \
+            -o /tmp/authority.pdf "$BASE/infographic.pdf?v=operating-mandate-20-v3"
+          grep -i '^content-type:.*image/webp' /tmp/desktop.headers
+          grep -i '^content-type:.*image/webp' /tmp/mobile.headers
+          grep -i '^content-type:.*application/pdf' /tmp/pdf.headers
+          python - <<'PY'
+          from PIL import Image
+          from pypdf import PdfReader
+          for name, dimensions in (('desktop',(1600,2220)),('mobile',(900,3850))):
+              filename=f'/tmp/authority-{name}.webp'
+              with Image.open(filename) as img:
+                  assert img.format=='WEBP', (name,img.format)
+                  assert img.size==dimensions,(name,img.size)
+                  img.verify()
+              print(name,'HTTP-delivered WebP decoded successfully')
+          reader=PdfReader('/tmp/authority.pdf')
+          assert len(reader.pages)==2
+          print('HTTP-delivered A4 PDF contains',len(reader.pages),'pages')
+          PY
+      - name: Server log if any step fails
+        if: failure()
+        run: tail -n 150 /tmp/authority-server.log || true

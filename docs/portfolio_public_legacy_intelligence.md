@@ -7,10 +7,12 @@ Updated: 6 November 2026
 The public URL remains `/?page=analytics&view=overview`. The four overview
 cards come first. A native **Show legacy visitor analytics** toggle appears
 immediately beneath them for anonymous and authenticated users. It is off on
-first render to protect site performance. Selecting the toggle opens one
-deferred report at a time through a single **Explore historical analytics**
-selector. No owner login, CMS access or hiring pipeline permissions are
-required to read the aggregate portfolio reports.
+first render to protect site performance. Selecting the toggle reveals twelve directly clickable horizontal
+**Streamlit tabs**, scrolling sideways on smaller screens. Tabs use
+`on_change="rerun"` and their `.open` state to render only the selected
+report, not all twelve panels on every interaction. No owner login, CMS
+access or hiring pipeline permissions are required to read the aggregate
+portfolio reports.
 
 ## Scope and sources
 
@@ -69,7 +71,7 @@ historical intelligence, not another data source or parallel tracking system.
 
 - `src/page_public_portfolio_overview.py` owns the off-by-default toggle.
 - `src/page_public_legacy_insights.py` preserves the five historical reports,
-  adds the selector and caches public traffic aggregates for five minutes.
+  adds stateful, lazily rendered tabs and caches public traffic aggregates for five minutes.
 - `src/portfolio_legacy_signal_model.py` contains pure evidence-gated
   calculations. No Streamlit or database dependencies.
 - `src/page_public_legacy_intelligence.py` renders deeper reports; content

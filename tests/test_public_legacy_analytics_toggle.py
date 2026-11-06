@@ -46,10 +46,14 @@ def test_legacy_renderer_never_invokes_owner_or_raw_campaign_reports():
 
 def test_legacy_sections_load_one_at_a_time():
     source = LEGACY.read_text(encoding="utf-8")
-    assert "st.segmented_control(" in source
-    for section in ("overview", "audience", "discovery", "engagement", "actions"):
-        assert f'section == "{section}"' in source
+    assert "st.selectbox(" in source
+    assert "portfolio_legacy_insights_section" in source
+    for section in ("signals", "overview", "audience", "discovery", "engagement",
+                    "actions", "channels", "content", "ctas", "experience",
+                    "behavior", "coverage"):
+        assert f'"{section}"' in source
     assert "st.tabs(" not in source
+    assert "render_public_deep_insights(section, window, data)" in source
 
 
 def test_channel_grouping_hides_exact_source_and_campaign_labels():
@@ -75,3 +79,31 @@ def test_channel_grouping_hides_exact_source_and_campaign_labels():
     assert {"channel": "Other sources", "sessions": 2} in rows
     assert "secret-employer" not in str(rows)
     assert "career-client-private-label" not in str(rows)
+
+
+def test_public_deep_insights_use_anonymous_aggregate_rpcs_only():
+    deep = (ROOT / "src" / "page_public_legacy_intelligence.py").read_text(encoding="utf-8")
+    model = (ROOT / "src" / "portfolio_legacy_signal_model.py").read_text(encoding="utf-8")
+    assert "public_analytics_rpc_headers()" in deep
+    assert "careersite_content_intelligence_v2" in deep
+    assert "careersite_behavior_intelligence" in deep
+    assert "@st.cache_data(ttl=300" in deep
+    assert "render_public_deep_insights" in deep
+    assert "traffic_findings(" in deep
+    assert "channel_rollup(" in deep
+    assert "_source_channel(" not in deep
+    for source in (deep, model):
+        for forbidden in ("owner_hiring_headers(", "service_role", "owner_session(",
+                          "careersite_hiring_intelligence_v1",
+                          "careersite_attribution_integrity_v1",
+                          "careersite_public_job_summary_v1"):
+            assert forbidden not in source
+
+
+def test_behavior_and_content_reports_remain_lazy():
+    source = (ROOT / "src" / "page_public_legacy_intelligence.py").read_text(encoding="utf-8")
+    fn = source[source.index("def render_public_deep_insights("):]
+    assert fn.index('if section == "signals"') < fn.index("fetch_public_content_aggregate(window)")
+    assert fn.index('if section == "channels"') < fn.index("fetch_public_content_aggregate(window)")
+    assert fn.index('if section == "behavior"') < fn.index("fetch_public_content_aggregate(window)")
+    assert 'fetch_public_behavior_aggregate(window)' in fn

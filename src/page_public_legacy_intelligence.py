@@ -209,7 +209,7 @@ def _content(report: dict) -> None:
         _metric_rate("Multi-article readers", multi.get("multi_article_sessions"),
                      multi.get("reader_sessions"))
     with cols[1]:
-        _metric_rate("Measured article-reading sessions",
+        _metric_rate("Article share of content sessions",
                      quality.get("article_sessions"), quality.get("content_sessions"))
     with cols[2]:
         _metric_rate("Article → Experience", ordered.get("article_to_impact_sessions"),
@@ -415,6 +415,159 @@ def _coverage(traffic: dict, report: dict) -> None:
     )
 
 
+@st.cache_data(ttl=300, max_entries=12, show_spinner=False)
+def fetch_public_behavior_aggregate(window: str) -> dict:
+    """Separate on-demand UX report with no raw event or visitor access."""
+    req = request.Request(
+        f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/careersite_behavior_intelligence",
+        data=json.dumps(_dashboard_payload(window)).encode("utf-8"),
+        method="POST",
+        headers=public_analytics_rpc_headers(),
+    )
+    try:
+        with request.urlopen(req, timeout=18) as response:
+            data = json.load(response)
+    except (error.HTTPError, error.URLError, TimeoutError, ValueError) as exc:
+        raise RuntimeError("Browser-behavior reporting is temporarily unavailable.") from exc
+    if not isinstance(data, dict):
+        raise RuntimeError("Unexpected browser-behavior response.")
+    return data
+
+
+def _behavior(report: dict) -> None:
+    st.markdown("#### Attention, browser errors and interaction friction")
+    quality = report.get("quality") or {}
+    sessions = n(quality.get("behavior_sessions"))
+    st.caption(
+        f"{sessions:,} browser sessions with behavior instrumentation in this reporting window. "
+        "These diagnostics began on "
+        f"{str(quality.get('behavior_first_seen') or 'an unknown date')[:10]}. "
+        "Errors are diagnostic signals, not confirmed failed page visits."
+    )
+    st.markdown("**Browser resource and script error signals**")
+    errors = []
+    for row in report.get("ux_signals", []):
+        if not isinstance(row, dict):
+            continue
+        count = n(row.get("sessions"))
+        if not count:
+            continue
+        raw = str(row.get("error_type") or "").lower()
+        if "resource" in raw:
+            error_kind = "Resource load"
+        elif "type" in raw:
+            error_kind = "Type error"
+        elif "string" in raw:
+            error_kind = "Script error"
+        else:
+            error_kind = "Other reported error"
+        errors.append({
+            "Page": _content_name(row.get("page")),
+            "Error category": error_kind,
+            "Sessions with signal": count,
+            "Recorded events": n(row.get("events")),
+        })
+    errors.sort(key=lambda row: (-row["Sessions with signal"], row["Page"]))
+    if errors:
+        st.dataframe(errors[:18], hide_index=True, use_container_width=True)
+        st.caption(
+            "Error categories on the same page can overlap in one browser session. "
+            "Inspect runtime logs and failed assets to identify causes."
+        )
+    else:
+        st.caption("No recorded error signals for this period.")
+
+    st.markdown("**Section-level attention where measured**")
+    attention = []
+    for row in report.get("section_attention", []):
+        if not isinstance(row, dict):
+            continue
+        observed = n(row.get("measured_attention_sessions"))
+        if observed < 20:
+            continue
+        median = row.get("median_attention_seconds")
+        if median is None:
+            continue
+        try:
+            med = max(0.0, float(median))
+        except (TypeError, ValueError):
+            continue
+        attention.append({
+            "Page": _content_name(row.get("page")),
+            "Section": _cta_name(row.get("section_label")),
+            "Measured sessions": observed,
+            "Median visible attention": f"{med:.1f}s",
+            "_median": med,
+        })
+    attention.sort(key=lambda row: (-row["Measured sessions"], row["Page"]))
+    if attention:
+        st.dataframe([{k: v for k, v in row.items() if k != "_median"}
+                      for row in attention[:20]], hide_index=True,
+                     use_container_width=True)
+    else:
+        st.caption("Not enough measured section-attention sessions.")
+    st.caption(
+        "Visible attention is not proof of reading or comprehension. "
+        "Historical sections may have different measurement coverage."
+    )
+
+    st.markdown("**CTA hover/attention versus clicks**")
+    elements = []
+    for row in report.get("element_attention", []):
+        if not isinstance(row, dict):
+            continue
+        exposed = n(row.get("exposed_sessions"))
+        if exposed < 30 or str(row.get("element_kind") or "").lower() not in (
+            "cta", "link", "button",
+        ):
+            continue
+        elements.append({
+            "Element": _cta_name(row.get("element_label")),
+            "Exposed": exposed,
+            "Hovered": n(row.get("hover_sessions")),
+            "Attentive (2s+)": n(row.get("attentive_2s_sessions")),
+            "Clicked": n(row.get("click_sessions")),
+        })
+    elements.sort(key=lambda row: (-row["Exposed"], row["Element"]))
+    if elements:
+        st.dataframe(elements[:18], hide_index=True, use_container_width=True)
+    else:
+        st.caption("No qualifying CTA hover observations. Browser/input support varies.")
+    st.caption(
+        "Hover and attention are not available on all devices. "
+        "Do not compare hover rate on touchscreens with desktop mouse use."
+    )
+
+    st.markdown("**Browser attention interruptions by device**")
+    devices = []
+    for row in report.get("behavior_summary", []):
+        if not isinstance(row, dict):
+            continue
+        counted = n(row.get("sessions"))
+        if counted < 20:
+            continue
+        try:
+            losses = float(row.get("avg_focus_losses") or 0)
+        except (TypeError, ValueError):
+            losses = 0.0
+        devices.append({
+            "Device": str(row.get("device_type") or "Unknown").title(),
+            "Measured sessions": counted,
+            "Avg focus losses": round(max(0.0, losses), 1),
+            "Data-saver share": (
+                f"{percentage(row.get('save_data_sessions'), counted):.1f}%"
+                if percentage(row.get("save_data_sessions"), counted) is not None else "—"),
+        })
+    if devices:
+        st.dataframe(devices, hide_index=True, use_container_width=True)
+    else:
+        st.caption("Not enough browser-context observations.")
+    st.caption(
+        "A focus loss can reflect ordinary multitasking rather than a problem with "
+        "the page. Device and browser reporting capabilities vary."
+    )
+
+
 def render_public_deep_insights(section: str, window: str, traffic: dict) -> None:
     """On-demand advanced reports. One additional public content RPC at most."""
     if section == "signals":
@@ -422,6 +575,14 @@ def render_public_deep_insights(section: str, window: str, traffic: dict) -> Non
         return
     if section == "channels":
         _channels(traffic)
+        return
+    if section == "behavior":
+        try:
+            behavior = fetch_public_behavior_aggregate(window)
+        except RuntimeError as exc:
+            st.warning(str(exc))
+            return
+        _behavior(behavior)
         return
     try:
         content = fetch_public_content_aggregate(window)

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "slug": "ai-governance-blind-spots-nine-controls",
+  "article_fingerprint": "9a0b795e0087af514228c31821a8cca315b497e6aed6cc108a0849006f427f00",
+  "revision": "2026-11-06-r1",
+  "heading": "Who is accountable for the AI you cannot see?",
+  "deck": "Nine governance blind spots, three operating obligations and one live control record.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "24d344c6beef48ebec34c1385863cf37f8dea0759375060a3042fcc3de7957c0",
+    "width": 1200,
+    "height": 2210,
+    "bytes": 158908
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "4cde008062e144ee8b11783f3f387a2f1dbe412582adeae03ecba8b5ae1c2059",
+    "width": 720,
+    "height": 3200,
+    "bytes": 146786
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "b57447e60412844489294ecb236a605efc2d9728fdecea7e0e3be12982b8943d",
+    "pages": 1,
+    "bytes": 224544
+  },
+  "release_note": "Exact source content and premium design require editorial approval in CMS."
+}

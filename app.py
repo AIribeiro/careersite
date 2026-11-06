@@ -460,6 +460,35 @@ async def _authority_infographic(request):
     return PlainTextResponse("Infographic not found", status_code=404)
 
 
+async def _briefing_artwork_pdf(request):
+    """Serve the matched approved artwork PDF without a per-article route."""
+    slug = str(request.path_params.get("slug") or "")
+    from briefing_approved_asset_renderer import _slug, verified_pdf_for_article, ArtworkError
+    try:
+        _slug(slug)
+    except ArtworkError:
+        return PlainTextResponse("Infographic not found", status_code=404)
+    try:
+        from site_cms import fetch_public_article
+        article = fetch_public_article(slug)
+        if not article:
+            return PlainTextResponse("Infographic not found", status_code=404)
+        pdf = verified_pdf_for_article(article)
+    except (RuntimeError, ValueError, TimeoutError, OSError):
+        return PlainTextResponse("Infographic temporarily unavailable", status_code=503)
+    if not pdf:
+        return PlainTextResponse("Infographic not found", status_code=404)
+    return Response(
+        pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{slug}-executive-infographic.pdf"',
+            "Cache-Control": "public, max-age=3600",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
 async def _weekly_ai_evergreen_image(_request):
     path = ROOT / "assets" / "weekly_ai_evergreen_visual.webp"
     if not path.is_file():
@@ -481,6 +510,7 @@ app = App(
         Route("/portfolio-image/{name:path}", _portfolio_image, methods=["GET", "HEAD"]),
         Route("/briefing-ai-roi/infographic.{ext}", _roi_infographic_image, methods=["GET", "HEAD"]),
         Route("/briefing-ai-authority/infographic.{ext}", _authority_infographic, methods=["GET", "HEAD"]),
+        Route("/briefing-artwork/{slug}/download.pdf", _briefing_artwork_pdf, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/evergreen.webp", _weekly_ai_evergreen_image, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/{slug}.png", _weekly_ai_cover, methods=["GET", "HEAD"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),

@@ -524,6 +524,46 @@ def _article_payload(article: CmsArticle) -> dict[str, object]:
     }
 
 
+
+PREMIUM_BRIEFING_CUTOFF = "2026-11-06"
+
+
+def premium_artwork_required(article: CmsArticle) -> bool:
+    """Do not silently force old, known-working Briefings through a new file path."""
+    return (
+        article.kind.strip().casefold() == "executive briefing"
+        and bool(article.created_at)
+        and article.created_at[:10] >= PREMIUM_BRIEFING_CUTOFF
+    )
+
+
+def premium_artwork_ready(article: CmsArticle) -> bool:
+    """Prepublication check for the shared first-party bundle; no browser claim."""
+    if not premium_artwork_required(article):
+        return True
+    from briefing_approved_asset_renderer import (
+        ArtworkError, load_bundle, validate_bundle
+    )
+    from briefing_infographic_engine import source_fingerprint
+    try:
+        manifest = load_bundle(article.slug)
+        if manifest is None or manifest["article_fingerprint"] != source_fingerprint(article):
+            return False
+        validate_bundle(manifest)
+        return True
+    except (ArtworkError, ValueError, OSError):
+        return False
+
+
+def assert_premium_artwork_ready(article: CmsArticle) -> None:
+    if not premium_artwork_ready(article):
+        raise ValueError(
+            "Publish blocked: this new Executive Briefing needs an approved, "
+            "source-fingerprint-matched premium desktop/mobile artwork and A4 PDF "
+            "bundle. See docs/executive_briefings_premium_visual_release.md."
+        )
+
+
 def save_article(access_token: str, article: CmsArticle) -> CmsArticle:
     validate_briefing_employer_anonymity(article)
     if not article.title.strip():
@@ -538,6 +578,8 @@ def save_article(access_token: str, article: CmsArticle) -> CmsArticle:
                 "Publish blocked: approve an infographic that matches the saved "
                 "Executive Briefing content before publication."
             )
+    if article.kind.strip().casefold() == "executive briefing" and article.status == "published":
+        assert_premium_artwork_ready(article)
     if article.id:
         result = _request_json(
             "PATCH",
@@ -595,6 +637,7 @@ def change_article_status(access_token: str, article_id: str, status: str) -> Cm
             from briefing_infographic_store import has_approved_visual
             if not has_approved_visual(saved_for_review, access_token):
                 raise ValueError("Approve a current infographic before publishing this briefing.")
+            assert_premium_artwork_ready(saved_for_review)
     result = _request_json(
         "PATCH",
         _rest_url(f"{TABLE}?id=eq.{parse.quote(article_id, safe='')}"),

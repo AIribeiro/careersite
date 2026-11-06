@@ -134,10 +134,10 @@ jobs:
               browser = playwright.chromium.launch(headless=True)
               page = browser.new_page(viewport={"width": 1440, "height": 900})
               last_error = ""
-              for attempt in range(1, 4):
+              for attempt in range(1, 3):
                   try:
-                      page.goto(target, wait_until="domcontentloaded", timeout=60000)
-                      page.wait_for_selector(".site .weekly-ai-edition-cover img", timeout=40000)
+                      page.goto(target, wait_until="domcontentloaded", timeout=45000)
+                      page.wait_for_selector(".site .weekly-ai-edition-cover img", timeout=20000)
                       page.wait_for_function(
                           """() => {
                             const image = document.querySelector('.site .weekly-ai-edition-cover img');
@@ -145,16 +145,26 @@ jobs:
                               image.naturalWidth === 1200 && image.naturalHeight === 627 &&
                               image.getAttribute('src')?.startsWith('data:image/png;base64,'));
                           }""",
-                          timeout=20000,
+                          timeout=12000,
                       )
                       print("LIVE WEEKLY AI cover image displayed at 1200x627", flush=True)
                       break
                   except Exception as exc:
                       last_error = f"{type(exc).__name__}: {str(exc)[:250]}"
                       count = page.locator(".site .weekly-ai-edition-cover img").count()
-                      print(f"Live check {attempt}/3: image elements={count}, error={last_error}",
+                      try:
+                          body = page.locator("body").inner_text(timeout=6000)[:600]
+                          site_count = page.locator(".site").count()
+                          article_count = page.locator(".site .weekly-ai-reader").count()
+                          title = page.title()
+                          print(f"Public diagnostic: url={page.url!r} title={title!r} "
+                                f"site_count={site_count} reader_count={article_count} "
+                                f"body={body!r}", flush=True)
+                      except Exception as diagnosis:
+                          print(f"Public diagnostic failed: {diagnosis!r}", flush=True)
+                      print(f"Live check {attempt}/2: image elements={count}, error={last_error}",
                             flush=True)
-                      if attempt == 3:
+                      if attempt == 2:
                           raise SystemExit("Production Week 45 header image not verified: " + last_error)
                       time.sleep(8)
               browser.close()

@@ -33,22 +33,35 @@ class OperatingAuthorityArtworkTests(unittest.TestCase):
                     self.assertIn(title, svg_text)
             self.assertIn("Jair Ribeiro", svg_text)
 
-    def test_mobile_and_pdf_cta_match_first_party_route(self):
+    def test_inline_images_and_pdf_cta_are_self_contained(self):
+        import base64
+        import re
         from types import SimpleNamespace
         from briefing_authority_artwork import approved_authority_studio
         html = approved_authority_studio(SimpleNamespace(slug="ai-was-approved-who-can-stop-it"), {
             "alt_text": "Original graphic with twenty operating decisions across four duties.",
             "caption": "Twenty executive governance decisions.",
         })
-        self.assertIn("/briefing-ai-authority/infographic.mobile.webp", html)
-        self.assertIn("/briefing-ai-authority/infographic.pdf", html)
-        self.assertNotIn("25-decision", html)
-        self.assertNotIn("infographic.svg", html)
         self.assertEqual(html.count('class="auth-download"'), 1)
-        self.assertEqual(html.count('<picture>'), 1)
-        self.assertLess(html.index('class="auth-download"'), html.index('<picture>'))
-        self.assertIn("20 decisions. Four continuing responsibilities.", html)
-        self.assertIn("operating-mandate-20-v3", html)
+        self.assertIn('/briefing-ai-authority/infographic.pdf', html)
+        self.assertIn('operating-mandate-20-v4', html)
+        self.assertNotIn('25-decision', html)
+        self.assertEqual(html.count('data:image/webp;base64,'), 2)
+        self.assertNotIn('/briefing-ai-authority/infographic.webp', html)
+        self.assertNotIn('infographic.svg', html)
+        self.assertIn('auth-artwork-desktop', html)
+        self.assertIn('auth-artwork-mobile', html)
+        self.assertLess(html.index('class="auth-download"'), html.index('auth-artwork-container'))
+        assets = re.findall(r'src="data:image/webp;base64,([A-Za-z0-9+/=]+)"', html)
+        self.assertEqual(len(assets), 2)
+        from PIL import Image
+        for b64, dimensions in zip(assets, ((1600,2220),(900,3850))):
+            data=base64.b64decode(b64,validate=True)
+            self.assertGreater(len(data),15000)
+            with Image.open(BytesIO(data)) as im:
+                self.assertEqual(im.format,'WEBP')
+                self.assertEqual(im.size,dimensions)
+                im.verify()
 
     def test_raster_images_decode_without_missing_artwork(self):
         from PIL import Image

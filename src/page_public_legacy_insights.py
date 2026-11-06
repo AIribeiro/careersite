@@ -165,10 +165,28 @@ def render_public_legacy_insights(window: str) -> None:
                 _bar_chart(data.get("lenses", []), "lens", limit=8)
 
         elif section == "audience":
+            from page_public_legacy_intelligence import _kpi_strip
+            devices = sorted(
+                (row for row in data.get("devices", []) if isinstance(row, dict)),
+                key=lambda row: -_count(row.get("sessions")),
+            )
+            countries = [row for row in data.get("countries", [])
+                         if isinstance(row, dict) and _count(row.get("sessions"))]
+            top = devices[0] if devices else {}
+            _kpi_strip([
+                ("Tracked devices", str(len([d for d in devices if _count(d.get("sessions"))])),
+                 "Recorded device categories"),
+                ("Largest device cohort",
+                 str(top.get("device_type") or "—").title(),
+                 f"{_count(top.get('sessions')):,} browser sessions"),
+                ("Country coverage", str(len(countries)),
+                 "Coarse country codes, not verified identities"),
+            ])
             left, right = st.columns(2, gap="large")
             with left:
-                _section("Audience", "Device mix")
-                _donut_chart(data.get("devices", []), "device_type")
+                _section("Audience", "Device mix · measured sessions")
+                _bar_chart(devices, "device_type", value="sessions",
+                           limit=6, height=280)
                 _section("Technology", "Browsers")
                 _bar_chart(data.get("browsers", []), "browser_family", color=BLUE)
                 _section("Locale", "Browser languages")
@@ -183,6 +201,20 @@ def render_public_legacy_insights(window: str) -> None:
             st.caption("Geography is coarse country-level reporting; no IP addresses or individual identities are shown.")
 
         elif section == "discovery":
+            from page_public_legacy_intelligence import _kpi_strip
+            broad = _channel_rows(data.get("attribution", []))
+            directly = sum(_count(row.get("sessions")) for row in broad
+                           if row.get("channel") == "Direct / unattributed")
+            landings = [row for row in data.get("landing_pages", [])
+                        if isinstance(row, dict) and _count(row.get("sessions"))]
+            _kpi_strip([
+                ("Broad acquisition channels", str(len(broad)),
+                 "Groups of observed first-touch attribution"),
+                ("Unattributed traffic", f"{_pct(directly,sessions)}",
+                 f"{directly:,} of {sessions:,} browser sessions"),
+                ("Recorded entry destinations", str(len(landings)),
+                 "Distinct landing destinations with observations"),
+            ])
             left, right = st.columns(2, gap="large")
             with left:
                 _section("Acquisition", "Broad first-touch channels",
@@ -201,6 +233,16 @@ def render_public_legacy_insights(window: str) -> None:
             st.caption("First-touch channel groups describe recorded source tags, not confirmed reader origins.")
 
         elif section == "engagement":
+            from page_public_legacy_intelligence import _kpi_strip
+            confirmed = _count(totals.get("confirmed_duration_sessions"))
+            _kpi_strip([
+                ("Recorded engagement", _pct(engaged, sessions),
+                 f"{engaged:,} of {sessions:,} browser sessions"),
+                ("Median active time", _seconds(totals.get("median_active_seconds")),
+                 "Observed visible activity; not inferred reading time"),
+                ("Confirmed duration", _pct(confirmed, sessions),
+                 f"{confirmed:,} of {sessions:,} sessions"),
+            ])
             left, right = st.columns(2, gap="large")
             with left:
                 _section("Engagement", "Active time distribution")

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "slug": "ai-workforce-readiness-is-a-release-decision",
+  "article_fingerprint": "8dafee62bd122915c9f6a80a687b0baeb330012b0038e5152c48b0f4d96a5f3a",
+  "revision": "2026-11-06-r1",
+  "heading": "AI access is not workforce readiness",
+  "deck": "Six commitments turn technology spending into a business-led capability release decision.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "9f1e270901b1a28a136e5a9f4f4427ea63a3e41f02729975cdcc0ee79c101a64",
+    "width": 1400,
+    "height": 2320,
+    "bytes": 188832
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "7c859b7389dffa5d3b2afcdb3a8b5c50a3baf4b6281ac26212584c0e08e2270a",
+    "width": 800,
+    "height": 3790,
+    "bytes": 178692
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "49513319f28cf642fd48e04de6d7e178356a90d32a25b14fdb9568185b33de6c",
+    "pages": 2,
+    "bytes": 118583
+  },
+  "release_note": "Exact source content and premium design require editorial approval in CMS."
+}

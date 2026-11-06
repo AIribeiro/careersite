@@ -25,7 +25,7 @@ WEEKLY_COVER_DIR = Path(__file__).resolve().parents[1] / "static" / "weekly-ai"
 
 @lru_cache(maxsize=1)
 def _weekly_header_image_uri() -> str:
-    """A cacheable public asset URL, independent of the app media route."""
+    """First-party evergreen header delivered through the app media route."""
     return "/weekly-ai-cover/evergreen.webp" if WEEKLY_IMAGE_FILE.is_file() else ""
 
 
@@ -51,12 +51,18 @@ def weekly_edition_cover_url(slug: str) -> str:
     return f"{BASE_URL}/weekly-ai-cover/{slug}.png?v={revision}"
 
 
-def _edition_cover_html(article: "CmsArticle") -> str:
-    """Prefer an explicit editorial header, otherwise the checked-in Friday cover."""
-    url = (article.header_image_url or "").strip() or weekly_edition_cover_url(article.slug)
+def _edition_cover_html(article: "CmsArticle | str") -> str:
+    """Prefer the editorial header; support slug-only callers from earlier versions."""
+    if isinstance(article, str):
+        slug, editorial_url = article, ""
+        alt = f"WEEKLY AI branded edition header — {slug}"
+    else:
+        slug = article.slug
+        editorial_url = (article.header_image_url or "").strip()
+        alt = article.header_image_alt or f"WEEKLY AI branded edition header — {article.title}"
+    url = editorial_url or weekly_edition_cover_url(slug)
     if not url:
         return ""
-    alt = article.header_image_alt or f"WEEKLY AI branded edition header — {article.title}"
     return (
         '<figure class="weekly-ai-edition-cover" aria-label="Weekly AI branded edition header">'
         '<img src="' + escape(url, quote=True) + '" alt="' + escape(alt, quote=True)

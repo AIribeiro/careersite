@@ -53,8 +53,7 @@ def render_weekly_campaigns(audio: dict | None, editions: list[object]) -> None:
         color=alt.Color("Content tag:N"),
         tooltip=["Source:N", "Content tag:N", alt.Tooltip("sum(Reads):Q", title="Reads")],
     ).properties(height=240), use_container_width=True)
-    with st.expander("Campaign and content details"):
-        st.dataframe(chart, hide_index=True, use_container_width=True)
+    st.caption("Source composition and content tags are available in the chart tooltips; no raw campaign table is shown.")
     st.caption("Each edition/session belongs to its first recorded article-view attribution in this window. "
                "Repeat views, heartbeats and audio events do not create extra reading visits. "
                "These are a subset of edition reads, not additional visitors. 'work' is a content tag, not a reader identity.")
@@ -306,50 +305,82 @@ def render_weekly_ai_analytics(window: str) -> None:
             ).properties(height=260),
             use_container_width=True,
         )
-    st.dataframe([{
-        "Week": r["Week"],
-        "News period": r["Coverage"],
-        "Edition": r["Headline"],
-        "Views": r["Views"],
-        "Reader sessions": r["Edition sessions"],
-        "Engaged ≥10s": r["Engaged ≥10s"],
-        "Engaged rate": r["Engaged rate"],
-        "Avg confirmed seconds": r["Confirmed read time (s)"] if r["Confirmed read time (s)"] is not None else "—",
-        "Shares": r["Share sessions"],
-        "Audio starts": r["Audio starts"] if report["audio_available"] else "—",
-        "Heard ≥50%": r["Audio reached 50%"] if report["audio_available"] else "—",
-        "Audio completed": r["Audio completions"] if report["audio_available"] else "—",
-        "Audio completion rate": r["Audio completion rate"] if report["audio_available"] else "—",
-        "Audio minutes": r["Estimated listening (min)"] if report["audio_available"] else "—",
-        "Reached 75%": r["Reached 75%"],
-        "Later CV": r["Later CV sessions"],
-        "Later contact": r["Later contact sessions"],
-        "Link": r["URL"],
-    } for r in weekly_rows], hide_index=True, use_container_width=True, column_config={
-        "Link": st.column_config.LinkColumn("Read edition")
-    })
+    if weekly_rows:
+        leading = weekly_rows[0]
+        with st.container(border=True):
+            st.markdown(f"**Latest published edition — {leading['Week']}**")
+            st.caption(leading["Headline"])
+            k1, k2, k3, k4 = st.columns(4)
+            k1.metric("Recorded reads", f"{leading['Edition sessions']:,}")
+            k2.metric("Engaged reading", leading["Engaged rate"])
+            k3.metric("Reached 75% depth", leading["Reached 75%"])
+            k4.metric("Share sessions", f"{leading['Share sessions']:,}")
+            if str(leading.get("URL") or "").startswith(BASE_URL + "/thinking/"):
+                st.link_button("Read the edition", leading["URL"])
+        if len(weekly_rows) > 1:
+            engagement_rows = [
+                {"Week": row["Week"], "Engaged reads": row["Engaged ≥10s"],
+                 "Reader sessions": row["Edition sessions"]}
+                for row in weekly_rows if row["Edition sessions"]
+            ]
+            if engagement_rows:
+                st.altair_chart(
+                    alt.Chart(alt.Data(values=engagement_rows))
+                    .mark_bar(cornerRadiusEnd=5)
+                    .encode(
+                        x=alt.X("Engaged reads:Q", title="Engaged edition-session reads",
+                                axis=alt.Axis(tickMinStep=1)),
+                        y=alt.Y("Week:N", title=None, sort="-x"),
+                        tooltip=["Week:N", "Engaged reads:Q", "Reader sessions:Q"],
+                    ).properties(height=max(180, 35 * len(engagement_rows))),
+                    use_container_width=True,
+                )
     st.caption(
         "Read rates are edition-session rates; scroll rates use only depth-measured sessions. "
         "Later CV/contact actions mean subsequent events in the same browser tab, not proven causal outcomes."
     )
 
     if report["issue_ctrs"]:
-        with st.expander("Feature & archive open performance", expanded=False):
-            st.dataframe([{
-                "Edition": r["Week / issue"],
-                "Placement": r["Placement"],
-                "Card seen": r["Exposed sessions"],
-                "Opened after exposure": r["Click sessions"],
-                "CTR": _pct(r["Click sessions"], r["Exposed sessions"]),
-            } for r in report["issue_ctrs"]], hide_index=True, use_container_width=True)
+        with st.expander("Feature and archive discovery", expanded=False):
+            placement_rows = [{
+                "Placement": f"{r['Week / issue']} · {r['Placement']}",
+                "Exposed": r["Exposed sessions"],
+                "Opened": r["Click sessions"],
+            } for r in report["issue_ctrs"] if r["Exposed sessions"]]
+            if placement_rows:
+                st.altair_chart(
+                    alt.Chart(alt.Data(values=placement_rows))
+                    .mark_bar(cornerRadiusEnd=5)
+                    .encode(
+                        x=alt.X("Exposed:Q", title="Recorded card exposure sessions",
+                                axis=alt.Axis(tickMinStep=1)),
+                        y=alt.Y("Placement:N", title=None, sort="-x",
+                                axis=alt.Axis(labelLimit=250)),
+                        tooltip=["Placement:N", "Exposed:Q", "Opened:Q"],
+                    ).properties(height=max(180, 32 * len(placement_rows))),
+                    use_container_width=True,
+                )
+            st.caption("Exposures and opens are session observations per placement, not unique people.")
     if report["source_rows"]:
-        with st.expander("Original publisher link interactions", expanded=False):
-            st.dataframe([{
+        with st.expander("Original publisher link activity", expanded=False):
+            publisher_rows = [{
                 "Publisher": r["Publisher"],
-                "Link exposed": r["Exposed sessions"],
-                "Clicks after exposure": r["Click sessions"],
-                "CTR": _pct(r["Click sessions"], r["Exposed sessions"]),
-            } for r in report["source_rows"]], hide_index=True, use_container_width=True)
+                "Exposed": r["Exposed sessions"],
+                "Clicked": r["Click sessions"],
+            } for r in report["source_rows"] if r["Exposed sessions"]]
+            if publisher_rows:
+                st.altair_chart(
+                    alt.Chart(alt.Data(values=publisher_rows))
+                    .mark_bar(cornerRadiusEnd=5)
+                    .encode(
+                        x=alt.X("Clicked:Q", title="Observed click sessions",
+                                axis=alt.Axis(tickMinStep=1)),
+                        y=alt.Y("Publisher:N", title=None, sort="-x"),
+                        tooltip=["Publisher:N", "Exposed:Q", "Clicked:Q"],
+                    ).properties(height=max(180, 32 * len(publisher_rows))),
+                    use_container_width=True,
+                )
+            st.caption("Original source-link clicks are not additional edition reads.")
     st.caption(
         f"Time window: {data.get('period_label', window)}. All metrics reuse the existing owner-only "
         "analytics reporting window and content-quality controls. No new visitor identifiers, cookies or raw URLs are stored."

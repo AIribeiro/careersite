@@ -11,12 +11,13 @@ LEGACY = ROOT / "src" / "page_public_legacy_insights.py"
 ROUTER = ROOT / "src" / "page_analytics_v2.py"
 
 
-def test_public_overview_restores_lazy_legacy_toggle_below_cards():
+def test_public_overview_shows_legacy_tabs_by_default_below_cards():
     source = OVERVIEW.read_text(encoding="utf-8")
+    assert "st.toggle(" not in source
+    assert "portfolio_show_legacy_analytics" not in source
     assert source.index("st.html(portfolio_metric_grid(cards))") < source.index(
-        '"Show legacy visitor analytics"'
+        "render_public_legacy_insights(str(window))"
     )
-    assert "key=\"portfolio_show_legacy_analytics\"" in source
     assert (
         "from page_public_legacy_insights import render_public_legacy_insights"
         in source

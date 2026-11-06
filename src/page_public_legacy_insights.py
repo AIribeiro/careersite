@@ -1,9 +1,9 @@
-"""Legacy visitor diagnostics for the anonymous Portfolio Analytics overview.
+"""Advanced visitor insights for the anonymous Portfolio Analytics overview.
 
-This is deliberately NOT the owner-only legacy renderer: it consumes only the
+This is deliberately NOT the owner-only detailed renderer: it consumes only the
 existing aggregate public dashboard RPC and never calls hiring intelligence,
 source/campaign audits, private job data, or authenticated reporting endpoints.
-The section is loaded only after the visitor enables the legacy-insights toggle.
+The tabs are visible by default; only the active tab renders its report.
 """
 from __future__ import annotations
 
@@ -89,16 +89,16 @@ def _event_rows(rows: object) -> list[dict]:
 
 def render_public_legacy_insights(window: str) -> None:
     """Render historical visitor insights with no sign-in or owner data access."""
-    st.subheader("Legacy visitor analytics")
+    st.subheader("Advanced Insights")
     st.caption(
-        "The original traffic, audience and exploration reports, retained for historical comparison. "
+        ""Explore audience, acquisition, content journeys and engagement using recorded portfolio data. "
         "These are recorded browser sessions, not unique visitors or identified employers. "
         "Automation and unconfirmed sessions may be included."
     )
     try:
         data = _cached_public_traffic(window)
     except (ValueError, RuntimeError, TimeoutError):
-        st.warning("Legacy visitor reporting is temporarily unavailable.")
+        st.warning("Advanced Insights are temporarily unavailable.")
         return
 
     totals = data.get("totals") if isinstance(data.get("totals"), dict) else {}
@@ -112,14 +112,14 @@ def render_public_legacy_insights(window: str) -> None:
         0,
     )
     period = str(data.get("period_label") or REPORTING_WINDOW_LABELS.get(window, window))
-    st.caption(f"Reporting period: {period} · first-party historical aggregates")
+    st.caption(f"Reporting period: {period} · first-party aggregate analytics")
     # Native stateful tabs keep navigation directly visible. Only the active
     # panel renders: Streamlit otherwise eagerly computes all tab bodies,
     # triggering every analytics RPC and chart on every interaction.
     tab_keys = list(_SECTIONS)
     tabs = st.tabs(
         [_SECTIONS[name] for name in tab_keys],
-        key="portfolio_legacy_insights_tabs",
+        key="portfolio_advanced_insights_tabs",
         on_change="rerun",
         width="stretch",
     )
@@ -130,7 +130,7 @@ def render_public_legacy_insights(window: str) -> None:
     if opened is None:
         return  # No active tab during a transient widget-state update.
     section, active_tab = opened
-    if st.button("Refresh legacy reports", key="portfolio_legacy_refresh"):
+    if st.button("Refresh advanced insights", key="portfolio_advanced_refresh"):
         _cached_public_traffic.clear()
         from page_public_legacy_intelligence import (
             fetch_public_content_aggregate, fetch_public_behavior_aggregate,
@@ -242,6 +242,6 @@ def render_public_legacy_insights(window: str) -> None:
 
         st.caption(
             "Owner-only hiring intelligence, individual campaign/source audits and raw telemetry "
-            "remain in the authenticated workspace. Legacy totals are not equivalent "
+            ""remain in the authenticated workspace. Recorded-session totals are not equivalent "
             "to quality-filtered portfolio readership."
         )

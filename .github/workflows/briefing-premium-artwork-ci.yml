@@ -1,0 +1,61 @@
+name: Premium Briefing artwork contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/briefing_approved_asset_renderer.py'
+      - 'src/briefing_infographic_store.py'
+      - 'src/site_cms.py'
+      - 'src/page_admin.py'
+      - 'app.py'
+      - 'scripts/build_briefing_artwork_bundle.py'
+      - 'static/briefing-artwork/**'
+      - 'tests/test_briefing_approved_asset_renderer.py'
+      - '.github/workflows/briefing-premium-artwork-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/briefing_approved_asset_renderer.py'
+      - 'src/briefing_infographic_store.py'
+      - 'src/site_cms.py'
+      - 'src/page_admin.py'
+      - 'app.py'
+      - 'scripts/build_briefing_artwork_bundle.py'
+      - 'static/briefing-artwork/**'
+      - 'tests/test_briefing_approved_asset_renderer.py'
+      - '.github/workflows/briefing-premium-artwork-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile premium bundle, renderer and admin gates
+        run: python -m py_compile src/briefing_approved_asset_renderer.py src/briefing_infographic_store.py src/site_cms.py src/page_admin.py scripts/build_briefing_artwork_bundle.py app.py tests/test_briefing_approved_asset_renderer.py
+      - name: Verify packaging, exact source and Safari self-contained images
+        run: python -m unittest -v tests.test_briefing_approved_asset_renderer
+      - name: Check no broken image endpoints are emitted
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          reader=Path('src/briefing_approved_asset_renderer.py').read_text()
+          assert 'data:image/webp;base64,' in reader
+          assert 'canonical-infographic-download' in reader
+          assert 'briefing-infographic' in reader
+          assert 'article_fingerprint' in reader
+          assert 'verified_pdf_for_article' in reader
+          print('New briefing release contract is self-contained and source gated.')
+          PY

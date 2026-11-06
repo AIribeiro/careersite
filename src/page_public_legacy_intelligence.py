@@ -682,136 +682,139 @@ def fetch_public_behavior_aggregate(window: str) -> dict:
 
 
 def _behavior(report: dict) -> None:
-    st.markdown("#### Attention, browser errors and interaction friction")
     quality = report.get("quality") or {}
-    sessions = n(quality.get("behavior_sessions"))
-    st.caption(
-        f"{sessions:,} browser sessions with behavior instrumentation in this reporting window. "
-        "These diagnostics began on "
-        f"{str(quality.get('behavior_first_seen') or 'an unknown date')[:10]}. "
-        "Errors are diagnostic signals, not confirmed failed page visits."
+    measured_sessions = n(quality.get("behavior_sessions"))
+    _dashboard_header(
+        "Attention and browser friction",
+        "Observed error signals, visible attention and interaction cohorts. "
+        "They indicate areas to inspect, not identified failed visits.",
     )
-    st.markdown("**Browser resource and script error signals**")
     errors = []
-    for row in report.get("ux_signals", []):
-        if not isinstance(row, dict):
+    for item in report.get("ux_signals", []):
+        if not isinstance(item, dict):
             continue
-        count = n(row.get("sessions"))
-        if not count:
+        count = n(item.get("sessions"))
+        if count == 0:
             continue
-        raw = str(row.get("error_type") or "").lower()
-        if "resource" in raw:
-            error_kind = "Resource load"
-        elif "type" in raw:
-            error_kind = "Type error"
-        elif "string" in raw:
-            error_kind = "Script error"
-        else:
-            error_kind = "Other reported error"
+        kind = str(item.get("error_type") or "").lower()
+        category = ("Resource load" if "resource" in kind else
+                    "Type error" if "type" in kind else
+                    "Script error" if "string" in kind else "Other error")
+        page = _content_name(item.get("page"))
         errors.append({
-            "Page": _content_name(row.get("page")),
-            "Error category": error_kind,
-            "Sessions with signal": count,
-            "Recorded events": n(row.get("events")),
+            "Signal": f"{page[:37]} · {category}",
+            "Sessions": count,
+            "Recorded events": n(item.get("events")),
         })
-    errors.sort(key=lambda row: (-row["Sessions with signal"], row["Page"]))
-    if errors:
-        st.dataframe(errors[:18], hide_index=True, use_container_width=True)
-        st.caption(
-            "Error categories on the same page can overlap in one browser session. "
-            "Inspect runtime logs and failed assets to identify causes."
-        )
-    else:
-        st.caption("No recorded error signals for this period.")
-
-    st.markdown("**Section-level attention where measured**")
+    errors.sort(key=lambda row: -row["Sessions"])
     attention = []
-    for row in report.get("section_attention", []):
-        if not isinstance(row, dict):
+    for item in report.get("section_attention", []):
+        if not isinstance(item, dict):
             continue
-        observed = n(row.get("measured_attention_sessions"))
+        observed = n(item.get("measured_attention_sessions"))
         if observed < 20:
             continue
-        median = row.get("median_attention_seconds")
-        if median is None:
-            continue
         try:
-            med = max(0.0, float(median))
+            seconds = float(item.get("median_attention_seconds"))
         except (TypeError, ValueError):
+            continue
+        if not (0 <= seconds < float("inf")):
             continue
         attention.append({
-            "Page": _content_name(row.get("page")),
-            "Section": _cta_name(row.get("section_label")),
+            "Section": f"{_content_name(item.get('page'))[:20]} · "
+                       f"{_cta_name(item.get('section_label'))[:48]}",
+            "Median visible time (s)": round(seconds, 1),
             "Measured sessions": observed,
-            "Median visible attention": f"{med:.1f}s",
-            "_median": med,
         })
-    attention.sort(key=lambda row: (-row["Measured sessions"], row["Page"]))
-    if attention:
-        st.dataframe([{k: v for k, v in row.items() if k != "_median"}
-                      for row in attention[:20]], hide_index=True,
-                     use_container_width=True)
-    else:
-        st.caption("Not enough measured section-attention sessions.")
-    st.caption(
-        "Visible attention is not proof of reading or comprehension. "
-        "Historical sections may have different measurement coverage."
-    )
-
-    st.markdown("**CTA hover/attention versus clicks**")
+    attention.sort(key=lambda row: -row["Measured sessions"])
     elements = []
-    for row in report.get("element_attention", []):
-        if not isinstance(row, dict):
+    for item in report.get("element_attention", []):
+        if not isinstance(item, dict) or str(item.get("element_kind") or "").lower() != "cta":
             continue
-        exposed = n(row.get("exposed_sessions"))
-        if exposed < 30 or str(row.get("element_kind") or "").lower() not in (
-            "cta", "link", "button",
-        ):
+        exposed = n(item.get("exposed_sessions"))
+        if exposed < 30:
             continue
         elements.append({
-            "Element": _cta_name(row.get("element_label")),
+            "Action": _cta_name(item.get("element_label")),
             "Exposed": exposed,
-            "Hovered": n(row.get("hover_sessions")),
-            "Attentive (2s+)": n(row.get("attentive_2s_sessions")),
-            "Clicked": n(row.get("click_sessions")),
+            "Clicked": n(item.get("click_sessions")),
+            "2s+ attention (%)": percentage(item.get("attentive_2s_sessions"), exposed),
+            "Clicked (%)": percentage(item.get("click_sessions"), exposed),
         })
-    elements.sort(key=lambda row: (-row["Exposed"], row["Element"]))
-    if elements:
-        st.dataframe(elements[:18], hide_index=True, use_container_width=True)
-    else:
-        st.caption("No qualifying CTA hover observations. Browser/input support varies.")
-    st.caption(
-        "Hover and attention are not available on all devices. "
-        "Do not compare hover rate on touchscreens with desktop mouse use."
-    )
+    elements.sort(key=lambda row: -row["Exposed"])
+    _kpi_strip([
+        ("Instrumented sessions", f"{measured_sessions:,}",
+         f"Behavior signals since {str(quality.get('behavior_first_seen') or 'unknown')[:10]}"),
+        ("Error-signal categories", f"{len(errors):,}",
+         "Page × error category; cohorts can overlap"),
+        ("Measurable sections", f"{len(attention):,}",
+         "20+ sessions with attention timing"),
+    ])
+    left, right = st.columns(2, gap="large")
+    with left:
+        _ranked_chart(errors, "Signal", "Sessions",
+                      title="Browser error signals by page",
+                      note="Sessions with resource/script signals. Multiple categories can overlap.",
+                      color=ACCENT, limit=9)
+    with right:
+        _ranked_chart(attention, "Section", "Median visible time (s)",
+                      title="Median attention by measured section",
+                      note="Visible-time median among measured sessions; not proof of reading.",
+                      color=GREEN, limit=9)
 
-    st.markdown("**Browser attention interruptions by device**")
+    st.markdown("#### Attention versus direct interaction")
+    left, right = st.columns(2, gap="large")
+    with left:
+        _ranked_chart(
+            [row for row in elements if row["2s+ attention (%)"] is not None],
+            "Action", "2s+ attention (%)",
+            title="Actions attracting at least two seconds of attention",
+            note="Observed attention / exposures, 30+ exposures. "
+                 "Behavior may vary across browser and device types.",
+            percentage_axis=True, color=BLUE, limit=8)
+    with right:
+        _ranked_chart(
+            [row for row in elements if row["Clicked (%)"] is not None],
+            "Action", "Clicked (%)",
+            title="Recorded CTA click activity",
+            note="Click sessions / exposure sessions; diagnostic, not experimental conversion.",
+            percentage_axis=True, color=ACCENT, limit=8)
+
     devices = []
-    for row in report.get("behavior_summary", []):
-        if not isinstance(row, dict):
+    for item in report.get("behavior_summary", []):
+        if not isinstance(item, dict):
             continue
-        counted = n(row.get("sessions"))
-        if counted < 20:
+        sessions = n(item.get("sessions"))
+        if sessions < 20:
             continue
         try:
-            losses = float(row.get("avg_focus_losses") or 0)
+            losses = float(item.get("avg_focus_losses"))
         except (TypeError, ValueError):
-            losses = 0.0
+            continue
+        if not (0 <= losses < float("inf")):
+            continue
         devices.append({
-            "Device": str(row.get("device_type") or "Unknown").title(),
-            "Measured sessions": counted,
-            "Avg focus losses": round(max(0.0, losses), 1),
-            "Data-saver share": (
-                f"{percentage(row.get('save_data_sessions'), counted):.1f}%"
-                if percentage(row.get("save_data_sessions"), counted) is not None else "—"),
+            "Device": str(item.get("device_type") or "Unknown").title()[:24],
+            "Avg focus losses": round(losses, 1),
+            "Sessions": sessions,
         })
     if devices:
-        st.dataframe(devices, hide_index=True, use_container_width=True)
-    else:
-        st.caption("Not enough browser-context observations.")
+        _ranked_chart(devices, "Device", "Avg focus losses",
+                      title="Browser focus interruptions by device",
+                      note="Mean recorded focus changes; a focus loss often reflects ordinary multitasking.",
+                      color=BLUE, limit=5)
+    if errors and errors[0]["Sessions"] >= 5:
+        top = errors[0]
+        _decision_note(
+            f"The leading error category is {top['Signal']}, observed in "
+            f"{top['Sessions']:,} browser sessions. This does not establish page failure.",
+            "Inspect failing asset requests and console errors for that page, then "
+            "verify whether the issue persists in the current deployment.",
+        )
     st.caption(
-        "A focus loss can reflect ordinary multitasking rather than a problem with "
-        "the page. Device and browser reporting capabilities vary."
+        "CTA exposure, hover, attention and clicks have different browser support. "
+        "Touchscreens do not provide mouse hover; exposure and error cohorts can overlap. "
+        "No raw browser events or personally identifiable visits are displayed."
     )
 
 

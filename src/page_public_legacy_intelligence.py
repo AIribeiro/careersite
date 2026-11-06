@@ -334,79 +334,119 @@ def _journey_rows(report: dict) -> list[dict]:
 
 
 def _content(report: dict) -> None:
-    st.markdown("#### Content attention and onward journeys")
+    _dashboard_header(
+        "Reading depth and audience journeys",
+        "Which content earns attention, where readers move next, and how far "
+        "visitors reach through individual pages. Only measured sessions count.",
+    )
     quality = report.get("quality") or {}
     multi = report.get("multi_article") or {}
     ordered = report.get("ordered_funnel") or {}
-    cols = st.columns(3)
-    with cols[0]:
-        _metric_rate("Multi-article readers", multi.get("multi_article_sessions"),
-                     multi.get("reader_sessions"))
-    with cols[1]:
-        _metric_rate("Article share of content sessions",
-                     quality.get("article_sessions"), quality.get("content_sessions"))
-    with cols[2]:
-        _metric_rate("Article → Experience", ordered.get("article_to_impact_sessions"),
-                     ordered.get("article_sessions"))
-    st.caption(
-        "Multi-article sessions count browser-tab sessions with multiple distinct articles. "
-        "Article → Experience requires an observed ordered path, not simply both pages having views. "
-        "The middle metric is article session share of content sessions, not telemetry coverage."
-    )
-
+    reader_sessions = n(multi.get("reader_sessions"))
+    multi_sessions = n(multi.get("multi_article_sessions"))
+    ordered_sessions = n(ordered.get("article_to_impact_sessions"))
+    article_sessions = n(ordered.get("article_sessions"))
+    _kpi_strip([
+        ("Article-reading sessions", f"{reader_sessions:,}",
+         "Content reader cohort; not unique people"),
+        ("Multi-article share",
+         f"{percentage(multi_sessions, reader_sessions):.1f}%"
+         if percentage(multi_sessions, reader_sessions) is not None else "—",
+         f"{multi_sessions:,} of {reader_sessions:,} reader sessions"),
+        ("Article → Experience",
+         f"{percentage(ordered_sessions, article_sessions):.1f}%"
+         if percentage(ordered_sessions, article_sessions) is not None else "—",
+         f"{ordered_sessions:,} of {article_sessions:,} ordered sessions"),
+    ])
     rows = _article_rows(report)
-    st.markdown("**Article attention and follow-on activity**")
-    if rows:
-        st.dataframe(rows[:20], hide_index=True, use_container_width=True)
-        _chart([{"Article": row["Article"][:55], "Reader sessions": row["Reader sessions"]}
-                for row in rows[:10]], "Article", "Reader sessions", limit=10)
-    else:
-        st.caption("No recorded article sessions in this period.")
-
-    st.markdown("**Most common observed content-to-content paths**")
     journeys = _journey_rows(report)
+    left, right = st.columns(2, gap="large")
+    with left:
+        _ranked_chart(
+            [{"Article": row["Article"][:60], "Reader sessions": row["Reader sessions"],
+              "Measured sessions": row["Depth measured"]} for row in rows[:12]],
+            "Article", "Reader sessions", title="Publications earning reader sessions",
+            note="Ranked by measured browser sessions, not all-time popularity.",
+            color=ACCENT,
+        )
+    with right:
+        depth = []
+        for row in rows:
+            measured = row["Depth measured"]
+            source = next((item for item in report.get("performance", [])
+                           if isinstance(item, dict) and item.get("kind") == "article"
+                           and _content_name(item.get("content")) == row["Article"]), None)
+            if not source or measured < 20:
+                continue
+            rate = percentage(source.get("three_quarter_sessions"), measured)
+            if rate is None:
+                continue
+            depth.append({"Article": row["Article"][:60], "Reached 75% (%)": rate,
+                          "Measured sessions": measured})
+        _ranked_chart(
+            depth, "Article", "Reached 75% (%)",
+            title="Deep-reading evidence", percentage_axis=True, color=GREEN,
+            note="75% article-depth reach among 20+ depth-measured sessions. "
+                 "Unavailable is not interpreted as zero.",
+        )
+
+    st.markdown("#### Confirmed paths between portfolio content")
     if journeys:
-        st.dataframe(journeys[:18], hide_index=True, use_container_width=True)
+        path_rows = [
+            {"Journey": f"{row['From'][:32]} → {row['To'][:32]}",
+             "Sessions": row["Sessions"],
+             "Recorded transitions": row["Recorded transitions"]}
+            for row in journeys[:12]
+        ]
+        _ranked_chart(path_rows, "Journey", "Sessions",
+                      title="Most frequent consecutive destinations",
+                      note="A transition requires two recorded content views in one tab. "
+                           "Counts overlap across different paths.", limit=10, color=BLUE)
+        top = journeys[0]
+        _decision_note(
+            f"The most frequently observed continuation is "
+            f"{top['From']} → {top['To']} ({top['Sessions']:,} sessions). "
+            "This describes navigation, not the visitor's motivation.",
+            "Review whether contextual links make the next relevant page easier to find.",
+        )
     else:
-        st.caption("No consecutive content transitions recorded.")
-    st.caption(
-        "Path counts represent consecutive recorded content views within one browser session. "
-        "They do not show all navigation clicks or prove why a visitor continued. "
-        "This newer content collector uses a different session eligibility rule "
-        "from the historical traffic report; their totals must not be reconciled."
-    )
+        st.info("No consecutive content-view transitions were recorded in this period.")
 
     section_rows = []
     for item in report.get("section_reach", []):
         if not isinstance(item, dict):
             continue
         base = n(item.get("page_sessions"))
-        seen = n(item.get("reached_sessions"))
-        rate = percentage(seen, base)
+        reached = n(item.get("reached_sessions"))
+        rate = percentage(reached, base)
         if base < 20 or rate is None:
             continue
         section_rows.append({
             "Page": _content_name(item.get("page")),
-            "Section": str(item.get("section_label") or "Unnamed section")[:90],
-            "Sessions reaching section": seen,
+            "Section": _cta_name(item.get("section_label")),
+            "Section reach (%)": rate,
+            "Sessions": reached,
             "Page sessions": base,
-            "Reach": f"{rate:.1f}%",
         })
-    st.markdown("**Section visibility on recorded pages**")
+    st.markdown("#### Section reach within a page")
     if section_rows:
         pages = sorted({row["Page"] for row in section_rows})
         preferred = pages.index("Home") if "Home" in pages else 0
-        chosen = st.selectbox("Page for section visibility",
-                              pages, index=preferred, key="portfolio_legacy_section_page")
-        matching = sorted((row for row in section_rows if row["Page"] == chosen),
-                          key=lambda r: -r["Sessions reaching section"])
-        st.dataframe(matching[:22], hide_index=True, use_container_width=True)
-        st.caption(
-            "Section-reach percentage divides measured reach by page-session observations. "
-            "It may be lower when historical section instrumentation was incomplete."
-        )
+        selected = st.selectbox("Page to compare", pages, index=preferred,
+                                key="portfolio_advanced_section_page")
+        matching = [row for row in section_rows if row["Page"] == selected]
+        _ranked_chart(matching, "Section", "Section reach (%)",
+                      title=f"Recorded visibility · {selected}",
+                      note="Page-session denominator displayed on hover. "
+                           "Historical sections may have incomplete instrumentation.",
+                      percentage_axis=True, color=GREEN, limit=12)
     else:
-        st.caption("Not enough section-level observations.")
+        st.caption("Not enough section-reach observations to compare this period.")
+    st.caption(
+        "Article reading, navigation transitions and section reach come from the "
+        "content collector. Do not reconcile these sessions to the historical "
+        "traffic collector or infer individual reader identity."
+    )
 
 
 def _ctas(report: dict) -> None:

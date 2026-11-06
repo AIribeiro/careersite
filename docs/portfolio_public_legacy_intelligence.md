@@ -51,6 +51,9 @@ collected evidence—not a deletion of data or a new event collector.
   Untagged traffic is shown separately in coverage KPIs.
 - **Campaign × channel:** observed attribution pairing within the *content*
   collector; filtering and measured-sample thresholds apply.
+- **Channel × role tag:** observed pairing of source and editorial link-purpose
+  tags in the *traffic* collector. Shows which platforms carried a category
+  of shared links; does not imply reader occupation.
 - **Denominators:** role tags come from traffic source-role cohorts; campaign
   outcomes come from the independent content-campaign collector. Their
   session totals, engagement counts and reader cohorts must not be added

@@ -304,6 +304,9 @@ def _mobile(spec):
 
 def render_svg(spec: Mapping, *, mobile: bool=False) -> str:
     validate_spec(spec)
+    if spec.get("visual_theme") == "scale_contract_v1":
+        from briefing_scale_contract_visual import scale_svg
+        return scale_svg(spec, mobile=mobile)
     return _mobile(spec) if mobile else _desktop(spec)
 
 

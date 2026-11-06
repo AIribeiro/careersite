@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from portfolio_public_attribution import (
     campaign_tag, role_tag, campaign_cohorts, campaign_channel_cohorts,
-    role_cohorts, referrer_origin, referrer_cohorts,
+    role_cohorts, channel_role_cohorts, referrer_origin, referrer_cohorts,
     tag_coverage, meaningful_rate,
 )
 
@@ -46,6 +46,22 @@ def test_role_tags_are_link_intents_not_occupations():
     assert next(row for row in rows if row["Label"] == "Weekly AI")["sessions"] == 30
     assert "sensitive-person-tag" not in str(rows)
     assert tag_coverage(rows, "No role tag") == (31, 231)
+
+
+def test_role_attribution_can_be_compared_across_sources():
+    rows = [
+        {"attribution_source": "LinkedIn", "attribution_role": "weeklyai",
+         "sessions": 9, "engaged_sessions": 6},
+        {"attribution_source": "x", "attribution_role": "weeklyai",
+         "sessions": 15, "engaged_sessions": 5},
+        {"attribution_source": "LinkedIn", "attribution_role": "private-client-hiring",
+         "sessions": 1},
+    ]
+    cohorts = channel_role_cohorts(rows)
+    assert sum(item["sessions"] for item in cohorts) == 25
+    assert any(item["Channel"] == "X" and item["Link purpose"] == "Weekly AI"
+               and item["sessions"] == 15 for item in cohorts)
+    assert "private-client" not in str(cohorts)
 
 
 def test_campaign_breakdown_uses_only_its_own_collector():

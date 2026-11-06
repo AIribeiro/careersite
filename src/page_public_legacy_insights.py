@@ -29,6 +29,7 @@ _SECTIONS = {
     "content": "Content & journeys",
     "ctas": "CTA opportunities",
     "experience": "Site performance",
+    "behavior": "Attention & friction",
     "coverage": "Data quality",
 }
 
@@ -118,8 +119,11 @@ def render_public_legacy_insights(window: str) -> None:
     ) or "signals"
     if st.button("Refresh legacy reports", key="portfolio_legacy_refresh"):
         _cached_public_traffic.clear()
-        from page_public_legacy_intelligence import fetch_public_content_aggregate
+        from page_public_legacy_intelligence import (
+            fetch_public_content_aggregate, fetch_public_behavior_aggregate,
+        )
         fetch_public_content_aggregate.clear()
+        fetch_public_behavior_aggregate.clear()
         st.rerun()
 
     if section == "overview":
@@ -218,7 +222,7 @@ def render_public_legacy_insights(window: str) -> None:
                     _count(totals.get("lens_sessions")), cv_sessions)
         st.caption("CV and contact events indicate actions, not verified recruiter intent or a hiring outcome.")
 
-    elif section in ("signals", "channels", "content", "ctas", "experience", "coverage"):
+    elif section in ("signals", "channels", "content", "ctas", "experience", "behavior", "coverage"):
         from page_public_legacy_intelligence import render_public_deep_insights
         render_public_deep_insights(section, window, data)
 

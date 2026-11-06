@@ -5,7 +5,7 @@ Updated: 6 November 2026
 ## Default public experience
 
 The public URL is `/?page=analytics&view=overview`. The four summary cards
-are followed immediately by **Advanced Insights**, with twelve directly
+are followed immediately by **Advanced Insights**, with six purpose-built,
 clickable, horizontally scrollable tabs. No toggle, owner login or dropdown
 is needed. The active tab alone is rendered, using Streamlit's stateful
 `st.tabs(on_change="rerun")` API and its `.open` property; switching tabs
@@ -16,30 +16,55 @@ rankings, ratio comparisons, evidence-based diagnostic callouts, and measured
 denominator notes. **No default raw data tables** are displayed. Counts and
 measurement context appear in tooltips and captions.
 
-## Scope and sources
+## Six-tab reporting architecture
 
-| Public report | Data source | What is measured |
+| Tab | Questions and evidence | Public aggregate source |
 | --- | --- | --- |
-| Executive findings | `careersite_analytics_dashboard_v2` | Guarded traffic movements, source ambiguity, timing coverage, device differences, recorded journeys/actions |
-| Traffic overview | Same | Session trend, page exploration, recorded-session funnels, top lenses |
-| Audience | Same | Devices, browsers, OS, countries, languages, time zones |
-| Discovery paths | Same | Broad first-touch channels, landing and exit pages, destinations |
-| Engagement | Same | Active-time buckets, hour/weekday distribution, engagement by device |
-| Actions & conversions | Same | Event cohorts, CV/contact interactions, exploration depth |
-| Channel outcomes | Same | Grouped channel session volume, observed engagement and observed article/CV reach |
-| Content & journeys | `careersite_content_intelligence_v2` | Article reading, multi-article sessions, content transitions, section reach, ordered journeys |
-| CTA opportunities | Same | Exposure versus click-session counts and high-exposure/zero-recorded-click diagnostics |
-| Site performance | Same | Device-level p75 LCP, TTFB, CLS and slow-measurement shares |
-| Attention & friction | `careersite_behavior_intelligence` | Aggregated error categories, measured section attention, CTA hover/attention, browser focus-loss context |
-| Data quality | Dashboard + content RPC | Timing confirmation, measurement cohort coverage and non-comparable collectors |
+| **Overview & trends** | Decision-oriented findings, traffic movements, measured engagement, portfolio destinations and leadership-lens reach | `careersite_analytics_dashboard_v2` |
+| **Audience & origins** | Country estimates, recognized referring websites, landing and exit patterns, devices, browsers, operating systems, languages and time zones | Traffic RPC (`countries`, `referrers`, `landing_pages`, `exit_pages`, technology cohorts) |
+| **Attribution & campaigns** | Broad channel source, engagement outcomes, campaign reach, editorial campaign categories, link-purpose role tags, channel × campaign comparisons, tag-coverage confidence | Traffic RPC (`attribution`) + `careersite_content_intelligence_v2` (`campaigns`) |
+| **Content & actions** | Reading depth, content transitions, section reach, CTA exposure/activation, downloads and contact interaction | Traffic RPC + content intelligence RPC |
+| **Engagement & UX** | Active-time distribution, engagement timing, device performance, technical failure signals and CTA attention | Traffic RPC + content and `careersite_behavior_intelligence` RPCs |
+| **Data quality** | Instrumentation coverage, missing durations, collector distinctions, confidence and historical comparability | Traffic + content intelligence RPCs |
 
-Existing overview content signals and the dedicated Explore Content,
-Executive Briefings, and Weekly AI views remain unchanged. This feature adds
-decision-oriented reporting, not a parallel tracking system.
+The tab reduction from twelve to six is a visual reorganization of existing
+collected evidence—not a deletion of data or a new event collector.
+
+### Attribution semantics
+
+- **Source / channel:** first recorded UTM-style source label. Groups are
+  LinkedIn, CV distribution, Search, Email/newsletter, Other social,
+  Direct/unattributed, and Other. These are tracking tags, not verified
+  visitor origins or employer identities.
+- **Referrer:** an observed browser referral host, grouped to known platforms.
+  Missing referrer is explicitly retained in the untagged/no-referrer KPI.
+  Referrers and source tags need not match.
+- **Country:** coarse network location, not nationality, residence or human
+  identity. Automated traffic and hosting infrastructure can affect counts.
+- **Role tag:** the purpose of a tracked link (e.g., `weeklyai` or `article`);
+  it is **NOT an observed visitor job title**. It must never be presented
+  as occupational audience segmentation.
+- **Campaign:** an editorial/distribution initiative identified by a campaign
+  tag. Known public portfolio campaigns are given readable titles. Unknown
+  or potentially private labels are grouped into `Other tagged campaigns`.
+  Untagged traffic is shown separately in coverage KPIs.
+- **Campaign × channel:** observed attribution pairing within the *content*
+  collector; filtering and measured-sample thresholds apply.
+- **Denominators:** role tags come from traffic source-role cohorts; campaign
+  outcomes come from the independent content-campaign collector. Their
+  session totals, engagement counts and reader cohorts must not be added
+  together or treated as identical.
+- **Privacy:** public dashboards publish aggregate grouped observations.
+  No raw tokens, named private campaigns, recruiter/company identity,
+  visitor identifiers, IP addresses or individual trails. The owner-only
+  attribution audits remain private.
+
+Existing Explore Content, Executive Briefings and Weekly AI views remain
+available and their visual-first reporting standard is preserved.
 
 ## Dashboard presentation standard for public Analytics
 
-This rule also applies outside the twelve Advanced Insights tabs:
+This rule also applies outside the six Advanced Insights tabs:
 
 - **Explore content** keeps ranked reading charts, period comparisons,
   section attention, topic trends and site-experience visuals. The repeated
@@ -97,14 +122,16 @@ represented as zero. Browser sessions are not identified people.
   Advanced Insights by default; earlier navigation-route observations are
   visualized as a ranked chart, not a table.
 - `src/page_public_legacy_insights.py` is the internally named compatibility
-  module. Its public heading is **Advanced Insights**, and twelve stateful
+  module. Its public heading is **Advanced Insights**, and six grouped stateful
   tabs remain visible on every visit. Only the active tab renders.
 - `src/page_public_legacy_intelligence.py` delivers the source, content,
   CTA, performance, attention and measurement dashboard panels. Reusable
   KPI strips, ranked charts and evidence/next-check notes are used instead
   of dataframes.
-- `src/portfolio_legacy_signal_model.py` calculates evidence-gated insights
-  without access to visitor or recruiting records.
+- `src/portfolio_legacy_signal_model.py` calculates evidence-gated traffic insights.
+- `src/portfolio_public_attribution.py` maps allowed public editorial campaigns,
+  role tags and referrer hosts into safe, meaningful cohorts without revealing
+  arbitrary input strings or inferring visitor professions.
 - Browser session aggregates, content observations and behavior observations
   have independent five-minute caches. Content/behavior RPC calls occur
   only when their relevant tab is selected.
@@ -117,15 +144,15 @@ represented as zero. Browser sessions are not identified people.
 
 1. Open the Analytics overview signed out: four summary cards should be
    followed immediately by **Advanced Insights** tabs. No toggle or dropdown.
-2. Switch among all twelve tabs. Each contains KPI/chart/interpretation
+2. Switch among all six tabs. Each contains KPI/chart/interpretation
    presentation, not `st.dataframe` or `st.table` output. Also check the
    public Explore Content, Weekly AI and Executive Briefings analytics screens.
 3. Confirm mobile tab navigation scrolls horizontally and the page renders
    only the selected tab's expensive content/behavior RPC.
 4. Check selected periods, empty states, no-data labels and measured
    denominators. In particular, do not present missing observations as zero.
-5. Verify source-channel grouping and absence of private job/campaign records.
-6. Run `PYTHONPATH=src python -m pytest tests/test_public_legacy_analytics_toggle.py tests/test_portfolio_legacy_signal_model.py`
+5. Verify source, role-tag and campaign views, expected campaign/cohort totals, and absence of private job/campaign records.
+6. Run `PYTHONPATH=src python -m pytest tests/test_public_legacy_analytics_toggle.py tests/test_portfolio_legacy_signal_model.py tests/test_portfolio_public_attribution.py`
    in a repository environment with the test dependencies installed.
 7. Verify Streamlit Cloud deployment after the latest GitHub commit.
    GitHub commits alone do not confirm that the live application has updated.

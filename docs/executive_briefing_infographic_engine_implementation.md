@@ -1,5 +1,8 @@
 # Executive Briefing Infographic Engine — delivery and operating contract
 
+> **6 November 2026 supersession for NEW Executive AI Briefings:** This document describes the original SVG-based editorial infographic engine and historical backfill. The authoritative visual quality benchmark and future release/rendering procedure are now in [Executive Briefings Premium Visual Release](executive_briefings_premium_visual_release.md), plus @Executive Infographic Studio v1.1.0. New editions use an approved desktop/mobile image + A4 PDF manifest, checksum/fingerprint gates and self-contained WebP bytes in article HTML. Existing SVG or bespoke artwork remains only for legacy editions until approved migration. Do not use the historical SVG instructions below for new releases.
+
+
 **Date:** 2 November 2026  
 **Repository:** `AIribeiro/careersite`  
 **Database:** Supabase project `rnqweoxtynelfirffmlr`  

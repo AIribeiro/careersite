@@ -450,49 +450,76 @@ def _content(report: dict) -> None:
 
 
 def _ctas(report: dict) -> None:
-    st.markdown("#### CTA exposure and recorded activation")
-    st.caption(
-        "A CTA can be seen without being clicked. Showing both exposure and activation "
-        "helps prioritize tests, but zero recorded clicks is not evidence that the design failed."
+    _dashboard_header(
+        "Calls to action: visibility and response",
+        "CTA exposures and clicks are recorded independently. This is a "
+        "diagnostic for placement and measurement, not an A/B test.",
     )
     rows = []
     for item in report.get("cta_placements", []):
         if not isinstance(item, dict):
             continue
-        exposed = n(item.get("exposed_sessions"))
-        clicked = n(item.get("click_sessions"))
+        exposed, clicked = n(item.get("exposed_sessions")), n(item.get("click_sessions"))
         if exposed < 10:
             continue
+        placement = str(item.get("placement") or "").split(":", 1)[0].lower()
+        page = placement if placement in (
+            "home", "about", "impact", "thinking", "briefings",
+            "briefing", "contact", "ai-data-governance",
+        ) else "portfolio"
+        name = _cta_name(item.get("label"))
         rate = percentage(clicked, exposed)
         rows.append({
-            "CTA": _cta_name(item.get("label")),
-            "Exposed sessions": exposed,
-            "Click sessions": clicked,
-            "Recorded click/exposure": f"{rate:.1f}%" if rate is not None else "—",
-            "_rate": rate,
+            "Action": f"{name[:53]} · {page.title()}",
+            "Exposed": exposed, "Clicked": clicked,
+            "Recorded response (%)": rate,
         })
-    rows.sort(key=lambda row: (-row["Exposed sessions"], row["CTA"]))
+    rows.sort(key=lambda row: (-row["Exposed"], row["Action"]))
     if not rows:
-        st.caption("CTA exposure has not been recorded in sufficient volume.")
+        st.info("There is not enough instrumented CTA exposure in this period.")
         return
-    st.dataframe([{key: value for key, value in row.items() if not key.startswith("_")}
-                  for row in rows[:25]], hide_index=True, use_container_width=True)
-    st.markdown("**Most exposed calls to action**")
-    _chart([{"CTA": row["CTA"][:65], "Exposed": row["Exposed sessions"]}
-            for row in rows[:12]], "CTA", "Exposed")
-    st.markdown("**Candidates to investigate**")
-    zeros = [row for row in rows if row["Exposed sessions"] >= 30 and row["Click sessions"] == 0]
-    if zeros:
-        for row in zeros[:6]:
-            st.markdown(
-                f"- **{row['CTA']}**: {row['Exposed sessions']:,} exposed sessions; "
-                "no recorded click sessions. Check the element's tracking and placement."
+    audit = [row for row in rows if row["Exposed"] >= 30 and row["Clicked"] == 0]
+    activated = sum(1 for row in rows if row["Clicked"] >= 1)
+    most = rows[0]
+    _kpi_strip([
+        ("Measured placements", f"{len(rows):,}", "10+ exposed sessions per placement"),
+        ("With recorded clicks", f"{activated:,}", "Placement observations; not unique visitors"),
+        ("Check tracking or placement", f"{len(audit):,}",
+         "30+ exposed sessions with no recorded clicks"),
+    ])
+    left, right = st.columns(2, gap="large")
+    with left:
+        _ranked_chart(rows, "Action", "Exposed",
+                      title="Most visible calls to action",
+                      note="Exposure means a CTA was observed, not that it was read.",
+                      color=ACCENT, limit=10)
+    with right:
+        eligible = [row for row in rows
+                    if row["Exposed"] >= 30 and row["Recorded response (%)"] is not None]
+        _ranked_chart(eligible, "Action", "Recorded response (%)",
+                      title="Recorded response where measurable",
+                      note="Click-session / exposure-session ratio for 30+ exposed sessions. "
+                           "Counts and denominator on hover.",
+                      color=GREEN, percentage_axis=True, limit=10)
+    st.markdown("#### Which action merits investigation?")
+    if audit:
+        ranked = sorted(audit, key=lambda row: -row["Exposed"])
+        for row in ranked[:3]:
+            _decision_note(
+                f"{row['Action']} was observed in {row['Exposed']:,} exposure sessions "
+                "without a recorded click session. This is not proof the CTA failed.",
+                "Confirm the click event fires and the placement is visible before changing the copy.",
             )
-    else:
-        st.caption("No zero-click CTA has at least 30 recorded exposed sessions.")
+    elif most["Exposed"] >= 30:
+        _decision_note(
+            f"{most['Action']} has the widest recorded exposure "
+            f"({most['Exposed']:,} placement sessions).",
+            "Compare observed responses against comparable placements, then examine destination confirmation.",
+        )
     st.caption(
-        "Exposure and click-session instrumentation may have changed over time; "
-        "cross-section rates should not be treated as conversion experiments."
+        "Exposure and click collection changed across some site releases. "
+        "Placements can be seen by the same browser session; counts cannot be "
+        "summed as independent people or used as experimental conversion estimates."
     )
 
 

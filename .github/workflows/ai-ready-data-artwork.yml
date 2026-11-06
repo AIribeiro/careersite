@@ -17,7 +17,7 @@ jobs:
           persist-credentials: true
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.13'
       - name: Install image and PDF dependencies
         run: python -m pip install -r requirements.txt 'reportlab==4.4.4'
       - name: Generate separate desktop and mobile artwork
@@ -55,5 +55,10 @@ jobs:
           git add static/briefing-artwork/ai-ready-data-the-release-decision-behind-scale/
           if ! git diff --cached --quiet; then
             git commit -m "Build approved-ready AI data release visual bundle"
-            git push origin HEAD:main
+            for attempt in 1 2 3 4; do
+              git pull --rebase origin main
+              if git push origin HEAD:main; then exit 0; fi
+              sleep 2
+            done
+            exit 1
           fi

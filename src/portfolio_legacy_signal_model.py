@@ -40,11 +40,20 @@ def channel_label(label: object) -> str:
         return "Search"
     if any(tag in source for tag in ("newsletter", "email", "outlook", "gmail")):
         return "Email / newsletter"
-    if source in ("x", "wa", "fb") or any(
-        tag in source for tag in (
-            "facebook", "instagram", "threads", "twitter", "x.com", "whatsapp",
-            "reddit", "bluesky",
-        )
+    if source in ("facebook", "fb") or "facebook" in source:
+        return "Facebook"
+    if source in ("threads", "thre") or "threads" in source:
+        return "Threads"
+    if source in ("x", "twitter") or "x.com" in source or "twitter" in source:
+        return "X"
+    if source in ("whatsapp", "wa") or "whatsapp" in source:
+        return "WhatsApp"
+    if "chatgpt.com" in source or source in ("chatgpt", "openai"):
+        return "AI assistants"
+    if source == "application":
+        return "Application links"
+    if source in ("social", "reddit", "bluesky") or any(
+        tag in source for tag in ("reddit", "bluesky", "instagram")
     ):
         return "Other social"
     if source in ("", "direct", "direct/unknown", "unattributed", "unknown",

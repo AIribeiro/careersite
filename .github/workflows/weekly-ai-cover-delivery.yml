@@ -119,6 +119,47 @@ jobs:
               browser.close()
           PY
 
+      - name: Verify deployed Week 45 header in a real browser
+        if: github.event_name == 'push'
+        env:
+          SITE_URL: https://jairribeiro-ai.streamlit.app/
+        run: |
+          python - <<'PY'
+          import os
+          import time
+          from playwright.sync_api import sync_playwright
+
+          target = os.environ["SITE_URL"].rstrip("/") + "/?page=thinking&article=weekly-ai-2026-11-06"
+          with sync_playwright() as playwright:
+              browser = playwright.chromium.launch(headless=True)
+              page = browser.new_page(viewport={"width": 1440, "height": 900})
+              last_error = ""
+              for attempt in range(1, 4):
+                  try:
+                      page.goto(target, wait_until="domcontentloaded", timeout=60000)
+                      page.wait_for_selector(".site .weekly-ai-edition-cover img", timeout=40000)
+                      page.wait_for_function(
+                          """() => {
+                            const image = document.querySelector('.site .weekly-ai-edition-cover img');
+                            return Boolean(image && image.complete &&
+                              image.naturalWidth === 1200 && image.naturalHeight === 627 &&
+                              image.getAttribute('src')?.startsWith('data:image/png;base64,'));
+                          }""",
+                          timeout=20000,
+                      )
+                      print("LIVE WEEKLY AI cover image displayed at 1200x627", flush=True)
+                      break
+                  except Exception as exc:
+                      last_error = f"{type(exc).__name__}: {str(exc)[:250]}"
+                      count = page.locator(".site .weekly-ai-edition-cover img").count()
+                      print(f"Live check {attempt}/3: image elements={count}, error={last_error}",
+                            flush=True)
+                      if attempt == 3:
+                          raise SystemExit("Production Week 45 header image not verified: " + last_error)
+                      time.sleep(8)
+              browser.close()
+          PY
+
       - name: Show server log on failure
         if: failure()
         run: cat /tmp/weekly-cover-app.log || true

@@ -23,7 +23,7 @@ from portfolio_legacy_signal_model import (
     traffic_findings,
 )
 from portfolio_public_attribution import (
-    role_cohorts, campaign_cohorts, campaign_channel_cohorts,
+    role_cohorts, channel_role_cohorts, campaign_cohorts, campaign_channel_cohorts,
     referrer_cohorts, tag_coverage, meaningful_rate,
 )
 
@@ -366,6 +366,22 @@ def _attribution_families(traffic: dict, content: dict) -> None:
             note="Campaigns recorded in the content collector. Unapproved or "
                  "potentially sensitive identifiers are grouped.",
             color=GREEN, limit=12,
+        )
+
+    role_cross = [
+        {"Source × link purpose": f"{row['Channel']} · {row['Link purpose']}",
+         "Sessions": row["sessions"],
+         "Engaged sessions": row["engaged_sessions"]}
+        for row in channel_role_cohorts(traffic.get("attribution", []))
+        if row["Link purpose"] != "No role tag" and row["sessions"] >= 3
+    ]
+    if role_cross:
+        _ranked_chart(
+            role_cross, "Source × link purpose", "Sessions",
+            title="How tracked link purposes vary by source",
+            note="Known platform × purpose-tag combinations with 3+ sessions. "
+                 "These are reasons links were shared, not professional roles of readers.",
+            color=BLUE, limit=10,
         )
 
     st.markdown("#### Quality of traffic from known campaigns")

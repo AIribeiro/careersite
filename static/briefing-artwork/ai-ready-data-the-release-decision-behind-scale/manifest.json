@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "slug": "ai-ready-data-the-release-decision-behind-scale",
+  "article_fingerprint": "75c42162f37f41ec80967ad19dfd84924eade20afd6e84ad3810084f8fa91055",
+  "revision": "2026-11-06-r1",
+  "heading": "AI can scale. Can its data?",
+  "deck": "The use-case data contract: six checks before widening AI authority.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "d0d1d1bcfdf4cb48d1b328cb4fb93be543c26e29733cb5b844c0959a931f0d3a",
+    "width": 1200,
+    "height": 1810,
+    "bytes": 131870
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "b8810c5c95fd711ad6e3c0a9d7cc5f44f546cb68e2180f0f5b978201e9b1da3a",
+    "width": 720,
+    "height": 3180,
+    "bytes": 122480
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "3f203d0d12b6180264710b7e4759a2dd36b223af4156d4f2759a315ec3a2ac13",
+    "pages": 1,
+    "bytes": 163002
+  },
+  "release_note": "Exact source content and premium design require editorial approval in CMS."
+}

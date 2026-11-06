@@ -1,4 +1,4 @@
-"""Additional read-only insight panels for the public historical analytics switch.
+"""Additional read-only panels for the public Advanced Insights tabs.
 
 Only anonymous aggregate RPC outputs are requested. All channel names are
 coarsened in the model, while the publisher's existing content/CTA wording
@@ -85,7 +85,7 @@ def _metric_rate(label: str, top: object, bottom: object,
 def _insights(data: dict, window: str) -> None:
     today = datetime.now(ZoneInfo("Europe/Stockholm")).date()
     findings = traffic_findings(data, today=today, window=window)
-    st.markdown("#### What the historical traffic is telling us")
+    st.markdown("#### What the traffic evidence shows")
     st.caption(
         "Ranked signals from recorded aggregates. Each finding separates the evidence, "
         "its interpretation and the next thing worth checking."
@@ -142,7 +142,7 @@ def _channels(data: dict) -> None:
             "Engaged sessions": item["engaged_sessions"],
             "Engagement rate": (
                 f"{item['Engagement rate']:.1f}%" if item["Engagement rate"] is not None else "—"),
-            "Legacy article-reach sessions": item["article_sessions"],
+            "Recorded article-reach sessions": item["article_sessions"],
             "CV-opening sessions": item["cv_sessions"],
         })
     if rows:
@@ -161,7 +161,7 @@ def _channels(data: dict) -> None:
         st.caption("No channel counts are available.")
     st.caption(
         "These are observed attribution tags. Direct/unattributed traffic is not proven "
-        "direct navigation. Legacy article-reach sessions use this traffic collector's "
+        "direct navigation. Recorded article-reach sessions use this traffic collector's "
         "definitions and are not directly comparable to content-reader sessions in the "
         "newer publication collector."
     )

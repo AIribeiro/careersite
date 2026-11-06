@@ -19,12 +19,24 @@ from page_analytics import (
 
 
 _SECTIONS = {
-    "overview": "Overview",
+    "signals": "Executive findings",
+    "overview": "Traffic overview",
     "audience": "Audience",
     "discovery": "Discovery paths",
     "engagement": "Engagement",
     "actions": "Actions & conversions",
+    "channels": "Channel outcomes",
+    "content": "Content & journeys",
+    "ctas": "CTA opportunities",
+    "experience": "Site performance",
+    "coverage": "Data quality",
 }
+
+
+@st.cache_data(ttl=300, max_entries=12, show_spinner=False)
+def _cached_public_traffic(window: str) -> dict:
+    """Reuse the same approved anonymous aggregate for each drill-down rerun."""
+    return _fetch_dashboard(window)
 
 
 def _source_channel(label: object) -> str:
@@ -78,7 +90,7 @@ def render_public_legacy_insights(window: str) -> None:
         "Automation and unconfirmed sessions may be included."
     )
     try:
-        data = _fetch_dashboard(window)
+        data = _cached_public_traffic(window)
     except (ValueError, RuntimeError, TimeoutError):
         st.warning("Legacy visitor reporting is temporarily unavailable.")
         return
@@ -95,14 +107,20 @@ def render_public_legacy_insights(window: str) -> None:
     )
     period = str(data.get("period_label") or REPORTING_WINDOW_LABELS.get(window, window))
     st.caption(f"Reporting period: {period} · first-party historical aggregates")
-    section = st.segmented_control(
-        "Legacy report",
+    # One native select control avoids a horizontal bar of eleven tiny tabs
+    # on mobile. Each report is rendered only when selected.
+    section = st.selectbox(
+        "Explore historical analytics",
         options=list(_SECTIONS),
         format_func=lambda name: _SECTIONS[name],
-        default="overview",
+        index=0,
         key="portfolio_legacy_insights_section",
-        width="stretch",
-    ) or "overview"
+    ) or "signals"
+    if st.button("Refresh legacy reports", key="portfolio_legacy_refresh"):
+        _cached_public_traffic.clear()
+        from page_public_legacy_intelligence import fetch_public_content_aggregate
+        fetch_public_content_aggregate.clear()
+        st.rerun()
 
     if section == "overview":
         metrics = st.columns(4)
@@ -199,6 +217,10 @@ def render_public_legacy_insights(window: str) -> None:
             _funnel(sessions, _count(totals.get("impact_sessions")),
                     _count(totals.get("lens_sessions")), cv_sessions)
         st.caption("CV and contact events indicate actions, not verified recruiter intent or a hiring outcome.")
+
+    elif section in ("signals", "channels", "content", "ctas", "experience", "coverage"):
+        from page_public_legacy_intelligence import render_public_deep_insights
+        render_public_deep_insights(section, window, data)
 
     st.caption(
         "Owner-only hiring intelligence, individual campaign/source audits and raw telemetry "

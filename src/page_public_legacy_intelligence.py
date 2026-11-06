@@ -633,42 +633,71 @@ def _experience(report: dict) -> None:
 
 
 def _coverage(traffic: dict, report: dict) -> None:
-    st.markdown("#### Data completeness and interpretation")
+    _dashboard_header(
+        "Measurement coverage and confidence",
+        "Separate collectors observe different session cohorts. This view "
+        "shows what can support interpretation and where evidence is incomplete.",
+    )
     quality = report.get("quality") or {}
     totals = traffic.get("totals") or {}
-    browser_sessions = n(totals.get("sessions"))
+    traffic_sessions = n(totals.get("sessions"))
     content_sessions = n(quality.get("content_sessions"))
+    recorded = [
+        ("Active-time confirmation", n(totals.get("confirmed_duration_sessions")),
+         traffic_sessions, "Traffic collector"),
+        ("Content measurement", n(quality.get("measured_content_sessions")),
+         content_sessions, "Content collector"),
+        ("Attention measurement", n(quality.get("attention_measured_content_sessions")),
+         content_sessions, "Content collector"),
+    ]
+    _kpi_strip([
+        (title, f"{percentage(measured,total):.1f}%"
+         if percentage(measured,total) is not None else "—",
+         f"{measured:,} / {total:,} · {collector}")
+        for title, measured, total, collector in recorded
+    ])
+    eligible = [
+        {"Signal": title, "Coverage (%)": percentage(measured,total),
+         "Measured sessions": measured, "Sessions": total}
+        for title, measured, total, _ in recorded
+        if percentage(measured,total) is not None
+    ]
+    _ranked_chart(eligible, "Signal", "Coverage (%)",
+                  title="Coverage of the measured evidence",
+                  note="Each rate has its own collector-specific denominator, shown on hover. "
+                       "Bars should not be added together.",
+                  percentage_axis=True, color=GREEN, limit=5)
+    unknown = n(totals.get("unconfirmed_duration_sessions"))
+    if traffic_sessions and (percentage(unknown, traffic_sessions) or 0) > 20:
+        _decision_note(
+            f"{unknown:,} of {traffic_sessions:,} traffic sessions have "
+            "unconfirmed active duration. Missing timing is not zero time.",
+            "Separate confirmed from unconfirmed measurement before assessing session quality.",
+        )
+    else:
+        _decision_note(
+            "The available measures support descriptive, cohort-level reporting, "
+            "not individual visitor identification or causal attribution.",
+            "Use like-for-like windows and minimum measured sample sizes.",
+        )
     st.caption(
-        "Browser-session traffic and content-session reporting use different observation "
-        "rules and may not reconcile. Never sum them as unique people."
+        "Content instrumentation began "
+        f"{str(quality.get('new_measurement_since') or 'at an unknown date')[:10]}; "
+        "attention timing began "
+        f"{str(quality.get('attention_measurement_since') or 'at an unknown date')[:10]}. "
+        "Earlier readings cannot be reconstructed from later instrumentation."
     )
-    left, middle, right = st.columns(3)
-    with left:
-        _metric_rate("Confirmed active duration",
-                     totals.get("confirmed_duration_sessions"), browser_sessions)
-    with middle:
-        _metric_rate("Newer content measurements",
-                     quality.get("measured_content_sessions"), content_sessions)
-    with right:
-        _metric_rate("Attention measurements",
-                     quality.get("attention_measured_content_sessions"), content_sessions)
-    st.caption(
-        f"Newer content instrumentation began: "
-        f"{str(quality.get('new_measurement_since') or 'unknown')[:10]}; "
-        f"attention instrumentation began: "
-        f"{str(quality.get('attention_measurement_since') or 'unknown')[:10]}. "
-        "Earlier readings cannot be retroactively measured."
-    )
-    st.markdown("**Reporting limitations**")
-    st.markdown(
-        "- Repeat visits can produce more than one view; visitors are not identified across sessions.\n"
-        "- Recorded clicks, exposure, scroll depth and active time have different coverage.\n"
-        "- A missing engagement heartbeat is unconfirmed time, not a zero-second visit.\n"
-        "- Broad source cohorts do not identify recruiters, companies or individuals.\n"
-        "- Site navigation changed on 23 October 2026; historical route comparisons mix structures.\n"
-        "- Device differences and traffic changes are associations, not causal evidence.\n"
-        "- Hiring outcomes, private campaigns and raw telemetry remain outside this public dashboard."
-    )
+    with st.expander("Methods and interpretation boundaries", expanded=False):
+        st.markdown(
+            "- Repeat views do not identify distinct visitors.\n"
+            "- A missing engagement heartbeat is unconfirmed time, not zero seconds.\n"
+            "- Traffic, reading and browser behavior use different collector sessions.\n"
+            "- CTA exposure, click, scroll depth and timing have differing coverage.\n"
+            "- Source groups do not identify employers, recruiters or individuals.\n"
+            "- The portfolio navigation changed on 23 October 2026, limiting direct historical comparisons.\n"
+            "- Device associations and publication patterns do not establish causation.\n"
+            "- Owner-only hiring outcomes, private campaigns and raw telemetry are not public."
+        )
 
 
 @st.cache_data(ttl=300, max_entries=12, show_spinner=False)

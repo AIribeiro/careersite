@@ -40,14 +40,27 @@ class OperatingAuthorityArtworkTests(unittest.TestCase):
             "alt_text": "Original graphic with twenty operating decisions across four duties.",
             "caption": "Twenty executive governance decisions.",
         })
-        self.assertIn("/briefing-ai-authority/infographic.mobile.svg", html)
+        self.assertIn("/briefing-ai-authority/infographic.mobile.webp", html)
         self.assertIn("/briefing-ai-authority/infographic.pdf", html)
         self.assertNotIn("25-decision", html)
+        self.assertNotIn("infographic.svg", html)
         self.assertEqual(html.count('class="auth-download"'), 1)
         self.assertEqual(html.count('<picture>'), 1)
         self.assertLess(html.index('class="auth-download"'), html.index('<picture>'))
         self.assertIn("20 decisions. Four continuing responsibilities.", html)
-        self.assertIn("operating-mandate-20-v2", html)
+        self.assertIn("operating-mandate-20-v3", html)
+
+    def test_raster_images_decode_without_missing_artwork(self):
+        from PIL import Image
+        from briefing_authority_raster import artwork_webp
+        for mode, expected in (("desktop", (1600, 2220)), ("mobile", (900, 3850))):
+            data = artwork_webp(mode)
+            self.assertGreater(len(data), 15000)
+            self.assertLess(len(data), 2_000_000)
+            with Image.open(BytesIO(data)) as im:
+                self.assertEqual(im.format, "WEBP")
+                self.assertEqual(im.size, expected)
+                im.verify()
 
     def test_two_page_a4_pdf_contains_all_decisions(self):
         from pypdf import PdfReader

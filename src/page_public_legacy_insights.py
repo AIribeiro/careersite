@@ -19,20 +19,13 @@ from page_analytics import (
 
 
 _SECTIONS = {
-    "signals": "Executive findings",
-    "overview": "Traffic overview",
-    "audience": "Audience",
-    "discovery": "Discovery paths",
-    "engagement": "Engagement",
-    "actions": "Actions & conversions",
-    "channels": "Channel outcomes",
-    "content": "Content & journeys",
-    "ctas": "CTA opportunities",
-    "experience": "Site performance",
-    "behavior": "Attention & friction",
-    "coverage": "Data quality",
+    "overview": "Overview & trends",
+    "audience": "Audience & origins",
+    "attribution": "Attribution & campaigns",
+    "content": "Content & actions",
+    "experience": "Engagement & UX",
+    "quality": "Data quality",
 }
-
 
 @st.cache_data(ttl=300, max_entries=12, show_spinner=False)
 def _cached_public_traffic(window: str) -> dict:
@@ -87,39 +80,207 @@ def _event_rows(rows: object) -> list[dict]:
     ]
 
 
+def _overview_dashboard(data: dict, window: str) -> None:
+    """Outcome-led traffic trends, destinations and measured exploration."""
+    from page_public_legacy_intelligence import _insights, _kpi_strip
+    totals = data.get("totals") or {}
+    sessions = _count(totals.get("sessions"))
+    engaged = _count(totals.get("engaged_sessions"))
+    cv_sessions = _count(totals.get("cv_sessions"))
+    _insights(data, window)
+    st.markdown("#### Traffic and exploration")
+    _kpi_strip([
+        ("Recorded sessions", f"{sessions:,}", "Browser sessions, not unique people"),
+        ("Engaged sessions", _pct(engaged, sessions),
+         f"{engaged:,} of {sessions:,} recorded sessions"),
+        ("Median active time", _seconds(totals.get("median_active_seconds")),
+         "Measured visible engagement only"),
+    ])
+    left, right = st.columns([1.6, 1], gap="large")
+    with left:
+        _section("Traffic", "Recorded sessions over time")
+        _daily_chart(data.get("daily", []))
+    with right:
+        _section("Reach", "Portfolio section observations")
+        _funnel(sessions, _count(totals.get("impact_sessions")),
+                _count(totals.get("lens_sessions")), cv_sessions)
+        st.caption("Each stage is a separate observed cohort, not a sequential conversion funnel.")
+    left, right = st.columns(2, gap="large")
+    with left:
+        _section("Destinations", "Most visited portfolio pages")
+        _bar_chart(_page_rows(data.get("pages", [])), "page_label",
+                   value="sessions", limit=10, color=BLUE)
+    with right:
+        _section("Leadership", "Role-lens exploration")
+        _bar_chart(data.get("lenses", []), "lens", limit=8, color=GREEN)
+
+
+def _audience_origin_dashboard(data: dict) -> None:
+    """Visitor origin is an observed browser and referral context, not identity."""
+    from page_public_legacy_intelligence import _kpi_strip, _ranked_chart
+    from portfolio_public_attribution import referrer_cohorts
+    totals = data.get("totals") or {}
+    sessions = _count(totals.get("sessions"))
+    countries = sorted(
+        (row for row in data.get("countries", [])
+         if isinstance(row, dict) and _count(row.get("sessions"))),
+        key=lambda row: -_count(row.get("sessions")),
+    )
+    devices = sorted(
+        (row for row in data.get("devices", [])
+         if isinstance(row, dict) and _count(row.get("sessions"))),
+        key=lambda row: -_count(row.get("sessions")),
+    )
+    referrers = referrer_cohorts(data.get("referrers", []))
+    no_referrer = sum(row["sessions"] for row in referrers
+                      if row["Label"] == "No referrer recorded")
+    leading_country = countries[0] if countries else {}
+    leading_device = devices[0] if devices else {}
+    st.markdown("#### Where recorded sessions appear to originate")
+    st.caption(
+        "Country is coarse network geography. Referrer is a browser-provided origin "
+        "host; it often goes missing when links open in apps or privacy controls "
+        "strip it. A country or referrer cannot identify a person, employer "
+        "or confirm that a session was human."
+    )
+    _kpi_strip([
+        ("Top country",
+         str(leading_country.get("country_code") or "—").upper(),
+         f"{_count(leading_country.get('sessions')):,} sessions; network-level estimate"),
+        ("Known referrer hosts",
+         f"{max(0, sessions-no_referrer):,}",
+         f"{no_referrer:,} of {sessions:,} sessions have no recorded referrer"),
+        ("Main device", str(leading_device.get("device_type") or "—").title(),
+         f"{_count(leading_device.get('sessions')):,} recorded sessions"),
+    ])
+    left, right = st.columns(2, gap="large")
+    with left:
+        _ranked_chart(
+            [{"Country": str(row.get("country_code") or "Unknown").upper(),
+              "Sessions": _count(row.get("sessions"))} for row in countries],
+            "Country", "Sessions", title="Sessions by observed country",
+            note="Network location, not nationality or verified human audience.",
+            color=GREEN, limit=12,
+        )
+    with right:
+        tagged_referrers = [
+            {"Referrer": row["Label"], "Sessions": row["sessions"]}
+            for row in referrers if row["Label"] != "No referrer recorded"
+        ]
+        _ranked_chart(
+            tagged_referrers, "Referrer", "Sessions",
+            title="Recognized referring websites",
+            note="Known referrer hosts only. Untagged/direct sessions are "
+                 "shown in the KPI above rather than hidden from measurement.",
+            color=BLUE, limit=10,
+        )
+
+    st.markdown("#### Entry and exit patterns")
+    left, right = st.columns(2, gap="large")
+    with left:
+        _section("Navigation", "Where sessions begin")
+        _bar_chart(data.get("landing_pages", []), "landing_page",
+                   limit=10, color=ACCENT)
+    with right:
+        _section("Navigation", "Where sessions last appear")
+        _bar_chart(data.get("exit_pages", []), "exit_page",
+                   limit=10, color=BLUE)
+    st.caption("An observed exit is not proof that the visitor abandoned the site; "
+               "browser-tab and tracking rules affect these counts.")
+
+    st.markdown("#### Browser and device context")
+    left, right = st.columns(2, gap="large")
+    with left:
+        _section("Device", "Measured device mix")
+        _donut_chart(devices, "device_type")
+        _section("Locale", "Browser languages")
+        _bar_chart(data.get("languages", []), "language", limit=8)
+    with right:
+        _section("Technology", "Browser families")
+        _bar_chart(data.get("browsers", []), "browser_family", color=BLUE)
+        _section("Platform", "Operating systems")
+        _bar_chart(data.get("operating_systems", []), "os_family", color=GREEN)
+    with st.expander("Additional regional context", expanded=False):
+        _section("Locale", "Browser time zones")
+        _bar_chart(data.get("timezones", []), "timezone", limit=12)
+    st.caption("Browser language and time zone are software settings, not "
+               "verified residences. Automated sessions may be present.")
+
+
+def _engagement_traffic_dashboard(data: dict) -> None:
+    from page_public_legacy_intelligence import _kpi_strip
+    totals = data.get("totals") or {}
+    sessions = _count(totals.get("sessions"))
+    engaged = _count(totals.get("engaged_sessions"))
+    confirmed = _count(totals.get("confirmed_duration_sessions"))
+    st.markdown("#### Interaction depth and timing")
+    _kpi_strip([
+        ("Recorded engagement", _pct(engaged, sessions),
+         f"{engaged:,} of {sessions:,} browser sessions"),
+        ("Median active time", _seconds(totals.get("median_active_seconds")),
+         "Confirmed visible activity; not verified reading"),
+        ("Duration measured", _pct(confirmed, sessions),
+         f"{confirmed:,} of {sessions:,} sessions"),
+    ])
+    left, right = st.columns(2, gap="large")
+    with left:
+        _section("Engagement", "Observed active-time distribution")
+        _duration_chart(data.get("duration_buckets", []))
+        _section("Timing", "Sessions by weekday · Stockholm")
+        _bar_chart(data.get("weekdays", []), "weekday", horizontal=False,
+                   limit=7, color=GREEN,
+                   sort=["Monday", "Tuesday", "Wednesday", "Thursday",
+                         "Friday", "Saturday", "Sunday"])
+    with right:
+        _section("Timing", "Sessions by hour · Stockholm")
+        _hour_chart(data.get("hours", []))
+        _section("Engagement", "Engaged sessions by device")
+        _bar_chart(data.get("devices", []), "device_type",
+                   value="engaged_sessions", color=BLUE)
+    st.caption("Unconfirmed active time is not a zero-second visit. Timing and "
+               "device comparisons describe recorded sessions only.")
+
+
+def _traffic_actions(data: dict) -> None:
+    from page_public_legacy_intelligence import _kpi_strip
+    totals = data.get("totals") or {}
+    cv_downloads = next((
+        _count(row.get("events")) for row in data.get("events", [])
+        if isinstance(row, dict) and row.get("event_name") == "cv_download"
+    ), 0)
+    _kpi_strip([
+        ("CV downloads", f"{cv_downloads:,}", "Recorded download events"),
+        ("CV-opening sessions", f"{_count(totals.get('cv_sessions')):,}",
+         "Sessions reaching the CV"),
+        ("Contact-channel sessions",
+         f"{_count(totals.get('contact_channel_sessions')):,}",
+         "Observed contact interaction, not confirmed recruitment"),
+    ])
+    _section("Actions", "Recorded interaction cohorts",
+             "A browser session may register multiple event types.")
+    _bar_chart(_event_rows(data.get("events", [])),
+               "activity", limit=12, color=GREEN, height=300)
+
+
 def render_public_legacy_insights(window: str) -> None:
-    """Render historical visitor insights with no sign-in or owner data access."""
+    """Advanced Insights, public and visible by default, grouped into six tabs."""
     st.subheader("Advanced Insights")
     st.caption(
-        "Explore audience, acquisition, content journeys and engagement using recorded portfolio data. "
-        "These are recorded browser sessions, not unique visitors or identified employers. "
-        "Automation and unconfirmed sessions may be included."
+        "Portfolio reach, audience origin, tagged campaigns, content outcomes "
+        "and browser experience. Counts are first-party aggregates, not "
+        "unique visitors, occupations or identified organizations."
     )
     try:
         data = _cached_public_traffic(window)
     except (ValueError, RuntimeError, TimeoutError):
         st.warning("Advanced Insights are temporarily unavailable.")
         return
-
-    totals = data.get("totals") if isinstance(data.get("totals"), dict) else {}
-    sessions = _count(totals.get("sessions"))
-    engaged = _count(totals.get("engaged_sessions"))
-    cv_sessions = _count(totals.get("cv_sessions"))
-    contact_sessions = _count(totals.get("contact_channel_sessions"))
-    cv_downloads = next(
-        (_count(row.get("events")) for row in data.get("events", [])
-         if isinstance(row, dict) and row.get("event_name") == "cv_download"),
-        0,
-    )
     period = str(data.get("period_label") or REPORTING_WINDOW_LABELS.get(window, window))
-    st.caption(f"Reporting period: {period} · first-party aggregate analytics")
-    # Native stateful tabs keep navigation directly visible. Only the active
-    # panel renders: Streamlit otherwise eagerly computes all tab bodies,
-    # triggering every analytics RPC and chart on every interaction.
+    st.caption(f"Reporting period: {period} · measured browser and content cohorts")
     tab_keys = list(_SECTIONS)
     tabs = st.tabs(
         [_SECTIONS[name] for name in tab_keys],
-        key="portfolio_advanced_insights_tabs",
+        key="portfolio_advanced_insights_tabs_v2",
         on_change="rerun",
         width="stretch",
     )
@@ -128,7 +289,7 @@ def render_public_legacy_insights(window: str) -> None:
         None,
     )
     if opened is None:
-        return  # No active tab during a transient widget-state update.
+        return
     section, active_tab = opened
     if st.button("Refresh advanced insights", key="portfolio_advanced_refresh"):
         _cached_public_traffic.clear()
@@ -141,149 +302,48 @@ def render_public_legacy_insights(window: str) -> None:
 
     with active_tab:
         if section == "overview":
-            metrics = st.columns(4)
-            metrics[0].metric("Measured sessions", sessions)
-            metrics[1].metric("Engaged sessions", engaged, _pct(engaged, sessions))
-            metrics[2].metric("Pages per session",
-                              f"{float(totals.get('avg_pages_per_session') or 0):.2f}")
-            metrics[3].metric("Average active time", _seconds(totals.get("avg_active_seconds")))
-            left, right = st.columns([1.6, 1], gap="large")
-            with left:
-                _section("Traffic", "Sessions over time")
-                _daily_chart(data.get("daily", []))
-            with right:
-                _section("Exploration", "Depth of portfolio journey")
-                _funnel(sessions, _count(totals.get("impact_sessions")),
-                        _count(totals.get("lens_sessions")), cv_sessions)
-            left, right = st.columns(2, gap="large")
-            with left:
-                _section("Portfolio", "Pages explored by sessions")
-                _bar_chart(_page_rows(data.get("pages", [])), "page_label",
-                           value="sessions", limit=12, color=BLUE)
-            with right:
-                _section("Leadership lenses", "Most explored role lenses")
-                _bar_chart(data.get("lenses", []), "lens", limit=8)
-
+            _overview_dashboard(data, window)
         elif section == "audience":
-            from page_public_legacy_intelligence import _kpi_strip
-            devices = sorted(
-                (row for row in data.get("devices", []) if isinstance(row, dict)),
-                key=lambda row: -_count(row.get("sessions")),
+            _audience_origin_dashboard(data)
+        elif section == "attribution":
+            from page_public_legacy_intelligence import (
+                _channels, _attribution_families, fetch_public_content_aggregate,
             )
-            countries = [row for row in data.get("countries", [])
-                         if isinstance(row, dict) and _count(row.get("sessions"))]
-            top = devices[0] if devices else {}
-            _kpi_strip([
-                ("Tracked devices", str(len([d for d in devices if _count(d.get("sessions"))])),
-                 "Recorded device categories"),
-                ("Largest device cohort",
-                 str(top.get("device_type") or "—").title(),
-                 f"{_count(top.get('sessions')):,} browser sessions"),
-                ("Country coverage", str(len(countries)),
-                 "Coarse country codes, not verified identities"),
-            ])
-            left, right = st.columns(2, gap="large")
-            with left:
-                _section("Audience", "Device mix · measured sessions")
-                _bar_chart(devices, "device_type", value="sessions",
-                           limit=6, height=280)
-                _section("Technology", "Browsers")
-                _bar_chart(data.get("browsers", []), "browser_family", color=BLUE)
-                _section("Locale", "Browser languages")
-                _bar_chart(data.get("languages", []), "language")
-            with right:
-                _section("Geography", "Countries")
-                _bar_chart(data.get("countries", []), "country_code", color=GREEN)
-                _section("Technology", "Operating systems")
-                _bar_chart(data.get("operating_systems", []), "os_family", color=BLUE)
-                _section("Locale", "Time zones")
-                _bar_chart(data.get("timezones", []), "timezone")
-            st.caption("Geography is coarse country-level reporting; no IP addresses or individual identities are shown.")
-
-        elif section == "discovery":
-            from page_public_legacy_intelligence import _kpi_strip
-            broad = _channel_rows(data.get("attribution", []))
-            directly = sum(_count(row.get("sessions")) for row in broad
-                           if row.get("channel") == "Direct / unattributed")
-            landings = [row for row in data.get("landing_pages", [])
-                        if isinstance(row, dict) and _count(row.get("sessions"))]
-            _kpi_strip([
-                ("Broad acquisition channels", str(len(broad)),
-                 "Groups of observed first-touch attribution"),
-                ("Unattributed traffic", f"{_pct(directly,sessions)}",
-                 f"{directly:,} of {sessions:,} browser sessions"),
-                ("Recorded entry destinations", str(len(landings)),
-                 "Distinct landing destinations with observations"),
-            ])
-            left, right = st.columns(2, gap="large")
-            with left:
-                _section("Acquisition", "Broad first-touch channels",
-                         "Historical source tags are grouped; individual campaigns and role tags are not public.")
-                _bar_chart(_channel_rows(data.get("attribution", [])), "channel",
-                           limit=8, color=ACCENT)
-                _section("Navigation", "Landing pages")
-                _bar_chart(data.get("landing_pages", []), "landing_page",
-                           limit=10, color=GREEN)
-            with right:
-                _section("Navigation", "Exit pages")
-                _bar_chart(data.get("exit_pages", []), "exit_page", limit=10, color=BLUE)
-                _section("Reach", "Portfolio destinations")
-                _bar_chart(_page_rows(data.get("pages", [])), "page_label",
-                           value="sessions", limit=12)
-            st.caption("First-touch channel groups describe recorded source tags, not confirmed reader origins.")
-
-        elif section == "engagement":
-            from page_public_legacy_intelligence import _kpi_strip
-            confirmed = _count(totals.get("confirmed_duration_sessions"))
-            _kpi_strip([
-                ("Recorded engagement", _pct(engaged, sessions),
-                 f"{engaged:,} of {sessions:,} browser sessions"),
-                ("Median active time", _seconds(totals.get("median_active_seconds")),
-                 "Observed visible activity; not inferred reading time"),
-                ("Confirmed duration", _pct(confirmed, sessions),
-                 f"{confirmed:,} of {sessions:,} sessions"),
-            ])
-            left, right = st.columns(2, gap="large")
-            with left:
-                _section("Engagement", "Active time distribution")
-                _duration_chart(data.get("duration_buckets", []))
-                _section("Timing", "Sessions by weekday · Stockholm")
-                _bar_chart(data.get("weekdays", []), "weekday", horizontal=False,
-                           limit=7, color=GREEN,
-                           sort=["Monday", "Tuesday", "Wednesday", "Thursday",
-                                 "Friday", "Saturday", "Sunday"])
-            with right:
-                _section("Timing", "Sessions by hour · Stockholm")
-                _hour_chart(data.get("hours", []))
-                _section("Engagement", "Engaged sessions by device")
-                _bar_chart(data.get("devices", []), "device_type",
-                           value="engaged_sessions", color=BLUE)
-            st.caption("Active time counts visible engagement. Sessions without confirmation remain unconfirmed, not zero seconds.")
-
-        elif section == "actions":
-            metrics = st.columns(4)
-            metrics[0].metric("CV downloads", cv_downloads)
-            metrics[1].metric("CV-opening sessions", cv_sessions)
-            metrics[2].metric("Contact-channel sessions", contact_sessions)
-            metrics[3].metric("Single-page sessions", _count(totals.get("single_page_sessions")))
-            left, right = st.columns(2, gap="large")
-            with left:
-                _section("Interactions", "Observed activity by session",
-                         "A session may contribute to several activity types.")
-                _bar_chart(_event_rows(data.get("events", [])),
-                           "activity", limit=12, color=GREEN)
-            with right:
-                _section("Journey", "Recorded reach into portfolio sections")
-                _funnel(sessions, _count(totals.get("impact_sessions")),
-                        _count(totals.get("lens_sessions")), cv_sessions)
-            st.caption("CV and contact events indicate actions, not verified recruiter intent or a hiring outcome.")
-
-        elif section in ("signals", "channels", "content", "ctas", "experience", "behavior", "coverage"):
+            _channels(data)
+            try:
+                content = fetch_public_content_aggregate(window)
+            except RuntimeError:
+                st.warning("Campaign details are temporarily unavailable; "
+                           "source-channel aggregates remain current.")
+            else:
+                _attribution_families(data, content)
+        elif section == "content":
+            from page_public_legacy_intelligence import (
+                _content, _ctas, fetch_public_content_aggregate,
+            )
+            try:
+                content = fetch_public_content_aggregate(window)
+            except RuntimeError:
+                st.warning("Content and CTA reporting is temporarily unavailable.")
+            else:
+                _content(content)
+                st.divider()
+                _ctas(content)
+            st.divider()
+            st.markdown("#### Portfolio actions")
+            _traffic_actions(data)
+        elif section == "experience":
             from page_public_legacy_intelligence import render_public_deep_insights
-            render_public_deep_insights(section, window, data)
-
+            _engagement_traffic_dashboard(data)
+            st.divider()
+            render_public_deep_insights("experience", window, data)
+            st.divider()
+            render_public_deep_insights("behavior", window, data)
+        elif section == "quality":
+            from page_public_legacy_intelligence import render_public_deep_insights
+            render_public_deep_insights("coverage", window, data)
         st.caption(
-            "Owner-only hiring intelligence, individual campaign/source audits and raw telemetry "
-            "remain in the authenticated workspace. Recorded-session totals are not equivalent "
-            "to quality-filtered portfolio readership."
+            "Anonymous aggregates only. Private recruiting records, individual "
+            "campaign audit trails and raw telemetry stay in the authenticated workspace. "
+            "Traffic, content and browser observations use distinct definitions."
         )

@@ -55,14 +55,17 @@ def _content_name(value: object) -> str:
 
 
 def _cta_name(value: object) -> str:
-    """Do not reflect trackable URLs, addresses or campaign params into public UI."""
+    """Never reflect URLs, identifiers or Markdown injection into the public UI."""
     text = str(value or "").strip()
     lowered = text.lower()
     if not text or len(text) > 100 or any(token in lowered for token in (
         "http", "utm_", "role=", "source=", "mailto:", "@", "token", "secret",
     )):
         return "Unlabeled action"
-    return text
+    return "".join(
+        char for char in text
+        if char.isalnum() or char in " -_.,:()!?&·→↓↗+/’'"
+    ).strip()[:90] or "Unlabeled action"
 
 
 def _chart(rows: list[dict], name: str, value: str, limit: int = 12) -> None:
@@ -139,7 +142,7 @@ def _channels(data: dict) -> None:
             "Engaged sessions": item["engaged_sessions"],
             "Engagement rate": (
                 f"{item['Engagement rate']:.1f}%" if item["Engagement rate"] is not None else "—"),
-            "Article-reading sessions": item["article_sessions"],
+            "Legacy article-reach sessions": item["article_sessions"],
             "CV-opening sessions": item["cv_sessions"],
         })
     if rows:
@@ -158,7 +161,9 @@ def _channels(data: dict) -> None:
         st.caption("No channel counts are available.")
     st.caption(
         "These are observed attribution tags. Direct/unattributed traffic is not proven "
-        "direct navigation, and source associations do not identify individuals or explain outcomes."
+        "direct navigation. Legacy article-reach sessions use this traffic collector's "
+        "definitions and are not directly comparable to content-reader sessions in the "
+        "newer publication collector."
     )
 
 
@@ -237,7 +242,9 @@ def _content(report: dict) -> None:
         st.caption("No consecutive content transitions recorded.")
     st.caption(
         "Path counts represent consecutive recorded content views within one browser session. "
-        "They do not show all navigation clicks or prove why a visitor continued."
+        "They do not show all navigation clicks or prove why a visitor continued. "
+        "This newer content collector uses a different session eligibility rule "
+        "from the historical traffic report; their totals must not be reconciled."
     )
 
     section_rows = []
@@ -368,6 +375,14 @@ def _experience(report: dict) -> None:
                 f"{row['Device']}: p75 LCP {row['p75 LCP']} across "
                 f"{row['Measured sessions']:,} measured sessions. "
                 "Recheck current navigation, hero images, fonts and page hydration."
+            )
+    unstable = [row for row in rows if row["Measured sessions"] >= 30
+                and row["p75 CLS"] != "—" and float(row["p75 CLS"]) > 0.1]
+    if unstable:
+        for row in unstable:
+            st.write(
+                f"{row['Device']}: p75 layout-shift score {row['p75 CLS']}. "
+                "Check late-loading images, dynamic sections and font swaps."
             )
     st.caption(
         "LCP reflects loading of the largest rendered element; CLS reflects unexpected "

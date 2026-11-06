@@ -86,7 +86,7 @@ def _icon(name, x, y, scale=1):
 def _card(item, i, x, y, w, *, mobile=False):
     h = 234 if mobile else 222
     title_size = 23 if mobile else 24
-    detail_size = 17 if mobile else 19
+    detail_size = 16 if mobile else 17
     tx = x + 25
     icon_x = x + w - 89
     icon_y = y + 20
@@ -97,8 +97,8 @@ def _card(item, i, x, y, w, *, mobile=False):
          _icon(item.get("icon") or DEFAULT_ICONS[i % len(DEFAULT_ICONS)],icon_x+10,icon_y+10,1.03),
          _text(tx, y+38, label, 16, "#39768b", 800, 32, 1),
          _text(tx,y+88,item.get("title"),title_size,NAVY,750,24 if mobile else 32,2),
-         _rect(tx,y+120,w-50,2,"#e5eef2",1),
-         _text(tx,y+151,item.get("detail"),detail_size,MUTED,480,36 if mobile else 48,3)
+         _rect(tx,y+136,w-50,2,"#e5eef2",1),
+         _text(tx,y+164,item.get("detail"),detail_size,MUTED,480,36 if mobile else 48,3)
     ]
     return "".join(p)
 

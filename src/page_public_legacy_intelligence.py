@@ -22,6 +22,10 @@ from portfolio_legacy_signal_model import (
     channel_rollup, device_comparison, n, percentage, seven_day_comparison,
     traffic_findings,
 )
+from portfolio_public_attribution import (
+    role_cohorts, campaign_cohorts, campaign_channel_cohorts,
+    referrer_cohorts, tag_coverage, meaningful_rate,
+)
 
 
 @st.cache_data(ttl=300, max_entries=12, show_spinner=False)
@@ -303,6 +307,122 @@ def _channels(data: dict) -> None:
     st.caption("Channel groups are aggregated, not individual campaigns. Channel-specific "
                "engagement and article sessions can overlap. Do not combine these counts "
                "or equate them with identified visitors, employers or hiring intent.")
+
+
+def _attribution_families(traffic: dict, content: dict) -> None:
+    """Explain tracked campaign and role tags, never assumed visitor occupations."""
+    role_rows = role_cohorts(traffic.get("attribution", []))
+    campaign_rows = campaign_cohorts(content.get("campaigns", []))
+    cross_rows = campaign_channel_cohorts(content.get("campaigns", []))
+    role_tagged, role_total = tag_coverage(role_rows, "No role tag")
+    campaign_tagged, campaign_total = tag_coverage(campaign_rows, "No campaign tag")
+
+    st.markdown("#### Link-purpose tags and campaign performance")
+    st.caption(
+        "A role tag describes the PURPOSE OF A TRACKED LINK (for example, an "
+        "article or Weekly AI), not an identified visitor's job title. "
+        "Campaign tags identify distribution initiatives. Neither proves "
+        "who visited, which company they work for or why they arrived."
+    )
+    _kpi_strip([
+        ("Tagged link-purpose sessions",
+         f"{percentage(role_tagged,role_total):.1f}%"
+         if percentage(role_tagged,role_total) is not None else "—",
+         f"{role_tagged:,} of {role_total:,} traffic-collector sessions"),
+        ("Tagged campaign sessions",
+         f"{percentage(campaign_tagged,campaign_total):.1f}%"
+         if percentage(campaign_tagged,campaign_total) is not None else "—",
+         f"{campaign_tagged:,} of {campaign_total:,} content-campaign sessions"),
+        ("Tracked campaign families",
+         f"{sum(1 for row in campaign_rows if row['Label'] != 'No campaign tag'):,}",
+         "Approved editorial categories; other tags grouped"),
+    ])
+
+    tagged_roles = [row for row in role_rows
+                   if row["Label"] != "No role tag"]
+    tagged_campaigns = [row for row in campaign_rows
+                       if row["Label"] != "No campaign tag"]
+    left, right = st.columns(2, gap="large")
+    with left:
+        _ranked_chart(
+            [{"Link purpose": row["Label"], "Sessions": row["sessions"],
+              "Engaged sessions": row["engaged_sessions"]}
+             for row in tagged_roles],
+            "Link purpose", "Sessions",
+            title="Why the tracked link was shared",
+            note="Tracked UTM-style role/category tags, not reader professions. "
+                 "Untagged traffic is excluded from this ranking and retained in coverage.",
+            color=ACCENT, limit=10,
+        )
+    with right:
+        _ranked_chart(
+            [{"Campaign": row["Label"], "Sessions": row["sessions"],
+              "Reader sessions": row["reader_sessions"]}
+             for row in tagged_campaigns],
+            "Campaign", "Sessions",
+            title="Editorial and distribution campaigns",
+            note="Campaigns recorded in the content collector. Unapproved or "
+                 "potentially sensitive identifiers are grouped.",
+            color=GREEN, limit=12,
+        )
+
+    st.markdown("#### Quality of traffic from known campaigns")
+    eligible_campaigns = [
+        {"Campaign": row["Label"], "Sessions": row["sessions"],
+         "Engagement (%)": meaningful_rate(row, "engaged_sessions"),
+         "Reader reach (%)": meaningful_rate(row, "reader_sessions")}
+        for row in tagged_campaigns if row["sessions"] >= 20
+    ]
+    left, right = st.columns(2, gap="large")
+    with left:
+        _ranked_chart(
+            [row for row in eligible_campaigns if row["Engagement (%)"] is not None],
+            "Campaign", "Engagement (%)",
+            title="Engagement rate by tagged campaign",
+            note="20+ content-campaign sessions per category; this is observed "
+                 "engagement, not verified human interest.",
+            percentage_axis=True, color=BLUE, limit=8,
+        )
+    with right:
+        _ranked_chart(
+            [row for row in eligible_campaigns if row["Reader reach (%)"] is not None],
+            "Campaign", "Reader reach (%)",
+            title="Article-reading reach by campaign",
+            note="Reader sessions / campaign sessions inside the SAME content collector.",
+            percentage_axis=True, color=GREEN, limit=8,
+        )
+
+    tagged_cross = [
+        {"Source × campaign": f"{row['Channel']} · {row['Campaign']}",
+         "Sessions": row["sessions"],
+         "Reader sessions": row["reader_sessions"]}
+        for row in cross_rows
+        if row["Campaign"] != "No campaign tag" and row["sessions"] >= 3
+    ]
+    _ranked_chart(
+        tagged_cross, "Source × campaign", "Sessions",
+        title="Which source carried each tracked campaign",
+        note="Campaign/source combinations with 3+ recorded content sessions. "
+             "The same campaign can arrive via multiple channels. "
+             "This is a source-tag association, not an individual visitor trail.",
+        color=BLUE, limit=12,
+    )
+
+    if tagged_campaigns:
+        leader = max(tagged_campaigns, key=lambda row: row["sessions"])
+        _decision_note(
+            f"The largest recognized tagged campaign is {leader['Label']} "
+            f"({leader['sessions']:,} content-campaign sessions). "
+            "Its reach cannot establish audience quality on its own.",
+            "Compare the same collector's reading and engagement outcomes, "
+            "then check campaign-tag coverage before adjusting distribution.",
+        )
+    st.caption(
+        "The traffic RPC and content-campaign RPC use different eligibility and "
+        "deduplication rules. Do not add their session counts or interpret "
+        "link-role tags as occupations. Exact employer-specific campaign labels "
+        "and private attribution audits remain owner-only."
+    )
 
 
 def _article_rows(report: dict) -> list[dict]:

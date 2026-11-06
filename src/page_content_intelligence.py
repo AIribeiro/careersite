@@ -165,10 +165,11 @@ def _chart_height(count: int, *, per_row: int = 34, minimum: int = 260, maximum:
 
 
 def _exact_metrics(title: str, rows: list[dict]) -> None:
-    if not rows:
-        return
-    with st.expander(title, expanded=False):
-        st.dataframe(rows, hide_index=True, use_container_width=True)
+    """Exact points are already supplied in the associated chart tooltips.
+
+    Do not duplicate visual dashboards with raw dataframes.
+    """
+    return
 
 
 def _rate_heatmap(rows: list[dict], label_field: str, metrics: tuple[str, ...], title: str) -> None:
@@ -961,40 +962,15 @@ def _render_trends(data: dict, kind: str) -> None:
     else:
         st.info("No comparable content activity in these two periods.")
 
-    with st.expander("Exact period comparison", expanded=False):
-        comparisons = []
-        for row in data.get("period_comparison", []):
-            if row.get("kind") != kind:
-                continue
-            comparisons.append({
-                "Content": _article_title(row["content"]) if kind == "article" else content_label(row["content"]),
-                "Sessions": f"{_count(row.get('current_sessions'))} now / {_count(row.get('previous_sessions'))} previous",
-                "Session change": _change(row.get("current_sessions"), row.get("previous_sessions")),
-                "Views": f"{_count(row.get('current_views'))} now / {_count(row.get('previous_views'))} previous",
-                "View change": _change(row.get("current_views"), row.get("previous_views")),
-                "Engaged-session change": _change(row.get("current_engaged_sessions"), row.get("previous_engaged_sessions")),
-            })
-        if comparisons:
-            st.dataframe(comparisons, hide_index=True, use_container_width=True)
+    # The period movement chart above contains the actual counts in tooltips;
+    # remove the duplicate, dense comparison table.
 
     if kind == "article":
         topic_rows = _topic_visual_rows(data)
         st.subheader("Topic performance")
         if topic_rows:
             _render_topic_visuals(topic_rows)
-            with st.expander("Exact topic metrics", expanded=False):
-                topics = [{
-                    "Topic": row.get("topic") or "Uncategorized",
-                    "Article sessions": _count(row.get("article_sessions")),
-                    "Views": _count(row.get("views")),
-                    "Engaged ≥10s": _rate(row.get("engaged_sessions"), row.get("article_sessions")),
-                    "Reached 75%": _rate(row.get("reached_75_sessions"), row.get("depth_measured_sessions")),
-                    "Reached 90%": _rate(row.get("reached_90_sessions"), row.get("depth_measured_sessions")),
-                    "Later portfolio": _rate(row.get("later_portfolio_sessions"), row.get("article_sessions")),
-                    "Later CV": _rate(row.get("later_cv_sessions"), row.get("article_sessions")),
-                    "Later contact": _rate(row.get("later_contact_sessions"), row.get("article_sessions")),
-                } for row in data.get("topic_performance", [])]
-                st.dataframe(topics, hide_index=True, use_container_width=True)
+            st.caption("Topic chart tooltips retain measured denominators and reach rates.")
         else:
             st.info("No topic-performance activity in this reporting window.")
 
@@ -1006,17 +982,7 @@ def _render_trends(data: dict, kind: str) -> None:
         first7_rows = _first7_visual_rows(data)
         if first7_rows:
             _render_first7_visuals(first7_rows)
-            with st.expander("Exact first-seven-day metrics", expanded=False):
-                first7 = [{
-                    "Article": row.get("title") or _article_title(row.get("slug")),
-                    "Published": row.get("published_date"),
-                    "Topic": row.get("topic") or "Uncategorized",
-                    "Views": _count(row.get("views")),
-                    "Sessions": _count(row.get("sessions")),
-                    "Engaged ≥10s": _rate(row.get("engaged_sessions"), row.get("sessions")),
-                    "Reached 75%": _rate(row.get("reached_75_sessions"), row.get("depth_measured_sessions")),
-                } for row in data.get("publication_age", [])]
-                st.dataframe(first7, hide_index=True, use_container_width=True)
+            st.caption("Launch-comparison values remain available on hover.")
         else:
             st.info("No first-seven-day article history is available yet.")
 
@@ -1524,11 +1490,7 @@ def _render_visit_overview(data: dict, kind: str) -> None:
         use_container_width=True,
     )
     st.caption("Switch the measure to reorder the ranking. Hover a bar for view share and time on content.")
-    with st.expander("Exact visit counts", expanded=False):
-        st.dataframe(
-            ranked, hide_index=True, use_container_width=True,
-            column_config={"Share of views": st.column_config.NumberColumn("Share of views", format="%.1f%%")},
-        )
+    # Chart hover preserves exact counts and view share; no duplicate raw table.
     st.caption("Sessions are counted separately for each content item and cannot be added to get unique visitors. "
                "Share uses only the listed, classified views; historical unclassified Thinking visits are excluded.")
     st.divider()
@@ -1654,14 +1616,12 @@ def render_content_intelligence(kind: str, window: str) -> None:
             c1.metric("V4+ tracking coverage",f"{coverage:.1f}%" if coverage is not None else "Unavailable")
             c2.metric("Behavior events",_count(b_quality.get("behavior_events")))
             c3.metric("Behavior-measured sessions",_count(b_quality.get("behavior_sessions")))
-            with st.expander("Measurement rollout and exact denominators"):
-                st.dataframe([
-                    {"Measure":"Last recorded event","Value":quality.get("last_event_at") or "Unavailable"},
-                    {"Measure":"Depth measurement first seen","Value":quality.get("new_measurement_since") or "Unavailable"},
-                    {"Measure":"Attention tracking first seen","Value":quality.get("attention_measurement_since") or "Unavailable"},
-                    {"Measure":"V5 behavior first seen","Value":b_quality.get("behavior_first_seen") or "Unavailable"},
-                ],hide_index=True,width="stretch")
-                st.write(f"Content sessions with V4+ coverage: {_rate(measured_v4,content_sessions)}")
+            with st.expander("Measurement timeline", expanded=False):
+                st.caption(f"Latest recorded event: {quality.get('last_event_at') or 'Unavailable'}")
+                st.caption(f"Depth tracking began: {quality.get('new_measurement_since') or 'Unavailable'}")
+                st.caption(f"Attention tracking began: {quality.get('attention_measurement_since') or 'Unavailable'}")
+                st.caption(f"Browser behavior began: {b_quality.get('behavior_first_seen') or 'Unavailable'}")
+                st.caption(f"Content measurement coverage: {_rate(measured_v4,content_sessions)}")
             if data.get("behavior_error"):
                 st.warning(f"Behavior endpoint unavailable: {data['behavior_error']}")
             st.caption("Missing historical browser measurements are unavailable, not zero. "

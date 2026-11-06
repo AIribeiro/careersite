@@ -471,15 +471,18 @@ def _ctas(report: dict) -> None:
         exposed, clicked = n(item.get("exposed_sessions")), n(item.get("click_sessions"))
         if exposed < 10:
             continue
-        placement = str(item.get("placement") or "").split(":", 1)[0].lower()
+        placement_parts = str(item.get("placement") or "").split(":", 1)
+        placement = placement_parts[0].lower()
         page = placement if placement in (
             "home", "about", "impact", "thinking", "briefings",
             "briefing", "contact", "ai-data-governance",
         ) else "portfolio"
+        section = _content_name(placement_parts[1]) if len(placement_parts) > 1 else ""
         name = _cta_name(item.get("label"))
         rate = percentage(clicked, exposed)
         rows.append({
-            "Action": f"{name[:53]} · {page.title()}",
+            "Action": f"{name[:39]} · {page.title()}"
+                      + (f" / {section[:24]}" if section else ""),
             "Exposed": exposed, "Clicked": clicked,
             "Recorded response (%)": rate,
         })

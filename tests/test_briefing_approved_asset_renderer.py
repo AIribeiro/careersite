@@ -75,7 +75,7 @@ class ApprovedAssetContractTests(unittest.TestCase):
         self.assertIsInstance(html, str)
         self.assertEqual(html.count("data:image/webp;base64,"), 2)
         self.assertEqual(html.count('data-analytics-section="briefing-infographic"'), 1)
-        self.assertEqual(html.count('canonical-infographic-download'), 4)  # CSS + HTML
+        self.assertEqual(html.count('class="canonical-infographic-download"'), 1)
         self.assertIn("future-ai-leadership-briefing/download.pdf", html)
         self.assertIn("2026-11-06-r1", html)
         self.assertLess(html.find("Download infographic"), html.find("data:image/webp;base64"))

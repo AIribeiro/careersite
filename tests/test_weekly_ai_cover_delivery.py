@@ -6,6 +6,7 @@ without relying on /app/static or on a CMS header_image_url update.
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 from pathlib import Path
 import sys
@@ -55,8 +56,10 @@ class WeeklyAiCoverDeliveryTests(unittest.TestCase):
                     (url, "image/png", 1200, 627),
                 )
                 markup = _edition_cover_html(article)
-                self.assertIn(url, markup)
+                inline = "data:image/png;base64," + base64.b64encode(image).decode("ascii")
+                self.assertIn('src="' + inline + '"', markup)
                 self.assertIn('<figure class="weekly-ai-edition-cover"', markup)
+                self.assertNotIn("/weekly-ai-cover/weekly-ai-2026-11-06.png", markup)
                 self.assertNotIn("/app/static/weekly-ai/", markup)
                 self.assertIn("AI&#x27;s Next Test", markup)
 
@@ -71,7 +74,7 @@ class WeeklyAiCoverDeliveryTests(unittest.TestCase):
                     b"\x89PNG\r\n\x1a\n" + b"B" * 5000
                 )
                 self.assertIn("/weekly-ai-cover/", weekly_edition_cover_url(article.slug))
-                self.assertIn("<figure", _edition_cover_html(article))
+                self.assertIn('src="data:image/png;base64,', _edition_cover_html(article))
                 # A newly revised cover must bypass the old browser cache.
                 old_url = weekly_edition_cover_url(article.slug)
                 (folder / f"{article.slug}.png").write_bytes(
@@ -117,6 +120,10 @@ class WeeklyAiCoverDeliveryTests(unittest.TestCase):
             "/weekly-ai-cover/weekly-ai-2026-11-06.png?v=",
             weekly_edition_cover_url("weekly-ai-2026-11-06"),
         )
+        html = _edition_cover_html(weekly_article())
+        self.assertIn('src="data:image/png;base64,', html)
+        encoded = html.split('src="data:image/png;base64,', 1)[1].split('"', 1)[0]
+        self.assertEqual(base64.b64decode(encoded), image.read_bytes())
 
 
 if __name__ == "__main__":

@@ -132,8 +132,10 @@ def _audience_origin_dashboard(data: dict) -> None:
         key=lambda row: -_count(row.get("sessions")),
     )
     referrers = referrer_cohorts(data.get("referrers", []))
+    referrer_total = sum(row["sessions"] for row in referrers)
     no_referrer = sum(row["sessions"] for row in referrers
                       if row["Label"] == "No referrer recorded")
+    known_referrers = max(0, referrer_total - no_referrer)
     leading_country = countries[0] if countries else {}
     leading_device = devices[0] if devices else {}
     st.markdown("#### Where recorded sessions appear to originate")
@@ -148,8 +150,8 @@ def _audience_origin_dashboard(data: dict) -> None:
          str(leading_country.get("country_code") or "—").upper(),
          f"{_count(leading_country.get('sessions')):,} sessions; network-level estimate"),
         ("Known referrer hosts",
-         f"{max(0, sessions-no_referrer):,}",
-         f"{no_referrer:,} of {sessions:,} sessions have no recorded referrer"),
+         f"{known_referrers:,}",
+         f"{no_referrer:,} of {referrer_total:,} referrer-cohort sessions have no recorded host"),
         ("Main device", str(leading_device.get("device_type") or "—").title(),
          f"{_count(leading_device.get('sessions')):,} recorded sessions"),
     ])

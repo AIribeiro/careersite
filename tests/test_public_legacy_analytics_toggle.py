@@ -107,3 +107,22 @@ def test_behavior_and_content_reports_remain_lazy():
     assert fn.index('if section == "channels"') < fn.index("fetch_public_content_aggregate(window)")
     assert fn.index('if section == "behavior"') < fn.index("fetch_public_content_aggregate(window)")
     assert 'fetch_public_behavior_aggregate(window)' in fn
+
+
+def test_public_ux_labels_reject_urls_and_markup():
+    path = ROOT / "src" / "page_public_legacy_intelligence.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    selected = [
+        node for node in tree.body
+        if isinstance(node, ast.FunctionDef) and node.name in ("_cta_name", "_content_name")
+    ]
+    assert len(selected) == 2
+    namespace = {}
+    exec(compile(ast.Module(body=selected, type_ignores=[]), str(path), "exec"), namespace)
+    label = namespace["_cta_name"]
+    assert label("View my impact →") == "View my impact →"
+    assert label("https://example.org/?role=employer") == "Unlabeled action"
+    assert label("Contact *[click me](https://x.com)*") == "Unlabeled action"
+    assert "*" not in label("Contact **today**")
+    content = namespace["_content_name"]("article:why-governance-matters")
+    assert content == "Why Governance Matters"

@@ -91,7 +91,7 @@ def render_public_legacy_insights(window: str) -> None:
     """Render historical visitor insights with no sign-in or owner data access."""
     st.subheader("Advanced Insights")
     st.caption(
-        ""Explore audience, acquisition, content journeys and engagement using recorded portfolio data. "
+        "Explore audience, acquisition, content journeys and engagement using recorded portfolio data. "
         "These are recorded browser sessions, not unique visitors or identified employers. "
         "Automation and unconfirmed sessions may be included."
     )
@@ -242,6 +242,6 @@ def render_public_legacy_insights(window: str) -> None:
 
         st.caption(
             "Owner-only hiring intelligence, individual campaign/source audits and raw telemetry "
-            ""remain in the authenticated workspace. Recorded-session totals are not equivalent "
+            "remain in the authenticated workspace. Recorded-session totals are not equivalent "
             "to quality-filtered portfolio readership."
         )

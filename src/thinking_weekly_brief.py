@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 import re
 from datetime import date, timedelta
@@ -29,6 +30,44 @@ def _weekly_header_image_uri() -> str:
     return "/weekly-ai-cover/evergreen.webp" if WEEKLY_IMAGE_FILE.is_file() else ""
 
 
+def _published_cover_bytes(slug: str) -> bytes | None:
+    """Read the checked-in, validated Friday PNG without caching missing assets."""
+    if not re.fullmatch(r"weekly-ai-\d{4}-\d{2}-\d{2}", str(slug)):
+        return None
+    file = WEEKLY_COVER_DIR / f"{slug}.png"
+    try:
+        payload = file.read_bytes()
+    except OSError:
+        return None
+    if len(payload) < 2048 or not payload.startswith(b"\x89PNG\r\n\x1a\n"):
+        return None
+    return payload
+
+
+def weekly_edition_inline_cover_src(slug: str) -> str:
+    """Embed approved PNG directly in the single Streamlit reader.
+
+    The live deployment may not expose Starlette media routes reliably even if
+    the local CI server does. Inlining eliminates the network dependency.
+    The public canonical route stays in place for crawler/social metadata.
+    """
+    payload = _published_cover_bytes(slug)
+    if payload is None:
+        return ""
+    return "data:image/png;base64," + base64.b64encode(payload).decode("ascii")
+
+
+def _weekly_header_inline_src() -> str:
+    """Inline the small evergreen WebP without relying on a media endpoint."""
+    try:
+        data = WEEKLY_IMAGE_FILE.read_bytes()
+    except OSError:
+        return ""
+    if len(data) < 100 or data[:4] != b"RIFF" or data[8:12] != b"WEBP":
+        return ""
+    return "data:image/webp;base64," + base64.b64encode(data).decode("ascii")
+
+
 def weekly_edition_cover_url(slug: str) -> str:
     """Canonical CDN-cacheable edition cover, independent of optional CMS fields.
 
@@ -37,14 +76,8 @@ def weekly_edition_cover_url(slug: str) -> str:
     Check each request rather than caching a missing cover: Friday audio/image
     assets can arrive after the article has already been published.
     """
-    if not re.fullmatch(r"weekly-ai-\d{4}-\d{2}-\d{2}", str(slug)):
-        return ""
-    file = WEEKLY_COVER_DIR / f"{slug}.png"
-    try:
-        payload = file.read_bytes()
-    except OSError:
-        return ""
-    if len(payload) < 2048 or not payload.startswith(b"\x89PNG\r\n\x1a\n"):
+    payload = _published_cover_bytes(slug)
+    if payload is None:
         return ""
     from thinking_articles import BASE_URL
     revision = hashlib.sha256(payload).hexdigest()[:12]
@@ -60,7 +93,7 @@ def _edition_cover_html(article: "CmsArticle | str") -> str:
         slug = article.slug
         editorial_url = (article.header_image_url or "").strip()
         alt = article.header_image_alt or f"WEEKLY AI branded edition header — {article.title}"
-    url = editorial_url or weekly_edition_cover_url(slug)
+    url = editorial_url or weekly_edition_inline_cover_src(slug)
     if not url:
         return ""
     return (
@@ -329,9 +362,9 @@ def inject_weekly_brief_landing(
         '<p class="weekly-ai-brand-intro">A concise perspective on the developments that matter to enterprise leaders. Understand what changed, why it matters, and what deserves a closer look. Personally curated, source-linked, and available to read or listen to every Friday.</p>'
         '<div class="weekly-ai-value-points" aria-label="What readers gain"><span>What changed</span><span>Why it matters</span><span>What to examine next</span></div>'
         '</div>'
-        + ('<img class="weekly-ai-brand-art" src="' + _weekly_header_image_uri() 
+        + ('<img class="weekly-ai-brand-art" src="' + _weekly_header_inline_src() 
            + '" alt="AI briefing artwork: digital globe and modern laptop in a workplace" loading="eager" decoding="async">'
-           if _weekly_header_image_uri() else '<div class="weekly-ai-brand-art weekly-ai-brand-placeholder" aria-hidden="true"></div>')
+           if _weekly_header_inline_src() else '<div class="weekly-ai-brand-art weekly-ai-brand-placeholder" aria-hidden="true"></div>')
         + '</div>'
         '<div class="weekly-ai-feature">'
         '<div class="weekly-ai-main">'

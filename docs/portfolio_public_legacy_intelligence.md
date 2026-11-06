@@ -37,6 +37,28 @@ Existing overview content signals and the dedicated Explore Content,
 Executive Briefings, and Weekly AI views remain unchanged. This feature adds
 decision-oriented reporting, not a parallel tracking system.
 
+## Dashboard presentation standard for public Analytics
+
+This rule also applies outside the twelve Advanced Insights tabs:
+
+- **Explore content** keeps ranked reading charts, period comparisons,
+  section attention, topic trends and site-experience visuals. The repeated
+  exact-metrics dataframes and dense comparison tables have been retired;
+  values remain available in chart hover and contextual captions.
+- **Weekly AI** retains editorial and audio scorecards, edition trends,
+  campaign composition and publisher-link charts, without the long
+  per-edition, source or campaign tables.
+- **Executive Briefings** shows readership and engagement rankings,
+  the leading briefing's quality KPIs and visual library-card discovery,
+  without exposing per-briefing dataframes.
+- **Article source reporting** keeps source distribution and hover detail,
+  removing its duplicate exact-source table.
+
+**Analytical hierarchy:** business question → high-confidence KPI →
+comparative visualization → measured denominator → interpretation and next
+check. Small or missing samples are labeled as unavailable rather than
+represented as zero. Browser sessions are not identified people.
+
 ## Definitions and safe inferences
 
 - **Session**: browser-tab/collector session, not a unique person. Session
@@ -96,7 +118,8 @@ decision-oriented reporting, not a parallel tracking system.
 1. Open the Analytics overview signed out: four summary cards should be
    followed immediately by **Advanced Insights** tabs. No toggle or dropdown.
 2. Switch among all twelve tabs. Each contains KPI/chart/interpretation
-   presentation, not `st.dataframe` or `st.table` output.
+   presentation, not `st.dataframe` or `st.table` output. Also check the
+   public Explore Content, Weekly AI and Executive Briefings analytics screens.
 3. Confirm mobile tab navigation scrolls horizontally and the page renders
    only the selected tab's expensive content/behavior RPC.
 4. Check selected periods, empty states, no-data labels and measured

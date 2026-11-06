@@ -11,7 +11,7 @@ LEGACY = ROOT / "src" / "page_public_legacy_insights.py"
 ROUTER = ROOT / "src" / "page_analytics_v2.py"
 
 
-def test_public_overview_shows_legacy_tabs_by_default_below_cards():
+def test_public_overview_shows_advanced_tabs_by_default_below_cards():
     source = OVERVIEW.read_text(encoding="utf-8")
     assert "st.toggle(" not in source
     assert "portfolio_show_legacy_analytics" not in source
@@ -49,7 +49,7 @@ def test_legacy_sections_load_one_at_a_time():
     source = LEGACY.read_text(encoding="utf-8")
     assert "tabs = st.tabs(" in source
     assert 'on_change="rerun"' in source
-    assert 'key="portfolio_legacy_insights_tabs"' in source
+    assert 'key="portfolio_advanced_insights_tabs"' in source
     assert "if tab.open" in source
     assert "with active_tab:" in source
     assert '"Explore historical analytics"' not in source
@@ -131,3 +131,24 @@ def test_public_ux_labels_reject_urls_and_markup():
     assert "*" not in label("Contact **today**")
     content = namespace["_content_name"]("article:why-governance-matters")
     assert content == "Why Governance Matters"
+
+
+def test_advanced_insights_are_visual_dashboards_not_raw_tables():
+    overview = OVERVIEW.read_text(encoding="utf-8")
+    tabs = LEGACY.read_text(encoding="utf-8")
+    deep = (ROOT / "src" / "page_public_legacy_intelligence.py").read_text(encoding="utf-8")
+    for source in (overview, tabs, deep):
+        assert "st.dataframe(" not in source
+        assert "st.table(" not in source
+    assert "st.subheader(\"Advanced Insights\")" in tabs
+    assert "st.toggle(" not in overview
+    assert "Refresh advanced insights" in tabs
+    assert '"Legacy visitor analytics"' not in tabs
+    assert '"Refresh legacy reports"' not in tabs
+    for section in ("_channels", "_content", "_ctas", "_experience", "_behavior"):
+        assert f"def {section}(" in deep
+    assert "def _kpi_strip(" in deep
+    assert "def _ranked_chart(" in deep
+    assert "def _decision_note(" in deep
+    assert 'st.vega_lite_chart(' in deep
+    assert "Measured sessions" in deep

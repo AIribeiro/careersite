@@ -93,6 +93,8 @@ class FourColumnPortfolioTests(unittest.TestCase):
         self.assertEqual(cards[0]["measure"], "Site-wide sessions")
         self.assertEqual(cards[0]["sessions"], 16)
         self.assertEqual(cards[0]["sessions_label"], "content views (all sections)")
+        self.assertEqual(cards[0]["lifetime"], 16)
+        self.assertEqual(cards[0]["lifetime_unit"], "views")
         self.assertTrue(all(card.get("available", True) for card in cards))
         self.assertEqual([card["rank_title"] for card in cards], [
             "Top portfolio pages", "Most-read articles",

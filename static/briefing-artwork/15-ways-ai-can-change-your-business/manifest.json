@@ -14,14 +14,14 @@
   },
   "mobile": {
     "file": "mobile.webp",
-    "sha256": "57458aa7305ebf83d428f08d61de95afdca5f4eea321fe3d9d20ed4dec64aa5a",
+    "sha256": "2202f25edf2a05279b65c37caa5068017bc59dcf95ef7ef1afdafa6e82ef829a",
     "width": 800,
-    "height": 6661,
-    "bytes": 310628
+    "height": 7111,
+    "bytes": 290768
   },
   "pdf": {
     "file": "infographic.pdf",
-    "sha256": "b18e5e8a3e321eca76687b1de68ee4e9a7d98432cfbf8eb8ebe025b9b3596a8c",
+    "sha256": "ecd29de270bb28daa889652a06d1251802fb87f6c6e07425a04c308af6de4773",
     "pages": 3,
     "bytes": 341026
   },

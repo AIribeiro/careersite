@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "slug": "policy-is-not-permission-executive-ai-governance",
+  "article_fingerprint": "a7d12810bcd11e86269b903dc510ca337b4268f02f95ef80f565b9103bb47395",
+  "revision": "2026-11-07-r1",
+  "heading": "Policy is not permission",
+  "deck": "Six operating proofs, proportionate autonomy and an enforceable action-time decision.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "d10c88b5b12b98506312d05fc438b0e489f327df004025b26a9c06b767437b33",
+    "width": 1200,
+    "height": 1820,
+    "bytes": 129154
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "4fef1cc4f0afa76c24cfc6a6c90376f7b486eedfe34d1ea62ae876704d830600",
+    "width": 720,
+    "height": 2910,
+    "bytes": 132370
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "1fcf80212b0acaf160f08f33e71a328eafcf287725130985ba960b709e366314",
+    "pages": 1,
+    "bytes": 502620
+  },
+  "release_note": "Exact source content and premium design require editorial approval in CMS."
+}

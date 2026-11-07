@@ -74,6 +74,7 @@ def card(im,coords,item,side=False):
  txt(d,x+42,y+28,number,30,SKY if high else TEAL,True)
  if side:
   fs=29 if len(name)>20 else 33
+  while d.textlength(name,font=ft(fs,True)) > w-168: fs-=1
   txt(d,x+141,y+27,name,fs,fg,True)
   d.line((x+142,y+86,x+w-28,y+86),fill=COPPER,width=3)
   icon(d,x+83,y+163,symbol,SKY if high else TEAL)
@@ -81,10 +82,10 @@ def card(im,coords,item,side=False):
  else:
   icon(d,x+w//2,y+132,symbol,SKY if high else TEAL)
   words=name.split()
-  if len(name)>19:
-   if name=="ENFORCEMENT AT EXECUTION": title=["ENFORCEMENT","AT EXECUTION"]
-   elif name=="COMPLETE DISCOVERY": title=["COMPLETE","DISCOVERY"]
-   else:title=[name]
+  if name=="ENFORCEMENT AT EXECUTION": title=["ENFORCEMENT","AT EXECUTION"]
+  elif name=="COMPLETE DISCOVERY": title=["COMPLETE","DISCOVERY"]
+  elif name=="OPERATING EVIDENCE": title=["OPERATING","EVIDENCE"]
+  elif name=="BOUNDED AUTHORITY": title=["BOUNDED","AUTHORITY"]
   else: title=[name]
   for j,t in enumerate(title): txt(d,x+22,y+198+j*38,t,25 if len(t)>15 else 29,fg,True)
   d.line((x+21,y+276,x+w-22,y+276),fill=COPPER,width=2)
@@ -142,7 +143,7 @@ def desktop(out):
  im.save(out/"desktop.png",optimize=True)
  return im
 def mobile(out):
- W,H=720,2910;im=Image.new("RGB",(250,252,252));im=im.resize((W,H))
+ W,H=720,2910;im=Image.new("RGB",(W,H),(250,252,252))
  gradient(im,(3,29,52),(8,57,82),0,450);d=ImageDraw.Draw(im)
  for j in range(9):
   pts=[(x,290+j*8+int(22*sin(x/121+j*.5))) for x in range(-10,W+11,4)]

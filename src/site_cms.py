@@ -959,6 +959,34 @@ def bundled_header_bytes(slug: str) -> bytes | None:
     return data
 
 
+@lru_cache(maxsize=64)
+def _briefing_cover_asset(slug: str) -> tuple[bytes, str] | None:
+    """Read verified source-controlled briefing covers; no remote reader image fetch."""
+    clean = slugify(slug)
+    root = Path(__file__).resolve().parents[1] / "static" / "briefing-artwork" / clean
+    manifest_path = root / "manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        spec = manifest.get("cover") or {}
+        if manifest.get("slug") != clean or spec.get("file") != "cover.webp":
+            return None
+        binary_path = root / "cover.webp"
+        if not (1000 < binary_path.stat().st_size < 1500000):
+            return None
+        content = binary_path.read_bytes()
+        if content[:4] != b"RIFF" or content[8:12] != b"WEBP":
+            return None
+        if hashlib.sha256(content).hexdigest() != spec.get("sha256"):
+            return None
+        with Image.open(BytesIO(content)) as source:
+            if source.format != "WEBP" or source.size != (spec.get("width"), spec.get("height")):
+                return None
+            source.verify()
+        return content, str(manifest.get("article_fingerprint") or "")
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
 def effective_header_image_url(article: CmsArticle) -> str:
     """Return only a URL; catalogue rendering never generates or embeds art."""
     if article.header_image_url:
@@ -969,6 +997,14 @@ def effective_header_image_url(article: CmsArticle) -> str:
     from thinking_weekly_brief import is_weekly_brief, weekly_edition_cover_url
     if is_weekly_brief(article):
         return weekly_edition_cover_url(article.slug)
+    if article.kind.strip().casefold() == "executive briefing":
+        cover = _briefing_cover_asset(article.slug)
+        if cover:
+            version = hashlib.sha256(cover[0]).hexdigest()[:12]
+            return (
+                "https://raw.githubusercontent.com/AIribeiro/careersite/main/"
+                f"static/briefing-artwork/{slugify(article.slug)}/cover.webp?v={version}"
+            )
     normalized = slugify(article.slug)
     if normalized == COMPETITIVE_ADVANTAGE_HEADER_SLUG:
         source = (
@@ -1013,6 +1049,12 @@ def reader_header_image_src(article: CmsArticle) -> str:
     from thinking_weekly_brief import is_weekly_brief, weekly_edition_cover_url
     if is_weekly_brief(article):
         return weekly_edition_cover_url(article.slug)
+    if article.kind.strip().casefold() == "executive briefing":
+        cover = _briefing_cover_asset(article.slug)
+        if cover:
+            from briefing_infographic_engine import source_fingerprint
+            if cover[1] == source_fingerprint(article):
+                return "data:image/webp;base64," + base64.b64encode(cover[0]).decode("ascii")
     image = bundled_header_bytes(article.slug)
     if image:
         return "data:image/webp;base64," + base64.b64encode(image).decode("ascii")

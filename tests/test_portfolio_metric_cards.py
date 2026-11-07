@@ -100,6 +100,29 @@ class PortfolioMetricCardTests(unittest.TestCase):
         self.assertIn("Lifetime · 7 views", content)
         self.assertIn("Most-viewed briefings", content)
 
+    def test_site_session_headline_has_correct_lifetime_and_view_breakdown(self):
+        visits = spec("Portfolio visits")
+        visits.update({
+            "measure": "Site-wide sessions",
+            "views": 38,
+            "lifetime": 482,
+            "lifetime_unit": "sessions",
+            "sessions": 39,
+            "sessions_label": "content views (all sections)",
+            "items": 3,
+            "item_unit": "active destinations",
+            "rank_title": "Top portfolio pages",
+        })
+        content = portfolio_metric_grid([
+            visits, spec("Articles"), spec("Weekly AI"), spec("Executive Briefings"),
+        ])
+        self.assertIn("Site-wide sessions", content)
+        self.assertIn(">38</strong>", content)
+        self.assertIn("Lifetime · 482 sessions", content)
+        self.assertIn(">39</strong>", content)
+        self.assertIn("content views (all sections)", content)
+        self.assertIn("Top portfolio pages", content)
+
     def test_period_label_is_escaped(self):
         card = spec("Executive Briefings")
         card["period_label"] = '<custom>'

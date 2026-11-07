@@ -1425,6 +1425,10 @@ def render_cms_article(article: CmsArticle) -> str:
             share_footer=_safe_share_footer(article),
             cms_css=CMS_FALLBACK_CSS + css,
         )
+        # Normalize legacy headings at display time without touching CMS fields
+        # or invalidating article fingerprints that bind approved artwork.
+        from briefing_editorial_labels import normalize_leadership_decision_label
+        reader = normalize_leadership_decision_label(reader)
         # This is the single insertion point for all independent reader styles.
         # Recommendations are restricted to published Executive Briefings only.
         try:

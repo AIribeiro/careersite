@@ -106,7 +106,7 @@ class ApprovedAssetContractTests(unittest.TestCase):
         for page in reader.pages:
             self.assertAlmostEqual(float(page.mediabox.width), 595.2756, delta=1)
             self.assertAlmostEqual(float(page.mediabox.height), 841.8898, delta=1)
-            self.assertTrue(page.get_contents())
+            self.assertIsNotNone(page.get_contents())
             # Attempt to decompress page commands, detecting truncated streams.
             self.assertGreater(len(page.get_contents().get_data()), 25)
 

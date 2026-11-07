@@ -2,28 +2,28 @@
   "schema_version": 1,
   "slug": "15-ways-ai-can-change-your-business",
   "article_fingerprint": "2bcd87f56aad0b87d2502d3dc435bc92957e9998bab7cc0c09bbae86356c4979",
-  "revision": "2026-11-07-r1",
+  "revision": "2026-11-07-r2",
   "heading": "15 ways AI can change your business",
   "deck": "Financial, operational, customer and workforce outcomes—what it takes and what to prove.",
   "desktop": {
     "file": "desktop.webp",
-    "sha256": "ab2c496ff2fb3f6540b62a69f170913fcac9451abe2a2f6d63bf30c5f9ee00ab",
+    "sha256": "684c42de88b06c7e3b95b534278bc91a6126319ec0884cd842d71a00206dc121",
     "width": 1400,
-    "height": 3194,
-    "bytes": 318770
+    "height": 3377,
+    "bytes": 308590
   },
   "mobile": {
     "file": "mobile.webp",
-    "sha256": "48b0132ddf0a83e11f9eff1d08ddc8eadd7830a28e66625d2b353d0968c0634a",
+    "sha256": "57458aa7305ebf83d428f08d61de95afdca5f4eea321fe3d9d20ed4dec64aa5a",
     "width": 800,
-    "height": 5038,
-    "bytes": 315404
+    "height": 6661,
+    "bytes": 310628
   },
   "pdf": {
     "file": "infographic.pdf",
-    "sha256": "2b9bd361012358042b7ca357f7bae2e2a6efce2a4ec334cc33a1dbe8828238ca",
+    "sha256": "b18e5e8a3e321eca76687b1de68ee4e9a7d98432cfbf8eb8ebe025b9b3596a8c",
     "pages": 3,
-    "bytes": 378852
+    "bytes": 341026
   },
   "release_note": "Exact source content and premium design require editorial approval in CMS."
 }

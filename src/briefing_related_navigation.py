@@ -16,6 +16,12 @@ from typing import Iterable
 # Relevance stays stable as new editions are published; missing or unpublished
 # references are skipped and filled by the topic-based fallback.
 EDITORIAL_PATHS: dict[str, tuple[tuple[str, str], ...]] = {
+    "policy-is-not-permission-executive-ai-governance": (
+        ("ai-was-approved-who-can-stop-it",
+         "Extend the execution-time control into continued authority, ownership and stop rights after go-live."),
+        ("ai-roi-what-executives-must-prove-before-scaling",
+         "Test whether the value of a controlled AI workflow justifies its total operating cost."),
+    ),
     "ai-adoption-four-leadership-responses": (
         ("seven-questions-for-better-ai-decisions",
          "Test whether the proposed use case deserves adoption before choosing an intervention."),
@@ -95,6 +101,9 @@ EDITORIAL_PATHS: dict[str, tuple[tuple[str, str], ...]] = {
 }
 
 EDITORIAL_INTROS: dict[str, str] = {
+    "policy-is-not-permission-executive-ai-governance": (
+        "Once permission can be enforced at execution, test the longer-term authority and the economics of continuing it."
+    ),
     "ai-adoption-four-leadership-responses": (
         "Once the people and work barriers are clear, challenge the use case and its operating controls."
     ),

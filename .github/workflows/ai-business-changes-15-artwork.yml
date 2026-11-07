@@ -6,6 +6,7 @@ on:
       - 'assets/approved_infographics/15-ways-ai-can-change-your-business.png'
       - 'scripts/build_ai_business_changes_approved_artwork.py'
       - 'tests/test_ai_business_changes_approved_artwork.py'
+      - 'tests/test_briefing_approved_asset_renderer.py'
       - '.github/workflows/ai-business-changes-15-artwork.yml'
   workflow_dispatch:
 concurrency:

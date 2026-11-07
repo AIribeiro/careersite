@@ -88,7 +88,7 @@ class ApprovedAssetContractTests(unittest.TestCase):
         self.assertTrue(reader_pdf.startswith(b"%PDF-"))
         self.assertIn(b"%%EOF", reader_pdf[-2048:])
 
-    def test_published_business_changes_pdf_is_a_valid_three_page_a4_document(self):
+    def test_published_business_changes_pdf_is_exactly_one_a4_page(self):
         """Do not publish a PDF CTA for corrupt or non-A4 source assets."""
         import json
         from pypdf import PdfReader
@@ -101,7 +101,7 @@ class ApprovedAssetContractTests(unittest.TestCase):
         self.assertEqual(len(pdf), b["pdf"]["bytes"])
         self.assertEqual(hashlib.sha256(pdf).hexdigest(), b["pdf"]["sha256"])
         reader = PdfReader(BytesIO(pdf), strict=True)
-        self.assertEqual(len(reader.pages), 3)
+        self.assertEqual(len(reader.pages), 1)
         self.assertEqual(len(reader.pages), b["pdf"]["pages"])
         for page in reader.pages:
             self.assertAlmostEqual(float(page.mediabox.width), 595.2756, delta=1)

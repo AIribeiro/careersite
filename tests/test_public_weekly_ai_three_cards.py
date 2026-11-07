@@ -23,7 +23,8 @@ def edition(slug: str, *, kind: str = "Weekly Brief", category: str = "Weekly AI
 
 def report() -> dict:
     return {
-        "quality": {"page_views": 6, "page_sessions": 6,
+        "quality": {"site_sessions": 12, "site_views": 16,
+                    "page_views": 6, "page_sessions": 6,
                     "article_views": 10, "article_sessions": 9},
         "performance": [
             {"kind": "page", "content": "home", "views": 5, "sessions": 5},
@@ -88,14 +89,17 @@ class FourColumnPortfolioTests(unittest.TestCase):
         self.assertEqual([card["title"] for card in cards], [
             "Portfolio visits", "Articles", "Weekly AI", "Executive Briefings"
         ])
-        self.assertEqual([card["views"] for card in cards], [6, 6, 4, 0])
+        self.assertEqual([card["views"] for card in cards], [12, 6, 4, 0])
+        self.assertEqual(cards[0]["measure"], "Site-wide sessions")
+        self.assertEqual(cards[0]["sessions"], 16)
+        self.assertEqual(cards[0]["sessions_label"], "content views (all sections)")
         self.assertTrue(all(card.get("available", True) for card in cards))
         self.assertEqual([card["rank_title"] for card in cards], [
-            "Top destinations", "Most-read articles",
+            "Top portfolio pages", "Most-read articles",
             "Most-read editions", "Most-read briefings",
         ])
-        self.assertTrue(any("Articles, Weekly AI and Executive Briefings"
-                            in x.value for x in at.caption))
+        self.assertTrue(any("Site-wide reach: 12 browser sessions generated "
+                            "16 content views" in x.value for x in at.caption))
 
     def test_no_metadata_means_unknown_not_illusory_zero_editions(self):
         from streamlit.testing.v1 import AppTest
@@ -117,7 +121,7 @@ class FourColumnPortfolioTests(unittest.TestCase):
         self.assertFalse(at.exception)
         grid.assert_called_once()
         cards = grid.call_args.args[0]
-        self.assertEqual(cards[0]["views"], 6)
+        self.assertEqual(cards[0]["views"], 12)
         self.assertEqual([card["available"] for card in cards[1:]],
                          [False, False, False])
 

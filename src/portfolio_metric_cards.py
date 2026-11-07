@@ -124,7 +124,8 @@ def _card(spec: dict, index: int) -> str:
     available = bool(spec.get("available", True))
     primary = _formatted(spec["views"] if available else None)
     lifetime = _formatted(spec.get("lifetime") if available else None)
-    lifetime_line = "Lifetime unavailable" if lifetime == "—" else f"Lifetime · {lifetime} views"
+    lifetime_unit = escape(str(spec.get("lifetime_unit", "views")))
+    lifetime_line = "Lifetime unavailable" if lifetime == "—" else f"Lifetime · {lifetime} {lifetime_unit}"
     sessions = _formatted(spec.get("sessions") if available else None)
     items = _formatted(spec.get("items") if available else None)
     if available and spec.get("total_items") is not None:

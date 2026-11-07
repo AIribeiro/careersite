@@ -32,7 +32,7 @@ def portrait_from_art(im,box):
     return crop,mask
 def footer(im,mobile=False):
     w,h=im.size
-    height=155 if mobile else 144
+    height=155 if mobile else 125
     y=h-height
     original=im.copy()
     if mobile:

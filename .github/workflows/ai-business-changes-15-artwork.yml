@@ -24,10 +24,12 @@ jobs:
         run: python scripts/generate_ai_business_changes_15.py --output /tmp/ai-value-15
       - name: Produce source-locked new briefing bundle
         run: |
+          # Replace only the not-yet-CMS-approved r1 preview with this reviewed r2 design.
+          rm -rf static/briefing-artwork/15-ways-ai-can-change-your-business
           python scripts/build_briefing_artwork_bundle.py \
             --slug 15-ways-ai-can-change-your-business \
             --article-fingerprint 2bcd87f56aad0b87d2502d3dc435bc92957e9998bab7cc0c09bbae86356c4979 \
-            --revision 2026-11-07-r1 \
+            --revision 2026-11-07-r2 \
             --desktop /tmp/ai-value-15/desktop.png \
             --mobile /tmp/ai-value-15/mobile.png \
             --pdf /tmp/ai-value-15/infographic.pdf \

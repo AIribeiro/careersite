@@ -236,7 +236,7 @@ def seven_questions_body() -> str:
     return (
         '<div class="aiq-guide-container">'
         '<section class="aiq-guide-top" data-analytics-section="aiq-decision-framing">'
-        '<div class="aiq-thesis"><span class="aiq-kicker">The executive premise</span>'
+        '<div class="aiq-thesis"><span class="aiq-kicker">The Leadership Decision</span>'
         '<h2>Seven lenses. One defensible decision.</h2>'
         '<p>When an AI proposal reaches the leadership table, your job is not to ask for a better demo. '
         'It is to establish relevance, precision, assumptions, evidence, causes, consequences and an '

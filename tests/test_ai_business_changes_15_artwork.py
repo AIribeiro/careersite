@@ -27,5 +27,19 @@ class AiBusinessChangesCanvasTests(unittest.TestCase):
                     self.assertNotEqual(im.getpixel((0,y)),(0,0,0),f"Left black row {y}")
                     self.assertNotEqual(im.getpixel((im.width-1,y)),(0,0,0),f"Right black row {y}")
                 self.assertNotEqual(im.getpixel((im.width//2,im.height-60)),(0,0,0))
+
+    def test_unnumbered_value_panel_fills_the_last_desktop_grid_slot(self):
+        from generate_ai_business_changes_15 import CREAM, VALUE_CHECK_ROWS
+        self.assertEqual([label for label,_ in VALUE_CHECK_ROWS],["RESULT","ATTRIBUTION","NET EFFECT"])
+        desktop=render(False)
+        # The empty slot is the right-hand cell beside measure 15.
+        x=55+649
+        y=550+sum(100+((len(g[5])+1)//2)*239+20 for g in GROUPS[:-1])+100+239
+        self.assertNotEqual(desktop.getpixel((x+80,y+45)),tuple(bytes.fromhex(CREAM[1:])))
+        self.assertNotEqual(desktop.getpixel((x+320,y+125)),tuple(bytes.fromhex(CREAM[1:])))
+        # The mobile version has a corresponding unnumbered proof panel.
+        mobile=render(True)
+        self.assertGreater(mobile.height,7400)
+
 if __name__=="__main__":
     unittest.main()

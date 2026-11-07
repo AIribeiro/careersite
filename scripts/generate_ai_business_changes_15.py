@@ -138,6 +138,40 @@ def card(im,x,y,w,h,item,color,mobile):
     first+=79 if mobile else 49
     t(d,x+22,first,"PROOF",20 if mobile else 15,color,True)
     paragraph(d,x+(170 if mobile else 119),first-2,proof,w-(195 if mobile else 144),24 if mobile else 17,MUTED,limit=2)
+VALUE_CHECK_ROWS=(
+    ("RESULT","Did the outcome improve?"),
+    ("ATTRIBUTION","What was genuinely caused by AI?"),
+    ("NET EFFECT","Does value remain after full costs and rework?"),
+)
+
+def value_check_panel(im,x,y,w,h,mobile=False):
+    """Unnumbered editorial proof panel, not a sixteenth AI measure."""
+    d=ImageDraw.Draw(im)
+    violet="#816A95"
+    surface="#F3EFF7"
+    frame="#D9D0E3"
+    rounded(d,(x,y,x+w,y+h),surface,18,frame,2)
+    d.rounded_rectangle((x+12,y+13,x+18,y+h-13),radius=3,fill=violet)
+    left=x+33
+    t(d,left,y+18,"THE VALUE TEST",20 if mobile else 17,violet,True)
+    # Original line icon: documented result + confirmation, no extra metric number.
+    icon_x=x+w-(91 if mobile else 74);icon_y=y+23
+    d.rounded_rectangle((icon_x,icon_y,icon_x+33,icon_y+38),radius=5,outline=violet,width=3)
+    d.line([(icon_x+7,icon_y+22),(icon_x+14,icon_y+29),(icon_x+27,icon_y+12)],fill=violet,width=3)
+    t(d,left,y+(62 if mobile else 50),
+      "Before calling it AI impact",31 if mobile else 23,INK,True)
+    first=y+(140 if mobile else 98)
+    step=63 if mobile else 37
+    label_w=180 if mobile else 132
+    for i,(label,question) in enumerate(VALUE_CHECK_ROWS):
+        row_y=first+i*step
+        if i:
+            d.line((left,row_y-12 if mobile else row_y-7,x+w-24,row_y-12 if mobile else row_y-7),
+                   fill="#E0D9E9",width=1)
+        t(d,left,row_y,label,18 if mobile else 15,violet,True)
+        paragraph(d,left+label_w,row_y-2,question,
+                  w-label_w-65,23 if mobile else 16,INK,limit=2)
+
 def action(im,y,mobile):
     d=ImageDraw.Draw(im);x=34 if mobile else 55;right=im.width-x
     h=266 if mobile else 230
@@ -163,6 +197,8 @@ def required_height(mobile=False):
         y+=112 if mobile else 100
         count=len(group[5])
         y+=count*365 if mobile else math.ceil(count/2)*239
+        if mobile and count%2:  # the unnumbered value-test panel follows the 15th item
+            y+=365
         y+=20
     return y+(308 if mobile else 260)+175
 
@@ -178,11 +214,18 @@ def render(mobile=False):
         if mobile:
             for item in items:
                 card(im,34,y,w-68,350,item,group[2],True);y+=365
+            if len(items)%2:
+                value_check_panel(im,34,y,w-68,350,True);y+=365
         else:
             for j,item in enumerate(items):
                 x=55+(j%2)*649
                 row=j//2
                 card(im,x,y+row*239,635,227,item,group[2],False)
+            if len(items)%2:
+                # Complete the final 2-column row without creating a 16th metric.
+                x=55+(len(items)%2)*649
+                row=len(items)//2
+                value_check_panel(im,x,y+row*239,635,227,False)
             y+=math.ceil(len(items)/2)*239
         y+=20 if mobile else 20
     action(im,y+8,mobile);footer(im,y+308 if mobile else y+260,mobile)

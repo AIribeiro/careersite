@@ -107,6 +107,8 @@ jobs:
                   actual = daily_quote_short_link(
                       slug, channel, campaign=q['utm_campaign'][0],
                   )
+              elif q.get('page') == ['briefing']:
+                  actual = short_briefing_link(slug, channel)
               else:
                   actual = short_article_link(slug, channel)
               assert actual and actual.endswith(f'/go/{code}/')

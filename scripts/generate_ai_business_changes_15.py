@@ -156,9 +156,20 @@ def footer(im,y,mobile):
     t(d,tx,y+73,"AI LEADER",20,"#A5EBF5",True)
     paragraph(d,tx,y+111,"Enterprise AI Adoption · Governance · Business Transformation",
         im.width-tx-25,17,"#DAE8F1",limit=2)
+def required_height(mobile=False):
+    """Determine the full physical canvas before drawing; never crop past its bounds."""
+    y=625 if mobile else 550
+    for group in GROUPS:
+        y+=112 if mobile else 100
+        count=len(group[5])
+        y+=count*365 if mobile else math.ceil(count/2)*239
+        y+=20
+    return y+(308 if mobile else 260)+175
+
+
 def render(mobile=False):
     w=800 if mobile else 1400
-    im=Image.new("RGB",(w,5200 if mobile else 3190),CREAM)
+    im=Image.new("RGB",(w,required_height(mobile)),CREAM)
     header(im,mobile);intro(im,mobile)
     y=625 if mobile else 550
     for group in GROUPS:
@@ -175,9 +186,10 @@ def render(mobile=False):
             y+=math.ceil(len(items)/2)*239
         y+=20 if mobile else 20
     action(im,y+8,mobile);footer(im,y+308 if mobile else y+260,mobile)
-    # No trailing empty canvas in release
-    bottom=y+(308 if mobile else 260)+175
-    return im.crop((0,0,w,bottom))
+    # A crop beyond the allocated image silently pads with black; prohibit it.
+    expected_bottom=y+(308 if mobile else 260)+175
+    assert im.height==expected_bottom, (im.height,expected_bottom)
+    return im
 def build(dest):
     dest=Path(dest);dest.mkdir(parents=True,exist_ok=True)
     assert len([x for g in GROUPS for x in g[5]])==15

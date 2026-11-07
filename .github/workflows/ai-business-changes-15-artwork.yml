@@ -1,0 +1,68 @@
+name: Release AI business changes — fifteen outcomes
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate_ai_business_changes_15.py'
+      - '.github/workflows/ai-business-changes-15-artwork.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install image and PDF tooling
+        run: python -m pip install -r requirements.txt 'reportlab==4.4.4'
+      - name: Render original 15-outcome art, mobile and A4 PDF
+        run: python scripts/generate_ai_business_changes_15.py --output /tmp/ai-value-15
+      - name: Produce source-locked new briefing bundle
+        run: |
+          python scripts/build_briefing_artwork_bundle.py \
+            --slug 15-ways-ai-can-change-your-business \
+            --article-fingerprint 2bcd87f56aad0b87d2502d3dc435bc92957e9998bab7cc0c09bbae86356c4979 \
+            --revision 2026-11-07-r1 \
+            --desktop /tmp/ai-value-15/desktop.png \
+            --mobile /tmp/ai-value-15/mobile.png \
+            --pdf /tmp/ai-value-15/infographic.pdf \
+            --heading "15 ways AI can change your business" \
+            --deck "Financial, operational, customer and workforce outcomes—what it takes and what to prove."
+      - name: Validate the shared reader, checksums and source identity
+        run: |
+          PYTHONPATH=src python -m unittest -v tests.test_briefing_approved_asset_renderer
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          from src.briefing_approved_asset_renderer import load_bundle,validate_bundle
+          from PIL import Image
+          slug='15-ways-ai-can-change-your-business'
+          root=Path('static/briefing-artwork')
+          b=load_bundle(slug,asset_root=root)
+          assert b and b['article_fingerprint']=='2bcd87f56aad0b87d2502d3dc435bc92957e9998bab7cc0c09bbae86356c4979'
+          validate_bundle(b)
+          for variant in ('desktop','mobile'):
+            p=root/slug/b[variant]['file']
+            assert hashlib.sha256(p.read_bytes()).hexdigest()==b[variant]['sha256']
+            with Image.open(p) as im:im.verify()
+          print("Original 15-outcome source match, desktop/mobile WebP and A4 PDF verified")
+          PY
+      - name: Commit verified reader assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/briefing-artwork/15-ways-ai-can-change-your-business/
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish reviewed-ready 15-outcome AI value briefing artwork"
+            for attempt in 1 2 3 4; do
+              git pull --rebase origin main
+              if git push origin HEAD:main; then exit 0; fi
+              sleep 2
+            done
+            exit 1
+          fi

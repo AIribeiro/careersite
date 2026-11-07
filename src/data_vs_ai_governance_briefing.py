@@ -150,7 +150,7 @@ def dual_governance_briefing_article(
         '</div></section>'
         '<section class="section paper"><div class="container dga-shell">'
         '<section class="dga-judgment" data-analytics-section="briefing-reader-summary">'
-        '<div><span class="dga-eyebrow">The executive judgment</span>'
+        '<div><span class="dga-eyebrow">The Leadership Decision</span>'
         '<h2>Do not merge two different responsibilities—or build two approval empires.</h2>'
         '<p>Give data ownership and AI oversight distinct evidence requirements, then bring them together in one accountable business release decision. Neither the data catalogue nor the model score is the approval.</p></div>'
         '<aside class="dga-move"><strong>Next management move</strong>'

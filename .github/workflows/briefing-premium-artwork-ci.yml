@@ -12,6 +12,7 @@ on:
       - 'scripts/build_briefing_artwork_bundle.py'
       - 'static/briefing-artwork/**'
       - 'tests/test_briefing_approved_asset_renderer.py'
+      - 'tests/test_governance_briefing_v2_release.py'
       - '.github/workflows/briefing-premium-artwork-ci.yml'
   pull_request:
     branches: [main]
@@ -24,6 +25,7 @@ on:
       - 'scripts/build_briefing_artwork_bundle.py'
       - 'static/briefing-artwork/**'
       - 'tests/test_briefing_approved_asset_renderer.py'
+      - 'tests/test_governance_briefing_v2_release.py'
       - '.github/workflows/briefing-premium-artwork-ci.yml'
 
 permissions:
@@ -44,9 +46,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Compile premium bundle, renderer and admin gates
-        run: python -m py_compile src/briefing_approved_asset_renderer.py src/briefing_infographic_store.py src/site_cms.py src/page_admin.py scripts/build_briefing_artwork_bundle.py app.py tests/test_briefing_approved_asset_renderer.py
+        run: python -m py_compile src/briefing_approved_asset_renderer.py src/briefing_infographic_store.py src/site_cms.py src/page_admin.py scripts/build_briefing_artwork_bundle.py app.py tests/test_briefing_approved_asset_renderer.py tests/test_governance_briefing_v2_release.py
       - name: Verify packaging, exact source and Safari self-contained images
-        run: python -m unittest -v tests.test_briefing_approved_asset_renderer
+        run: python -m unittest -v tests.test_briefing_approved_asset_renderer tests.test_governance_briefing_v2_release
       - name: Verify direct public PDF URL returns the exact approved binary
         run: |
           set -euo pipefail
@@ -61,8 +63,8 @@ jobs:
           assert asset[:5]==b"%PDF-", "Direct public URL returned a non-PDF response"
           assert hashlib.sha256(asset).hexdigest()==manifest["pdf"]["sha256"], "Downloaded PDF differs from published manifest"
           reader=PdfReader("/tmp/approved-infographic.pdf",strict=True)
-          assert len(reader.pages)==3==manifest["pdf"]["pages"]
-          print("Public URL returned approved three-page A4 PDF bytes:",len(asset))
+          assert len(reader.pages)==manifest["pdf"]["pages"]
+          print("Public URL returned exact approved A4 PDF bytes:",len(asset))
           PY
       - name: Check no broken image endpoints are emitted
         run: |

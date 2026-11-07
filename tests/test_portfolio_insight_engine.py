@@ -14,6 +14,8 @@ from portfolio_insight_engine import derive_portfolio_insights
 def make_report(previous_page=0, previous_article=0):
     return {
         "quality": {
+            "site_sessions": 905,
+            "site_views": 1222,
             "page_views": 933,
             "article_views": 289,
             "page_sessions": 793,
@@ -131,8 +133,10 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
             self.assertEqual([x["title"] for x in cards], [
                 "Portfolio visits", "Articles", "Weekly AI", "Executive Briefings"
             ])
-            self.assertEqual(cards[0]["views"], 933)
-            self.assertEqual(cards[0]["sessions_label"], "page-view sessions")
+            self.assertEqual(cards[0]["views"], 905)
+            self.assertEqual(cards[0]["sessions"], 1222)
+            self.assertEqual(cards[0]["sessions_label"], "content views (all sections)")
+            self.assertEqual(cards[0]["lifetime_unit"], "sessions")
             journey.assert_called_once_with(app.selectbox[0].value)
         self.assertFalse(app.exception)
         self.assertIn("What changed and why it matters", [x.value for x in app.subheader])

@@ -156,6 +156,13 @@ def render_public_portfolio_overview() -> None:
              "Calendar periods use Stockholm time; weeks start Monday. "
              "Last Week and Last Month are completed periods. You can select any period manually.",
     )
+    # Keep the manual refresh immediately beside the reporting controls,
+    # before any potentially expensive report or visual is rendered.
+    if st.button("Refresh insights", key="portfolio_refresh_insights"):
+        _lifetime_content_report.clear()
+        _recent_content_report.clear()
+        st.rerun()
+
     try:
         report = fetch_intelligence(str(window))
     except (RuntimeError, ValueError, TimeoutError) as exc:
@@ -329,11 +336,6 @@ def render_public_portfolio_overview() -> None:
         "ordinary page and is included in site views. Item-session observations "
         "can overlap across publications and do not identify individual people."
     )
-
-    if st.button("Refresh insights", key="portfolio_refresh_insights"):
-        _lifetime_content_report.clear()
-        _recent_content_report.clear()
-        st.rerun()
 
     recent_report = None
     if str(window) in ("14d", "30d", "60d", "90d", "365d", "this_month", "this_year", "all"):

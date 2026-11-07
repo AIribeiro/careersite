@@ -6,6 +6,9 @@ on:
       - 'scripts/generate_ai_business_changes_15.py'
       - '.github/workflows/ai-business-changes-15-artwork.yml'
   workflow_dispatch:
+concurrency:
+  group: fifteen-outcome-briefing-artwork-main
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:

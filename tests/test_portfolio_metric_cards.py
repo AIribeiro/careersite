@@ -106,7 +106,7 @@ class PortfolioMetricCardTests(unittest.TestCase):
             "measure": "Site-wide sessions",
             "views": 38,
             "lifetime": 482,
-            "lifetime_unit": "sessions",
+            "lifetime_unit": "views",
             "sessions": 39,
             "sessions_label": "content views (all sections)",
             "items": 3,
@@ -118,7 +118,7 @@ class PortfolioMetricCardTests(unittest.TestCase):
         ])
         self.assertIn("Site-wide sessions", content)
         self.assertIn(">38</strong>", content)
-        self.assertIn("Lifetime · 482 sessions", content)
+        self.assertIn("Lifetime · 482 views", content)
         self.assertIn(">39</strong>", content)
         self.assertIn("content views (all sections)", content)
         self.assertIn("Top portfolio pages", content)

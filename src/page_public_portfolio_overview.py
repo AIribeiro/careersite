@@ -141,7 +141,8 @@ def render_public_portfolio_overview() -> None:
     st.title("Portfolio visits & reads")
     st.caption(
         "What visitors explore across the portfolio and which articles receive "
-        "attention. Browser sessions are not identified people; repeat views count."
+        "attention. Site sessions are deduplicated browser sessions, not unique "
+        "people; repeat content views count."
     )
     initialize_reporting_period(st.session_state, _fetch_dashboard)
     window = st.selectbox(
@@ -169,7 +170,13 @@ def render_public_portfolio_overview() -> None:
     quality = report.get("quality") or {}
     page_views = max(0, int(quality.get("page_views") or 0))
     article_views = max(0, int(quality.get("article_views") or 0))
-    page_sessions = max(0, int(quality.get("page_sessions") or 0))
+    legacy_views = max(0, int(quality.get("legacy_thinking_views") or 0))
+    # One anonymous session is counted once across ordinary pages and editorial
+    # readers, including direct entry to an article/briefing.
+    site_sessions = (max(0, int(quality["site_sessions"]))
+                     if quality.get("site_sessions") is not None else None)
+    site_views = (max(0, int(quality["site_views"]))
+                  if quality.get("site_views") is not None else None)
     # The content RPC reports WEEKLY AI as ordinary article-view rows.
     # Use published format metadata to make mutually exclusive visual groups.
     catalogue_available = True
@@ -190,12 +197,12 @@ def render_public_portfolio_overview() -> None:
         len(published_briefings(published_editions)) if catalogue_available else None
     )
     rows_reconcile = regular_views + weekly_views + briefing_views == article_views
-    lifetime_pages = lifetime_articles = lifetime_weekly = lifetime_briefings = None
+    lifetime_sessions = lifetime_articles = lifetime_weekly = lifetime_briefings = None
     try:
         lifetime_report = report if str(window) == "all" else _lifetime_content_report()
         lifetime_quality = lifetime_report.get("quality") or {}
-        if lifetime_quality.get("page_views") is not None:
-            lifetime_pages = max(0, int(lifetime_quality["page_views"]))
+        if lifetime_quality.get("site_sessions") is not None:
+            lifetime_sessions = max(0, int(lifetime_quality["site_sessions"]))
         if catalogue_available and "performance" in lifetime_report:
             lifetime_essays, lifetime_editions, lifetime_briefing_rows = split_editorial_rows(
                 portfolio_visit_rows(lifetime_report, "article"), published_editions)
@@ -219,20 +226,21 @@ def render_public_portfolio_overview() -> None:
             )
             _ranking_chart(historical_routes, compact=True)
     # One responsive grid keeps the four categories visually identical.
-    # No cross-category additions: briefing library views remain page views,
-    # while individual published briefings remain article-content views.
+    # The reach headline is deduplicated across page and editorial entry,
+    # while the other three cards partition article views (not sessions).
     cards = [
         {
             "title": "Portfolio visits",
             "category": "Reach",
-            "measure": "Page views",
-            "views": page_views,
-            "lifetime": lifetime_pages,
-            "sessions": page_sessions,
-            "sessions_label": "page-view sessions",
+            "measure": "Site-wide sessions",
+            "views": site_sessions,
+            "lifetime": lifetime_sessions,
+            "lifetime_unit": "sessions",
+            "sessions": site_views,
+            "sessions_label": "content views (all sections)",
             "items": len(current_routes),
             "item_unit": "active destinations",
-            "rank_title": "Top destinations",
+            "rank_title": "Top portfolio pages",
             "rows": current_routes,
         },
         {
@@ -289,6 +297,24 @@ def render_public_portfolio_overview() -> None:
     render_public_legacy_insights(str(window))
     st.divider()
 
+    if site_views is not None:
+        # The canonical view stream counts editorial entry once using article_view,
+        # never again as the parallel article-page page_view event.
+        segments = (f"{page_views:,} ordinary page views + "
+                    f"{article_views:,} editorial views")
+        if legacy_views:
+            segments += f" + {legacy_views:,} historical Thinking views"
+        if site_views != page_views + article_views + legacy_views:
+            st.warning("Site content views do not reconcile with their page/article "
+                       "subtotals; please inspect tracking coverage.")
+        st.caption(
+            f"Site-wide reach: {site_sessions:,} browser sessions generated "
+            f"{site_views:,} content views ({segments}). "
+            "A session can open multiple pages or publications."
+            if site_sessions is not None else
+            f"Content views: {site_views:,} ({segments}). "
+            "Site-session reporting is temporarily unavailable."
+        )
     if catalogue_available and not rows_reconcile:
         st.caption(
             "The per-content view breakdown does not reconcile with the overall "
@@ -296,12 +322,12 @@ def render_public_portfolio_overview() -> None:
             "before comparing the three reading categories."
         )
     st.caption(
-        "Articles, Weekly AI and Executive Briefings are separate partitions of "
-        "existing article views, not extra website traffic. The Briefings library "
-        "is included in Portfolio visits. Item-session observations may overlap "
-        "across publications and are not unique readers. Rankings show only "
-        "content with recorded views in the selected period. Ranking bars are "
-        "scaled within each card, not across categories."
+        "The first card deduplicates site sessions across ordinary pages and "
+        "editorial content. Its ranking covers ordinary portfolio pages only. "
+        "Articles, Weekly AI and Executive Briefings partition editorial views; "
+        "they must not be added to site sessions. The Briefings library is an "
+        "ordinary page and is included in site views. Item-session observations "
+        "can overlap across publications and do not identify individual people."
     )
 
     if st.button("Refresh insights", key="portfolio_refresh_insights"):

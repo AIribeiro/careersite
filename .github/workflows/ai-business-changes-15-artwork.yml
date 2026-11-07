@@ -1,9 +1,11 @@
-name: Release AI business changes — fifteen outcomes
+name: Release approved fifteen-outcome image and one-page A4 PDF
 on:
   push:
     branches: [main]
     paths:
-      - 'scripts/generate_ai_business_changes_15.py'
+      - 'assets/approved_infographics/15-ways-ai-can-change-your-business.png'
+      - 'scripts/build_ai_business_changes_approved_artwork.py'
+      - 'tests/test_ai_business_changes_approved_artwork.py'
       - '.github/workflows/ai-business-changes-15-artwork.yml'
   workflow_dispatch:
 concurrency:
@@ -23,56 +25,54 @@ jobs:
           python-version: '3.13'
       - name: Install image and PDF tooling
         run: python -m pip install -r requirements.txt 'reportlab==4.4.4'
-      - name: Render original 15-outcome art, mobile and A4 PDF
-        run: python scripts/generate_ai_business_changes_15.py --output /tmp/ai-value-15
-      - name: Regression test complete artwork canvas including last outcome
-        run: PYTHONPATH=src python -m unittest -v tests.test_ai_business_changes_15_artwork
-      - name: Produce source-locked new briefing bundle
+      - name: Verify approved PNG and exactly one A4 PDF page
         run: |
-          # Rebuild the approved asset set with the unnumbered executive proof panel in the empty grid position.
+          PYTHONPATH=src python -m unittest -v tests.test_ai_business_changes_approved_artwork
+          python scripts/build_ai_business_changes_approved_artwork.py --output /tmp/approved-15ways
+      - name: Package source-locked responsive artwork and one-page PDF
+        run: |
           rm -rf static/briefing-artwork/15-ways-ai-can-change-your-business
           python scripts/build_briefing_artwork_bundle.py \
             --slug 15-ways-ai-can-change-your-business \
             --article-fingerprint 2bcd87f56aad0b87d2502d3dc435bc92957e9998bab7cc0c09bbae86356c4979 \
-            --revision 2026-11-07-r5 \
-            --desktop /tmp/ai-value-15/desktop.png \
-            --mobile /tmp/ai-value-15/mobile.png \
-            --pdf /tmp/ai-value-15/infographic.pdf \
+            --revision 2026-11-07-r6 \
+            --desktop /tmp/approved-15ways/desktop.png \
+            --mobile /tmp/approved-15ways/mobile.png \
+            --pdf /tmp/approved-15ways/infographic.pdf \
             --heading "15 ways AI can change your business" \
-            --deck "Financial, operational, customer and workforce outcomes—what it takes and what to prove."
-      - name: Validate the shared reader, checksums and source identity
+            --deck "Fifteen business changes and one value test, illustrated in the exact owner-approved visual."
+      - name: Confirm source identity, full image, one-page PDF and common HTML renderer
         run: |
           PYTHONPATH=src python -m unittest -v tests.test_briefing_approved_asset_renderer
           python - <<'PY'
           from pathlib import Path
-          import hashlib
-          from src.briefing_approved_asset_renderer import load_bundle,validate_bundle
           from PIL import Image
-          slug='15-ways-ai-can-change-your-business'
-          root=Path('static/briefing-artwork')
-          b=load_bundle(slug,asset_root=root)
-          assert b and b['article_fingerprint']=='2bcd87f56aad0b87d2502d3dc435bc92957e9998bab7cc0c09bbae86356c4979'
+          from pypdf import PdfReader
+          from src.briefing_approved_asset_renderer import load_bundle,validate_bundle
+          root=Path("static/briefing-artwork")
+          b=load_bundle("15-ways-ai-can-change-your-business",asset_root=root)
+          assert b and b["article_fingerprint"]=="2bcd87f56aad0b87d2502d3dc435bc92957e9998bab7cc0c09bbae86356c4979"
+          assert b["revision"]=="2026-11-07-r6"
+          assert b["pdf"]["pages"]==1
           validate_bundle(b)
-          for variant in ('desktop','mobile'):
-            p=root/slug/b[variant]['file']
-            assert hashlib.sha256(p.read_bytes()).hexdigest()==b[variant]['sha256']
-            with Image.open(p) as im:
-              im.verify()
-            with Image.open(p) as im:
-              image=im.convert('RGB')
-              assert all(image.getpixel((0,y)) != (0,0,0) and image.getpixel((image.width-1,y)) != (0,0,0) for y in range(image.height)), f'Black padding in {variant}'
-              assert image.getpixel((image.width//2,image.height-60)) != (0,0,0), f'Missing footer in {variant}'
-          print("Original 15-outcome source match, desktop/mobile WebP and A4 PDF verified")
+          for k in ("desktop","mobile"):
+              with Image.open(root/b["slug"]/b[k]["file"]) as im:
+                  assert im.size==(1055,1491)
+                  im.verify()
+          with (root/b["slug"]/b["pdf"]["file"]).open("rb") as p:
+              doc=PdfReader(p,strict=True)
+              assert len(doc.pages)==1
+          print("Published master identity, both images and one-page A4 verified")
           PY
-      - name: Commit verified reader assets
+      - name: Commit updated WebPs, PDF and manifest
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add static/briefing-artwork/15-ways-ai-can-change-your-business/
           if ! git diff --cached --quiet; then
-            git commit -m "Publish reviewed-ready 15-outcome AI value briefing artwork"
+            git commit -m "Publish approved exact-image briefing with one-page A4 PDF"
             for attempt in 1 2 3 4; do
-              git pull --rebase origin main
+              git pull --rebase origin main || exit 1
               if git push origin HEAD:main; then exit 0; fi
               sleep 2
             done

@@ -29,7 +29,7 @@ jobs:
           python scripts/build_briefing_artwork_bundle.py \
             --slug 15-ways-ai-can-change-your-business \
             --article-fingerprint 2bcd87f56aad0b87d2502d3dc435bc92957e9998bab7cc0c09bbae86356c4979 \
-            --revision 2026-11-07-r2 \
+            --revision 2026-11-07-r3 \
             --desktop /tmp/ai-value-15/desktop.png \
             --mobile /tmp/ai-value-15/mobile.png \
             --pdf /tmp/ai-value-15/infographic.pdf \

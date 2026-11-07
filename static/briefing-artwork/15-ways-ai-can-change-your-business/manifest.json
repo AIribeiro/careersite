@@ -2,7 +2,7 @@
   "schema_version": 1,
   "slug": "15-ways-ai-can-change-your-business",
   "article_fingerprint": "2bcd87f56aad0b87d2502d3dc435bc92957e9998bab7cc0c09bbae86356c4979",
-  "revision": "2026-11-07-r2",
+  "revision": "2026-11-07-r3",
   "heading": "15 ways AI can change your business",
   "deck": "Financial, operational, customer and workforce outcomes—what it takes and what to prove.",
   "desktop": {
@@ -21,7 +21,7 @@
   },
   "pdf": {
     "file": "infographic.pdf",
-    "sha256": "ecd29de270bb28daa889652a06d1251802fb87f6c6e07425a04c308af6de4773",
+    "sha256": "1fa50d0ade631c55ba19da8f9757fb32cb9506b399373d12e846a7fb216d2a7b",
     "pages": 3,
     "bytes": 341026
   },

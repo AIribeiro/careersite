@@ -66,6 +66,27 @@ jobs:
           assert len(reader.pages)==manifest["pdf"]["pages"]
           print("Public URL returned exact approved A4 PDF bytes:",len(asset))
           PY
+      - name: Verify new AI governance PDF download is byte-identical to manifest
+        run: |
+          set -euo pipefail
+          URL="https://raw.githubusercontent.com/AIribeiro/careersite/${GITHUB_SHA}/static/briefing-artwork/policy-is-not-permission-executive-ai-governance/infographic.pdf"
+          curl --fail --location --retry 3 --max-time 45 --silent --show-error -o /tmp/governance-infographic.pdf "$URL"
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          from pypdf import PdfReader
+          bundle=Path("static/briefing-artwork/policy-is-not-permission-executive-ai-governance")
+          manifest=json.loads((bundle/"manifest.json").read_text())
+          downloaded=Path("/tmp/governance-infographic.pdf").read_bytes()
+          assert downloaded.startswith(b"%PDF-")
+          assert hashlib.sha256(downloaded).hexdigest()==manifest["pdf"]["sha256"]
+          pdf=PdfReader("/tmp/governance-infographic.pdf",strict=True)
+          assert len(pdf.pages)==manifest["pdf"]["pages"]==1
+          for page in pdf.pages:
+              w,h=map(float,(page.mediabox.width,page.mediabox.height))
+              assert 589<w<601 and 836<h<848
+          print("Governance public PDF matches source and opens as one A4 page.")
+          PY
       - name: Check no broken image endpoints are emitted
         run: |
           python - <<'PY'

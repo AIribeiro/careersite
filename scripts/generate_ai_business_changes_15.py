@@ -128,25 +128,25 @@ def card(im,x,y,w,h,item,color,mobile):
     d.rounded_rectangle((x+18,y+17,x+79,y+65),radius=9,fill=color)
     t(d,x+25,y+24,number,25,WHITE,True)
     tx=x+95
-    paragraph(d,tx,y+20,title,w-116,25 if mobile else 26,INK,True,limit=2,leading=1.12)
-    first=y+(88 if mobile else 87)
-    t(d,x+22,first,"CHANGE",16 if mobile else 15,color,True)
-    paragraph(d,x+119,first-2,change,w-144,18 if mobile else 17,MUTED,limit=2)
-    first+=52 if mobile else 49
-    t(d,x+22,first,"REQUIRES",15 if mobile else 14,color,True)
-    paragraph(d,x+119,first-2,takes,w-144,18 if mobile else 17,INK,limit=2)
-    first+=49 if mobile else 49
-    t(d,x+22,first,"PROOF",16 if mobile else 15,color,True)
-    paragraph(d,x+119,first-2,proof,w-144,18 if mobile else 17,MUTED,limit=2)
+    paragraph(d,tx,y+20,title,w-116,31 if mobile else 26,INK,True,limit=2,leading=1.12)
+    first=y+(98 if mobile else 87)
+    t(d,x+22,first,"CHANGE",20 if mobile else 15,color,True)
+    paragraph(d,x+119,first-2,change,w-144,24 if mobile else 17,MUTED,limit=2)
+    first+=79 if mobile else 49
+    t(d,x+22,first,"REQUIRES",20 if mobile else 14,color,True)
+    paragraph(d,x+119,first-2,takes,w-144,24 if mobile else 17,INK,limit=2)
+    first+=79 if mobile else 49
+    t(d,x+22,first,"PROOF",20 if mobile else 15,color,True)
+    paragraph(d,x+119,first-2,proof,w-144,24 if mobile else 17,MUTED,limit=2)
 def action(im,y,mobile):
     d=ImageDraw.Draw(im);x=34 if mobile else 55;right=im.width-x
-    h=216 if mobile else 183
+    h=266 if mobile else 230
     gradient(im,(x,y,right,y+h),NAVY,NAVY2)
     d.rectangle((x,y,x+11,y+h),fill=CYAN)
     t(d,x+35,y+24,"THE LEADERSHIP DECISION",25 if mobile else 27,"#B9F4FC",True)
     paragraph(d,x+35,y+73,"Choose the outcome. Name the owner. Establish the baseline. Fund the change. Verify before scaling.",
         right-x-65,25 if mobile else 27,WHITE,True,limit=3)
-    paragraph(d,x+35,y+(162 if mobile else 138),"Scale / repair / stop based on evidence, quality and full cost.",right-x-65,19,"#D9E9F1",limit=2)
+    paragraph(d,x+35,y+(214 if mobile else 179),"Scale / repair / stop based on evidence, quality and full cost.",right-x-65,19,"#D9E9F1",limit=2)
 def footer(im,y,mobile):
     gradient(im,(0,y,im.width,im.height),NAVY,NAVY2);d=ImageDraw.Draw(im)
     d.rectangle((0,y,im.width,y+5),fill=CYAN)
@@ -166,17 +166,17 @@ def render(mobile=False):
         items=group[5]
         if mobile:
             for item in items:
-                card(im,34,y,w-68,216,item,group[2],True);y+=230
+                card(im,34,y,w-68,321,item,group[2],True);y+=335
         else:
             for j,item in enumerate(items):
                 x=55+(j%2)*649
                 row=j//2
-                card(im,x,y+row*222,635,209,item,group[2],False)
-            y+=math.ceil(len(items)/2)*222
+                card(im,x,y+row*239,635,227,item,group[2],False)
+            y+=math.ceil(len(items)/2)*239
         y+=20 if mobile else 20
-    action(im,y+8,mobile);footer(im,y+260 if mobile else y+213,mobile)
+    action(im,y+8,mobile);footer(im,y+308 if mobile else y+260,mobile)
     # No trailing empty canvas in release
-    bottom=y+(260 if mobile else 213)+175
+    bottom=y+(308 if mobile else 260)+175
     return im.crop((0,0,w,bottom))
 def build(dest):
     dest=Path(dest);dest.mkdir(parents=True,exist_ok=True)

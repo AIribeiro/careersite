@@ -87,7 +87,7 @@ jobs:
           assert x_image.stat().st_size < 1_000_000
 
           from site_shortlinks import registered_short_links, short_article_link, short_briefing_link, daily_quote_short_link, weekly_ai_short_link
-          from html import escape
+          from html import escape, unescape
           for code, slug, channel, target in registered_short_links():
               page = Path(f'_share_site/go/{code}/index.html')
               assert page.is_file(), f'Missing redirect for {code}'
@@ -137,7 +137,7 @@ jobs:
                   if row_slug == slug and code.startswith('f'):
                       short_markup = Path(f'_share_site/go/{code}/index.html').read_text()
                       assert f'/social/{slug}.png' in short_markup, code
-                      assert edition['edition_title'] in short_markup, code
+                      assert edition['edition_title'] in unescape(short_markup), code
           print('Static article redirects, campaign tags, and social assets validated')
           PY
 

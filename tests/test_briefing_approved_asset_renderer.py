@@ -76,7 +76,9 @@ class ApprovedAssetContractTests(unittest.TestCase):
         self.assertEqual(html.count("data:image/webp;base64,"), 2)
         self.assertEqual(html.count('data-analytics-section="briefing-infographic"'), 1)
         self.assertEqual(html.count('class="canonical-infographic-download"'), 1)
-        self.assertIn("future-ai-leadership-briefing/download.pdf", html)
+        self.assertIn("https://raw.githubusercontent.com/AIribeiro/careersite/main/static/briefing-artwork/future-ai-leadership-briefing/infographic.pdf?v=2026-11-06-r1", html)
+        self.assertNotIn('href="/briefing-artwork/', html)
+        self.assertIn('type="application/pdf"', html)
         self.assertIn("2026-11-06-r1", html)
         self.assertLess(html.find("Download infographic"), html.find("data:image/webp;base64"))
         self.assertNotIn('src="/briefing', html)
@@ -85,6 +87,28 @@ class ApprovedAssetContractTests(unittest.TestCase):
         reader_pdf = verified_pdf_for_article(self.article, asset_root=asset_root)
         self.assertTrue(reader_pdf.startswith(b"%PDF-"))
         self.assertIn(b"%%EOF", reader_pdf[-2048:])
+
+    def test_published_business_changes_pdf_is_a_valid_three_page_a4_document(self):
+        """Do not publish a PDF CTA for corrupt or non-A4 source assets."""
+        import json
+        from pypdf import PdfReader
+        from briefing_approved_asset_renderer import ROOT as ARTWORK_ROOT, validate_bundle, load_bundle
+
+        slug = "15-ways-ai-can-change-your-business"
+        b = load_bundle(slug, asset_root=ARTWORK_ROOT)
+        self.assertIsNotNone(b)
+        _, _, pdf = validate_bundle(b)
+        self.assertEqual(len(pdf), b["pdf"]["bytes"])
+        self.assertEqual(hashlib.sha256(pdf).hexdigest(), b["pdf"]["sha256"])
+        reader = PdfReader(BytesIO(pdf), strict=True)
+        self.assertEqual(len(reader.pages), 3)
+        self.assertEqual(len(reader.pages), b["pdf"]["pages"])
+        for page in reader.pages:
+            self.assertAlmostEqual(float(page.mediabox.width), 595.2756, delta=1)
+            self.assertAlmostEqual(float(page.mediabox.height), 841.8898, delta=1)
+            self.assertTrue(page.get_contents())
+            # Attempt to decompress page commands, detecting truncated streams.
+            self.assertGreater(len(page.get_contents().get_data()), 25)
 
     def test_cms_to_reader_bridge_uses_shared_renderer_for_unknown_slug(self):
         from unittest.mock import patch

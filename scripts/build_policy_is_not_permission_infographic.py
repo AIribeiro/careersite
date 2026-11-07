@@ -124,16 +124,16 @@ def desktop(out):
   col,row=i%3,i//3
   card(im,(49+col*389,564+row*382,card_w,363),it)
  d=ImageDraw.Draw(im)
- d.line((70,1356,1130,1356),fill=(205,221,230),width=3)
- txt(d,69,1315,"AUTONOMY IS A BUSINESS DECISION",33,INK,True)
+ d.line((70,1393,1130,1393),fill=(205,221,230),width=3)
+ txt(d,69,1339,"AUTONOMY IS A BUSINESS DECISION",33,INK,True)
  tiers=[("OBSERVE",(220,234,243)),("RECOMMEND + REVIEW",(213,235,237)),("ACT WITHIN LIMITS",(240,223,209))]
  for i,(label,col) in enumerate(tiers):
   x=69+i*365
-  d.rounded_rectangle((x,1390,x+333,1502),20,fill=col)
-  txt(d,x+20,1430,label,23 if i==1 else 26,INK,True)
- d.rounded_rectangle((48,1540,1150,1665),33,fill=(17,57,85))
- txt(d,81,1560,"THE EXECUTIVE DECISION",27,(220,173,135),True)
- txt(d,81,1608,"Continue • restrict • repair • stop — with evidence.",33,(255,255,255))
+  d.rounded_rectangle((x,1420,x+333,1520),20,fill=col)
+  txt(d,x+20,1455,label,23 if i==1 else 26,INK,True)
+ d.rounded_rectangle((48,1555,1150,1680),33,fill=(17,57,85))
+ txt(d,81,1573,"THE EXECUTIVE DECISION",27,(220,173,135),True)
+ txt(d,81,1618,"Continue • restrict • repair • stop — with evidence.",33,(255,255,255))
  gradient(im,(4,34,60),(3,27,48),1690,H)
  portrait(im,117,1753,38)
  d=ImageDraw.Draw(im)
@@ -161,10 +161,13 @@ def mobile(out):
  d=ImageDraw.Draw(im)
  txt(d,39,2340,"AUTONOMY IS A BUSINESS DECISION",29,INK,True)
  for j,(label,bg) in enumerate([
-  ("OBSERVE",(220,234,243)),("REVIEW",(215,234,237)),("ACT IN LIMITS",(241,224,209))]):
+  ("OBSERVE",(220,234,243)),("RECOMMEND + REVIEW",(215,234,237)),("ACT IN LIMITS",(241,224,209))]):
   x=30+j*223
   d.rounded_rectangle((x,2415,x+212,2515),18,fill=bg)
-  txt(d,x+18,2446,label,24 if j==2 else 27,INK,True)
+  if j==1:
+   txt(d,x+15,2432,"RECOMMEND",20,INK,True)
+   txt(d,x+15,2470,"+ REVIEW",22,INK,True)
+  else: txt(d,x+18,2446,label,24 if j==2 else 27,INK,True)
  d.rounded_rectangle((29,2572,690,2741),29,fill=(16,58,87))
  txt(d,53,2596,"EXECUTIVE DECISION",27,(235,184,141),True)
  txt(d,53,2650,"Continue  •  restrict",34,(255,255,255),True)

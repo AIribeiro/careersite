@@ -39,6 +39,11 @@ _DAILY_QUOTE_ARTICLES: dict[str, tuple[str, str]] = {
     ),
 }
 
+# One immutable briefing prefix; preserve the different native reader route.
+_SHORT_BRIEFINGS: dict[str, str] = {
+    "j": "15-ways-ai-can-change-your-business",
+}
+
 _SHORT_CHANNELS: dict[str, str] = {
     "l": "linkedin",
     "x": "x",
@@ -47,6 +52,7 @@ _SHORT_CHANNELS: dict[str, str] = {
     "w": "whatsapp",
 }
 _ARTICLE_PREFIX: dict[str, str] = {slug: prefix for prefix, slug in _SHORT_ARTICLES.items()}
+_BRIEFING_PREFIX: dict[str, str] = {slug: prefix for prefix, slug in _SHORT_BRIEFINGS.items()}
 _CHANNEL_SUFFIX: dict[str, str] = {name: suffix for suffix, name in _SHORT_CHANNELS.items()}
 
 
@@ -74,6 +80,19 @@ def expand_shortlink(code: object) -> dict[str, str] | None:
             "utm_content": slug,
         }
 
+    briefing_slug = _SHORT_BRIEFINGS.get(code[0])
+    if briefing_slug:
+        return {
+            "page": "briefing",
+            "article": briefing_slug,
+            "source": channel,
+            "role": "article",
+            "utm_source": channel,
+            "utm_medium": CHANNEL_MEDIA[channel],
+            "utm_campaign": "thinking",
+            "utm_content": briefing_slug,
+        }
+
     daily = _DAILY_QUOTE_ARTICLES.get(code[0])
     if daily:
         slug, campaign = daily
@@ -93,6 +112,15 @@ def expand_shortlink(code: object) -> dict[str, str] | None:
 def short_article_link(slug: str, channel: str, *, campaign: str = "thinking", role: str = "article") -> str | None:
     """Return an owned short link only if its fixed destination and tags match."""
     prefix = _ARTICLE_PREFIX.get(str(slug).strip().lower())
+    suffix = _CHANNEL_SUFFIX.get(str(channel).strip().lower())
+    if prefix is None or suffix is None or campaign != "thinking" or role != "article":
+        return None
+    return f"{SHORT_BASE}/{prefix}{suffix}/"
+
+
+def short_briefing_link(slug: str, channel: str, *, campaign: str = "thinking", role: str = "article") -> str | None:
+    """Return a registered first-party redirect into the native briefing reader."""
+    prefix = _BRIEFING_PREFIX.get(str(slug).strip().lower())
     suffix = _CHANNEL_SUFFIX.get(str(channel).strip().lower())
     if prefix is None or suffix is None or campaign != "thinking" or role != "article":
         return None
@@ -131,6 +159,13 @@ def registered_short_links() -> tuple[tuple[str, str, str, str], ...]:
         for suffix, channel in _SHORT_CHANNELS.items():
             target = make_distribution_link(
                 f"{PUBLIC_SITE}/?page=thinking&article={slug}",
+                channel=channel, campaign="thinking", content=slug, role="article",
+            )
+            rows.append((prefix + suffix, slug, channel, target))
+    for prefix, slug in sorted(_SHORT_BRIEFINGS.items()):
+        for suffix, channel in _SHORT_CHANNELS.items():
+            target = make_distribution_link(
+                f"{PUBLIC_SITE}/?page=briefing&article={slug}",
                 channel=channel, campaign="thinking", content=slug, role="article",
             )
             rows.append((prefix + suffix, slug, channel, target))

@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from site_shortlinks import (expand_shortlink, registered_short_links, short_article_link,
-                             daily_quote_short_link, weekly_ai_short_link)
+                             short_briefing_link, daily_quote_short_link, weekly_ai_short_link)
 
 
 class ShortArticleLinkTests(unittest.TestCase):
@@ -45,6 +45,24 @@ class ShortArticleLinkTests(unittest.TestCase):
                     "utm_content": slug,
                 })
                 self.assertLess(len(link), 60)
+
+    def test_executive_briefing_has_channel_specific_permanent_links(self):
+        slug = "15-ways-ai-can-change-your-business"
+        for channel, suffix, medium in (
+            ("linkedin", "l", "social"), ("x", "x", "social"),
+            ("threads", "t", "social"), ("facebook", "f", "social"),
+            ("whatsapp", "w", "messaging")
+        ):
+            with self.subTest(channel=channel):
+                link = short_briefing_link(slug, channel)
+                self.assertEqual(link, f"https://airibeiro.github.io/careersite/go/j{suffix}/")
+                self.assertEqual(expand_shortlink(f"j{suffix}"), {
+                    "page": "briefing", "article": slug, "source": channel,
+                    "role": "article", "utm_source": channel,
+                    "utm_medium": medium, "utm_campaign": "thinking",
+                    "utm_content": slug,
+                })
+                self.assertNotEqual(short_article_link(slug, channel), link)
 
     def test_next_experts_article_has_distinct_permanent_links(self):
         slug = "if-ai-does-the-routine-work-how-will-we-develop-the-next-experts"
@@ -156,6 +174,8 @@ class ShortArticleLinkTests(unittest.TestCase):
                     found = daily_quote_short_link(
                         slug, channel, campaign=params0["utm_campaign"][0]
                     )
+                elif params0["page"] == ["briefing"]:
+                    found = short_briefing_link(slug, channel)
                 else:
                     found = short_article_link(slug, channel)
                 self.assertEqual(
@@ -163,7 +183,7 @@ class ShortArticleLinkTests(unittest.TestCase):
                     f"https://airibeiro.github.io/careersite/go/{code}/",
                 )
                 params = parse_qs(urlparse(target).query)
-                self.assertEqual(params["page"], ["thinking"])
+                self.assertEqual(params["page"], ["briefing" if role == "article" and slug == "15-ways-ai-can-change-your-business" else "thinking"])
                 self.assertEqual(params["article"], [slug])
                 self.assertEqual(params["source"], [channel])
                 self.assertEqual(params["utm_source"], [channel])

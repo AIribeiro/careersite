@@ -2,28 +2,28 @@
   "schema_version": 1,
   "slug": "policy-is-not-permission-executive-ai-governance",
   "article_fingerprint": "a7d12810bcd11e86269b903dc510ca337b4268f02f95ef80f565b9103bb47395",
-  "revision": "2026-11-07-r1",
+  "revision": "2026-11-07-r2",
   "heading": "Policy is not permission",
   "deck": "Six operating proofs, proportionate autonomy and an enforceable action-time decision.",
   "desktop": {
     "file": "desktop.webp",
-    "sha256": "d10c88b5b12b98506312d05fc438b0e489f327df004025b26a9c06b767437b33",
+    "sha256": "67e2fbbcf355934bdd1e28dc6d3e7bc3d1d556992b72e2788ede218ae9ab369c",
     "width": 1200,
     "height": 1820,
-    "bytes": 129154
+    "bytes": 128438
   },
   "mobile": {
     "file": "mobile.webp",
-    "sha256": "4fef1cc4f0afa76c24cfc6a6c90376f7b486eedfe34d1ea62ae876704d830600",
+    "sha256": "7ca1338ee9477b45bea4252b478c65afc2540bc365032280728c33c9680e6fbe",
     "width": 720,
     "height": 2910,
-    "bytes": 132370
+    "bytes": 133508
   },
   "pdf": {
     "file": "infographic.pdf",
-    "sha256": "1fcf80212b0acaf160f08f33e71a328eafcf287725130985ba960b709e366314",
+    "sha256": "d3b872cb12a52976139f0809e52bc940a777a8c5e8a3ecc018a7a9c59dc85f01",
     "pages": 1,
-    "bytes": 502620
+    "bytes": 500538
   },
   "release_note": "Exact source content and premium design require editorial approval in CMS."
 }

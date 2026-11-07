@@ -1,29 +1,36 @@
 {
   "schema_version": 1,
   "slug": "policy-is-not-permission-executive-ai-governance",
-  "article_fingerprint": "a7d12810bcd11e86269b903dc510ca337b4268f02f95ef80f565b9103bb47395",
-  "revision": "2026-11-07-r2",
+  "article_fingerprint": "c3ba25a65bcb54bbab7b4deb5f7aa23131c31a076a9021df06b159ebf64b9f28",
+  "revision": "2026-11-07-r3",
   "heading": "Policy is not permission",
-  "deck": "Six operating proofs, proportionate autonomy and an enforceable action-time decision.",
+  "deck": "Six operating proofs, bounded autonomy and enforceable action-time control.",
   "desktop": {
     "file": "desktop.webp",
-    "sha256": "67e2fbbcf355934bdd1e28dc6d3e7bc3d1d556992b72e2788ede218ae9ab369c",
+    "sha256": "610cc106780524fc4cebd2a080dd0ec0f285e01fa7c9fe3f8c2b008c74326c9e",
     "width": 1200,
     "height": 1820,
-    "bytes": 128438
+    "bytes": 137280
   },
   "mobile": {
     "file": "mobile.webp",
-    "sha256": "7ca1338ee9477b45bea4252b478c65afc2540bc365032280728c33c9680e6fbe",
+    "sha256": "a436078e56e99df70f4b92c8e9866610650ac9f778d9adf212fed02d54149916",
     "width": 720,
     "height": 2910,
-    "bytes": 133508
+    "bytes": 139136
+  },
+  "cover": {
+    "file": "cover.webp",
+    "sha256": "4a9dd9c9369c35cfc42d9664895838b2d65363cce6347f418e83727d083a1cfe",
+    "width": 1600,
+    "height": 900,
+    "bytes": 76748
   },
   "pdf": {
     "file": "infographic.pdf",
-    "sha256": "d3b872cb12a52976139f0809e52bc940a777a8c5e8a3ecc018a7a9c59dc85f01",
+    "sha256": "4dd890f84e4e148b29d9bc03ca04f78dc8e57cff80c76598fc267a47de6ab39c",
     "pages": 1,
-    "bytes": 500538
+    "bytes": 498871
   },
-  "release_note": "Exact source content and premium design require editorial approval in CMS."
+  "release_note": "Approved source-matched revision: article, responsive artwork, authentic author footer and A4 PDF."
 }

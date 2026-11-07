@@ -131,13 +131,13 @@ def card(im,x,y,w,h,item,color,mobile):
     paragraph(d,tx,y+20,title,w-116,31 if mobile else 26,INK,True,limit=2,leading=1.12)
     first=y+(98 if mobile else 87)
     t(d,x+22,first,"CHANGE",20 if mobile else 15,color,True)
-    paragraph(d,x+119,first-2,change,w-144,24 if mobile else 17,MUTED,limit=2)
+    paragraph(d,x+(170 if mobile else 119),first-2,change,w-(195 if mobile else 144),24 if mobile else 17,MUTED,limit=2)
     first+=79 if mobile else 49
     t(d,x+22,first,"REQUIRES",20 if mobile else 14,color,True)
-    paragraph(d,x+119,first-2,takes,w-144,24 if mobile else 17,INK,limit=2)
+    paragraph(d,x+(170 if mobile else 119),first-2,takes,w-(195 if mobile else 144),24 if mobile else 17,INK,limit=2)
     first+=79 if mobile else 49
     t(d,x+22,first,"PROOF",20 if mobile else 15,color,True)
-    paragraph(d,x+119,first-2,proof,w-144,24 if mobile else 17,MUTED,limit=2)
+    paragraph(d,x+(170 if mobile else 119),first-2,proof,w-(195 if mobile else 144),24 if mobile else 17,MUTED,limit=2)
 def action(im,y,mobile):
     d=ImageDraw.Draw(im);x=34 if mobile else 55;right=im.width-x
     h=266 if mobile else 230
@@ -166,7 +166,7 @@ def render(mobile=False):
         items=group[5]
         if mobile:
             for item in items:
-                card(im,34,y,w-68,321,item,group[2],True);y+=335
+                card(im,34,y,w-68,350,item,group[2],True);y+=365
         else:
             for j,item in enumerate(items):
                 x=55+(j%2)*649

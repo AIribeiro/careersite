@@ -1102,6 +1102,16 @@ def executive_briefing_article(
                 ("Authority and evidence", "What can AI do, who can stop it, and what results justify continued use?", "shield"),
             ),
         }
+    if article.slug == "15-ways-ai-can-change-your-business":
+        guide = {
+            "call": "Measure the business change, not the AI activity.",
+            "move": "Choose two or three material workflows. Record the baseline, named outcome owner, full cost, quality guardrail and next review before approving expansion.",
+            "checks": (
+                ("Business outcome", "What financial, operational, customer or workforce result should improve?", "target"),
+                ("Operating change", "What must people, data and the workflow do differently to produce it?", "workflow"),
+                ("Evidence of value", "Which baseline or comparison shows an attributable, lasting benefit?", "chart"),
+            ),
+        }
     checks = ''.join(
         '<div class="briefing-reader-check">' + briefing_icon(symbol)
         + f'<div><strong>{escape(title)}</strong><p>{escape(question)}</p></div></div>'
@@ -1156,6 +1166,9 @@ def executive_briefing_article(
         '</article>'
     )
     summary_text = (
+        "AI usage can be a useful starting signal, but it does not prove a business outcome. "
+        "Track financial, operational, customer and workforce changes with a named owner, a defensible baseline and a quality check."
+        if article.slug == "15-ways-ai-can-change-your-business" else
         "A release decision is conditional. Real accountability needs an owner, an effective stop and override route, an auditable decision trail and a review trigger when circumstances change."
         if article.slug == "ai-was-approved-who-can-stop-it" else
         "Skill and willingness are task-specific starting points, not employee labels. "

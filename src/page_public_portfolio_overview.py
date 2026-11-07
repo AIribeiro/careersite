@@ -197,12 +197,12 @@ def render_public_portfolio_overview() -> None:
         len(published_briefings(published_editions)) if catalogue_available else None
     )
     rows_reconcile = regular_views + weekly_views + briefing_views == article_views
-    lifetime_sessions = lifetime_articles = lifetime_weekly = lifetime_briefings = None
+    lifetime_views = lifetime_articles = lifetime_weekly = lifetime_briefings = None
     try:
         lifetime_report = report if str(window) == "all" else _lifetime_content_report()
         lifetime_quality = lifetime_report.get("quality") or {}
-        if lifetime_quality.get("site_sessions") is not None:
-            lifetime_sessions = max(0, int(lifetime_quality["site_sessions"]))
+        if lifetime_quality.get("site_views") is not None:
+            lifetime_views = max(0, int(lifetime_quality["site_views"]))
         if catalogue_available and "performance" in lifetime_report:
             lifetime_essays, lifetime_editions, lifetime_briefing_rows = split_editorial_rows(
                 portfolio_visit_rows(lifetime_report, "article"), published_editions)
@@ -234,8 +234,8 @@ def render_public_portfolio_overview() -> None:
             "category": "Reach",
             "measure": "Site-wide sessions",
             "views": site_sessions,
-            "lifetime": lifetime_sessions,
-            "lifetime_unit": "sessions",
+            "lifetime": lifetime_views,
+            "lifetime_unit": "views",
             "sessions": site_views,
             "sessions_label": "content views (all sections)",
             "items": len(current_routes),

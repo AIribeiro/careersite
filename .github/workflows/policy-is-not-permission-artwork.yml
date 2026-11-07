@@ -27,17 +27,16 @@ jobs:
         run: python scripts/build_policy_is_not_permission_infographic.py --output /tmp/authority-path
       - name: Package reviewed release under the shared Safari-safe contract
         run: |
-          if [ ! -f static/briefing-artwork/policy-is-not-permission-executive-ai-governance/manifest.json ]; then
-            python scripts/build_briefing_artwork_bundle.py \
+          rm -rf static/briefing-artwork/policy-is-not-permission-executive-ai-governance
+          python scripts/build_briefing_artwork_bundle.py \
               --slug policy-is-not-permission-executive-ai-governance \
               --article-fingerprint a7d12810bcd11e86269b903dc510ca337b4268f02f95ef80f565b9103bb47395 \
-              --revision 2026-11-07-r1 \
+              --revision 2026-11-07-r2 \
               --desktop /tmp/authority-path/desktop.png \
               --mobile /tmp/authority-path/mobile.png \
               --pdf /tmp/authority-path/infographic.pdf \
               --heading "Policy is not permission" \
               --deck "Six operating proofs, proportionate autonomy and an enforceable action-time decision."
-          fi
       - name: Verify actual decoded images, A4 PDF and generic reader
         run: |
           PYTHONPATH=src python -m unittest -v tests.test_briefing_approved_asset_renderer

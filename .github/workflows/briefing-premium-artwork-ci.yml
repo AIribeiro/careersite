@@ -47,6 +47,23 @@ jobs:
         run: python -m py_compile src/briefing_approved_asset_renderer.py src/briefing_infographic_store.py src/site_cms.py src/page_admin.py scripts/build_briefing_artwork_bundle.py app.py tests/test_briefing_approved_asset_renderer.py
       - name: Verify packaging, exact source and Safari self-contained images
         run: python -m unittest -v tests.test_briefing_approved_asset_renderer
+      - name: Verify direct public PDF URL returns the exact approved binary
+        run: |
+          set -euo pipefail
+          URL="https://raw.githubusercontent.com/AIribeiro/careersite/${GITHUB_SHA}/static/briefing-artwork/15-ways-ai-can-change-your-business/infographic.pdf"
+          curl --fail --location --retry 3 --max-time 45 --silent --show-error -o /tmp/approved-infographic.pdf "$URL"
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json
+          from pypdf import PdfReader
+          asset=Path("/tmp/approved-infographic.pdf").read_bytes()
+          manifest=json.loads(Path("static/briefing-artwork/15-ways-ai-can-change-your-business/manifest.json").read_text())
+          assert asset[:5]==b"%PDF-", "Direct public URL returned a non-PDF response"
+          assert hashlib.sha256(asset).hexdigest()==manifest["pdf"]["sha256"], "Downloaded PDF differs from published manifest"
+          reader=PdfReader("/tmp/approved-infographic.pdf",strict=True)
+          assert len(reader.pages)==3==manifest["pdf"]["pages"]
+          print("Public URL returned approved three-page A4 PDF bytes:",len(asset))
+          PY
       - name: Check no broken image endpoints are emitted
         run: |
           python - <<'PY'

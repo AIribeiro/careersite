@@ -168,4 +168,4 @@ jobs:
       - name: Verify live Friday redirects, attribution, and branded OG images
         env:
           PYTHONPATH: src
-        run: python scripts/verify_weekly_ai_live_pages.py --latest
+        run: python scripts/verify_weekly_ai_live_pages.py --latest --briefing-slug 15-ways-ai-can-change-your-business

@@ -8,7 +8,7 @@ and inspects all four actual live paths, OG art, and canonical attribution.
 from __future__ import annotations
 
 import argparse
-from html import escape
+from html import escape, unescape
 import json
 import sys
 from pathlib import Path
@@ -17,7 +17,7 @@ from urllib import parse, request
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
-from site_shortlinks import registered_short_links, weekly_ai_short_link
+from site_shortlinks import registered_short_links, weekly_ai_short_link, short_briefing_link
 
 BASE='https://airibeiro.github.io/careersite'
 
@@ -71,7 +71,7 @@ def verify_latest() -> list[str]:
         if ('<meta http-equiv="refresh"' not in page or
             escape(target,quote=True) not in page or
             'window.location.replace' not in page or
-            edition['edition_title'] not in page):
+            edition['edition_title'] not in unescape(page)):
             raise AssertionError(f'Public preview or target mismatch: {short}')
         if f'{BASE}/social/{slug}.png' not in page:
             raise AssertionError(f'No edition-specific branded OG cover: {short}')
@@ -89,11 +89,44 @@ def verify_latest() -> list[str]:
     return checked
 
 
+def verify_briefing_short_links(slug: str) -> list[str]:
+    """Verify the real GitHub Pages shortlinks and full channel attribution."""
+    rows = {(s, channel):(code,target) for code,s,channel,target in registered_short_links()}
+    checked=[]
+    for channel,medium in [('x','social'),('threads','social'),('facebook','social'),('whatsapp','messaging')]:
+        code_target=rows.get((slug,channel))
+        if code_target is None:
+            raise AssertionError(f'Unregistered briefing channel {channel}: {slug}')
+        code,target=code_target
+        short=short_briefing_link(slug,channel)
+        if short!=f'{BASE}/go/{code}/':
+            raise AssertionError(f'Wrong first-party link for {channel}')
+        q=parse.parse_qs(parse.urlsplit(target).query)
+        required={'page':'briefing','article':slug,'source':channel,'utm_source':channel,
+                  'utm_medium':medium,'utm_campaign':'thinking','utm_content':slug,'role':'article'}
+        for key,val in required.items():
+            if q.get(key)!=[val]:
+                raise AssertionError(f'Briefing attribution mismatch {channel} {key}: {q.get(key)}')
+        markup=live_get(short).decode('utf-8','replace')
+        if ('<meta http-equiv="refresh"' not in markup or
+            escape(target,quote=True) not in markup or
+            'window.location.replace' not in markup or
+            f'page=briefing&amp;article={slug}' not in markup):
+            raise AssertionError(f'Live briefing redirect mismatch: {short}')
+        checked.append(short)
+        print('LIVE BRIEFING VERIFIED:',channel,short,flush=True)
+    return checked
+
+
 def main() -> int:
     parser=argparse.ArgumentParser()
     parser.add_argument('--latest',action='store_true')
-    parser.parse_args()
-    verify_latest()
+    parser.add_argument('--briefing-slug',default='')
+    args=parser.parse_args()
+    if args.briefing_slug:
+        verify_briefing_short_links(args.briefing_slug)
+    if args.latest:
+        verify_latest()
     return 0
 
 if __name__=='__main__':

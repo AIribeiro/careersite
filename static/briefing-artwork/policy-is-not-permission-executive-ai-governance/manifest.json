@@ -7,17 +7,17 @@
   "deck": "Six operating proofs, bounded autonomy and enforceable action-time control.",
   "desktop": {
     "file": "desktop.webp",
-    "sha256": "610cc106780524fc4cebd2a080dd0ec0f285e01fa7c9fe3f8c2b008c74326c9e",
+    "sha256": "59cccc38c04fd02e01bd9a37d249cd67814dad3773753204839c8f1b60580d18",
     "width": 1200,
     "height": 1820,
-    "bytes": 137280
+    "bytes": 133454
   },
   "mobile": {
     "file": "mobile.webp",
-    "sha256": "a436078e56e99df70f4b92c8e9866610650ac9f778d9adf212fed02d54149916",
+    "sha256": "1ace28054afe466b0ed24b272d41fe406c8b23a3716b097c008787a56aefe444",
     "width": 720,
     "height": 2910,
-    "bytes": 139136
+    "bytes": 136490
   },
   "cover": {
     "file": "cover.webp",
@@ -28,9 +28,9 @@
   },
   "pdf": {
     "file": "infographic.pdf",
-    "sha256": "4dd890f84e4e148b29d9bc03ca04f78dc8e57cff80c76598fc267a47de6ab39c",
+    "sha256": "fc71b359e16f4f97a59038d3eb96d682b4bee28e292393ccdf0f189f69b41f6d",
     "pages": 1,
-    "bytes": 498871
+    "bytes": 493730
   },
   "release_note": "Approved source-matched revision: article, responsive artwork, authentic author footer and A4 PDF."
 }

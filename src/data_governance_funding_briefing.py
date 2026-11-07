@@ -119,7 +119,7 @@ def funding_briefing_article(
         '</div></section>'
         '<section class="section paper briefing-reader-body"><div class="container">'
         '<section class="dgf-scan" data-analytics-section="briefing-reader-summary">'
-        '<div><span class="dgf-eyebrow">The executive judgment</span>'
+        '<div><span class="dgf-eyebrow">The Leadership Decision</span>'
         '<h2>Fund a business result, not a governance label.</h2>'
         '<p>Approve a targeted control where the exposure is established and the cause is understood. '
         'Where evidence is missing, invest in finding the cause first—not a larger programme.</p></div>'

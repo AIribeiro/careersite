@@ -7,7 +7,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from portfolio_metric_cards import portfolio_metric_grid
+from portfolio_metric_cards import portfolio_metric_grid, lifetime_comparison
 
 
 def spec(title: str, *, rows: list[dict] | None = None, available: bool = True) -> dict:
@@ -45,8 +45,8 @@ class PortfolioMetricCardTests(unittest.TestCase):
                         content.index('Weekly AI analytics'))
         self.assertLess(content.index('Weekly AI analytics'),
                         content.index('Executive Briefings analytics'))
-        self.assertEqual(content.count("1,200"), 4)
-        self.assertEqual(content.count("Lifetime · 1,234 views"), 4)
+        self.assertEqual(content.count('class="pv-card__value">1,200</strong>'), 4)
+        self.assertEqual(content.count("1,200 of 1,234 lifetime views (97.24% of total)"), 4)
 
     def test_tablet_and_mobile_use_container_width_not_viewport(self):
         content = portfolio_metric_grid([spec(x) for x in ("A", "B", "C", "D")])
@@ -97,18 +97,18 @@ class PortfolioMetricCardTests(unittest.TestCase):
         self.assertIn("Views · Today", content)
         self.assertIn("1 of 6", content)
         self.assertIn("published briefings viewed", content)
-        self.assertIn("Lifetime · 7 views", content)
+        self.assertIn("1 of 7 lifetime views (14.29% of total)", content)
         self.assertIn("Most-viewed briefings", content)
 
-    def test_site_session_headline_has_correct_lifetime_and_view_breakdown(self):
+    def test_site_views_have_comparable_lifetime_and_separate_sessions(self):
         visits = spec("Portfolio visits")
         visits.update({
-            "measure": "Site-wide sessions",
-            "views": 38,
+            "measure": "Site-wide views",
+            "views": 39,
             "lifetime": 482,
             "lifetime_unit": "views",
-            "sessions": 39,
-            "sessions_label": "content views (all sections)",
+            "sessions": 38,
+            "sessions_label": "site-wide browser sessions",
             "items": 3,
             "item_unit": "active destinations",
             "rank_title": "Top portfolio pages",
@@ -116,12 +116,36 @@ class PortfolioMetricCardTests(unittest.TestCase):
         content = portfolio_metric_grid([
             visits, spec("Articles"), spec("Weekly AI"), spec("Executive Briefings"),
         ])
-        self.assertIn("Site-wide sessions", content)
-        self.assertIn(">38</strong>", content)
-        self.assertIn("Lifetime · 482 views", content)
-        self.assertIn(">39</strong>", content)
-        self.assertIn("content views (all sections)", content)
+        self.assertIn("Site-wide views", content)
+        self.assertIn('class="pv-card__value">39</strong>', content)
+        self.assertIn("39 of 482 lifetime views (8.09% of total)", content)
+        self.assertIn('class="pv-card__activity-number">38</strong>', content)
+        self.assertIn("site-wide browser sessions", content)
         self.assertIn("Top portfolio pages", content)
+
+    def test_lifetime_percentage_handles_zero_missing_and_tiny_shares(self):
+        self.assertEqual(lifetime_comparison(0, 0),
+                         "0 of 0 lifetime views (share unavailable)")
+        self.assertEqual(lifetime_comparison(7, None), "Lifetime unavailable")
+        self.assertEqual(lifetime_comparison(None, 100),
+                         "Lifetime · 100 views (period unavailable)")
+        self.assertEqual(lifetime_comparison(1, 100000),
+                         "1 of 100,000 lifetime views (<0.01% of total)")
+        self.assertEqual(lifetime_comparison(20, 20),
+                         "20 of 20 lifetime views (100% of total)")
+        self.assertEqual(lifetime_comparison(21, 20),
+                         "21 of 20 lifetime views (share updating)")
+        self.assertEqual(lifetime_comparison(24, 3200),
+                         "24 of 3,200 lifetime views (0.75% of total)")
+
+    def test_lifetime_labels_are_html_escaped(self):
+        item = spec("Portfolio visits")
+        item["views"] = 1
+        item["lifetime"] = 100000
+        content = portfolio_metric_grid([item] + [
+            spec("Articles"), spec("Weekly AI"), spec("Executive Briefings")
+        ])
+        self.assertIn("&lt;0.01% of total", content)
 
     def test_period_label_is_escaped(self):
         card = spec("Executive Briefings")

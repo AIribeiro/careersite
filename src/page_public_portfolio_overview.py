@@ -306,28 +306,37 @@ def render_public_portfolio_overview() -> None:
         card["period_label"] = REPORTING_WINDOW_LABELS.get(str(window), "Selected period")
     st.html(portfolio_metric_grid(cards))
 
-    # Advanced Insights tabs are visible by default. Individual tabs render
-    # only their active report and reuse cached anonymous aggregate reads.
-    from page_public_legacy_insights import render_public_legacy_insights
-    render_public_legacy_insights(str(window))
-    st.divider()
-
     if site_views is not None:
-        # The canonical view stream counts editorial entry once using article_view,
-        # never again as the parallel article-page page_view event.
-        segments = (f"{page_views:,} ordinary page views + "
-                    f"{article_views:,} editorial views")
+        # Place the accounting directly under the four cards. Ordinary page
+        # views exclude historical Thinking events; both belong to the site
+        # total, while editorial views are already included and are not additive
+        # on top of that site-wide total.
+        page_parts = f"{page_views:,} portfolio-page views"
         if legacy_views:
-            segments += f" + {legacy_views:,} historical Thinking views"
-        if site_views != page_views + article_views + legacy_views:
-            st.warning("Site content views do not reconcile with their page/article "
-                       "subtotals; please inspect tracking coverage.")
+            page_parts += f" + {legacy_views:,} historical Thinking page views"
+        article_parts = f"{article_views:,} editorial views"
+        if catalogue_available and rows_reconcile:
+            article_parts += (
+                f" ({regular_views:,} Articles + {weekly_views:,} Weekly AI"
+                f" + {briefing_views:,} Executive Briefings)"
+            )
+        if site_views == page_views + legacy_views + article_views:
+            st.caption(
+                f"**View reconciliation:** {site_views:,} site-wide views = "
+                f"{page_parts} + {article_parts}. "
+                "Editorial opens are counted once, not again as article-page views."
+            )
+        else:
+            st.warning(
+                "Site-wide views do not reconcile with their page and editorial "
+                "subtotals; check the underlying tracking data."
+            )
         st.caption(
             f"Site-wide reach: {site_sessions:,} browser sessions generated "
-            f"{site_views:,} content views ({segments}). "
+            f"{site_views:,} content views. "
             "A session can open multiple pages or publications."
             if site_sessions is not None else
-            f"Content views: {site_views:,} ({segments}). "
+            f"Site-wide content views: {site_views:,}. "
             "Site-session reporting is temporarily unavailable."
         )
     if catalogue_available and not rows_reconcile:
@@ -346,6 +355,11 @@ def render_public_portfolio_overview() -> None:
         "library is an ordinary page. Item-session observations can overlap "
         "across publications and do not identify individual people."
     )
+
+    # Advanced Insights appears after the reconciled headline figures.
+    from page_public_legacy_insights import render_public_legacy_insights
+    render_public_legacy_insights(str(window))
+    st.divider()
 
     recent_report = None
     if str(window) in ("14d", "30d", "60d", "90d", "365d", "this_month", "this_year", "all"):

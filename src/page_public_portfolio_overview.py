@@ -232,19 +232,19 @@ def render_public_portfolio_overview() -> None:
                 "cohorts. Views are not reassigned to About or Experience."
             )
             _ranking_chart(historical_routes, compact=True)
-    # One responsive grid keeps the four categories visually identical.
-    # The reach headline is deduplicated across page and editorial entry,
-    # while the other three cards partition article views (not sessions).
+    # All four headlines use canonical views, so selected-period values
+    # can be compared with the corresponding lifetime view totals.
+    # Site-wide sessions remain a separate supporting reach metric.
     cards = [
         {
             "title": "Portfolio visits",
             "category": "Reach",
-            "measure": "Site-wide sessions",
-            "views": site_sessions,
+            "measure": "Site-wide views",
+            "views": site_views,
             "lifetime": lifetime_views,
             "lifetime_unit": "views",
-            "sessions": site_views,
-            "sessions_label": "content views (all sections)",
+            "sessions": site_sessions,
+            "sessions_label": "site-wide browser sessions",
             "items": len(current_routes),
             "item_unit": "active destinations",
             "rank_title": "Top portfolio pages",
@@ -329,12 +329,14 @@ def render_public_portfolio_overview() -> None:
             "before comparing the three reading categories."
         )
     st.caption(
-        "The first card deduplicates site sessions across ordinary pages and "
-        "editorial content. Its ranking covers ordinary portfolio pages only. "
-        "Articles, Weekly AI and Executive Briefings partition editorial views; "
-        "they must not be added to site sessions. The Briefings library is an "
-        "ordinary page and is included in site views. Item-session observations "
-        "can overlap across publications and do not identify individual people."
+        "All four card headlines are view counts compared with lifetime views "
+        "of the same content category. The first card counts canonical site-wide "
+        "views without duplicate article-page events; its supporting metric "
+        "counts distinct browser sessions. Its ranking covers ordinary portfolio "
+        "pages only. Articles, Weekly AI and Executive Briefings partition "
+        "editorial views already included in site-wide views. The Briefings "
+        "library is an ordinary page. Item-session observations can overlap "
+        "across publications and do not identify individual people."
     )
 
     recent_report = None

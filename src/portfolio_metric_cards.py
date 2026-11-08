@@ -38,14 +38,14 @@ _CARD_STYLES = """
   letter-spacing:.12em;text-transform:uppercase;
 }
 .pv-card__title {margin:0;font-size:17px;line-height:1.2;letter-spacing:-.025em;font-weight:720;color:#15243b}
-.pv-card__metric {height:111px;padding:12px 0 10px;border-bottom:1px solid #e5e7e9}
+.pv-card__metric {min-height:128px;padding:12px 0 10px;border-bottom:1px solid #e5e7e9}
 .pv-card__metric-label {font-size:11px;font-weight:700;color:#687588;letter-spacing:.035em}
 .pv-card__value {
   display:block;margin-top:7px;font-size:clamp(30px,2.7vw,39px);
   line-height:1;font-weight:750;letter-spacing:-.055em;
   font-variant-numeric:tabular-nums lining-nums;color:#12223a;
 }
-.pv-card__lifetime {display:block;margin-top:8px;font-size:11px;line-height:1.4;color:#687588}
+.pv-card__lifetime {display:block;margin-top:8px;font-size:11px;line-height:1.4;color:#687588;overflow-wrap:break-word}
 .pv-card__activity {
   display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
   min-height:66px;gap:9px;align-items:center;
@@ -93,6 +93,32 @@ def _formatted(value: int | None) -> str:
     return "—" if value is None else f"{max(0, int(value)):,}"
 
 
+def lifetime_comparison(selected: int | None, total: int | None,
+                        unit: str = "views") -> str:
+    """Period-to-lifetime share using comparable view counts only.
+
+    Zero/missing totals have no defined percentage. If the cached lifetime
+    snapshot lags the current period, don't report an impossible share.
+    """
+    if total is None:
+        return "Lifetime unavailable"
+    total = max(0, int(total))
+    if selected is None:
+        return f"Lifetime · {total:,} {unit} (period unavailable)"
+    selected = max(0, int(selected))
+    label = f"{selected:,} of {total:,} lifetime {unit}"
+    if total == 0:
+        return f"{label} (share unavailable)"
+    if selected > total:
+        return f"{label} (share updating)"
+    percent = selected * 100 / total
+    if 0 < percent < 0.005:
+        share = "<0.01%"
+    else:
+        share = f"{percent:.2f}".rstrip("0").rstrip(".") + "%"
+    return f"{label} ({share} of total)"
+
+
 def _ranked_items(rows: list[dict], *, available: bool) -> str:
     if not available:
         return '<li class="pv-card__empty">Content classification is temporarily unavailable.</li>'
@@ -122,10 +148,13 @@ def _ranked_items(rows: list[dict], *, available: bool) -> str:
 
 def _card(spec: dict, index: int) -> str:
     available = bool(spec.get("available", True))
-    primary = _formatted(spec["views"] if available else None)
-    lifetime = _formatted(spec.get("lifetime") if available else None)
-    lifetime_unit = escape(str(spec.get("lifetime_unit", "views")))
-    lifetime_line = "Lifetime unavailable" if lifetime == "—" else f"Lifetime · {lifetime} {lifetime_unit}"
+    primary_value = spec["views"] if available else None
+    primary = _formatted(primary_value)
+    lifetime_line = escape(lifetime_comparison(
+        primary_value,
+        spec.get("lifetime") if available else None,
+        str(spec.get("lifetime_unit", "views")),
+    ))
     sessions = _formatted(spec.get("sessions") if available else None)
     items = _formatted(spec.get("items") if available else None)
     if available and spec.get("total_items") is not None:

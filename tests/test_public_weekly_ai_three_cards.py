@@ -122,6 +122,11 @@ class FourColumnPortfolioTests(unittest.TestCase):
         ])
         self.assertTrue(any("Site-wide reach: 12 browser sessions generated "
                             "16 content views" in x.value for x in at.caption))
+        self.assertTrue(any(
+            "16 site-wide views = 6 portfolio-page views + 10 editorial views "
+            "(6 Articles + 4 Weekly AI + 0 Executive Briefings)" in x.value
+            for x in at.caption
+        ))
 
     def test_no_metadata_means_unknown_not_illusory_zero_editions(self):
         from streamlit.testing.v1 import AppTest

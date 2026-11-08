@@ -70,6 +70,8 @@ class FourColumnPortfolioTests(unittest.TestCase):
         from streamlit.testing.v1 import AppTest
         with (
             patch("page_public_portfolio_overview.fetch_intelligence", return_value=report()),
+            patch("page_public_portfolio_overview._lifetime_content_report",
+                  return_value=report()),
             patch("page_public_portfolio_overview.fetch_published_articles",
                   return_value=[edition("weekly-ai-2026-10-19")]),
             patch("page_public_portfolio_overview.initialize_reporting_period",
@@ -107,6 +109,8 @@ class FourColumnPortfolioTests(unittest.TestCase):
         from streamlit.testing.v1 import AppTest
         with (
             patch("page_public_portfolio_overview.fetch_intelligence", return_value=report()),
+            patch("page_public_portfolio_overview._lifetime_content_report",
+                  return_value=report()),
             patch("page_public_portfolio_overview.fetch_published_articles",
                   side_effect=RuntimeError("catalogue unavailable")),
             patch("page_public_portfolio_overview.initialize_reporting_period",

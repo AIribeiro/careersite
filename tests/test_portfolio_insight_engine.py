@@ -133,10 +133,11 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
             self.assertEqual([x["title"] for x in cards], [
                 "Portfolio visits", "Articles", "Weekly AI", "Executive Briefings"
             ])
-            self.assertEqual(cards[0]["views"], 905)
-            self.assertEqual(cards[0]["sessions"], 1222)
+            self.assertEqual(cards[0]["views"], 1222)
+            self.assertEqual(cards[0]["measure"], "Site-wide views")
+            self.assertEqual(cards[0]["sessions"], 905)
             self.assertEqual(cards[0]["lifetime"], 1222)
-            self.assertEqual(cards[0]["sessions_label"], "content views (all sections)")
+            self.assertEqual(cards[0]["sessions_label"], "site-wide browser sessions")
             self.assertEqual(cards[0]["lifetime_unit"], "views")
             journey.assert_called_once_with(app.selectbox[0].value)
         self.assertFalse(app.exception)

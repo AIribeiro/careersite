@@ -114,6 +114,8 @@ class PublicPortfolioIntelligenceTests(unittest.TestCase):
         with (
             patch("page_public_portfolio_overview.fetch_intelligence",
                   return_value=make_report()),
+            patch("page_public_portfolio_overview._lifetime_content_report",
+                  return_value=make_report()),
             patch("page_public_portfolio_overview.initialize_reporting_period",
                   side_effect=lambda state, f: state.setdefault(
                       "careersite_analytics_reporting_window", "30d")),

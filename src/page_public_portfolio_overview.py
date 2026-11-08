@@ -26,7 +26,13 @@ from thinking_weekly_brief import edition_label, is_weekly_brief
 
 @st.cache_data(ttl=300, show_spinner=False)
 def _lifetime_content_report() -> dict:
-    return fetch_intelligence("all")
+    """Fetch lightweight all-time view totals, not the expensive full report.
+
+    Site-wide and per-publication denominators share the canonical view
+    definition used by the selected-period content-intelligence report.
+    """
+    payload = {"p_token": _dashboard_payload("all")["p_token"]}
+    return _fetch_rpc("careersite_lifetime_views_v1", payload)
 
 
 def lifetime_caption(total: int | None, measure: str) -> str:
@@ -217,7 +223,9 @@ def render_public_portfolio_overview() -> None:
             lifetime_weekly = sum(row["Views"] for row in lifetime_editions)
             lifetime_briefings = sum(row["Views"] for row in lifetime_briefing_rows)
     except (RuntimeError, ValueError, TimeoutError, PermissionError):
-        pass  # Keep selected-period reports usable when lifetime loading fails.
+        # Preserve selected-period views if the independent lifetime service fails.
+        # The public dashboard never substitutes selected-period totals as lifetime.
+        pass
 
     with st.expander("Reporting context · October navigation change", expanded=False):
         st.caption(

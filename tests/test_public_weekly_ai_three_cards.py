@@ -38,6 +38,24 @@ def report() -> dict:
 
 
 class FourColumnPortfolioTests(unittest.TestCase):
+    def test_lifetime_uses_compact_rpc_not_all_time_behavior_report(self):
+        from page_public_portfolio_overview import _lifetime_content_report
+
+        payload = {"quality": {"site_views": 2607},
+                   "performance": [{"kind": "article", "content": "test",
+                                    "views": 1, "sessions": 1}]}
+        _lifetime_content_report.clear()
+        try:
+            with patch("page_public_portfolio_overview._fetch_rpc",
+                       return_value=payload) as rpc:
+                data = _lifetime_content_report()
+                self.assertEqual(data["quality"]["site_views"], 2607)
+                rpc.assert_called_once_with(
+                    "careersite_lifetime_views_v1", {"p_token": "public-readonly-v1"}
+                )
+        finally:
+            _lifetime_content_report.clear()
+
     def test_published_weekly_brief_is_split_from_essays_without_double_counting(self):
         articles = portfolio_visit_rows(report(), "article")
         regular, weekly = split_reader_rows(

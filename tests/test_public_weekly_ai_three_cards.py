@@ -89,10 +89,10 @@ class FourColumnPortfolioTests(unittest.TestCase):
         self.assertEqual([card["title"] for card in cards], [
             "Portfolio visits", "Articles", "Weekly AI", "Executive Briefings"
         ])
-        self.assertEqual([card["views"] for card in cards], [12, 6, 4, 0])
-        self.assertEqual(cards[0]["measure"], "Site-wide sessions")
-        self.assertEqual(cards[0]["sessions"], 16)
-        self.assertEqual(cards[0]["sessions_label"], "content views (all sections)")
+        self.assertEqual([card["views"] for card in cards], [16, 6, 4, 0])
+        self.assertEqual(cards[0]["measure"], "Site-wide views")
+        self.assertEqual(cards[0]["sessions"], 12)
+        self.assertEqual(cards[0]["sessions_label"], "site-wide browser sessions")
         self.assertEqual(cards[0]["lifetime"], 16)
         self.assertEqual(cards[0]["lifetime_unit"], "views")
         self.assertTrue(all(card.get("available", True) for card in cards))
@@ -123,7 +123,7 @@ class FourColumnPortfolioTests(unittest.TestCase):
         self.assertFalse(at.exception)
         grid.assert_called_once()
         cards = grid.call_args.args[0]
-        self.assertEqual(cards[0]["views"], 12)
+        self.assertEqual(cards[0]["views"], 16)
         self.assertEqual([card["available"] for card in cards[1:]],
                          [False, False, False])
 

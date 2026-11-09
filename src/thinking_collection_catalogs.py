@@ -356,10 +356,10 @@ def inject_thinking_collections(
     import re
     briefings = _collection("briefings", published, read_counts)
     weekly = _collection("weekly_ai", published, read_counts)
-    # The old static briefings feature is an isolated section without nested
-    # sections; replace only that element and leave articles and other content.
+    # Replace the compact template placeholder. Older deployments may still
+    # have the previous paper-style banner, so accept either section class.
     marker = re.compile(
-        r'<section class="section paper" id="thinking-briefings"'
+        r'<section class="section (?:paper|white)" id="thinking-briefings"'
         r'[^>]*>.*?</section>', re.S
     )
     if marker.search(document):

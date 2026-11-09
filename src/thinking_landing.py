@@ -3,7 +3,7 @@ from __future__ import annotations
 import html
 
 from site_assets import THINKING_PANEL_URI, PANEL_DIALOGUE_URI, LINKEDIN, MEDIUM
-from site_components import nav, footer, journey_next, opportunity, THOUGHTS, thought_grid
+from site_components import nav, footer, THOUGHTS, thought_grid
 from thinking_articles import article_by_key, article_relative_url
 from thinking_core import THINKING_CSS
 from briefings_visual import PROMO_CSS, briefing_visual
@@ -210,4 +210,4 @@ def landing() -> str:
 <span class="record-meta">2023 · Panel</span><strong>Financial Times Future of AI Summit</strong><span class="record-detail">A discussion about bringing AI beyond specialist teams and into business operations.</span><span class="record-link">Event coverage ↗</span></a>
 </div></div>
 <div class="speaking-bottom"><p>A selected record of external contributions, rather than a complete events archive.</p><a class="speaking-about-link" href="?page=about#speaking-publications" target="_self" data-hq-event="thinking_speaking_about">Explore the full speaking &amp; publication record <span aria-hidden="true">→</span></a></div>
-</div></section>{journey_next("thinking")}</main>{footer()}'''
+</div></section></main>{footer()}'''

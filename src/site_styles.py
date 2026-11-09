@@ -660,5 +660,199 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .about-language-tile{min-height:65px}
 }
 
+/* About closing navigation — purposeful next step, not another site directory. */
+.site .about-next{
+  padding:clamp(66px,7vw,94px) 0 clamp(62px,7vw,91px);
+  background:linear-gradient(148deg,#f8f5ef 0%,#f2ece4 100%);
+  border-top:1px solid #ded4c8;
+  color:#243549;
+}
+.site .about-next-header{
+  display:grid;
+  grid-template-columns:minmax(0,.94fr) minmax(0,.9fr);
+  gap:clamp(30px,5vw,85px);
+  align-items:end;
+  margin-bottom:32px;
+}
+.site .about-next-header .eyebrow{
+  margin:0 0 15px;
+  color:#a46a47;
+  font-size:10px;
+  letter-spacing:.16em;
+}
+.site .about-next-header h2{
+  margin:0;
+  max-width:630px;
+  color:#1c3042;
+  font:500 clamp(37px,4.3vw,54px)/1.07 Georgia,serif;
+  letter-spacing:-.036em;
+  text-wrap:balance;
+}
+.site .about-next-header>p{
+  max-width:490px;
+  margin:0;
+  color:#56616d;
+  font-size:15px;
+  line-height:1.75;
+}
+.site .about-next-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:stretch;
+  gap:16px;
+}
+.site a.about-next-card{
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  min-width:0;
+  min-height:279px;
+  padding:28px 26px 24px;
+  overflow:hidden;
+  border:1px solid #dfd5ca;
+  border-radius:9px;
+  background:#fffdfa;
+  color:#243549!important;
+  text-decoration:none!important;
+  box-shadow:0 11px 27px rgba(27,42,56,.035);
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.site a.about-next-card::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:95px;
+  height:3px;
+  background:linear-gradient(90deg,#b17d58,#e2b89c);
+}
+.site a.about-next-card:hover{
+  border-color:#b58a6a;
+  box-shadow:0 17px 32px rgba(27,42,56,.10);
+  transform:translateY(-2px);
+}
+.site a.about-next-card:focus-visible{
+  outline:3px solid #a96e49;
+  outline-offset:3px;
+}
+.site .about-next-card-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:24px;
+}
+.site .about-next-card-category{
+  color:#a06945;
+  font-size:10px;
+  line-height:1.4;
+  font-weight:850;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.site .about-next-card-number{
+  color:#c9b9a9;
+  font:500 31px/1 Georgia,serif;
+}
+.site .about-next-card-title{
+  display:block;
+  color:#1c3042;
+  font:500 clamp(26px,2.6vw,34px)/1.12 Georgia,serif;
+  letter-spacing:-.018em;
+}
+.site .about-next-card-description{
+  display:block;
+  flex:1 1 auto;
+  color:#5a6671;
+  margin:17px 0 26px;
+  font-size:13px;
+  line-height:1.67;
+}
+.site .about-next-card-action{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:center;
+  padding-top:17px;
+  border-top:1px solid #e8dfd5;
+  color:#253b4d;
+  font-size:12px;
+  font-weight:800;
+}
+.site .about-next-card-arrow{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  width:28px;
+  height:28px;
+  border:1px solid #e3d4c8;
+  border-radius:50%;
+  color:#a16946;
+  font-size:18px;
+  font-weight:400;
+  transition:background .18s ease;
+}
+.site a.about-next-card:hover .about-next-card-arrow{
+  background:#f4e9de;
+}
+.site .about-next-contact{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px 24px;
+  margin-top:30px;
+  padding-top:20px;
+  border-top:1px solid #dcd1c5;
+  color:#68717b;
+  font-size:13px;
+}
+.site .about-next-contact a{
+  color:#253d51!important;
+  font-weight:800;
+  text-decoration:none!important;
+  border-bottom:1px solid #b58463;
+  padding-bottom:4px;
+}
+.site .about-next-contact a:hover{
+  color:#a46d49!important;
+}
+@media(max-width:900px){
+  .site .about-next-header{
+    grid-template-columns:1fr;
+    gap:18px;
+  }
+  .site .about-next-grid{
+    grid-template-columns:1fr;
+    gap:13px;
+  }
+  .site a.about-next-card{
+    min-height:0;
+    padding:24px;
+  }
+  .site .about-next-card-description{
+    margin:13px 0 22px;
+  }
+  .site .about-next-card-head{
+    margin-bottom:15px;
+  }
+}
+@media(max-width:600px){
+  .site .about-next{padding:54px 0 62px}
+  .site .about-next-header h2{font-size:clamp(34px,8vw,43px)}
+  .site .about-next-header>p{font-size:14px}
+  .site .about-next-contact{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:12px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .site a.about-next-card,
+  .site .about-next-card-arrow{transition:none}
+  .site a.about-next-card:hover{transform:none}
+}
+
 </style>
 """

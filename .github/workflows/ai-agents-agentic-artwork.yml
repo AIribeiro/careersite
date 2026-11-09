@@ -32,7 +32,7 @@ jobs:
           python scripts/build_briefing_artwork_bundle.py \
             --slug ai-agents-agentic-ai-executive-delegation-decision \
             --article-fingerprint 1df0d87cb09ee442959bb47e28c04aa171e938681e1026f335ceb2674813f1f4 \
-            --revision 2026-11-09-r2 \
+            --revision 2026-11-09-r3 \
             --desktop /tmp/agentic-art/desktop.png \
             --mobile /tmp/agentic-art/mobile.png \
             --pdf /tmp/agentic-art/infographic.pdf \
@@ -55,12 +55,12 @@ jobs:
           path=Path('static/briefing-artwork')/slug/'infographic.pdf'
           with path.open('rb') as file:
             reader=PdfReader(file,strict=True)
-            assert len(reader.pages)==b['pdf']['pages']==3
+            assert len(reader.pages)==b['pdf']['pages']==1
             for p in reader.pages:
               w,h=map(float,(p.mediabox.width,p.mediabox.height))
               assert 589<w<601 and 836<h<848
               assert p.get_contents() is not None
-          print("Verified source fingerprint; desktop & mobile WebP; three readable A4 pages")
+          print("Verified source fingerprint; desktop & mobile WebP; one complete A4 page")
           PY
       - name: Commit verified release bundle
         run: |
@@ -68,7 +68,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add static/briefing-artwork/ai-agents-agentic-ai-executive-delegation-decision/
           if ! git diff --cached --quiet; then
-            git commit -m "Release source-locked AI Agents and Agentic AI briefing infographic"
+            git commit -m "Release one-page A4 AI Agents and Agentic AI briefing infographic"
             for attempt in 1 2 3 4; do
               git pull --rebase origin main || exit 1
               if git push origin HEAD:main; then exit 0; fi

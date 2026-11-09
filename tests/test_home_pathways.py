@@ -63,7 +63,7 @@ def test_home_pathway_icons_are_local_and_accessible():
 def test_home_pathways_responsive_styles_are_isolated():
     css = HOME_PATHWAYS_CSS
     assert css.startswith("\n<style>")
-    assert css.rstrip().endswith("</style>\"\"\"") is False
+    assert css.rstrip().endswith("</style>")
     assert ".site .journey-section.home-pathways" in css
     assert ".home-pathway-card--impact" in css
     assert "grid-template-columns:repeat(2,minmax(0,1fr))" in css

@@ -51,9 +51,98 @@ DESTINATIONS = (
 )
 
 
-def about_next_navigation() -> str:
+# The About design is reused as a contextual, three-route continuation across
+# the other main portfolio pages. Each destination excludes the current page.
+# The secondary action leads to Contact, except on Contact where it returns Home.
+PAGE_CONTINUATIONS = {
+    "about": (
+        "From the story to the work.",
+        "You’ve read a little about my journey. These are three ways to explore "
+        "the responsibilities, choices and perspectives behind my work in AI and Data.",
+        DESTINATIONS,
+        "Would you rather start a conversation?", "Get in touch", "contact",
+    ),
+    "impact": (
+        "Continue from the experience.",
+        "Explore how I approach accountability and adoption, read my perspectives, "
+        "or learn more about the person behind the work.",
+        (
+            Destination("01", "Governance & adoption", "How I make AI work",
+                        "The approach to ownership, decision rights and responsible AI use.",
+                        "Explore governance", "ai-data-governance", "impact_next_governance"),
+            Destination("02", "Writing & perspectives", "How I think",
+                        "Articles, Weekly AI and executive perspectives on AI decisions.",
+                        "Explore Thinking", "thinking", "impact_next_thinking"),
+            Destination("03", "Personal perspective", "The journey behind the work",
+                        "The international experiences and influences that shaped my approach.",
+                        "Explore About", "about", "impact_next_about"),
+        ),
+        "Want to discuss a leadership challenge?", "Get in touch", "contact",
+    ),
+    "ai-data-governance": (
+        "Connect the principles to practice.",
+        "Follow the governance perspective into real leadership responsibilities, "
+        "focused executive briefings or the wider professional story.",
+        (
+            Destination("01", "Leadership experience", "What I’ve led",
+                        "Enterprise responsibilities and decisions behind AI and Data work.",
+                        "Explore experience", "impact", "governance_next_impact"),
+            Destination("02", "Executive decision guides", "Explore the briefings",
+                        "Focused perspectives on governance, agents, accountability and business value.",
+                        "Read briefings", "briefings", "governance_next_briefings"),
+            Destination("03", "Personal perspective", "The journey behind the work",
+                        "A little more about the experiences and values behind this approach.",
+                        "Explore About", "about", "governance_next_about"),
+        ),
+        "Working through a similar governance question?", "Get in touch", "contact",
+    ),
+    "thinking": (
+        "Go beyond the articles.",
+        "Connect these perspectives with the experience behind them, explore "
+        "the operating approach, or read a focused executive briefing.",
+        (
+            Destination("01", "Leadership experience", "What I’ve led",
+                        "Responsibilities, decisions and practical enterprise contributions.",
+                        "Explore experience", "impact", "thinking_next_impact"),
+            Destination("02", "Governance & adoption", "How I approach the work",
+                        "Ownership, accountability and adoption in everyday operations.",
+                        "Explore governance", "ai-data-governance", "thinking_next_governance"),
+            Destination("03", "Executive decision guides", "Explore the briefings",
+                        "Short, focused analysis of choices facing enterprise AI leaders.",
+                        "Read briefings", "briefings", "thinking_next_briefings"),
+        ),
+        "Have a question or perspective to share?", "Get in touch", "contact",
+    ),
+    "contact": (
+        "Explore before we talk.",
+        "If you’d like more context first, these sections show the experience, "
+        "thinking and practical approach behind my work.",
+        (
+            Destination("01", "Leadership experience", "What I’ve led",
+                        "Selected contributions and responsibilities across enterprise AI and Data.",
+                        "Explore experience", "impact", "contact_next_impact"),
+            Destination("02", "Governance & adoption", "How I approach the work",
+                        "Operating choices for responsible AI use and sustained adoption.",
+                        "Explore governance", "ai-data-governance", "contact_next_governance"),
+            Destination("03", "Writing & perspectives", "How I think",
+                        "Articles, Weekly AI and executive perspectives on AI leadership.",
+                        "Explore Thinking", "thinking", "contact_next_thinking"),
+        ),
+        "Or return to the portfolio overview.", "Back to Home", "home",
+    ),
+}
+
+
+def about_next_navigation(page: str = "about") -> str:
+    """Render a contextual closing navigation in the established About design."""
+    if page not in PAGE_CONTINUATIONS:
+        raise ValueError(f"Unsupported portfolio continuation page: {page}")
+    heading, description, destinations, prompt, secondary_label, secondary_page = PAGE_CONTINUATIONS[page]
+    prefix = "about" if page == "about" else (
+        "governance" if page == "ai-data-governance" else page
+    )
     cards = []
-    for dest in DESTINATIONS:
+    for dest in destinations:
         cards.append(
             f'<a class="about-next-card" href="?page={escape(dest.page, quote=True)}" '
             f'target="_self" data-hq-event="{escape(dest.analytics_event, quote=True)}">'
@@ -70,24 +159,23 @@ def about_next_navigation() -> str:
             '</a>'
         )
 
+    secondary_event = f"{prefix}_next_{'contact' if secondary_page == 'contact' else 'home'}"
     return (
-        '<section class="about-next" id="about-continue" '
-        'data-analytics-section="about-next-destinations" '
-        'aria-labelledby="about-next-title">'
+        f'<section class="about-next" id="{prefix}-continue" '
+        f'data-analytics-section="{prefix}-next-destinations" '
+        f'aria-labelledby="{prefix}-next-title">'
         '<div class="container">'
         '<div class="about-next-header">'
         '<div><p class="eyebrow">Where to next?</p>'
-        '<h2 id="about-next-title">From the story to the work.</h2></div>'
-        '<p>You’ve read a little about my journey. These are three ways '
-        'to explore the responsibilities, choices and perspectives '
-        'behind my work in AI and Data.</p>'
+        f'<h2 id="{prefix}-next-title">{escape(heading)}</h2></div>'
+        f'<p>{escape(description)}</p>'
         '</div>'
         '<nav class="about-next-grid" aria-label="Continue exploring the portfolio">'
         + "".join(cards) + '</nav>'
         '<div class="about-next-contact">'
-        '<span>Would you rather start a conversation?</span>'
-        '<a href="?page=contact" target="_self" '
-        'data-hq-event="about_next_contact">Get in touch '
+        f'<span>{escape(prompt)}</span>'
+        f'<a href="?page={escape(secondary_page, quote=True)}" target="_self" '
+        f'data-hq-event="{secondary_event}">{escape(secondary_label)} '
         '<span aria-hidden="true">↗</span></a>'
         '</div></div></section>'
     )

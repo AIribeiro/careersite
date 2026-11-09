@@ -544,5 +544,30 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   }
 }
 
+
+/* About: multilingual leadership. Text-only monograms are browser-safe. */
+.site .about-languages-section{padding:clamp(64px,6vw,88px) 0;background:linear-gradient(135deg,#f5f0e9,#eee8df);border-block:1px solid #e0d6cb}
+.site .about-languages-layout{display:grid;grid-template-columns:minmax(0,.93fr) minmax(0,1.07fr);gap:clamp(34px,6vw,86px);align-items:center}
+.site .about-languages-story{min-width:0;max-width:550px}
+.site .about-languages-story .eyebrow{color:#a26643;letter-spacing:.15em;margin:0 0 17px}
+.site .about-languages-story h2{margin:0 0 24px;font:500 clamp(36px,4.4vw,56px)/1.07 Georgia,serif;color:#1d3042;letter-spacing:-.036em;text-wrap:balance}
+.site .about-languages-story>p:not(.eyebrow){margin:0 0 17px;color:#505d68;font-size:clamp(14px,1.3vw,16px);line-height:1.78}
+.site .about-languages-takeaway{margin-top:29px;padding:18px 0 0 20px;border-top:1px solid #d8cec3;border-left:3px solid #ae7855}
+.site .about-languages-takeaway span{display:block;color:#986442;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.13em}
+.site .about-languages-takeaway strong{display:block;margin-top:9px;max-width:475px;color:#263b4b;font-size:14px;font-weight:650;line-height:1.58}
+.site .about-languages-profile{min-width:0;padding:clamp(22px,3vw,34px);background:rgba(255,253,248,.9);border:1px solid #e0d6c9;border-radius:12px;box-shadow:0 19px 45px rgba(35,40,46,.06)}
+.site .about-language-group-label{margin:0 0 15px;color:#9f6747;font-size:10px;font-weight:850;letter-spacing:.13em;text-transform:uppercase}
+.site .about-language-group-label--secondary{margin-top:25px;padding-top:21px;border-top:1px solid #e9e1d7;color:#7a817f}
+.site .about-language-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.site .about-language-tile{display:flex;align-items:center;gap:12px;min-width:0;min-height:78px;padding:13px 15px;border:1px solid #e5dbce;border-radius:8px;background:#fffefa}
+.site .about-language-mark{display:flex;align-items:center;justify-content:center;flex:0 0 43px;width:43px;height:43px;border:1px solid #e8d7c5;border-radius:9px;color:#95613f;background:linear-gradient(145deg,#faf0e6,#f4e8db);font:800 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;letter-spacing:.055em}
+.site .about-language-detail{display:flex;flex-direction:column;gap:5px;min-width:0}
+.site .about-language-detail strong{color:#20364a;font-size:14px;font-weight:750;line-height:1.3}
+.site .about-language-detail>span{color:#68747d;font-size:11px;line-height:1.4}
+.site .about-language-grid--secondary .about-language-tile{background:#faf8f4;border-color:#e9e4dc}
+.site .about-language-grid--secondary .about-language-mark{color:#73808b;background:#efeee9;border-color:#e0dfd8}
+@media(max-width:950px){.site .about-languages-layout{grid-template-columns:minmax(0,1fr);gap:29px}.site .about-languages-story{max-width:750px}.site .about-languages-profile{max-width:780px;width:100%}}
+@media(max-width:580px){.site .about-languages-section{padding:55px 0 62px}.site .about-languages-story h2{font-size:clamp(34px,9vw,45px)}.site .about-languages-profile{padding:20px 16px}.site .about-language-grid{grid-template-columns:minmax(0,1fr);gap:9px}.site .about-language-tile{min-height:66px;padding:10px 12px}.site .about-language-mark{width:39px;height:39px;flex-basis:39px}.site .about-language-group-label--secondary{margin-top:20px;padding-top:18px}}
+
 </style>
 """

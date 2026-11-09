@@ -114,7 +114,7 @@ def portrait(im,x,y,r):
 def footer(im,y,descriptor="Enterprise AI Adoption  •  Governance  •  Business Transformation"):
     gradient(im,NAVY,NAVY2,y,im.height)
     d=ImageDraw.Draw(im);waves(d,im.width,im.height-68,5)
-    portrait(im,98,y+65,47)
+    portrait(im,98,y+58,43)
     d=ImageDraw.Draw(im)
     text(d,165,y+16,"Jair Ribeiro",39,WHITE,True)
     text(d,167,y+66,"AI LEADER",23,CYAN,True)
@@ -255,9 +255,9 @@ def mobile(out):
     d=ImageDraw.Draw(im)
     for i,(a,b,c) in enumerate(RISKS):
         y=3688+i*82
-        text(d,43,y,a.upper(),19,INK,True)
-        para(d,263,y,b,17,565,26)
-        para(d,263,y+30,"Check: "+c,16,560,25,TEAL)
+        text(d,43,y,a.upper(),17,INK,True)
+        para(d,325,y,b,17,510,26)
+        para(d,325,y+30,"Check: "+c,16,510,25,TEAL)
         if i<4:d.line((43,y+74,856,y+74),fill=(217,231,232),width=2)
     section(d,23,4140,"04  OUTCOMES TO MEASURE","Always audit non-escalated cases","chart",854,NAVY2)
     for i,(head,desc) in enumerate(METRICS):

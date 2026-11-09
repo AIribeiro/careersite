@@ -172,7 +172,14 @@ else:
     page_document = inject_writing_footer(raw_document, PAGE, article_slug=str(ARTICLE_QUERY or ""))
     footer_done = perf_counter()
     page_html_size = len(page_document.encode("utf-8"))
-    st.html(CSS + IMAGE_CSS + '<div class="site">' + page_document + '</div>')
+    # The executive Home navigation has a dedicated, scoped visual system.
+    # Load it only for Home, after the shared CSS to avoid changing other pages.
+    if PAGE == "home":
+        from home_pathways_styles import HOME_PATHWAYS_CSS
+        pathway_css = HOME_PATHWAYS_CSS
+    else:
+        pathway_css = ""
+    st.html(CSS + IMAGE_CSS + pathway_css + '<div class="site">' + page_document + '</div>')
     html_done = perf_counter()
     if PAGE == "home":
         # Live publications load in the browser, so CMS latency never blocks Home.

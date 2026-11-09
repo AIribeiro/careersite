@@ -1537,12 +1537,14 @@ def select_auto_featured_article(
 
 def inject_cms_landing(document: str, *, listing_page: int | str | None = None) -> str:
     published = list(fetch_published_articles())
-    from thinking_weekly_brief import is_weekly_brief, inject_weekly_brief_landing
-    weekly_briefs = [article for article in published if is_weekly_brief(article)]
+    from thinking_weekly_brief import is_weekly_brief
+    from thinking_collection_catalogs import inject_thinking_collections
     # Rank every published article, including the older CMS-migrated essays.
     cms_articles = [article for article in published if not is_weekly_brief(article) and article.kind != "Executive Briefing"]
     read_counts = _public_reads_or_none()
-    document = inject_weekly_brief_landing(document, weekly_briefs, read_counts=read_counts)
+    # Three parallel formats now share one editorial layout. Use the same CMS
+    # records and read totals, rather than inserting a separate Weekly AI hero.
+    document = inject_thinking_collections(document, published, read_counts=read_counts)
     # Use the same canonical highlight on Thinking and Home.
     featured = select_auto_featured_article(cms_articles, read_counts)
     legacy_feature_placeholder = '<article class="featured-thinking">' in document

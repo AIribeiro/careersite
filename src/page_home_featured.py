@@ -298,7 +298,9 @@ def inject_writing_footer(document: str, page: str, *, article_slug: str = "") -
     Executive Briefings retain the decision-contact block as their final
     editorial section, so insert the writing strip just before that block.
     """
-    if page in {"home", "analytics", "admin"} or 'data-analytics-section="site-writing-footer"' in document:
+    # About has its own intentional three-way navigation after the personal story.
+    # Avoid competing with it via the generic random editorial strip.
+    if page in {"home", "about", "analytics", "admin"} or 'data-analytics-section="site-writing-footer"' in document:
         return document
     if "<main" not in document or "</main>" not in document:
         return document

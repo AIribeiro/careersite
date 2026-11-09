@@ -97,29 +97,29 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 @media(max-width:800px){.site .journey-grid{grid-template-columns:minmax(0,1fr)}.site .journey-section{padding:40px 0 48px}.site a.journey-card{min-height:0;padding:23px}.site .journey-next{padding:44px 0}}
 @media(prefers-reduced-motion:reduce){.site a.journey-card{transition:none}.site a.journey-card:hover{transform:none}}
 
-/* Three homepage entry cards: identical text rhythm and CTA baseline.
-   Scoped to the homepage journey to avoid changing two-card secondary journeys. */
+/* Four homepage entry cards: a balanced 4/2/1 responsive grid.
+   Scoped to the homepage journey to preserve two-card secondary journeys. */
 .site .journey-section .journey-grid{
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:20px;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:16px;
   align-items:stretch;
 }
 .site .journey-section a.journey-card{
-  min-height:332px;
-  padding:30px 27px 28px;
+  min-height:334px;
+  padding:28px clamp(20px,1.9vw,27px) 27px;
   display:flex;
   flex-direction:column;
   height:100%;
 }
 .site .journey-section .journey-step{
   display:block;
-  min-height:2.9em; /* reserve two label lines on all three cards */
+  min-height:2.9em; /* labels can occupy up to two lines */
   line-height:1.45;
 }
 .site .journey-section .journey-card h3{
   margin:18px 0 12px;
-  min-height:2.32em; /* one and two-line headings share the same next baseline */
-  font-size:clamp(25px,2.55vw,29px);
+  min-height:3.48em; /* consistent body-text baseline for 1–3 line headings */
+  font-size:clamp(23px,2.1vw,28px);
   line-height:1.16;
 }
 .site .journey-section .journey-card p{
@@ -132,9 +132,17 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   flex:0 0 auto;
   margin-top:26px;
   line-height:1.4;
-  white-space:nowrap;
+  white-space:normal;
 }
-@media(max-width:800px){
+@media(max-width:1150px){
+  .site .journey-section .journey-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:16px;
+  }
+  .site .journey-section a.journey-card{min-height:285px}
+  .site .journey-section .journey-card h3{min-height:2.32em}
+}
+@media(max-width:650px){
   .site .journey-section .journey-grid{
     grid-template-columns:minmax(0,1fr);
     gap:15px;
@@ -148,10 +156,7 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
     min-height:0;
     margin:14px 0 11px;
   }
-  .site .journey-section .journey-link{
-    margin-top:20px;
-    white-space:normal;
-  }
+  .site .journey-section .journey-link{margin-top:20px}
 }
 
 

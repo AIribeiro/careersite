@@ -2,28 +2,28 @@
   "schema_version": 1,
   "slug": "ai-agents-agentic-ai-executive-delegation-decision",
   "article_fingerprint": "1df0d87cb09ee442959bb47e28c04aa171e938681e1026f335ceb2674813f1f4",
-  "revision": "2026-11-09-r1",
+  "revision": "2026-11-09-r2",
   "heading": "AI Agents and Agentic AI: the executive decision map",
   "deck": "Four architecture choices, six delegated-authority decisions, failure checks and business evidence.",
   "desktop": {
     "file": "desktop.webp",
-    "sha256": "357c80564d8882590c4e814863056a8ee1ce424323393eace4237b1e1fb4e77c",
+    "sha256": "3c26fc6046f6c277be3a71ca75476d948ea085e41b930be35282dac4a5b8404d",
     "width": 1460,
     "height": 3190,
-    "bytes": 301950
+    "bytes": 301818
   },
   "mobile": {
     "file": "mobile.webp",
-    "sha256": "8e7a8bf029425d5842783c2c4deb4717342b55188642003fceaf97c7c4eee0be",
+    "sha256": "919e07592483a722ddf9209a136ac2ff0712c739d3dc6cc9d90e09351704aa8d",
     "width": 900,
     "height": 4930,
-    "bytes": 261190
+    "bytes": 260034
   },
   "pdf": {
     "file": "infographic.pdf",
-    "sha256": "0e72d70c6e44d00889b727bbaa8e6f2a4d6027785ba484e9a51ef8484da09587",
+    "sha256": "382efacc13cc5ab02ae255b41e19f8ff5a6e80f8e0303a62b96df0a91a0dab2b",
     "pages": 3,
-    "bytes": 1278756
+    "bytes": 1279010
   },
   "release_note": "Exact source content and premium design require editorial approval in CMS."
 }

@@ -85,7 +85,7 @@ def test_controller_is_only_mounted_for_thinking_catalogue():
     assert "not ARTICLE_QUERY" in main
     assert 'str(st.query_params.get("weekly_ai", "")).lower() != "archive"' in main
     assert "mount_thinking_hourly_order()" in main
-    assert "portfolio_next_navigation" in portfolio_next_navigation("thinking")
+    assert 'id="thinking-continue"' in portfolio_next_navigation("thinking")
 
 
 def test_rpc_schema_is_committed_and_uses_raw_view_events_not_sessions():

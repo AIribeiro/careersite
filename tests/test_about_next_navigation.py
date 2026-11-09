@@ -68,7 +68,7 @@ def test_generic_writing_strip_is_not_appended_after_about_navigation():
     # The generic footer is selected on non-About pages; check the guard instead
     # of invoking CMS-dependent content retrieval in a unit test.
     source = (ROOT / "src" / "page_home_featured.py").read_text(encoding="utf-8")
-    assert '"home", "about", "analytics", "admin"' in source
+    assert '"home", "about", "impact", "ai-data-governance", "contact", "analytics", "admin"' in source
 
 
 def test_visual_style_is_scoped_and_mobile_responsive():

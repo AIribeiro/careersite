@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from html import escape
+
 from site_assets import CV_URI, ABOUT_BW_URI
 from site_media import _uri as portfolio_photo_uri
 from site_components import nav, footer, CV_DOWNLOAD_NAME
@@ -34,6 +36,69 @@ def _family_gallery() -> str:
         return ""
     return '<div class="about-family-gallery" aria-label="Family photographs">' + "".join(figures) + '</div>'
 
+# Keep the published proficiency labels exact; this is a professional capability
+# statement, not an assertion of equal fluency across all six languages.
+LANGUAGE_CAPABILITIES = (
+    ("Portuguese", "Native / bilingual", "PT", "professional"),
+    ("Italian", "Native / bilingual", "IT", "professional"),
+    ("English", "Full professional", "EN", "professional"),
+    ("Spanish", "Professional", "ES", "professional"),
+    ("Polish", "Limited working", "PL", "developing"),
+    ("Swedish", "Elementary", "SV", "developing"),
+)
+
+
+def _language_tile(name: str, proficiency: str, code: str) -> str:
+    return (
+        '<div class="about-language-tile">'
+        f'<span class="about-language-mark" aria-hidden="true">{escape(code)}</span>'
+        '<span class="about-language-detail">'
+        f'<strong>{escape(name)}</strong>'
+        f'<span>{escape(proficiency)}</span>'
+        '</span></div>'
+    )
+
+
+def _languages_section() -> str:
+    professional = "".join(
+        _language_tile(name, proficiency, code)
+        for name, proficiency, code, group in LANGUAGE_CAPABILITIES
+        if group == "professional"
+    )
+    developing = "".join(
+        _language_tile(name, proficiency, code)
+        for name, proficiency, code, group in LANGUAGE_CAPABILITIES
+        if group == "developing"
+    )
+    return (
+        '<section class="section about-languages-section" id="languages-leadership" '
+        'aria-labelledby="languages-leadership-title">'
+        '<div class="container about-languages-layout">'
+        '<div class="about-languages-story">'
+        '<p class="eyebrow">International leadership</p>'
+        '<h2 id="languages-leadership-title">Communicating across cultures.</h2>'
+        '<p>Living and working across countries has made speaking several '
+        'languages a practical part of how I lead. It helps me listen for '
+        'nuance, build relationships and make space for perspectives that '
+        'might otherwise be lost in translation.</p>'
+        '<p>In AI and Data leadership, that matters when people from '
+        'different functions, markets and backgrounds need to understand '
+        'one another and make decisions together.</p>'
+        '<div class="about-languages-takeaway">'
+        '<span>What this adds to my work</span>'
+        '<strong>Trust, clarity and influence across cultural and '
+        'organizational boundaries.</strong>'
+        '</div></div>'
+        '<div class="about-languages-profile" aria-label="Languages and proficiency">'
+        '<p class="about-language-group-label">Professional communication</p>'
+        '<div class="about-language-grid">' + professional + '</div>'
+        '<p class="about-language-group-label about-language-group-label--secondary">'
+        'Developing proficiency</p>'
+        '<div class="about-language-grid about-language-grid--secondary">' + developing + '</div>'
+        '</div></div></section>'
+    )
+
+
 def about() -> str:
     family_gallery = _family_gallery()
     cv = f'<a class="btn dark" href="{CV_URI}" download="{CV_DOWNLOAD_NAME}" data-hq-event="cv_download_about">Download full CV ↓</a>' if CV_URI else ""
@@ -59,6 +124,8 @@ def about() -> str:
 <div class="trow"><b>2025–2026</b><div><strong>Leading across the enterprise</strong><span>A director-level AI &amp; Data role brought together the different parts of my career, from technology and business needs to people and organizational change.</span></div></div>
 </div></div></section>
 
+{_languages_section()}
+
 {recommendations_section()}
 
 <section class="section paper" id="speaking-publications"><div class="container">
@@ -78,6 +145,5 @@ def about() -> str:
 <p>I'm also the proud father of three amazing girls. Family is a big part of my life, and away from work I enjoy music, writing and travelling. I like the chance to discover new places, spend time with the people I love and follow interests that have nothing to do with a job description.</p></div>
 </div>
 {family_gallery}
-<div class="chips"><span>Portuguese — native/bilingual</span><span>Italian — native/bilingual</span><span>English — full professional</span><span>Spanish — professional</span><span>Polish — limited working</span><span>Swedish — elementary</span></div>
 </div></section>
 </main>{footer()}'''

@@ -1,42 +1,37 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from site_assets import CV_URI, ABOUT_BW_URI
+from site_media import _uri as portfolio_photo_uri
 from site_components import nav, footer, CV_DOWNLOAD_NAME
 from about_recommendations import recommendations_section
 
 
 
-# The gallery becomes visible only when all three first-party photo assets are
-# deployed alongside the page. No temporary attachment links or broken images.
-FAMILY_PHOTO_FILES = (
-    "about-family-portrait.webp",
-    "about-family-moments.webp",
-    "about-family-visit.webp",
+# Use the same verified, versioned public media URLs as the rest of the site.
+# The app-local /portfolio-image route does not consistently resolve in the
+# deployed Streamlit browser context. The committed WebP originals are small
+# enough to serve directly without pretending ?w= creates image variants.
+FAMILY_PHOTOS = (
+    ("about-family-portrait.webp", "Family portrait with Jair, his wife and two daughters", 1448, 1086, "portrait"),
+    ("about-family-moments.webp", "A collection of candid moments from family life and travel", 1024, 1536, "moments"),
+    ("about-family-visit.webp", "Jair with his family visiting a Volvo truck display", 1431, 2798, "visit"),
 )
 
 
 def _family_gallery() -> str:
-    image_dir = Path(__file__).resolve().parents[1] / "images"
-    if not all((image_dir / name).is_file() for name in FAMILY_PHOTO_FILES):
-        return ""
-    photos = (
-        ("about-family-portrait.webp", "Family portrait with Jair, his wife and two daughters", 1448, 1086, "portrait"),
-        ("about-family-moments.webp", "A collection of candid moments from family life and travel", 1024, 1536, "moments"),
-        ("about-family-visit.webp", "Jair with his family visiting a Volvo truck display", 1431, 2798, "visit"),
-    )
     figures = []
-    for filename, alt, width, height, kind in photos:
-        url = f"/portfolio-image/{filename}"
-        srcset = ", ".join(f"{url}?w={w} {w}w" for w in (640, 960, 1280, 1600))
+    for filename, alt, width, height, kind in FAMILY_PHOTOS:
+        url = portfolio_photo_uri(filename)
+        if not url:
+            continue
+        loading = "eager" if kind == "portrait" else "lazy"
         figures.append(
             f'<figure class="about-family-photo about-family-photo--{kind}">'
-            f'<img src="{url}?w=960" srcset="{srcset}" '
-            f'sizes="(max-width: 620px) 94vw, (max-width: 950px) 48vw, 35vw" '
-            f'width="{width}" height="{height}" alt="{alt}" '
-            'loading="lazy" decoding="async"></figure>'
+            f'<img src="{url}" width="{width}" height="{height}" alt="{alt}" '
+            f'loading="{loading}" decoding="async"></figure>'
         )
+    if not figures:
+        return ""
     return '<div class="about-family-gallery" aria-label="Family photographs">' + "".join(figures) + '</div>'
 
 def about() -> str:

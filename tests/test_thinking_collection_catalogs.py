@@ -80,6 +80,7 @@ def test_briefings_feature_automatic_readership_and_four_cards(monkeypatch):
     assert 'class="cms-article-excerpt"' in html
     assert 'briefings_page=2' in html
     assert 'briefings_page=3' in html
+    assert 'thinking_briefings_library_open' in html
     # Highlight must not recur as one of the 4 regular entries.
     assert html.count(f'data-hq-event="thinking_briefings_edition_open" data-hq-content-slug="{featured.slug}"') == 0
 
@@ -93,6 +94,7 @@ def test_weekly_feature_is_newest_and_four_older_issues_are_listed(monkeypatch):
     assert f'data-hq-event="thinking_weekly_ai_highlight_open"' in html
     assert 'weekly_page=2' in html
     assert "Showing 1–4 of 5 Weekly AI editions" in html
+    assert 'thinking_weekly_full_archive' in html
     assert articles[-1].title in html
     assert '?page=thinking&amp;weekly_ai=archive' in html
 
@@ -161,3 +163,13 @@ def test_catalogues_do_not_override_the_independent_briefings_library():
     source = (ROOT / "src" / "page_executive_briefings.py").read_text("utf-8")
     assert "def executive_briefings()" in source
     assert "briefings-library-card" in source
+
+
+def test_previous_promo_visual_and_styles_are_not_reintroduced():
+    template = (ROOT / "src" / "thinking_landing.py").read_text("utf-8")
+    assert 'from briefings_visual import PROMO_CSS, briefing_visual' not in template
+    assert '{briefing_visual()}' not in template
+    assert 'class="thinking-briefing-card"' not in template
+    updated = catalogs.inject_thinking_collections(landing(), ())
+    assert 'class="thinking-briefing-card"' not in updated
+    assert updated.count('id="thinking-briefings"') == 1

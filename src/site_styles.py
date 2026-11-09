@@ -514,5 +514,35 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 .site .article-body .executive-sources{padding-top:20px;border-top:1px solid var(--line);font-size:13px;line-height:1.7}
 .site .article-body .executive-sources a{color:#225375;text-underline-offset:3px}
 @media(max-width:700px){.site .article-body .executive-capability-grid{grid-template-columns:minmax(0,1fr)}.site .article-body .executive-decision-intro,.site .article-body .executive-judgment{padding:20px}}
+
+/* Personal photo gallery on About. High-resolution images remain in /images,
+   loaded through the existing first-party responsive portfolio-image route. */
+.site .about-family-gallery{
+  display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.9fr) minmax(0,.9fr);
+  align-items:stretch;gap:14px;margin:34px 0 28px;
+}
+.site .about-family-photo{
+  margin:0;height:clamp(330px,37vw,510px);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:#e7e1d8;border:1px solid rgba(21,31,45,.12);
+}
+.site .about-family-photo img{
+  display:block;width:100%;height:100%;object-fit:contain;object-position:center;
+}
+@media(max-width:950px){
+  .site .about-family-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .site .about-family-photo--portrait{grid-column:1/-1;height:auto;max-height:580px}
+  .site .about-family-photo--portrait img{height:auto;max-height:580px}
+  .site .about-family-photo--moments,.site .about-family-photo--visit{height:460px}
+}
+@media(max-width:620px){
+  .site .about-family-gallery{grid-template-columns:minmax(0,1fr);gap:12px;margin:24px 0}
+  .site .about-family-photo--portrait{grid-column:auto}
+  .site .about-family-photo--moments,.site .about-family-photo--visit{height:auto;max-height:620px}
+  .site .about-family-photo--moments img,.site .about-family-photo--visit img{
+    height:auto;max-height:620px;object-fit:contain;
+  }
+}
+
 </style>
 """

@@ -163,7 +163,10 @@ def _thinking_landing_with_catalog() -> str:
     try:
         document = inject_cms_landing(document)
     except RuntimeError:
-        pass
+        # A temporary CMS outage must not bring back the old mismatched
+        # format blocks. Keep the same layout with honest empty states.
+        from thinking_collection_catalogs import inject_thinking_collections
+        document = inject_thinking_collections(document, ())
     return _with_thinking_navigation(document)
 
 

@@ -61,7 +61,7 @@ def test_home_pathway_icons_are_local_and_accessible():
     assert "<script" not in markup
     assert "https://" not in markup
     assert "<img" not in markup
-    payloads = re.findall(r'data:image/svg\\+xml;base64,([A-Za-z0-9+/=]+)', HOME_PATHWAYS_CSS)
+    payloads = re.findall(r'data:image/svg\+xml;base64,([A-Za-z0-9+/=]+)', HOME_PATHWAYS_CSS)
     assert len(payloads) == 4
     for payload in payloads:
         svg = b64decode(payload).decode("utf-8")

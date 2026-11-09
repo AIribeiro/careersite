@@ -1,11 +1,46 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from site_assets import CV_URI, ABOUT_BW_URI
 from site_components import nav, footer, CV_DOWNLOAD_NAME
 from about_recommendations import recommendations_section
 
 
+
+# The gallery becomes visible only when all three first-party photo assets are
+# deployed alongside the page. No temporary attachment links or broken images.
+FAMILY_PHOTO_FILES = (
+    "about-family-portrait.webp",
+    "about-family-moments.webp",
+    "about-family-visit.webp",
+)
+
+
+def _family_gallery() -> str:
+    image_dir = Path(__file__).resolve().parents[1] / "images"
+    if not all((image_dir / name).is_file() for name in FAMILY_PHOTO_FILES):
+        return ""
+    photos = (
+        ("about-family-portrait.webp", "Family portrait with Jair, his wife and two daughters", 1448, 1086, "portrait"),
+        ("about-family-moments.webp", "A collection of candid moments from family life and travel", 1024, 1536, "moments"),
+        ("about-family-visit.webp", "Jair with his family visiting a Volvo truck display", 1431, 2798, "visit"),
+    )
+    figures = []
+    for filename, alt, width, height, kind in photos:
+        url = f"/portfolio-image/{filename}"
+        srcset = ", ".join(f"{url}?w={w} {w}w" for w in (640, 960, 1280, 1600))
+        figures.append(
+            f'<figure class="about-family-photo about-family-photo--{kind}">'
+            f'<img src="{url}?w=960" srcset="{srcset}" '
+            f'sizes="(max-width: 620px) 94vw, (max-width: 950px) 48vw, 35vw" '
+            f'width="{width}" height="{height}" alt="{alt}" '
+            'loading="lazy" decoding="async"></figure>'
+        )
+    return '<div class="about-family-gallery" aria-label="Family photographs">' + "".join(figures) + '</div>'
+
 def about() -> str:
+    family_gallery = _family_gallery()
     cv = f'<a class="btn dark" href="{CV_URI}" download="{CV_DOWNLOAD_NAME}" data-hq-event="cv_download_about">Download full CV ↓</a>' if CV_URI else ""
     return f'''{nav("about")}<main>
 <section class="pagehero"><div class="container">
@@ -34,6 +69,7 @@ def about() -> str:
 <div><p>Since 1998, I've lived in Italy, Poland and now Sweden. Living in different countries has given me a chance to experience other cultures and ways of seeing the world. Brazil is where I come from, but the places I've called home since then have become part of my story too.</p>
 <p>I'm also the proud father of three amazing girls. Family is a big part of my life, and away from work I enjoy music, writing and travelling. I like the chance to discover new places, spend time with the people I love and follow interests that have nothing to do with a job description.</p></div>
 </div>
+{family_gallery}
 <div class="chips"><span>Portuguese — native/bilingual</span><span>Italian — native/bilingual</span><span>English — full professional</span><span>Spanish — professional</span><span>Polish — limited working</span><span>Swedish — elementary</span></div>
 </div></section>
 

@@ -146,6 +146,27 @@ def _decorate_landing(document: str) -> str:
     return VISUAL_CSS + document
 
 
+def _with_thinking_navigation(document: str) -> str:
+    """Close the Thinking catalogue with the shared three-destination guide."""
+    from about_next_navigation import portfolio_next_navigation
+    if 'data-analytics-section="thinking-next-destinations"' in document:
+        return document
+    if "</main>" not in document:
+        return document
+    return document.replace(
+        "</main>", portfolio_next_navigation("thinking") + "</main>", 1
+    )
+
+
+def _thinking_landing_with_catalog() -> str:
+    document = _decorate_landing(landing())
+    try:
+        document = inject_cms_landing(document)
+    except RuntimeError:
+        pass
+    return _with_thinking_navigation(document)
+
+
 def thinking() -> str:
     if query_value("weekly_ai") == "archive":
         from site_cms import fetch_published_articles
@@ -154,7 +175,7 @@ def thinking() -> str:
             editions = list(fetch_published_articles())
         except RuntimeError:
             editions = []
-        return VISUAL_CSS + render_weekly_brief_archive(editions)
+        return VISUAL_CSS + _with_thinking_navigation(render_weekly_brief_archive(editions))
 
     slug = query_value("article")
     if slug:
@@ -167,16 +188,8 @@ def thinking() -> str:
 
     article = resolve_article(slug)
     if article is None:
-        document = _decorate_landing(landing())
-        try:
-            return inject_cms_landing(document)
-        except RuntimeError:
-            return document
+        return _thinking_landing_with_catalog()
     renderer = ROUTES.get(article.key)
     if renderer is None:
-        document = _decorate_landing(landing())
-        try:
-            return inject_cms_landing(document)
-        except RuntimeError:
-            return document
+        return _thinking_landing_with_catalog()
     return _decorate_article(renderer(), article.key)

@@ -1,7 +1,8 @@
 """Hourly browser-side ordering of the three Thinking landing collections.
 
-Read-only public RPC returns three aggregate article-view counts. The client
-moves the EXISTING section nodes, preserving event wiring, content and anchors.
+Read-only public RPC returns three aggregate article-view metric vectors.
+The client compares the hour, then calendar periods to break ties, and moves
+the EXISTING section nodes while preserving event wiring, content and anchors.
 Runs on initial load, on each clock-hour boundary and when the tab returns.
 No visitor identifiers, per-article data or third-party tracking are sent.
 """
@@ -17,7 +18,7 @@ from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
 
 def mount_thinking_hourly_order() -> None:
     """Mount a small iframe controller, consistent with existing site analytics."""
-    endpoint = ANALYTICS_URL.rstrip("/") + "/rest/v1/rpc/careersite_thinking_recent_views_v1"
+    endpoint = ANALYTICS_URL.rstrip("/") + "/rest/v1/rpc/careersite_thinking_rank_windows_v2"
     script = r"""
 <script>
 (() => {
@@ -26,6 +27,12 @@ def mount_thinking_hourly_order() -> None:
   const endpoint = __ENDPOINT__;
   const key = __KEY__;
   const kinds = ['weekly_ai', 'briefings', 'articles'];
+  // Lexicographic priority. These are Stockholm calendar periods except
+  // for the rolling last hour. Do not sum overlapping calendar windows.
+  const metrics = [
+    'last_hour', 'today', 'yesterday', 'this_week',
+    'last_week', 'this_month', 'last_month', 'this_year'
+  ];
   const selectors = {
     weekly_ai: '#weekly-ai',
     briefings: '#thinking-briefings',
@@ -123,24 +130,47 @@ def mount_thinking_hourly_order() -> None:
       if (!Array.isArray(rows) || rows.length !== 3) throw new Error('Invalid readership response');
       const counts = new Map();
       for (const row of rows) {
-        const value = Number(row.views);
-        if (!kinds.includes(row.section_key) || counts.has(row.section_key) ||
-            !Number.isSafeInteger(value) || value < 0) {
-          throw new Error('Invalid section count');
+        if (!kinds.includes(row.section_key) || counts.has(row.section_key)) {
+          throw new Error('Invalid section key');
         }
-        counts.set(row.section_key, value);
+        const vector = {};
+        for (const metric of metrics) {
+          if (row[metric] === null || row[metric] === undefined || row[metric] === '') {
+            throw new Error('Missing readership metric');
+          }
+          const value = Number(row[metric]);
+          if (!Number.isSafeInteger(value) || value < 0) {
+            throw new Error('Invalid readership metric');
+          }
+          vector[metric] = value;
+        }
+        counts.set(row.section_key, vector);
       }
-      if (counts.size !== 3) throw new Error('Missing section count');
-      const sorted = [...kinds].sort((a, b) =>
-        counts.get(b) - counts.get(a) || kinds.indexOf(a) - kinds.indexOf(b)
-      );
+      if (counts.size !== 3) throw new Error('Missing section counts');
+      // Compare one period at a time. The next period is considered only
+      // if the previous period is tied, including the all-zero case.
+      const sorted = [...kinds].sort((a, b) => {
+        for (const metric of metrics) {
+          const difference = counts.get(b)[metric] - counts.get(a)[metric];
+          if (difference !== 0) return difference;
+        }
+        return kinds.indexOf(a) - kinds.indexOf(b);
+      });
       if (stopped || !isLanding()) return;
       waitForDOM(sorted, 24);
-      const total = kinds.reduce((sum, kind) => sum + counts.get(kind), 0);
-      if (total) {
-        status('Collections ordered by views in the past 60 minutes · refreshed hourly');
+      const anyViews = kinds.some(kind =>
+        metrics.some(metric => counts.get(kind)[metric] > 0)
+      );
+      const allTied = metrics.every(metric =>
+        kinds.every(kind => counts.get(kind)[metric] === counts.get(kinds[0])[metric])
+      );
+      if (!anyViews) {
+        status('No recorded views across the comparison periods · usual order');
+      } else if (allTied) {
+        status('Readership tied across all periods · usual order');
       } else {
-        status('No recorded views in the past hour · showing the usual order');
+        status('Ordered by views: last hour → today → yesterday → this week → ' +
+          'last week → this month → last month → this year · refreshed hourly');
       }
       lastHourSlot = slot;
     } catch (err) {

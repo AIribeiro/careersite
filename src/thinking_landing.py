@@ -162,6 +162,7 @@ THINKING_ENTRY_CSS = r'''<style>
 .thinking-entry-nav a:first-of-type{border-color:#d2a180;color:#ffe6d3!important}
 .thinking-entry-nav a:hover,.thinking-entry-nav a:focus-visible{background:rgba(226,170,124,.16);border-color:#e6b18b}
 .pagehero .thinking-purpose{max-width:850px;margin:24px 0 0;color:#bdc7d4;font-size:20px;line-height:1.62}
+.site .pagehero .thinking-order-note{margin:15px 0 0;color:#bdc7d4;font-size:11px;font-weight:550;line-height:1.5;letter-spacing:.015em}
 #weekly-ai,#thinking-briefings,#thinking-articles{scroll-margin-top:95px}
 @media(max-width:700px){.thinking-entry-nav{gap:8px}.thinking-entry-nav span{width:100%;margin:0}.thinking-entry-nav a{flex:1 1 auto;justify-content:center;padding:10px 12px;font-size:11px}.pagehero .thinking-purpose{font-size:17px}}
 </style>'''

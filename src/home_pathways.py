@@ -1,7 +1,7 @@
 """Executive editorial navigation for the Home page.
 
-Four intentional entry points, with local SVG line art. No remote icon fonts,
-scripts or external image requests are required for the navigation to render.
+Four intentional entry points. Their icons are supplied as CSS background images
+from embedded SVG data, because Streamlit sanitizes inline SVG markup.
 """
 from __future__ import annotations
 
@@ -52,8 +52,8 @@ PATHWAYS = (
     ),
 )
 
-# Bespoke 32px line work: an enterprise decision grid, safeguarded authority,
-# an open publication, and an international route. All paths are decorative.
+# Bespoke 32px paths used by home_pathways_styles to build Safari-safe CSS
+# background images: decisions, governance, publications and international life.
 ICON_PATHS = {
     "impact": (
         '<rect x="4.5" y="4.5" width="9" height="9" rx="1.6"/>'
@@ -77,16 +77,6 @@ ICON_PATHS = {
 }
 
 
-def _icon(kind: str) -> str:
-    return (
-        '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" '
-        'viewBox="0 0 32 32" fill="none" stroke="currentColor" '
-        'stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round" '
-        'focusable="false" aria-hidden="true">'
-        + ICON_PATHS[kind] + '</svg>'
-    )
-
-
 def home_pathways() -> str:
     """Return the self-contained, clickable four-way Home editorial index."""
     cards = []
@@ -97,7 +87,7 @@ def home_pathways() -> str:
             f'data-hq-event="{escape(path.event, quote=True)}" '
             f'aria-label="{escape(path.cta, quote=True)}">'
             '<div class="home-pathway-top">'
-            f'<span class="home-pathway-icon" aria-hidden="true">{_icon(path.key)}</span>'
+            '<span class="home-pathway-icon" aria-hidden="true"></span>'
             f'<span class="home-pathway-number" aria-hidden="true">{path.number}</span>'
             '</div>'
             '<div class="home-pathway-body">'

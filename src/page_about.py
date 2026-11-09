@@ -59,15 +59,6 @@ def about() -> str:
 <div class="trow"><b>2025–2026</b><div><strong>Leading across the enterprise</strong><span>A director-level AI &amp; Data role brought together the different parts of my career, from technology and business needs to people and organizational change.</span></div></div>
 </div></div></section>
 
-<section class="section soft" id="beyond-work"><div class="container">
-<div class="head"><div><p class="eyebrow">Beyond work</p><h2>More than a job title.</h2></div>
-<div><p>Since 1998, I've lived in Italy, Poland and now Sweden. Living in different countries has given me a chance to experience other cultures and ways of seeing the world. Brazil is where I come from, but the places I've called home since then have become part of my story too.</p>
-<p>I'm also the proud father of three amazing girls. Family is a big part of my life, and away from work I enjoy music, writing and travelling. I like the chance to discover new places, spend time with the people I love and follow interests that have nothing to do with a job description.</p></div>
-</div>
-{family_gallery}
-<div class="chips"><span>Portuguese — native/bilingual</span><span>Italian — native/bilingual</span><span>English — full professional</span><span>Spanish — professional</span><span>Polish — limited working</span><span>Swedish — elementary</span></div>
-</div></section>
-
 {recommendations_section()}
 
 <section class="section paper" id="speaking-publications"><div class="container">
@@ -76,7 +67,17 @@ def about() -> str:
 <article class="card"><span class="org">Speaking</span><h3>Conversations beyond my own workplace</h3><p>I've taken part in discussions at events in Stockholm, Milan, Gothenburg and London, among others, about AI and its place in organizations.</p><p><a href="https://www.smau.it/stockholm/schedule/driving-transformation-through-ai-and-digitalisation" target="_blank" rel="noopener">SMAU Stockholm ↗</a> · <a href="https://www.gaia.fish/2024" target="_blank" rel="noopener">GAIA Gothenburg ↗</a></p></article>
 <article class="card"><span class="org">Articles &amp; interviews</span><h3>Putting experience into words</h3><p>I write about the questions that keep coming up in my work and have shared those perspectives through articles and interviews.</p><p><a href="https://www.digitalfirstmagazine.com/leaders-are-finally-understanding-ai-governance-is-not-about-control-it-is-about-scale-temp/" target="_blank" rel="noopener">Digital First Magazine ↗</a> · <a href="https://www.cioapplicationseurope.com/cxoinsights/transforming-the-trucking-industry-with-data-analytics-and-ai-nid-3643.html" target="_blank" rel="noopener">CIO Applications Europe ↗</a></p></article>
 <article class="card"><span class="org">Books</span><h3>Writing for a wider audience</h3><p>Books and longer pieces let me follow an idea further, including what technology means for families and everyday life.</p><p><a href="https://books.google.com/books/about/The_Last_Human_Question.html?id=ZfG40QEACAAJ" target="_blank" rel="noopener noreferrer">The Last Human Question ↗</a> · <a href="https://www.goodreads.com/book/show/57115956-ai-robotics-and-coding" target="_blank" rel="noopener noreferrer">AI, Robotics and Coding ↗</a></p></article>
+<article class="card"><span class="org">Ongoing publications</span><h3>AI decisions, week by week</h3><p>Through Executive AI Briefings and Weekly AI, I examine what AI developments mean for the people making business decisions, from governance and adoption to emerging capabilities.</p><p><a href="?page=briefings" target="_self">Executive AI Briefings ↗</a> · <a href="?page=thinking" target="_self">Weekly AI &amp; Thinking ↗</a></p></article>
 </div>
 <div class="actions" id="credentials-evidence">{cv}<a class="btn dark" href="https://www.linkedin.com/in/jairribeiro/details/certifications/" target="_blank" rel="noopener" data-hq-event="about_certifications">Credentials on LinkedIn ↗</a></div>
+</div></section>
+
+<section class="section soft" id="beyond-work"><div class="container">
+<div class="head"><div><p class="eyebrow">Beyond work</p><h2>More than a job title.</h2></div>
+<div><p>Since 1998, I've lived in Italy, Poland and now Sweden. Living in different countries has given me a chance to experience other cultures and ways of seeing the world. Brazil is where I come from, but the places I've called home since then have become part of my story too.</p>
+<p>I'm also the proud father of three amazing girls. Family is a big part of my life, and away from work I enjoy music, writing and travelling. I like the chance to discover new places, spend time with the people I love and follow interests that have nothing to do with a job description.</p></div>
+</div>
+{family_gallery}
+<div class="chips"><span>Portuguese — native/bilingual</span><span>Italian — native/bilingual</span><span>English — full professional</span><span>Spanish — professional</span><span>Polish — limited working</span><span>Swedish — elementary</span></div>
 </div></section>
 </main>{footer()}'''

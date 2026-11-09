@@ -1,8 +1,12 @@
 """Scoped visual system for the four executive pathways on Home only."""
 
+from base64 import b64encode
+
+from home_pathways import ICON_PATHS
+
 HOME_PATHWAYS_CSS = """
 <style>
-/* Four pathways: editorial paper, midnight navy and restrained copper. */
+/* Four matching editorial cards in warm paper and restrained copper. */
 .site .journey-section.home-pathways{
   position:relative;isolation:isolate;overflow:hidden;
   padding:clamp(65px,7vw,95px) 0 clamp(72px,7.5vw,100px);
@@ -79,26 +83,9 @@ HOME_PATHWAYS_CSS = """
   border:1px solid rgba(175,121,85,.14);
   border-radius:50%;pointer-events:none;
 }
-.site .journey-section.home-pathways a.home-pathway-card--impact{
-  color:#f7f1e8!important;
-  border-color:#284055;
-  background:linear-gradient(138deg,#20384d 0%,#112235 65%,#0d1a29 100%);
-  box-shadow:0 19px 48px rgba(17,34,52,.17);
-}
-.site .home-pathways a.home-pathway-card--impact:before{
-  width:175px;background:linear-gradient(90deg,#dfb08c,#9e5e37);
-}
-.site .home-pathways a.home-pathway-card--impact:after{
-  width:310px;height:310px;right:-92px;top:-157px;
-  border-color:rgba(239,199,170,.17);
-  box-shadow:0 0 0 49px rgba(255,255,255,.014);
-}
 .site .journey-section.home-pathways a.home-pathway-card:hover{
   transform:translateY(-4px);border-color:#bf967b;
   box-shadow:0 27px 56px rgba(25,39,52,.135);
-}
-.site .journey-section.home-pathways a.home-pathway-card--impact:hover{
-  border-color:#c39171;box-shadow:0 28px 56px rgba(17,34,52,.24);
 }
 .site .journey-section.home-pathways a.home-pathway-card:focus-visible{
   outline:3px solid #a76842;outline-offset:4px;
@@ -112,23 +99,14 @@ HOME_PATHWAYS_CSS = """
   width:62px;height:62px;border:1px solid #e4d4c6;border-radius:13px;
   color:#a16947;background:linear-gradient(145deg,#fcf3e9,#f1e5d8);
 }
-.site .home-pathway-icon svg{display:block;width:32px;height:32px}
 .site .home-pathway-number{
   color:#c6b6a7;font:500 35px/1 Georgia,serif;letter-spacing:-.045em;
 }
-.site .home-pathway-card--impact .home-pathway-icon{
-  color:#f0c39f;border-color:rgba(233,194,163,.29);
-  background:rgba(230,180,146,.11);
-}
-.site .home-pathway-card--impact .home-pathway-number{color:rgba(239,204,179,.45)}
 .site .home-pathway-body{display:block;flex:1 1 auto}
 .site .journey-section.home-pathways .home-pathway-body .journey-step{
   display:block;min-height:0;margin:0 0 12px;
   color:#a16947;font-size:10px;font-weight:850;
   text-transform:uppercase;letter-spacing:.15em;line-height:1.45;
-}
-.site .journey-section.home-pathways .home-pathway-card--impact .journey-step{
-  color:#e4b38d;
 }
 .site .journey-section.home-pathways .home-pathway-body h3{
   min-height:0;margin:0 0 16px;color:#1d3040;
@@ -139,8 +117,6 @@ HOME_PATHWAYS_CSS = """
   max-width:480px;margin:0;color:#596675;
   font-size:15px;line-height:1.72;
 }
-.site .journey-section.home-pathways .home-pathway-card--impact h3{color:#fff8f0}
-.site .journey-section.home-pathways .home-pathway-card--impact p{color:#c6d1d9}
 .site .home-pathway-footer{
   display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;
   gap:12px 20px;width:100%;
@@ -162,15 +138,6 @@ HOME_PATHWAYS_CSS = """
 .site .home-pathways a.home-pathway-card:hover .home-pathway-arrow{
   transform:translate(2px,-2px);background:#f3e7db;
 }
-.site .home-pathway-card--impact .home-pathway-footer{border-color:rgba(217,229,237,.23)}
-.site .home-pathway-card--impact .home-pathway-context{color:#aebdcc}
-.site .home-pathway-card--impact .home-pathway-cta{color:#fae1cb}
-.site .home-pathway-card--impact .home-pathway-arrow{
-  color:#f2c7a5;border-color:rgba(239,194,160,.39);
-}
-.site .home-pathways a.home-pathway-card--impact:hover .home-pathway-arrow{
-  background:rgba(239,194,160,.14);
-}
 @media(max-width:1000px){
   .site .journey-section.home-pathways .home-pathways-intro{
     grid-template-columns:minmax(0,1fr);gap:22px;
@@ -189,7 +156,6 @@ HOME_PATHWAYS_CSS = """
   }
   .site .home-pathway-top{margin-bottom:23px}
   .site .home-pathway-icon{width:54px;height:54px;flex-basis:54px}
-  .site .home-pathway-icon svg{width:29px;height:29px}
   .site .journey-section.home-pathways .home-pathway-body h3{
     margin-bottom:12px;font-size:clamp(30px,7.8vw,38px);
   }
@@ -211,3 +177,34 @@ HOME_PATHWAYS_CSS = """
 }
 </style>
 """
+
+def _icon_css() -> str:
+    """Embed vector icons in CSS since Streamlit sanitizes inline SVG markup.
+
+    Data URIs work in Safari without network requests or external icon fonts.
+    """
+    rules = []
+    for name, paths in ICON_PATHS.items():
+        svg = (
+            '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" '
+            'viewBox="0 0 32 32" fill="none" stroke="#a16947" '
+            'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
+            + paths + '</svg>'
+        )
+        payload = b64encode(svg.encode("utf-8")).decode("ascii")
+        rules.append(
+            f'.site .home-pathways .home-pathway-card--{name} .home-pathway-icon'
+            '{background-image:'
+            f'url("data:image/svg+xml;base64,{payload}"),'
+            'linear-gradient(145deg,#fcf3e9,#f1e5d8);'
+            'background-repeat:no-repeat;'
+            'background-size:32px 32px,cover;'
+            'background-position:center,center;}'
+        )
+    return "\n".join(rules)
+
+
+HOME_PATHWAYS_CSS = HOME_PATHWAYS_CSS.replace(
+    "</style>",
+    _icon_css() + "\n</style>",
+)

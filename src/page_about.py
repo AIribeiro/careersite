@@ -6,6 +6,7 @@ from site_assets import CV_URI, ABOUT_BW_URI
 from site_media import _uri as portfolio_photo_uri
 from site_components import nav, footer, CV_DOWNLOAD_NAME
 from about_recommendations import recommendations_section
+from about_next_navigation import about_next_navigation
 
 
 
@@ -146,4 +147,6 @@ def about() -> str:
 </div>
 {family_gallery}
 </div></section>
+
+{about_next_navigation()}
 </main>{footer()}'''

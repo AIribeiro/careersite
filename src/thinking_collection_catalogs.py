@@ -78,6 +78,12 @@ COLLECTION_CSS = """<style>
   display:inline-flex;margin-top:16px;font-size:12px;font-weight:750;
   color:#2b4960;text-decoration:underline;text-underline-offset:3px
 }
+.site .thinking-collection .home-featured-audio{
+  margin:12px 0 0;font-size:12px;font-weight:700
+}
+.site .thinking-collection .home-featured-audio a{
+  color:#f1c8a9!important;text-decoration:underline;text-underline-offset:3px
+}
 .site .thinking-collection .thinking-catalog-empty{
   padding:26px;border:1px solid #dfd4c8;color:#596776;background:#fffdfa
 }
@@ -162,6 +168,16 @@ def _feature(article, kind: str, counts: dict[str, int] | None) -> str:
         "The newest Friday perspective." if kind == "weekly_ai"
         else "Chosen from recent publication and reader interest."
     )
+    listen = ""
+    if kind == "weekly_ai":
+        from weekly_ai_audio import audio_url
+        if audio_url(article.slug):
+            listen = (
+                '<p class="home-featured-audio">'
+                f'<a href="{href}#weekly-ai-audio" target="_self" '
+                f'data-hq-event="thinking_weekly_ai_highlight_listen" '
+                f'data-hq-content-slug="{slug}">Listen to this edition →</a></p>'
+            )
     return (
         '<div class="cms-thinking-highlight thinking-collection-highlight" '
         f'data-analytics-section="thinking-{kind}-highlight">'
@@ -182,7 +198,8 @@ def _feature(article, kind: str, counts: dict[str, int] | None) -> str:
         f'<a class="home-featured-read" href="{href}" target="_self" '
         f'data-hq-event="thinking_{kind}_highlight_open" data-hq-content-slug="{slug}">'
         'Read highlighted edition <span aria-hidden="true">→</span></a>'
-        '</div></article></div>'
+        + listen
+        + '</div></article></div>'
     )
 
 
@@ -324,6 +341,10 @@ def _collection(kind: str, published: tuple, counts: dict[str, int] | None) -> s
         + ('<a class="thinking-catalog-other-link" href="?page=thinking&amp;weekly_ai=archive" '
            'target="_self" data-hq-event="thinking_weekly_full_archive">'
            'View the complete Weekly AI archive →</a>' if kind == "weekly_ai" and items else '')
+        + ('<a class="thinking-catalog-other-link" href="?page=briefings" '
+           'target="_self" data-hq-event="thinking_briefings_library_open">'
+           'Explore the Executive AI Briefings library →</a>'
+           if kind == "briefings" and items else '')
         + '</div></section>'
     )
 

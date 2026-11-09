@@ -28,10 +28,11 @@ jobs:
         run: python scripts/build_agents_agentic_executive_infographic.py --output /tmp/agentic-art
       - name: Package immutable source-fingerprint-matched artwork
         run: |
+          rm -rf static/briefing-artwork/ai-agents-agentic-ai-executive-delegation-decision
           python scripts/build_briefing_artwork_bundle.py \
             --slug ai-agents-agentic-ai-executive-delegation-decision \
             --article-fingerprint 1df0d87cb09ee442959bb47e28c04aa171e938681e1026f335ceb2674813f1f4 \
-            --revision 2026-11-09-r1 \
+            --revision 2026-11-09-r2 \
             --desktop /tmp/agentic-art/desktop.png \
             --mobile /tmp/agentic-art/mobile.png \
             --pdf /tmp/agentic-art/infographic.pdf \

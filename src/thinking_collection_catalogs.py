@@ -10,7 +10,6 @@ from __future__ import annotations
 from hashlib import sha256
 from html import escape
 from math import ceil
-from pathlib import Path
 from urllib.parse import urlencode
 
 from thinking_core import query_value
@@ -34,9 +33,27 @@ COLLECTION_CSS = """<style>
   display:block;width:100%;height:100%;object-fit:contain;object-position:center;background:#142a3e
 }
 .site .thinking-collection .home-featured-art-fallback{
-  display:flex;align-items:center;justify-content:center;width:100%;height:100%;
-  min-height:250px;background:linear-gradient(135deg,#102538,#24475e);
-  color:#f3e1d2;font:500 clamp(34px,4vw,52px)/1.12 Georgia,serif;text-align:center;padding:28px
+  position:relative;isolation:isolate;overflow:hidden;box-sizing:border-box;
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:13px;
+  width:100%;height:100%;min-height:250px;padding:clamp(25px,4vw,45px);
+  background:radial-gradient(circle at 87% 24%,rgba(199,146,106,.24),transparent 39%),
+    linear-gradient(135deg,#102538,#24475e);
+  color:#f3e1d2;text-align:left
+}
+.site .thinking-collection .home-featured-art-fallback:after{
+  content:"";position:absolute;right:-38px;top:-60px;width:240px;height:240px;
+  border:1px solid rgba(230,190,160,.22);border-radius:50%;z-index:-1
+}
+.site .thinking-collection .collection-art-kicker{
+  color:#e6b28d;font:800 10px/1.4 Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase
+}
+.site .thinking-collection .collection-art-topic{
+  color:#d0dce6;font:700 11px/1.4 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase
+}
+.site .thinking-collection .collection-art-title{
+  max-width:540px;color:#fff8ef;font:500 clamp(22px,3vw,43px)/1.10 Georgia,serif;
+  letter-spacing:-.025em;overflow-wrap:break-word;display:-webkit-box;
+  -webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden
 }
 .site .thinking-collection .cms-article-card .cms-thinking-thumb{
   margin:0!important;aspect-ratio:16/9!important;width:100%;max-width:100%;
@@ -47,8 +64,13 @@ COLLECTION_CSS = """<style>
   object-position:center!important
 }
 .site .thinking-collection .cms-article-card .cms-thinking-thumb .home-featured-art-fallback{
-  min-height:0;height:100%;font-size:clamp(20px,2.8vw,33px)
+  min-height:0;height:100%;gap:8px;padding:clamp(17px,2.5vw,28px)
 }
+.site .thinking-collection .cms-article-card .collection-art-title{
+  font-size:clamp(20px,2vw,28px);-webkit-line-clamp:3
+}
+.site .thinking-collection .cms-article-card .collection-art-kicker{font-size:8px}
+.site .thinking-collection .cms-article-card .collection-art-topic{font-size:9px}
 .site .thinking-collection .cms-article-card .cms-article-card-body{min-width:0}
 .site .thinking-collection .cms-article-card h3{overflow-wrap:break-word}
 .site .thinking-collection .cms-catalog-footer{padding-top:18px}
@@ -112,8 +134,15 @@ def _art(article, kind: str, *, featured: bool) -> str:
             f'alt="{escape(article.header_image_alt or article.title, quote=True)}" '
             f'loading="{"eager" if featured else "lazy"}" decoding="async">'
         )
-    label = "WEEKLY AI" if kind == "weekly_ai" else "Executive AI Briefings"
-    return f'<span class="home-featured-art-fallback">{escape(label)}</span>'
+    label = "WEEKLY AI" if kind == "weekly_ai" else "EXECUTIVE AI BRIEFING"
+    return (
+        '<span class="home-featured-art-fallback" role="img" '
+        f'aria-label="{escape(article.title, quote=True)}">'
+        f'<span class="collection-art-kicker">{escape(label)}</span>'
+        f'<span class="collection-art-topic">{escape(article.topic)}</span>'
+        f'<strong class="collection-art-title">{escape(article.title)}</strong>'
+        '</span>'
+    )
 
 
 def _meta(article, counts: dict[str, int] | None) -> str:

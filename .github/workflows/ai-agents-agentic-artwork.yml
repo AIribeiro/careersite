@@ -1,0 +1,77 @@
+name: Release AI Agents & Agentic AI executive briefing artwork
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_agents_agentic_executive_infographic.py'
+      - '.github/workflows/ai-agents-agentic-artwork.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ai-agents-agentic-artwork-main
+  cancel-in-progress: true
+jobs:
+  render-verify-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install pinned artwork tooling
+        run: python -m pip install -r requirements.txt 'reportlab==4.4.4'
+      - name: Render original executive-grade desktop, mobile and A4 artwork
+        run: python scripts/build_agents_agentic_executive_infographic.py --output /tmp/agentic-art
+      - name: Package immutable source-fingerprint-matched artwork
+        run: |
+          python scripts/build_briefing_artwork_bundle.py \
+            --slug ai-agents-agentic-ai-executive-delegation-decision \
+            --article-fingerprint 1df0d87cb09ee442959bb47e28c04aa171e938681e1026f335ceb2674813f1f4 \
+            --revision 2026-11-09-r1 \
+            --desktop /tmp/agentic-art/desktop.png \
+            --mobile /tmp/agentic-art/mobile.png \
+            --pdf /tmp/agentic-art/infographic.pdf \
+            --heading "AI Agents and Agentic AI: the executive decision map" \
+            --deck "Four architecture choices, six delegated-authority decisions, failure checks and business evidence."
+      - name: Verify decodable inline images, A4 PDF, identity and renderer
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m unittest -v tests.test_briefing_approved_asset_renderer
+          python - <<'PY'
+          from pathlib import Path
+          from pypdf import PdfReader
+          from src.briefing_approved_asset_renderer import load_bundle,validate_bundle
+          slug='ai-agents-agentic-ai-executive-delegation-decision'
+          b=load_bundle(slug)
+          assert b['article_fingerprint']=='1df0d87cb09ee442959bb47e28c04aa171e938681e1026f335ceb2674813f1f4'
+          desktop,mobile,pdf=validate_bundle(b)
+          assert len(desktop)<1_500_000 and len(mobile)<1_500_000
+          path=Path('static/briefing-artwork')/slug/'infographic.pdf'
+          with path.open('rb') as file:
+            reader=PdfReader(file,strict=True)
+            assert len(reader.pages)==b['pdf']['pages']==3
+            for p in reader.pages:
+              w,h=map(float,(p.mediabox.width,p.mediabox.height))
+              assert 589<w<601 and 836<h<848
+              assert p.get_contents() is not None
+          print("Verified source fingerprint; desktop & mobile WebP; three readable A4 pages")
+          PY
+      - name: Commit verified release bundle
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/briefing-artwork/ai-agents-agentic-ai-executive-delegation-decision/
+          if ! git diff --cached --quiet; then
+            git commit -m "Release source-locked AI Agents and Agentic AI briefing infographic"
+            for attempt in 1 2 3 4; do
+              git pull --rebase origin main || exit 1
+              if git push origin HEAD:main; then exit 0; fi
+              sleep 3
+            done
+            exit 1
+          fi

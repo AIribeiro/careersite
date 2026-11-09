@@ -515,8 +515,8 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 .site .article-body .executive-sources a{color:#225375;text-underline-offset:3px}
 @media(max-width:700px){.site .article-body .executive-capability-grid{grid-template-columns:minmax(0,1fr)}.site .article-body .executive-decision-intro,.site .article-body .executive-judgment{padding:20px}}
 
-/* Personal photo gallery on About. High-resolution images remain in /images,
-   loaded through the existing first-party responsive portfolio-image route. */
+/* Personal photo gallery on About. The committed high-resolution WebP images
+   use the same versioned public media delivery as the rest of the website. */
 .site .about-family-gallery{
   display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.9fr) minmax(0,.9fr);
   align-items:stretch;gap:14px;margin:34px 0 28px;

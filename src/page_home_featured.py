@@ -300,7 +300,14 @@ def inject_writing_footer(document: str, page: str, *, article_slug: str = "") -
     """
     # About has its own intentional three-way navigation after the personal story.
     # Avoid competing with it via the generic random editorial strip.
-    if page in {"home", "about", "analytics", "admin"} or 'data-analytics-section="site-writing-footer"' in document:
+    # Core portfolio pages have their own tailored closing navigation.
+    # Article reader pages (including ?page=thinking&article=...) retain
+    # the editorial "From my writing" feature, not the catalogue navigation.
+    has_closing_navigation = (
+        page in {"home", "about", "impact", "ai-data-governance", "contact", "analytics", "admin"}
+        or (page == "thinking" and not article_slug)
+    )
+    if has_closing_navigation or 'data-analytics-section="site-writing-footer"' in document:
         return document
     if "<main" not in document or "</main>" not in document:
         return document

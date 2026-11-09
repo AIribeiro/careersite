@@ -11,7 +11,7 @@ def about() -> str:
 <section class="pagehero"><div class="container">
 <p class="eyebrow">About</p>
 <h1>A life across countries. A career shaped by curiosity.</h1>
-<p>I'm Brazilian and have lived outside Brazil since 1998, making my home in Italy, Poland and now Sweden. Over those years, my work has taken me from enterprise technology into AI and data leadership. But my career is only one part of the story.</p>
+<p>I'm Brazilian and have spent most of my adult life living abroad. Along the way, my career moved from enterprise technology into AI and data leadership. The work matters to me, but so do the places I've lived, the people around me and the life I've built outside it.</p>
 </div></section>
 
 <section class="section white" id="career-journey"><div class="container about-professional-arc">
@@ -31,7 +31,7 @@ def about() -> str:
 
 <section class="section soft" id="beyond-work"><div class="container">
 <div class="head"><div><p class="eyebrow">Beyond work</p><h2>More than a job title.</h2></div>
-<div><p>Living in Italy, Poland and Sweden has given me the chance to experience different cultures and ways of looking at the world. Brazil is where I come from, and those other places have also become part of who I am. Living abroad for so much of my adult life has made that mix feel natural.</p>
+<div><p>Since 1998, I've lived in Italy, Poland and now Sweden. Living in different countries has given me a chance to experience other cultures and ways of seeing the world. Brazil is where I come from, but the places I've called home since then have become part of my story too.</p>
 <p>I'm also the proud father of three amazing girls. Family is a big part of my life, and away from work I enjoy music, writing and travelling. I like the chance to discover new places, spend time with the people I love and follow interests that have nothing to do with a job description.</p></div>
 </div>
 <div class="chips"><span>Portuguese — native/bilingual</span><span>Italian — native/bilingual</span><span>English — full professional</span><span>Spanish — professional</span><span>Polish — limited working</span><span>Swedish — elementary</span></div>

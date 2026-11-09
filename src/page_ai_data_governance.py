@@ -3,6 +3,7 @@ from __future__ import annotations
 from site_assets import CV_URI
 from governance_feature import GOVERNANCE_FEATURE
 from site_components import nav, footer, CV_DOWNLOAD_NAME
+from about_next_navigation import portfolio_next_navigation
 
 
 DFM_GOVERNANCE_URL = "https://www.digitalfirstmagazine.com/leaders-are-finally-understanding-ai-governance-is-not-about-control-it-is-about-scale-temp/"
@@ -132,7 +133,7 @@ def ai_data_governance() -> str:
 <article class="card"><span class="org">Human + regulatory governance</span><h3>Trust, oversight and defensibility.</h3><p>AI literacy, human accountability, adoption, regulatory obligations and enterprise risk have to work together if governance is expected to survive real operating pressure.</p></article>
 <article class="card"><span class="org">Data &amp; information governance</span><h3>Trust begins with the information.</h3><p>Clear data ownership, quality expectations, definitions, lineage and permitted use help make AI decisions explainable and give business and technical teams a foundation they can defend.</p></article>
 </div>
-<div class="actions"><a class="btn dark" href="{DFM_GOVERNANCE_URL}" target="_blank" rel="noopener" data-hq-event="article_governance_evidence">Read: AI Governance Is Not About Control. It Is About Scale. ↗</a><a class="btn dark" href="?page=thinking" target="_self" data-hq-event="governance_thinking">Selected thinking →</a></div>
+<div class="actions"><a class="btn dark" href="{DFM_GOVERNANCE_URL}" target="_blank" rel="noopener" data-hq-event="article_governance_evidence">Read: AI Governance Is Not About Control. It Is About Scale. ↗</a></div>
 </div></section>
 
 <section class="section white"><div class="container">
@@ -143,8 +144,7 @@ def ai_data_governance() -> str:
 <div class="metric"><strong>Explain</strong><p>We can reconstruct the evidence, rules and decisions behind a material outcome.</p></div>
 <div class="metric"><strong>Respond</strong><p>We know what triggers intervention, who can act and when a use case must be reassessed.</p></div>
 </div>
-<div class="actions"><a class="btn dark" href="?page=governance" target="_self" data-hq-event="governance_role_lens">See the governance role lens →</a><a class="btn dark" href="?page=impact" target="_self" data-hq-event="governance_impact_final">Leadership impact →</a></div>
 </div></section>
 
-<section class="cta"><div class="container ctain"><div><h2>Governance works best when it is connected to the operating model around AI.</h2><p>That connection — across strategy, Responsible AI, data governance, portfolio decisions and operating ownership — is the thread running through the work and research shown on this page.</p></div><div class="actions"><a class="btn ghost" href="?page=impact" target="_self" data-hq-event="governance_impact_cta">Explore leadership impact →</a><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_governance_final">Contact</a></div></div></section>
+{portfolio_next_navigation("ai-data-governance")}
 </main>{footer()}'''

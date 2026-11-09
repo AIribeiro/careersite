@@ -5,7 +5,7 @@ the Weekly AI archive. Existing article-level navigation remains unchanged.
 """
 from __future__ import annotations
 
-from about_next_navigation import about_next_navigation
+from about_next_navigation import portfolio_next_navigation
 
 LANDING_PAGES = frozenset({"impact", "ai-data-governance", "thinking", "contact"})
 
@@ -19,7 +19,13 @@ def inject_portfolio_continuation(
         return document
     if "<main" not in document or "</main>" not in document:
         return document
-    if 'class="about-next"' in document or 'data-analytics-section="site-writing-footer"' in document:
+    # Page renderers already include the shared navigation on the core pages.
+    # Prevent a duplicate section regardless of which layer added it.
+    if (
+        f'data-analytics-section="{page}-next-destinations"' in document
+        or 'class="about-next portfolio-next"' in document
+        or 'data-analytics-section="site-writing-footer"' in document
+    ):
         return document
     index = document.rfind("</main>")
-    return document[:index] + about_next_navigation(page) + document[index:]
+    return document[:index] + portfolio_next_navigation(page) + document[index:]

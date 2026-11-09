@@ -569,5 +569,96 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 @media(max-width:950px){.site .about-languages-layout{grid-template-columns:minmax(0,1fr);gap:29px}.site .about-languages-story{max-width:750px}.site .about-languages-profile{max-width:780px;width:100%}}
 @media(max-width:580px){.site .about-languages-section{padding:55px 0 62px}.site .about-languages-story h2{font-size:clamp(34px,9vw,45px)}.site .about-languages-profile{padding:20px 16px}.site .about-language-grid{grid-template-columns:minmax(0,1fr);gap:9px}.site .about-language-tile{min-height:66px;padding:10px 12px}.site .about-language-mark{width:39px;height:39px;flex-basis:39px}.site .about-language-group-label--secondary{margin-top:20px;padding-top:18px}}
 
+/* About language and leadership highlight */
+.site .about-languages-section{
+  padding:clamp(56px,6.5vw,88px) 0;
+  background:radial-gradient(ellipse at 7% 0%,rgba(191,128,86,.09),transparent 47%),linear-gradient(125deg,#f7f2eb,#f0eae3);
+  border-block:1px solid #e2d7ca;
+}
+.site .about-languages-layout{
+  display:grid;grid-template-columns:minmax(0,.90fr) minmax(0,1.10fr);
+  align-items:center;gap:clamp(30px,5vw,75px);
+}
+.site .about-languages-story{min-width:0}
+.site .about-languages-story .eyebrow{color:#9d6241;letter-spacing:.17em;margin:0 0 19px}
+.site .about-languages-story h2{
+  max-width:560px;margin:0 0 25px;color:#1d3041;
+  font:500 clamp(38px,4.3vw,56px)/1.08 Georgia,serif;
+  letter-spacing:-.038em;text-wrap:balance;
+}
+.site .about-languages-story>p:not(.eyebrow){
+  max-width:550px;color:#4e5c68;margin:0 0 16px;
+  font-size:clamp(15px,1.32vw,17px);line-height:1.72;
+}
+.site .about-languages-takeaway{
+  display:flex;flex-direction:column;gap:8px;
+  max-width:530px;margin-top:27px;padding:18px 0 0 20px;
+  border-top:1px solid #d8cbbd;border-left:3px solid #b27751;
+}
+.site .about-languages-takeaway>span{
+  color:#a06442;font-size:10px;font-weight:850;
+  letter-spacing:.12em;text-transform:uppercase;
+}
+.site .about-languages-takeaway>strong{
+  color:#24394b;font-size:15px;line-height:1.6;font-weight:700;
+}
+.site .about-languages-profile{
+  min-width:0;padding:clamp(23px,2.9vw,35px);
+  background:rgba(255,253,249,.9);border:1px solid #ded4c9;
+  border-radius:11px;box-shadow:0 18px 42px rgba(36,44,51,.06);
+}
+.site .about-language-group-label{
+  margin:0 0 14px;color:#9d6747;font-size:10px;
+  font-weight:850;letter-spacing:.14em;text-transform:uppercase;
+}
+.site .about-language-group-label--secondary{
+  margin-top:24px;padding-top:22px;border-top:1px solid #e8dfd6;
+}
+.site .about-language-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+}
+.site .about-language-tile{
+  display:flex;align-items:center;gap:12px;min-width:0;
+  min-height:77px;padding:13px;background:#fffefa;border:1px solid #e9e1d9;
+}
+.site .about-language-mark{
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 42px;width:42px;height:42px;border-radius:9px;
+  background:#f4e8dc;border:1px solid #ead8c9;color:#945e3e;
+  font:800 12px/1 Arial,sans-serif;letter-spacing:.08em;
+}
+.site .about-language-detail{
+  display:flex;flex-direction:column;gap:5px;min-width:0;
+}
+.site .about-language-detail strong{
+  color:#233447;font-size:14px;line-height:1.2;
+}
+.site .about-language-detail>span{
+  color:#69737d;font-size:11px;line-height:1.35;
+}
+.site .about-language-grid--secondary .about-language-mark{
+  color:#70777d;background:#efede8;border-color:#e0dcd5;
+}
+@media(max-width:1010px){
+  .site .about-languages-layout{grid-template-columns:minmax(0,1fr);gap:29px}
+  .site .about-languages-story h2{max-width:820px}
+  .site .about-languages-story>p:not(.eyebrow){max-width:820px}
+  .site .about-languages-profile{max-width:850px}
+}
+@media(max-width:590px){
+  .site .about-languages-section{padding:50px 0 59px}
+  .site .about-languages-story h2{font-size:clamp(35px,8vw,45px)}
+  .site .about-languages-profile{padding:20px 16px}
+  .site .about-language-grid{gap:8px}
+  .site .about-language-tile{min-height:78px;gap:9px;padding:11px 9px}
+  .site .about-language-mark{flex-basis:34px;width:34px;height:34px;font-size:10px}
+  .site .about-language-detail strong{font-size:12px}
+  .site .about-language-detail>span{font-size:10px}
+}
+@media(max-width:360px){
+  .site .about-language-grid{grid-template-columns:minmax(0,1fr)}
+  .site .about-language-tile{min-height:65px}
+}
+
 </style>
 """

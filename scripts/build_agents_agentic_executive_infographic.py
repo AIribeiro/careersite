@@ -271,27 +271,27 @@ def mobile(out):
     footer(im,4800,"Enterprise AI  •  Governance  •  Business Value")
     im.save(out/"mobile.png",optimize=True)
 def pdf(out):
-    # A4 source-identical print bundle. Three readable pages, no text re-generation.
+    """One A4 page containing the complete original infographic, without crops.
+
+    Retains the full-resolution approved desktop image and its exact content.
+    The fitted page is intentionally dense; readers may zoom for fine detail.
+    """
     page=A4
-    C=canvas.Canvas(str(out/"infographic.pdf"),pagesize=page)
+    C=canvas.Canvas(str(out/"infographic.pdf"),pagesize=page, pageCompression=1)
     C.setAuthor("Jair Ribeiro")
     C.setTitle("AI Agents & Agentic AI — Executive Decision Map")
     src=Image.open(out/"desktop.png").convert("RGB")
-    # Print as three continuous source-locked panels with deliberate overlap.
-    cuts=[(0,1185),(1050,2255),(2110,3190)]
-    for n,(top,bottom) in enumerate(cuts):
-        panel=src.crop((0,top,1460,bottom))
-        local=out/f"print-{n+1}.jpg"
-        panel.save(local,"JPEG",quality=93,subsampling=0,optimize=True)
-        pw,ph=page
-        scale=min((pw-32)/panel.width,(ph-45)/panel.height)
-        w,h=panel.width*scale,panel.height*scale
-        C.drawImage(ImageReader(str(local)),(pw-w)/2,(ph-h)/2,width=w,height=h)
-        C.setFont("Helvetica",8)
-        C.setFillColorRGB(.23,.33,.39)
-        C.drawRightString(pw-18,14,f"Jair Ribeiro | Executive AI Briefing | {n+1}/3")
-        C.showPage()
+    image=out/"print-onepage.jpg"
+    src.save(image,"JPEG",quality=96,subsampling=0,optimize=True)
+    pw,ph=page
+    # Keep the entire poster within one standard A4 media box.
+    margin=13
+    scale=min((pw-2*margin)/src.width,(ph-2*margin)/src.height)
+    iw,ih=src.width*scale,src.height*scale
+    C.drawImage(ImageReader(str(image)),(pw-iw)/2,(ph-ih)/2,width=iw,height=ih)
+    C.showPage()
     C.save()
+
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--output",required=True)

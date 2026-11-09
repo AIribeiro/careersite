@@ -188,6 +188,13 @@ else:
         pathway_css = ""
     st.html(CSS + IMAGE_CSS + pathway_css + '<div class="site">' + page_document + '</div>')
     html_done = perf_counter()
+    if (
+        PAGE == "thinking"
+        and not ARTICLE_QUERY
+        and str(st.query_params.get("weekly_ai", "")).lower() != "archive"
+    ):
+        from thinking_dynamic_order import mount_thinking_hourly_order
+        mount_thinking_hourly_order()
     if PAGE == "home":
         # Live publications load in the browser, so CMS latency never blocks Home.
         from home_whats_new import inject_live_home_update

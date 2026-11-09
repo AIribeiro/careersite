@@ -34,6 +34,7 @@ import site_media  # noqa: F401
 import site_cv_runtime  # noqa: F401
 
 from page_home_featured import inject_writing_footer
+from site_portfolio_continuation import inject_portfolio_continuation
 
 # Expand registered first-party short links before page selection and analytics.
 # The browser's URL becomes the complete native article URL, so both trackers
@@ -168,6 +169,12 @@ else:
     # This helps distinguish cold imports from content or DOM work in Cloud logs.
     build_started = perf_counter()
     raw_document = render_page()
+    raw_document = inject_portfolio_continuation(
+        raw_document,
+        PAGE,
+        article_slug=str(ARTICLE_QUERY or ""),
+        weekly_archive=(str(st.query_params.get("weekly_ai", "")).lower() == "archive"),
+    )
     build_done = perf_counter()
     page_document = inject_writing_footer(raw_document, PAGE, article_slug=str(ARTICLE_QUERY or ""))
     footer_done = perf_counter()

@@ -9,14 +9,18 @@ sys.path.insert(0, str(ROOT / "src"))
 from page_about import LANGUAGE_CAPABILITIES, about
 
 
-def test_beyond_work_is_last_content_section():
+def test_beyond_work_is_last_personal_section_followed_by_navigation_only():
     page = about()
     journey = page.index('id="career-journey"')
     writing = page.index('id="speaking-publications"')
     beyond = page.index('id="beyond-work"')
-    assert journey < writing < beyond
+    continuation = page.index('id="about-continue"')
+    assert journey < writing < beyond < continuation
     assert page.count('id="beyond-work"') == 1
-    assert '<section' not in page[beyond:].split("</main>", 1)[0]
+    assert page.count('id="about-continue"') == 1
+    # The final content after the photographs is deliberate navigation, not
+    # another biography or editorial block.
+    assert page[beyond:].split("</main>", 1)[0].count("<section") == 1
 
 
 def test_writing_and_conversations_has_four_distinct_cards():

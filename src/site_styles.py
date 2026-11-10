@@ -545,35 +545,57 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 .site .article-body .executive-sources a{color:#225375;text-underline-offset:3px}
 @media(max-width:700px){.site .article-body .executive-capability-grid{grid-template-columns:minmax(0,1fr)}.site .article-body .executive-decision-intro,.site .article-body .executive-judgment{padding:20px}}
 
-/* Personal photo gallery on About. The committed high-resolution WebP images
-   use the same versioned public media delivery as the rest of the website. */
+/* About photography: one shared visual height for all three photos.
+   The desktop columns follow the originals' aspect ratios so cropping stays
+   minimal. On narrow screens the photos can be swiped at their full ratios. */
 .site .about-family-gallery{
-  display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.9fr) minmax(0,.9fr);
-  align-items:stretch;gap:14px;margin:34px 0 28px;
+  --about-photo-height:clamp(300px,38vw,510px);
+  display:grid;
+  grid-template-columns:minmax(0,1.333fr) minmax(0,.667fr) minmax(0,.512fr);
+  align-items:stretch;
+  gap:14px;
+  margin:34px 0 28px;
 }
 .site .about-family-photo{
-  margin:0;height:clamp(330px,37vw,510px);
-  display:flex;align-items:center;justify-content:center;overflow:hidden;
-  background:#e7e1d8;border:1px solid rgba(21,31,45,.12);
+  margin:0;
+  min-width:0;
+  height:var(--about-photo-height);
+  box-sizing:border-box;
+  overflow:hidden;
+  background:#e7e1d8;
+  border:1px solid rgba(21,31,45,.12);
 }
 .site .about-family-photo img{
-  display:block;width:100%;height:100%;object-fit:contain;object-position:center;
-}
-@media(max-width:950px){
-  .site .about-family-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .site .about-family-photo--portrait{grid-column:1/-1;height:auto;max-height:580px}
-  .site .about-family-photo--portrait img{height:auto;max-height:580px}
-  .site .about-family-photo--moments,.site .about-family-photo--visit{height:460px}
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
 }
 @media(max-width:620px){
-  .site .about-family-gallery{grid-template-columns:minmax(0,1fr);gap:12px;margin:24px 0}
-  .site .about-family-photo--portrait{grid-column:auto}
-  .site .about-family-photo--moments,.site .about-family-photo--visit{height:auto;max-height:620px}
-  .site .about-family-photo--moments img,.site .about-family-photo--visit img{
-    height:auto;max-height:620px;object-fit:contain;
+  .site .about-family-gallery{
+    --about-photo-height:clamp(280px,82vw,440px);
+    display:flex;
+    align-items:stretch;
+    overflow-x:auto;
+    overscroll-behavior-inline:contain;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    gap:12px;
+    padding-bottom:12px;
+    margin:24px 0;
   }
+  .site .about-family-photo{
+    flex:0 0 auto;
+    width:auto;
+    height:var(--about-photo-height);
+    scroll-snap-align:start;
+  }
+  .site .about-family-photo--portrait{aspect-ratio:1448/1086}
+  .site .about-family-photo--moments{aspect-ratio:1024/1536}
+  .site .about-family-photo--visit{aspect-ratio:1431/2798}
+  .site .about-family-photo img{object-fit:contain}
 }
-
 
 /* About: multilingual leadership. Text-only monograms are browser-safe. */
 .site .about-languages-section{padding:clamp(64px,6vw,88px) 0;background:linear-gradient(135deg,#f5f0e9,#eee8df);border-block:1px solid #e0d6cb}

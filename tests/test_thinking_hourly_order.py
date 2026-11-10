@@ -19,7 +19,7 @@ def test_thinking_sections_have_stable_anchor_ids_and_status():
     page = landing()
     assert page.count('id="thinking-briefings"') == 1
     assert page.count('id="thinking-articles"') == 1
-    assert page.count('id="thinking-order-status"') == 1
+    assert 'thinking-order-status' not in page
     assert 'href="?page=thinking#weekly-ai"' in page
     assert 'href="?page=thinking#thinking-briefings"' in page
     assert 'href="?page=thinking#thinking-articles"' in page
@@ -74,9 +74,8 @@ def test_controller_preserves_dom_and_falls_back_on_unavailable_analytics(monkey
     assert "observed.getBoundingClientRect()" in script
     assert "if (!response.ok)" in script
     assert "waitForDOM(kinds, 24)" in script
-    assert "No recorded views across the comparison periods" in script
-    assert "Readership tied across all periods" in script
-    assert "Recent readership unavailable" in script
+    assert "thinking-order-status" not in script
+    assert "Ordered by views:" not in script
     assert "request.signal.aborted" in script
     assert "stopped" in script
 
@@ -146,3 +145,15 @@ def test_calendar_windows_rpc_is_committed_and_does_not_reveal_raw_data():
     assert "SET search_path = ''" in sql
     assert "REVOKE ALL" in sql
     assert "GRANT EXECUTE" in sql
+
+
+def test_hourly_ordering_has_no_visible_ranking_notice():
+    page = landing()
+    source = (ROOT / "src" / "thinking_dynamic_order.py").read_text(encoding="utf-8")
+    assert "thinking-order-note" not in page
+    assert "thinking-order-status" not in page
+    assert "Ordered by views:" not in page
+    assert "Ordered by views:" not in source
+    assert "status(" not in source
+    assert "counts.get(b)[metric] - counts.get(a)[metric]" in source
+    assert "3600000 - (Date.now() % 3600000)" in source

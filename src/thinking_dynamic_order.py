@@ -38,7 +38,6 @@ def mount_thinking_hourly_order() -> None:
     briefings: '#thinking-briefings',
     articles: '#thinking-articles',
   };
-  const statusId = 'thinking-order-status';
 
   // Streamlit reruns can remount this iframe; stop the previous controller.
   if (win.__jairThinkingOrderV1 && typeof win.__jairThinkingOrderV1.dispose === 'function') {
@@ -63,12 +62,6 @@ def mount_thinking_hourly_order() -> None:
     }
     return null;
   };
-  const status = (label) => {
-    const root = main();
-    const el = root && root.querySelector('#' + statusId);
-    if (el) el.textContent = label;
-  };
-
   // Retain the element under the reader's eye when moving long sections.
   const reorder = (ordered) => {
     const root = main();
@@ -158,25 +151,10 @@ def mount_thinking_hourly_order() -> None:
       });
       if (stopped || !isLanding()) return;
       waitForDOM(sorted, 24);
-      const anyViews = kinds.some(kind =>
-        metrics.some(metric => counts.get(kind)[metric] > 0)
-      );
-      const allTied = metrics.every(metric =>
-        kinds.every(kind => counts.get(kind)[metric] === counts.get(kinds[0])[metric])
-      );
-      if (!anyViews) {
-        status('No recorded views across the comparison periods · usual order');
-      } else if (allTied) {
-        status('Readership tied across all periods · usual order');
-      } else {
-        status('Ordered by views: last hour → today → yesterday → this week → ' +
-          'last week → this month → last month → this year · refreshed hourly');
-      }
       lastHourSlot = slot;
     } catch (err) {
       if (stopped || request.signal.aborted) return;
       waitForDOM(kinds, 24);
-      status('Recent readership unavailable · showing the usual order');
     } finally {
       if (inFlight === request) inFlight = null;
       schedule();

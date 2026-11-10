@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "slug": "eight-ai-governance-controls-executive-operating-test",
+  "article_fingerprint": "bc379f3fadf472ea080f402ee7dce64dbc34e737e4f8d30c0c706cd57831c9a1",
+  "revision": "2026-11-10-r1",
+  "heading": "Eight governance controls: the executive operating test",
+  "deck": "Each control has an owner, a checkable proof and a decision consequence.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "0dcc8c0d20d1f4d82211dd01c1bc0db66836db947d027be6524941d045703c1f",
+    "width": 1460,
+    "height": 2740,
+    "bytes": 279636
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "11df9135bd2b8d0031315bf71b2a784ee47f88d7fbfa06d00615941831423547",
+    "width": 900,
+    "height": 4650,
+    "bytes": 264204
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "7c5e7b245b99c923d638237a4c114d7148dc8a3877873d4770258ff011207d4a",
+    "pages": 1,
+    "bytes": 1138490
+  },
+  "release_note": "Exact source content and premium design require editorial approval in CMS."
+}

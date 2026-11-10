@@ -54,7 +54,7 @@ def card(d,x,y,w,h,item,accent,compact=False):
     G.para(d,x+30,ty+7,owner,18 if not compact else 20,w-60,27,G.MUTED)
 
 def desktop(out):
-    W,H=1460,2440
+    W,H=1460,2740
     im=Image.new("RGB",(W,H),PAPER)
     draw_header(im,"8 AI GOVERNANCE","CONTROLS THAT WORK","From ownership and evidence to runtime limits and renewal.")
     d=ImageDraw.Draw(im)
@@ -75,11 +75,11 @@ def desktop(out):
     d.rounded_rectangle((40,bottom+153,W-40,bottom+234),radius=18,fill=NAVY2)
     G.text(d,63,bottom+168,"RELEASE GATE",25,CYAN,True)
     G.text(d,291,bottom+169,"APPROVE   /   LIMIT   /   REPAIR   /   STOP",27,WHITE,True)
-    G.footer(im,2310)
+    G.footer(im,2610)
     im.save(out/"desktop.png",optimize=True)
 
 def mobile(out):
-    W,H=900,4330
+    W,H=900,4650
     im=Image.new("RGB",(W,H),PAPER)
     G.gradient(im,NAVY,NAVY2,0,360)
     d=ImageDraw.Draw(im);G.waves(d,W,220,6)

@@ -58,7 +58,7 @@ def test_three_sections_keep_required_anchors_and_existing_articles(monkeypatch)
     assert 'class="thinking-briefing-card"' not in updated
     assert "Clarity before the next AI decision." in updated
     assert "The AI week, through a leadership lens." in updated
-    assert 'id="thinking-order-status"' in updated
+    assert 'id="thinking-order-status"' not in updated
     assert 'id="speaking-publications"' not in updated or updated.index('id="speaking-publications"') > updated.index('id="thinking-articles"')
 
 

@@ -1,0 +1,81 @@
+name: Release eight AI governance controls executive infographic
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_eight_ai_governance_controls_infographic.py'
+      - '.github/workflows/eight-ai-governance-controls-artwork.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: eight-ai-governance-controls-main
+  cancel-in-progress: true
+jobs:
+  build-verify-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install artwork tooling
+        run: python -m pip install -r requirements.txt 'reportlab==4.4.4'
+      - name: Render original desktop, mobile and A4 images
+        run: python scripts/build_eight_ai_governance_controls_infographic.py --output /tmp/eight-controls-art
+      - name: Package source-matched artwork
+        run: |
+          python scripts/build_briefing_artwork_bundle.py \
+            --slug eight-ai-governance-controls-executive-operating-test \
+            --article-fingerprint bc379f3fadf472ea080f402ee7dce64dbc34e737e4f8d30c0c706cd57831c9a1 \
+            --revision 2026-11-10-r1 \
+            --desktop /tmp/eight-controls-art/desktop.png \
+            --mobile /tmp/eight-controls-art/mobile.png \
+            --pdf /tmp/eight-controls-art/infographic.pdf \
+            --heading "Eight governance controls: the executive operating test" \
+            --deck "Each control has an owner, a checkable proof and a decision consequence."
+      - name: Validate complete content, decodable artwork and A4 PDF
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m unittest -v tests.test_briefing_approved_asset_renderer
+          python - <<'PY'
+          from pathlib import Path
+          from pypdf import PdfReader
+          from PIL import Image
+          from src.briefing_approved_asset_renderer import load_bundle,validate_bundle
+          slug='eight-ai-governance-controls-executive-operating-test'
+          b=load_bundle(slug)
+          assert b['article_fingerprint']=='bc379f3fadf472ea080f402ee7dce64dbc34e737e4f8d30c0c706cd57831c9a1'
+          d,m,p=validate_bundle(b)
+          assert 1000<len(d)<1_500_000 and 1000<len(m)<1_500_000
+          root=Path('static/briefing-artwork')/slug
+          for variant in ('desktop','mobile'):
+            with Image.open(root/(variant+'.webp')) as im:
+              assert im.width>=800 and im.height>=1400
+              im.verify()
+          with (root/'infographic.pdf').open('rb') as stream:
+            pdf=PdfReader(stream,strict=True)
+            assert len(pdf.pages)==b['pdf']['pages']==1
+            page=pdf.pages[0]
+            assert 589<float(page.mediabox.width)<601 and 836<float(page.mediabox.height)<848
+            assert page.get_contents() is not None
+          print('PASS: 8 controls, bound source, validated desktop/mobile, complete single-page A4')
+          PY
+      - name: Commit source-locked release bundle
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/briefing-artwork/eight-ai-governance-controls-executive-operating-test/
+          if ! git diff --cached --quiet; then
+            git commit -m "Release eight AI governance controls executive infographic and A4"
+            for attempt in 1 2 3 4; do
+              git pull --rebase origin main || exit 1
+              if git push origin HEAD:main; then exit 0; fi
+              sleep 3
+            done
+            exit 1
+          fi

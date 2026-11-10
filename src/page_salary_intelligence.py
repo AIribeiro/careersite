@@ -82,7 +82,8 @@ def _day(value: object) -> date | None:
 def _direct(row: dict) -> bool:
     return (row.get("comparability_group") == "employee_base_gross"
             and row.get("comparison_basis") == "employee_base_gross"
-            and row.get("employment_model") == "permanent")
+            and row.get("employment_model") == "permanent"
+            and str(row.get("market_country") or "").lower() == "sweden")
 
 
 def _benchmarked(row: dict) -> bool:
@@ -128,6 +129,12 @@ def _question(row: dict, today: date) -> str:
     if row.get("employment_model") == "contract_umbrella":
         return ("Can you confirm the umbrella provider's full payroll breakdown, including "
                 "fees, employer contributions, pension, holiday pay and billable-day assumptions?")
+    if (str(row.get("market_country") or "").lower() == "sweden"
+            and row.get("market_high_sek") is not None
+            and row.get("career_floor_gross_monthly_sek") is not None
+            and _number(row["market_high_sek"]) < _number(row["career_floor_gross_monthly_sek"])):
+        return ("The inferred upper market scenario is below my 75,000 SEK gross-monthly floor. "
+                "Is the approved base range materially higher, or is this role graded below my target?")
     if not _direct(row):
         return ("Is this a permanent employee role or a contract? Please confirm the end client, "
                 "payroll jurisdiction, salary or day rate, benefits and travel terms.")
@@ -144,6 +151,11 @@ def _question(row: dict, today: date) -> str:
 def _priority(row: dict, today: date) -> tuple[int, str]:
     if str(row.get("market_country") or "").lower() == "denmark":
         return (0, "Danish compensation basis verification")
+    if (str(row.get("market_country") or "").lower() == "sweden"
+            and row.get("market_high_sek") is not None
+            and row.get("career_floor_gross_monthly_sek") is not None
+            and _number(row["market_high_sek"]) < _number(row["career_floor_gross_monthly_sek"])):
+        return (0, "Estimated market high below salary floor")
     if not _direct(row):
         return (0, "Confirm employment economics")
     if not _benchmarked(row):
@@ -317,8 +329,8 @@ def _plot(rows: list[dict]) -> str:
         employer = escape(str(r.get("employer") or "Unknown employer"))
         url = escape(_process_url(str(r.get("process_key") or "")), quote=True)
         text_alt = escape(
-            f"{r.get('employer')}: expected {_sek(r['expected_sek'])}, "
-            f"candidate minimum to ideal {_sek(r['minimum_sek'])}–{_sek(r['ideal_sek'])}, "
+            f"{r.get('employer')}: planning estimate {_sek(r['expected_sek'])}, "
+            f"analyst planning minimum to ideal {_sek(r['minimum_sek'])}–{_sek(r['ideal_sek'])}, "
             f"inferred Swedish market {_sek(r['market_low_sek'])}–{_sek(r['market_high_sek'])}, "
             f"modeled center {_sek(r['market_central_sek'])} SEK monthly gross."
         , quote=True)
@@ -559,8 +571,8 @@ def _contract_lane(rows: list[dict], token: str, today: date) -> None:
             f'<p>Modeled umbrella gross equivalent: <b>{_sek(row.get("expected_sek"), compact=False)}</b>. '
             'Not directly comparable to permanent employee base pay.</p>'
             if is_contract else
-            f'<b class="money">{_sek(row.get("expected_sek"), compact=False)}</b> conditional employee '
-            f'salary expectation<p>Hypothetical Swedish employee benchmark: '
+            f'<b class="money">{_sek(row.get("expected_sek"), compact=False)}</b> analyst planning salary scenario (not user-stated or employer confirmed)'
+            f'<p>Inferred Swedish employee-market range: '
             f'{_sek(row.get("market_low_sek"))}–{_sek(row.get("market_high_sek"))} '
             'gross monthly SEK. Employment type and economic basis not confirmed.</p>'
             )
@@ -569,6 +581,14 @@ def _contract_lane(rows: list[dict], token: str, today: date) -> None:
             f'<div>{text}</div><p class="warning">Not directly comparable · '
             f'Confirmation required</p></div>', unsafe_allow_html=True,
         )
+        if (str(row.get("market_country") or "").lower() == "sweden"
+                and row.get("market_high_sek") is not None
+                and _number(row["market_high_sek"]) < _number(row.get("career_floor_gross_monthly_sek"), 75000)):
+            st.warning("Even the modeled salary high is below your 75,000 SEK/month floor. "
+                       "Treat this as a salary mismatch unless the employer confirms a higher grade.")
+        caveats = row.get("comparison_caveats")
+        if isinstance(caveats, list) and caveats:
+            st.caption(str(caveats[0]))
         a, b = st.columns([1.5, 1], vertical_alignment="center")
         with a:
             st.caption(_question(row, today))
@@ -627,7 +647,8 @@ def render_salary_intelligence(session: dict | None) -> None:
                              type="primary" if st.session_state.get("salary_kpi_filter", "all") == value else "secondary"):
                     st.session_state["salary_kpi_filter"] = value
                     st.rerun()
-        st.caption("Benchmarked means linked occupational evidence, not verified employer salary bands. "
+        st.caption("Benchmarked means linked occupational evidence, not a verified employer salary band. "
+                   "Planning minimum, expected and ideal are analyst estimates unless explicitly sourced to the candidate. "
                    "Denmark, contractor and unknown employment arrangements are separated from Swedish base salary.")
         sourced = sum(1 for r in rows if _direct(r) and
                       _number(r.get("independent_employee_salary_dataset_families")) >= 3)
@@ -702,8 +723,8 @@ def render_salary_intelligence(session: dict | None) -> None:
         st.markdown(
             '<div class="salary-legend"><span><i class="salary-swatch"></i>Inferred market low–high</span>'
             '<span><i class="salary-hollow"></i>Modeled center</span>'
-            '<span><i class="salary-line"></i>Your minimum–ideal</span>'
-            '<span><i class="salary-mark"></i>Your expected pay</span>'
+            '<span><i class="salary-line"></i>Planning minimum–ideal</span>'
+            '<span><i class="salary-mark"></i>Planning salary scenario</span>'
             '<span>Thin amber tick: negotiation anchor</span></div>', unsafe_allow_html=True,
         )
         chart = _plot(comparable_rows)
@@ -714,8 +735,9 @@ def render_salary_intelligence(session: dict | None) -> None:
         st.caption("Small differences from a modeled center do not demonstrate underpayment or overpricing. "
                    "The ranges are not statistical percentiles for these exact jobs.")
         with st.expander("What changed in the latest research", expanded=False):
-            st.caption("New market v2 snapshots leave the candidate salary assessments unchanged. "
-                       "Change reflects new independent public pay data and an explicit role-scope calculation.")
+            st.caption("Latest verified market snapshots and earlier revisions. Newly added roles may have "
+                       "no previous salary estimate. Planning figures are analyst inferences, "
+                       "not employer salary bands or user-confirmed salary requests.")
             history = [{
                 "Employer": str(r.get("employer") or ""),
                 "Benchmark": str(r.get("benchmark_version") or "unknown"),
@@ -797,7 +819,7 @@ def render_salary_intelligence(session: dict | None) -> None:
                 _history_panel(row, token)
 
     with st.expander("Research coverage and refresh status", expanded=False):
-        st.caption("The external Swedish Salary Research Watch processes queued work on its schedule. "
+        st.caption("The external Swedish and cross-border Salary Research Watch processes queued work on its schedule. "
                    "Reloading this page does not initiate new research or change a benchmark timestamp.")
         try:
             due = _get_due(token)

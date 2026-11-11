@@ -14,6 +14,8 @@ class ReaderMembershipContractTests(unittest.TestCase):
         for path in (
             "app.py", "src/reader_membership.py",
             "src/page_executive_briefings.py",
+            "src/reader_catalog_admin.py",
+            "src/page_owner_workspaces.py",
             "src/briefing_approved_asset_renderer.py",
             "src/briefing_roi_studio.py", "src/briefing_authority_artwork.py",
         ):
@@ -26,6 +28,8 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertIn('Route("/readers/download/{slug}.pdf"', source)
         self.assertIn('Route("/readers/{action}"', source)
         self.assertIn('reader_download', source)
+        self.assertIn('Route("/readers-admin"', source)
+        self.assertIn('Route("/readers-admin/export.csv"', source)
 
     def test_new_editorial_ctas_are_first_party(self):
         approved = self._source("src/briefing_approved_asset_renderer.py")
@@ -50,6 +54,17 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertIn('portfolio_reader_downloads', source)
         self.assertIn('Cache-Control', source)
         self.assertIn('secure=True, samesite="lax"', source)
+
+    def test_owner_catalog_requires_verified_owner_and_exposes_no_public_rows(self):
+        source = self._source("src/reader_catalog_admin.py")
+        self.assertIn("OWNER_EMAIL", source)
+        self.assertIn("/auth/v1/user", source)
+        self.assertIn("portfolio_reader_profiles", source)
+        self.assertIn("portfolio_reader_downloads", source)
+        self.assertIn("read-only", source.lower())
+        self.assertIn("formula injection", source.lower())
+        owner_workspace = self._source("src/page_owner_workspaces.py")
+        self.assertIn("/readers-admin", owner_workspace)
 
     def test_no_service_role_key(self):
         source = self._source("src/reader_membership.py")

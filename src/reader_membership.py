@@ -239,10 +239,24 @@ def _login(request, *, notice: str = "") -> Response:
         '<label for="editorial">Also send me new Executive AI Briefings and occasional AI leadership resources. '
         'Optional; unsubscribe whenever you wish.</label></div>'
         '<button type="submit">Email my secure access link →</button></form>'
+        '<p class="small">Already a reader? <a href="/readers/signin">Sign in using your email</a>.</p>'
         '<p class="small">We use your email to verify access and maintain your download library. '
         'Editorial emails are only sent if you select the optional checkbox. '
         '<a href="/readers/privacy">How your data is used</a>.</p>')
     return _layout("Take the briefings with you", body, notice=notice)
+
+
+def _returning_signin(request) -> Response:
+    action = "/readers/request" + ("?next=" + quote(_target(request)) if _target(request) else "")
+    return _layout("Welcome back",
+        '<p>Enter your registered email. We will send a secure, one-time access link. '
+        'No password or name entry required.</p>'
+        '<form method="post" action="' + escape(action, quote=True) + '">'
+        '<input type="hidden" name="intent" value="signin">'
+        '<label for="email">Email address</label>'
+        '<input id="email" name="email" type="email" autocomplete="email" maxlength="254" required>'
+        '<button type="submit">Email my sign-in link →</button></form>'
+        '<p class="small">New here? <a href="/readers/login">Register for free</a>.</p>')
 
 
 def _confirm_page(request) -> Response:
@@ -279,7 +293,7 @@ def _library(request, profile: dict) -> Response:
     rows = []
     for item in articles:
         article_slug = _clean_slug(item.slug)
-        if not article_slug:
+        if not article_slug or not has_briefing_pdf(article_slug):
             continue
         label = "Open PDF" if article_slug != slug else "Download your PDF"
         rows.append('<div class="library-item"><div><strong>' + escape(item.title) + '</strong>'
@@ -338,6 +352,8 @@ async def reader_route(request) -> Response:
         return _privacy()
     if action == "confirm" and request.method == "GET":
         return _confirm_page(request)
+    if action == "signin" and request.method == "GET":
+        return _returning_signin(request)
     if action == "request" and request.method == "POST":
         if not _same_origin(request):
             return _no_cache(Response("Forbidden", status_code=403))
@@ -345,17 +361,18 @@ async def reader_route(request) -> Response:
             form = await _form(request)
             first = str(form.get("first_name") or "").strip()
             email = str(form.get("email") or "").strip().lower()
-            if not first or len(first) > 80 or not EMAIL.fullmatch(email) or len(email) > 254:
+            returning = form.get("intent") == "signin"
+            if (not returning and not first) or len(first) > 80 or not EMAIL.fullmatch(email) or len(email) > 254:
                 return _login(request, notice="Enter your name and a valid email address.")
             slug = _target(request)
             redirect = BASE_URL + "/readers/confirm" + ("?next=" + quote(slug) if slug else "")
             url = ANALYTICS_URL.rstrip("/") + "/auth/v1/otp?" + urlencode({"redirect_to": redirect})
             opted_in = form.get("editorial") == "yes"
             await run_in_threadpool(_request_json, "POST", url, payload={
-                "email": email, "create_user": True,
-                "data": {"reader_first_name": first,
+                "email": email, "create_user": not returning,
+                "data": ({} if returning else {"reader_first_name": first,
                          "reader_editorial_opt_in": opted_in,
-                         "reader_notice_version": CONSENT_VERSION}
+                         "reader_notice_version": CONSENT_VERSION})
             })
             return _layout("Check your inbox",
                 "<p>We have requested a one-time access link. Open the email to verify your address "

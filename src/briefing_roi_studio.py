@@ -37,7 +37,7 @@ def approved_roi_studio(article, row: dict) -> str:
     # delivery no longer depends on a Pillow render or huge data URI inside
     # the Streamlit HTML document.
     display = ROI_WEBP
-    download = "/briefing-ai-roi/infographic.pdf"
+    download = "/readers/download/" + escape(article.slug, quote=True) + ".pdf"
     caption = str(row.get("caption") or "").strip() or (
         "Original executive AI ROI infographic by Jair Ribeiro. Financial returns "
         "require a baseline, attribution, realized benefits and complete AI costs."
@@ -52,7 +52,7 @@ def approved_roi_studio(article, row: dict) -> str:
         + '" width="1800" height="2400" loading="eager" decoding="async"/>'
         + '<figcaption>' + escape(caption) + '</figcaption>'
         + '<div class="roi-artwork-actions"><a href="' + download
-        + '" download="ai-roi-proof-before-scale-executive-infographic.pdf" '
+        + '" target="_self" data-hq-event="briefing_reader_pdf" '
         + 'aria-label="Download the high-resolution A4 PDF AI ROI executive infographic">'
         + 'Download the infographic (PDF)</a></div>'
         + '</figure></section>'

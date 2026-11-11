@@ -1,0 +1,90 @@
+name: Release emotional intelligence AI adoption executive infographic
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_emotional_intelligence_adoption_infographic.py'
+      - '.github/workflows/emotional-intelligence-adoption-artwork.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: emotional-intelligence-adoption-main
+  cancel-in-progress: true
+jobs:
+  render-review-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install pinned rendering dependencies
+        run: python -m pip install -r requirements.txt 'reportlab==4.4.4'
+      - name: Render source-locked original visual, mobile variant and one-page A4
+        run: python scripts/build_emotional_intelligence_adoption_infographic.py --output /tmp/ei-adoption-art
+      - name: Validate portrait, proportions and single-page A4
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          from pypdf import PdfReader
+          source=Path('static/briefing-roi-portrait.webp')
+          assert source.exists() and source.stat().st_size>1000, 'Missing standard authentic portrait'
+          folder=Path('/tmp/ei-adoption-art')
+          for nm,minimum in [('desktop.png',(1300,2000)),('mobile.png',(850,4200))]:
+              with Image.open(folder/nm) as im:
+                  assert im.width>=minimum[0] and im.height>=minimum[1]
+                  im.verify()
+          reader=PdfReader(str(folder/'infographic.pdf'),strict=True)
+          assert len(reader.pages)==1
+          assert abs(float(reader.pages[0].mediabox.width)-595.2756)<1
+          assert abs(float(reader.pages[0].mediabox.height)-841.8898)<1
+          print('PASS: authentic portrait asset, desktop/mobile images, 1 A4 page')
+          PY
+      - name: Package and validate release-manifest
+        run: |
+          python scripts/build_briefing_artwork_bundle.py \
+            --slug emotional-intelligence-ai-leadership-adoption \
+            --article-fingerprint c9d5a527f6d2da3c282f307c4c74902fb11d7319eb7d3b179e4396735425aa30 \
+            --revision 2026-11-11-r1 \
+            --desktop /tmp/ei-adoption-art/desktop.png \
+            --mobile /tmp/ei-adoption-art/mobile.png \
+            --pdf /tmp/ei-adoption-art/infographic.pdf \
+            --heading 'The human signals behind AI adoption' \
+            --deck 'Recognize, understand, respond and verify; preserve leadership accountability'
+      - name: Verify shared renderer and PDF integrity
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m unittest -v tests.test_briefing_approved_asset_renderer
+          python - <<'PY'
+          from pypdf import PdfReader
+          from pathlib import Path
+          from src.briefing_approved_asset_renderer import load_bundle,validate_bundle
+          slug='emotional-intelligence-ai-leadership-adoption'
+          b=load_bundle(slug)
+          assert b['article_fingerprint']=='c9d5a527f6d2da3c282f307c4c74902fb11d7319eb7d3b179e4396735425aa30'
+          desktop,mobile,pdf=validate_bundle(b)
+          assert len(desktop)>1000 and len(mobile)>1000
+          assert b['pdf']['pages']==1
+          assert len(PdfReader(str(Path('static/briefing-artwork')/slug/'infographic.pdf'),strict=True).pages)==1
+          print('PASS: source fingerprint and validated Safari-ready bundle')
+          PY
+      - name: Commit immutable source-matched assets
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add static/briefing-artwork/emotional-intelligence-ai-leadership-adoption/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Release emotional intelligence adoption visual and A4 infographic'
+            for attempt in 1 2 3 4; do
+              git pull --rebase origin main || exit 1
+              if git push origin HEAD:main; then exit 0; fi
+              sleep 3
+            done
+            exit 1
+          fi

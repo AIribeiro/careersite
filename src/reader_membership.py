@@ -302,9 +302,16 @@ def _library(request, profile: dict) -> Response:
                     '.pdf" target="_self">' + label + ' ↓</a></div>')
     user_first_name = str(profile.get("first_name") or "").strip()
     greeting = "Welcome, " + escape(user_first_name) + "." if user_first_name else "Welcome to your library."
+    selected = next((a for a in articles if _clean_slug(a.slug) == slug and has_briefing_pdf(slug)), None)
+    selected_card = (
+        '<div class="notice"><strong>Your requested briefing is ready.</strong><br>' +
+        escape(selected.title) + '<div class="actions"><a class="button" href="/readers/download/' +
+        escape(slug, quote=True) + '.pdf">Download selected PDF ↓</a></div></div>'
+        if selected else ""
+    )
     body = ('<p>' + greeting + ' Your secure downloads are available here. '
             'The full editorial editions remain free to read and share online.</p>'
-            + ('<p class="notice">Your requested PDF is listed below.</p>' if slug else "")
+            + selected_card
             + (''.join(rows) if rows else '<p>There are no published briefing downloads yet.</p>')
             + '<div class="actions"><a class="button" href="/readers/preferences">My preferences</a>'
             '<a class="button" href="/?page=briefings">Read online</a></div>'

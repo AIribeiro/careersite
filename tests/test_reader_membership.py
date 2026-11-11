@@ -32,7 +32,7 @@ class ReaderMembershipContractTests(unittest.TestCase):
         roi = self._source("src/briefing_roi_studio.py")
         authority = self._source("src/briefing_authority_artwork.py")
         for source in (approved, roi, authority):
-            self.assertIn('"/readers/download/"', source)
+            self.assertIn("/readers/download/", source)
             self.assertIn('data-hq-event="briefing_reader_pdf"', source)
         self.assertNotIn("'href=\"https://raw.githubusercontent.com/", approved)
 

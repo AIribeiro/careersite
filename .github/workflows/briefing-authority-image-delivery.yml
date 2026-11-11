@@ -52,7 +52,7 @@ jobs:
           done
           cat /tmp/authority-server.log
           exit 1
-      - name: Fetch actual images and PDF over HTTP
+      - name: Fetch public artwork and verify PDF registration gate
         run: |
           set -euxo pipefail
           BASE="http://127.0.0.1:8501/briefing-ai-authority"
@@ -61,10 +61,11 @@ jobs:
           curl --fail --silent --show-error --max-time 60 -D /tmp/mobile.headers \
             -o /tmp/authority-mobile.webp "$BASE/infographic.mobile.webp?v=operating-mandate-20-v3"
           curl --fail --silent --show-error --max-time 60 -D /tmp/pdf.headers \
-            -o /tmp/authority.pdf "$BASE/infographic.pdf?v=operating-mandate-20-v3"
+            -o /tmp/pdf-redirect.txt "$BASE/infographic.pdf?v=operating-mandate-20-v3"
           grep -i '^content-type:.*image/webp' /tmp/desktop.headers
           grep -i '^content-type:.*image/webp' /tmp/mobile.headers
-          grep -i '^content-type:.*application/pdf' /tmp/pdf.headers
+          grep -Ei '^HTTP/.* 303' /tmp/pdf.headers
+          grep -i '^location:.*/readers/download/ai-was-approved-who-can-stop-it.pdf' /tmp/pdf.headers
           python - <<'PY'
           from PIL import Image
           from pypdf import PdfReader
@@ -75,9 +76,11 @@ jobs:
                   assert img.size==dimensions,(name,img.size)
                   img.verify()
               print(name,'HTTP-delivered WebP decoded successfully')
-          reader=PdfReader('/tmp/authority.pdf')
+          from io import BytesIO
+          from briefing_authority_artwork import artwork_pdf
+          reader=PdfReader(BytesIO(artwork_pdf()))
           assert len(reader.pages)==2
-          print('HTTP-delivered A4 PDF contains',len(reader.pages),'pages')
+          print('Private member route redirects before PDF bytes; local A4 PDF remains valid')
           PY
       - name: Server log if any step fails
         if: failure()

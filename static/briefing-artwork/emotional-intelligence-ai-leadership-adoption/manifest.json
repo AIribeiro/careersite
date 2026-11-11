@@ -2,28 +2,28 @@
   "schema_version": 1,
   "slug": "emotional-intelligence-ai-leadership-adoption",
   "article_fingerprint": "c9d5a527f6d2da3c282f307c4c74902fb11d7319eb7d3b179e4396735425aa30",
-  "revision": "2026-11-11-r2",
+  "revision": "2026-11-11-r3",
   "heading": "The human signals behind AI adoption",
   "deck": "Recognize, understand, respond and verify; preserve leadership accountability",
   "desktop": {
     "file": "desktop.webp",
-    "sha256": "6192b778d9f895e9c68f011aac5b20b8ffa423d7c291136a77bf9f49f09bb7bd",
+    "sha256": "7ca35e8f30b7acea17519d3d0350894b9b905172db35081280e1b35cb468f761",
     "width": 1460,
     "height": 2065,
-    "bytes": 241730
+    "bytes": 228616
   },
   "mobile": {
     "file": "mobile.webp",
-    "sha256": "4566c03d06829b75fd41c7bd51e3d10033ec5bb30e5c0dc429d122dbb6f3704e",
+    "sha256": "9ca95e05f67b049df94d27d75ed962d4c58e6478b8a52069ad8e0e5c479a89a7",
     "width": 900,
-    "height": 4260,
-    "bytes": 229126
+    "height": 4320,
+    "bytes": 220942
   },
   "pdf": {
     "file": "infographic.pdf",
-    "sha256": "3391a380b7228cff85104493ae8fbf6d8deab6e2f2a0f8d1020d395962b1e5dc",
+    "sha256": "bc30b47db69e7425437aede3d9517d89d405dcffea4d4db23ad55f4375fdf78c",
     "pages": 1,
-    "bytes": 261203
+    "bytes": 255402
   },
   "release_note": "Exact source content and premium design require editorial approval in CMS."
 }

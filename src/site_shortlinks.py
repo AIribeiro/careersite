@@ -43,6 +43,7 @@ _DAILY_QUOTE_ARTICLES: dict[str, tuple[str, str]] = {
 _SHORT_BRIEFINGS: dict[str, str] = {
     "j": "15-ways-ai-can-change-your-business",
     "k": "emotional-intelligence-ai-leadership-adoption",
+    "m": "too-many-ai-opportunities-too-little-capacity",
 }
 
 _SHORT_CHANNELS: dict[str, str] = {

@@ -7,6 +7,8 @@ on:
     paths:
       - app.py
       - src/reader_membership.py
+      - src/reader_catalog_admin.py
+      - src/page_owner_workspaces.py
       - src/page_executive_briefings.py
       - src/briefing_approved_asset_renderer.py
       - src/briefing_roi_studio.py
@@ -23,5 +25,5 @@ jobs:
           python-version: '3.12'
       - name: Check source syntax and reader contracts
         run: |
-          python -m compileall -q app.py src/reader_membership.py src/page_executive_briefings.py src/briefing_approved_asset_renderer.py src/briefing_roi_studio.py src/briefing_authority_artwork.py
+          python -m compileall -q app.py src/reader_membership.py src/reader_catalog_admin.py src/page_owner_workspaces.py src/page_executive_briefings.py src/briefing_approved_asset_renderer.py src/briefing_roi_studio.py src/briefing_authority_artwork.py
           python -m unittest discover -s tests -p test_reader_membership.py -v

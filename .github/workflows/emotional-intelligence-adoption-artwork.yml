@@ -51,7 +51,7 @@ jobs:
           python scripts/build_briefing_artwork_bundle.py \
             --slug emotional-intelligence-ai-leadership-adoption \
             --article-fingerprint c9d5a527f6d2da3c282f307c4c74902fb11d7319eb7d3b179e4396735425aa30 \
-            --revision 2026-11-11-r2 \
+            --revision 2026-11-11-r3 \
             --desktop /tmp/ei-adoption-art/desktop.png \
             --mobile /tmp/ei-adoption-art/mobile.png \
             --pdf /tmp/ei-adoption-art/infographic.pdf \

@@ -163,6 +163,13 @@ def render_owner_portfolio(session: dict) -> None:
         "Portfolio intelligence", "Portfolio Analytics",
         "Content reach, qualified attention, reader journeys, measurement health and the evidence connecting the portfolio with hiring activity.",
     )
+    st.markdown(
+        '<div style="margin:-4px 0 21px;font-size:13px;">'
+        '<a href="/readers-admin" target="_self" '
+        'style="font-weight:750;color:#8c5736;text-decoration:underline;text-underline-offset:4px;">'
+        'Reader catalog · verified registrations and PDF downloads →</a></div>',
+        unsafe_allow_html=True,
+    )
     requested = str(st.query_params.get("view", "overview")).lower().strip()
     mapped = {
         "pages": "content", "articles": "content", "portfolio": "content",

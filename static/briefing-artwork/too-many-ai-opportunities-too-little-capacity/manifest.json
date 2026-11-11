@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "slug": "too-many-ai-opportunities-too-little-capacity",
+  "revision": "2026-11-11-v2-r1",
+  "article_fingerprint": "19455e796e8dbe964fa0b65974993cdafc8323abd4a4ec78fd73122219b50dfa",
+  "heading": "The AI Capacity Commitment",
+  "deck": "Three capacities, five commitments and four executive decisions to make AI delivery realistic.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "e1df8a7cb5a3c3506022741352ffe1090377623cb7ad0e206e7c905f32490d1b",
+    "width": 2480,
+    "height": 3508
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "38347840a6790940c915384c2d99ce53281917b37a9347e3e0e8a5e48cb229ab",
+    "width": 1440,
+    "height": 4850
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "43ee6fe2306c610750bec0ff385ef118b4e64754d25424e53c2ab34edba46374",
+    "pages": 1
+  },
+  "release_note": "Owner-approved leadership edition; McKinsey research credit corrected to 2026. Exactly one A4 print page."
+}

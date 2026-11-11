@@ -280,7 +280,7 @@ def approved_authority_studio(article, row: dict) -> str:
     slug = e(article.slug, quote=True)
     caption = e(str(row.get("caption") or "Original executive infographic by Jair Ribeiro."))
     alt = e(alt, quote=True)
-    download = "/briefing-ai-authority/infographic.pdf?v=operating-mandate-20-v4"
+    download = "/readers/download/" + slug + ".pdf"
 
     return (
         '<style>'
@@ -329,7 +329,7 @@ def approved_authority_studio(article, row: dict) -> str:
         'from real work, and the authority to renew or end permission.</p>'
         '</div>'
         '<a class="auth-download" href="' + download + '" '
-        'download="ai-operating-authority-20-decisions.pdf" '
+        'target="_self" data-hq-event="briefing_reader_pdf" '
         'aria-label="Download the 20-decision executive operating mandate as a two-page A4 PDF">'
         '&#8595; Download infographic · A4 PDF</a></div>'
         '<div class="auth-artwork-container">'

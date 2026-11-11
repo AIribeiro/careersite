@@ -1,0 +1,27 @@
+name: Executive Briefings reader membership
+on:
+  push:
+    branches:
+      - feature/verified-briefings-readers-20261111
+  pull_request:
+    paths:
+      - app.py
+      - src/reader_membership.py
+      - src/page_executive_briefings.py
+      - src/briefing_approved_asset_renderer.py
+      - src/briefing_roi_studio.py
+      - src/briefing_authority_artwork.py
+      - tests/test_reader_membership.py
+      - .github/workflows/reader-membership.yml
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check source syntax and reader contracts
+        run: |
+          python -m compileall -q app.py src/reader_membership.py src/page_executive_briefings.py src/briefing_approved_asset_renderer.py src/briefing_roi_studio.py src/briefing_authority_artwork.py
+          python -m unittest discover -s tests -p test_reader_membership.py -v

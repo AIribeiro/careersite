@@ -21,10 +21,10 @@ SIG=[
  ("04","UNEVEN AI LITERACY","Different experience, confidence and ability to judge AI limitations.","Set role-specific practice: verify output, protect data, escalate and remain accountable.","layers",TEAL)
 ]
 STEPS=[
- ("01","RECOGNIZE","Notice the signal, without diagnosing a person.","search"),
- ("02","UNDERSTAND","Explore competing explanations and real work.","agent"),
- ("03","RESPOND","Choose an action proportional to the cause.","target"),
- ("04","VERIFY","Check changes in work, trust and outcomes.","chart"),
+ ("01","RECOGNIZE","Notice the signal, not a diagnosis.","search"),
+ ("02","UNDERSTAND","Test competing explanations in the work.","agent"),
+ ("03","RESPOND","Match the response to the cause.","target"),
+ ("04","VERIFY","Check changes in work and results.","chart"),
 ]
 CAPS=[
  ("SELF-AWARENESS","Notice defensiveness and assumptions."),
@@ -40,7 +40,7 @@ def pill(d,x,y,w,h,col):
 def header(im,mobile=False):
     w=im.width; h=355 if mobile else 325
     G.gradient(im,NAVY,NAVY2,0,h)
-    d=ImageDraw.Draw(im);G.waves(d,w,h-100,6)
+    d=ImageDraw.Draw(im)
     if not mobile:
         ctext(d,52,30,"EXECUTIVE AI BRIEFING  /  HUMAN JUDGMENT",22,CYAN,True)
         d.line((52,81,660,81),fill=CYAN,width=4)
@@ -58,7 +58,7 @@ def footer_mobile(im,y):
     ctext(d,147,y+25,"Jair Ribeiro",40,WHITE,True)
     ctext(d,149,y+81,"AI LEADER",25,CYAN,True)
     ctext(d,147,y+120,"Enterprise AI Adoption  •  Governance",20,(225,241,245))
-    ctext(d,147,y+135,"Business Transformation",20,(225,241,245))
+    ctext(d,147,y+159,"Business Transformation",20,(225,241,245))
 def signal_card(d,x,y,w,h,item,small=False):
     num,title,problem,response,ic,col=item
     G.roundrect(d,x,y,w,h,21)
@@ -96,7 +96,7 @@ def desktop(out):
         G.icon(d,x+54,1318,ic,(36,117,129),.60)
         ctext(d,x+99,1285,num,21,COPPER,True)
         ctext(d,x+99,1321,title,25,INK,True)
-        G.para(d,x+28,1380,desc,21,272,30,STEEL)
+        G.para(d,x+28,1372,desc,20,272,29,STEEL)
     ctext(d,45,1480,"FIVE CAPABILITIES EXECUTIVES CAN PRACTISE",29,INK,True)
     for i,(cap,detail) in enumerate(CAPS):
         x=44+i*282
@@ -111,7 +111,7 @@ def desktop(out):
     G.footer(im,1940)
     im.save(out/"desktop.png",optimize=True)
 def mobile(out):
-    W,H=900,4260
+    W,H=900,4320
     im=Image.new("RGB",(W,H),PAPER);header(im,True);d=ImageDraw.Draw(im)
     G.roundrect(d,22,377,856,260,24,fill=(233,242,244))
     ctext(d,48,398,"THE LEADERSHIP DECISION",29,TEAL,True)
@@ -134,7 +134,7 @@ def mobile(out):
         G.roundrect(d,23,cy,854,107,18)
         ctext(d,45,cy+14,cap,24,TEAL,True)
         G.para(d,45,cy+53,detail,21,800,30,INK)
-    y=4025
+    y=4005
     G.roundrect(d,23,y,854,66,13,fill=(235,243,244))
     G.para(d,43,y+13,"PROOF: concerns investigated, actions owned and work outcomes reviewed.",20,811,31,INK,True)
     footer_mobile(im,4100)

@@ -58,18 +58,26 @@ def footer_mobile(im,y):
     ctext(d,147,y+25,"Jair Ribeiro",40,WHITE,True)
     ctext(d,149,y+81,"AI LEADER",25,CYAN,True)
     ctext(d,147,y+120,"Enterprise AI Adoption  •  Governance",20,(225,241,245))
-    ctext(d,147,y+149,"Business Transformation",20,(225,241,245))
+    ctext(d,147,y+135,"Business Transformation",20,(225,241,245))
 def signal_card(d,x,y,w,h,item,small=False):
     num,title,problem,response,ic,col=item
     G.roundrect(d,x,y,w,h,21)
     pill(d,x+16,y+15,w-32,66,col)
     G.icon(d,x+62,y+47,ic,WHITE,.59)
     ctext(d,x+111,y+22,num+"  "+title,28 if not small else 27,WHITE,True)
-    ctext(d,x+30,y+105,"WHAT MAY BE HAPPENING",17,col,True)
-    yy=G.para(d,x+30,y+140,problem,21 if not small else 22,w-60,30,INK)
-    d.line((x+30,yy+9,x+w-30,yy+9),fill=(211,224,228),width=2)
-    ctext(d,x+30,yy+21,"EXECUTIVE RESPONSE",17,col,True)
-    G.para(d,x+30,yy+52,response,21 if not small else 22,w-60,30,INK)
+    if not small:
+        ctext(d,x+30,y+101,"WHAT MAY BE HAPPENING",16,col,True)
+        G.para(d,x+30,y+123,problem,19,w-60,27,INK)
+        d.line((x+30,y+181,x+w-30,y+181),fill=(211,224,228),width=2)
+        ctext(d,x+30,y+188,"EXECUTIVE RESPONSE",16,col,True)
+        G.para(d,x+30,y+211,response,19,w-60,27,INK)
+    else:
+        ctext(d,x+30,y+105,"WHAT MAY BE HAPPENING",17,col,True)
+        yy=G.para(d,x+30,y+140,problem,22,w-60,30,INK)
+        d.line((x+30,yy+9,x+w-30,yy+9),fill=(211,224,228),width=2)
+        ctext(d,x+30,yy+21,"EXECUTIVE RESPONSE",17,col,True)
+        G.para(d,x+30,yy+52,response,22,w-60,30,INK)
+
 def desktop(out):
     W,H=1460,2065
     im=Image.new("RGB",(W,H),PAPER);header(im);d=ImageDraw.Draw(im)

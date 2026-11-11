@@ -25,6 +25,7 @@ from site_cms import bundled_header_bytes, cms_share_document, cms_sitemap_entri
 from site_social_preview import PUBLIC_URL as SITE_SOCIAL_IMAGE
 from site_owner_http_auth import owner_auth_route
 from reader_membership import (reader_route, reader_download, ROI_SLUG, AUTHORITY_SLUG)
+from reader_catalog_admin import reader_admin_route
 from weekly_ai_audio import mp3_path
 
 # Source-level compatibility anchors for the established smoke tests. The
@@ -488,6 +489,8 @@ app = App(
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
         Route("/readers/download/{slug}.pdf", reader_download, methods=["GET"]),
         Route("/readers/{action}", reader_route, methods=["GET", "POST"]),
+        Route("/readers-admin", reader_admin_route, methods=["GET"]),
+        Route("/readers-admin/export.csv", reader_admin_route, methods=["GET"]),
         Route("/portfolio-image/{name:path}", _portfolio_image, methods=["GET", "HEAD"]),
         Route("/briefing-ai-roi/infographic.{ext}", _roi_infographic_image, methods=["GET", "HEAD"]),
         Route("/briefing-ai-authority/infographic.{ext}", _authority_infographic, methods=["GET", "HEAD"]),

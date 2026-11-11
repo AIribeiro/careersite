@@ -24,6 +24,7 @@ from thinking_social import ensure_article_share_page, ensure_article_social_ima
 from site_cms import bundled_header_bytes, cms_share_document, cms_sitemap_entries, fetch_public_article, render_cms_social_image
 from site_social_preview import PUBLIC_URL as SITE_SOCIAL_IMAGE
 from site_owner_http_auth import owner_auth_route
+from reader_membership import (reader_route, reader_download, ROI_SLUG, AUTHORITY_SLUG)
 from weekly_ai_audio import mp3_path
 
 # Source-level compatibility anchors for the established smoke tests. The
@@ -420,6 +421,8 @@ async def _roi_infographic_image(request):
     ext = str(request.path_params.get("ext") or "").lower()
     if ext not in ("webp", "pdf"):
         return PlainTextResponse("Infographic not found", status_code=404)
+    if ext == "pdf":
+        return RedirectResponse("/readers/download/" + ROI_SLUG + ".pdf", status_code=303)
     asset_path = ROOT / "static" / f"briefing-ai-roi-proof-before-scale.{ext}"
     if not asset_path.is_file():
         return PlainTextResponse("Infographic asset unavailable", status_code=503)
@@ -453,41 +456,17 @@ async def _authority_infographic(request):
     if ext == "mobile.svg":
         return Response(artwork_mobile_svg(), media_type="image/svg+xml", headers=headers)
     if ext == "pdf":
-        headers["Content-Disposition"] = (
-            'attachment; filename="ai-operating-authority-20-decisions.pdf"'
-        )
-        return Response(artwork_pdf(), media_type="application/pdf", headers=headers)
+        return RedirectResponse("/readers/download/" + AUTHORITY_SLUG + ".pdf", status_code=303)
     return PlainTextResponse("Infographic not found", status_code=404)
 
 
 async def _briefing_artwork_pdf(request):
-    """Serve the matched approved artwork PDF without a per-article route."""
+    """Legacy first-party route now uses the same verified-reader download gate."""
     slug = str(request.path_params.get("slug") or "")
-    from briefing_approved_asset_renderer import _slug, verified_pdf_for_article, ArtworkError
-    try:
-        _slug(slug)
-    except ArtworkError:
+    from reader_membership import _clean_slug
+    if not _clean_slug(slug):
         return PlainTextResponse("Infographic not found", status_code=404)
-    try:
-        from site_cms import fetch_public_article
-        article = fetch_public_article(slug)
-        if not article:
-            return PlainTextResponse("Infographic not found", status_code=404)
-        pdf = verified_pdf_for_article(article)
-    except (RuntimeError, ValueError, TimeoutError, OSError):
-        return PlainTextResponse("Infographic temporarily unavailable", status_code=503)
-    if not pdf:
-        return PlainTextResponse("Infographic not found", status_code=404)
-    return Response(
-        pdf,
-        media_type="application/pdf",
-        headers={
-            "Content-Disposition": f'attachment; filename="{slug}-executive-infographic.pdf"',
-            "Cache-Control": "public, max-age=3600",
-            "X-Content-Type-Options": "nosniff",
-        },
-    )
-
+    return RedirectResponse("/readers/download/" + slug + ".pdf", status_code=303)
 
 async def _weekly_ai_evergreen_image(_request):
     path = ROOT / "assets" / "weekly_ai_evergreen_visual.webp"
@@ -507,6 +486,8 @@ app = App(
     "main.py",
     routes=[
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
+        Route("/readers/download/{slug}.pdf", reader_download, methods=["GET"]),
+        Route("/readers/{action}", reader_route, methods=["GET", "POST"]),
         Route("/portfolio-image/{name:path}", _portfolio_image, methods=["GET", "HEAD"]),
         Route("/briefing-ai-roi/infographic.{ext}", _roi_infographic_image, methods=["GET", "HEAD"]),
         Route("/briefing-ai-authority/infographic.{ext}", _authority_infographic, methods=["GET", "HEAD"]),

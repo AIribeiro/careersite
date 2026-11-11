@@ -215,6 +215,8 @@ def _static_shortlink_html(code: str, slug: str, channel: str, target: str) -> s
             "If AI Does the Routine Work, How Will We Develop the Next Experts?",
         "ai-can-make-every-team-faster-and-still-leave-the-business-slow":
             "AI Can Make Every Team Faster and Still Leave the Business Slow",
+        "emotional-intelligence-ai-leadership-adoption":
+            "Emotional Intelligence in AI Leadership: Understanding Resistance, Building Trust and Making Better Decisions",
     }
     edition = _weekly_issue_metadata(slug)
     if edition and edition.get("distribution_mode") == "friday_wrap":
@@ -227,7 +229,12 @@ def _static_shortlink_html(code: str, slug: str, channel: str, target: str) -> s
         description = "My AI week: selected developments and a practical enterprise AI leadership perspective."
     else:
         title = registered_titles.get(slug, slug.replace("-", " ").title())
-        description = "Read the full article on Jair Ribeiro's Enterprise AI & Data Portfolio."
+        description = (
+            "How executives can understand resistance, skepticism, disengagement "
+            "and AI literacy gaps without losing accountability."
+            if slug == "emotional-intelligence-ai-leadership-adoption"
+            else "Read the full article on Jair Ribeiro's Enterprise AI & Data Portfolio."
+        )
     image_path = ROOT / "static" / "weekly-ai" / f"{slug}.png"
     cover_ready = bool(edition and edition.get("distribution_mode") == "friday_wrap" and image_path.is_file())
     if cover_ready:

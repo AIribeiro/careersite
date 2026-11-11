@@ -42,6 +42,7 @@ _DAILY_QUOTE_ARTICLES: dict[str, tuple[str, str]] = {
 # One immutable briefing prefix; preserve the different native reader route.
 _SHORT_BRIEFINGS: dict[str, str] = {
     "j": "15-ways-ai-can-change-your-business",
+    "k": "emotional-intelligence-ai-leadership-adoption",
 }
 
 _SHORT_CHANNELS: dict[str, str] = {

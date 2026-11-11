@@ -64,6 +64,29 @@ class ShortArticleLinkTests(unittest.TestCase):
                 })
                 self.assertNotEqual(short_article_link(slug, channel), link)
 
+    def test_emotional_intelligence_briefing_preserves_each_channel(self):
+        slug = "emotional-intelligence-ai-leadership-adoption"
+        for channel, suffix, medium in (
+            ("linkedin", "l", "social"),
+            ("x", "x", "social"),
+            ("threads", "t", "social"),
+            ("facebook", "f", "social"),
+            ("whatsapp", "w", "messaging"),
+        ):
+            with self.subTest(channel=channel):
+                code = "k" + suffix
+                self.assertEqual(
+                    short_briefing_link(slug, channel),
+                    f"https://airibeiro.github.io/careersite/go/{code}/",
+                )
+                self.assertEqual(expand_shortlink(code), {
+                    "page": "briefing", "article": slug,
+                    "source": channel, "role": "article",
+                    "utm_source": channel, "utm_medium": medium,
+                    "utm_campaign": "thinking", "utm_content": slug,
+                })
+                self.assertIsNone(short_article_link(slug, channel))
+
     def test_next_experts_article_has_distinct_permanent_links(self):
         slug = "if-ai-does-the-routine-work-how-will-we-develop-the-next-experts"
         expected = {
@@ -183,7 +206,7 @@ class ShortArticleLinkTests(unittest.TestCase):
                     f"https://airibeiro.github.io/careersite/go/{code}/",
                 )
                 params = parse_qs(urlparse(target).query)
-                self.assertEqual(params["page"], ["briefing" if role == "article" and slug == "15-ways-ai-can-change-your-business" else "thinking"])
+                self.assertEqual(params["page"], ["briefing" if role == "article" and slug in ("15-ways-ai-can-change-your-business", "emotional-intelligence-ai-leadership-adoption") else "thinking"])
                 self.assertEqual(params["article"], [slug])
                 self.assertEqual(params["source"], [channel])
                 self.assertEqual(params["utm_source"], [channel])

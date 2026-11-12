@@ -12,7 +12,7 @@ READER_INVITATION_CSS = r"""<style>
 .site .thinking-reader-invite .container{max-width:1180px}
 .site .thinking-reader-kicker{display:block;color:#aa6039;font:800 11px/1.5 Arial,sans-serif;text-transform:uppercase;letter-spacing:.15em;margin:0 0 17px}
 .site .thinking-reader-intro{display:grid;grid-template-columns:minmax(0,1.24fr) minmax(250px,.76fr);align-items:start;gap:clamp(26px,5.5vw,90px)}
-.site .thinking-reader-intro h2{max-width:760px;margin:0;color:#152d40;font:450 clamp(36px,4.7vw,58px)/1.1 Georgia,serif;letter-spacing:-.028em;text-wrap:balance}
+.site .thinking-reader-intro h2{max-width:760px;margin:0;color:#152d40;font:450 clamp(35px,4.15vw,53px)/1.12 Georgia,serif;letter-spacing:-.028em;text-wrap:balance}
 .site .thinking-reader-intro>p{margin:8px 0 0;max-width:410px;color:#435565;font:400 clamp(15px,1.4vw,17px)/1.75 Arial,sans-serif}
 .site .thinking-reader-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:42px 0 0;border-top:1px solid #cec4b8;border-bottom:1px solid #cec4b8}
 .site .thinking-reader-benefit{box-sizing:border-box;min-width:0;padding:29px clamp(16px,2.7vw,31px) 31px 0}
@@ -28,11 +28,11 @@ READER_INVITATION_CSS = r"""<style>
 .site .thinking-reader-actions a:first-child:hover{background:#254c61}
 .site .thinking-reader-actions a:last-child{color:#15374c!important;background:transparent}
 .site .thinking-reader-actions a:last-child:hover{background:#e2dacf}
-.site .thinking-reader-steps{margin-top:23px;padding:19px 21px;background:#e8e1d7;border-left:3px solid #aa6744}
-.site .thinking-reader-steps strong{display:block;font:800 10px/1.5 Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#955735;margin-bottom:9px}
-.site .thinking-reader-steps p{margin:0;color:#384d5a;font:400 13px/1.65 Arial,sans-serif}
+.site .thinking-reader-steps{margin-top:27px;padding:18px 0 0;background:transparent;border-top:1px solid #cec4b8}
+.site .thinking-reader-steps strong{display:block;font:800 10px/1.5 Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#955735;margin-bottom:7px}
+.site .thinking-reader-steps p{max-width:880px;margin:0;color:#596570;font:400 12px/1.65 Arial,sans-serif}
 @media(max-width:920px){.site .thinking-reader-intro{grid-template-columns:1fr;gap:13px}.site .thinking-reader-intro>p{max-width:810px}.site .thinking-reader-actionline{grid-template-columns:1fr}}
-@media(max-width:700px){.site .thinking-reader-invite{padding:50px 0 57px}.site .thinking-reader-benefits{grid-template-columns:1fr;margin-top:30px}.site .thinking-reader-benefit{padding:22px 0!important}.site .thinking-reader-benefit+.thinking-reader-benefit{border-left:0;border-top:1px solid #d8cbbf}.site .thinking-reader-actions{width:100%}.site .thinking-reader-actions a{width:100%}.site .thinking-reader-steps{padding:17px 18px}}
+@media(max-width:700px){.site .thinking-reader-invite{padding:50px 0 57px}.site .thinking-reader-benefits{grid-template-columns:1fr;margin-top:30px}.site .thinking-reader-benefit{padding:22px 0!important}.site .thinking-reader-benefit+.thinking-reader-benefit{border-left:0;border-top:1px solid #d8cbbf}.site .thinking-reader-actions{width:100%}.site .thinking-reader-actions a{width:100%}.site .thinking-reader-steps{padding:17px 0 0}}
 </style>"""
 
 
@@ -43,46 +43,52 @@ def reader_invitation() -> str:
       <div class="container">
         <span class="thinking-reader-kicker">Premium Reader library · Complimentary access</span>
         <div class="thinking-reader-intro">
-          <h2 id="thinking-reader-heading">An executive summary frames the issue. The full edition examines the trade-offs.</h2>
-          <p>Use the public preview to assess the question at hand. If it deserves
-          more attention, the library brings together the full reasoning,
-          practical considerations and supporting material for your next discussion.</p>
+          <h2 id="thinking-reader-heading">Go beyond the headline. Examine the decision.</h2>
+          <p>A short summary tells you what a piece is about. The full edition
+          explores the reasoning: what is at stake, which assumptions to challenge,
+          and what leaders need to consider before acting. That is the purpose
+          of this library.</p>
         </div>
         <div class="thinking-reader-benefits">
           <article class="thinking-reader-benefit">
             <span>Executive AI Briefings</span>
-            <h3>Examine the complete decision.</h3>
-            <p>Read the full analysis, questions and decision frameworks behind each briefing.
-            Download the original A4 infographic where one is available.</p>
+            <h3>Bring better questions to the table.</h3>
+            <p>Examine choices about investment, governance and adoption through
+            complete briefings, decision frameworks and original infographics
+            where available.</p>
           </article>
           <article class="thinking-reader-benefit">
-            <span>Weekly AI · Current-week edition</span>
-            <h3>Read the week's complete perspective.</h3>
-            <p>The current week's edition is available in full to Premium Readers,
-            including audio narration when available. Previous weeks remain open to everyone.</p>
+            <span>Weekly AI</span>
+            <h3>See what deserves your attention.</h3>
+            <p>A considered selection of AI developments, why they matter for
+            business and the original reporting behind them. Listen to the
+            narrated edition when available.</p>
           </article>
           <article class="thinking-reader-benefit">
-            <span>Articles · Seven-day early access</span>
-            <h3>Read new articles in full.</h3>
-            <p>Registered readers have immediate access to complete new articles.
-            After seven days, every article is available to everyone without signing in.</p>
+            <span>Leadership articles</span>
+            <h3>Understand the thinking behind the position.</h3>
+            <p>Go deeper into prioritization, accountability, governance,
+            adoption and business value, including the trade-offs and practical
+            questions that rarely fit in a summary.</p>
           </article>
         </div>
         <div class="thinking-reader-actionline">
-          <p><strong>Premium Reader access is currently free.</strong>
-          One account covers all three editorial formats. Save briefings,
-          return to available PDFs and manage your profile in My Library.
-          No payment details. Editorial emails are optional and require your explicit choice.</p>
+          <p><strong>Premium Reader access is currently complimentary.</strong>
+          One account gives you the full reading experience across all three
+          formats. Save useful briefings, return to available PDFs and manage
+          your profile in My Library. No payment details; editorial emails
+          are optional.</p>
           <div class="thinking-reader-actions">
             <a href="?page=readers" target="_self" data-hq-event="thinking_premium_reader_access">Access the reader library</a>
-            <a href="?page=briefings" target="_self" data-hq-event="thinking_premium_reader_explore">Explore the briefings</a>
+            <a href="?page=briefings" target="_self" data-hq-event="thinking_premium_reader_explore">Browse the briefings</a>
           </div>
         </div>
         <div class="thinking-reader-steps">
-          <strong>How it works</strong>
-          <p>Browse a public summary → create your reader account or sign in once →
-          continue with the full edition. Your saved briefings, available PDFs
-          and profile are accessible from <em>My Library</em>.</p>
+          <strong>Access at a glance</strong>
+          <p>Public summaries are open to everyone. Registered readers can read
+          complete Executive AI Briefings and the latest Weekly AI and Articles.
+          Earlier Weekly AI and Articles become open to everyone automatically.
+          Sign up with your email or use your existing reader account.</p>
         </div>
       </div>
     </section>"""

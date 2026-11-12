@@ -40,6 +40,25 @@ class ReaderMembershipContractTests(unittest.TestCase):
             self.assertIn('data-hq-event="briefing_reader_pdf"', source)
         self.assertNotIn("'href=\"https://raw.githubusercontent.com/", approved)
 
+    def test_download_links_escape_spaceship_masked_frame(self):
+        for path in (
+            "src/briefing_approved_asset_renderer.py",
+            "src/briefing_roi_studio.py",
+            "src/briefing_authority_artwork.py",
+        ):
+            with self.subTest(path=path):
+                source = self._source(path)
+                self.assertIn('target="_blank"', source)
+                self.assertIn('rel="noopener"', source)
+
+        page = self._source("src/page_executive_briefings.py")
+        self.assertIn(
+            'href="/readers/library" target="_blank" rel="noopener"',
+            page,
+        )
+        reader = self._source("src/reader_membership.py")
+        self.assertIn('target="_blank" rel="noopener">Download PDF', reader)
+
     def test_service_registration_does_not_enroll_newsletter_by_default(self):
         source = self._source("src/reader_membership.py")
         self.assertIn('type="checkbox" value="yes"', source)

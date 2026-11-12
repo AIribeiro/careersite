@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 import sys
 import unittest
 
@@ -103,6 +104,53 @@ class BriefingPublicPreviewTests(unittest.TestCase):
         self.assertIn("access=1&amp;signin=1", html)
         self.assertIn("No payment details", html)
         self.assertIn("Editorial email updates are optional", html)
+
+    def test_cms_does_not_render_full_article_to_anonymous_visitor(self):
+        # The real CMS renderer must branch BEFORE rendering the full article;
+        # a CSS-covered article is not a valid access gate.
+        from site_cms import CmsArticle, render_cms_article
+        article = CmsArticle(
+            title="Capacity Is the Real Constraint",
+            slug="capacity-is-the-real-constraint",
+            status="published",
+            kind="Executive Briefing",
+            header_image_url="https://example.com/safe-cover.webp",
+            subtitle="Senior leadership choices about finite capacity.",
+            content_html=self.fixture().content_html,
+        )
+        with (
+            patch("page_reader_native._session", return_value=(None, None)),
+            patch("site_cms._public_reads_or_none", return_value={}),
+            patch("site_cms.fetch_published_articles", return_value=()),
+        ):
+            public_html = render_cms_article(article)
+        self.assertIn("Capacity is part of the approval decision", public_html)
+        self.assertIn("Continue with the full briefing", public_html)
+        self.assertNotIn("UNLOCKED_ONLY_DETAIL_4382", public_html)
+        self.assertNotIn("premium-infographic.webp", public_html)
+
+    def test_verified_reader_gets_full_cms_article_path(self):
+        # For verified sessions only, use the complete existing editorial
+        # renderer including the original briefing's unique infographic.
+        from site_cms import CmsArticle, render_cms_article
+        article = CmsArticle(
+            title="Capacity Is the Real Constraint",
+            slug="capacity-is-the-real-constraint",
+            status="published",
+            kind="Executive Briefing",
+            header_image_url="https://example.com/safe-cover.webp",
+            subtitle="Senior leadership choices about finite capacity.",
+            content_html=self.fixture().content_html,
+        )
+        with (
+            patch("page_reader_native._session", return_value=({"access_token":"test"}, {"id":"reader"})),
+            patch("site_cms._public_reads_or_none", return_value={}),
+            patch("site_cms.fetch_published_articles", return_value=()),
+            patch("page_executive_briefings.executive_briefing_article", return_value="VERIFIED_COMPLETE_EDITORIAL_CONTENT") as full,
+        ):
+            html = render_cms_article(article)
+        self.assertTrue(full.called)
+        self.assertIn("VERIFIED_COMPLETE_EDITORIAL_CONTENT", html)
 
     def test_markup_escaped_and_preview_short_for_short_editions(self):
         article = self.fixture()

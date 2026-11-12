@@ -14,6 +14,7 @@ from io import StringIO
 from urllib.parse import urlencode
 
 import streamlit as st
+import json
 
 from site_analytics import ANALYTICS_URL
 from site_cms import OWNER_EMAIL, _request_json, _rest_url
@@ -268,6 +269,34 @@ def _reader_management(
     control = controls.get(user_id, {})
     st.divider()
     _profile_snapshot(p, downloads, saved, consents, control)
+
+    with st.expander("Export reader data · privacy requests", expanded=False):
+        snapshot = {
+            "profile": p,
+            "administrative_controls": control,
+            "downloads": [
+                row for row in downloads if str(row.get("user_id")) == user_id
+            ],
+            "saved_briefings": [
+                row for row in saved if str(row.get("user_id")) == user_id
+            ],
+            "consent_history": [
+                row for row in consents if str(row.get("user_id")) == user_id
+            ],
+        }
+        st.download_button(
+            "Export this reader's records (JSON)",
+            data=json.dumps(snapshot, ensure_ascii=False, indent=2).encode("utf-8"),
+            file_name="reader-" + user_id + "-private-data.json",
+            mime="application/json",
+            key="admin_reader_personal_export_" + user_id,
+        )
+        st.caption(
+            "Private export for owner review and access requests. "
+            "Assess internal notes before disclosing records to a reader. "
+            "Deletion is not performed here; use the authorized identity "
+            "administration workflow and verify related records."
+        )
 
     st.markdown("#### Internal reader management")
     with st.form("admin_reader_note_form_" + user_id):

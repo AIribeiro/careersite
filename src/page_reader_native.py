@@ -182,7 +182,10 @@ def _request_email(first_name: str, email: str, subscribe: bool, returning: bool
         "reader_first_name": first_name,
         "reader_editorial_opt_in": bool(subscribe),
         "reader_notice_version": CONSENT_VERSION,
-        "reader_acquisition_source": "articles" if page == "thinking" else "briefings",
+        "reader_acquisition_source": (
+            "weekly_ai" if page == "thinking" and requested.startswith("weekly-ai-")
+            else "articles" if page == "thinking" else "briefings"
+        ),
     }
     _request_json("POST", url, payload={
         "email": email, "create_user": not returning, "data": data,
@@ -212,7 +215,15 @@ def _consume_query_verification() -> None:
         st.session_state["reader_native_flash"] = ("error", "The verification link has expired or could not be confirmed. Request a new email.")
 
 def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> None:
-    if requested_title and resource_kind == "article":
+    if requested_title and resource_kind == "weekly_ai":
+        st.markdown("### Read this week's complete Weekly AI")
+        st.write(
+            "Sign in to read **" + requested_title +
+            "** and listen to the narration when available. This week's "
+            "edition is complimentary for Premium Readers, and becomes public "
+            "next Monday."
+        )
+    elif requested_title and resource_kind == "article":
         st.markdown("### Read the complete article")
         st.write("Sign in to read **" + requested_title + "** in full during its first seven days. Access is free.")
     elif requested_title:
@@ -223,10 +234,12 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
             "original infographic. Access is free; editorial emails are optional."
         )
     else:
-        st.markdown("### Complimentary access to executive resources")
+        st.markdown("### Complimentary Premium Reader access")
         st.write(
-            "Read the opening of any briefing without an account. "
-            "Sign in for complete editions, original infographics and A4 PDFs."
+            "Read public summaries before registering. Your one free account opens "
+            "complete Executive AI Briefings, the current Weekly AI edition and "
+            "new Articles during their first seven days. Older Weekly AI and "
+            "Article editions remain open to everyone."
         )
 
     returning = st.radio(
@@ -269,7 +282,7 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
         first = st.text_input("First name", max_chars=80, disabled=returning)
         email = st.text_input("Email address", max_chars=254, placeholder="you@example.com")
         subscribe = st.checkbox(
-            "Email me new Articles, Executive AI Briefings and occasional AI leadership resources.",
+            "Email me new Articles, Executive AI Briefings, Weekly AI and occasional AI leadership resources.",
             value=False, disabled=returning,
         )
         sent = st.form_submit_button("Send my secure access email", type="primary")
@@ -668,9 +681,9 @@ def _library(session: dict, user: dict) -> None:
     st.markdown("### Your Premium Reader library")
     st.write(
         ("Welcome, " + first + ". " if first else "")
-        + "Read all complete Executive AI Briefings, save useful editions "
-        + "and access new Articles in full during their first seven days. "
-        + "Older Articles are open to everyone."
+        + "Read complete Executive AI Briefings, new Articles during their first "
+        + "seven days, and the current Weekly AI edition. Older Articles and "
+        + "Weekly AI editions remain publicly accessible."
     )
     st.caption("Signed in as " + str(user.get("email") or ""))
     st.caption(
@@ -716,14 +729,51 @@ def _library(session: dict, user: dict) -> None:
             unique_downloads[slug] = row
 
     st.caption(
-        f"{len(articles)} complete editions · "
+        f"{len(articles)} complete briefings · "
         f"{len(saved_slugs)} saved · "
         f"{len(unique_downloads)} previously downloaded PDFs"
     )
 
-    all_tab, articles_tab, saved_tab, pdf_tab, profile_tab = st.tabs([
-        "All briefings", "Articles", "Saved", "My PDFs", "My profile",
+    all_tab, articles_tab, weekly_tab, saved_tab, pdf_tab, profile_tab = st.tabs([
+        "All briefings", "Articles", "Weekly AI", "Saved", "My PDFs", "My profile",
     ])
+    with weekly_tab:
+        from thinking_weekly_brief import sorted_editions, edition_label
+        from weekly_ai_reader_access import weekly_ai_is_premium
+        try:
+            weekly_issues = sorted_editions(list(fetch_published_articles()))
+        except (RuntimeError, ValueError, TimeoutError):
+            weekly_issues = []
+            st.warning("Weekly AI editions are temporarily unavailable.")
+        st.markdown("#### Weekly AI · Current and previous editions")
+        st.caption(
+            "The current Stockholm calendar week is exclusive to free Premium "
+            "Readers. Older editions open automatically on Monday."
+        )
+        if weekly_issues:
+            page_size = 6
+            pages = (len(weekly_issues) + page_size - 1) // page_size
+            current = (
+                st.selectbox("Weekly AI pages", range(pages),
+                             format_func=lambda i: f"Page {i + 1} of {pages}",
+                             key="reader_weekly_page")
+                if pages > 1 else 0
+            )
+            for item in weekly_issues[int(current) * page_size:(int(current) + 1) * page_size]:
+                slug = _clean_slug(str(item.slug))
+                with st.container(border=True):
+                    st.markdown("#### " + str(item.title))
+                    st.write(str(item.excerpt or item.subtitle or ""))
+                    st.caption(
+                        edition_label(item) + " · " +
+                        ("Premium this week · Full edition unlocked"
+                         if weekly_ai_is_premium(item) else "Open access")
+                    )
+                    if st.button("Read full Weekly AI", key="reader_weekly_open_" + slug):
+                        st.query_params.from_dict({"page": "thinking", "article": slug})
+                        st.rerun()
+        else:
+            st.info("No Weekly AI editions are available at the moment.")
     with articles_tab:
         from article_access import is_editorial_article, article_is_locked, unlock_label
         try:
@@ -947,6 +997,29 @@ def render_article_access_dialog(slug: str, title: str = "") -> None:
     clean = _clean_slug(slug)
     if clean:
         _article_access_dialog(clean, title)
+
+
+@st.dialog("Weekly AI · Premium Reader edition", width="large",
+           on_dismiss=_dismiss_article_dialog)
+def _weekly_ai_access_dialog(slug: str, title: str) -> None:
+    """Same free reader account, password and email verification as Briefings."""
+    session, user = _session()
+    if not session or not user:
+        _login(title or "this week's Weekly AI", resource_kind="weekly_ai")
+        return
+    st.markdown("### This week's complete Weekly AI is available")
+    st.write("Previous editions are open to everyone. Your account also opens complete Executive AI Briefings.")
+    st.caption("Signed in as " + str(user.get("email") or ""))
+    if st.button("Continue to Weekly AI", key="reader_weekly_dialog_close",
+                 type="primary"):
+        _dismiss_article_dialog()
+        st.rerun()
+
+
+def render_weekly_ai_access_dialog(slug: str, title: str = "") -> None:
+    clean = _clean_slug(slug)
+    if clean and clean.startswith("weekly-ai-"):
+        _weekly_ai_access_dialog(clean, title)
 
 
 def render_briefing_access_dialog(slug: str, title: str = "",

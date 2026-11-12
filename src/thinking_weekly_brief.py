@@ -408,6 +408,7 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
     """A permanent, fully populated public archive grouped by ISO week-year."""
     from site_cms import article_relative_url, article_read_count_label, _public_reads_or_none
     from site_components import footer, nav
+    from weekly_ai_reader_access import weekly_ai_is_premium
     read_counts = _public_reads_or_none()
     from thinking_core import THINKING_CSS
 
@@ -423,15 +424,25 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
         for article in items:
             _, week, start, end = edition_week(article)
             link = escape(article_relative_url(article), quote=True)
+            current_premium = weekly_ai_is_premium(article)
+            availability = (
+                "Current week · Premium Reader"
+                if current_premium else "Open access"
+            )
+            action = (
+                "Read the public summary →" if current_premium
+                else "Read · 1 min →"
+            )
             links.append(
                 '<a class="weekly-ai-issue" href="' + link + '" target="_self"'
                 ' data-hq-content-slug="' + escape(article.slug, quote=True) + '" data-hq-event="weekly_ai_archive_issue_open">'
                 '<span class="weekly-ai-issue-week">Week ' + str(week) + ' · ' + str(year) + '</span>'
                 '<span class="weekly-ai-issue-dates">' + escape(_english_range(start, end))
-                + ' · 1 min · ' + article_read_count_label(article.slug, read_counts) + '</span>'
+                + ' · 1 min · ' + article_read_count_label(article.slug, read_counts)
+                + ' · ' + escape(availability) + '</span>'
                 '<h3>' + escape(_headline(article)) + '</h3>'
                 '<p>' + escape(article.excerpt or article.subtitle) + '</p>'
-                '<span class="weekly-ai-issue-cta">Read · 1 min →</span></a>'
+                '<span class="weekly-ai-issue-cta">' + escape(action) + '</span></a>'
             )
         sections.append(
             '<section class="weekly-ai-year" aria-label="Weekly AI ' + str(year) + '">'
@@ -452,7 +463,8 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
         '<div class="weekly-ai-label">WEEKLY AI · EVERY EDITION</div>'
         '<h1>The weekly archive.</h1>'
         '<p>One-minute leadership perspectives on AI developments and the business questions they raise. '
-        'Each edition is labeled by the calendar week it covers, with direct links to the original sources.</p>'
+        'The current-week edition is available in full to complimentary Premium Readers; '
+        'earlier weekly editions are open to everyone, with credited original reporting.</p>'
         '</div>' + ''.join(sections) + '</div></section></main>' + footer()
     )
 

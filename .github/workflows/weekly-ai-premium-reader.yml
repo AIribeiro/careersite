@@ -1,0 +1,43 @@
+name: Weekly AI Premium Reader
+
+on:
+  pull_request:
+    paths:
+      - src/weekly_ai_reader_access.py
+      - src/weekly_ai_reader_preview.py
+      - src/thinking_weekly_brief.py
+      - src/thinking_collection_catalogs.py
+      - src/page_reader_native.py
+      - src/site_cms.py
+      - src/site_reader_shell.py
+      - src/reader_membership.py
+      - src/thinking_reader_invitation.py
+      - src/page_owner_reader_management.py
+      - main.py
+      - tests/test_weekly_ai_premium_access.py
+      - .github/workflows/weekly-ai-premium-reader.yml
+  workflow_dispatch:
+
+jobs:
+  weekly-ai-premium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install runtime
+        run: python -m pip install -r requirements.txt
+      - name: Compile application
+        run: python -m compileall -q main.py src tests
+      - name: Verify current ISO-week, premium preview, member session and open archive
+        run: python -m unittest discover -s tests -p test_weekly_ai_premium_access.py -v
+      - name: Verify prior Article and Briefing gates
+        run: |
+          python -m unittest discover -s tests -p test_article_early_access.py -v
+          python -m unittest discover -s tests -p test_briefing_public_preview.py -v
+      - name: Verify Premium Reader introduction
+        run: python -m unittest discover -s tests -p test_thinking_premium_reader.py -v

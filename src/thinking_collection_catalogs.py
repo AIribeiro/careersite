@@ -169,7 +169,9 @@ def _feature(article, kind: str, counts: dict[str, int] | None) -> str:
         else "Chosen from recent publication and reader interest."
     )
     listen = ""
-    if kind == "weekly_ai":
+    from weekly_ai_reader_access import weekly_ai_is_premium
+    is_current_premium = kind == "weekly_ai" and weekly_ai_is_premium(article)
+    if kind == "weekly_ai" and not is_current_premium:
         from weekly_ai_audio import audio_url
         if audio_url(article.slug):
             listen = (
@@ -178,6 +180,10 @@ def _feature(article, kind: str, counts: dict[str, int] | None) -> str:
                 f'data-hq-event="thinking_weekly_ai_highlight_listen" '
                 f'data-hq-content-slug="{slug}">Listen to this edition →</a></p>'
             )
+    action_label = (
+        "Read this week's public preview" if is_current_premium
+        else "Read highlighted edition"
+    )
     return (
         '<div class="cms-thinking-highlight thinking-collection-highlight" '
         f'data-analytics-section="thinking-{kind}-highlight">'
@@ -197,7 +203,7 @@ def _feature(article, kind: str, counts: dict[str, int] | None) -> str:
         f'<p class="home-featured-date">{_meta(article, counts)}</p>'
         f'<a class="home-featured-read" href="{href}" target="_self" '
         f'data-hq-event="thinking_{kind}_highlight_open" data-hq-content-slug="{slug}">'
-        'Read highlighted edition <span aria-hidden="true">→</span></a>'
+        f'{action_label} <span aria-hidden="true">→</span></a>'
         + listen
         + '</div></article></div>'
     )
@@ -205,7 +211,10 @@ def _feature(article, kind: str, counts: dict[str, int] | None) -> str:
 
 def _card(article, kind: str, counts: dict[str, int] | None) -> str:
     from site_cms import article_relative_url
+    from weekly_ai_reader_access import weekly_ai_is_premium
     href = escape(article_relative_url(article), quote=True)
+    status = (" · Premium this week" if weekly_ai_is_premium(article)
+              else " · Open access" if kind == "weekly_ai" else "")
     slug = escape(article.slug, quote=True)
     return (
         f'<a class="recent-card cms-article-card" href="{href}" target="_self" '
@@ -215,7 +224,7 @@ def _card(article, kind: str, counts: dict[str, int] | None) -> str:
         f'<div class="kicker">{escape(article.kind)} · {escape(article.topic)}</div>'
         f'<h3>{escape(article.title)}</h3>'
         f'<p class="cms-article-excerpt">{escape(_description(article))}</p>'
-        f'<div class="read">{_meta(article, counts)} →</div>'
+        f'<div class="read">{_meta(article, counts)}{status} →</div>'
         '</div></a>'
     )
 
@@ -291,8 +300,9 @@ def _collection(kind: str, published: tuple, counts: dict[str, int] | None) -> s
         featured = items[0] if items else None
         title = "The AI week, through a leadership lens."
         description = (
-            "A concise Friday perspective on what changed in AI, why it matters "
-            "for enterprises and what leaders should examine next."
+            "A concise Friday perspective on relevant AI developments and their "
+            "implications for business leaders. The current week is available "
+            "in full to free Premium Readers; older weeks are public."
         )
         eyebrow = "Weekly AI · Friday perspective"
         heading = "Previous editions"

@@ -52,7 +52,7 @@ def approved_roi_studio(article, row: dict) -> str:
         + '" width="1800" height="2400" loading="eager" decoding="async"/>'
         + '<figcaption>' + escape(caption) + '</figcaption>'
         + '<div class="roi-artwork-actions"><a href="' + download
-        + '" target="_blank" rel="noopener" data-hq-event="briefing_reader_pdf" '
+        + '" target="_self" data-hq-event="briefing_reader_pdf" '
         + 'aria-label="Download the high-resolution A4 PDF AI ROI executive infographic">'
         + 'Download the infographic (PDF)</a></div>'
         + '</figure></section>'

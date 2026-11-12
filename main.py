@@ -73,9 +73,9 @@ if isinstance(ARTICLE_QUERY, list):
     ARTICLE_QUERY = ARTICLE_QUERY[0] if ARTICLE_QUERY else ""
 # Handle email-link tokens before any article HTML, image, or analytics script
 # renders. Supabase OTP one-time secrets must never reach external referrers.
-if PAGE == "briefing" and (
-    str(st.query_params.get("pdf", "")) == "1"
-    or str(st.query_params.get("access", "")) == "1"
+if ARTICLE_QUERY and (
+    (PAGE == "briefing" and str(st.query_params.get("pdf", "")) == "1")
+    or (PAGE in {"thinking", "briefing"} and str(st.query_params.get("access", "")) == "1")
 ):
     from page_reader_native import _consume_query_verification, _session
     _consume_query_verification()
@@ -240,6 +240,18 @@ else:
             selected_title = str(getattr(selected_article, "title", "") or "")
             purpose = "pdf" if str(st.query_params.get("pdf", "")) == "1" else "access"
             render_briefing_access_dialog(str(ARTICLE_QUERY), selected_title, purpose)
+    if (
+        PAGE == "thinking"
+        and ARTICLE_QUERY
+        and str(st.query_params.get("access", "")) == "1"
+        and CMS_ARTICLE_META is not None
+    ):
+        from article_access import article_is_locked
+        if article_is_locked(CMS_ARTICLE_META):
+            from page_reader_native import render_article_access_dialog
+            render_article_access_dialog(
+                str(ARTICLE_QUERY), str(CMS_ARTICLE_META.title or "")
+            )
     if (
         PAGE == "thinking"
         and not ARTICLE_QUERY

@@ -182,7 +182,10 @@ def _request_email(first_name: str, email: str, subscribe: bool, returning: bool
         "reader_first_name": first_name,
         "reader_editorial_opt_in": bool(subscribe),
         "reader_notice_version": CONSENT_VERSION,
-        "reader_acquisition_source": "articles" if page == "thinking" else "briefings",
+        "reader_acquisition_source": (
+            "weekly_ai" if page == "thinking" and requested.startswith("weekly-ai-")
+            else "articles" if page == "thinking" else "briefings"
+        ),
     }
     _request_json("POST", url, payload={
         "email": email, "create_user": not returning, "data": data,
@@ -212,7 +215,15 @@ def _consume_query_verification() -> None:
         st.session_state["reader_native_flash"] = ("error", "The verification link has expired or could not be confirmed. Request a new email.")
 
 def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> None:
-    if requested_title and resource_kind == "article":
+    if requested_title and resource_kind == "weekly_ai":
+        st.markdown("### Read this week's complete Weekly AI")
+        st.write(
+            "Sign in to read **" + requested_title +
+            "** and listen to the narration when available. This week's "
+            "edition is complimentary for Premium Readers, and becomes public "
+            "next Monday."
+        )
+    elif requested_title and resource_kind == "article":
         st.markdown("### Read the complete article")
         st.write("Sign in to read **" + requested_title + "** in full during its first seven days. Access is free.")
     elif requested_title:
@@ -269,7 +280,7 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
         first = st.text_input("First name", max_chars=80, disabled=returning)
         email = st.text_input("Email address", max_chars=254, placeholder="you@example.com")
         subscribe = st.checkbox(
-            "Email me new Articles, Executive AI Briefings and occasional AI leadership resources.",
+            "Email me new Articles, Executive AI Briefings, Weekly AI and occasional AI leadership resources.",
             value=False, disabled=returning,
         )
         sent = st.form_submit_button("Send my secure access email", type="primary")
@@ -947,6 +958,29 @@ def render_article_access_dialog(slug: str, title: str = "") -> None:
     clean = _clean_slug(slug)
     if clean:
         _article_access_dialog(clean, title)
+
+
+@st.dialog("Weekly AI · Premium Reader edition", width="large",
+           on_dismiss=_dismiss_article_dialog)
+def _weekly_ai_access_dialog(slug: str, title: str) -> None:
+    """Same free reader account, password and email verification as Briefings."""
+    session, user = _session()
+    if not session or not user:
+        _login(title or "this week's Weekly AI", resource_kind="weekly_ai")
+        return
+    st.markdown("### This week's complete Weekly AI is available")
+    st.write("Previous editions are open to everyone. Your account also opens complete Executive AI Briefings.")
+    st.caption("Signed in as " + str(user.get("email") or ""))
+    if st.button("Continue to Weekly AI", key="reader_weekly_dialog_close",
+                 type="primary"):
+        _dismiss_article_dialog()
+        st.rerun()
+
+
+def render_weekly_ai_access_dialog(slug: str, title: str = "") -> None:
+    clean = _clean_slug(slug)
+    if clean and clean.startswith("weekly-ai-"):
+        _weekly_ai_access_dialog(clean, title)
 
 
 def render_briefing_access_dialog(slug: str, title: str = "",

@@ -225,7 +225,12 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
         )
     elif requested_title and resource_kind == "article":
         st.markdown("### Read the complete article")
-        st.write("Sign in to read **" + requested_title + "** in full during its first seven days. Access is free.")
+        st.write(
+            "Sign in to read **" + requested_title +
+            "** in full. The newest published Article stays available first "
+            "to Premium Readers, and each Article has at least seven days "
+            "of early access. Registration is complimentary."
+        )
     elif requested_title:
         st.markdown("### Continue to the complete briefing")
         st.write(
@@ -238,8 +243,9 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
         st.write(
             "Read public summaries before registering. Your one free account opens "
             "complete Executive AI Briefings, the latest Weekly AI edition and "
-            "new Articles during their first seven days. Older Weekly AI and "
-            "Article editions remain open to everyone."
+            "recent and latest Articles. Previous Weekly AI editions are "
+            "public; Articles open after at least seven days once a newer "
+            "Article has been published."
         )
 
     returning = st.radio(
@@ -681,9 +687,10 @@ def _library(session: dict, user: dict) -> None:
     st.markdown("### Your Premium Reader library")
     st.write(
         ("Welcome, " + first + ". " if first else "")
-        + "Read complete Executive AI Briefings, new Articles during their first "
-        + "seven days, and the current Weekly AI edition. Older Articles and "
-        + "Weekly AI editions remain publicly accessible."
+        + "Read complete Executive AI Briefings, the latest Weekly AI edition "
+        + "and Premium Articles. The newest published Article remains Premium "
+        + "until its successor appears; earlier Articles become public after "
+        + "their first seven days."
     )
     st.caption("Signed in as " + str(user.get("email") or ""))
     st.caption(
@@ -775,7 +782,10 @@ def _library(session: dict, user: dict) -> None:
         else:
             st.info("No Weekly AI editions are available at the moment.")
     with articles_tab:
-        from article_access import is_editorial_article, article_is_locked, unlock_label
+        from article_access import (
+            is_editorial_article, article_is_locked, unlock_label,
+            latest_editorial_article_slug,
+        )
         try:
             editorial = [
                 item for item in fetch_published_articles()
@@ -785,10 +795,12 @@ def _library(session: dict, user: dict) -> None:
             editorial = []
             st.warning("The Articles catalogue is temporarily unavailable.")
         editorial.sort(key=lambda a: str(a.published_at or ""), reverse=True)
-        st.markdown("#### Articles · Early access and open editions")
+        latest_article_slug = latest_editorial_article_slug(editorial)
+        st.markdown("#### Articles · Premium and open editions")
         st.caption(
-            "All published Articles are available here. The newest editions "
-            "are exclusive to signed-in readers for seven days, then open to everyone."
+            "The latest Article stays Premium until its successor is published. "
+            "Every Article remains Premium for at least seven days; earlier "
+            "editions become public once both conditions are met."
         )
         if editorial:
             page_size = 6
@@ -804,10 +816,21 @@ def _library(session: dict, user: dict) -> None:
                 with st.container(border=True):
                     st.markdown("#### " + str(item.title))
                     st.write(str(item.subtitle or item.excerpt or ""))
-                    st.caption(
-                        ("Exclusive early access · Opens publicly " + unlock_label(item))
-                        if article_is_locked(item) else "Open to everyone"
-                    )
+                    if article_is_locked(item, published=editorial):
+                        if slug == latest_article_slug:
+                            access_status = (
+                                "Latest published Article · Premium until "
+                                "another Article is published"
+                            )
+                        else:
+                            possible_public_date = unlock_label(item)
+                            access_status = (
+                                "Premium Reader · Earliest public access "
+                                + possible_public_date
+                            )
+                    else:
+                        access_status = "Open to everyone"
+                    st.caption(access_status)
                     if st.button("Read full article", key="reader_article_open_" + slug):
                         st.query_params.from_dict({"page": "thinking", "article": slug})
                         st.rerun()

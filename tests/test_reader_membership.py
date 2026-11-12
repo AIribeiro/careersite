@@ -22,6 +22,18 @@ class ReaderMembershipContractTests(unittest.TestCase):
             with self.subTest(path=path):
                 ast.parse(self.source(path), filename=path)
 
+    def test_staging_sender_redirect_never_uses_localhost(self):
+        launcher = self.source("reader_test.py")
+        native = self.source("src/page_reader_native.py")
+        self.assertIn(
+            'os.environ["PORTFOLIO_READER_CALLBACK_ORIGIN"]',
+            launcher,
+        )
+        self.assertIn("https://jairribeiro-reader-test.streamlit.app", launcher)
+        self.assertIn('target = _host_origin() + "/?page=readers"', native)
+        self.assertIn('urlencode({"redirect_to": target})', native)
+        self.assertNotIn("localhost:3000", native)
+
     def test_staging_launcher_bypasses_home_dispatcher(self):
         # Staging override is deliberately isolated to this draft PR.
         launcher = self.source("reader_test.py")

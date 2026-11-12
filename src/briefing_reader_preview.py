@@ -190,10 +190,10 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
             "The public opening is temporarily unavailable for this edition.",
         )
     first_is_decision = bool(re.match(
-        r"^The (?:Leadership Decision|executive decision|executive question)\\s*:?\\s*",
+        r"^The (?:Leadership Decision|executive decision|executive question)\s*:?\s*",
         opening[0], flags=re.I,
     )) or bool(re.match(
-        r"^\\s*<h[23]\\b[^>]*>\\s*The Leadership Decision\\s*</h[23]>",
+        r"^\s*<h[23]\b[^>]*>\s*The Leadership Decision\s*</h[23]>",
         str(article.content_html or ""), flags=re.I,
     ))
     opening_heading = "The Leadership Decision" if first_is_decision else "The executive perspective"

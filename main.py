@@ -286,18 +286,23 @@ else:
 
 
 # Slow-only, privacy-preserving diagnostics. No article content or visitors.
+# Reader Library and Analytics render through native Streamlit widgets, not
+# the HTML build pipeline above. Their build timers/page_html_size do not
+# exist, so never access those variables outside the public HTML branch.
 elapsed_ms = round((perf_counter() - RUN_STARTED) * 1000)
 if elapsed_ms >= 750:
-    timings = (
-        (round((build_done - build_started) * 1000),
-         round((footer_done - build_done) * 1000),
-         round((html_done - footer_done) * 1000))
-        if PAGE != "analytics" else (0, 0, 0)
-    )
+    if PAGE in {"readers", "analytics"}:
+        timings = (0, 0, 0)
+        html_kib = 0
+    else:
+        timings = (
+            round((build_done - build_started) * 1000),
+            round((footer_done - build_done) * 1000),
+            round((html_done - footer_done) * 1000),
+        )
+        html_kib = round(page_html_size / 1024)
     logging.getLogger("careersite.performance").warning(
         "slow_page_render page=%s elapsed_ms=%d html_kib=%d "
         "build_ms=%d footer_ms=%d html_emit_ms=%d",
-        PAGE, elapsed_ms,
-        round(page_html_size / 1024) if PAGE != "analytics" else 0,
-        *timings,
+        PAGE, elapsed_ms, html_kib, *timings,
     )

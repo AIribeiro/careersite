@@ -773,6 +773,10 @@ def _library(session: dict, user: dict) -> None:
         'Infographics in your history</span></div></section>'
     )
     st.caption("Choose a collection below. Your membership stays active as you explore.")
+    st.html(
+        '<div class="reader-tab-hint"><strong>YOUR COLLECTIONS</strong>'
+        '<span>Swipe to see all six sections →</span></div>'
+    )
 
     all_tab, articles_tab, weekly_tab, saved_tab, pdf_tab, profile_tab = st.tabs([
         "All briefings", "Articles", "Weekly AI", "Saved", "My PDFs", "My profile",

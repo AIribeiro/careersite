@@ -98,6 +98,13 @@ READER_SHELL_CSS = r"""
    portfolio HTML footer, exactly as rendered on all other portfolio pages. */
 .reader-shell-footer footer.footer {display:block!important;}
 .reader-shell-footer {width:100%;}
+.reader-shell-footer .reader-account-help {
+ text-align:center;background:#f1ece4;color:#384a57;
+ padding:17px 20px;font:500 13px/1.65 Arial,sans-serif;
+}
+.reader-shell-footer .reader-account-help a {
+ color:#a65d39!important;text-decoration:underline;font-weight:750;
+}
 @media(max-width:700px) {
   .reader-shell .reader-hero {padding:48px 0 52px}
   .reader-shell .reader-hero h1 {font-size:clamp(38px,10vw,55px)}
@@ -148,4 +155,10 @@ def reader_header(*, staging: bool = False) -> str:
 
 
 def reader_footer() -> str:
-    return '<div class="site reader-shell-footer">' + footer() + '</div>'
+    support = (
+        '<div class="reader-account-help" role="note">'
+        'Need help with your account or briefing downloads? '
+        '<a href="mailto:info@jairribeiro.com">info@jairribeiro.com</a>'
+        '</div>'
+    )
+    return '<div class="site reader-shell-footer">' + support + footer() + '</div>'

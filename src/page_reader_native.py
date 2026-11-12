@@ -95,27 +95,30 @@ def _session() -> tuple[dict | None, dict | None]:
         st.session_state.pop("reader_native_user", None)
         return None, None
 
-def _briefing_pdf_request() -> str:
-    """Return only a well-formed, first-party requested briefing slug."""
+def _briefing_access_request() -> tuple[str, str]:
+    """Only accept a validated slug and first-party access/PDF intent."""
     page = st.query_params.get("page", "")
-    pdf_flag = st.query_params.get("pdf", "")
     article = st.query_params.get("article", "")
-    if not all(isinstance(x, str) for x in (page, pdf_flag, article)):
-        return ""
-    if page != "briefing" or pdf_flag != "1":
-        return ""
-    return _clean_slug(article)
+    pdf_flag = st.query_params.get("pdf", "")
+    access_flag = st.query_params.get("access", "")
+    if not all(isinstance(x, str) for x in (page, article, pdf_flag, access_flag)):
+        return "", ""
+    if page != "briefing" or (pdf_flag != "1" and access_flag != "1"):
+        return "", ""
+    slug = _clean_slug(article)
+    return (slug, "pdf" if pdf_flag == "1" else "access") if slug else ("", "")
 
 
 def _request_email(first_name: str, email: str, subscribe: bool, returning: bool) -> None:
     target = _host_origin() + "/?page=readers"
-    requested = _briefing_pdf_request()
+    requested, purpose = _briefing_access_request()
     if requested:
-        # A per-briefing email callback preserves the selection across tabs.
-        # Both staging and production /?page=briefing* must be allowlisted in
-        # Supabase Auth Redirect URLs before activating the one-click flow.
+        # Preserve the specific publication after email verification even
+        # if the reader opens the secure link in a fresh browser tab.
+        # Add same-host briefing callback patterns to the Supabase allowlist.
         target = _host_origin() + "/?" + urlencode({
-            "page": "briefing", "article": requested, "pdf": "1",
+            "page": "briefing", "article": requested,
+            "pdf" if purpose == "pdf" else "access": "1",
         })
     url = ANALYTICS_URL.rstrip("/") + "/auth/v1/otp?" + urlencode({"redirect_to": target})
     data = {} if returning else {
@@ -152,10 +155,11 @@ def _consume_query_verification() -> None:
 
 def _login(requested_title: str = "") -> None:
     if requested_title:
-        st.markdown("### Get the infographic PDF")
+        st.markdown("### Continue to the complete briefing")
         st.write(
-            "Confirm your email once to download **" + requested_title +
-            "**. The full briefing remains free to read; editorial emails "
+            "Verify your email to read **" + requested_title +
+            "** in full, including the executive decision framework and "
+            "original infographic. Access is free, and editorial emails "
             "are optional."
         )
     else:
@@ -166,6 +170,7 @@ def _login(requested_title: str = "") -> None:
         )
     returning = st.radio(
         "Reader status", ["I'm new here", "I already have an account"],
+        index=1 if str(st.query_params.get("signin", "")) == "1" else 0,
         horizontal=True, label_visibility="visible", key="reader_native_mode",
     ) == "I already have an account"
     with st.form("reader_native_login_form"):
@@ -195,7 +200,7 @@ def _login(requested_title: str = "") -> None:
             verified = st.form_submit_button("Verify code")
         if verified:
             code = str(code or "").strip()
-            if not re.fullmatch(r"\d{6,8}", code):
+            if not re.fullmatch(r"\d{6,10}", code):
                 st.error("Enter the numeric code shown in the email.")
             else:
                 try:
@@ -329,73 +334,79 @@ def _library(session: dict, user: dict) -> None:
             st.session_state.pop(key, None)
         st.rerun()
 
-def _dismiss_pdf_dialog() -> None:
-    # Clicking the modal close control must not reopen the same popup.
+def _dismiss_briefing_dialog() -> None:
+    # Dismiss a prompt, not the reader's verified session.
     st.query_params.pop("pdf", None)
+    st.query_params.pop("access", None)
+    st.query_params.pop("signin", None)
 
 
-@st.dialog("Download A4 executive infographic", width="large", on_dismiss=_dismiss_pdf_dialog)
-def _briefing_pdf_dialog(slug: str, title: str) -> None:
-    """First-party email sign-in and requested PDF without leaving its briefing."""
+@st.dialog("Executive AI Briefing · Free reader access", width="large",
+           on_dismiss=_dismiss_briefing_dialog)
+def _briefing_access_dialog(slug: str, title: str, purpose: str) -> None:
+    """Passwordless full-edition access and the selected PDF in one dialog."""
     st.html("""<style>
     [data-testid="stDialog"] [data-testid="stDialogContent"] {
-      background:#fffdf8;color:#11151b;border-radius:3px;
+      background:#fffdf8!important;color:#11151b;border-radius:3px;
+      border:1px solid #d8c6b7;
     }
     [data-testid="stDialog"] h3 {
-      font:500 29px/1.15 Georgia,serif;color:#0b1220;
+      font:500 29px/1.15 Georgia,serif!important;color:#0b1220!important;
     }
     [data-testid="stDialog"] button[kind="primary"] {
       background:#b86134!important;border-color:#b86134!important;
-      color:#fff!important;border-radius:0!important;
+      color:#fff!important;border-radius:0!important;min-height:46px;
     }
     </style>""")
-    if not slug or not has_briefing_pdf(slug):
-        st.warning("This PDF is not currently available.")
+    if not slug:
+        st.warning("This briefing is not available.")
         return
-
     notice = st.session_state.pop("reader_native_flash", None)
     if notice:
         (st.success if notice[0] == "success" else st.error)(notice[1])
-
     session, user = _session()
     if not session or not user:
         _login(title or "this Executive AI Briefing")
         return
 
-    st.markdown("### Your PDF is ready")
-    st.write(title or "Executive AI Briefing")
-    try:
-        with st.spinner("Preparing the A4 infographic"):
-            pdf = _pdf_for_article(slug)
-        if not pdf:
-            st.warning("The infographic PDF is temporarily unavailable.")
-            return
-        st.download_button(
-            "Download PDF",
-            data=pdf,
-            file_name=f"{slug}-executive-infographic.pdf",
-            mime="application/pdf",
-            type="primary",
-            key="reader_dialog_download",
-            on_click=_record_download,
-            args=(session["access_token"], str(user["id"]), slug),
-        )
-        st.caption(
-            "Signed in as " + str(user.get("email") or "") +
-            ". Your download is recorded in your reader account."
-        )
-        if st.button("Close and continue reading", key="reader_dialog_close"):
-            st.query_params.pop("pdf", None)
-            st.rerun()
-    except (RuntimeError, ValueError, TimeoutError, OSError):
-        st.error("The PDF could not be prepared. Please try again.")
+    st.markdown("### Your complete briefing is unlocked")
+    st.write(
+        "The full edition and executive decision framework are now available "
+        "on this page."
+    )
+    if has_briefing_pdf(slug):
+        try:
+            with st.spinner("Preparing the A4 infographic"):
+                pdf = _pdf_for_article(slug)
+            if pdf:
+                st.download_button(
+                    "Download A4 infographic",
+                    data=pdf,
+                    file_name=f"{slug}-executive-infographic.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    key="reader_dialog_download",
+                    on_click=_record_download,
+                    args=(session["access_token"], str(user["id"]), slug),
+                )
+            else:
+                st.info("The infographic PDF is temporarily unavailable.")
+        except (RuntimeError, ValueError, TimeoutError, OSError):
+            st.info("The PDF could not be prepared; the full edition remains available.")
+    else:
+        st.caption("An A4 infographic PDF is not available for this edition.")
+    st.caption("Signed in as " + str(user.get("email") or ""))
+    if st.button("Continue reading the complete briefing", key="reader_dialog_close"):
+        _dismiss_briefing_dialog()
+        st.rerun()
 
 
-def render_briefing_pdf_dialog(slug: str, title: str = "") -> None:
-    """Open the reader sign-in overlay from a verified briefing download CTA."""
+def render_briefing_access_dialog(slug: str, title: str = "",
+                                  purpose: str = "access") -> None:
+    """Authenticate for the specific edition, not a detached PDF library."""
     cleaned = _clean_slug(slug)
     if cleaned:
-        _briefing_pdf_dialog(cleaned, title)
+        _briefing_access_dialog(cleaned, title, purpose)
 
 
 def render_reader_native() -> None:

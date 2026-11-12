@@ -211,8 +211,11 @@ def _consume_query_verification() -> None:
     except (RuntimeError, ValueError, TimeoutError):
         st.session_state["reader_native_flash"] = ("error", "The verification link has expired or could not be confirmed. Request a new email.")
 
-def _login(requested_title: str = "") -> None:
-    if requested_title:
+def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> None:
+    if requested_title and resource_kind == "article":
+        st.markdown("### Read the complete article")
+        st.write("Sign in to read **" + requested_title + "** in full during its first seven days. Access is free.")
+    elif requested_title:
         st.markdown("### Continue to the complete briefing")
         st.write(
             "Sign in to read **" + requested_title +
@@ -266,7 +269,7 @@ def _login(requested_title: str = "") -> None:
         first = st.text_input("First name", max_chars=80, disabled=returning)
         email = st.text_input("Email address", max_chars=254, placeholder="you@example.com")
         subscribe = st.checkbox(
-            "Email me new Executive AI Briefings and occasional AI leadership resources.",
+            "Email me new Articles, Executive AI Briefings and occasional AI leadership resources.",
             value=False, disabled=returning,
         )
         sent = st.form_submit_button("Send my secure access email", type="primary")

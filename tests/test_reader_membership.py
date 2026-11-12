@@ -34,13 +34,19 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertIn('urlencode({"redirect_to": target})', native)
         self.assertNotIn("localhost:3000", native)
 
-    def test_staging_launcher_bypasses_home_dispatcher(self):
-        # Staging override is deliberately isolated to this draft PR.
+    def test_portfolio_main_launcher_restored_and_standalone_smoke_kept(self):
+        # The deployed app must boot the real portfolio, not only signup.
         launcher = self.source("reader_test.py")
         app = self.source("app.py")
+        main = self.source("main.py")
+        footer = self.source("src/site_components.py")
         self.assertIn("render_reader_native()", launcher)
-        self.assertIn('App(\n    "reader_test.py"', app)
-        self.assertIn("DO NOT MERGE INTO PRODUCTION", app)
+        self.assertIn('App(\\n    "main.py"', app)
+        self.assertNotIn('App(\\n    "reader_test.py"', app)
+        self.assertIn('if PAGE == "readers":', main)
+        self.assertIn('render_reader_native()', main)
+        self.assertIn('href="?page=readers"', footer)
+        self.assertIn('reader_library_footer', footer)
         self.assertNotIn("from page_home import", launcher)
 
     def test_native_staging_app_renders_registration_in_streamlit(self):

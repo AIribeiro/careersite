@@ -237,14 +237,14 @@ footer a{margin-right:16px}
 @media(max-width:560px){.library-item{display:block}.library-item a{display:inline-block;margin-top:9px}}
 </style></head><body><nav><a href="/?page=briefings">JAIR RIBEIRO / EXECUTIVE AI BRIEFINGS</a></nav>
 <main><section><div class="kicker">Reader access · Complimentary</div><h1>""" + escape(title) + "</h1>" + message + body + """</section></main>
-<footer><a href="/?page=briefings">All briefings</a><a href="/readers/privacy">Privacy &amp; data</a><a href="/?page=contact">Contact</a></footer>
+<footer><a href="/?page=briefings">All briefings</a><a href="/~/+/readers/privacy">Privacy &amp; data</a><a href="/?page=contact">Contact</a></footer>
 </body></html>"""
     return _no_cache(HTMLResponse(doc))
 
 
 def _login(request, *, notice: str = "") -> Response:
     next_slug = _target(request)
-    action = "/readers/request" + ("?next=" + quote(next_slug) if next_slug else "")
+    action = "/~/+/readers/request" + ("?next=" + quote(next_slug) if next_slug else "")
     description = (
         "Read every briefing online without an account. Register once to save printable "
         "executive infographics to your personal library. No password or payment required."
@@ -259,15 +259,15 @@ def _login(request, *, notice: str = "") -> Response:
         '<label for="editorial">Also send me new Executive AI Briefings and occasional AI leadership resources. '
         'Optional; unsubscribe whenever you wish.</label></div>'
         '<button type="submit">Email my secure access link →</button></form>'
-        '<p class="small">Already a reader? <a href="/readers/signin">Sign in using your email</a>.</p>'
+        '<p class="small">Already a reader? <a href="/~/+/readers/signin">Sign in using your email</a>.</p>'
         '<p class="small">We use your email to verify access and maintain your download library. '
         'Editorial emails are only sent if you select the optional checkbox. '
-        '<a href="/readers/privacy">How your data is used</a>.</p>')
+        '<a href="/~/+/readers/privacy">How your data is used</a>.</p>')
     return _layout("Take the briefings with you", body, notice=notice)
 
 
 def _returning_signin(request) -> Response:
-    action = "/readers/request" + ("?next=" + quote(_target(request)) if _target(request) else "")
+    action = "/~/+/readers/request" + ("?next=" + quote(_target(request)) if _target(request) else "")
     return _layout("Welcome back",
         '<p>Enter your registered email. We will send a secure, one-time access link. '
         'No password or name entry required.</p>'
@@ -276,17 +276,17 @@ def _returning_signin(request) -> Response:
         '<label for="email">Email address</label>'
         '<input id="email" name="email" type="email" autocomplete="email" maxlength="254" required>'
         '<button type="submit">Email my sign-in link →</button></form>'
-        '<p class="small">New here? <a href="/readers/login">Register for free</a>.</p>')
+        '<p class="small">New here? <a href="/~/+/readers/login">Register for free</a>.</p>')
 
 
 def _confirm_page(request) -> Response:
     slug = _target(request)
-    js_next = "/readers/library" + ("?highlight=" + quote(slug) if slug else "")
+    js_next = "/~/+/readers/library" + ("?highlight=" + quote(slug) if slug else "")
     # The magic-link tokens arrive in the URL fragment; never send them to an
     # analytics script, store them in localStorage or leave them in browser history.
     body = ('<p id="status" role="status">Verifying your secure access link…</p>'
             '<p class="small">If this link has expired, '
-            '<a href="/readers/login">request a new one</a>.</p>'
+            '<a href="/~/+/readers/login">request a new one</a>.</p>'
             '<script>'
             '(async function(){'
             'const status=document.getElementById("status");'
@@ -294,7 +294,7 @@ def _confirm_page(request) -> Response:
             'const token=p.get("refresh_token");'
             'history.replaceState(null,"",location.pathname+location.search);'
             'if(!token){status.textContent="This access link is missing its verification details. Please request a new link.";return;}'
-            'try{const res=await fetch("/readers/session",{method:"POST",credentials:"same-origin",'
+            'try{const res=await fetch("/~/+/readers/session",{method:"POST",credentials:"same-origin",'
             'headers:{"Content-Type":"application/x-www-form-urlencoded"},'
             'body:new URLSearchParams({refresh_token:token,next:' + repr(slug) + '}).toString()});'
             'if(!res.ok)throw Error("verification");'
@@ -318,14 +318,14 @@ def _library(request, profile: dict) -> Response:
         label = "Open PDF" if article_slug != slug else "Download your PDF"
         rows.append('<div class="library-item"><div><strong>' + escape(item.title) + '</strong>'
                     '<span class="small">Executive briefing · Complimentary PDF</span></div>'
-                    '<a href="/readers/download/' + escape(article_slug, quote=True) +
+                    '<a href="/~/+/readers/download/' + escape(article_slug, quote=True) +
                     '.pdf" target="_self">' + label + ' ↓</a></div>')
     user_first_name = str(profile.get("first_name") or "").strip()
     greeting = "Welcome, " + escape(user_first_name) + "." if user_first_name else "Welcome to your library."
     selected = next((a for a in articles if _clean_slug(a.slug) == slug and has_briefing_pdf(slug)), None)
     selected_card = (
         '<div class="notice"><strong>Your requested briefing is ready.</strong><br>' +
-        escape(selected.title) + '<div class="actions"><a class="button" href="/readers/download/' +
+        escape(selected.title) + '<div class="actions"><a class="button" href="/~/+/readers/download/' +
         escape(slug, quote=True) + '.pdf">Download selected PDF ↓</a></div></div>'
         if selected else ""
     )
@@ -333,9 +333,9 @@ def _library(request, profile: dict) -> Response:
             'The full editorial editions remain free to read and share online.</p>'
             + selected_card
             + (''.join(rows) if rows else '<p>There are no published briefing downloads yet.</p>')
-            + '<div class="actions"><a class="button" href="/readers/preferences">My preferences</a>'
+            + '<div class="actions"><a class="button" href="/~/+/readers/preferences">My preferences</a>'
             '<a class="button" href="/?page=briefings">Read online</a></div>'
-            '<form method="post" action="/readers/signout" class="note">'
+            '<form method="post" action="/~/+/readers/signout" class="note">'
             '<button type="submit">Sign out</button></form>')
     return _layout("Your executive library", body)
 
@@ -361,7 +361,7 @@ def _preferences(profile: dict, *, notice: str = "") -> Response:
     checked = ' checked' if profile.get("newsletter_opt_in") else ""
     body = ('<p>Update your name and editorial email choice. '
             'Your briefing downloads remain available regardless of your subscription preference.</p>'
-            '<form method="post" action="/readers/preferences">'
+            '<form method="post" action="/~/+/readers/preferences">'
             '<label for="first_name">First name</label>'
             '<input id="first_name" name="first_name" type="text" required maxlength="80" value="' +
             escape(str(profile.get("first_name") or ""), quote=True) + '">'
@@ -369,7 +369,7 @@ def _preferences(profile: dict, *, notice: str = "") -> Response:
             '<label for="editorial">Send me new Executive AI Briefings and occasional AI leadership resources.</label></div>'
             '<button type="submit">Save preferences</button></form>'
             '<p class="small">Email: ' + escape(str(profile.get("email") or "")) + '</p>'
-            '<a href="/readers/library">← Back to your library</a>')
+            '<a href="/~/+/readers/library">← Back to your library</a>')
     return _layout("Reader preferences", body, notice=notice)
 
 
@@ -392,7 +392,7 @@ async def reader_route(request) -> Response:
             if (not returning and not first) or len(first) > 80 or not EMAIL.fullmatch(email) or len(email) > 254:
                 return _login(request, notice="Enter your name and a valid email address.")
             slug = _target(request)
-            redirect = _auth_callback_origin() + "/readers/confirm" + ("?next=" + quote(slug) if slug else "")
+            redirect = _auth_callback_origin() + "/~/+/readers/confirm" + ("?next=" + quote(slug) if slug else "")
             url = ANALYTICS_URL.rstrip("/") + "/auth/v1/otp?" + urlencode({"redirect_to": redirect})
             opted_in = form.get("editorial") == "yes"
             await run_in_threadpool(_request_json, "POST", url, payload={
@@ -422,11 +422,11 @@ async def reader_route(request) -> Response:
     session, user = await run_in_threadpool(_session, request)
     if action == "login" and request.method == "GET":
         if session and user:
-            return _attach(RedirectResponse("/readers/library", status_code=303), request, session)
+            return _attach(RedirectResponse("/~/+/readers/library", status_code=303), request, session)
         return _login(request)
     if not session or not user:
         return _clear_cookies(RedirectResponse(
-            "/readers/login" + ("?next=" + quote(_target(request)) if _target(request) else ""),
+            "/~/+/readers/login" + ("?next=" + quote(_target(request)) if _target(request) else ""),
             status_code=303))
     if action == "signout" and request.method == "POST":
         if not _same_origin(request):
@@ -525,7 +525,7 @@ text-decoration:none!important;font:750 12px/1.4 Arial,sans-serif}
 @media(max-width:650px){.site .reader-resource-cta a{width:100%}}</style>
 <div><span>Complimentary executive resource</span><h3>Keep the decision framework at hand.</h3>
 <p>Access the A4 infographic PDF with one verified reader account. Online reading remains free.</p>
-</div><a data-hq-event="briefing_reader_pdf" href="/readers/download/""" +
+</div><a data-hq-event="briefing_reader_pdf" href="/~/+/readers/download/""" +
             escape(slug, quote=True) + """.pdf" target="_blank" rel="noopener">Download PDF ↓</a></aside>""")
 
 
@@ -536,7 +536,7 @@ async def reader_download(request) -> Response:
     session, user = await run_in_threadpool(_session, request)
     if not session or not user:
         return _clear_cookies(RedirectResponse(
-            "/readers/login?next=" + quote(slug), status_code=303))
+            "/~/+/readers/login?next=" + quote(slug), status_code=303))
     try:
         await run_in_threadpool(_register_profile, session, user)
         pdf = await run_in_threadpool(_pdf_for_article, slug)

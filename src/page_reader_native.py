@@ -778,43 +778,75 @@ def _library(session: dict, user: dict) -> None:
         "All briefings", "Articles", "Weekly AI", "Saved", "My PDFs", "My profile",
     ])
     with weekly_tab:
+        _reader_section_header(
+            "WEEKLY AI · EXECUTIVE PERSPECTIVES",
+            "What changed this week — and why it matters.",
+            "A concise reading or listening perspective on developments worth "
+            "examining in your own business. The latest edition is included "
+            "with your reader membership.",
+        )
         from thinking_weekly_brief import sorted_editions, edition_label
         from weekly_ai_reader_access import weekly_ai_is_premium
         try:
             weekly_issues = sorted_editions(list(fetch_published_articles()))
         except (RuntimeError, ValueError, TimeoutError):
             weekly_issues = []
-            st.warning("Weekly AI editions are temporarily unavailable.")
-        st.markdown("#### Weekly AI · Latest and previous editions")
-        st.caption(
-            "The latest published edition is available to free Premium Readers. "
-            "Previous editions are open to everyone."
-        )
+            st.warning("Weekly AI is temporarily unavailable. Your other collections remain accessible.")
         if weekly_issues:
+            weekly_search = st.text_input(
+                "Find a Weekly AI edition",
+                placeholder="Search a week, headline or topic",
+                key="reader_weekly_search",
+            ).strip().casefold()
+            matching_weekly = [
+                item for item in weekly_issues
+                if weekly_search in (
+                    str(item.title) + " " + str(item.subtitle or "") + " "
+                    + str(item.excerpt or "") + " " + str(item.category or "")
+                ).casefold()
+            ]
+            st.caption(f"{len(matching_weekly)} edition" + ("" if len(matching_weekly) == 1 else "s") + " in this view")
             page_size = 6
-            pages = (len(weekly_issues) + page_size - 1) // page_size
+            pages = max(1, (len(matching_weekly) + page_size - 1) // page_size)
             current = (
-                st.selectbox("Weekly AI pages", range(pages),
-                             format_func=lambda i: f"Page {i + 1} of {pages}",
-                             key="reader_weekly_page")
+                st.selectbox(
+                    "Browse Weekly AI pages", range(pages),
+                    format_func=lambda i: f"Page {i + 1} of {pages}",
+                    key="reader_weekly_page",
+                )
                 if pages > 1 else 0
             )
-            for item in weekly_issues[int(current) * page_size:(int(current) + 1) * page_size]:
+            for item in matching_weekly[int(current) * page_size:(int(current) + 1) * page_size]:
                 slug = _clean_slug(str(item.slug))
-                with st.container(border=True):
-                    st.markdown("#### " + str(item.title))
-                    st.write(str(item.excerpt or item.subtitle or ""))
+                if not slug:
+                    continue
+                with st.container(border=True, key="reader_edition_weekly_" + slug):
+                    premium = weekly_ai_is_premium(item, published=weekly_issues)
                     st.caption(
                         edition_label(item) + " · " +
-                        ("Latest edition · Full access unlocked"
-                         if weekly_ai_is_premium(item, published=weekly_issues) else "Open access")
+                        ("CURRENT PREMIUM EDITION" if premium else "OPEN ARCHIVE")
                     )
-                    if st.button("Read full Weekly AI", key="reader_weekly_open_" + slug):
+                    st.markdown("#### " + str(item.title))
+                    st.write(str(item.excerpt or item.subtitle or ""))
+                    if st.button(
+                        "Read this Weekly AI edition", type="primary",
+                        use_container_width=True, key="reader_weekly_open_" + slug,
+                    ):
                         st.query_params.from_dict({"page": "thinking", "article": slug})
                         st.rerun()
+            if not matching_weekly:
+                st.info("No edition matches your search. Try a broader topic.")
         else:
-            st.info("No Weekly AI editions are available at the moment.")
+            st.info("No Weekly AI editions are published yet.")
+
     with articles_tab:
+        _reader_section_header(
+            "ARTICLES · LEADERSHIP JUDGMENT",
+            "Longer perspectives behind the decisions.",
+            "Explore the evidence, assumptions and operating trade-offs behind "
+            "enterprise AI. Your membership includes complete Premium Articles "
+            "alongside the open editorial archive.",
+        )
         from article_access import is_editorial_article, article_is_locked
         try:
             editorial = [
@@ -823,39 +855,55 @@ def _library(session: dict, user: dict) -> None:
             ]
         except (RuntimeError, ValueError, TimeoutError):
             editorial = []
-            st.warning("The Articles catalogue is temporarily unavailable.")
+            st.warning("The article collection is temporarily unavailable.")
         editorial.sort(key=lambda a: str(a.published_at or ""), reverse=True)
-        st.markdown("#### Articles · Your reading collection")
-        st.caption(
-            "Explore the complete perspectives behind the executive summaries. "
-            "Premium editions are included with your reader account; "
-            "open-access editions are available to everyone."
-        )
         if editorial:
+            article_search = st.text_input(
+                "Find an article",
+                placeholder="Search a topic, decision or title",
+                key="reader_articles_search",
+            ).strip().casefold()
+            matching_editorial = [
+                item for item in editorial
+                if article_search in (
+                    str(item.title) + " " + str(item.subtitle or "") + " "
+                    + str(item.excerpt or "") + " " + str(item.category or "")
+                ).casefold()
+            ]
+            st.caption(f"{len(matching_editorial)} article" + ("" if len(matching_editorial) == 1 else "s") + " in this view")
             page_size = 6
-            pages = (len(editorial) + page_size - 1) // page_size
+            pages = max(1, (len(matching_editorial) + page_size - 1) // page_size)
             current = (
-                st.selectbox("Article pages", range(pages),
-                             format_func=lambda i: f"Page {i + 1} of {pages}",
-                             key="reader_articles_page")
+                st.selectbox(
+                    "Browse article pages", range(pages),
+                    format_func=lambda i: f"Page {i + 1} of {pages}",
+                    key="reader_articles_page",
+                )
                 if pages > 1 else 0
             )
-            for item in editorial[int(current) * page_size:(int(current) + 1) * page_size]:
+            for item in matching_editorial[int(current) * page_size:(int(current) + 1) * page_size]:
                 slug = _clean_slug(str(item.slug))
-                with st.container(border=True):
+                if not slug:
+                    continue
+                with st.container(border=True, key="reader_edition_article_" + slug):
+                    premium = article_is_locked(item, published=editorial)
+                    st.caption(
+                        str(item.published_label) + " · "
+                        + ("PREMIUM ARTICLE · FULL ACCESS" if premium else "OPEN ACCESS")
+                    )
                     st.markdown("#### " + str(item.title))
                     st.write(str(item.subtitle or item.excerpt or ""))
-                    access_status = (
-                        "Premium · Included with your reader account"
-                        if article_is_locked(item, published=editorial)
-                        else "Open access"
-                    )
-                    st.caption(access_status)
-                    if st.button("Read full article", key="reader_article_open_" + slug):
+                    if st.button(
+                        "Read complete article", type="primary",
+                        use_container_width=True, key="reader_article_open_" + slug,
+                    ):
                         st.query_params.from_dict({"page": "thinking", "article": slug})
                         st.rerun()
+            if not matching_editorial:
+                st.info("No articles match your search. Try another phrase.")
         else:
-            st.info("No Articles are available at the moment.")
+            st.info("No articles are published yet.")
+
     with all_tab:
         st.markdown("#### Complete Executive AI Briefings")
         st.caption("Every published edition is available with this verified account.")

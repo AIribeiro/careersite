@@ -369,13 +369,17 @@ def inject_thinking_collections(
             '<section class="section white" id="thinking-articles">',
             briefings + '<section class="section white" id="thinking-articles">', 1
         )
-    # Insert Weekly AI immediately after the Thinking introduction. The
-    # browser's existing hourly ranking controller will move both collections
-    # alongside Articles, keeping the three anchor IDs unchanged.
+    # Keep the Premium Reader invitation immediately beneath the hero.
+    # The hourly controller may reorder ONLY these three editorial collections,
+    # so Weekly AI must be inserted alongside Briefings and Articles, never
+    # between the hero and the fixed reader invitation.
     if 'id="weekly-ai"' not in document:
-        hero = document.find('<section class="pagehero">')
-        end = document.find('</section>', hero) if hero >= 0 else -1
-        if end >= 0:
-            end += len('</section>')
-            document = document[:end] + weekly + document[end:]
+        briefings_marker = re.search(
+            r'<section\b[^>]*\bid="thinking-briefings"[^>]*>', document
+        )
+        if briefings_marker:
+            document = (
+                document[:briefings_marker.start()] + weekly
+                + document[briefings_marker.start():]
+            )
     return COLLECTION_CSS + document

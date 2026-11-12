@@ -62,6 +62,33 @@ def test_three_sections_keep_required_anchors_and_existing_articles(monkeypatch)
     assert 'id="speaking-publications"' not in updated or updated.index('id="speaking-publications"') > updated.index('id="thinking-articles"')
 
 
+def test_premium_reader_stays_directly_after_hero_with_all_three_collections(monkeypatch):
+    """The reader invitation is fixed; only editorial formats can be reordered."""
+    monkeypatch.setattr(catalogs, "_image_url", lambda article, kind: "")
+    for published in (_briefings() + _weekly(), ()):
+        html = catalogs.inject_thinking_collections(landing(), published)
+        hero = html.index('<section class="pagehero">')
+        hero_end = html.index('</section>', hero) + len('</section>')
+        invitation = html.index('<section class="thinking-reader-invite"')
+        weekly = html.index('<section class="section white cms-latest thinking-collection thinking-collection--weekly_ai"')
+        briefings = html.index('<section class="section white cms-latest thinking-collection thinking-collection--briefings"')
+        articles = html.index('id="thinking-articles"')
+        assert hero < hero_end < invitation < weekly < briefings < articles
+        # There is no editorial section inserted between hero and reader CTA.
+        assert 'id="weekly-ai"' not in html[hero_end:invitation]
+        assert html.count('id="premium-reader-library"') == 1
+
+
+def test_hourly_controller_cannot_move_collections_above_premium_reader():
+    client = (ROOT / "src" / "thinking_dynamic_order.py").read_text("utf-8")
+    assert "root.querySelector('#premium-reader-library')" in client
+    assert "fixedReader.parentNode !== parent" in client
+    assert "fixedReader.nextElementSibling === nodes[0]" in client
+    assert "parent.insertBefore(marker, fixedReader.nextSibling)" in client
+    assert "nodes.forEach(node => parent.insertBefore(node, marker))" in client
+    assert "counts.get(b)[metric] - counts.get(a)[metric]" in client
+
+
 def test_briefings_feature_automatic_readership_and_four_cards(monkeypatch):
     monkeypatch.setattr(catalogs, "_image_url", lambda article, kind: "")
     articles = _briefings()

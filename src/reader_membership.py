@@ -531,33 +531,18 @@ text-decoration:none!important;font:750 12px/1.4 Arial,sans-serif}
 @media(max-width:650px){.site .reader-resource-cta a{width:100%}}</style>
 <div><span>Complimentary executive resource</span><h3>Keep the decision framework at hand.</h3>
 <p>Access the A4 infographic PDF with one verified reader account. Online reading remains free.</p>
-</div><a data-hq-event="briefing_reader_pdf" href="/?page=readers&amp;download=""" +
-            escape(slug, quote=True) + """ target="_blank" rel="noopener">Download PDF ↓</a></aside>""")
+</div><a data-hq-event="briefing_reader_pdf" href="/?page=briefing&amp;article=""" +
+            escape(slug, quote=True) + """&amp;pdf=1" target="_self">Download PDF ↓</a></aside>""")
 
 
 async def reader_download(request) -> Response:
+    """Legacy PDF URL: route to the native verified-reader dialog, never bytes."""
     slug = _clean_slug(request.path_params.get("slug") or "")
     if not slug:
         return _no_cache(Response("Not found", status_code=404))
-    session, user = await run_in_threadpool(_session, request)
-    if not session or not user:
-        return _clear_cookies(RedirectResponse(
-            "/~/+/readers/login?next=" + quote(slug), status_code=303))
-    try:
-        await run_in_threadpool(_register_profile, session, user)
-        pdf = await run_in_threadpool(_pdf_for_article, slug)
-        if not pdf:
-            return _attach(_layout("Resource unavailable",
-                '<p>This edition does not currently have a verified PDF. '
-                '<a href="/?page=briefings">Read the briefing online</a>.</p>'), request, session)
-        await run_in_threadpool(
-            _request_json, "POST", _rest_url("portfolio_reader_downloads"),
-            token=session["access_token"],
-            payload={"user_id": user["id"], "article_slug": slug, "source": "pdf_download"})
-        response = Response(pdf, media_type="application/pdf", headers={
-            "Content-Disposition": 'attachment; filename="' + slug + '-executive-infographic.pdf"',
-        })
-        return _attach(response, request, session)
-    except (RuntimeError, ValueError, TimeoutError, OSError):
-        return _attach(_layout("Temporarily unavailable",
-            "<p>We could not deliver the PDF. Please try again shortly.</p>"), request, session)
+    # Native Streamlit sessions do not share the legacy ASGI cookie session;
+    # the former download handler could otherwise demand a second login.
+    return _no_cache(RedirectResponse(
+        "/?page=briefing&article=" + quote(slug, safe="") + "&pdf=1",
+        status_code=303,
+    ))

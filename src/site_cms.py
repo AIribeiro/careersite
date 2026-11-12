@@ -1454,6 +1454,20 @@ def render_cms_article(article: CmsArticle) -> str:
 </style>'''
 
     if article.kind == "Executive Briefing":
+        # Withhold the full edition *before* generating HTML for an anonymous
+        # browser. Never render the complete CMS body and merely hide it with
+        # CSS, HTML details, or an overlay: that leaks all editorial content.
+        from page_reader_native import _session
+        reader_session, reader_identity = _session()
+        if not reader_session or not reader_identity:
+            from briefing_reader_preview import render_public_briefing_preview
+            from briefing_related_navigation import insert_related_navigation
+            preview = render_public_briefing_preview(article, read_metadata)
+            try:
+                recommendations = fetch_published_articles()
+            except (RuntimeError, ValueError, TimeoutError):
+                recommendations = ()
+            return insert_related_navigation(preview, article, recommendations)
         # Preserve CMS publication and sources, but offer a concise executive
         # decision view before optional supporting depth.
         from page_executive_briefings import executive_briefing_article
@@ -1893,7 +1907,7 @@ def cms_share_document(article: CmsArticle) -> str:
         "articleSection": article.topic,
         "keywords": list(article.keywords),
     }
-    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{escape(article.seo_title or article.title)}</title><meta name="description" content="{escape(description, quote=True)}"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="{escape(canonical, quote=True)}"><link rel="image_src" href="{escape(image, quote=True)}"><meta property="og:type" content="article"><meta property="og:title" content="{escape(article.social_title or article.title, quote=True)}"><meta property="og:description" content="{escape(article.social_description or description, quote=True)}"><meta property="og:url" content="{escape(canonical, quote=True)}"><meta property="og:image" content="{escape(image, quote=True)}">{image_size_meta}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{escape(article.social_title or article.title, quote=True)}"><meta name="twitter:description" content="{escape(article.social_description or description, quote=True)}"><meta name="twitter:image" content="{escape(image, quote=True)}"><meta property="article:published_time" content="{escape(article.published_iso, quote=True)}"><meta property="article:modified_time" content="{escape((article.updated_at or article.published_at or article.published_iso), quote=True)}"><script type="application/ld+json">{json.dumps(schema, ensure_ascii=False).replace('</', '<\\/')}</script></head><body><main><h1>{escape(article.title)}</h1><p>{escape(description)}</p><p><a href="{escape(article_relative_url(article), quote=True)}">Read the full article</a></p></main></body></html>'''
+    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{escape(article.seo_title or article.title)}</title><meta name="description" content="{escape(description, quote=True)}"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="{escape(canonical, quote=True)}"><link rel="image_src" href="{escape(image, quote=True)}"><meta property="og:type" content="article"><meta property="og:title" content="{escape(article.social_title or article.title, quote=True)}"><meta property="og:description" content="{escape(article.social_description or description, quote=True)}"><meta property="og:url" content="{escape(canonical, quote=True)}"><meta property="og:image" content="{escape(image, quote=True)}">{image_size_meta}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{escape(article.social_title or article.title, quote=True)}"><meta name="twitter:description" content="{escape(article.social_description or description, quote=True)}"><meta name="twitter:image" content="{escape(image, quote=True)}"><meta property="article:published_time" content="{escape(article.published_iso, quote=True)}"><meta property="article:modified_time" content="{escape((article.updated_at or article.published_at or article.published_iso), quote=True)}"><script type="application/ld+json">{json.dumps(schema, ensure_ascii=False).replace('</', '<\\/')}</script></head><body><main><h1>{escape(article.title)}</h1><p>{escape(description)}</p><p><a href="{escape(article_relative_url(article), quote=True)}">{"Read the briefing preview" if article.kind == "Executive Briefing" else "Read the full article"}</a></p></main></body></html>'''
 
 
 def inject_cms_article_metadata(article: CmsArticle) -> None:

@@ -809,6 +809,16 @@ def _briefing_catalog_art(slug: str) -> str:
     )
 
 
+BRIEFINGS_READER_ACCESS_CSS = r"""<style>
+.site .be-reader-benefit {font:750 11px/1.55 Arial,sans-serif!important;color:#a4613b!important;margin:12px 0 18px!important}
+.site .be-reader-note {border:1px solid #d8d1c5;background:#ede6db;padding:23px 28px;margin:0 0 29px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+.site .be-reader-note h3{margin:0;color:#173348;font:400 clamp(23px,2.6vw,33px)/1.22 Georgia,serif}
+.site .be-reader-note p{margin:9px 0 0;max-width:660px;font:400 13px/1.66 Arial,sans-serif;color:#52616a}
+.site .be-reader-note span{color:#aa6640;font:850 11px/1.5 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+@media(max-width:700px){.site .be-reader-note{grid-template-columns:1fr;padding:20px}.site .be-reader-note span{white-space:normal}}
+</style>"""
+
+
 def executive_briefings() -> str:
     """Uniform, paginated catalog of independently published CMS briefings.
 
@@ -849,7 +859,7 @@ def executive_briefings() -> str:
     def edition_meta(article) -> str:
         return (
             f"{escape(article.published_label)}"
-            f" · {escape(str(article.read_minutes))} min read"
+            f" · Free opening preview"
         )
 
     def edition_description(article) -> str:
@@ -882,9 +892,10 @@ def executive_briefings() -> str:
             f'<span>{edition_theme(article)}</span></div>'
             f'<h3>{escape(article.title)}</h3>'
             f'<p>{edition_description(article)}</p>'
+            '<p class="be-reader-benefit">Full edition + infographic for verified readers</p>'
             '<div class="be-card-footer">'
             f'<span>{edition_meta(article)}</span>'
-            '<strong>Read edition ↗</strong></div>'
+            '<strong>Read free preview ↗</strong></div>'
             '</div></a>'
         )
 
@@ -944,7 +955,7 @@ def executive_briefings() -> str:
         )
 
     return (
-        BRIEFINGS_CSS + PREMIUM_BRIEFINGS_CSS + nav("thinking")
+        BRIEFINGS_CSS + PREMIUM_BRIEFINGS_CSS + BRIEFINGS_READER_ACCESS_CSS + nav("thinking")
         + '<main>'
         '<section class="be-hero" data-analytics-section="briefings-introduction">'
         '<div class="container be-hero-inner">'
@@ -953,7 +964,8 @@ def executive_briefings() -> str:
         '<h1>AI changes the options. <em>Leadership makes the call.</em></h1>'
         '<p class="be-hero-deck">'
         'Independent perspectives for leaders making consequential AI choices. '
-        'Understand the trade-off, test the evidence and know what to ask next.'
+        'Read each opening section free. A verified reader account unlocks '
+        'the complete edition, its decision framework and accompanying infographic.'
         '</p>'
         '<div class="be-hero-actions">'
         '<a class="be-primary-action" href="#briefings-library" '
@@ -985,10 +997,10 @@ def executive_briefings() -> str:
         '</div></section>'
         '<section class="be-bridge" aria-label="How the briefings help">'
         '<div class="container be-bridge-inner">'
-        '<div class="be-bridge-label">A short read. A clearer decision.</div>'
-        '<div class="be-bridge-item"><b>01 / FRAME</b><span>Define the choice</span></div>'
-        '<div class="be-bridge-item"><b>02 / TEST</b><span>Examine the evidence</span></div>'
-        '<div class="be-bridge-item"><b>03 / ACT</b><span>Set the next move</span></div>'
+        '<div class="be-bridge-label">Read first. Go deeper when it matters.</div>'
+        '<div class="be-bridge-item"><b>01 / EXPLORE</b><span>Read the public opening</span></div>'
+        '<div class="be-bridge-item"><b>02 / ACCESS</b><span>Verify your email for free</span></div>'
+        '<div class="be-bridge-item"><b>03 / KEEP</b><span>Full briefing + infographic</span></div>'
         '</div></section>'
         '<section class="be-collection" id="briefings-library" '
         'data-analytics-section="briefings-library">'
@@ -996,17 +1008,24 @@ def executive_briefings() -> str:
         '<div class="be-section-heading"><div>'
         '<span class="briefings-index">The editor\'s desk</span>'
         '<h2>Decisions worth getting right.</h2></div>'
-        '<p>Each issue stands on its own: a real question, '
-        'a reasoned perspective and a useful next step.</p></div>'
+        '<p>Read the opening of any edition: a leadership decision, a practical '
+        'next move and context. Verify your email for the full argument, '
+        'decision framework and original infographic.</p></div>'
         + '<div class="be-collection-subheading">'
         '<h2>Explore the library</h2>'
         f'<span>{count_label}</span></div>'
+        + '<div class="be-reader-note" data-analytics-section="briefings-reader-intro">'
+        '<div><h3>Every briefing begins with a decision worth considering.</h3>'
+        '<p>See the Leadership Decision and an executive next move before registering. '
+        'The complete edition and its infographic are reserved for verified readers. '
+        'No payment details or newsletter subscription required.</p></div>'
+        '<span>Open preview · Free full access</span></div>'
         + catalog
         + pagination
         + '<div class="be-afterword">'
         '<p><strong>Built for executive attention.</strong> '
-        'Read the judgment first; go deeper into the rationale, '
-        'decision map and cited sources when you need to.</p>'
+        'Openings are public. Full editions, supporting reasoning and '
+        'downloadable infographics come with a free verified reader account.</p>'
         '<a href="?page=contact" target="_self" '
         'data-hq-event="briefings_library_contact">Bring your own decision ↗</a>'
         '</div></div></section>'

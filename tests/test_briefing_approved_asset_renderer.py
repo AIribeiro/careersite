@@ -76,7 +76,7 @@ class ApprovedAssetContractTests(unittest.TestCase):
         self.assertEqual(html.count("data:image/webp;base64,"), 2)
         self.assertEqual(html.count('data-analytics-section="briefing-infographic"'), 1)
         self.assertEqual(html.count('class="canonical-infographic-download"'), 1)
-        self.assertIn("/?page=readers&amp;download=future-ai-leadership-briefing", html)
+        self.assertIn("/?page=briefing&amp;article=future-ai-leadership-briefing", html)
         self.assertNotIn('href="/briefing-artwork/', html)
         self.assertIn('type="application/pdf"', html)
         self.assertIn("2026-11-06-r1", html)

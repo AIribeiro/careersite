@@ -71,6 +71,22 @@ PAGE = PAGE if PAGE in VALID else "home"
 ARTICLE_QUERY = st.query_params.get("article", "") if PAGE in {"thinking", "briefing"} else ""
 if isinstance(ARTICLE_QUERY, list):
     ARTICLE_QUERY = ARTICLE_QUERY[0] if ARTICLE_QUERY else ""
+# Handle email-link tokens before any article HTML, image, or analytics script
+# renders. Supabase OTP one-time secrets must never reach external referrers.
+if PAGE == "briefing" and (
+    str(st.query_params.get("pdf", "")) == "1"
+    or str(st.query_params.get("access", "")) == "1"
+):
+    from page_reader_native import _consume_query_verification, _session
+    _consume_query_verification()
+    if str(st.query_params.get("access", "")) == "1":
+        # The full briefing is rendered only after validating an Auth session.
+        # Once verified, return immediately to reading without another gate.
+        reader_session, verified_identity = _session()
+        if reader_session and verified_identity:
+            st.query_params.pop("access", None)
+            st.query_params.pop("signin", None)
+
 CMS_ARTICLE_META = None
 if ARTICLE_QUERY:
     # Only individual content readers need the public CMS lookup.
@@ -200,6 +216,22 @@ else:
     # The adapter is inert for normal Streamlit visits and desktop iframes.
     mount_masked_mobile_fix()
     html_done = perf_counter()
+    # Both the preview's free-access invitation and the infographic CTA
+    # open one native sign-in dialog anchored to the current publication.
+    if (
+        PAGE == "briefing"
+        and ARTICLE_QUERY
+        and (
+            str(st.query_params.get("pdf", "")) == "1"
+            or str(st.query_params.get("access", "")) == "1"
+        )
+    ):
+        from page_reader_native import render_briefing_access_dialog
+        selected_article = CMS_ARTICLE_META or ARTICLE_META
+        if selected_article is not None and str(getattr(selected_article, "kind", "")).strip().casefold() == "executive briefing":
+            selected_title = str(getattr(selected_article, "title", "") or "")
+            purpose = "pdf" if str(st.query_params.get("pdf", "")) == "1" else "access"
+            render_briefing_access_dialog(str(ARTICLE_QUERY), selected_title, purpose)
     if (
         PAGE == "thinking"
         and not ARTICLE_QUERY

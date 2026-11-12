@@ -46,8 +46,9 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertNotIn('"reader_test.py",', app)
         self.assertIn('if PAGE == "readers":', main)
         self.assertIn('render_reader_native()', main)
-        self.assertIn('href="?page=readers"', footer)
-        self.assertIn('reader_library_footer', footer)
+        self.assertIn('href="?page=briefings"', footer)
+        self.assertIn('briefings_footer', footer)
+        self.assertNotIn('reader_library_footer', footer)
         self.assertNotIn("from page_home import", launcher)
 
     def test_native_staging_app_renders_registration_in_streamlit(self):
@@ -142,15 +143,20 @@ class ReaderMembershipContractTests(unittest.TestCase):
         ):
             with self.subTest(path=path):
                 source = self.source(path)
-                self.assertIn("page=readers", source)
-                self.assertIn('target="_blank"', source)
-                self.assertIn('rel="noopener"', source)
+                self.assertIn("page=briefing", source)
+                self.assertIn('target="_self"', source)
+                self.assertIn('pdf=1', source)
         self.assertIn('href="/?page=readers"',
                       self.source("src/page_executive_briefings.py"))
-        self.assertIn('"/?page=readers&download=" + slug',
+        self.assertIn('"/?page=briefing&article=" + slug + "&pdf=1"',
                       self.source("app.py"))
         self.assertIn('portfolio_reader_downloads',
                       self.source("src/page_reader_native.py"))
+        self.assertIn("render_briefing_access_dialog", self.source("main.py"))
+        self.assertIn('"access"', self.source("src/page_reader_native.py"))
+        self.assertIn('render_public_briefing_preview', self.source("src/site_cms.py"))
+        self.assertIn('get full briefing', self.source("src/briefing_reader_preview.py").lower())
+
 
     def test_reader_catalog_is_owner_only(self):
         source = self.source("src/reader_catalog_admin.py")

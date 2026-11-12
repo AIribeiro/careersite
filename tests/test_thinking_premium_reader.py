@@ -24,19 +24,29 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
         self.assertLess(rendered.index('id="premium-reader-library"'), rendered.index('id="thinking-briefings"'))
         self.assertLess(rendered.index('id="premium-reader-library"'), rendered.index('id="thinking-articles"'))
 
-    def test_access_copy_is_specific_truthful_and_complimentary(self):
+    def test_access_copy_leads_with_executive_value_not_access_timers(self):
         rendered = reader_invitation()
         self.assertIn("Premium Reader library · Complimentary access", rendered)
-        self.assertIn("Executive AI Briefings", rendered)
-        self.assertIn("Articles · Seven-day early access", rendered)
-        self.assertIn("After seven days", rendered)
-        self.assertIn("Save briefings", rendered)
-        self.assertIn("original A4 infographic where one is available", rendered)
-        self.assertIn("Premium Reader access is currently free.", rendered)
+        self.assertIn("Go beyond the headline. Examine the decision.", rendered)
+        self.assertIn("Bring better questions to the table.", rendered)
+        self.assertIn("See what deserves your attention.", rendered)
+        self.assertIn("Understand the thinking behind the position.", rendered)
+        for format_name in ("Executive AI Briefings", "Weekly AI", "Leadership articles"):
+            self.assertIn(format_name, rendered)
+        self.assertIn("decision frameworks and original infographics", rendered)
+        self.assertIn("the original reporting behind them", rendered)
+        self.assertIn("prioritization, accountability, governance", rendered)
+        self.assertIn("Save useful briefings", rendered)
+        self.assertIn("Premium Reader access is currently complimentary.", rendered)
         self.assertIn("No payment details", rendered)
-        self.assertIn("Editorial emails are optional", rendered)
-        self.assertNotIn("all articles are members-only", rendered.lower())
+        self.assertIn("editorial emails", rendered)
+        self.assertIn("Access at a glance", rendered)
+        self.assertIn("Earlier Weekly AI and Articles become open to everyone automatically", rendered)
+        self.assertNotIn("seven days", rendered.lower())
+        self.assertNotIn("day 7", rendered.lower())
         self.assertNotIn("guaranteed", rendered.lower())
+        # Make the content-value argument before access conditions appear.
+        self.assertLess(rendered.index("Bring better questions"), rendered.index("Access at a glance"))
 
     def test_registration_and_discovery_are_first_party_links(self):
         rendered = reader_invitation()

@@ -631,15 +631,30 @@ def _reader_pdf_controls(
         st.error("The infographic could not be prepared.")
 
 
+def _reader_section_header(kicker: str, title: str, description: str) -> None:
+    """Consistent editorial introduction for every private library section."""
+    st.html(
+        '<header class="reader-section-header">'
+        '<span class="reader-section-kicker">' + html_escape(kicker) + '</span>'
+        '<h3>' + html_escape(title) + '</h3>'
+        '<p>' + html_escape(description) + '</p>'
+        '</header>'
+    )
+
+
 def _reader_selected_edition(
     session: dict, user: dict, articles: list, saved_slugs: set[str],
     *, view: str,
 ) -> None:
-    """Scannable member-library cards; never make all 20 editions a dropdown."""
+    """Compact, easy-to-scan edition cards with primary reading actions."""
     if not articles:
-        st.info("No briefings match this selection.")
+        st.info(
+            "Nothing to show here yet. Browse All briefings to discover a "
+            "perspective worth returning to." if view == "saved"
+            else "No briefings match your search. Try a broader topic."
+        )
         return
-    st.caption(f"{len(articles)} available edition" + ("" if len(articles) == 1 else "s"))
+    st.caption(f"{len(articles)} briefing" + ("" if len(articles) == 1 else "s") + " in this view")
     page_size = 5
     page_count = (len(articles) + page_size - 1) // page_size
     page = (
@@ -652,34 +667,42 @@ def _reader_selected_edition(
     offset = int(page) * page_size
     for article in articles[offset: offset + page_size]:
         slug = _clean_slug(str(article.slug))
-        with st.container(border=True):
+        if not slug:
+            continue
+        pdf_available = has_briefing_pdf(slug)
+        with st.container(border=True, key="reader_edition_" + view + "_" + slug):
+            topic = str(article.category or "Executive AI").strip()
+            st.caption("EXECUTIVE AI BRIEFING · " + topic)
             st.markdown("#### " + str(article.title))
             subtitle = str(article.subtitle or article.excerpt or "").strip()
             if subtitle:
                 st.write(subtitle)
             st.caption(
-                "Complete briefing unlocked"
-                + (" · A4 infographic available" if has_briefing_pdf(slug)
-                   else " · No infographic PDF published")
+                str(article.published_label) + "  ·  Full edition included"
+                + ("  ·  A4 infographic available" if pdf_available else "")
             )
-            left, right = st.columns(2)
+            left, right = st.columns([1.15, 1], gap="small")
             with left:
-                if st.button("Read complete briefing", type="primary",
-                             key="reader_open_" + view + "_" + slug):
+                if st.button(
+                    "Read complete briefing", type="primary",
+                    key="reader_open_" + view + "_" + slug,
+                    use_container_width=True,
+                ):
                     _open_reader_briefing(slug)
             with right:
                 saved = slug in saved_slugs
                 label = "Remove from saved" if saved else "Save to my library"
-                if st.button(label, key="reader_save_" + view + "_" + slug):
+                if st.button(
+                    label, key="reader_save_" + view + "_" + slug,
+                    use_container_width=True,
+                ):
                     try:
                         _update_saved(session, user, slug, saved=not saved)
                         st.rerun()
                     except (RuntimeError, ValueError, TimeoutError):
-                        st.error("Could not update your saved briefings.")
-            if has_briefing_pdf(slug):
-                _reader_pdf_controls(
-                    session, user, slug, view=view + "_" + slug,
-                )
+                        st.error("Your reading list couldn't be updated. Please try again.")
+            if pdf_available:
+                _reader_pdf_controls(session, user, slug, view=view + "_" + slug)
 
 
 def _library(session: dict, user: dict) -> None:
@@ -691,19 +714,15 @@ def _library(session: dict, user: dict) -> None:
         return
 
     first = str(profile.get("first_name") or "").strip()
-    st.markdown("### Your Premium Reader library")
-    st.write(
-        ("Welcome back, " + first + ". " if first else "")
-        + "Continue reading the executive perspectives relevant to your work. "
-        "Your complete briefings, Premium Articles, latest Weekly AI edition, "
-        "saved items and infographic downloads are available below."
+    welcome = ("Welcome back, " + first + "." if first else "Welcome to your reader library.")
+    st.html(
+        '<section class="reader-member-welcome" aria-label="Premium Reader welcome">'
+        '<span class="reader-member-eyebrow">YOUR PREMIUM READER SPACE</span>'
+        '<h2>' + html_escape(welcome) + '</h2>'
+        '<p>Independent perspectives on AI strategy, accountability and adoption, '
+        'with complete editions, saved reading and original decision visuals '
+        'within easy reach.</p></section>'
     )
-    st.caption("Signed in as " + str(user.get("email") or ""))
-    st.caption(
-        "Want to sign in without an email code next time? "
-        "Open My Profile → Account security and set a password."
-    )
-    st.divider()
 
     try:
         articles = [
@@ -741,11 +760,19 @@ def _library(session: dict, user: dict) -> None:
         if slug and slug not in unique_downloads:
             unique_downloads[slug] = row
 
-    st.caption(
-        f"{len(articles)} complete briefings · "
-        f"{len(saved_slugs)} saved · "
-        f"{len(unique_downloads)} previously downloaded PDFs"
+    st.html(
+        '<section class="reader-member-stats" aria-label="Your library at a glance">'
+        '<div class="reader-member-stat"><strong class="reader-member-number">'
+        + str(len(articles)) + '</strong><span class="reader-member-stat-label">'
+        'Complete briefings</span></div>'
+        '<div class="reader-member-stat"><strong class="reader-member-number">'
+        + str(len(saved_slugs)) + '</strong><span class="reader-member-stat-label">'
+        'Saved for later</span></div>'
+        '<div class="reader-member-stat"><strong class="reader-member-number">'
+        + str(len(unique_downloads)) + '</strong><span class="reader-member-stat-label">'
+        'Infographics in your history</span></div></section>'
     )
+    st.caption("Choose a collection below. Your membership stays active as you explore.")
 
     all_tab, articles_tab, weekly_tab, saved_tab, pdf_tab, profile_tab = st.tabs([
         "All briefings", "Articles", "Weekly AI", "Saved", "My PDFs", "My profile",

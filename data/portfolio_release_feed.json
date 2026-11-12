@@ -1,4 +1,14 @@
 {
   "schema_version": 1,
-  "items": []
+  "items": [
+    {
+      "key": "page:readers",
+      "type": "New page",
+      "title": "Executive AI Briefings Reader Library",
+      "description": "Discover the newly published portfolio page.",
+      "date": "2026-11-12T14:26:17+01:00",
+      "href": "?page=readers",
+      "cta": "Explore the page"
+    }
+  ]
 }

@@ -200,7 +200,7 @@ def render_approved_bundle(article, row: dict, *, asset_root: Path | None = None
         '<span class="canonical-infographic-kicker">Original executive infographic</span>'
         '<h2>' + title + '</h2><p>' + deck + '</p></div>'
         '<a class="canonical-infographic-download" '
-        'href="/?page=readers&amp;download=' + slug + '" '
+        'href="/?page=briefing&amp;article=' + slug + '&amp;pdf=1" '
         'target="_blank" rel="noopener" type="application/pdf" data-hq-event="briefing_reader_pdf">'
         '&#8595; Download A4 PDF · Free reader access</a></div>'
         '<img class="canonical-desktop" loading="eager" decoding="async" '

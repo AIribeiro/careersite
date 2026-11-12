@@ -287,8 +287,8 @@ def reader_header(*, staging: bool = False) -> str:
         + '<span class="reader-hero-kicker">' + escape(context) + '</span>'
         + '<h1>' + escape(headline) + '</h1>'
         + '<p class="reader-intro">' + escape(intro) + '</p>'
-        + ('<p class="reader-hero-support">Complimentary reader membership. '
-           'No payment details required.</p>' if not is_member else '')
+        + ('<p class="reader-hero-support">Grounded in enterprise AI and Data '
+           'leadership experience, not product promotion.</p>' if not is_member else '')
         + f'<a class="reader-hero-link" href="{briefings}" target="_self">'
         + 'Preview the Executive AI Briefings <span aria-hidden="true">→</span></a>'
         + '</div><aside class="reader-hero-benefits" aria-label="Library benefits">'

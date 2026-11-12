@@ -88,6 +88,22 @@ def _session() -> tuple[dict | None, dict | None]:
             session = _refresh(str(session.get("refresh_token") or ""))
             st.session_state["reader_native_session"] = session
         user = _verified_user(str(session.get("access_token") or ""))
+        # Administrative access suspensions are enforced server-side on every
+        # verified reader check. The RPC exposes only the caller's own status,
+        # not internal owner notes, tags or mailing suppression.
+        status = _request_json(
+            "POST", _rest_url("rpc/portfolio_reader_member_status_v1"),
+            token=str(session["access_token"]), payload={}, timeout=10,
+        )
+        if status != "active":
+            st.session_state["reader_native_flash"] = (
+                "error",
+                "This reader account cannot access complete briefings. "
+                "Please contact the portfolio owner.",
+            )
+            st.session_state.pop("reader_native_session", None)
+            st.session_state.pop("reader_native_user", None)
+            return None, None
         return session, user
     except (RuntimeError, ValueError, TimeoutError, KeyError) as exc:
         LOG.warning("Reader session refresh failed: %s", type(exc).__name__)

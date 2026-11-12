@@ -86,6 +86,19 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertIn('top.replace(\'href="?page=\'', shell)
         self.assertIn("https://jairribeiro-reader-test.", native)
 
+    def test_production_portfolio_dispatcher_renders_native_reader(self):
+        # In addition to isolated reader_test.py, run the real main.py page
+        # router to catch Home fallback or missing Streamlit context.
+        from streamlit.testing.v1 import AppTest
+        app = AppTest.from_file(str(ROOT / "main.py"), default_timeout=50)
+        app.query_params["page"] = "readers"
+        app.run()
+        self.assertFalse(app.exception, [str(x.message) for x in app.exception])
+        self.assertTrue(
+            any("Email address" in str(x.label) for x in app.text_input),
+            "Main portfolio route ?page=readers must render native signup",
+        )
+
     def test_native_reader_is_public_page_with_no_post_proxy(self):
         main = self.source("main.py")
         self.assertIn('"readers"', main)

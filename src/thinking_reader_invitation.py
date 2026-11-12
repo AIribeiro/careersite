@@ -87,8 +87,9 @@ def reader_invitation() -> str:
           <strong>Access at a glance</strong>
           <p>Public summaries are open to everyone. Registered readers can read
           complete Executive AI Briefings, the latest Weekly AI edition and new Articles.
-          Earlier Weekly AI and Articles become open to everyone automatically.
-          Sign up with your email or use your existing reader account.</p>
+          Previous Weekly AI editions are public. Articles open after at least
+          seven days and when a newer Article is published. Executive AI Briefings
+          remain Premium. Sign up with your email or use your existing reader account.</p>
         </div>
       </div>
     </section>"""

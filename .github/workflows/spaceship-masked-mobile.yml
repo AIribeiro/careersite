@@ -1,0 +1,32 @@
+name: Spaceship masked-mobile fallback
+
+on:
+  pull_request:
+    paths:
+      - main.py
+      - src/site_embedded_mobile.py
+      - tests/test_spaceship_masked_mobile.py
+      - .github/workflows/spaceship-masked-mobile.yml
+  push:
+    branches:
+      - main
+    paths:
+      - main.py
+      - src/site_embedded_mobile.py
+      - tests/test_spaceship_masked_mobile.py
+      - .github/workflows/spaceship-masked-mobile.yml
+
+jobs:
+  mobile-fallback:
+    name: Mobile frame compatibility tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Streamlit
+        run: pip install streamlit==1.64.0
+      - name: Verify embedded-mobile fallback
+        run: python -m unittest discover -s tests -p 'test_spaceship_masked_mobile.py' -v

@@ -4,7 +4,9 @@ Status (12 November 2026): **staging only — do not merge or enable public regi
 
 ## Staging URL
 
-Use **https://jairribeiro-reader-test.streamlit.app/?page=readers**.
+Use **https://jairribeiro-reader-test.streamlit.app/** (no query parameters required).
+
+**Temporary staging launch switch:** The existing Cloud deployment was created with `app.py` as its entrypoint. Streamlit Cloud does not support editing that entry file in Settings. On this draft PR branch alone, `app.py` now launches `reader_test.py`, bypassing the portfolio Home dispatcher. **Before merging PR #54, revert `App("reader_test.py")` to `App("main.py")` and verify that the production reader route `/?page=readers` works.** Keeping the staging override at merge would replace the public portfolio Home page with the signup portal.
 
 Do not test `/readers/login`, `/~/+/readers/login`, or `/readers/request` for registration. Those legacy ASGI GET/POST paths were abandoned as a sign-in mechanism. Native Streamlit `st.form` posts through Streamlit's regular widget connection and sends Auth requests to Supabase from Python, so Community Cloud does not have to process a custom HTTP POST.
 
@@ -57,7 +59,7 @@ Keep existing allowlist entries until migration is verified.
 
 ## Required smoke tests before merging
 
-1. In the test app, navigate directly to `/?page=readers`. Confirm the form loads without the legacy 500 error.
+1. Open the test app root `/` directly after Streamlit Cloud refreshes the branch. Confirm the first visible page is the native **Take the briefings with you** registration form, not the portfolio Home page, and there are no legacy HTTP 500 errors.
 2. In Supabase check SMTP and configure both email templates. Register using a **new email address you control**, leaving optional editorial permission unchecked. Click "Send my secure access email". You should see "Check your inbox" instead of an HTTP 500 page.
 3. Open the email's link, or enter its one-time code in the original tab. The browser should render the reader library after Supabase confirms the token.
 4. Choose a published Executive AI Briefing, click "Prepare PDF" and then "Download A4 infographic". Confirm a real PDF downloads.

@@ -89,7 +89,7 @@ class ReaderCampaignManagementTests(TestCase):
         self.assertIn("New registrations · Today", html)
         self.assertIn("2 of 12 lifetime readers", html)
         self.assertNotIn("newsletter_opt_in", html)
-        self.assertNotIn("email", html.split("<section", 1)[-1].split("</section>", 1)[0].lower().replace("email", "") if False else "")
+        self.assertNotIn("reader@example.com", html)
 
     def test_public_kpi_rejects_invalid_window_and_impossible_counts(self):
         with self.assertRaises(ValueError):

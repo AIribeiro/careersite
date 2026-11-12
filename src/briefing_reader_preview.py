@@ -41,6 +41,9 @@ PREVIEW_CSS = r"""<style>
 .site .briefing-preview-aside {background:#e7e0d4;padding:27px 25px;border-top:3px solid #b86134}
 .site .briefing-preview-aside strong {display:block;font:800 10px/1.5 Arial,sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#a05c36}
 .site .briefing-preview-aside p {font:400 13px/1.7 Arial,sans-serif;color:#455460;margin:13px 0 0}
+.site .briefing-preview-aside ul{list-style:none;margin:17px 0 0;padding:0;border-top:1px solid #cfc3b4}
+.site .briefing-preview-aside li{padding:12px 0;border-bottom:1px solid #cfc3b4;color:#253948;font:700 12px/1.55 Arial,sans-serif}
+.site .briefing-preview-aside li:before{content:"→";color:#a05c36;font-weight:900;margin-right:9px}
 .site .briefing-unlock {margin-top:clamp(45px,6vw,82px);background:#112c40;color:#fff;padding:clamp(30px,4vw,50px);border:1px solid rgba(221,163,120,.5);box-shadow:0 20px 55px rgba(14,30,45,.12)}
 .site .briefing-unlock-inner {display:grid;grid-template-columns:minmax(0,1.2fr) minmax(240px,.8fr);gap:36px;align-items:center}
 .site .briefing-unlock .eyebrow {color:#edc29d!important}
@@ -146,6 +149,31 @@ def opening_paragraphs(content_html: str, *, max_words: int = 300) -> tuple[str,
     return tuple(selected)
 
 
+def next_edition_sections(content_html: str, *, limit: int = 3) -> tuple[str, ...]:
+    """Name real sections in the author's full edition, not invented benefits."""
+    headings = re.findall(
+        r"<h[23]\\b[^>]*>(.*?)</h[23]\\s*>",
+        content_html or "", flags=re.I | re.S,
+    )
+    selected: list[str] = []
+    for raw in headings:
+        heading = re.sub(r"\\s+", " ", unescape(re.sub(r"<[^>]+>", " ", raw))).strip()
+        if (
+            len(heading) < 12
+            or len(heading) > 115
+            or heading.casefold() in {
+                "the leadership decision", "next move", "sources",
+                "source references", "references", "further reading",
+            }
+        ):
+            continue
+        if heading not in selected:
+            selected.append(heading)
+        if len(selected) >= limit:
+            break
+    return tuple(selected)
+
+
 def render_public_briefing_preview(article, read_metadata: str = "") -> str:
     """A substantive, accessible original-edition preview followed by a free gate."""
     slug = escape(str(article.slug or ""), quote=True)
@@ -178,6 +206,12 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
         + "".join(f"<p>{escape(p)}</p>" for p in context) + '</div>'
         if context else ""
     )
+    section_heads = next_edition_sections(str(article.content_html or ""))
+    inside = (
+        '<ul>' + ''.join(f'<li>{escape(h)}</li>' for h in section_heads) + '</ul>'
+        if section_heads else
+        '<p>Detailed reasoning, practical decisions and the original executive infographic.</p>'
+    )
     access_base = f"?page=briefing&amp;article={slug}&amp;access=1"
     return (
         THINKING_CSS + PREVIEW_CSS + nav("thinking")
@@ -196,10 +230,8 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
         '<h2>The Leadership Decision</h2>' + decision_html + '</div>'
         + move_html + context_html + '</article>'
         '<aside class="briefing-preview-aside">'
-        '<strong>What comes next</strong>'
-        '<p>The complete edition develops the leadership decision, trade-offs, '
-        'responsibilities and supporting evidence. Its original executive '
-        'infographic is available as a downloadable PDF.</p></aside></div>'
+        '<strong>Inside the complete edition</strong>'
+        + inside + '</aside></div>'
         '<section class="briefing-unlock" data-analytics-section="briefing-reader-free-access">'
         '<div class="briefing-unlock-inner"><div><p class="eyebrow">Free verified reader access</p>'
         '<h2>Continue with the full briefing.</h2>'

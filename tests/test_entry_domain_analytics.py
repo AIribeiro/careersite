@@ -21,7 +21,8 @@ class EntryDomainReportTests(unittest.TestCase):
         ]})
         self.assertEqual(rows[0]["Sessions"], 0)
         self.assertEqual(rows[1]["Views"], 0)
-        self.assertEqual(rows[3]["Sessions"], 9)
+        self.assertEqual(rows[2]["Views"], 0)
+        self.assertEqual(rows[4]["Sessions"], 9)
         self.assertEqual(source_evidence_rows({"source_evidence": [{
             "domain_label": "Not measured (historical)",
             "source_evidence": "Direct / source unknown", "sessions": 9
@@ -85,6 +86,8 @@ function run(host, framed, referrer, ancestors, expectedDomain, expectedEvidence
     assert.equal(event.attribution_source,campaign?'linkedin':null);
   }
 }
+run('jairribeiro-ai.streamlit.app',false,'',[],
+    'jairribeiro-ai.streamlit.app','direct_host',false);
 run('jairibeiro-ai.streamlit.app',false,'',[],
     'jairibeiro-ai.streamlit.app','direct_host',false);
 run('jairibeiro-ai.streamlit.app',true,'https://jairribeiro.com/',[],

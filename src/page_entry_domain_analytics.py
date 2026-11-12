@@ -10,6 +10,7 @@ from page_content_intelligence import _fetch_rpc
 
 _DOMAIN_NAMES = (
     "jairribeiro.com",
+    "jairribeiro-ai.streamlit.app",
     "jairibeiro-ai.streamlit.app",
     "Unresolved embedded address",
     "Not measured (historical)",
@@ -68,13 +69,17 @@ def render_entry_domain_report(window: str, *, expected_site_views: int | None =
         st.caption("Entry-address reporting is temporarily unavailable.")
         return
 
-    named = rows[:2]
-    unresolved = rows[2:]
+    branded = rows[0]
+    native = rows[1:3]
+    unresolved = rows[3:]
     columns = st.columns(3, gap="small")
-    for col, row in zip(columns[:2], named):
-        with col:
-            st.metric(row["Entry address"], f'{row["Sessions"]:,} sessions')
-            st.caption(f'{row["Views"]:,} views · selected period')
+    with columns[0]:
+        st.metric("jairribeiro.com", f'{branded["Sessions"]:,} sessions')
+        st.caption(f'{branded["Views"]:,} views · selected period')
+    with columns[1]:
+        st.metric("Streamlit native address",
+                  f'{sum(row["Sessions"] for row in native):,} sessions')
+        st.caption(f'{sum(row["Views"] for row in native):,} views · both hostname variants')
     with columns[2]:
         st.metric("Unresolved / historical",
                   f'{sum(row["Sessions"] for row in unresolved):,} sessions')
@@ -112,7 +117,7 @@ def render_entry_domain_report(window: str, *, expected_site_views: int | None =
                 ), use_container_width=True,
             )
 
-    observed = sum(row["Sessions"] for row in named)
+    observed = branded["Sessions"] + sum(row["Sessions"] for row in native)
     if not observed:
         st.caption(
             "Verified entry-domain measurement begins with the new browser collector. "

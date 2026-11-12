@@ -58,10 +58,10 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
     def test_unified_reader_hero_recognizes_both_formats(self):
         rendered = reader_header()
         self.assertIn("Your executive reading library", rendered)
-        self.assertIn("seven-day early access", rendered)
+        self.assertIn("at least seven days", rendered)
         self.assertIn("Executive AI Briefings", rendered)
         self.assertIn("A4 infographic PDFs", rendered)
-        self.assertIn("Older Articles remain open to everyone", rendered)
+        self.assertIn("until another Article is published", rendered)
 
     def test_cms_injection_preserves_invitation_on_thinking_page(self):
         from page_thinking import _thinking_landing_with_catalog

@@ -7,8 +7,16 @@ wrapper. All signup and PDF actions use native Streamlit widget messages.
 """
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
+
+# This launcher is staging-only. Set a fixed callback origin so Supabase OTP
+# redirects cannot accidentally point to the public portfolio or localhost.
+# Before merging, restore app.py's main.py entrypoint.
+os.environ["PORTFOLIO_READER_CALLBACK_ORIGIN"] = (
+    "https://jairribeiro-reader-test.streamlit.app"
+)
 
 import streamlit as st
 

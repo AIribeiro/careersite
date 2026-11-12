@@ -105,7 +105,7 @@ TITLES = {
     "thinking": "Articles & Perspectives | Jair Ribeiro",
     "briefings": "Executive AI Briefings | Jair Ribeiro",
     "briefing": "Executive AI Briefing | Jair Ribeiro",
-    "readers": "Executive AI Briefings Reader Library | Jair Ribeiro",
+    "readers": "Premium Reader Library | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
     "contact": "Contact | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",

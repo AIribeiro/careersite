@@ -244,13 +244,14 @@ footer a{margin-right:16px}
 
 def _login(request, *, notice: str = "") -> Response:
     next_slug = _target(request)
-    action = "/~/+/readers/request" + ("?next=" + quote(next_slug) if next_slug else "")
+    # Submit to the currently open Cloud-proxied URL. This avoids the
+    # forwarding layer rewriting an explicit action into /readers/request.
     description = (
         "Read every briefing online without an account. Register once to save printable "
         "executive infographics to your personal library. No password or payment required."
     )
     body = (f"<p>{description}</p>" +
-        '<form method="post" action="' + escape(action, quote=True) + '">'
+        '<form method="post">'
         '<label for="first_name">First name</label>'
         '<input id="first_name" name="first_name" type="text" autocomplete="given-name" maxlength="80" required>'
         '<label for="email">Email address</label>'
@@ -267,11 +268,11 @@ def _login(request, *, notice: str = "") -> Response:
 
 
 def _returning_signin(request) -> Response:
-    action = "/~/+/readers/request" + ("?next=" + quote(_target(request)) if _target(request) else "")
+    # Keep the Cloud proxy path and any ?next=slug query on form submission.
     return _layout("Welcome back",
         '<p>Enter your registered email. We will send a secure, one-time access link. '
         'No password or name entry required.</p>'
-        '<form method="post" action="' + escape(action, quote=True) + '">'
+        '<form method="post">'
         '<input type="hidden" name="intent" value="signin">'
         '<label for="email">Email address</label>'
         '<input id="email" name="email" type="email" autocomplete="email" maxlength="254" required>'
@@ -381,14 +382,14 @@ async def reader_route(request) -> Response:
         return _confirm_page(request)
     if action == "signin" and request.method == "GET":
         return _returning_signin(request)
-    if action == "request" and request.method == "POST":
+    if action in {"request", "login", "signin"} and request.method == "POST":
         if not _same_origin(request):
             return _no_cache(Response("Forbidden", status_code=403))
         try:
             form = await _form(request)
             first = str(form.get("first_name") or "").strip()
             email = str(form.get("email") or "").strip().lower()
-            returning = form.get("intent") == "signin"
+            returning = action == "signin" or form.get("intent") == "signin"
             if (not returning and not first) or len(first) > 80 or not EMAIL.fullmatch(email) or len(email) > 254:
                 return _login(request, notice="Enter your name and a valid email address.")
             slug = _target(request)

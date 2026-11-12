@@ -108,7 +108,7 @@ class ReaderPasswordProfileTests(unittest.TestCase):
         self.assertIn('st.form("reader_password_signin_form", clear_on_submit=True)', text)
         self.assertIn('st.form("reader_native_code_form")', text)
         self.assertIn('type="password"', text)
-        self.assertIn("Forgotten it?", text)
+        self.assertIn("forgotten it?", text)
         self.assertIn("Check your credentials or use email verification", text)
         self.assertIn('"reader_editorial_opt_in": bool(subscribe)', text)
         self.assertNotIn('"password": password,', self.source("src/reader_membership.py"))

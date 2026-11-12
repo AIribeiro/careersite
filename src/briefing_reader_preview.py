@@ -140,7 +140,7 @@ def opening_paragraphs(content_html: str, *, max_words: int = 300) -> tuple[str,
             break
         # For long first/second paragraphs preserve whole sentences.
         excerpt = " ".join(words[:remaining])
-        sentence = re.search(r"^(.+[.!?])(?:\\s|$)", excerpt)
+        sentence = re.search(r"^(.+[.!?])(?:\s|$)", excerpt)
         if sentence and len(sentence.group(1)) > 90:
             selected.append(sentence.group(1))
         else:
@@ -152,12 +152,12 @@ def opening_paragraphs(content_html: str, *, max_words: int = 300) -> tuple[str,
 def next_edition_sections(content_html: str, *, limit: int = 3) -> tuple[str, ...]:
     """Name real sections in the author's full edition, not invented benefits."""
     headings = re.findall(
-        r"<h[23]\\b[^>]*>(.*?)</h[23]\\s*>",
+        r"<h[23]\b[^>]*>(.*?)</h[23]\s*>",
         content_html or "", flags=re.I | re.S,
     )
     selected: list[str] = []
     for raw in headings:
-        heading = re.sub(r"\\s+", " ", unescape(re.sub(r"<[^>]+>", " ", raw))).strip()
+        heading = re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", " ", raw))).strip()
         if (
             len(heading) < 12
             or len(heading) > 115
@@ -188,15 +188,15 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
     # Use precisely the editorial judgments the author published; never
     # synthesize claims, benefits, sources, percentages or quotations.
     decision = re.sub(
-        r"^The (?:Leadership Decision|executive decision|executive question)\\s*:?\\s*",
+        r"^The (?:Leadership Decision|executive decision|executive question)\s*:?\s*",
         "", opening[0], flags=re.I,
     )
     # Never relabel ordinary narrative as an executive action. Only use a
     # separately signposted published "Next move" as the practical takeaway.
     has_next_move = len(opening) > 1 and bool(
-        re.match(r"^Next move\\s*:", opening[1], flags=re.I)
+        re.match(r"^Next move\s*:", opening[1], flags=re.I)
     )
-    move = re.sub(r"^Next move\\s*:\\s*", "", opening[1], flags=re.I) if has_next_move else ""
+    move = re.sub(r"^Next move\s*:\s*", "", opening[1], flags=re.I) if has_next_move else ""
     context = opening[2:] if has_next_move else opening[1:]
     decision_html = f"<p>{escape(decision)}</p>"
     move_html = (

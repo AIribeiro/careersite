@@ -17,6 +17,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from site_styles import CSS
+from site_embedded_mobile import mount_masked_mobile_fix, support_masked_mobile_media
 from site_image_styles import IMAGE_CSS
 from site_meta import inject_article_metadata, inject_metadata
 from site_analytics import inject_analytics
@@ -186,7 +187,10 @@ else:
         pathway_css = HOME_PATHWAYS_CSS
     else:
         pathway_css = ""
-    st.html(CSS + IMAGE_CSS + pathway_css + '<div class="site">' + page_document + '</div>')
+    st.html(support_masked_mobile_media(CSS + IMAGE_CSS + pathway_css) + '<div class="site">' + page_document + '</div>')
+    # Compensate for mobile devices whose masking-provider frame is ~980px wide.
+    # The adapter is inert for normal Streamlit visits and desktop iframes.
+    mount_masked_mobile_fix()
     html_done = perf_counter()
     if (
         PAGE == "thinking"

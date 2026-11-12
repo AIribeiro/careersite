@@ -375,27 +375,12 @@ def _preferences(profile: dict, *, notice: str = "") -> Response:
 
 async def reader_route(request) -> Response:
     action = str(request.path_params.get("action") or "")
-    # Temporary staging-only probe: test whether Community Cloud forwards
-    # ordinary HTML POSTs into Starlette at all. No input is collected.
-    if action == "diagnostic":
-        if request.method == "POST":
-            return _no_cache(HTMLResponse(
-                "<!doctype html><html lang='en'><head>"
-                "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-                "<title>Reader POST diagnostic</title></head><body>"
-                "<h1>POST reached Python</h1>"
-                "<p>The Cloud proxy forwarded this POST to the application. "
-                "Any remaining registration error is inside its handler.</p>"
-                "</body></html>"))
-        if request.method == "GET":
-            return _no_cache(HTMLResponse(
-                "<!doctype html><html lang='en'><head>"
-                "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-                "<title>Reader POST diagnostic</title></head><body>"
-                "<h1>Test POST routing</h1>"
-                "<p>No name, email or other data will be submitted.</p>"
-                "<form method='post'><button type='submit'>Test POST</button></form>"
-                "</body></html>"))
+    # Legacy ASGI GET routes now point to the supported Streamlit page.
+    # The old HTML POST endpoints are intentionally not used for signup.
+    if request.method == "GET" and action in {
+        "login", "signin", "library", "preferences", "confirm"
+    }:
+        return _no_cache(RedirectResponse("/?page=readers", status_code=303))
     if action == "privacy" and request.method == "GET":
         return _privacy()
     if action == "confirm" and request.method == "GET":

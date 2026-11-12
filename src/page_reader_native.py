@@ -161,7 +161,7 @@ def _login() -> None:
     if st.session_state.get("reader_native_sent_email"):
         st.info("Open the verification link in your email, or enter its one-time code below.")
         with st.form("reader_native_code_form"):
-            code = st.text_input("One-time email code", max_chars=12, placeholder="Verification code")
+            code = st.text_input("Email verification code", max_chars=10, placeholder="6-digit code")
             verified = st.form_submit_button("Verify code")
         if verified:
             code = str(code or "").strip()

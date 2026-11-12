@@ -239,7 +239,11 @@ def _profile_snapshot(profile: dict, downloads: list[dict], saved: list[dict],
 def _reader_origin_tag(profile: dict) -> str:
     """Stable segmentation tag from immutable registration source."""
     source = str(profile.get("acquisition_source") or "").strip().casefold()
-    return "origin:articles" if source == "articles" else "origin:briefings"
+    if source == "articles":
+        return "origin:articles"
+    if source == "weekly_ai":
+        return "origin:weekly_ai"
+    return "origin:briefings"
 
 
 def _reader_management(
@@ -255,7 +259,8 @@ def _reader_management(
     status_filter = st.selectbox(
         "Audience filter",
         ["All readers", "Registered via Articles", "Registered via Briefings",
-         "Editorial opt-in", "Not subscribed", "Mailing suppressed", "Suspended"],
+         "Registered via Weekly AI", "Editorial opt-in", "Not subscribed",
+         "Mailing suppressed", "Suspended"],
         key="admin_readers_filter",
     )
 
@@ -277,6 +282,8 @@ def _reader_management(
             return _reader_origin_tag(p) == "origin:articles"
         if status_filter == "Registered via Briefings":
             return _reader_origin_tag(p) == "origin:briefings"
+        if status_filter == "Registered via Weekly AI":
+            return _reader_origin_tag(p) == "origin:weekly_ai"
         if status_filter == "Editorial opt-in":
             return p.get("newsletter_opt_in") is True
         if status_filter == "Not subscribed":

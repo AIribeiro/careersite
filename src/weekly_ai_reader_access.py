@@ -1,43 +1,46 @@
-"""Current-week Premium Reader policy for Weekly AI.
+"""Premium Reader policy for the latest published Weekly AI edition.
 
-The editorial ISO week in the Europe/Stockholm calendar is authoritative.
-An edition unlocks automatically for anonymous visitors at local Monday
-00:00 after the ISO week it covers. Old weeks never relock when a new
-edition has not yet been published.
+Only the newest *published* Weekly AI issue is exclusive to registered readers.
+It remains Premium until the next Weekly AI issue is actually published,
+including across calendar weeks, delayed releases and year boundaries.
+Earlier editions are permanently open. This follows the publication catalogue,
+not the local clock, scheduled job, slug age or a mutable lock flag.
 """
 from __future__ import annotations
 
-from datetime import date, datetime
-from zoneinfo import ZoneInfo
+from typing import Iterable, TYPE_CHECKING
 
-STOCKHOLM = ZoneInfo("Europe/Stockholm")
-
-
-def _stockholm_today(now: datetime | date | None = None) -> date:
-    if now is None:
-        return datetime.now(STOCKHOLM).date()
-    if isinstance(now, datetime):
-        if now.tzinfo is None:
-            # Explicitly interpret legacy naïve timestamps as UTC.
-            from datetime import timezone
-            now = now.replace(tzinfo=timezone.utc)
-        return now.astimezone(STOCKHOLM).date()
-    return now
+if TYPE_CHECKING:
+    from site_cms import CmsArticle
 
 
-def weekly_ai_is_premium(article, *, now: datetime | date | None = None) -> bool:
-    """Only an edition covering the current ISO week is members-only."""
-    from thinking_weekly_brief import edition_week, is_weekly_brief
-    if not is_weekly_brief(article):
+def latest_weekly_ai_slug(published: Iterable["CmsArticle"]) -> str | None:
+    """Use the existing official weekly archive ordering and deduplication."""
+    from thinking_weekly_brief import sorted_editions
+    editions = sorted_editions(list(published))
+    return str(editions[0].slug) if editions else None
+
+
+def weekly_ai_is_premium(
+    article: "CmsArticle", *, published: Iterable["CmsArticle"] | None = None
+) -> bool:
+    """Read-only entitlement: latest published weekly issue, regardless of week.
+
+    For catalogue/archive/library renderers, supply the already fetched set.
+    Direct individual readers use the cached public CMS publication metadata.
+    If that lookup fails or is empty, fail closed for a published Weekly AI
+    rather than exposing an edition whose place in the catalogue is unknown.
+    """
+    from thinking_weekly_brief import is_weekly_brief
+    if not is_weekly_brief(article) or str(article.status).casefold() != "published":
         return False
-    year, week, _, _ = edition_week(article)
-    current_year, current_week, _ = _stockholm_today(now).isocalendar()
-    return (year, week) == (current_year, current_week)
-
-
-def weekly_ai_public_from(article) -> date:
-    """Local Monday after the edition's covered week (not a rolling 7 days)."""
-    from thinking_weekly_brief import edition_week
-    from datetime import timedelta
-    _, _, monday, _ = edition_week(article)
-    return monday + timedelta(days=7)
+    if published is None:
+        from site_cms import fetch_published_articles
+        try:
+            published = fetch_published_articles()
+        except (RuntimeError, ValueError, TimeoutError):
+            return True
+    latest = latest_weekly_ai_slug(published)
+    if latest is None:
+        return True
+    return str(article.slug) == latest

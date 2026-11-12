@@ -181,7 +181,7 @@ def _feature(article, kind: str, counts: dict[str, int] | None) -> str:
                 f'data-hq-content-slug="{slug}">Listen to this edition →</a></p>'
             )
     action_label = (
-        "Read this week's public preview" if is_current_premium
+        "Read the latest edition's public preview" if is_current_premium
         else "Read highlighted edition"
     )
     return (
@@ -213,7 +213,7 @@ def _card(article, kind: str, counts: dict[str, int] | None) -> str:
     from site_cms import article_relative_url
     from weekly_ai_reader_access import weekly_ai_is_premium
     href = escape(article_relative_url(article), quote=True)
-    status = (" · Premium this week" if weekly_ai_is_premium(article)
+    status = (" · Premium latest edition" if weekly_ai_is_premium(article)
               else " · Open access" if kind == "weekly_ai" else "")
     slug = escape(article.slug, quote=True)
     return (
@@ -301,8 +301,8 @@ def _collection(kind: str, published: tuple, counts: dict[str, int] | None) -> s
         title = "The AI week, through a leadership lens."
         description = (
             "A concise Friday perspective on relevant AI developments and their "
-            "implications for business leaders. The current week is available "
-            "in full to free Premium Readers; older weeks are public."
+            "implications for business leaders. The latest published edition is available "
+            "in full to free Premium Readers; previous editions are public."
         )
         eyebrow = "Weekly AI · Friday perspective"
         heading = "Previous editions"

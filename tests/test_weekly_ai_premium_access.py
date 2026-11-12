@@ -1,10 +1,8 @@
-"""Current ISO-week Weekly AI Premium Reader access and public archive contracts."""
+"""Latest-published Weekly AI Premium Reader contracts and regression checks."""
 from __future__ import annotations
 
-from datetime import date, datetime
 from pathlib import Path
 from unittest.mock import patch
-from zoneinfo import ZoneInfo
 import sys
 import unittest
 
@@ -14,175 +12,178 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from site_cms import CmsArticle, render_cms_article
-from weekly_ai_reader_access import weekly_ai_is_premium, weekly_ai_public_from
+from weekly_ai_reader_access import latest_weekly_ai_slug, weekly_ai_is_premium
 from weekly_ai_reader_preview import render_current_week_public_preview
 
-STOCKHOLM = ZoneInfo("Europe/Stockholm")
 
-
-def weekly(day: str = "2026-11-13") -> CmsArticle:
-    # First paragraph is substantial, but the full body must stay inaccessible
-    # to anonymous browsers during the covered Stockholm ISO week.
-    source_html = (
+def weekly(day: str = "2026-11-06") -> CmsArticle:
+    text = (
         "<h2>Business development</h2>"
-        "<p>Executive leadership has to decide which technology signals justify "
-        "business attention this week. The practical starting point is to "
-        "understand the available evidence, the changes in operating capability, "
-        "and the implications for people responsible for decisions and risk. "
-        + ("Accountability is required before changing operational commitments. " * 12)
-        + "</p>"
-        "<h2>The full collection of developments</h2>"
+        "<p>Executive leadership needs to decide which AI signals deserve "
+        "attention and what evidence supports the position. Leaders should "
+        "examine the impact on processes, ownership, capacity and risk before "
+        "committing resources or changing the way their teams work. "
+        + ("Accountability comes before deployment. " * 25)
+        + "</p><h2>The full set of developments</h2>"
         "<p>MEMBER_ONLY_WEEKLY_DETAIL_7819 "
-        + ("Further analysis and original reporting belongs to the full edition. " * 18)
+        + ("Supporting analysis belongs to the complete edition. " * 25)
         + "</p>"
     )
     return CmsArticle(
-        title="Weekly AI — Executive decisions this week",
-        slug="weekly-ai-" + day, kind="Weekly Brief", category="Weekly AI",
-        status="published", published_at=day + "T19:00:00+01:00",
-        subtitle="A decision-first perspective on the week.",
-        excerpt="What current developments may mean for enterprise AI.",
-        content_html=source_html, author_name="Jair Ribeiro",
+        title="Weekly AI — Executive decisions",
+        slug="weekly-ai-" + day,
+        kind="Weekly Brief",
+        category="Weekly AI",
+        status="published",
+        published_at=day + "T19:00:00+01:00",
+        subtitle="A decision-first weekly perspective.",
+        excerpt="What developments mean for enterprise leaders.",
+        content_html=text,
+        author_name="Jair Ribeiro",
     )
 
 
-class WeeklyAiPremiumPolicyTests(unittest.TestCase):
-    def test_current_friday_issue_is_premium_through_sunday(self):
-        issue = weekly()
+class LatestEditionPolicyTests(unittest.TestCase):
+    def setUp(self):
+        self.week43 = weekly("2026-10-23")
+        self.week44 = weekly("2026-10-30")
+        self.week45 = weekly("2026-11-06")
+        self.week46 = weekly("2026-11-13")
+
+    def test_week_45_stays_premium_without_published_week_46(self):
+        published = (self.week43, self.week44, self.week45)
+        self.assertEqual(latest_weekly_ai_slug(published), self.week45.slug)
+        self.assertTrue(weekly_ai_is_premium(self.week45, published=published))
+        self.assertFalse(weekly_ai_is_premium(self.week44, published=published))
+        self.assertFalse(weekly_ai_is_premium(self.week43, published=published))
+
+    def test_week_45_becomes_public_only_when_week_46_published(self):
+        previous = (self.week45, self.week44)
+        current = (self.week46, self.week45, self.week44)
+        self.assertTrue(weekly_ai_is_premium(self.week45, published=previous))
+        self.assertFalse(weekly_ai_is_premium(self.week45, published=current))
+        self.assertTrue(weekly_ai_is_premium(self.week46, published=current))
+
+    def test_calendar_year_rollover_does_not_unlock_latest_issue(self):
+        december = weekly("2026-12-25")
+        self.assertTrue(weekly_ai_is_premium(december, published=[december]))
+        january = weekly("2027-01-01")
+        self.assertFalse(weekly_ai_is_premium(december, published=[december, january]))
+        self.assertTrue(weekly_ai_is_premium(january, published=[december, january]))
+
+    def test_unpublished_draft_does_not_replace_latest_issue(self):
+        draft = weekly("2026-11-13")
+        draft.status = "draft"
+        # Even if the caller supplies an unfiltered mixture, the catalogue
+        # ignores drafts and keeps the latest actually published issue locked.
         self.assertTrue(weekly_ai_is_premium(
-            issue, now=datetime(2026, 11, 13, 20, tzinfo=STOCKHOLM)))
-        self.assertTrue(weekly_ai_is_premium(
-            issue, now=datetime(2026, 11, 15, 23, 59, tzinfo=STOCKHOLM)))
+            self.week45, published=[self.week44, self.week45, draft]))
         self.assertFalse(weekly_ai_is_premium(
-            issue, now=datetime(2026, 11, 16, 0, 0, tzinfo=STOCKHOLM)))
-        self.assertEqual(weekly_ai_public_from(issue), date(2026, 11, 16))
+            draft, published=[self.week44, self.week45, draft]))
 
-    def test_old_week_always_public_even_without_new_current_issue(self):
-        self.assertFalse(weekly_ai_is_premium(
-            weekly("2026-11-06"), now=datetime(2026, 11, 13, 12, tzinfo=STOCKHOLM)))
-        self.assertFalse(weekly_ai_is_premium(
-            weekly("2026-11-13"), now=datetime(2026, 12, 4, 12, tzinfo=STOCKHOLM)))
+    def test_non_weekly_content_is_never_affected(self):
+        ordinary = weekly()
+        ordinary.kind = "Article"
+        self.assertFalse(weekly_ai_is_premium(ordinary, published=[ordinary]))
 
-    def test_legacy_monday_issue_belongs_to_previous_covered_week(self):
-        issue = weekly("2026-11-09")
-        self.assertFalse(weekly_ai_is_premium(
-            issue, now=datetime(2026, 11, 9, 16, tzinfo=STOCKHOLM)))
-        self.assertEqual(weekly_ai_public_from(issue), date(2026, 11, 9))
+    def test_catalogue_lookup_failure_fails_closed(self):
+        with patch("site_cms.fetch_published_articles", side_effect=RuntimeError("offline")):
+            self.assertTrue(weekly_ai_is_premium(self.week45))
 
-    def test_iso_year_rollover_keeps_same_week_premium(self):
-        issue = weekly("2027-01-01")
-        self.assertTrue(weekly_ai_is_premium(
-            issue, now=datetime(2026, 12, 31, 23, 59, tzinfo=STOCKHOLM)))
-        self.assertTrue(weekly_ai_is_premium(
-            issue, now=datetime(2027, 1, 3, 23, 59, tzinfo=STOCKHOLM)))
-        self.assertFalse(weekly_ai_is_premium(
-            issue, now=datetime(2027, 1, 4, 0, 0, tzinfo=STOCKHOLM)))
-
-    def test_daylight_saving_week_unlocks_at_stockholm_monday(self):
-        issue = weekly("2027-03-26")
-        self.assertTrue(weekly_ai_is_premium(
-            issue, now=datetime(2027, 3, 28, 23, 59, tzinfo=STOCKHOLM)))
-        self.assertFalse(weekly_ai_is_premium(
-            issue, now=datetime(2027, 3, 29, 0, 0, tzinfo=STOCKHOLM)))
-
-    def test_only_weekly_ai_gets_calendar_week_policy(self):
-        article = weekly()
-        article.kind = "Article"
-        self.assertFalse(weekly_ai_is_premium(
-            article, now=datetime(2026, 11, 13, 12, tzinfo=STOCKHOLM)))
+    def test_empty_catalogue_does_not_open_selected_weekly_body(self):
+        self.assertTrue(weekly_ai_is_premium(self.week45, published=[]))
 
 
-class WeeklyAiPremiumRenderingTests(unittest.TestCase):
-    def test_public_preview_contains_real_excerpt_and_no_full_body_or_audio(self):
-        item = weekly()
-        html = render_current_week_public_preview(item)
+class LatestEditionRenderingTests(unittest.TestCase):
+    def setUp(self):
+        self.week44 = weekly("2026-10-30")
+        self.week45 = weekly("2026-11-06")
+        self.published = (self.week44, self.week45)
+
+    def test_credible_public_summary_excludes_body_and_audio(self):
+        html = render_current_week_public_preview(self.week45)
         self.assertIn("Public executive summary", html)
-        self.assertIn("What current developments may mean for enterprise AI.", html)
-        self.assertIn("Executive leadership has to decide", html)
-        self.assertIn("16 November 2026", html)
-        self.assertIn("?page=thinking&amp;article=weekly-ai-2026-11-13&amp;access=1", html)
+        self.assertIn("What developments mean for enterprise leaders.", html)
+        self.assertIn("Executive leadership needs to decide", html)
+        self.assertIn("once the next Weekly AI edition is published", html)
+        self.assertNotIn("Monday", html)
         self.assertNotIn("MEMBER_ONLY_WEEKLY_DETAIL_7819", html)
         self.assertNotIn("<audio", html)
         self.assertNotIn("weekly-ai-audio/", html)
+        self.assertIn("weekly-ai-2026-11-06&amp;access=1", html)
 
-    def test_anonymous_current_week_cms_reader_never_emits_complete_edition(self):
-        item = weekly()
+    def test_unauthenticated_week_45_restricted_by_published_catalogue(self):
         with (
-            patch("weekly_ai_reader_access._stockholm_today", return_value=date(2026, 11, 13)),
+            patch("site_cms.fetch_published_articles", return_value=self.published),
             patch("page_reader_native._session", return_value=(None, None)),
             patch("thinking_weekly_brief.render_weekly_brief_article") as full,
         ):
-            html = render_cms_article(item)
+            html = render_cms_article(self.week45)
         self.assertIn("Public executive summary", html)
         self.assertNotIn("MEMBER_ONLY_WEEKLY_DETAIL_7819", html)
         full.assert_not_called()
 
-    def test_authenticated_current_week_reader_gets_full_edition(self):
-        item = weekly()
+    def test_existing_reader_sees_week_45_full(self):
         with (
-            patch("weekly_ai_reader_access._stockholm_today", return_value=date(2026, 11, 13)),
-            patch("page_reader_native._session", return_value=({"access_token": "jwt"}, {"id": "reader"})),
+            patch("site_cms.fetch_published_articles", return_value=self.published),
+            patch("page_reader_native._session",
+                  return_value=({"access_token": "example"}, {"id": "reader"})),
             patch("thinking_weekly_brief.render_weekly_brief_article",
-                  return_value="VERIFIED_FULL_WEEKLY_AI") as full,
+                  return_value="FULL_WEEK45") as full,
         ):
-            html = render_cms_article(item)
-        self.assertEqual(html, "VERIFIED_FULL_WEEKLY_AI")
+            html = render_cms_article(self.week45)
+        self.assertEqual(html, "FULL_WEEK45")
         full.assert_called_once()
 
-    def test_anonymous_old_week_is_open_and_does_not_check_session(self):
-        item = weekly("2026-11-06")
+    def test_week_44_public_even_without_reader_session(self):
         with (
-            patch("weekly_ai_reader_access._stockholm_today", return_value=date(2026, 11, 13)),
-            patch("page_reader_native._session") as auth,
+            patch("site_cms.fetch_published_articles", return_value=self.published),
+            patch("page_reader_native._session") as session,
             patch("thinking_weekly_brief.render_weekly_brief_article",
-                  return_value="PUBLIC_FULL_WEEKLY_AI"),
+                  return_value="OPEN_WEEK44"),
         ):
-            html = render_cms_article(item)
-        self.assertEqual(html, "PUBLIC_FULL_WEEKLY_AI")
-        auth.assert_not_called()
+            html = render_cms_article(self.week44)
+        self.assertEqual(html, "OPEN_WEEK44")
+        session.assert_not_called()
 
-    def test_current_week_audio_cta_hidden_from_public_collection(self):
-        from thinking_collection_catalogs import _feature
-        item = weekly()
+    def test_older_week_opens_on_newer_publication_not_calendar_rollover(self):
         with (
-            patch("weekly_ai_reader_access._stockholm_today", return_value=date(2026, 11, 13)),
+            patch("site_cms.fetch_published_articles",
+                  return_value=(*self.published, weekly("2026-11-13"))),
+            patch("page_reader_native._session") as session,
+            patch("thinking_weekly_brief.render_weekly_brief_article",
+                  return_value="OPEN_WEEK45"),
+        ):
+            html = render_cms_article(self.week45)
+        self.assertEqual(html, "OPEN_WEEK45")
+        session.assert_not_called()
+
+    def test_featured_week45_hides_direct_audio_controls(self):
+        from thinking_collection_catalogs import _feature
+        with (
+            patch("site_cms.fetch_published_articles", return_value=self.published),
             patch("thinking_collection_catalogs._image_url", return_value=""),
             patch("weekly_ai_audio.audio_url") as audio,
-            patch("site_cms.article_relative_url", return_value="?page=thinking&amp;article=weekly-ai-2026-11-13"),
         ):
-            html = _feature(item, "weekly_ai", None)
-        self.assertIn("Read this week's public preview", html)
-        self.assertNotIn("Listen to this edition", html)
+            html = _feature(self.week45, "weekly_ai", None)
+        self.assertIn("Read the latest edition's public preview", html)
         audio.assert_not_called()
 
-    def test_archive_identifies_locked_week_and_open_week(self):
+    def test_archive_marks_latest_week45_premium_and_week44_open(self):
         from thinking_weekly_brief import render_weekly_brief_archive
-        with (
-            patch("weekly_ai_reader_access._stockholm_today", return_value=date(2026, 11, 13)),
-            patch("site_cms._public_reads_or_none", return_value={}),
-        ):
-            html = render_weekly_brief_archive([weekly(), weekly("2026-11-06")])
-        self.assertEqual(html.count("Current week · Premium Reader"), 1)
+        with patch("site_cms._public_reads_or_none", return_value={}):
+            html = render_weekly_brief_archive(self.published)
+        self.assertEqual(html.count("Latest edition · Premium Reader"), 1)
         self.assertIn("Open access", html)
         self.assertIn("Read the public summary", html)
-        self.assertIn("Read · 1 min", html)
 
-    def test_existing_article_and_briefing_policies_are_unchanged(self):
-        from article_access import article_is_locked
-        self.assertFalse(article_is_locked(weekly()))
-        issue = weekly()
-        issue.kind = "Executive Briefing"
-        self.assertFalse(weekly_ai_is_premium(
-            issue, now=datetime(2026, 11, 13, tzinfo=STOCKHOLM)))
-
-    def test_weekly_origin_and_consent_remain_distinct(self):
+    def test_shared_account_origin_and_consent(self):
         from reader_membership import _register_profile
-        reader = {
+        user = {
             "id": "weekly-reader", "email": "weekly@example.com",
             "user_metadata": {
                 "reader_acquisition_source": "weekly_ai",
-                "reader_editorial_opt_in": False,
-                "reader_first_name": "A",
+                "reader_editorial_opt_in": False, "reader_first_name": "A",
             },
         }
         with (
@@ -191,7 +192,7 @@ class WeeklyAiPremiumRenderingTests(unittest.TestCase):
                   side_effect=lambda *a, **kw: [kw["payload"]]),
             patch("reader_membership._log_consent") as consent,
         ):
-            profile = _register_profile({"access_token": "token"}, reader)
+            profile = _register_profile({"access_token": "token"}, user)
         self.assertEqual(profile["acquisition_source"], "weekly_ai")
         self.assertFalse(profile["newsletter_opt_in"])
         consent.assert_not_called()

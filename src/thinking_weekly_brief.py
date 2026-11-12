@@ -424,9 +424,9 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
         for article in items:
             _, week, start, end = edition_week(article)
             link = escape(article_relative_url(article), quote=True)
-            current_premium = weekly_ai_is_premium(article)
+            current_premium = weekly_ai_is_premium(article, published=editions)
             availability = (
-                "Current week · Premium Reader"
+                "Latest edition · Premium Reader"
                 if current_premium else "Open access"
             )
             action = (
@@ -463,7 +463,7 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
         '<div class="weekly-ai-label">WEEKLY AI · EVERY EDITION</div>'
         '<h1>The weekly archive.</h1>'
         '<p>One-minute leadership perspectives on AI developments and the business questions they raise. '
-        'The current-week edition is available in full to complimentary Premium Readers; '
+        'The latest published edition is available in full to complimentary Premium Readers; '
         'earlier weekly editions are open to everyone, with credited original reporting.</p>'
         '</div>' + ''.join(sections) + '</div></section></main>' + footer()
     )

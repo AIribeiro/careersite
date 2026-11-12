@@ -8,7 +8,6 @@ from briefing_reader_preview import PREVIEW_CSS, opening_paragraphs
 from site_components import footer, nav
 from thinking_core import THINKING_CSS
 from thinking_weekly_brief import WEEKLY_CSS, edition_week, _headline
-from weekly_ai_reader_access import weekly_ai_public_from
 
 
 def render_current_week_public_preview(article) -> str:
@@ -16,8 +15,7 @@ def render_current_week_public_preview(article) -> str:
     slug = escape(quote(str(article.slug or ""), safe=""), quote=True)
     title = escape(_headline(article))
     subtitle = escape(str(article.subtitle or article.excerpt or ""))
-    year, week, start, _ = edition_week(article)
-    public_from = weekly_ai_public_from(article).strftime("%-d %B %Y")
+    year, week, _, _ = edition_week(article)
     summary = str(article.excerpt or article.subtitle or "").strip()
     extracted = opening_paragraphs(str(article.content_html or ""), max_words=90)
     parts = [summary] if summary else []
@@ -37,7 +35,7 @@ def render_current_week_public_preview(article) -> str:
         '<div class="container">'
         '<a class="briefing-preview-back" href="?page=thinking#weekly-ai" target="_self">← Weekly AI</a>'
         '<span class="briefing-preview-index">Weekly AI · Week ' + str(week) + ' · ' + str(year)
-        + ' · Current-week Premium Reader edition</span>'
+        + ' · Latest edition · Premium Reader</span>'
         + '<h1>' + title + '</h1>'
         + '<p class="briefing-preview-deck">' + subtitle + '</p>'
         + '</div></section>'
@@ -52,19 +50,18 @@ def render_current_week_public_preview(article) -> str:
         '<strong>The full Weekly AI edition</strong>'
         '<p>Read the selected developments, linked original reporting and '
         'leadership implications. Listen to the narrated version when available.</p>'
-        '<p>This issue becomes publicly available on Monday '
-        + escape(public_from) + '.</p>'
+        '<p>This edition opens to everyone once the next Weekly AI edition is published.</p>'
         '</aside></div>'
         '<section class="briefing-unlock" data-analytics-section="weekly-ai-reader-free-access">'
         '<div class="briefing-unlock-inner"><div><p class="eyebrow">'
         'Premium Reader · Complimentary access</p>'
-        '<h2>Read this week’s complete perspective.</h2>'
+        '<h2>Read the complete latest perspective.</h2>'
         '<p>Use the same free account for Weekly AI, Executive AI Briefings '
         'and early access to new Articles. Editorial emails are optional.</p></div>'
         '<ul class="briefing-unlock-benefits">'
-        '<li>Read the full current-week Weekly AI</li>'
+        '<li>Read the full latest Weekly AI edition</li>'
         '<li>Access the narration when available</li>'
-        '<li>Previous weeks remain open to everyone</li>'
+        '<li>Previous editions remain open to everyone</li>'
         '</ul></div>'
         '<div class="briefing-unlock-actions">'
         '<a class="briefing-unlock-primary" href="' + target + '" target="_self" '
@@ -73,7 +70,6 @@ def render_current_week_public_preview(article) -> str:
         'target="_self" data-hq-event="weekly_ai_premium_signin">'
         'Already registered? Sign in</a>'
         '</div><p class="briefing-unlock-note">'
-        'No payment details. This week becomes open access on '
-        + escape(public_from) + '.</p>'
+        'No payment details. This edition opens publicly when the next issue is published.</p>'
         '</section></div></section></main>' + footer()
     )

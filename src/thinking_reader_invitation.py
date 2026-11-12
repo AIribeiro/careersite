@@ -86,7 +86,7 @@ def reader_invitation() -> str:
         <div class="thinking-reader-steps">
           <strong>Access at a glance</strong>
           <p>Public summaries are open to everyone. Registered readers can read
-          complete Executive AI Briefings and the latest Weekly AI and Articles.
+          complete Executive AI Briefings, the latest Weekly AI edition and new Articles.
           Earlier Weekly AI and Articles become open to everyone automatically.
           Sign up with your email or use your existing reader account.</p>
         </div>

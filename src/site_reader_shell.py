@@ -145,7 +145,7 @@ def reader_header(*, staging: bool = False) -> str:
         + '<span aria-hidden="true">/</span><span>Reader library</span></div>'
         + '<h1>Your executive reading library.</h1>'
         + '<p class="reader-intro">One complimentary Premium Reader account opens '
-        + 'complete Executive AI Briefings, this week’s full Weekly AI edition, '
+        + 'complete Executive AI Briefings, the latest full Weekly AI edition, '
         + 'and seven-day early access to new Articles. Older Articles remain open to everyone; '
         + 'so do previous Weekly AI editions. Decision frameworks and A4 infographic PDFs '
         + 'are available with briefings wherever supplied.</p>'

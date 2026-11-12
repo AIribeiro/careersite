@@ -38,3 +38,10 @@ jobs:
             echo "----- ${typ} rsend.auth.jairribeiro.com -----"
             dig @1.1.1.1 +time=3 +tries=1 +noall +answer ${typ} rsend.auth.jairribeiro.com || true
           done
+
+          echo '===== DKIM public TXT check (redacted to presence) ====='
+          for ns in resend._domainkey.auth.jairribeiro.com resend._domainkey.jairribeiro.com; do
+            echo "----- ${ns} -----"
+            answer=$(dig @1.1.1.1 +time=3 +tries=1 +short TXT "${ns}" || true)
+            if [[ -z "$answer" ]]; then echo "NOT FOUND"; else echo "PRESENT: $(printf '%s' "$answer" | cut -c1-70)..."; fi
+          done

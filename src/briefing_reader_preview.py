@@ -32,6 +32,12 @@ PREVIEW_CSS = r"""<style>
 .site .briefing-preview-copy h2{font:400 clamp(30px,3.6vw,43px)/1.17 Georgia,serif;letter-spacing:-.025em;margin:13px 0 23px;color:#142c3f}
 .site .briefing-preview-copy p {font:400 clamp(15px,1.45vw,17px)/1.82 Arial,sans-serif;color:#344653;margin:0 0 21px}
 .site .briefing-preview-copy p:last-child{margin-bottom:0}
+.site .briefing-preview-decision{margin:0 0 31px;padding:0 0 28px;border-bottom:1px solid #d6d1c8}
+.site .briefing-preview-decision h2{font:400 clamp(31px,3.8vw,45px)/1.12 Georgia,serif;color:#173348;margin:11px 0 23px}
+.site .briefing-preview-move{margin:4px 0 34px;padding:24px 28px 25px;border-left:3px solid #b86134;background:#eee6dc}
+.site .briefing-preview-move p{margin-bottom:0!important;font-weight:550}
+.site .briefing-preview-small-head{display:block;margin:0 0 12px;color:#a55e39;font:850 10px/1.5 Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase}
+.site .briefing-preview-context{padding-bottom:10px}
 .site .briefing-preview-aside {background:#e7e0d4;padding:27px 25px;border-top:3px solid #b86134}
 .site .briefing-preview-aside strong {display:block;font:800 10px/1.5 Arial,sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#a05c36}
 .site .briefing-preview-aside p {font:400 13px/1.7 Arial,sans-serif;color:#455460;margin:13px 0 0}
@@ -110,26 +116,31 @@ def opening_paragraphs(content_html: str, *, max_words: int = 300) -> tuple[str,
     total = sum(len(p.split()) for p in paragraphs)
     if not total:
         return ()
-    # A short briefing must not accidentally be published in full.
-    budget = min(max_words, max(55, int(total * .32)))
+    # Offer the actual decision, first move and at least one reason from the
+    # published edition. A preview must be credible, not a generic cliffhanger.
+    # The fraction bounds protect especially short editions from full release.
+    budget = min(max_words, 375, max(90, int(total * .38)))
     selected: list[str] = []
     count = 0
     for paragraph in paragraphs:
         words = paragraph.split()
         remaining = budget - count
-        if remaining <= 0 or len(selected) >= 5:
+        if remaining < 24 or len(selected) >= 4:
             break
         if len(words) <= remaining:
             selected.append(paragraph)
             count += len(words)
-        elif not selected:
-            # End the first paragraph at a sentence boundary when possible.
-            words = words[:remaining]
-            partial = " ".join(words).rsplit(". ", 1)[0].strip()
-            selected.append((partial + ".") if len(partial) > 60 else " ".join(words) + "…")
+            continue
+        if len(selected) >= 2:
             break
+        # For long first/second paragraphs preserve whole sentences.
+        excerpt = " ".join(words[:remaining])
+        sentence = re.search(r"^(.+[.!?])(?:\\s|$)", excerpt)
+        if sentence and len(sentence.group(1)) > 90:
+            selected.append(sentence.group(1))
         else:
-            break
+            selected.append(excerpt.rstrip(" ,;:") + "…")
+        break
     return tuple(selected)
 
 
@@ -144,8 +155,27 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
             str(article.excerpt or article.subtitle or
                 "The executive question starts with the business decision, its owner and the evidence needed before committing."),
         )
-    # No source-article HTML, PDF bytes or infographic illustration is included.
-    opening_html = "".join(f"<p>{escape(p)}</p>" for p in opening)
+    # Use precisely the editorial judgments the author published; never
+    # synthesize claims, benefits, sources, percentages or quotations.
+    decision = re.sub(r"^The Leadership Decision\\s*:?\\s*", "", opening[0], flags=re.I)
+    move = (
+        re.sub(r"^Next move\\s*:?\\s*", "", opening[1], flags=re.I)
+        if len(opening) > 1 else ""
+    )
+    context = opening[2:] if len(opening) > 2 else ()
+    decision_html = f"<p>{escape(decision)}</p>"
+    move_html = (
+        '<aside class="briefing-preview-move"><span class="briefing-preview-small-head">'
+        'A decision to put to work</span>'
+        + f"<p>{escape(move)}</p></aside>"
+        if move else ""
+    )
+    context_html = (
+        '<div class="briefing-preview-context"><span class="briefing-preview-small-head">'
+        'Why the choice is not straightforward</span>'
+        + "".join(f"<p>{escape(p)}</p>" for p in context) + '</div>'
+        if context else ""
+    )
     access_base = f"?page=briefing&amp;article={slug}&amp;access=1"
     return (
         THINKING_CSS + PREVIEW_CSS + nav("thinking")
@@ -159,8 +189,10 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
         '</div></section>'
         '<section class="briefing-preview-body" data-analytics-section="briefing-public-opening">'
         '<div class="container"><div class="briefing-preview-grid">'
-        '<article class="briefing-preview-copy"><p class="eyebrow">From the briefing</p>'
-        '<h2>The argument starts here.</h2>' + opening_html + '</article>'
+        '<article class="briefing-preview-copy"><div class="briefing-preview-decision">'
+        '<span class="briefing-preview-small-head">From the published edition</span>'
+        '<h2>The Leadership Decision</h2>' + decision_html + '</div>'
+        + move_html + context_html + '</article>'
         '<aside class="briefing-preview-aside">'
         '<strong>What comes next</strong>'
         '<p>The complete edition develops the leadership decision, trade-offs, '

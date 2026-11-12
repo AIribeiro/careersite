@@ -70,8 +70,14 @@ def mount_thinking_hourly_order() -> None:
     if (nodes.length < 2) return false;
     const parent = nodes[0].parentNode;
     if (!nodes.every(node => node.parentNode === parent)) return false;
+    // The Premium Reader invitation is a fixed part of Thinking, not a
+    // collection to rank. Anchor the editorial group immediately after it,
+    // including when Streamlit restores the DOM or analytics is unavailable.
+    const fixedReader = root.querySelector('#premium-reader-library');
+    if (!fixedReader || fixedReader.parentNode !== parent) return false;
     const currently = Array.from(parent.children).filter(node => nodes.includes(node));
-    if (currently.every((node, i) => node === nodes[i])) return true;
+    if (currently.every((node, i) => node === nodes[i]) &&
+        fixedReader.nextElementSibling === nodes[0]) return true;
 
     const observed = doc.elementFromPoint(
       Math.floor(win.innerWidth / 2), Math.floor(win.innerHeight / 2)
@@ -79,7 +85,7 @@ def mount_thinking_hourly_order() -> None:
     const inMovedSection = observed && nodes.some(node => node.contains(observed));
     const offset = inMovedSection ? observed.getBoundingClientRect().top : 0;
     const marker = doc.createComment('thinking-collection-order');
-    parent.insertBefore(marker, currently[0]);
+    parent.insertBefore(marker, fixedReader.nextSibling);
     nodes.forEach(node => parent.insertBefore(node, marker));
     marker.remove();
     if (inMovedSection && observed.isConnected) {

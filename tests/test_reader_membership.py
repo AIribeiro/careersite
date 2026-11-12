@@ -121,7 +121,7 @@ class ReaderMembershipContractTests(unittest.TestCase):
             membership,
         )
         self.assertIn(
-            'fetch(\\"/~/+/readers/session\\",',
+            'fetch("/~/+/readers/session",',
             membership,
         )
         for path in (

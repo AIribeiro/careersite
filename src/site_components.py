@@ -43,7 +43,7 @@ def nav(active: str) -> str:
 
 def footer() -> str:
     cv = f'<a href="{CV_URI}" download="{CV_DOWNLOAD_NAME}" data-hq-event="cv_download_footer">Download CV ↓</a>' if CV_URI else ""
-    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI &amp; Data · Gothenburg, Sweden · International experience.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_footer">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_footer">Medium ↗</a><a href="?page=readers" target="_self" data-hq-event="reader_library_footer">Reader PDF Library ↓</a><a href="mailto:{EMAIL}" data-hq-event="email_footer">Email</a>{cv}</div></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
+    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI &amp; Data · Gothenburg, Sweden · International experience.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_footer">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_footer">Medium ↗</a><a href="?page=briefings" target="_self" data-hq-event="briefings_footer">Executive AI Briefings →</a><a href="mailto:{EMAIL}" data-hq-event="email_footer">Email</a>{cv}</div></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
 
 
 def opportunity() -> str:

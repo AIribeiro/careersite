@@ -104,6 +104,7 @@ def _effective_mailing(
         row for row in profiles
         if row.get("newsletter_opt_in") is True
         and row.get("newsletter_consent_at")
+        and row.get("consent_notice_version")
         and not controls.get(str(row.get("user_id")), {}).get("mailing_suppressed", False)
         and controls.get(str(row.get("user_id")), {}).get("account_status", "active") == "active"
     ]
@@ -126,7 +127,7 @@ def _admin_action(token: str, user_id: str, action: str, *,
         "POST", _rest_url("rpc/portfolio_reader_admin_action_v1"),
         token=token, payload=payload, timeout=16,
     )
-    if not isinstance(result, dict):
+    if not isinstance(result, dict) or str(result.get("user_id")) != str(user_id):
         raise RuntimeError("The administrative action was not confirmed.")
     return result
 
@@ -269,11 +270,11 @@ def _reader_management(
     _profile_snapshot(p, downloads, saved, consents, control)
 
     st.markdown("#### Internal reader management")
-    with st.form("admin_reader_note_form"):
+    with st.form("admin_reader_note_form_" + user_id):
         note = st.text_area(
             "Private administrative note",
             value=str(control.get("internal_notes") or ""),
-            max_chars=10000,
+            max_chars=10000, key="admin_reader_note_" + user_id,
             help="Owner-only CRM notes. Never include passwords or authentication tokens.",
         )
         note_save = st.form_submit_button("Save private note")
@@ -285,11 +286,11 @@ def _reader_management(
         except (RuntimeError, ValueError, TimeoutError):
             st.error("The note could not be saved.")
 
-    with st.form("admin_reader_tags_form"):
+    with st.form("admin_reader_tags_form_" + user_id):
         tags = st.text_input(
             "Internal tags (comma-separated)",
             value=", ".join(control.get("tags") or []),
-            max_chars=900,
+            max_chars=900, key="admin_reader_tags_" + user_id,
             help="Use tags to prepare editorial segments. Tags do not constitute consent.",
         )
         tag_save = st.form_submit_button("Save segment tags")
@@ -310,7 +311,7 @@ def _reader_management(
         )
         confirm = st.text_input(
             "Type the reader's email to confirm an access change",
-            value="", key="admin_reader_action_confirmation",
+            value="", key="admin_reader_action_confirmation_" + user_id,
             placeholder=str(p.get("email") or ""),
         )
         confirmed = confirm.strip().casefold() == str(p.get("email") or "").strip().casefold()
@@ -319,7 +320,7 @@ def _reader_management(
             suppressed = bool(control.get("mailing_suppressed"))
             label = "Restore to eligible mailing list" if suppressed else "Suppress from mailing list"
             if st.button(label, disabled=not confirmed,
-                         key="admin_reader_mailing_action"):
+                         key="admin_reader_mailing_action_" + user_id):
                 action = "mailing_restore" if suppressed else "mailing_suppress"
                 try:
                     _admin_action(token, user_id, action)
@@ -331,7 +332,7 @@ def _reader_management(
             suspended = control.get("account_status") == "suspended"
             label = "Reinstate reader access" if suspended else "Suspend reader access"
             if st.button(label, disabled=not confirmed,
-                         key="admin_reader_account_action"):
+                         key="admin_reader_account_action_" + user_id):
                 action = "reinstate" if suspended else "suspend"
                 try:
                     _admin_action(token, user_id, action)
@@ -454,13 +455,16 @@ def render_owner_reader_management(session: dict) -> None:
         "Suspended accounts",
         sum(row.get("account_status") == "suspended" for row in flags),
     )
-    directory, mailing, changes = st.tabs([
-        "Registered readers", "Mailing list", "Admin activity",
+    directory, mailing, drafts, changes = st.tabs([
+        "Registered readers", "Mailing list", "Campaign drafts", "Admin activity",
     ])
     with directory:
         _reader_management(token, profiles, downloads, saved, consents, controls)
     with mailing:
         _mailing_workspace(profiles, controls)
+    with drafts:
+        from page_reader_campaign_drafts import render_reader_campaign_drafts
+        render_reader_campaign_drafts(token, eligible, controls)
     with changes:
         st.subheader("Owner action audit")
         st.caption(

@@ -17,6 +17,7 @@ import logging
 import os
 import re
 import time
+from html import escape as html_escape
 from urllib.parse import urlencode, urlsplit
 
 import streamlit as st
@@ -254,6 +255,19 @@ def _library(session: dict, user: dict) -> None:
         initial = next((i for i, a in enumerate(available) if a.slug == requested), 0)
         selected = st.selectbox("Select an Executive AI Briefing", list(options.keys()), index=initial)
         slug = options[selected]
+        # Return readers to the specific publication that brought them here.
+        # Staging has a standalone dispatcher, so editorial links return to
+        # the main portfolio; production stays in this same portfolio.
+        relative = "/?page=briefing&article=" + slug
+        briefing_url = (BASE_URL.rstrip("/") + relative) if _host_origin().startswith(
+            "https://jairribeiro-reader-test."
+        ) else relative
+        st.html(
+            '<div class="reader-publication-link">'
+            '<a href="' + html_escape(briefing_url, quote=True)
+            + '" target="_self">Read this briefing on the portfolio →</a>'
+            '</div>'
+        )
         if st.button("Prepare PDF", key="reader_native_prepare"):
             st.session_state["reader_native_prepared"] = slug
         if st.session_state.get("reader_native_prepared") == slug:

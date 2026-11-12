@@ -24,6 +24,9 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
 from site_cms_links import refresh_article_html
 from briefing_content_policy import validate_briefing_employer_anonymity
+from premium_article_editorial import (
+    needs_first_publication_review, premium_article_issues,
+)
 
 OWNER_EMAIL = "jair.ribeiro@outlook.it"
 TABLE = "careersite_articles"
@@ -570,6 +573,13 @@ def save_article(access_token: str, article: CmsArticle) -> CmsArticle:
         raise ValueError("Title is required.")
     if not strip_html(article.content_html):
         raise ValueError("Article body is required.")
+    if article.status == "published" and needs_first_publication_review(article):
+        issues = premium_article_issues(article)
+        if issues:
+            raise ValueError(
+                "Premium Article publication blocked. Complete the public executive "
+                "introduction before publishing: " + " ".join(issues)
+            )
     payload = _article_payload(article)
     if article.kind.strip().casefold() == "executive briefing" and article.status == "published":
         from briefing_infographic_store import has_approved_visual
@@ -633,6 +643,14 @@ def change_article_status(access_token: str, article_id: str, status: str) -> Cm
             raise RuntimeError("Briefing publication check could not read the article.")
         saved_for_review = CmsArticle.from_row(current[0])
         validate_briefing_employer_anonymity(saved_for_review)
+        if needs_first_publication_review(saved_for_review):
+            issues = premium_article_issues(saved_for_review)
+            if issues:
+                raise ValueError(
+                    "Premium Article publication blocked. Open the Content Studio "
+                    "editor and complete the public executive introduction: "
+                    + " ".join(issues)
+                )
         if saved_for_review.kind.strip().casefold() == "executive briefing":
             from briefing_infographic_store import has_approved_visual
             if not has_approved_visual(saved_for_review, access_token):

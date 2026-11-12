@@ -1,5 +1,8 @@
 """Regression checks for free registered Executive AI Briefings downloads."""
 import ast
+import os
+from unittest.mock import patch
+from urllib.parse import urlsplit
 from pathlib import Path
 import unittest
 
@@ -39,6 +42,42 @@ class ReaderMembershipContractTests(unittest.TestCase):
             self.assertIn("/readers/download/", source)
             self.assertIn('data-hq-event="briefing_reader_pdf"', source)
         self.assertNotIn("'href=\"https://raw.githubusercontent.com/", approved)
+
+    def test_auth_callback_supports_explicit_staging_streamlit_origin(self):
+        source = self._source("src/reader_membership.py")
+        tree = ast.parse(source)
+        function = next(node for node in tree.body
+                        if isinstance(node, ast.FunctionDef)
+                        and node.name == "_auth_callback_origin")
+        namespace = {
+            "os": os,
+            "urlsplit": urlsplit,
+            "BASE_URL": "https://jairribeiro-ai.streamlit.app",
+        }
+        exec(compile(ast.Module(body=[function], type_ignores=[]),
+                     "<auth_callback>", "exec"), namespace)
+        get_origin = namespace["_auth_callback_origin"]
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(
+                get_origin(), "https://jairribeiro-ai.streamlit.app")
+        with patch.dict(os.environ, {
+            "PORTFOLIO_READER_CALLBACK_ORIGIN":
+                "https://jairribeiro-reader-test.streamlit.app/"
+        }):
+            self.assertEqual(
+                get_origin(), "https://jairribeiro-reader-test.streamlit.app")
+        for malicious in (
+            "http://jairribeiro-reader-test.streamlit.app",
+            "https://evil.example",
+            "https://streamlit.app.evil.example",
+            "https://jairribeiro-reader-test.streamlit.app/path",
+            "https://jairribeiro-reader-test.streamlit.app?next=other",
+        ):
+            with self.subTest(origin=malicious), patch.dict(os.environ, {
+                "PORTFOLIO_READER_CALLBACK_ORIGIN": malicious
+            }):
+                with self.assertRaises(ValueError):
+                    get_origin()
 
     def test_download_links_escape_spaceship_masked_frame(self):
         for path in (

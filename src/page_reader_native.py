@@ -165,12 +165,16 @@ def _briefing_access_request() -> tuple[str, str]:
 def _request_email(first_name: str, email: str, subscribe: bool, returning: bool) -> None:
     target = _host_origin() + "/?page=readers"
     requested, purpose = _briefing_access_request()
+    page = "briefing" if requested else ""
+    if not requested and st.query_params.get("page") == "thinking" and st.query_params.get("access") == "1":
+        requested = _clean_slug(st.query_params.get("article", ""))
+        page, purpose = "thinking", "access"
     if requested:
         # Preserve the specific publication after email verification even
         # if the reader opens the secure link in a fresh browser tab.
         # Add same-host briefing callback patterns to the Supabase allowlist.
         target = _host_origin() + "/?" + urlencode({
-            "page": "briefing", "article": requested,
+            "page": page, "article": requested,
             "pdf" if purpose == "pdf" else "access": "1",
         })
     url = ANALYTICS_URL.rstrip("/") + "/auth/v1/otp?" + urlencode({"redirect_to": target})
@@ -178,6 +182,7 @@ def _request_email(first_name: str, email: str, subscribe: bool, returning: bool
         "reader_first_name": first_name,
         "reader_editorial_opt_in": bool(subscribe),
         "reader_notice_version": CONSENT_VERSION,
+        "reader_acquisition_source": "articles" if page == "thinking" else "briefings",
     }
     _request_json("POST", url, payload={
         "email": email, "create_user": not returning, "data": data,

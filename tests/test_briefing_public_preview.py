@@ -152,6 +152,38 @@ class BriefingPublicPreviewTests(unittest.TestCase):
         self.assertTrue(full.called)
         self.assertIn("VERIFIED_COMPLETE_EDITORIAL_CONTENT", html)
 
+    def test_edition_benefits_come_from_real_section_titles(self):
+        html = render_public_briefing_preview(self.fixture())
+        self.assertIn("Inside the complete edition", html)
+        self.assertIn("Detailed operating framework", html)
+        self.assertNotIn("Made-up case study", html)
+
+    def test_unlabelled_opening_is_not_misrepresented_as_decision(self):
+        article = self.fixture()
+        article.content_html = (
+            "<h2>Why the project stalls</h2>"
+            "<p>Unallocated specialists can slow an otherwise useful delivery. "
+            "A compelling demonstration does not establish the receiving "
+            "process, the work to stop, or the resources that must be reserved "
+            "before a dependable service can be built and maintained.</p>"
+            "<p>Ask the process owner which commitments are funded, which "
+            "staff have time reserved, and which operating work will change "
+            "when the service becomes part of normal business activity.</p>"
+            + "<p>" + ("A complete edition must supply supporting evidence. " * 30) + "</p>"
+        )
+        html = render_public_briefing_preview(article)
+        self.assertIn("<h2>The executive perspective</h2>", html)
+        self.assertNotIn("<h2>The Leadership Decision</h2>", html)
+        self.assertNotIn("A decision to put to work", html)
+
+    def test_missing_body_uses_published_summary_not_invented_claim(self):
+        article = self.fixture()
+        article.content_html = ""
+        article.excerpt = "The author's published description of this executive decision."
+        html = render_public_briefing_preview(article)
+        self.assertIn("The author&#x27;s published description", html)
+        self.assertNotIn("The executive question starts with", html)
+
     def test_markup_escaped_and_preview_short_for_short_editions(self):
         article = self.fixture()
         article.title = '<script>alert("leak")</script>'

@@ -2,13 +2,16 @@ name: Executive Briefings reader membership
 on:
   push:
     branches:
-      - feature/verified-briefings-readers-20261111
+      - feature/briefing-download-signin-dialog-20261112
   pull_request:
     paths:
       - app.py
       - main.py
       - reader_test.py
       - src/page_reader_native.py
+      - src/briefing_reader_preview.py
+      - src/site_cms.py
+      - tests/test_briefing_public_preview.py
       - src/site_reader_shell.py
       - src/site_components.py
       - src/reader_membership.py
@@ -32,5 +35,6 @@ jobs:
         run: python -m pip install -r requirements.txt
       - name: Check source syntax and reader contracts
         run: |
-          python -m compileall -q reader_test.py main.py src/page_reader_native.py src/site_reader_shell.py src/site_components.py app.py src/reader_membership.py src/reader_catalog_admin.py src/page_owner_workspaces.py src/page_executive_briefings.py src/briefing_approved_asset_renderer.py src/briefing_roi_studio.py src/briefing_authority_artwork.py
+          python -m compileall -q reader_test.py main.py src/briefing_reader_preview.py src/site_cms.py src/page_reader_native.py src/site_reader_shell.py src/site_components.py app.py src/reader_membership.py src/reader_catalog_admin.py src/page_owner_workspaces.py src/page_executive_briefings.py src/briefing_approved_asset_renderer.py src/briefing_roi_studio.py src/briefing_authority_artwork.py
           python -m unittest discover -s tests -p test_reader_membership.py -v
+          python -m unittest discover -s tests -p test_briefing_public_preview.py -v

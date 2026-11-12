@@ -43,7 +43,7 @@ class OperatingAuthorityArtworkTests(unittest.TestCase):
             "caption": "Twenty executive governance decisions.",
         })
         self.assertEqual(html.count('class="auth-download"'), 1)
-        self.assertIn('/?page=readers&download=ai-was-approved-who-can-stop-it', html)
+        self.assertIn('/?page=briefing&amp;article=ai-was-approved-who-can-stop-it', html)
         self.assertIn('data-hq-event="briefing_reader_pdf"', html)
         self.assertNotIn('25-decision', html)
         self.assertEqual(html.count('data:image/webp;base64,'), 2)

@@ -85,6 +85,15 @@ READER_SHELL_CSS = r"""
 .st-key-reader_flow [data-testid="stDivider"] {margin:13px 0!important}
 .st-key-reader_flow [data-testid="stAlert"] {border-radius:0!important}
 .st-key-reader_flow [data-testid="stSelectbox"] {max-width:100%}
+.st-key-reader_flow .reader-publication-link {margin:3px 0 19px}
+.st-key-reader_flow .reader-publication-link a {
+  display:inline-flex;min-height:41px;align-items:center;
+  color:#854a2a!important;font-size:12px;font-weight:800;
+  text-decoration:none!important;border-bottom:1px solid rgba(184,97,52,.45);
+}
+.st-key-reader_flow .reader-publication-link a:hover {
+  color:#b86134!important;border-bottom-color:#b86134;
+}
 /* Shared site stylesheet hides the native Streamlit footer. Re-show the real
    portfolio HTML footer, exactly as rendered on all other portfolio pages. */
 .reader-shell-footer footer.footer {display:block!important;}

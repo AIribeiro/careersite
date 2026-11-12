@@ -23,7 +23,9 @@ def test_thinking_sections_have_stable_anchor_ids_and_status():
     assert 'href="?page=thinking#weekly-ai"' in page
     assert 'href="?page=thinking#thinking-briefings"' in page
     assert 'href="?page=thinking#thinking-articles"' in page
-    assert "Weekly AI · Executive Briefings · Articles" in page
+    # Editorial collections have individual headings. Do not reintroduce the
+    # removed public ranking explanation above the Premium Reader section.
+    assert 'id="premium-reader-library"' in page
 
 
 def test_weekly_ai_injection_has_the_expected_third_section_anchor():
@@ -120,7 +122,10 @@ def test_hour_to_year_priority_and_validation_are_explicit():
     assert "return kinds.indexOf(a) - kinds.indexOf(b)" in source
     assert "Number.isSafeInteger(value)" in source
     assert "counts.size !== 3" in source
-    assert "const allTied = metrics.every" in source
+    # Equal vectors fall through the comparator to the stable kind order;
+    # no separate allTied computation is needed.
+    assert "return kinds.indexOf(a) - kinds.indexOf(b)" in source
+    assert "root.querySelector('#premium-reader-library')" in source
 
 
 def test_calendar_windows_rpc_is_committed_and_does_not_reveal_raw_data():

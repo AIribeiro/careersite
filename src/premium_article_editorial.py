@@ -7,6 +7,7 @@ These checks do not claim to protect underlying public CMS API responses.
 from __future__ import annotations
 
 from html.parser import HTMLParser
+import re
 
 ARTICLE_FORMATS = frozenset({
     "article", "point of view", "decision note", "field note", "framework",
@@ -55,6 +56,40 @@ def opening_editorial_paragraphs(content_html: str) -> tuple[str, ...]:
     return tuple(parser.paragraphs)
 
 
+def public_intro_preview_paragraphs(content_html: str, max_words: int = 160) -> tuple[str, ...]:
+    """Bound the public Article preview to paragraphs before the first heading.
+
+    Unlike generic briefing extraction, this never reaches a paragraph from the
+    later Premium analysis. The excerpt is displayed separately by the reader.
+    """
+    paragraphs = opening_editorial_paragraphs(content_html)
+    if not paragraphs:
+        return ()
+    plain_body = re.sub(r"<[^>]*>", " ", content_html or "")
+    total_words = len(plain_body.split())
+    budget = min(max_words, max(45, int(total_words * 0.34)), max(0, total_words - 1))
+    remaining = budget
+    selected: list[str] = []
+    for paragraph in paragraphs[:3]:
+        words = paragraph.split()
+        if remaining < 18:
+            break
+        if len(words) <= remaining:
+            selected.append(paragraph)
+            remaining -= len(words)
+            continue
+        fragment = " ".join(words[:remaining])
+        # Prefer a complete sentence where possible, without taking a paragraph
+        # from the restricted section just to finish the preview.
+        boundary = re.search(r"^(.+[.!?])(?:\\s|$)", fragment)
+        if boundary and len(boundary.group(1)) > 70:
+            selected.append(boundary.group(1))
+        else:
+            selected.append(fragment.rstrip(" ,;:") + "…")
+        break
+    return tuple(selected)
+
+
 def needs_first_publication_review(article) -> bool:
     """Do not impose new requirements on historic drafts or published work."""
     if not is_editorial_format(getattr(article, "kind", "")):
@@ -88,6 +123,11 @@ def premium_article_issues(article) -> tuple[str, ...]:
     paragraphs = opening_editorial_paragraphs(
         str(getattr(article, "content_html", "") or "")
     )
+    if not re.search(r"<h[23]\\b", str(getattr(article, "content_html", "") or ""), re.I):
+        issues.append(
+            "Add a meaningful section heading after the public opening to "
+            "separate it from the deeper Premium analysis."
+        )
     if len(paragraphs) < 2:
         issues.append(
             "Start the article with at least two complete public-facing paragraphs "

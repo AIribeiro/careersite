@@ -43,10 +43,10 @@ def reader_invitation() -> str:
       <div class="container">
         <span class="thinking-reader-kicker">Premium Reader library · Complimentary access</span>
         <div class="thinking-reader-intro">
-          <h2 id="thinking-reader-heading">The summary is the starting point. The reasoning is where the value sits.</h2>
-          <p>A public preview helps you judge whether a topic is relevant.
-          If it is, the reader library gives you the complete perspective,
-          practical decision material and a place to return to what matters.</p>
+          <h2 id="thinking-reader-heading">An executive summary frames the issue. The full edition examines the trade-offs.</h2>
+          <p>Use the public preview to assess the question at hand. If it deserves
+          more attention, the library brings together the full reasoning,
+          practical considerations and supporting material for your next discussion.</p>
         </div>
         <div class="thinking-reader-benefits">
           <article class="thinking-reader-benefit">

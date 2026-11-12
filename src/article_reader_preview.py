@@ -1,4 +1,4 @@
-"""Credible public executive summaries for seven-day exclusive Articles.
+"""Credible public executive summaries for Premium editorial Articles.
 
 Only published excerpts and bounded opening text are rendered for anonymous
 readers. No article body HTML or private editorial assets enter the DOM.
@@ -11,7 +11,7 @@ from urllib.parse import quote
 from briefing_reader_preview import PREVIEW_CSS, opening_paragraphs, next_edition_sections
 from site_components import footer, nav
 from thinking_core import THINKING_CSS
-from article_access import unlock_label
+from article_access import public_access_explanation
 
 
 def render_public_article_preview(article, read_metadata: str = "") -> str:
@@ -42,7 +42,7 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         "<p>The full argument, supporting evidence and practical implications.</p>"
     )
     destination = "?page=thinking&amp;article=" + escape(slug, quote=True) + "&amp;access=1"
-    available = escape(unlock_label(article))
+    public_rule = escape(public_access_explanation(article))
 
     return (
         THINKING_CSS + PREVIEW_CSS + nav("thinking")
@@ -50,7 +50,7 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         '<section class="briefing-preview-hero" data-analytics-section="article-early-access-intro">'
         '<div class="container"><a class="briefing-preview-back" href="?page=thinking" target="_self">'
         '← All Articles</a>'
-        '<span class="briefing-preview-index">Article · Seven-day early access</span>'
+        '<span class="briefing-preview-index">Article · Premium Reader edition</span>'
         f'<h1>{title}</h1><p class="briefing-preview-deck">{subtitle}</p>'
         f'<div class="briefing-preview-meta">{escape(str(read_metadata))} · By Jair Ribeiro</div>'
         '</div></section>'
@@ -62,19 +62,19 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         + body + '</div></article>'
         '<aside class="briefing-preview-aside">'
         '<strong>Inside the complete article</strong>' + inside
-        + f'<p>Open to everyone from {available}.</p>'
+        + f'<p>{public_rule}</p>'
         '</aside></div>'
         '<section class="briefing-unlock" data-analytics-section="article-reader-free-access">'
         '<div class="briefing-unlock-inner"><div><p class="eyebrow">'
         'Complimentary registered-reader access</p>'
         '<h2>Read the complete article now.</h2>'
         '<p>Get the complete reasoning, practical implications and references '
-        'during the seven-day early-access period. One free account also '
-        'opens every Executive AI Briefing.</p></div>'
+        'without waiting for the public release. One free account also '
+        'opens every Executive AI Briefing and the latest Weekly AI edition.</p></div>'
         '<ul class="briefing-unlock-benefits">'
         '<li>Read the complete article immediately</li>'
         '<li>Use one account across Articles and Executive AI Briefings</li>'
-        f'<li>Open to all readers from {available}</li>'
+        '<li>Older Articles open once a successor is published and seven days have passed</li>'
         '</ul></div><div class="briefing-unlock-actions">'
         f'<a class="briefing-unlock-primary" href="{destination}" target="_self" '
         'data-hq-event="article_unlock_register">Read full article · Free</a>'

@@ -6,6 +6,8 @@ on:
       - main.py
       - src/article_access.py
       - src/article_reader_preview.py
+      - src/premium_article_editorial.py
+      - src/page_admin.py
       - src/thinking_reader_invitation.py
       - src/thinking_landing.py
       - src/site_reader_shell.py
@@ -14,6 +16,7 @@ on:
       - src/site_cms.py
       - src/page_owner_reader_management.py
       - tests/test_article_early_access.py
+      - tests/test_premium_article_cms.py
       - tests/test_thinking_premium_reader.py
       - .github/workflows/article-early-access.yml
   workflow_dispatch:
@@ -32,9 +35,11 @@ jobs:
       - name: Install runtime dependencies
         run: pip install -r requirements.txt
       - name: Check Python syntax
-        run: python -m compileall -q main.py src/article_access.py src/article_reader_preview.py src/page_reader_native.py src/reader_membership.py src/site_cms.py src/page_owner_reader_management.py
+        run: python -m compileall -q main.py src/article_access.py src/article_reader_preview.py src/premium_article_editorial.py src/page_admin.py src/page_reader_native.py src/reader_membership.py src/site_cms.py src/page_owner_reader_management.py
       - name: Verify Article expiry, preview, shared account and open-access tests
         run: python -m unittest discover -s tests -p test_article_early_access.py -v
+      - name: Verify owner CMS Premium Article authoring and preview
+        run: python -m unittest discover -s tests -p test_premium_article_cms.py -v
       - name: Check existing Executive AI Briefings preview remains unchanged
         run: python -m unittest discover -s tests -p test_briefing_public_preview.py -v
       - name: Verify Thinking Premium Reader copy, links and library shell

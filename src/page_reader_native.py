@@ -668,8 +668,8 @@ def _library(session: dict, user: dict) -> None:
     st.markdown("### Your Executive AI Briefings library")
     st.write(
         ("Welcome, " + first + ". " if first else "")
-        + "Your verified reader access unlocks every published complete edition "
-        + "and its infographic wherever available."
+        + "Your verified reader access unlocks every Executive AI Briefing "
+        + "and early access to Articles during their first seven days."
     )
     st.caption("Signed in as " + str(user.get("email") or ""))
     st.caption(
@@ -720,9 +720,48 @@ def _library(session: dict, user: dict) -> None:
         f"{len(unique_downloads)} previously downloaded PDFs"
     )
 
-    all_tab, saved_tab, pdf_tab, profile_tab = st.tabs([
-        "All briefings", "Saved", "My PDFs", "My profile",
+    all_tab, articles_tab, saved_tab, pdf_tab, profile_tab = st.tabs([
+        "All briefings", "Articles", "Saved", "My PDFs", "My profile",
     ])
+    with articles_tab:
+        from article_access import is_editorial_article, article_is_locked, unlock_label
+        try:
+            editorial = [
+                item for item in fetch_published_articles()
+                if is_editorial_article(item) and _clean_slug(str(item.slug))
+            ]
+        except (RuntimeError, ValueError, TimeoutError):
+            editorial = []
+            st.warning("The Articles catalogue is temporarily unavailable.")
+        editorial.sort(key=lambda a: str(a.published_at or ""), reverse=True)
+        st.markdown("#### Articles · Early access and open editions")
+        st.caption(
+            "All published Articles are available here. The newest editions "
+            "are exclusive to signed-in readers for seven days, then open to everyone."
+        )
+        if editorial:
+            page_size = 6
+            pages = (len(editorial) + page_size - 1) // page_size
+            current = (
+                st.selectbox("Article pages", range(pages),
+                             format_func=lambda i: f"Page {i + 1} of {pages}",
+                             key="reader_articles_page")
+                if pages > 1 else 0
+            )
+            for item in editorial[int(current) * page_size:(int(current) + 1) * page_size]:
+                slug = _clean_slug(str(item.slug))
+                with st.container(border=True):
+                    st.markdown("#### " + str(item.title))
+                    st.write(str(item.subtitle or item.excerpt or ""))
+                    st.caption(
+                        ("Exclusive early access · Opens publicly " + unlock_label(item))
+                        if article_is_locked(item) else "Open to everyone"
+                    )
+                    if st.button("Read full article", key="reader_article_open_" + slug):
+                        st.query_params.from_dict({"page": "thinking", "article": slug})
+                        st.rerun()
+        else:
+            st.info("No Articles are available at the moment.")
     with all_tab:
         st.markdown("#### Complete Executive AI Briefings")
         st.caption("Every published edition is available with this verified account.")

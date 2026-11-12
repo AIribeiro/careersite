@@ -63,7 +63,7 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance"}
+PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -88,6 +88,7 @@ TITLES = {
     "thinking": "Articles & Perspectives | Jair Ribeiro",
     "briefings": "Executive AI Briefings | Jair Ribeiro",
     "briefing": "Executive AI Briefing | Jair Ribeiro",
+    "readers": "Executive AI Briefings Reader Library | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
     "contact": "Contact | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
@@ -125,7 +126,14 @@ if LEGACY_PRESENCE_LINK or LEGACY_CREDENTIALS_LINK:
 if LEGACY_LENS_LINK:
     st.query_params["page"] = "impact"
 
-if PAGE == "analytics":
+if PAGE == "readers":
+    # Native forms and downloads travel through Streamlit's supported widget
+    # channel. Community Cloud currently returns 500 on the separate Starlette
+    # HTML POST routes, so reader signup never invokes those routes.
+    # Do not mount page analytics before one-time token hashes are consumed.
+    from page_reader_native import render_reader_native
+    render_reader_native()
+elif PAGE == "analytics":
     # Heavy, authenticated analytics dependencies are not imported for public pages.
     from page_analytics_v2 import render_analytics_dashboard
     render_analytics_dashboard()

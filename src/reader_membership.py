@@ -243,7 +243,6 @@ footer a{margin-right:16px}
 
 
 def _login(request, *, notice: str = "") -> Response:
-    next_slug = _target(request)
     # Submit to the currently open Cloud-proxied URL. This avoids the
     # forwarding layer rewriting an explicit action into /readers/request.
     description = (

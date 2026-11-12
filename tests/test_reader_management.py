@@ -46,13 +46,16 @@ class ReaderManagementTests(unittest.TestCase):
     def test_mailing_eligibility_requires_explicit_optin_timestamp(self):
         readers = [
             {"user_id": "a", "email": "eligible@example.com",
-             "newsletter_opt_in": True, "newsletter_consent_at": "2026-11-12"},
+             "newsletter_opt_in": True, "newsletter_consent_at": "2026-11-12",
+             "consent_notice_version": "2026-11-reader-v1"},
             {"user_id": "b", "email": "no-consent@example.com",
              "newsletter_opt_in": False, "newsletter_consent_at": None},
             {"user_id": "c", "email": "suppressed@example.com",
-             "newsletter_opt_in": True, "newsletter_consent_at": "2026-11-12"},
+             "newsletter_opt_in": True, "newsletter_consent_at": "2026-11-12",
+             "consent_notice_version": "2026-11-reader-v1"},
             {"user_id": "d", "email": "suspended@example.com",
-             "newsletter_opt_in": True, "newsletter_consent_at": "2026-11-12"},
+             "newsletter_opt_in": True, "newsletter_consent_at": "2026-11-12",
+             "consent_notice_version": "2026-11-reader-v1"},
             {"user_id": "e", "email": "no-timestamp@example.com",
              "newsletter_opt_in": True, "newsletter_consent_at": None},
         ]
@@ -83,7 +86,8 @@ class ReaderManagementTests(unittest.TestCase):
 
     def test_admin_mutations_call_atomic_audited_rpc_only(self):
         with patch("page_owner_reader_management._request_json",
-                   return_value={"account_status": "suspended"}) as request:
+                   return_value={"account_status": "suspended",
+                                 "user_id": "00000000-0000-0000-0000-000000000002"}) as request:
             _admin_action("owner-token", "00000000-0000-0000-0000-000000000002",
                           "suspend")
             self.assertIn("rpc/portfolio_reader_admin_action_v1",

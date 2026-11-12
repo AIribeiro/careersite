@@ -1454,6 +1454,20 @@ def render_cms_article(article: CmsArticle) -> str:
 </style>'''
 
     if article.kind == "Executive Briefing":
+        # Withhold the full edition *before* generating HTML for an anonymous
+        # browser. Never render the complete CMS body and merely hide it with
+        # CSS, HTML details, or an overlay: that leaks all editorial content.
+        from page_reader_native import _session
+        reader_session, reader_identity = _session()
+        if not reader_session or not reader_identity:
+            from briefing_reader_preview import render_public_briefing_preview
+            from briefing_related_navigation import insert_related_navigation
+            preview = render_public_briefing_preview(article, read_metadata)
+            try:
+                recommendations = fetch_published_articles()
+            except (RuntimeError, ValueError, TimeoutError):
+                recommendations = ()
+            return insert_related_navigation(preview, article, recommendations)
         # Preserve CMS publication and sources, but offer a concise executive
         # decision view before optional supporting depth.
         from page_executive_briefings import executive_briefing_article

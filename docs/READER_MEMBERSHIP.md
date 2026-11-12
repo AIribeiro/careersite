@@ -1,12 +1,12 @@
 # Executive AI Briefings — verified reader membership
 
-Status (12 November 2026): **staging only — do not merge or enable public registration yet**. Supabase reader tables and per-user RLS policies are deployed. The registration and download experience now uses **native Streamlit widgets** because Streamlit Community Cloud returned HTTP 500 for custom Starlette HTML POST requests even when no data was submitted. Streamlit Cloud startup logs also rejected the old `server.useStarlette` option and reported that the `streamlit[starlette]` package extra does not exist; both were removed.
+Status (12 November 2026): **production integration candidate — pending final rollout checks**. Supabase reader tables and per-user RLS policies are deployed. The registration and download experience now uses **native Streamlit widgets** because Streamlit Community Cloud returned HTTP 500 for custom Starlette HTML POST requests even when no data was submitted. Streamlit Cloud startup logs also rejected the old `server.useStarlette` option and reported that the `streamlit[starlette]` package extra does not exist; both were removed.
 
 ## Staging URL
 
-Use **https://jairribeiro-reader-test.streamlit.app/** (no query parameters required).
+Use **https://jairribeiro-reader-test.streamlit.app/?page=readers** for the integrated reader route. The staging root now correctly shows the complete portfolio.
 
-**Temporary staging launch switch:** The existing Cloud deployment was created with `app.py` as its entrypoint. Streamlit Cloud does not support editing that entry file in Settings. On this draft PR branch alone, `app.py` now launches `reader_test.py`, bypassing the portfolio Home dispatcher. **Before merging PR #54, revert `App("reader_test.py")` to `App("main.py")` and verify that the production reader route `/?page=readers` works.** Keeping the staging override at merge would replace the public portfolio Home page with the signup portal.
+**Normal portfolio entrypoint restored:** `app.py` launches `main.py`, not the isolated reader-only app. The integrated reader route is `/?page=readers`, and `reader_test.py` remains an optional standalone local/CI test harness. Verify that staging `/` shows Home and staging `/?page=readers` shows the native reader with the portfolio navigation, footer and contextual briefing links.
 
 Do not test `/readers/login`, `/~/+/readers/login`, or `/readers/request` for registration. Those legacy ASGI GET/POST paths were abandoned as a sign-in mechanism. Native Streamlit `st.form` posts through Streamlit's regular widget connection and sends Auth requests to Supabase from Python, so Community Cloud does not have to process a custom HTTP POST.
 
@@ -62,10 +62,12 @@ https://supabase.com/dashboard/project/rnqweoxtynelfirffmlr/auth/url-configurati
 2. Add **Redirect URLs**:
    - `https://jairribeiro-reader-test.streamlit.app/?page=readers`
    - `https://jairribeiro-ai.streamlit.app/?page=readers`
-3. Keep existing URLs needed by other live Auth flows. The staging launcher
-   explicitly pins `PORTFOLIO_READER_CALLBACK_ORIGIN` to
-   `https://jairribeiro-reader-test.streamlit.app`, and the app calls
-   `POST /auth/v1/otp?redirect_to=<percent-encoded staging reader URL>`.
+3. Keep existing URLs needed by other live Auth flows. The standalone `reader_test.py` launcher explicitly pins its staging callback;
+   the deployed integrated `main.py` instead reads the root-level Streamlit
+   secret `PORTFOLIO_READER_CALLBACK_ORIGIN` on staging and defaults to the
+   production portfolio origin if omitted. Ensure the staging Cloud secret is
+   configured, and the app calls `POST /auth/v1/otp?redirect_to=` with its
+   percent-encoded reader URL.
 
 In **Authentication → Email Templates** configure **both** *Confirm signup* and
 *Magic Link / OTP* to **not** use `{{ .SiteURL }}` or
@@ -89,7 +91,7 @@ attribute because the base redirect already includes `?page=readers`.
 
 **Staging retest:** Since the first confirmation may already have been
 consumed, choose *I already have an account* at
-https://jairribeiro-reader-test.streamlit.app/ and request a fresh email.
+https://jairribeiro-reader-test.streamlit.app/?page=readers and request a fresh email.
 Then use the displayed six-digit code (simplest) or follow the updated link.
 Never post a live code, token hash, session key or full magic link into a chat.
 The final test is that the verified user's actual Streamlit session opens the
@@ -125,9 +127,9 @@ one-click link; do not introduce an insecure faux-four-digit OTP or disable
 email confirmation. A shorter code is an unresolved product request, not an
 implemented feature.
 
-**Do not merge** until visual QA on phone/desktop, returning-reader sign-in,
-actual PDF download and security/CI checks are completed. Revert the staging
-`app.py` entrypoint override to `App("main.py")` before merge.
+The temporary `app.py` staging entrypoint override has been removed. Merge
+only after relevant reader tests, QA on desktop/mobile, authenticated PDF
+retrieval and production redirect configuration are checked.
 
 ## Reader contract
 
@@ -143,7 +145,7 @@ actual PDF download and security/CI checks are completed. Revert the staging
 
 ## Required smoke tests before merging
 
-1. Open the test app root `/` directly after Streamlit Cloud refreshes the branch. Confirm the first visible page is the native **Take the briefings with you** registration form, not the portfolio Home page, and there are no legacy HTTP 500 errors.
+1. Open staging root `/` and confirm the normal portfolio Home. Open `/?page=readers` and confirm the native **Take the briefings with you** page inside shared site navigation, with the original footer and no legacy HTTP POST errors.
 2. In Supabase check SMTP and configure both email templates. Register using a **new email address you control**, leaving optional editorial permission unchecked. Click "Send my secure access email". You should see "Check your inbox" instead of an HTTP 500 page.
 3. Open the email's link, or enter its one-time code in the original tab. The browser should render the reader library after Supabase confirms the token.
 4. Choose a published Executive AI Briefing, click "Prepare PDF" and then "Download A4 infographic". Confirm a real PDF downloads.
@@ -152,4 +154,4 @@ actual PDF download and security/CI checks are completed. Revert the staging
 7. Verify that other ordinary readers cannot view one another's records. Review the owner directory and CSV.
 8. Complete privacy notice details (controller, contact, retention, deletion rights, appropriate legal bases and processors), review CI, and merge only after successful staging tests.
 
-The previous Starlette routes are **not** authoritative for new sign-in. Native Streamlit `/?page=readers` is the only supported reader entry point in this branch. Do not merge PR #54 or use public registrations until the above checks pass.
+The previous Starlette routes are **not** authoritative for new sign-in. Native Streamlit `/?page=readers` is the supported reader entry point. Keep incomplete checks and release blockers explicit in the PR; never treat unrelated CI failures as passing.

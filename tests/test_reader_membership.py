@@ -50,12 +50,34 @@ class ReaderMembershipContractTests(unittest.TestCase):
         app = AppTest.from_file(str(ROOT / "reader_test.py"), default_timeout=30).run()
         self.assertFalse(app.exception, [str(x.message) for x in app.exception])
         self.assertTrue(
-            any("Take the briefings with you" in x.value for x in app.title),
-            "Standalone staging app must render the reader rather than Home",
+            any("Reader status" in str(x.label) for x in app.radio),
+            "Standalone staging app must render native reader sign-in controls",
         )
         self.assertTrue(
             any("Email address" in str(x.label) for x in app.text_input),
         )
+
+    def test_reader_reuses_actual_portfolio_shell_and_safe_token_order(self):
+        native = self.source("src/page_reader_native.py")
+        shell = self.source("src/site_reader_shell.py")
+        stage = self.source("reader_test.py")
+        self.assertIn("from site_components import footer, nav", shell)
+        self.assertIn('nav("thinking")', shell)
+        self.assertIn('footer()', shell)
+        self.assertIn("CSS + IMAGE_CSS + READER_SHELL_CSS", shell)
+        self.assertIn("reader-hero", shell)
+        self.assertIn("reader-shell-footer", shell)
+        self.assertIn('layout="wide"', stage)
+        self.assertIn('st.container(key="reader_flow")', native)
+        self.assertIn("st.html(reader_header(staging=staging))", native)
+        self.assertIn("st.html(reader_footer())", native)
+        self.assertLess(
+            native.index("    _consume_query_verification()", native.index("def render_reader_native")),
+            native.index("    st.html(reader_header", native.index("def render_reader_native")),
+            "One-time email tokens must be removed before logo and other media load",
+        )
+        self.assertIn('top.replace(\'href="?page=\'', shell)
+        self.assertIn("https://jairribeiro-reader-test.", native)
 
     def test_native_reader_is_public_page_with_no_post_proxy(self):
         main = self.source("main.py")

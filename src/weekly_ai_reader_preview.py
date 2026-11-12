@@ -70,6 +70,6 @@ def render_current_week_public_preview(article) -> str:
         'target="_self" data-hq-event="weekly_ai_premium_signin">'
         'Already registered? Sign in</a>'
         '</div><p class="briefing-unlock-note">'
-        'No payment details. This edition opens publicly when the next issue is published.'</p>'
+        'No payment details. This edition opens publicly when the next issue is published.</p>'
         '</section></div></section></main>' + footer()
     )

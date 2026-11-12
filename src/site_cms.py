@@ -1680,7 +1680,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
 
     cards = []
     for article in listed_articles:
-        access_label = " · Early access" if article_is_locked(article, published=published) else " · Open access"
+        access_label = " · Premium Reader" if article_is_locked(article, published=published) else " · Open access"
         thumb = ""
         card_header_url = article.header_image_url
         if card_header_url:

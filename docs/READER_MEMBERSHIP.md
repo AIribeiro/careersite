@@ -1,57 +1,69 @@
-# Executive AI Briefings — registered reader membership
+# Executive AI Briefings — verified reader membership
 
-Status: feature branch in review, Supabase reader tables/policies already applied. Do not merge until auth callback and transactional email are verified.
+Status (12 November 2026): **staging only — do not merge or enable public registration yet**. Supabase reader tables and per-user RLS policies are deployed. The registration and download experience now uses **native Streamlit widgets** because Streamlit Community Cloud returned HTTP 500 for custom Starlette HTML POST requests even when no data was submitted. Streamlit Cloud startup logs also rejected the old `server.useStarlette` option and reported that the `streamlit[starlette]` package extra does not exist; both were removed.
 
-## Editorial contract
-- Full public briefing stays readable and indexed.
-- Approved A4 infographic PDFs require free verified reader sign-in; one account for all editions.
-- Name/email registration is separate from the optional, unchecked newsletter box.
-- No newsletter sending automation and no paid membership yet.
-- Existing owner CMS account stays independent.
+## Staging URL
 
-## Streamlit Community Cloud route prefix
-Cloud proxies custom Starlette routes through **`/~/+/`**. The actual Starlette route declarations remain unprefixed because the proxy strips the prefix, but browser-visible form actions, fetch calls, link targets, redirect Location headers and Supabase callback URLs **must** use `/~/+/`. For example, registration is at `https://jairribeiro-reader-test.streamlit.app/~/+/readers/login`. The signup and returning-reader forms submit back to their current prefixed URLs using `method="post"` without an explicit action; `/~/+/readers/request` remains supported for legacy forms, but new pages must not submit to `/readers/request`. Root URLs `/readers/login` or `/readers/request` do not serve the custom routes and must never be linked from the frontend.
+Use **https://jairribeiro-reader-test.streamlit.app/?page=readers**.
 
-The staged callback is `https://jairribeiro-reader-test.streamlit.app/~/+/readers/confirm` (and `?next=*` for briefing links). The production callback will be `https://jairribeiro-ai.streamlit.app/~/+/readers/confirm` (and `?next=*`). Preserve the original non-prefixed redirect allowlist entries for backward compatibility but add these exact new entries in Supabase Authentication > URL Configuration.
+Do not test `/readers/login`, `/~/+/readers/login`, or `/readers/request` for registration. Those legacy ASGI GET/POST paths were abandoned as a sign-in mechanism. Native Streamlit `st.form` posts through Streamlit's regular widget connection and sends Auth requests to Supabase from Python, so Community Cloud does not have to process a custom HTTP POST.
 
-For the separate test deployment, add a **root-level Streamlit secret** `PORTFOLIO_READER_CALLBACK_ORIGIN = "https://jairribeiro-reader-test.streamlit.app"`. The application assembles the Cloud route prefix; do not include `/~/+/` in this secret. Keep the default production callback on the canonical Streamlit origin.
+## Streamlit test app configuration
 
-## Routes
-- /readers/login?next=slug — first-time registration
-- /readers/signin — returning reader
-- /readers/request — OTP email link (POST)
-- /readers/confirm — email-link callback
-- /readers/session — token exchange / HttpOnly cookie (POST)
-- /readers/library — available download collection
-- /readers/preferences — name and editorial subscription choice
-- /readers/privacy — reader-specific notice
-- /readers/signout — session revoke (POST)
-- /readers/download/slug.pdf — verified user, published article, approved PDF
-- /readers-admin — owner-only reader directory
-- /readers-admin/export.csv — owner-only CSV export
+Repository: `AIribeiro/careersite`  
+Branch: `feature/verified-briefings-readers-20261111`  
+Entry point: `app.py`  
+Streamlit secret at the **root** of the TOML:
 
-Legacy /briefing-artwork/slug/download.pdf, /briefing-ai-roi/infographic.pdf and
-/briefing-ai-authority/infographic.pdf redirect to the reader route. SVG/WebP image views remain public.
+```toml
+PORTFOLIO_READER_CALLBACK_ORIGIN = "https://jairribeiro-reader-test.streamlit.app"
+```
 
-## Mandatory go-live checklist
-1. Supabase Authentication > URL Configuration: allow `https://jairribeiro-ai.streamlit.app/~/+/readers/confirm` and `https://jairribeiro-ai.streamlit.app/~/+/readers/confirm?next=*`; for the staging app, add the matching `jairribeiro-reader-test.streamlit.app` URLs.
-2. Configure custom transactional SMTP for public account verification, sender domain SPF/DKIM/DMARC and monitor delivery/rate limits. Built-in shared email service is too limited.
-3. Confirm magic-link implicit callback contains a refresh_token URL fragment and email verification is enabled. Adapt code if your Supabase Auth project uses PKCE or a different email template.
-4. Check Streamlit env Supabase URL and publishable key. Do not expose service-role credentials.
-5. Test new reader, returning reader, consent opt-in and opt-out, existing reader preferences, signup email replay/expiry, and downloads. Start at `/~/+/readers/login`; the new reader form should POST back to that same URL, remain under `/~/+/`, and show 'Check your inbox'. Then confirm the email callback, session POST and PDF downloads also preserve `/~/+/`.
-6. Test anonymous PDF requests redirect to registration; authenticated PDF requests return real application/pdf bytes; stale/invalid editions fail closed.
-7. Test owner CMS sign-in still works and reader admin directory / CSV work. Test ordinary readers cannot see other users or owner directory.
-8. Confirm privacy notice: controller, contact, lawful bases, processor countries, data retention, deletion and data subject access. No marketing without opt-in.
-9. Review the tests and CI, remove draft status, merge, then monitor first production events.
+Keep existing Supabase URL and publishable key settings from the production app. No service role or Supabase secret key is required in the browser. Never print or send these secret values to a third party.
 
-## Database
-Already applied:
-- portfolio_free_briefings_readers_v1: reader profiles, downloads and consent audit (RLS self-only for authenticated readers).
-- portfolio_reader_owner_catalog_v1: signed owner-only SELECT on profiles/downloads/consent audit.
+## Supabase Auth email configuration — mandatory for automatic sign-in
 
-The reader catalog is currently read-only. It records completed authenticated HTTP download requests, rather than anonymous clicks. No external email campaigns are enabled.
+In [Supabase Auth Email Templates](https://supabase.com/dashboard/project/rnqweoxtynelfirffmlr/auth/templates), update **both** authentication templates **Confirm signup** and **Magic Link / OTP** to link to the Streamlit reader page instead of the obsolete /readers/confirm route. The critical template expression is:
 
-## Limits and future monetization
-The PDFs are still included in the public GitHub repository. Registration therefore provides an orderly audience relationship and download flow but is **not copy protection**: raw files can be found without creating an account. For future premium paywalled downloads, place the assets in a private bucket and enforce server-side entitlement before returning short-lived signed URLs. Removing a file from current GitHub source does not erase earlier public commits.
+```html
+<p><a href="{{ .RedirectTo }}&amp;token_hash={{ .TokenHash }}&amp;type=email">
+  Verify my email and open the reader library
+</a></p>
+<p>Or enter this one-time code in the reader page: <strong>{{ .Token }}</strong></p>
+```
 
-Registration code is not yet live until this PR is merged. Production SMTP and auth redirect settings are outside the available connector controls and require manual configuration.
+`{{ .RedirectTo }}` is provided by the Python app as `https://jairribeiro-reader-test.streamlit.app/?page=readers` on staging or `https://jairribeiro-ai.streamlit.app/?page=readers` after production release. The `&amp;` above is for HTML: it is parsed as `&` in the resulting link.
+
+The user can click the link or manually enter the OTP code. Both flows call Supabase Auth `/auth/v1/verify` from Python and validate `/auth/v1/user`. The one-time token hash is removed from Streamlit query parameters before the private session is shown. Confirm the Supabase Email provider and custom SMTP via Resend are enabled and functional before the first test.
+
+In [Supabase Authentication URL Configuration](https://supabase.com/dashboard/project/rnqweoxtynelfirffmlr/auth/url-configuration), allow:
+
+- `https://jairribeiro-reader-test.streamlit.app/?page=readers`
+- `https://jairribeiro-ai.streamlit.app/?page=readers`
+
+Keep existing allowlist entries until migration is verified.
+
+## Reader contract
+
+- Full public briefing remains readable without sign-in.
+- PDF downloads require verified email authentication.
+- First name and email are required; the editorial email checkbox is optional and **unchecked**.
+- Registration is not newsletter consent. Only consented subscribers may receive editorial mail.
+- A verified user may access all approved A4 PDFs through the native reader library; selecting a title prepares a matching PDF and provides a native Streamlit download button.
+- Download requests are recorded in `portfolio_reader_downloads` under the authenticated reader's user ID; the profile and editorial choice live in `portfolio_reader_profiles`, with consent changes in `portfolio_reader_consent_events`.
+- RLS policies restrict ordinary readers to their own profile and events; the private owner directory is separate.
+- The native Streamlit session is currently scoped to the active browser session. Opening a fresh session requires signing in again; this is appropriate for staging but must be reviewed for the final reader experience.
+- A public GitHub-hosted PDF is not copy protection. Premium paid distribution will require private storage.
+
+## Required smoke tests before merging
+
+1. In the test app, navigate directly to `/?page=readers`. Confirm the form loads without the legacy 500 error.
+2. In Supabase check SMTP and configure both email templates. Register using a **new email address you control**, leaving optional editorial permission unchecked. Click "Send my secure access email". You should see "Check your inbox" instead of an HTTP 500 page.
+3. Open the email's link, or enter its one-time code in the original tab. The browser should render the reader library after Supabase confirms the token.
+4. Choose a published Executive AI Briefing, click "Prepare PDF" and then "Download A4 infographic". Confirm a real PDF downloads.
+5. Verify an entry exists in `portfolio_reader_profiles`, a PDF event in `portfolio_reader_downloads`, and no accidental newsletter subscription. Repeat the test with consent explicitly checked and then revoked in preferences.
+6. Test returning reader access, expired/invalid code, failed SMTP handling, sign-out and multiple sessions.
+7. Verify that other ordinary readers cannot view one another's records. Review the owner directory and CSV.
+8. Complete privacy notice details (controller, contact, retention, deletion rights, appropriate legal bases and processors), review CI, and merge only after successful staging tests.
+
+The previous Starlette routes are **not** authoritative for new sign-in. Native Streamlit `/?page=readers` is the only supported reader entry point in this branch. Do not merge PR #54 or use public registrations until the above checks pass.

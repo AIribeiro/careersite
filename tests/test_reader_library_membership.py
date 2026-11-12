@@ -194,15 +194,16 @@ class ReaderLibraryMembershipTests(unittest.TestCase):
                     self.assertEqual(arguments[1], page)
                     self.assertEqual(arguments[3:], (0, 0, 0, 0))
 
-    def test_signed_in_read_buttons_use_readable_warm_fill_and_label_color(self):
+    def test_reader_button_contrast_without_member_layout_overrides(self):
         shell = self.source("src/site_reader_shell.py")
-        self.assertIn('background:#E9B98E!important', shell)
-        self.assertIn('color:#142B3D!important', shell)
-        self.assertIn('button[kind="primary"] :is(p,span,strong)', shell)
-        self.assertIn('button[data-testid="stBaseButton-primary"]', shell)
-        self.assertIn('button[kind="primary"]:focus-visible', shell)
-        self.assertIn('button[kind="primary"]:disabled', shell)
-        self.assertIn('background:#F4CDAA!important', shell)
+        self.assertIn(
+            '[data-testid="stButton"] button[kind="primary"] p {', shell
+        )
+        self.assertIn('color:#fff!important;font-weight:800!important', shell)
+        self.assertIn('background:#b86134!important;border-color:#b86134!important', shell)
+        self.assertNotIn("Signed-in library's reading and download actions", shell)
+        self.assertIn("reader-hero-grid", shell)
+        self.assertIn('aria-selected="true"', shell)
 
     def test_personal_collections_never_have_anonymous_access(self):
         native = self.source("src/page_reader_native.py")

@@ -10,7 +10,7 @@ from __future__ import annotations
 from site_components import footer, nav
 from site_image_styles import IMAGE_CSS
 from site_styles import CSS
-from thinking_articles import BASE_URL
+BASE_URL = "https://jairribeiro.com"  # Branded public address for staging back-links.
 
 
 READER_SHELL_CSS = r"""

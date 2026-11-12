@@ -81,7 +81,7 @@ def public_intro_preview_paragraphs(content_html: str, max_words: int = 160) -> 
         fragment = " ".join(words[:remaining])
         # Prefer a complete sentence where possible, without taking a paragraph
         # from the restricted section just to finish the preview.
-        boundary = re.search(r"^(.+[.!?])(?:\\s|$)", fragment)
+        boundary = re.search(r"^(.+[.!?])(?:\s|$)", fragment)
         if boundary and len(boundary.group(1)) > 70:
             selected.append(boundary.group(1))
         else:
@@ -123,7 +123,7 @@ def premium_article_issues(article) -> tuple[str, ...]:
     paragraphs = opening_editorial_paragraphs(
         str(getattr(article, "content_html", "") or "")
     )
-    if not re.search(r"<h[23]\\b", str(getattr(article, "content_html", "") or ""), re.I):
+    if not re.search(r"<h[23]\b", str(getattr(article, "content_html", "") or ""), re.I):
         issues.append(
             "Add a meaningful section heading after the public opening to "
             "separate it from the deeper Premium analysis."

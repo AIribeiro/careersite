@@ -679,9 +679,9 @@ def _library(session: dict, user: dict) -> None:
     st.markdown("### Your Premium Reader library")
     st.write(
         ("Welcome, " + first + ". " if first else "")
-        + "Read all complete Executive AI Briefings, save useful editions "
-        + "and access new Articles in full during their first seven days. "
-        + "Older Articles are open to everyone."
+        + "Read complete Executive AI Briefings, new Articles during their first "
+        + "seven days, and the current Weekly AI edition. Older Articles and "
+        + "Weekly AI editions remain publicly accessible."
     )
     st.caption("Signed in as " + str(user.get("email") or ""))
     st.caption(
@@ -732,9 +732,46 @@ def _library(session: dict, user: dict) -> None:
         f"{len(unique_downloads)} previously downloaded PDFs"
     )
 
-    all_tab, articles_tab, saved_tab, pdf_tab, profile_tab = st.tabs([
-        "All briefings", "Articles", "Saved", "My PDFs", "My profile",
+    all_tab, articles_tab, weekly_tab, saved_tab, pdf_tab, profile_tab = st.tabs([
+        "All briefings", "Articles", "Weekly AI", "Saved", "My PDFs", "My profile",
     ])
+    with weekly_tab:
+        from thinking_weekly_brief import sorted_editions, edition_label
+        from weekly_ai_reader_access import weekly_ai_is_premium
+        try:
+            weekly_issues = sorted_editions(list(fetch_published_articles()))
+        except (RuntimeError, ValueError, TimeoutError):
+            weekly_issues = []
+            st.warning("Weekly AI editions are temporarily unavailable.")
+        st.markdown("#### Weekly AI · Current and previous editions")
+        st.caption(
+            "The current Stockholm calendar week is exclusive to free Premium "
+            "Readers. Older editions open automatically on Monday."
+        )
+        if weekly_issues:
+            page_size = 6
+            pages = (len(weekly_issues) + page_size - 1) // page_size
+            current = (
+                st.selectbox("Weekly AI pages", range(pages),
+                             format_func=lambda i: f"Page {i + 1} of {pages}",
+                             key="reader_weekly_page")
+                if pages > 1 else 0
+            )
+            for item in weekly_issues[int(current) * page_size:(int(current) + 1) * page_size]:
+                slug = _clean_slug(str(item.slug))
+                with st.container(border=True):
+                    st.markdown("#### " + str(item.title))
+                    st.write(str(item.excerpt or item.subtitle or ""))
+                    st.caption(
+                        edition_label(item) + " · " +
+                        ("Premium this week · Full edition unlocked"
+                         if weekly_ai_is_premium(item) else "Open access")
+                    )
+                    if st.button("Read full Weekly AI", key="reader_weekly_open_" + slug):
+                        st.query_params.from_dict({"page": "thinking", "article": slug})
+                        st.rerun()
+        else:
+            st.info("No Weekly AI editions are available at the moment.")
     with articles_tab:
         from article_access import is_editorial_article, article_is_locked, unlock_label
         try:

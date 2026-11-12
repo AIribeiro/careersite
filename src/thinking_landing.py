@@ -6,6 +6,7 @@ from site_assets import THINKING_PANEL_URI, PANEL_DIALOGUE_URI, LINKEDIN, MEDIUM
 from site_components import nav, footer, THOUGHTS, thought_grid
 from thinking_articles import article_by_key, article_relative_url
 from thinking_core import THINKING_CSS
+from thinking_reader_invitation import reader_invitation
 
 
 CURRENT_PRIMARY = "stop_ai_use_case"
@@ -171,6 +172,7 @@ def landing() -> str:
     secondary = article_by_key(CURRENT_SECONDARY)
     return f'''{THINKING_CSS}{SPEAKING_CSS}{THINKING_APPROACH_CSS}{THINKING_ENTRY_CSS}{nav("thinking")}<main>
 <section class="pagehero"><div class="container"><p class="eyebrow">Thinking · Articles &amp; Knowledge Sharing</p><h1>What I’ve learned about AI—and what I’m still questioning.</h1><p>My articles draw on the decisions and trade-offs I’ve faced in enterprise AI and Data leadership: what to prioritize, how to govern responsibly, what makes adoption real, and how to judge business value.</p><p class="thinking-purpose">I share these perspectives to make practical experience useful to others, challenge my own assumptions and keep learning through conversation.</p><nav class="thinking-entry-nav" aria-label="Explore Thinking formats"><span>Explore Thinking</span><a href="?page=thinking#weekly-ai" target="_self" data-hq-event="thinking_format_weekly_ai">Weekly AI</a><a href="?page=thinking#thinking-briefings" target="_self" data-hq-event="thinking_format_briefings">Executive Briefings</a><a href="?page=thinking#thinking-articles" target="_self" data-hq-event="thinking_format_articles">Articles</a></nav></div></section>
+{reader_invitation()}
 <section class="section white" id="thinking-briefings" data-analytics-section="thinking-executive-briefings">
 <div class="container"><div class="head"><div><p class="eyebrow">Executive AI Briefings</p>
 <h2>Clarity before the next AI decision.</h2></div><p>Decision-first executive perspectives on enterprise AI.</p></div></div></section>

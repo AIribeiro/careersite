@@ -236,6 +236,12 @@ def _profile_snapshot(profile: dict, downloads: list[dict], saved: list[dict],
     )
 
 
+def _reader_origin_tag(profile: dict) -> str:
+    """Stable segmentation tag from immutable registration source."""
+    source = str(profile.get("acquisition_source") or "").strip().casefold()
+    return "origin:articles" if source == "articles" else "origin:briefings"
+
+
 def _reader_management(
     token: str, profiles: list[dict], downloads: list[dict],
     saved: list[dict], consents: list[dict], controls: dict[str, dict],
@@ -248,8 +254,8 @@ def _reader_management(
     ).strip().casefold()
     status_filter = st.selectbox(
         "Audience filter",
-        ["All readers", "Editorial opt-in", "Not subscribed",
-         "Mailing suppressed", "Suspended"],
+        ["All readers", "Registered via Articles", "Registered via Briefings",
+         "Editorial opt-in", "Not subscribed", "Mailing suppressed", "Suspended"],
         key="admin_readers_filter",
     )
 
@@ -263,9 +269,14 @@ def _reader_management(
             str(p.get("country") or ""), str(p.get("city") or ""),
             " ".join(p.get("interests") or []),
             " ".join(control.get("tags") or []),
+            _reader_origin_tag(p),
         ]).casefold()
         if not matched:
             return False
+        if status_filter == "Registered via Articles":
+            return _reader_origin_tag(p) == "origin:articles"
+        if status_filter == "Registered via Briefings":
+            return _reader_origin_tag(p) == "origin:briefings"
         if status_filter == "Editorial opt-in":
             return p.get("newsletter_opt_in") is True
         if status_filter == "Not subscribed":
@@ -292,6 +303,7 @@ def _reader_management(
             "Sector": str(p.get("industry") or ""),
             "Country": str(p.get("country") or ""),
             "Registered": str(p.get("created_at") or "")[:10],
+            "Registration origin": _reader_origin_tag(p),
             "Editorial opt-in": bool(p.get("newsletter_opt_in")),
             "Status": str(controls.get(str(p.get("user_id")), {}).get("account_status", "active")),
             "Suppressed": bool(controls.get(str(p.get("user_id")), {}).get("mailing_suppressed")),
@@ -442,7 +454,10 @@ def _mailing_workspace(
     )
     tags = sorted({
         tag for p in eligible
-        for tag in (controls.get(str(p.get("user_id")), {}).get("tags") or [])
+        for tag in (
+            list(controls.get(str(p.get("user_id")), {}).get("tags") or [])
+            + [_reader_origin_tag(p)]
+        )
     })
     tag = st.selectbox(
         "Segment by internal tag", ["All eligible readers"] + tags,
@@ -451,7 +466,8 @@ def _mailing_workspace(
     segment = [
         p for p in eligible
         if tag == "All eligible readers" or tag in (
-            controls.get(str(p.get("user_id")), {}).get("tags") or []
+            list(controls.get(str(p.get("user_id")), {}).get("tags") or [])
+            + [_reader_origin_tag(p)]
         )
     ]
     phrase = st.text_input(
@@ -469,14 +485,20 @@ def _mailing_workspace(
         "Name": p.get("first_name"),
         "Email": p.get("email"),
         "Consent date": str(p.get("newsletter_consent_at") or "")[:10],
-        "Tags": ", ".join(controls.get(str(p.get("user_id")), {}).get("tags") or []),
+        "Tags": ", ".join(
+            list(controls.get(str(p.get("user_id")), {}).get("tags") or [])
+            + [_reader_origin_tag(p)]
+        ),
     } for p in segment]
     st.dataframe(table[:500], hide_index=True, use_container_width=True)
     csv = _csv_bytes(
         ["First name", "Email", "Consent timestamp", "Notice version", "Tags"],
         [[p.get("first_name"), p.get("email"), p.get("newsletter_consent_at"),
           p.get("consent_notice_version"),
-          ", ".join(controls.get(str(p.get("user_id")), {}).get("tags") or [])]
+          ", ".join(
+              list(controls.get(str(p.get("user_id")), {}).get("tags") or [])
+              + [_reader_origin_tag(p)]
+          )]
          for p in segment],
     )
     st.download_button(

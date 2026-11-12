@@ -1409,6 +1409,18 @@ def render_cms_article(article: CmsArticle) -> str:
     from thinking_weekly_brief import is_weekly_brief, render_weekly_brief_article
     if is_weekly_brief(article):
         return render_weekly_brief_article(article, _safe_share_footer(article))
+    # For the first 168 hours after publication, show a substantive public
+    # executive summary. Do not emit complete CMS HTML to anonymous clients.
+    # The publication timestamp, not the revision date, controls release.
+    from article_access import article_is_locked
+    if article_is_locked(article):
+        from page_reader_native import _session
+        reader_session, reader_identity = _session()
+        if not reader_session or not reader_identity:
+            from article_reader_preview import render_public_article_preview
+            return render_public_article_preview(
+                article, article_read_metadata(article, _public_reads_or_none())
+            )
     from site_components import footer, nav, opportunity, journey_next
     from thinking_core import THINKING_CSS
 
@@ -1552,6 +1564,7 @@ def select_auto_featured_article(
 def inject_cms_landing(document: str, *, listing_page: int | str | None = None) -> str:
     published = list(fetch_published_articles())
     from thinking_weekly_brief import is_weekly_brief
+    from article_access import article_is_locked
     from thinking_collection_catalogs import inject_thinking_collections
     # Rank every published article, including the older CMS-migrated essays.
     cms_articles = [article for article in published if not is_weekly_brief(article) and article.kind != "Executive Briefing"]
@@ -1584,13 +1597,14 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
         else:
             featured_image = _cms_fallback_cover(featured, "thinking-thumb cms-thinking-thumb")
         featured_copy = featured.subtitle or featured.excerpt
+        featured_link_label = "Read executive summary →" if article_is_locked(featured) else "Read the article →"
         featured_html = (
             f'<article class="featured-thinking cms-featured-thinking">{featured_image}'
             f'<div class="kicker">{escape(featured.kind_topic)}</div>'
             f'<h2>{escape(featured.title)}</h2>'
             f'<p>{escape(featured_copy)}</p>'
             f'<a class="read-live" href="{escape(article_relative_url(featured), quote=True)}" '
-            f'target="_self" data-hq-event="cms_featured_article_open">Read the article →</a>'
+            f'target="_self" data-hq-event="cms_featured_article_open">{featured_link_label}</a>'
             f'<div class="meta">{escape(featured.published_label)} · '
             f'{escape(featured.topic)} · {featured.read_minutes} min · {article_read_count_label(featured.slug, read_counts)}</div></article>'
         )
@@ -1657,6 +1671,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
 
     cards = []
     for article in listed_articles:
+        access_label = " · Early access" if article_is_locked(article) else " · Open access"
         thumb = ""
         card_header_url = article.header_image_url
         if card_header_url:
@@ -1683,7 +1698,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
             f'<div class="kicker">{escape(article.kind_topic)}</div>'
             f'<h3>{escape(article.title)}</h3>'
             f'<p class="cms-article-excerpt">{escape(article.excerpt)}</p>'
-            f'<div class="read">{article_read_metadata(article, read_counts)} →</div>'
+            f'<div class="read">{article_read_metadata(article, read_counts)}{access_label} →</div>'
             '</div></a>'
         )
     # Small editorial feature directly under the heading, following the same
@@ -1701,6 +1716,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
             'loading="lazy" decoding="async">'
             if art_url else '<span class="home-featured-art-fallback">AI · Data · Leadership</span>'
         )
+        highlight_cta = "Read executive summary" if article_is_locked(featured) else "Read highlighted article"
         highlight_html = (
             '<div class="cms-thinking-highlight" data-analytics-section="thinking-featured-article">'
             '<div class="home-featured-topline"><p class="eyebrow">Highlighted article</p>'
@@ -1718,7 +1734,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
             f'{featured.read_minutes} min read</p>'
             f'<a class="home-featured-read" href="{href}" target="_self" '
             f'data-hq-event="thinking_highlight_open" data-hq-content-slug="{slug}">'
-            'Read highlighted article <span aria-hidden="true">→</span></a>'
+            f'{highlight_cta} <span aria-hidden="true">→</span></a>'
             '</div></article></div>'
         )
 

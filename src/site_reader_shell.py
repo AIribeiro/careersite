@@ -143,10 +143,11 @@ def reader_header(*, staging: bool = False) -> str:
         + '<span aria-hidden="true">/</span>'
         + f'<a href="{briefings}" target="_self">Executive AI Briefings</a>'
         + '<span aria-hidden="true">/</span><span>Reader library</span></div>'
-        + '<h1>Your complete briefing library.</h1>'
-        + '<p class="reader-intro">Each edition begins with a useful public preview. '
-        + 'Your free verified reader account opens the complete analysis, '
-        + 'executive decision frameworks and original infographic PDFs.</p>'
+        + '<h1>Your executive reading library.</h1>'
+        + '<p class="reader-intro">One complimentary Premium Reader account opens '
+        + 'complete Executive AI Briefings, available decision frameworks and '
+        + 'A4 infographic PDFs. It also gives you seven-day early access to '
+        + 'new Articles. Older Articles remain open to everyone.</p>'
         + '<div class="reader-hero-cta">'
         + f'<a href="{briefings}" target="_self">Explore all briefings</a>'
         + f'<a href="{thinking}" target="_self">Back to Thinking</a>'
@@ -157,7 +158,7 @@ def reader_header(*, staging: bool = False) -> str:
 def reader_footer() -> str:
     support = (
         '<div class="reader-account-help" role="note">'
-        'Need help with your account or briefing downloads? '
+        'Need help with your reader account or available downloads? '
         '<a href="mailto:info@jairribeiro.com">info@jairribeiro.com</a>'
         '</div>'
     )

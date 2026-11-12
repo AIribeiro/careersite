@@ -1,0 +1,86 @@
+"""Credible public executive summaries for seven-day exclusive Articles.
+
+Only published excerpts and bounded opening text are rendered for anonymous
+readers. No article body HTML or private editorial assets enter the DOM.
+"""
+from __future__ import annotations
+
+from html import escape
+from urllib.parse import quote
+
+from briefing_reader_preview import PREVIEW_CSS, opening_paragraphs, next_edition_sections
+from site_components import footer, nav
+from thinking_core import THINKING_CSS
+from article_access import unlock_label
+
+
+def render_public_article_preview(article, read_metadata: str = "") -> str:
+    slug = quote(str(article.slug or ""), safe="")
+    title = escape(str(article.title or "Article"))
+    subtitle = escape(str(article.subtitle or article.excerpt or "").strip())
+    published_summary = str(article.excerpt or "").strip()
+    opening = opening_paragraphs(str(article.content_html or ""), max_words=200)
+
+    # The executive summary uses editorial material that actually exists,
+    # rather than fabricated conclusions or marketing copy.
+    sections = []
+    if published_summary:
+        sections.append(published_summary)
+    for paragraph in opening[:3]:
+        if paragraph.casefold() not in {text.casefold() for text in sections}:
+            sections.append(paragraph)
+        if len(sections) == 3:
+            break
+    if not sections:
+        sections = ["The executive summary is temporarily unavailable for this article."]
+
+    body = "".join(f"<p>{escape(p)}</p>" for p in sections)
+    heads = next_edition_sections(str(article.content_html or ""), limit=4)
+    inside = (
+        "<ul>" + "".join(f"<li>{escape(head)}</li>" for head in heads) + "</ul>"
+        if heads else
+        "<p>The full argument, supporting evidence and practical implications.</p>"
+    )
+    destination = "?page=thinking&amp;article=" + escape(slug, quote=True) + "&amp;access=1"
+    available = escape(unlock_label(article))
+
+    return (
+        THINKING_CSS + PREVIEW_CSS + nav("thinking")
+        + '<main class="briefing-preview article-early-preview">'
+        '<section class="briefing-preview-hero" data-analytics-section="article-early-access-intro">'
+        '<div class="container"><a class="briefing-preview-back" href="?page=thinking" target="_self">'
+        '← All Articles</a>'
+        '<span class="briefing-preview-index">Article · Seven-day early access</span>'
+        f'<h1>{title}</h1><p class="briefing-preview-deck">{subtitle}</p>'
+        f'<div class="briefing-preview-meta">{escape(str(read_metadata))} · By Jair Ribeiro</div>'
+        '</div></section>'
+        '<section class="briefing-preview-body" data-analytics-section="article-executive-summary">'
+        '<div class="container"><div class="briefing-preview-grid">'
+        '<article class="briefing-preview-copy"><div class="briefing-preview-decision">'
+        '<span class="briefing-preview-small-head">Public executive summary</span>'
+        '<h2>The argument in brief</h2>'
+        + body + '</div></article>'
+        '<aside class="briefing-preview-aside">'
+        '<strong>Inside the complete article</strong>' + inside
+        + f'<p>Open to everyone from {available}.</p>'
+        '</aside></div>'
+        '<section class="briefing-unlock" data-analytics-section="article-reader-free-access">'
+        '<div class="briefing-unlock-inner"><div><p class="eyebrow">'
+        'Complimentary registered-reader access</p>'
+        '<h2>Read the complete article now.</h2>'
+        '<p>Get the complete reasoning, practical implications and references '
+        'during the seven-day early-access period. One free account also '
+        'opens every Executive AI Briefing.</p></div>'
+        '<ul class="briefing-unlock-benefits">'
+        '<li>Read the complete article immediately</li>'
+        '<li>Use one account across Articles and Executive AI Briefings</li>'
+        f'<li>Open to all readers from {available}</li>'
+        '</ul></div><div class="briefing-unlock-actions">'
+        f'<a class="briefing-unlock-primary" href="{destination}" target="_self" '
+        'data-hq-event="article_unlock_register">Read full article · Free</a>'
+        f'<a class="briefing-unlock-secondary" href="{destination}&amp;signin=1" target="_self" '
+        'data-hq-event="article_unlock_signin">Already registered? Sign in</a>'
+        '</div><p class="briefing-unlock-note">'
+        'Free account. No payment details. Editorial emails are optional.'
+        '</p></section></div></section></main>' + footer()
+    )

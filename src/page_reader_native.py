@@ -165,12 +165,16 @@ def _briefing_access_request() -> tuple[str, str]:
 def _request_email(first_name: str, email: str, subscribe: bool, returning: bool) -> None:
     target = _host_origin() + "/?page=readers"
     requested, purpose = _briefing_access_request()
+    page = "briefing" if requested else ""
+    if not requested and st.query_params.get("page") == "thinking" and st.query_params.get("access") == "1":
+        requested = _clean_slug(st.query_params.get("article", ""))
+        page, purpose = "thinking", "access"
     if requested:
         # Preserve the specific publication after email verification even
         # if the reader opens the secure link in a fresh browser tab.
         # Add same-host briefing callback patterns to the Supabase allowlist.
         target = _host_origin() + "/?" + urlencode({
-            "page": "briefing", "article": requested,
+            "page": page, "article": requested,
             "pdf" if purpose == "pdf" else "access": "1",
         })
     url = ANALYTICS_URL.rstrip("/") + "/auth/v1/otp?" + urlencode({"redirect_to": target})
@@ -178,6 +182,7 @@ def _request_email(first_name: str, email: str, subscribe: bool, returning: bool
         "reader_first_name": first_name,
         "reader_editorial_opt_in": bool(subscribe),
         "reader_notice_version": CONSENT_VERSION,
+        "reader_acquisition_source": "articles" if page == "thinking" else "briefings",
     }
     _request_json("POST", url, payload={
         "email": email, "create_user": not returning, "data": data,
@@ -206,8 +211,11 @@ def _consume_query_verification() -> None:
     except (RuntimeError, ValueError, TimeoutError):
         st.session_state["reader_native_flash"] = ("error", "The verification link has expired or could not be confirmed. Request a new email.")
 
-def _login(requested_title: str = "") -> None:
-    if requested_title:
+def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> None:
+    if requested_title and resource_kind == "article":
+        st.markdown("### Read the complete article")
+        st.write("Sign in to read **" + requested_title + "** in full during its first seven days. Access is free.")
+    elif requested_title:
         st.markdown("### Continue to the complete briefing")
         st.write(
             "Sign in to read **" + requested_title +
@@ -261,7 +269,7 @@ def _login(requested_title: str = "") -> None:
         first = st.text_input("First name", max_chars=80, disabled=returning)
         email = st.text_input("Email address", max_chars=254, placeholder="you@example.com")
         subscribe = st.checkbox(
-            "Email me new Executive AI Briefings and occasional AI leadership resources.",
+            "Email me new Articles, Executive AI Briefings and occasional AI leadership resources.",
             value=False, disabled=returning,
         )
         sent = st.form_submit_button("Send my secure access email", type="primary")
@@ -657,11 +665,12 @@ def _library(session: dict, user: dict) -> None:
         return
 
     first = str(profile.get("first_name") or "").strip()
-    st.markdown("### Your Executive AI Briefings library")
+    st.markdown("### Your Premium Reader library")
     st.write(
         ("Welcome, " + first + ". " if first else "")
-        + "Your verified reader access unlocks every published complete edition "
-        + "and its infographic wherever available."
+        + "Read all complete Executive AI Briefings, save useful editions "
+        + "and access new Articles in full during their first seven days. "
+        + "Older Articles are open to everyone."
     )
     st.caption("Signed in as " + str(user.get("email") or ""))
     st.caption(
@@ -712,9 +721,48 @@ def _library(session: dict, user: dict) -> None:
         f"{len(unique_downloads)} previously downloaded PDFs"
     )
 
-    all_tab, saved_tab, pdf_tab, profile_tab = st.tabs([
-        "All briefings", "Saved", "My PDFs", "My profile",
+    all_tab, articles_tab, saved_tab, pdf_tab, profile_tab = st.tabs([
+        "All briefings", "Articles", "Saved", "My PDFs", "My profile",
     ])
+    with articles_tab:
+        from article_access import is_editorial_article, article_is_locked, unlock_label
+        try:
+            editorial = [
+                item for item in fetch_published_articles()
+                if is_editorial_article(item) and _clean_slug(str(item.slug))
+            ]
+        except (RuntimeError, ValueError, TimeoutError):
+            editorial = []
+            st.warning("The Articles catalogue is temporarily unavailable.")
+        editorial.sort(key=lambda a: str(a.published_at or ""), reverse=True)
+        st.markdown("#### Articles · Early access and open editions")
+        st.caption(
+            "All published Articles are available here. The newest editions "
+            "are exclusive to signed-in readers for seven days, then open to everyone."
+        )
+        if editorial:
+            page_size = 6
+            pages = (len(editorial) + page_size - 1) // page_size
+            current = (
+                st.selectbox("Article pages", range(pages),
+                             format_func=lambda i: f"Page {i + 1} of {pages}",
+                             key="reader_articles_page")
+                if pages > 1 else 0
+            )
+            for item in editorial[int(current) * page_size:(int(current) + 1) * page_size]:
+                slug = _clean_slug(str(item.slug))
+                with st.container(border=True):
+                    st.markdown("#### " + str(item.title))
+                    st.write(str(item.subtitle or item.excerpt or ""))
+                    st.caption(
+                        ("Exclusive early access · Opens publicly " + unlock_label(item))
+                        if article_is_locked(item) else "Open to everyone"
+                    )
+                    if st.button("Read full article", key="reader_article_open_" + slug):
+                        st.query_params.from_dict({"page": "thinking", "article": slug})
+                        st.rerun()
+        else:
+            st.info("No Articles are available at the moment.")
     with all_tab:
         st.markdown("#### Complete Executive AI Briefings")
         st.caption("Every published edition is available with this verified account.")
@@ -872,6 +920,33 @@ def _briefing_access_dialog(slug: str, title: str, purpose: str) -> None:
     if st.button("Continue reading the complete briefing", key="reader_dialog_close"):
         _dismiss_briefing_dialog()
         st.rerun()
+
+
+def _dismiss_article_dialog() -> None:
+    st.query_params.pop("access", None)
+    st.query_params.pop("signin", None)
+
+
+@st.dialog("Article · Free early access", width="large",
+           on_dismiss=_dismiss_article_dialog)
+def _article_access_dialog(slug: str, title: str) -> None:
+    session, user = _session()
+    if not session or not user:
+        _login(title or "this article", resource_kind="article")
+        return
+    st.markdown("### Full article unlocked")
+    st.write("This account also opens every Executive AI Briefing.")
+    st.caption("Signed in as " + str(user.get("email") or ""))
+    if st.button("Continue reading the article", key="reader_article_dialog_close",
+                 type="primary"):
+        _dismiss_article_dialog()
+        st.rerun()
+
+
+def render_article_access_dialog(slug: str, title: str = "") -> None:
+    clean = _clean_slug(slug)
+    if clean:
+        _article_access_dialog(clean, title)
 
 
 def render_briefing_access_dialog(slug: str, title: str = "",

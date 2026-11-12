@@ -7,6 +7,7 @@ Never put access or refresh tokens in the URL, JS, or browser storage.
 """
 from __future__ import annotations
 
+import re
 from urllib.parse import parse_qs
 
 import streamlit as st
@@ -66,7 +67,7 @@ def _parse_portfolio_route(query: object) -> dict[str, str] | None:
         return None
     if any(len(value) > 400 for value in params.values()):
         return None
-    if ("article" in params and not __import__("re").fullmatch(
+    if ("article" in params and not re.fullmatch(
         r"[a-z0-9]+(?:-[a-z0-9]+)*", params["article"]
     )):
         return None

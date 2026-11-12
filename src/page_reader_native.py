@@ -24,9 +24,7 @@ import streamlit as st
 from reader_membership import (
     CONSENT_VERSION,
     EMAIL,
-    _auth_callback_origin,
     _clean_slug,
-    _get_profile,
     _log_consent,
     _pdf_for_article,
     _refresh,

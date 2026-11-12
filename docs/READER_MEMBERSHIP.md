@@ -95,6 +95,40 @@ Never post a live code, token hash, session key or full magic link into a chat.
 The final test is that the verified user's actual Streamlit session opens the
 PDF library, not merely that Supabase has a confirmed user row.
 
+## Reader experience and OTP policy (12 November 2026)
+
+The native reader flow now reuses **actual** `site_components.nav` and
+`site_components.footer` under `site_styles.CSS` and `site_image_styles.IMAGE_CSS`
+instead of presenting an isolated utility page. Its editorial hero, breadcrumb,
+brand identity, color palette, form and download surfaces, mobile spacing and
+footer live in `src/site_reader_shell.py`. Streamlit retains the genuine
+`st.form`, verification controls and `st.download_button` that worked on Cloud.
+The same shell is called from `main.py?page=readers` and from the staging
+`reader_test.py`. The staging launcher runs `layout="wide"`; navigation links
+return to the real portfolio because the dedicated test app is intentionally
+not a general page dispatcher. On the eventual production route they are
+relative navigation links within the same application.
+
+The query verification token is consumed **before** header or image markup can
+load: single-use secrets must not be exposed as URL-referrer information.
+Any success/error notice is displayed inside the styled reader content after
+token consumption.
+
+**OTP length:** The user requested four decimal digits. The Supabase Auth
+email OTP generator/validator only supports **6–10 digits**, with 6 by default
+(official CLI config and Auth server). An on-screen 4-digit truncation would
+always fail legitimate verification. Implementing a separate 4-digit code
+store/exchange would materially weaken brute-force resistance and require a
+new purpose-built, rate-limited and audited authentication service, outside
+this staging feature. Keep the **native six-digit code** and functioning
+one-click link; do not introduce an insecure faux-four-digit OTP or disable
+email confirmation. A shorter code is an unresolved product request, not an
+implemented feature.
+
+**Do not merge** until visual QA on phone/desktop, returning-reader sign-in,
+actual PDF download and security/CI checks are completed. Revert the staging
+`app.py` entrypoint override to `App("main.py")` before merge.
+
 ## Reader contract
 
 - Full public briefing remains readable without sign-in.

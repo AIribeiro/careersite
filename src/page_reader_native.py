@@ -234,10 +234,12 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
             "original infographic. Access is free; editorial emails are optional."
         )
     else:
-        st.markdown("### Complimentary access to executive resources")
+        st.markdown("### Complimentary Premium Reader access")
         st.write(
-            "Read the opening of any briefing without an account. "
-            "Sign in for complete editions, original infographics and A4 PDFs."
+            "Read public summaries before registering. Your one free account opens "
+            "complete Executive AI Briefings, the current Weekly AI edition and "
+            "new Articles during their first seven days. Older Weekly AI and "
+            "Article editions remain open to everyone."
         )
 
     returning = st.radio(
@@ -727,7 +729,7 @@ def _library(session: dict, user: dict) -> None:
             unique_downloads[slug] = row
 
     st.caption(
-        f"{len(articles)} complete editions · "
+        f"{len(articles)} complete briefings · "
         f"{len(saved_slugs)} saved · "
         f"{len(unique_downloads)} previously downloaded PDFs"
     )

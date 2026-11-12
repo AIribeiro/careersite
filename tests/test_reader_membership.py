@@ -103,7 +103,6 @@ class ReaderMembershipContractTests(unittest.TestCase):
         # /~/+/ proxy path must be retained through every user navigation.
         membership = self._source("src/reader_membership.py")
         for relative in (
-            "/readers/request",
             "/readers/signin",
             "/readers/login",
             "/readers/confirm",
@@ -116,6 +115,21 @@ class ReaderMembershipContractTests(unittest.TestCase):
         ):
             with self.subTest(path=relative):
                 self.assertIn("/~/+" + relative, membership)
+        # The browser POSTs to the same proxied URL that served the form,
+        # retaining /~/+/ and any ?next=slug without a separate action.
+        self.assertEqual(membership.count("'<form method=\"post\">'"), 2)
+        self.assertIn(
+            'action in {"request", "login", "signin"}',
+            membership,
+        )
+        self.assertNotIn(
+            'action="/readers/request"',
+            membership,
+        )
+        self.assertNotIn(
+            'action="/~/+/readers/request"',
+            membership,
+        )
         self.assertIn(
             '_auth_callback_origin() + "/~/+/readers/confirm"',
             membership,

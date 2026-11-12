@@ -1409,6 +1409,18 @@ def render_cms_article(article: CmsArticle) -> str:
     from thinking_weekly_brief import is_weekly_brief, render_weekly_brief_article
     if is_weekly_brief(article):
         return render_weekly_brief_article(article, _safe_share_footer(article))
+    # For the first 168 hours after publication, show a substantive public
+    # executive summary. Do not emit complete CMS HTML to anonymous clients.
+    # The publication timestamp, not the revision date, controls release.
+    from article_access import article_is_locked
+    if article_is_locked(article):
+        from page_reader_native import _session
+        reader_session, reader_identity = _session()
+        if not reader_session or not reader_identity:
+            from article_reader_preview import render_public_article_preview
+            return render_public_article_preview(
+                article, article_read_metadata(article, _public_reads_or_none())
+            )
     from site_components import footer, nav, opportunity, journey_next
     from thinking_core import THINKING_CSS
 

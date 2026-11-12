@@ -152,7 +152,7 @@ th,td{padding:13px 10px;border-bottom:1px solid #e9e3d9;overflow-wrap:anywhere}t
 <div><strong>""" + str(touched) + """</strong><span>Readers who downloaded</span></div>
 <div><strong>""" + str(total_events) + """</strong><span>Recorded PDF requests</span></div></div>
 <div class="sheet"><div class="sheet-top"><h2>Reader catalog</h2>
-<a class="export" href="/readers-admin/export.csv">Export CSV ↓</a></div>
+<a class="export" href="/~/+/readers-admin/export.csv">Export CSV ↓</a></div>
 <div class="scroll"><table><thead><tr><th>First name</th><th>Email</th><th>Registered</th>
 <th>Editorial email</th><th>Downloads</th><th>Last download</th></tr></thead><tbody>""" + (
     "".join(rows) if rows else '<tr><td colspan="6">No verified registrations yet.</td></tr>'
@@ -165,7 +165,7 @@ async def reader_admin_route(request) -> Response:
     try:
         state = await run_in_threadpool(_owner, request)
         if state is None:
-            return _no_store(RedirectResponse("/owner-auth/login?next=analytics", status_code=303))
+            return _no_store(RedirectResponse("/~/+/owner-auth/login?next=analytics", status_code=303))
         token, renewal = state
         profiles, counts, recent = await run_in_threadpool(_records, token)
         response = _export(profiles, counts, recent) if request.url.path.endswith("/export.csv") else _dashboard(profiles, counts, recent)

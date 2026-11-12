@@ -9,8 +9,6 @@ font = "sans serif"
 [server]
 headless = true
 enableStaticServing = true
-# Required for first-party /readers/* and /owner-auth/* HTTP routes.
-useStarlette = true
 
 [browser]
 gatherUsageStats = false

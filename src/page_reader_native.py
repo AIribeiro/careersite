@@ -340,34 +340,51 @@ def _reader_selected_edition(
     session: dict, user: dict, articles: list, saved_slugs: set[str],
     *, view: str,
 ) -> None:
+    """Scannable member-library cards; never make all 20 editions a dropdown."""
     if not articles:
         st.info("No briefings match this selection.")
         return
-    selected = st.selectbox(
-        "Select an Executive AI Briefing",
-        range(len(articles)), key="reader_select_" + view,
-        format_func=lambda index: str(articles[index].title),
+    st.caption(f"{len(articles)} available edition" + ("" if len(articles) == 1 else "s"))
+    page_size = 5
+    page_count = (len(articles) + page_size - 1) // page_size
+    page = (
+        st.selectbox(
+            "Browse library pages", range(page_count),
+            format_func=lambda i: f"Page {i + 1} of {page_count}",
+            key="reader_catalog_page_" + view,
+        ) if page_count > 1 else 0
     )
-    article = articles[selected]
-    slug = _clean_slug(str(article.slug))
-    st.markdown("#### " + str(article.title))
-    st.write(str(article.subtitle or article.excerpt or
-                 "An executive perspective on AI and business decisions."))
-    left, right = st.columns(2)
-    with left:
-        if st.button("Read complete briefing", type="primary",
-                     key="reader_open_" + view):
-            _open_reader_briefing(slug)
-    with right:
-        saved = slug in saved_slugs
-        label = "Remove from saved" if saved else "Save to my library"
-        if st.button(label, key="reader_save_" + view):
-            try:
-                _update_saved(session, user, slug, saved=not saved)
-                st.rerun()
-            except (RuntimeError, ValueError, TimeoutError):
-                st.error("Could not update your saved briefings.")
-    _reader_pdf_controls(session, user, slug, view=view)
+    offset = int(page) * page_size
+    for article in articles[offset: offset + page_size]:
+        slug = _clean_slug(str(article.slug))
+        with st.container(border=True):
+            st.markdown("#### " + str(article.title))
+            subtitle = str(article.subtitle or article.excerpt or "").strip()
+            if subtitle:
+                st.write(subtitle)
+            st.caption(
+                "Complete briefing unlocked"
+                + (" · A4 infographic available" if has_briefing_pdf(slug)
+                   else " · No infographic PDF published")
+            )
+            left, right = st.columns(2)
+            with left:
+                if st.button("Read complete briefing", type="primary",
+                             key="reader_open_" + view + "_" + slug):
+                    _open_reader_briefing(slug)
+            with right:
+                saved = slug in saved_slugs
+                label = "Remove from saved" if saved else "Save to my library"
+                if st.button(label, key="reader_save_" + view + "_" + slug):
+                    try:
+                        _update_saved(session, user, slug, saved=not saved)
+                        st.rerun()
+                    except (RuntimeError, ValueError, TimeoutError):
+                        st.error("Could not update your saved briefings.")
+            if has_briefing_pdf(slug):
+                _reader_pdf_controls(
+                    session, user, slug, view=view + "_" + slug,
+                )
 
 
 def _library(session: dict, user: dict) -> None:

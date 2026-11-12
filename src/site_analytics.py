@@ -61,6 +61,41 @@ RECOMMENDED_ATTRIBUTION_SOURCES = (
 )
 
 
+# Detect the address actually used to enter the portfolio without reading
+# cross-origin top-level locations or creating persistent visitor identifiers.
+ENTRY_DOMAIN_JS = r"""
+  const entryContext = (() => {
+    const normalize = host => String(host || '').toLowerCase().replace(/^www\./, '');
+    const native = 'jairibeiro-ai.streamlit.app';
+    const branded = 'jairribeiro.com';
+    const host = normalize(win.location.hostname);
+    let embedded = false;
+    try { embedded = win.top !== win; } catch (_) { embedded = true; }
+    if (!embedded) {
+      return {
+        domain: host === native ? native : (host === branded ? branded : null),
+        evidence: host === native || host === branded ? 'direct_host' : null,
+        masked: false
+      };
+    }
+    try {
+      const ancestors = win.location.ancestorOrigins || [];
+      for (let i = ancestors.length - 1; i >= 0; i--) {
+        if (normalize(new URL(ancestors[i]).hostname) === branded) {
+          return { domain: branded, evidence: 'embed_ancestor', masked: true };
+        }
+      }
+    } catch (_) {}
+    try {
+      if (normalize(new URL(doc.referrer).hostname) === branded) {
+        return { domain: branded, evidence: 'embed_referrer', masked: true };
+      }
+    } catch (_) {}
+    return { domain: null, evidence: 'embedded_unresolved', masked: true };
+  })();
+""";
+
+
 def inject_analytics(page: str, source: str = "streamlit") -> None:
     """Inject the shared privacy-conscious analytics client into the browser."""
     if source not in {"streamlit", "lovable"}:
@@ -77,6 +112,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   const page = {json.dumps(page)};
   const allowed = new Set({json.dumps(list(ALLOWED_EVENTS))});
   const lenses = new Set({json.dumps(list(LENS_PAGES))});
+{ENTRY_DOMAIN_JS}
 
   // A Streamlit route change keeps the parent document alive. An article
   // context from the previous reader must not leak into Home or a catalogue.
@@ -206,9 +242,10 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
 
   const referrerHost = () => {{
     try {{
-      if (!doc.referrer) return null;
-      const host = new URL(doc.referrer).hostname;
-      return host && host !== win.location.hostname ? host.slice(0, 255) : null;
+      if (!doc.referrer || (entryContext.masked && entryContext.domain === 'jairribeiro.com')) return null;
+      const host = new URL(doc.referrer).hostname.toLowerCase();
+      const own = ['jairribeiro.com','www.jairribeiro.com','jairibeiro-ai.streamlit.app'];
+      return host && !own.includes(host) ? host.slice(0,255) : null;
     }} catch (_) {{
       return null;
     }}
@@ -518,6 +555,8 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       source: context.source,
       session_id: sessionId,
       referrer_host: referrerHost(),
+      entry_domain: entryContext.domain,
+      entry_domain_evidence: entryContext.evidence,
       attribution_source: attribution.source,
       attribution_role: attribution.role,
       utm_source: attribution.utm_source,

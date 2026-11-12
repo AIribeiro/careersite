@@ -92,11 +92,70 @@ class ReaderMembershipContractTests(unittest.TestCase):
 
         page = self._source("src/page_executive_briefings.py")
         self.assertIn(
-            'href="/readers/library" target="_blank" rel="noopener"',
+            'href="/~/+/readers/library" target="_blank" rel="noopener"',
             page,
         )
         reader = self._source("src/reader_membership.py")
         self.assertIn('target="_blank" rel="noopener">Download PDF', reader)
+
+    def test_cloud_proxy_prefix_survives_reader_signup_and_downloads(self):
+        # Cloud's root path does not serve these custom ASGI routes. The
+        # /~/+/ proxy path must be retained through every user navigation.
+        membership = self._source("src/reader_membership.py")
+        for relative in (
+            "/readers/request",
+            "/readers/signin",
+            "/readers/login",
+            "/readers/confirm",
+            "/readers/session",
+            "/readers/library",
+            "/readers/preferences",
+            "/readers/privacy",
+            "/readers/signout",
+            "/readers/download/",
+        ):
+            with self.subTest(path=relative):
+                self.assertIn("/~/+" + relative, membership)
+        self.assertIn(
+            '_auth_callback_origin() + "/~/+/readers/confirm"',
+            membership,
+        )
+        self.assertIn(
+            'fetch(\\"/~/+/readers/session\\",',
+            membership,
+        )
+        for path in (
+            "src/briefing_approved_asset_renderer.py",
+            "src/briefing_roi_studio.py",
+            "src/briefing_authority_artwork.py",
+        ):
+            self.assertIn("/~/+/readers/download/", self._source(path))
+        self.assertIn(
+            'href="/~/+/readers/library"',
+            self._source("src/page_executive_briefings.py"),
+        )
+        self.assertIn(
+            'href="/~/+/readers-admin"',
+            self._source("src/page_owner_workspaces.py"),
+        )
+        self.assertIn(
+            '/~/+/readers-admin/export.csv',
+            self._source("src/reader_catalog_admin.py"),
+        )
+        self.assertIn(
+            '/~/+/owner-auth/login',
+            self._source("src/site_owner_http_auth.py"),
+        )
+        self.assertEqual(
+            self._source("app.py").count(
+                'RedirectResponse("/~/+/readers/download/'
+            ), 3,
+        )
+        # The ASGI registrations remain unprefixed since the Cloud proxy
+        # strips /~/+/ before forwarding the request to Starlette.
+        app = self._source("app.py")
+        self.assertIn('Route("/readers/{action}"', app)
+        self.assertNotIn('Route("/~/+/readers/{action}"', app)
 
     def test_service_registration_does_not_enroll_newsletter_by_default(self):
         source = self._source("src/reader_membership.py")

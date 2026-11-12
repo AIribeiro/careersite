@@ -34,7 +34,6 @@ from reader_membership import (
     _verified_user,
     has_briefing_pdf,
 )
-from site_assets import EMAIL as PORTFOLIO_CONTACT_EMAIL
 from site_analytics import ANALYTICS_URL
 from site_reader_shell import reader_footer, reader_header
 from site_cms import _request_json, _rest_url, fetch_published_articles
@@ -665,6 +664,10 @@ def _library(session: dict, user: dict) -> None:
         + "and its infographic wherever available."
     )
     st.caption("Signed in as " + str(user.get("email") or ""))
+    st.caption(
+        "Want to sign in without an email code next time? "
+        "Open My Profile → Account security and set a password."
+    )
     st.divider()
 
     try:
@@ -908,9 +911,11 @@ def render_reader_native() -> None:
             st.write(
                 "Jair Ribeiro is responsible for the personal information "
                 "collected through this independent portfolio. We store your "
-                "name, verified email address, reader preferences and PDF "
-                "download history to provide the requested library access "
-                "and administer the free resources."
+                "name, verified email, saved briefings and PDF download "
+                "history to provide library access. Optional professional "
+                "profile fields (role, organization, location, interests and "
+                "leadership context) help us understand readers and improve "
+                "future resources; these details are not displayed publicly."
             )
             st.write(
                 "We use Supabase for authentication and reader records, and "
@@ -920,8 +925,8 @@ def render_reader_native() -> None:
                 "preference in the reader library."
             )
             st.write(
-                "For access, correction, deletion or questions about your "
-                "information, use the portfolio Contact page or email "
-                + PORTFOLIO_CONTACT_EMAIL + "."
+                "For account help, access, correction, deletion or "
+                "questions about your information, email "
+                "info@jairribeiro.com."
             )
     st.html(reader_footer())

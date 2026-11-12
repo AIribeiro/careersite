@@ -247,7 +247,13 @@ else:
         and CMS_ARTICLE_META is not None
     ):
         from article_access import article_is_locked
-        if article_is_locked(CMS_ARTICLE_META):
+        from weekly_ai_reader_access import weekly_ai_is_premium
+        if weekly_ai_is_premium(CMS_ARTICLE_META):
+            from page_reader_native import render_weekly_ai_access_dialog
+            render_weekly_ai_access_dialog(
+                str(ARTICLE_QUERY), str(CMS_ARTICLE_META.title or "")
+            )
+        elif article_is_locked(CMS_ARTICLE_META):
             from page_reader_native import render_article_access_dialog
             render_article_access_dialog(
                 str(ARTICLE_QUERY), str(CMS_ARTICLE_META.title or "")

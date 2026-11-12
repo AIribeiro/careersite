@@ -290,19 +290,21 @@ def _library(session: dict, user: dict) -> None:
         initial = next((i for i, a in enumerate(available) if a.slug == requested), 0)
         selected = st.selectbox("Select an Executive AI Briefing", list(options.keys()), index=initial)
         slug = options[selected]
-        # Return readers to the specific publication that brought them here.
-        # Staging has a standalone dispatcher, so editorial links return to
-        # the main portfolio; production stays in this same portfolio.
-        relative = "/?page=briefing&article=" + slug
-        briefing_url = (BASE_URL.rstrip("/") + relative) if _host_origin().startswith(
-            "https://jairribeiro-reader-test."
-        ) else relative
-        st.html(
-            '<div class="reader-publication-link">'
-            '<a href="' + html_escape(briefing_url, quote=True)
-            + '" target="_self">Read this briefing on the portfolio →</a>'
-            '</div>'
-        )
+        # Navigate natively in production so the authenticated Streamlit
+        # session is retained while switching to the complete briefing.
+        # A normal HTML href causes a new WebSocket and can lose session_state.
+        if _host_origin().startswith("https://jairribeiro-reader-test."):
+            briefing_url = BASE_URL.rstrip("/") + "/?page=briefing&article=" + slug
+            st.html(
+                '<div class="reader-publication-link"><a href="'
+                + html_escape(briefing_url, quote=True)
+                + '" target="_self">Read this briefing on the portfolio →</a></div>'
+            )
+        elif st.button("Read the complete briefing →", key="reader_native_open_article"):
+            st.query_params["page"] = "briefing"
+            st.query_params["article"] = slug
+            st.query_params.pop("download", None)
+            st.rerun()
         if st.button("Prepare PDF", key="reader_native_prepare"):
             st.session_state["reader_native_prepared"] = slug
         if st.session_state.get("reader_native_prepared") == slug:

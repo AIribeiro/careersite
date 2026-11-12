@@ -82,7 +82,7 @@ class ReaderLibraryMembershipTests(unittest.TestCase):
             "fetch_published_articles()", "portfolio_reader_saved_briefings",
             "portfolio_reader_downloads", "Read complete briefing",
             "Save to my library", "Remove from saved",
-            "Download again", "Reader preferences", "Sign out",
+            "Download again", "Your professional profile", "Account security", "Sign out",
         ):
             with self.subTest(item=text):
                 self.assertIn(text, hub + native)

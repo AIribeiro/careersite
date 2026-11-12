@@ -329,7 +329,7 @@ def approved_authority_studio(article, row: dict) -> str:
         'from real work, and the authority to renew or end permission.</p>'
         '</div>'
         '<a class="auth-download" href="' + download + '" '
-        'target="_blank" rel="noopener" data-hq-event="briefing_reader_pdf" '
+        'target="_self" data-hq-event="briefing_reader_pdf" '
         'aria-label="Download the 20-decision executive operating mandate as a two-page A4 PDF">'
         '&#8595; Download infographic · A4 PDF</a></div>'
         '<div class="auth-artwork-container">'

@@ -187,12 +187,17 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
         )
     # Use precisely the editorial judgments the author published; never
     # synthesize claims, benefits, sources, percentages or quotations.
-    decision = re.sub(r"^The Leadership Decision\\s*:?\\s*", "", opening[0], flags=re.I)
-    move = (
-        re.sub(r"^Next move\\s*:?\\s*", "", opening[1], flags=re.I)
-        if len(opening) > 1 else ""
+    decision = re.sub(
+        r"^The (?:Leadership Decision|executive decision|executive question)\\s*:?\\s*",
+        "", opening[0], flags=re.I,
     )
-    context = opening[2:] if len(opening) > 2 else ()
+    # Never relabel ordinary narrative as an executive action. Only use a
+    # separately signposted published "Next move" as the practical takeaway.
+    has_next_move = len(opening) > 1 and bool(
+        re.match(r"^Next move\\s*:", opening[1], flags=re.I)
+    )
+    move = re.sub(r"^Next move\\s*:\\s*", "", opening[1], flags=re.I) if has_next_move else ""
+    context = opening[2:] if has_next_move else opening[1:]
     decision_html = f"<p>{escape(decision)}</p>"
     move_html = (
         '<aside class="briefing-preview-move"><span class="briefing-preview-small-head">'

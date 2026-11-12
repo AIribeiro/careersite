@@ -54,8 +54,18 @@ READER_SHELL_CSS = r"""
   margin-top:22px!important;color:#b8c9d7!important;
   font:500 12px/1.65 Arial,sans-serif!important
 }
+.reader-shell .reader-hero-actions {
+  display:flex;align-items:center;flex-wrap:wrap;gap:14px 22px;margin-top:24px
+}
+.reader-shell .reader-hero-join {
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:46px;padding:12px 20px;
+  background:#e9bc99;color:#172d40!important;
+  font:800 13px/1.4 Arial,sans-serif;text-decoration:none!important
+}
+.reader-shell .reader-hero-join:hover {background:#f5d0b2}
 .reader-shell .reader-hero-link {
-  display:inline-flex;align-items:center;gap:8px;margin-top:18px;
+  display:inline-flex;align-items:center;gap:8px;
   padding-bottom:4px;border-bottom:1px solid rgba(234,185,144,.6);
   color:#f2bf9c!important;text-decoration:none!important;
   font:750 12px/1.5 Arial,sans-serif
@@ -194,6 +204,7 @@ READER_SHELL_CSS = r"""
   .reader-shell .reader-hero {padding:37px 0 55px}
   .reader-shell .reader-hero h1 {font-size:clamp(37px,9vw,47px)}
   .reader-shell .reader-crumb {margin-bottom:23px}
+  .reader-shell .reader-hero-actions {align-items:flex-start;flex-direction:column;gap:11px}
   .reader-shell .reader-hero-benefits .reader-benefits-list {
     grid-template-columns:minmax(0,1fr);gap:0
   }
@@ -289,9 +300,13 @@ def reader_header(*, staging: bool = False) -> str:
         + '<p class="reader-intro">' + escape(intro) + '</p>'
         + ('<p class="reader-hero-support">Grounded in enterprise AI and Data '
            'leadership, governance and adoption experience.</p>' if not is_member else '')
+        + '<div class="reader-hero-actions">'
+        + '<a class="reader-hero-join" href="#reader-access">'
+        + ('Open my library' if is_member else 'Get Premium Reader access')
+        + ' <span aria-hidden="true">→</span></a>'
         + f'<a class="reader-hero-link" href="{briefings}" target="_self">'
         + 'Preview the Executive AI Briefings <span aria-hidden="true">→</span></a>'
-        + '</div><aside class="reader-hero-benefits" aria-label="Library benefits">'
+        + '</div></div><aside class="reader-hero-benefits" aria-label="Library benefits">'
         + '<span class="reader-benefits-label">' + escape(benefit_heading) + '</span>'
         + '<div class="reader-benefits-list">' + benefits_markup + '</div>'
         + '</aside></div></div></section></main></div>'

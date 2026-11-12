@@ -34,6 +34,7 @@ from reader_membership import (
     _verified_user,
     has_briefing_pdf,
 )
+from site_assets import EMAIL as PORTFOLIO_CONTACT_EMAIL
 from site_analytics import ANALYTICS_URL
 from site_reader_shell import reader_footer, reader_header
 from site_cms import _request_json, _rest_url, fetch_published_articles
@@ -323,7 +324,26 @@ def render_reader_native() -> None:
         st.caption(
             "Reader registration confirms email access; it does not subscribe "
             "you to editorial updates. Download activity and preferences are "
-            "stored with your verified reader account. "
-            "For access, corrections or deletion, use the Contact page."
+            "stored with your verified reader account."
         )
+        with st.expander("Reader privacy & account information"):
+            st.write(
+                "Jair Ribeiro is responsible for the personal information "
+                "collected through this independent portfolio. We store your "
+                "name, verified email address, reader preferences and PDF "
+                "download history to provide the requested library access "
+                "and administer the free resources."
+            )
+            st.write(
+                "We use Supabase for authentication and reader records, and "
+                "a transactional email provider for one-time access messages. "
+                "Editorial emails are optional and are sent only when you "
+                "affirmatively choose to subscribe; you can withdraw that "
+                "preference in the reader library."
+            )
+            st.write(
+                "For access, correction, deletion or questions about your "
+                "information, use the portfolio Contact page or email "
+                + PORTFOLIO_CONTACT_EMAIL + "."
+            )
     st.html(reader_footer())

@@ -71,6 +71,12 @@ PAGE = PAGE if PAGE in VALID else "home"
 ARTICLE_QUERY = st.query_params.get("article", "") if PAGE in {"thinking", "briefing"} else ""
 if isinstance(ARTICLE_QUERY, list):
     ARTICLE_QUERY = ARTICLE_QUERY[0] if ARTICLE_QUERY else ""
+# Handle email-link tokens before any article HTML, image, or analytics script
+# renders. Supabase OTP one-time secrets must never reach external referrers.
+if PAGE == "briefing" and str(st.query_params.get("pdf", "")) == "1":
+    from page_reader_native import _consume_query_verification
+    _consume_query_verification()
+
 CMS_ARTICLE_META = None
 if ARTICLE_QUERY:
     # Only individual content readers need the public CMS lookup.
@@ -200,6 +206,17 @@ else:
     # The adapter is inert for normal Streamlit visits and desktop iframes.
     mount_masked_mobile_fix()
     html_done = perf_counter()
+    # Clicking an A4 download CTA opens sign-in / the verified PDF directly
+    # over the original briefing, without a generic library detour.
+    if (
+        PAGE == "briefing"
+        and ARTICLE_QUERY
+        and str(st.query_params.get("pdf", "")) == "1"
+    ):
+        from page_reader_native import render_briefing_pdf_dialog
+        selected_article = CMS_ARTICLE_META or ARTICLE_META
+        selected_title = str(getattr(selected_article, "title", "") or "")
+        render_briefing_pdf_dialog(str(ARTICLE_QUERY), selected_title)
     if (
         PAGE == "thinking"
         and not ARTICLE_QUERY

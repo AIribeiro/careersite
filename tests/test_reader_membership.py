@@ -22,6 +22,15 @@ class ReaderMembershipContractTests(unittest.TestCase):
             with self.subTest(path=path):
                 ast.parse(self.source(path), filename=path)
 
+    def test_staging_launcher_bypasses_home_dispatcher(self):
+        # Staging override is deliberately isolated to this draft PR.
+        launcher = self.source("reader_test.py")
+        app = self.source("app.py")
+        self.assertIn("render_reader_native()", launcher)
+        self.assertIn('App(\n    "reader_test.py"', app)
+        self.assertIn("DO NOT MERGE INTO PRODUCTION", app)
+        self.assertNotIn("from page_home import", launcher)
+
     def test_native_reader_is_public_page_with_no_post_proxy(self):
         main = self.source("main.py")
         self.assertIn('"readers"', main)

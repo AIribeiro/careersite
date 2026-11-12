@@ -223,6 +223,153 @@ READER_SHELL_CSS = r"""
 @media(prefers-reduced-motion:reduce) {
   .reader-shell .reader-hero-link {transition:none}
 }
+
+/* Signed-in reader workspace: a members' editorial service, not a data table. */
+.st-key-reader_flow:has([data-testid="stTabs"]) {
+  width:min(1080px,calc(100% - 44px))!important;max-width:1080px!important;
+  padding:clamp(25px,4vw,48px)!important;border-top-color:#c69a75
+}
+.st-key-reader_flow .reader-member-welcome {padding:0 0 14px}
+.st-key-reader_flow .reader-member-eyebrow {
+  display:block;margin:0 0 11px;color:#9d6443;
+  font:800 10px/1.5 Arial,sans-serif;letter-spacing:.15em;text-transform:uppercase
+}
+.st-key-reader_flow .reader-member-welcome h2 {
+  margin:0 0 12px;color:#192f43;
+  font:500 clamp(31px,4vw,46px)/1.13 Georgia,serif;
+  letter-spacing:-.03em;text-wrap:balance
+}
+.st-key-reader_flow .reader-member-welcome p {
+  max-width:760px;margin:0!important;color:#4e5e6b!important;
+  font:400 15px/1.75 Arial,sans-serif
+}
+.st-key-reader_flow .reader-member-stats {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  margin:15px 0 8px;padding:15px 0;
+  border-top:1px solid #e4dbcf;border-bottom:1px solid #e4dbcf
+}
+.st-key-reader_flow .reader-member-stat {padding:4px 24px;border-right:1px solid #e4dbcf}
+.st-key-reader_flow .reader-member-stat:first-child {padding-left:0}
+.st-key-reader_flow .reader-member-stat:last-child {border-right:0;padding-right:0}
+.st-key-reader_flow .reader-member-number {
+  display:block;color:#1a3449;
+  font:500 clamp(27px,3.4vw,36px)/1 Georgia,serif;letter-spacing:-.02em
+}
+.st-key-reader_flow .reader-member-stat-label {
+  display:block;margin-top:9px;color:#586371;
+  font:700 11px/1.45 Arial,sans-serif
+}
+.st-key-reader_flow .reader-member-help {
+  margin:0!important;color:#62717c!important;
+  font:400 12px/1.6 Arial,sans-serif!important
+}
+/* Discoverable, high-contrast navigation on desktop and mobile.
+   Streamlit maintains the actual keyboard-accessible tab behavior. */
+.st-key-reader_flow [data-testid="stTabs"] {
+  margin-top:14px;min-width:0
+}
+.st-key-reader_flow [data-testid="stTabs"] [data-baseweb="tab-list"] {
+  display:flex;flex-wrap:nowrap;gap:7px;overflow-x:auto;
+  padding:7px 0 12px;scrollbar-width:thin;scrollbar-color:#b7a899 transparent;
+  border-bottom:1px solid #dbd2c8
+}
+.st-key-reader_flow [data-testid="stTabs"] [role="tab"] {
+  flex:0 0 auto;box-sizing:border-box;
+  min-height:49px;min-width:115px;padding:13px 16px;margin:0!important;
+  border:1px solid #d8cec1!important;border-radius:3px!important;
+  background:#f7f2ea!important;color:#283c4f!important;
+  font:750 13px/1.35 Arial,sans-serif!important;
+  white-space:nowrap;transition:background .15s,border-color .15s,color .15s
+}
+.st-key-reader_flow [data-testid="stTabs"] [role="tab"]:hover {
+  background:#e8e0d5!important;border-color:#b19b84!important
+}
+.st-key-reader_flow [data-testid="stTabs"] [role="tab"][aria-selected="true"] {
+  background:#1b3549!important;border-color:#1b3549!important;
+  color:#fff!important;box-shadow:0 3px 11px rgba(22,42,60,.13)
+}
+.st-key-reader_flow [data-testid="stTabs"] [role="tab"][aria-selected="true"] * {color:#fff!important}
+.st-key-reader_flow [data-testid="stTabs"] [role="tab"]:focus-visible {
+  outline:3px solid #ad754d!important;outline-offset:2px
+}
+.st-key-reader_flow [data-testid="stTabs"] [data-baseweb="tab-highlight"],
+.st-key-reader_flow [data-testid="stTabs"] [data-baseweb="tab-border"] {display:none!important}
+.st-key-reader_flow [data-testid="stTabs"] [role="tabpanel"] {
+  padding:27px 1px 8px;min-width:0
+}
+.st-key-reader_flow .reader-section-header {
+  padding:4px 0 24px;margin-bottom:11px;
+  border-bottom:1px solid #e8dfd4
+}
+.st-key-reader_flow .reader-section-kicker {
+  display:block;margin:0 0 7px;color:#996341;
+  font:800 10px/1.5 Arial,sans-serif;letter-spacing:.15em;text-transform:uppercase
+}
+.st-key-reader_flow .reader-section-header h3 {
+  margin:0 0 10px!important;color:#193347!important;
+  font:500 clamp(26px,3.2vw,36px)/1.16 Georgia,serif!important;
+  letter-spacing:-.025em!important
+}
+.st-key-reader_flow .reader-section-header p {
+  margin:0!important;color:#566573!important;
+  font:400 14px/1.7 Arial,sans-serif!important;max-width:76ch
+}
+.st-key-reader_flow [class*="st-key-reader_edition_"],
+.st-key-reader_flow [class*="st-key-reader_resource_"] {
+  padding:clamp(17px,2.3vw,25px)!important;margin:7px 0 14px!important;
+  border:1px solid #dcd3c6!important;border-radius:4px!important;
+  background:#fffefa!important;box-shadow:0 5px 18px rgba(20,39,54,.045)
+}
+.st-key-reader_flow [class*="st-key-reader_edition_"] h4,
+.st-key-reader_flow [class*="st-key-reader_resource_"] h4 {
+  color:#172f43!important;font:500 clamp(21px,2.3vw,27px)/1.22 Georgia,serif!important;
+  letter-spacing:-.015em!important
+}
+.st-key-reader_flow [class*="st-key-reader_edition_"] p,
+.st-key-reader_flow [class*="st-key-reader_resource_"] p {color:#506071!important;line-height:1.65}
+.st-key-reader_flow [data-testid="stTabs"] [data-testid="stButton"] button {
+  min-height:43px;border-radius:3px!important;font-weight:750!important
+}
+.st-key-reader_flow [data-testid="stTabs"] [data-testid="stButton"] button[kind="secondary"] {
+  color:#1b394d!important;background:#fffefa!important;
+  border:1px solid #9dafb9!important
+}
+.st-key-reader_flow [data-testid="stTabs"] [data-testid="stButton"] button[kind="secondary"]:hover {
+  background:#f1f5f6!important;border-color:#1b394d!important
+}
+.st-key-reader_flow [data-testid="stTabs"] [data-testid="stTextInput"] input,
+.st-key-reader_flow [data-testid="stTabs"] [data-testid="stSelectbox"] > div {
+  min-height:45px!important
+}
+.st-key-reader_flow [data-testid="stTabs"] [data-testid="stDataFrame"] {
+  border:1px solid #e1d7cc;border-radius:3px;overflow:hidden
+}
+/* Hide Streamlit's platform footer but preserve the real portfolio footer. */
+[data-testid="stFooter"],[data-testid="stDecoration"] {display:none!important}
+.reader-shell-footer footer.footer {display:block!important}
+@media(max-width:700px) {
+  .st-key-reader_flow:has([data-testid="stTabs"]) {
+    width:calc(100% - 26px)!important;padding:24px 17px 29px!important
+  }
+  .st-key-reader_flow .reader-member-stats {gap:0}
+  .st-key-reader_flow .reader-member-stat {padding:2px 10px}
+  .st-key-reader_flow .reader-member-stat-label {font-size:10px}
+  .st-key-reader_flow [data-testid="stTabs"] [role="tab"] {
+    min-width:105px;min-height:46px;padding:12px 14px;font-size:12px!important
+  }
+  .st-key-reader_flow [data-testid="stTabs"] [role="tabpanel"] {padding-top:20px}
+}
+@media(max-width:410px) {
+  .st-key-reader_flow .reader-member-stats {
+    grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 0
+  }
+  .st-key-reader_flow .reader-member-number {font-size:27px}
+  .st-key-reader_flow .reader-member-stat-label {font-size:10px;line-height:1.4}
+}
+@media(prefers-reduced-motion:reduce) {
+  .st-key-reader_flow [data-testid="stTabs"] [role="tab"] {transition:none}
+}
+
 </style>
 """
 

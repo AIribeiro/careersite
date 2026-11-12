@@ -5,6 +5,7 @@ no privileged Supabase key is ever exposed to the browser.
 """
 from __future__ import annotations
 
+import os
 import re
 import time
 from html import escape
@@ -34,6 +35,25 @@ def _clean_slug(value: str) -> str:
 
 def _target(request) -> str:
     return _clean_slug(request.query_params.get("next") or "")
+
+
+def _auth_callback_origin() -> str:
+    """Use an explicit, validated origin when testing sign-in on another app.
+
+    Production defaults to the canonical Streamlit origin. A staging instance
+    may set PORTFOLIO_READER_CALLBACK_ORIGIN in Streamlit secrets. Do not
+    trust an unvalidated request Host header as an authentication redirect.
+    """
+    override = str(os.environ.get("PORTFOLIO_READER_CALLBACK_ORIGIN") or "").strip()
+    if not override:
+        return BASE_URL.rstrip("/")
+    url = urlsplit(override)
+    if (url.scheme != "https" or not url.hostname or
+            not url.hostname.endswith(".streamlit.app") or
+            url.username or url.password or url.port or
+            url.path not in ("", "/") or url.query or url.fragment):
+        raise ValueError("Invalid reader authentication callback origin")
+    return "https://" + url.hostname.lower()
 
 
 def _no_cache(response: Response) -> Response:
@@ -372,7 +392,7 @@ async def reader_route(request) -> Response:
             if (not returning and not first) or len(first) > 80 or not EMAIL.fullmatch(email) or len(email) > 254:
                 return _login(request, notice="Enter your name and a valid email address.")
             slug = _target(request)
-            redirect = BASE_URL + "/readers/confirm" + ("?next=" + quote(slug) if slug else "")
+            redirect = _auth_callback_origin() + "/readers/confirm" + ("?next=" + quote(slug) if slug else "")
             url = ANALYTICS_URL.rstrip("/") + "/auth/v1/otp?" + urlencode({"redirect_to": redirect})
             opted_in = form.get("editorial") == "yes"
             await run_in_threadpool(_request_json, "POST", url, payload={

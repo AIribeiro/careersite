@@ -423,7 +423,7 @@ async def _roi_infographic_image(request):
     if ext not in ("webp", "pdf"):
         return PlainTextResponse("Infographic not found", status_code=404)
     if ext == "pdf":
-        return RedirectResponse("/readers/download/" + ROI_SLUG + ".pdf", status_code=303)
+        return RedirectResponse("/~/+/readers/download/" + ROI_SLUG + ".pdf", status_code=303)
     asset_path = ROOT / "static" / f"briefing-ai-roi-proof-before-scale.{ext}"
     if not asset_path.is_file():
         return PlainTextResponse("Infographic asset unavailable", status_code=503)
@@ -457,7 +457,7 @@ async def _authority_infographic(request):
     if ext == "mobile.svg":
         return Response(artwork_mobile_svg(), media_type="image/svg+xml", headers=headers)
     if ext == "pdf":
-        return RedirectResponse("/readers/download/" + AUTHORITY_SLUG + ".pdf", status_code=303)
+        return RedirectResponse("/~/+/readers/download/" + AUTHORITY_SLUG + ".pdf", status_code=303)
     return PlainTextResponse("Infographic not found", status_code=404)
 
 
@@ -467,7 +467,7 @@ async def _briefing_artwork_pdf(request):
     from reader_membership import _clean_slug
     if not _clean_slug(slug):
         return PlainTextResponse("Infographic not found", status_code=404)
-    return RedirectResponse("/readers/download/" + slug + ".pdf", status_code=303)
+    return RedirectResponse("/~/+/readers/download/" + slug + ".pdf", status_code=303)
 
 async def _weekly_ai_evergreen_image(_request):
     path = ROOT / "assets" / "weekly_ai_evergreen_visual.webp"

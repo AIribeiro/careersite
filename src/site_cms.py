@@ -1408,6 +1408,15 @@ def _safe_share_footer(article: CmsArticle) -> str:
 def render_cms_article(article: CmsArticle) -> str:
     from thinking_weekly_brief import is_weekly_brief, render_weekly_brief_article
     if is_weekly_brief(article):
+        from weekly_ai_reader_access import weekly_ai_is_premium
+        if weekly_ai_is_premium(article):
+            # The current week's full source text and audio controls must not
+            # reach anonymous HTML, even if a deep link is opened directly.
+            from page_reader_native import _session
+            reader_session, reader_identity = _session()
+            if not reader_session or not reader_identity:
+                from weekly_ai_reader_preview import render_current_week_public_preview
+                return render_current_week_public_preview(article)
         return render_weekly_brief_article(article, _safe_share_footer(article))
     # For the first 168 hours after publication, show a substantive public
     # executive summary. Do not emit complete CMS HTML to anonymous clients.

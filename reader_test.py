@@ -28,7 +28,7 @@ if str(SRC) not in sys.path:
 st.set_page_config(
     page_title="Executive AI Briefings — Reader Test | Jair Ribeiro",
     page_icon="📖",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="collapsed",
 )
 

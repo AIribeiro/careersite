@@ -130,7 +130,7 @@ def inject_article_analytics(
     try {{
       if (!doc.referrer || (entryContext.masked && entryContext.domain === 'jairribeiro.com')) return null;
       const host = new URL(doc.referrer).hostname.toLowerCase();
-      const own = ['jairribeiro.com','www.jairribeiro.com','jairibeiro-ai.streamlit.app','jairribeiro-ai.streamlit.app'];
+      const own = ['jairribeiro.com','www.jairribeiro.com','jairribeiro-ai.streamlit.app'];
       return host && !own.includes(host) ? host.slice(0,255) : null;
     }} catch (_) {{
       return null;

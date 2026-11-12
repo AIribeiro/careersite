@@ -194,7 +194,7 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
     # Never relabel ordinary narrative as an executive action. Only use a
     # separately signposted published "Next move" as the practical takeaway.
     has_next_move = len(opening) > 1 and bool(
-        re.match(r"^Next move\s*:", opening[1], flags=re.I)
+        re.match(r"^Next\s+move\s*:", opening[1].lstrip(), flags=re.I)
     )
     move = re.sub(r"^Next move\s*:\s*", "", opening[1], flags=re.I) if has_next_move else ""
     context = opening[2:] if has_next_move else opening[1:]

@@ -167,6 +167,8 @@ def render_public_portfolio_overview() -> None:
     if st.button("Refresh insights", key="portfolio_refresh_insights"):
         _lifetime_content_report.clear()
         _recent_content_report.clear()
+        from portfolio_reader_kpi import reader_registration_totals
+        reader_registration_totals.clear()
         st.rerun()
 
     try:
@@ -305,6 +307,16 @@ def render_public_portfolio_overview() -> None:
     for card in cards:
         card["period_label"] = REPORTING_WINDOW_LABELS.get(str(window), "Selected period")
     st.html(portfolio_metric_grid(cards))
+
+    # Registration is a distinct user lifecycle event—not another visit or
+    # content view. Use the SAME reporting-window selector and calendar
+    # boundaries as the four existing analytics cards.
+    from portfolio_reader_kpi import reader_registration_totals, reader_registration_kpi
+    try:
+        reader_counts = reader_registration_totals(str(window))
+    except (RuntimeError, ValueError, TimeoutError, TypeError):
+        reader_counts = None
+    st.html(reader_registration_kpi(str(window), reader_counts))
 
     if site_views is not None:
         # Place the accounting directly under the four cards. Ordinary page

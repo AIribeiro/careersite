@@ -31,6 +31,20 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertIn("DO NOT MERGE INTO PRODUCTION", app)
         self.assertNotIn("from page_home import", launcher)
 
+    def test_native_staging_app_renders_registration_in_streamlit(self):
+        # Exercise the actual widget tree, not only the source text. No email
+        # or Supabase Auth request is issued until a user submits the form.
+        from streamlit.testing.v1 import AppTest
+        app = AppTest.from_file(str(ROOT / "reader_test.py"), default_timeout=30).run()
+        self.assertFalse(app.exception, [str(x.message) for x in app.exception])
+        self.assertTrue(
+            any("Take the briefings with you" in x.value for x in app.title),
+            "Standalone staging app must render the reader rather than Home",
+        )
+        self.assertTrue(
+            any("Email address" in str(x.label) for x in app.text_input),
+        )
+
     def test_native_reader_is_public_page_with_no_post_proxy(self):
         main = self.source("main.py")
         self.assertIn('"readers"', main)

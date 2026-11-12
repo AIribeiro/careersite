@@ -6,11 +6,15 @@ on:
       - main.py
       - src/article_access.py
       - src/article_reader_preview.py
+      - src/thinking_reader_invitation.py
+      - src/thinking_landing.py
+      - src/site_reader_shell.py
       - src/page_reader_native.py
       - src/reader_membership.py
       - src/site_cms.py
       - src/page_owner_reader_management.py
       - tests/test_article_early_access.py
+      - tests/test_thinking_premium_reader.py
       - .github/workflows/article-early-access.yml
   workflow_dispatch:
 
@@ -33,3 +37,5 @@ jobs:
         run: python -m unittest discover -s tests -p test_article_early_access.py -v
       - name: Check existing Executive AI Briefings preview remains unchanged
         run: python -m unittest discover -s tests -p test_briefing_public_preview.py -v
+      - name: Verify Thinking Premium Reader copy, links and library shell
+        run: python -m unittest discover -s tests -p test_thinking_premium_reader.py -v

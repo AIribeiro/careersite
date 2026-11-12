@@ -287,7 +287,7 @@ def reader_header(*, staging: bool = False) -> str:
     return (
         CSS + IMAGE_CSS + READER_SHELL_CSS
         + '<div class="site reader-shell">' + top
-        + '<main><section class="pagehero reader-hero"><div class="container">'
+        + '<main><section class="pagehero reader-hero" data-analytics-section="reader-premium-hero"><div class="container">'
         + '<div class="reader-crumb" aria-label="Breadcrumb">'
         + f'<a href="{thinking}" target="_self">Thinking</a>'
         + '<span aria-hidden="true">/</span>'
@@ -301,10 +301,10 @@ def reader_header(*, staging: bool = False) -> str:
         + ('<p class="reader-hero-support">Grounded in enterprise AI and Data '
            'leadership, governance and adoption experience.</p>' if not is_member else '')
         + '<div class="reader-hero-actions">'
-        + '<a class="reader-hero-join" href="#reader-access">'
+        + '<a class="reader-hero-join" href="#reader-access" data-hq-event="reader_premium_hero_access">'
         + ('Open my library' if is_member else 'Get Premium Reader access')
         + ' <span aria-hidden="true">→</span></a>'
-        + f'<a class="reader-hero-link" href="{briefings}" target="_self">'
+        + f'<a class="reader-hero-link" href="{briefings}" target="_self" data-hq-event="reader_premium_hero_preview">'
         + 'Preview the Executive AI Briefings <span aria-hidden="true">→</span></a>'
         + '</div></div><aside class="reader-hero-benefits" aria-label="Library benefits">'
         + '<span class="reader-benefits-label">' + escape(benefit_heading) + '</span>'

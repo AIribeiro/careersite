@@ -140,6 +140,40 @@ def _profile_snapshot(profile: dict, downloads: list[dict], saved: list[dict],
     st.write("**Verified email:** " + str(profile.get("email") or ""))
     st.write("**Registered:** " + str(profile.get("created_at") or "")[:19])
     st.write("**Source:** " + str(profile.get("acquisition_source") or "Unknown"))
+    st.markdown("**Reader-provided professional context**")
+    st.write("**Full name:** " + " ".join(
+        part for part in (
+            str(profile.get("first_name") or "").strip(),
+            str(profile.get("last_name") or "").strip()
+        ) if part
+    ))
+    st.write("**Professional role:** " + str(profile.get("job_title") or "Not provided"))
+    st.write("**Level:** " + str(profile.get("role_level") or "Not provided"))
+    st.write("**Organization:** " + str(profile.get("organization") or "Not provided"))
+    st.write("**Organization size:** " + str(profile.get("organization_size") or "Not provided"))
+    st.write("**Sector:** " + str(profile.get("industry") or "Not provided"))
+    st.write(
+        "**Location:** " + ", ".join(
+            part for part in (
+                str(profile.get("city") or "").strip(),
+                str(profile.get("country") or "").strip(),
+            ) if part
+        ) if (profile.get("city") or profile.get("country")) else
+        "**Location:** Not provided"
+    )
+    st.write("**Preferred language:** " + str(profile.get("preferred_language") or "Not provided"))
+    st.write("**LinkedIn:** " + str(profile.get("linkedin_url") or "Not provided"))
+    st.write("**Professional website:** " + str(profile.get("professional_website") or "Not provided"))
+    st.write("**Interests:** " + ", ".join(profile.get("interests") or []))
+    st.write("**Reading goal:** " + str(profile.get("reading_goal") or "Not provided"))
+    st.write("**AI adoption stage:** " + str(profile.get("ai_adoption_stage") or "Not provided"))
+    if profile.get("primary_challenge"):
+        st.write("**Leadership question shared by reader:**")
+        st.text(str(profile.get("primary_challenge") or ""))
+    st.caption(
+        "Professional details are voluntarily supplied by readers. "
+        "Passwords are managed only by Supabase Auth and are never visible here."
+    )
     st.write(
         "**Editorial email consent:** "
         + ("Yes" if profile.get("newsletter_opt_in") is True else "No")
@@ -223,7 +257,11 @@ def _reader_management(
         user_id = str(p.get("user_id") or "")
         control = controls.get(user_id, {})
         matched = search in " ".join([
-            str(p.get("first_name") or ""), str(p.get("email") or ""),
+            str(p.get("first_name") or ""), str(p.get("last_name") or ""),
+            str(p.get("email") or ""), str(p.get("job_title") or ""),
+            str(p.get("organization") or ""), str(p.get("industry") or ""),
+            str(p.get("country") or ""), str(p.get("city") or ""),
+            " ".join(p.get("interests") or []),
             " ".join(control.get("tags") or []),
         ]).casefold()
         if not matched:
@@ -242,8 +280,17 @@ def _reader_management(
     st.caption(f"{len(matching):,} matching readers")
     st.dataframe([
         {
-            "Name": str(p.get("first_name") or ""),
+            "Name": " ".join(
+                part for part in (
+                    str(p.get("first_name") or ""),
+                    str(p.get("last_name") or "")
+                ) if part
+            ),
             "Email": str(p.get("email") or ""),
+            "Role": str(p.get("job_title") or ""),
+            "Organization": str(p.get("organization") or ""),
+            "Sector": str(p.get("industry") or ""),
+            "Country": str(p.get("country") or ""),
             "Registered": str(p.get("created_at") or "")[:10],
             "Editorial opt-in": bool(p.get("newsletter_opt_in")),
             "Status": str(controls.get(str(p.get("user_id")), {}).get("account_status", "active")),

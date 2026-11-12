@@ -1418,9 +1418,9 @@ def render_cms_article(article: CmsArticle) -> str:
                 from weekly_ai_reader_preview import render_current_week_public_preview
                 return render_current_week_public_preview(article)
         return render_weekly_brief_article(article, _safe_share_footer(article))
-    # For the first 168 hours after publication, show a substantive public
-    # executive summary. Do not emit complete CMS HTML to anonymous clients.
-    # The publication timestamp, not the revision date, controls release.
+    # The latest published Article stays Premium, and even superseded
+    # Articles must complete their first seven days before becoming public.
+    # Withhold the full CMS body from anonymous HTML until both are satisfied.
     from article_access import article_is_locked
     if article_is_locked(article):
         from page_reader_native import _session
@@ -1606,7 +1606,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
         else:
             featured_image = _cms_fallback_cover(featured, "thinking-thumb cms-thinking-thumb")
         featured_copy = featured.subtitle or featured.excerpt
-        featured_link_label = "Read executive summary →" if article_is_locked(featured) else "Read the article →"
+        featured_link_label = "Read executive summary →" if article_is_locked(featured, published=published) else "Read the article →"
         featured_html = (
             f'<article class="featured-thinking cms-featured-thinking">{featured_image}'
             f'<div class="kicker">{escape(featured.kind_topic)}</div>'
@@ -1680,7 +1680,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
 
     cards = []
     for article in listed_articles:
-        access_label = " · Early access" if article_is_locked(article) else " · Open access"
+        access_label = " · Early access" if article_is_locked(article, published=published) else " · Open access"
         thumb = ""
         card_header_url = article.header_image_url
         if card_header_url:
@@ -1725,7 +1725,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
             'loading="lazy" decoding="async">'
             if art_url else '<span class="home-featured-art-fallback">AI · Data · Leadership</span>'
         )
-        highlight_cta = "Read executive summary" if article_is_locked(featured) else "Read highlighted article"
+        highlight_cta = "Read executive summary" if article_is_locked(featured, published=published) else "Read highlighted article"
         highlight_html = (
             '<div class="cms-thinking-highlight" data-analytics-section="thinking-featured-article">'
             '<div class="home-featured-topline"><p class="eyebrow">Highlighted article</p>'

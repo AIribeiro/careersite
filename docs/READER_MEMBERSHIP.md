@@ -2,6 +2,69 @@
 
 Status (12 November 2026): **production integration candidate — pending final rollout checks**. Supabase reader tables and per-user RLS policies are deployed. The registration and download experience now uses **native Streamlit widgets** because Streamlit Community Cloud returned HTTP 500 for custom Starlette HTML POST requests even when no data was submitted. Streamlit Cloud startup logs also rejected the old `server.useStarlette` option and reported that the `streamlit[starlette]` package extra does not exist; both were removed.
 
+## Editorial access model — public preview, free full edition (12 November 2026)
+
+The portfolio's Executive AI Briefings are now designed as **free registered-reader editions**.
+This is an editorial exchange, not a paid subscription or a model for hiding low-value content:
+
+- **Library (public):** every published briefing has a title, specific context and a
+  "Read free preview" card. The collection explains the two-stage reading model.
+- **Individual briefing (public):** the first part presents the author's *actual*
+  Leadership Decision, a substantive next action and relevant operating context
+  taken from the original Content Studio article. These passages are assembled
+  from the published HTML with escaped text. **No synthetic statistics, case
+  studies, claims or filler are generated.** The preview has its own article
+  typography and a premium navy/copper sign-up panel.
+- **Invitation:** readers can select **Get full briefing · Free** or
+  **Already registered? Sign in**, without leaving the current edition. The
+  same contextual native dialog is used for infographic PDF CTAs.
+- **After Supabase verification:** that edition is rendered in full with its
+  original research, decision framework and infographic. A matching A4 PDF is
+  available where the approved asset exists; absent PDFs are not fabricated.
+  A successful sign-in goes back to the selected publication, not an unrelated
+  generic catalogue. Registration does *not* automatically subscribe readers
+  to email marketing.
+- **Existing reader library:** retains complete-edition and downloadable-PDF
+  navigation for verified reader sessions.
+
+**Security caveat:** the public site does not send the complete CMS HTML to the
+anonymous Streamlit page, but its upstream CMS Data API and public GitHub-hosted
+artwork can still expose content to people who bypass the UI. That is a
+**presentation-level access gate, not protected distribution/DRM**. Securing
+the full edition against direct API access requires a separate private CMS read
+model, storage permissions/RLS and privileged authenticated retrieval, with a
+migration plan that preserves the public library and search metadata.
+
+### Required Supabase Auth redirect allowlist before launch
+
+The email template must still use the configured `{{ .RedirectTo }}` and
+`{{ .TokenHash }}` so the magic link returns to the selected article.
+
+**Existing `/?page=readers` allowlist entries alone do not cover a briefing
+callback.** Add these four tightly scoped patterns to Authentication → URL
+Configuration → Redirect URLs (keep the existing readers URLs):
+
+```text
+https://jairribeiro-ai.streamlit.app/?page=briefing&article=*&access=1
+https://jairribeiro-ai.streamlit.app/?page=briefing&article=*&pdf=1
+https://jairribeiro-reader-test.streamlit.app/?page=briefing&article=*&access=1
+https://jairribeiro-reader-test.streamlit.app/?page=briefing&article=*&pdf=1
+```
+
+The site constructs URLs from a **fixed, allowlisted HTTPS host and a validated
+slug**; it never accepts a user-provided callback host. Supabase glob `*`
+matches the slug characters without allowing new slash-separated paths.
+Validate at least one real article URL with Supabase and verify that the emailed
+link lands on that same article. Without the new callback patterns, the OTP
+code can still verify in the original Streamlit tab but a clicked magic link
+may fall back to the wrong default destination.
+
+**Do not merge** the new preview flow until the URL allowlist is confirmed and
+the full browser sequence passes for new and returning readers on desktop and
+mobile, including open/close dialog, click link/enter code, see full edition,
+download A4 and sign out. The code itself is a six-digit native Supabase OTP,
+not a four-digit custom code.
+
 ## Staging URL
 
 Use **https://jairribeiro-reader-test.streamlit.app/?page=readers** for the integrated reader route. The staging root now correctly shows the complete portfolio.
@@ -133,7 +196,7 @@ retrieval and production redirect configuration are checked.
 
 ## Reader contract
 
-- Full public briefing remains readable without sign-in.
+- Public **opening previews** remain readable without sign-in; complete editions require verified reader access.
 - PDF downloads require verified email authentication.
 - First name and email are required; the editorial email checkbox is optional and **unchecked**.
 - Registration is not newsletter consent. Only consented subscribers may receive editorial mail.

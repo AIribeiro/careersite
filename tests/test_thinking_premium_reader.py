@@ -41,9 +41,11 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
         self.assertIn("No payment details", rendered)
         self.assertIn("editorial emails", rendered)
         self.assertIn("Access at a glance", rendered)
-        self.assertIn("when a newer Article is published", rendered)
+        self.assertIn("Premium Reader access is complimentary", rendered)
         self.assertIn("Executive AI Briefings", rendered)
-        # Keep the value proposition first; editorial timing belongs only\n        # in the small policy note at the bottom of the section.\n        self.assertNotIn("seven days", rendered.split("Access at a glance")[0].lower())\n        self.assertIn("seven days", rendered.split("Access at a glance")[1].lower())
+        # Eligibility timing remains an internal policy, not sales copy.
+        self.assertNotIn("seven days", rendered.lower())
+        self.assertNotIn("another Article is published", rendered)
         self.assertNotIn("day 7", rendered.lower())
         self.assertNotIn("guaranteed", rendered.lower())
         # Make the content-value argument before access conditions appear.
@@ -59,10 +61,10 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
     def test_unified_reader_hero_recognizes_both_formats(self):
         rendered = reader_header()
         self.assertIn("Your executive reading library", rendered)
-        self.assertIn("at least seven days", rendered)
+        self.assertIn("full Premium Articles", rendered)
         self.assertIn("Executive AI Briefings", rendered)
         self.assertIn("A4 infographic PDFs", rendered)
-        self.assertIn("until another Article is published", rendered)
+        self.assertNotIn("until another Article is published", rendered)
 
     def test_cms_injection_preserves_invitation_on_thinking_page(self):
         from page_thinking import _thinking_landing_with_catalog

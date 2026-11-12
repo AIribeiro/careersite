@@ -68,6 +68,44 @@ class ArticleEarlyAccessTests(unittest.TestCase):
             self.assertFalse(is_editorial_article(self.fixture(kind=kind)))
             self.assertFalse(article_is_locked(self.fixture(kind=kind)))
 
+    def test_reader_registration_records_article_origin_once(self):
+        from reader_membership import _register_profile
+        user = {
+            "id": "11111111-1111-1111-1111-111111111111",
+            "email": "reader@example.com",
+            "user_metadata": {
+                "reader_first_name": "Reader",
+                "reader_acquisition_source": "articles",
+                "reader_editorial_opt_in": False,
+            },
+        }
+        session = {"access_token": "token"}
+        with (
+            patch("reader_membership._get_profile", return_value=None),
+            patch("reader_membership._request_json", side_effect=lambda *a, **kw: [kw["payload"]]) as write,
+            patch("reader_membership._log_consent") as consent,
+        ):
+            profile = _register_profile(session, user)
+        self.assertEqual(profile["acquisition_source"], "articles")
+        self.assertFalse(profile["newsletter_opt_in"])
+        consent.assert_not_called()
+        write.assert_called_once()
+
+    def test_existing_briefing_reader_is_not_reregistered_or_retagged(self):
+        from reader_membership import _register_profile
+        existing = {"user_id": "current-reader", "acquisition_source": "briefing_pdf"}
+        with (
+            patch("reader_membership._get_profile", return_value=existing),
+            patch("reader_membership._request_json") as write,
+        ):
+            profile = _register_profile(
+                {"access_token": "token"},
+                {"id": "current-reader", "email": "reader@example.com",
+                 "user_metadata": {"reader_acquisition_source": "articles"}},
+            )
+        self.assertIs(profile, existing)
+        write.assert_not_called()
+
     def test_missing_publication_date_fails_closed(self):
         self.assertTrue(article_is_locked(self.fixture(published_at="")))
         self.assertTrue(article_is_locked(self.fixture(published_at="invalid timestamp")))

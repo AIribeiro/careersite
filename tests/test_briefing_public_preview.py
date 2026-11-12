@@ -48,6 +48,34 @@ class BriefingPublicPreviewTests(unittest.TestCase):
             content_html=html,
         )
 
+    def test_anonymous_cms_reader_never_receives_full_html(self):
+        from unittest.mock import patch
+        from site_cms import CmsArticle, render_cms_article
+
+        article = self.fixture()
+        stored = CmsArticle(
+            id="test-article",
+            slug=article.slug,
+            title=article.title,
+            subtitle=article.subtitle,
+            content_html=article.content_html,
+            kind="Executive Briefing",
+            status="published",
+        )
+        with (
+            patch("site_cms._public_reads_or_none", return_value=None),
+            patch("site_cms.article_read_metadata", return_value="November 2026"),
+            patch("site_cms.reader_header_image_src", return_value=""),
+            patch("site_cms.fetch_published_articles", return_value=()),
+            patch("page_reader_native._session", return_value=(None, None)),
+        ):
+            page = render_cms_article(stored)
+        self.assertIn("The Leadership Decision", page)
+        self.assertIn("A decision to put to work", page)
+        self.assertIn("Continue with the full briefing", page)
+        self.assertNotIn("UNLOCKED_ONLY_DETAIL_4382", page)
+        self.assertNotIn("premium-infographic.webp", page)
+
     def test_substantive_editorial_preview_excludes_full_edition(self):
         article = self.fixture()
         opening = opening_paragraphs(article.content_html)

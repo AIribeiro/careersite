@@ -344,10 +344,44 @@ READER_SHELL_CSS = r"""
 .st-key-reader_flow [data-testid="stTabs"] [data-testid="stDataFrame"] {
   border:1px solid #e1d7cc;border-radius:3px;overflow:hidden
 }
+/* Member account summary and mobile collection affordance. */
+.st-key-reader_flow .reader-account-summary {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;margin:5px 0 24px;padding:21px 0;
+  border-top:1px solid #dfd5c9;border-bottom:1px solid #dfd5c9;
+  background:#faf7f1
+}
+.st-key-reader_flow .reader-account-summary>div {
+  display:flex;flex-direction:column;gap:6px;
+  min-width:0;padding:0 20px;border-right:1px solid #e2d8cc
+}
+.st-key-reader_flow .reader-account-summary>div:last-child {border-right:0}
+.st-key-reader_flow .reader-account-summary span {
+  color:#986441;font:800 10px/1.4 Arial,sans-serif;letter-spacing:.1em
+}
+.st-key-reader_flow .reader-account-summary strong {
+  overflow-wrap:anywhere;color:#19364a;
+  font:600 14px/1.4 Arial,sans-serif
+}
+.st-key-reader_flow .reader-account-summary small {
+  color:#68717b;font:400 11px/1.5 Arial,sans-serif
+}
+.st-key-reader_flow .reader-tab-hint {display:none}
 /* Hide Streamlit's platform footer but preserve the real portfolio footer. */
-[data-testid="stFooter"],[data-testid="stDecoration"] {display:none!important}
+[data-testid="stFooter"],[data-testid="stDecoration"],footer:not(.footer) {display:none!important}
 .reader-shell-footer footer.footer {display:block!important}
 @media(max-width:700px) {
+  .st-key-reader_flow .reader-tab-hint {
+    display:flex;justify-content:space-between;gap:8px;
+    color:#566574;font:650 11px/1.4 Arial,sans-serif;
+    margin:12px 0 1px
+  }
+  .st-key-reader_flow .reader-tab-hint span {color:#996341}
+  .st-key-reader_flow .reader-account-summary {grid-template-columns:minmax(0,1fr);padding:6px 0}
+  .st-key-reader_flow .reader-account-summary>div {
+    padding:13px 16px;border-right:0;border-bottom:1px solid #e2d8cc
+  }
+  .st-key-reader_flow .reader-account-summary>div:last-child {border-bottom:0}
   .st-key-reader_flow:has([data-testid="stTabs"]) {
     width:calc(100% - 26px)!important;padding:24px 17px 29px!important
   }

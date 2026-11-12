@@ -9,6 +9,7 @@ from html import escape
 from urllib.parse import quote
 
 from briefing_reader_preview import PREVIEW_CSS, opening_paragraphs, next_edition_sections
+from premium_article_editorial import public_intro_preview_paragraphs
 from site_components import footer, nav
 from thinking_core import THINKING_CSS
 
@@ -18,7 +19,12 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
     title = escape(str(article.title or "Article"))
     subtitle = escape(str(article.subtitle or article.excerpt or "").strip())
     published_summary = str(article.excerpt or "").strip()
-    opening = opening_paragraphs(str(article.content_html or ""), max_words=200)
+    # For new-style Articles use only the substantive introductory paragraphs
+    # that precede the first H2/H3. The generic legacy fallback preserves old
+    # published records that begin immediately with a section heading.
+    opening = public_intro_preview_paragraphs(str(article.content_html or ""))
+    if not opening:
+        opening = opening_paragraphs(str(article.content_html or ""), max_words=200)
 
     # The executive summary uses editorial material that actually exists,
     # rather than fabricated conclusions or marketing copy.

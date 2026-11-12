@@ -313,37 +313,214 @@ def _record_download(token: str, user_id: str, slug: str) -> None:
     except (RuntimeError, ValueError, TimeoutError):
         LOG.warning("Unable to record a native reader PDF download.")
 
+_READER_TOPICS = (
+    "AI strategy", "AI governance", "Responsible AI", "AI adoption",
+    "AI agents", "AI value and ROI", "Data governance",
+    "Data and analytics leadership", "AI operating models",
+    "Leadership and organizational change", "Process improvement",
+    "EU AI regulation",
+)
+_READER_LEVELS = (
+    "", "Individual contributor", "Manager", "Senior Manager", "Head of function",
+    "Director", "VP / Executive", "C-suite", "Founder / Owner",
+    "Consultant / Advisor", "Research / Academia", "Other",
+)
+_READER_SIZES = (
+    "", "1–49", "50–249", "250–999", "1,000–4,999",
+    "5,000–19,999", "20,000+", "Not applicable",
+)
+_READER_GOALS = (
+    "", "Professional development", "Leading AI adoption",
+    "Developing AI strategy or governance", "Evaluating enterprise AI",
+    "Research / education", "Exploring business collaboration", "Other",
+)
+_READER_STAGES = (
+    "", "Exploring", "Experimenting / pilots", "Scaling adoption",
+    "Established enterprise capability", "Not applicable / unsure",
+)
+
+
+def _profile_option(options: tuple[str, ...], value: object) -> int:
+    """Preserve a user's chosen option; missing older values map to blank."""
+    return options.index(str(value or "")) if str(value or "") in options else 0
+
+
+def _profile_url(raw: str, *, linkedin: bool = False) -> str:
+    """Accept only https public professional links; never arbitrary schemes."""
+    from urllib.parse import urlsplit
+    value = str(raw or "").strip()
+    if not value:
+        return ""
+    try:
+        parts = urlsplit(value)
+    except ValueError as exc:
+        raise ValueError("Enter a valid HTTPS website.") from exc
+    if (
+        parts.scheme.lower() != "https" or not parts.hostname or
+        parts.username or parts.password or any(ch.isspace() for ch in value)
+    ):
+        raise ValueError("Professional links must use HTTPS.")
+    if linkedin and (parts.hostname.lower() not in {"linkedin.com", "www.linkedin.com"}):
+        raise ValueError("Use your LinkedIn profile URL.")
+    if len(value) > 350:
+        raise ValueError("Professional links cannot exceed 350 characters.")
+    return value
+
+
 def _render_preferences(session: dict, profile: dict, user: dict) -> None:
-    with st.expander("Reader preferences", expanded=False):
-        with st.form("reader_native_preferences"):
+    st.markdown("#### Your professional profile")
+    st.caption(
+        "All professional fields are optional except first name. They help us "
+        "understand the audience and develop more relevant executive resources. "
+        "Your information is not shown publicly and is not a mailing-list subscription."
+    )
+    with st.form("reader_native_preferences"):
+        st.markdown("**About you**")
+        a, b = st.columns(2)
+        with a:
             first = st.text_input("First name", value=str(profile.get("first_name") or ""), max_chars=80)
-            subscribed = st.checkbox("Receive editorial emails", value=bool(profile.get("newsletter_opt_in")))
-            saved = st.form_submit_button("Save preferences")
-        if saved:
-            first = first.strip()
-            if not first:
-                st.error("First name is required.")
+        with b:
+            last = st.text_input("Last name (optional)", value=str(profile.get("last_name") or ""), max_chars=80)
+        a, b = st.columns(2)
+        with a:
+            job_title = st.text_input("Job title / professional role", value=str(profile.get("job_title") or ""), max_chars=160)
+            role_level = st.selectbox(
+                "Professional level", _READER_LEVELS,
+                index=_profile_option(_READER_LEVELS, profile.get("role_level")),
+            )
+        with b:
+            organization = st.text_input("Company / organization", value=str(profile.get("organization") or ""), max_chars=180)
+            industry = st.text_input("Industry / sector", value=str(profile.get("industry") or ""), max_chars=100)
+        size = st.selectbox(
+            "Organization size (employees)", _READER_SIZES,
+            index=_profile_option(_READER_SIZES, profile.get("organization_size")),
+        )
+        a, b = st.columns(2)
+        with a:
+            country = st.text_input("Country", value=str(profile.get("country") or ""), max_chars=100)
+        with b:
+            city = st.text_input("City / region", value=str(profile.get("city") or ""), max_chars=100)
+        preferred_language = st.text_input(
+            "Preferred reading language", value=str(profile.get("preferred_language") or ""),
+            max_chars=70, placeholder="e.g. English",
+        )
+        a, b = st.columns(2)
+        with a:
+            linkedin = st.text_input(
+                "LinkedIn profile URL", value=str(profile.get("linkedin_url") or ""),
+                max_chars=350, placeholder="https://www.linkedin.com/in/...",
+            )
+        with b:
+            website = st.text_input(
+                "Professional website", value=str(profile.get("professional_website") or ""),
+                max_chars=350, placeholder="https://...",
+            )
+        st.divider()
+        st.markdown("**Your interests and current context**")
+        old_topics = profile.get("interests") or []
+        selected_interests = st.multiselect(
+            "Executive AI topics you follow (up to 10)",
+            _READER_TOPICS,
+            default=[topic for topic in old_topics if topic in _READER_TOPICS][:10],
+        )
+        a, b = st.columns(2)
+        with a:
+            reading_goal = st.selectbox(
+                "What brings you to these briefings?", _READER_GOALS,
+                index=_profile_option(_READER_GOALS, profile.get("reading_goal")),
+            )
+        with b:
+            ai_stage = st.selectbox(
+                "AI adoption stage in your organization", _READER_STAGES,
+                index=_profile_option(_READER_STAGES, profile.get("ai_adoption_stage")),
+            )
+        challenge = st.text_area(
+            "Leadership question or AI challenge (optional)",
+            value=str(profile.get("primary_challenge") or ""),
+            max_chars=600, height=95,
+            help="Share only professional context you are comfortable providing.",
+        )
+        st.divider()
+        st.markdown("**Editorial communication**")
+        subscribed = st.checkbox(
+            "Receive editorial emails",
+            value=bool(profile.get("newsletter_opt_in")),
+            help="Optional. Changing your profile never subscribes you automatically.",
+        )
+        saved = st.form_submit_button("Save my profile", type="primary")
+    if saved:
+        first = first.strip()
+        if not first:
+            st.error("First name is required.")
+            return
+        try:
+            linkedin_value = _profile_url(linkedin, linkedin=True)
+            site_value = _profile_url(website)
+            if len(selected_interests) > 10:
+                raise ValueError("Select up to 10 interests.")
+            before = bool(profile.get("newsletter_opt_in"))
+            payload = {
+                "first_name": first, "last_name": last.strip(),
+                "job_title": job_title.strip(), "organization": organization.strip(),
+                "industry": industry.strip(), "role_level": role_level,
+                "organization_size": size, "country": country.strip(),
+                "city": city.strip(), "preferred_language": preferred_language.strip(),
+                "linkedin_url": linkedin_value, "professional_website": site_value,
+                "interests": selected_interests, "reading_goal": reading_goal,
+                "ai_adoption_stage": ai_stage, "primary_challenge": challenge.strip(),
+                "newsletter_opt_in": bool(subscribed),
+                "newsletter_consent_at": (
+                    _utc_now() if subscribed and not before
+                    else profile.get("newsletter_consent_at") if subscribed else None
+                ),
+                "consent_notice_version": CONSENT_VERSION if subscribed else None,
+                "updated_at": _utc_now(),
+            }
+            _request_json(
+                "PATCH", _rest_url("portfolio_reader_profiles?user_id=eq." + str(user["id"])),
+                token=str(session["access_token"]), payload=payload,
+            )
+            if before != bool(subscribed):
+                _log_consent(str(session["access_token"]), str(user["id"]), bool(subscribed), "preferences")
+            st.success("Your profile has been updated.")
+            st.rerun()
+        except (RuntimeError, ValueError, TimeoutError):
+            st.error("The profile couldn't be saved. Check your links and try again.")
+
+
+def _render_password_settings(session: dict) -> None:
+    with st.expander("Account security · Password", expanded=False):
+        st.write(
+            "Set a password after verifying your email once. On future visits "
+            "you can sign in with your email and password without requesting an OTP."
+        )
+        with st.form("reader_set_password", clear_on_submit=True):
+            password = st.text_input(
+                "New password", type="password", max_chars=128,
+                help="Use at least 12 characters. A long, unique passphrase is recommended.",
+            )
+            confirm = st.text_input("Confirm new password", type="password", max_chars=128)
+            change = st.form_submit_button("Set or update password", type="primary")
+        if change:
+            if password != confirm:
+                st.error("The passwords do not match.")
             else:
-                before = bool(profile.get("newsletter_opt_in"))
-                payload = {
-                    "first_name": first,
-                    "newsletter_opt_in": subscribed,
-                    "newsletter_consent_at": (
-                        _utc_now() if subscribed and not before
-                        else profile.get("newsletter_consent_at") if subscribed else None
-                    ),
-                    "consent_notice_version": CONSENT_VERSION if subscribed else None,
-                    "updated_at": _utc_now(),
-                }
                 try:
-                    _request_json("PATCH", _rest_url(
-                        "portfolio_reader_profiles?user_id=eq." + user["id"]),
-                        token=session["access_token"], payload=payload)
-                    if before != subscribed:
-                        _log_consent(session["access_token"], user["id"], subscribed, "preferences")
-                    st.success("Preferences saved.")
-                except (RuntimeError, ValueError, TimeoutError):
-                    st.error("Your preferences could not be saved.")
+                    _set_reader_password(session, str(password))
+                    st.success("Password saved. Use email and password next time you sign in.")
+                except ValueError as exc:
+                    st.error(str(exc))
+                except (RuntimeError, TimeoutError, KeyError):
+                    st.error(
+                        "The password could not be changed. You may need recent email "
+                        "verification. Sign in with an email code and try again."
+                    )
+        st.caption(
+            "Forgot your password? Use the email verification option to access "
+            "your account, then set a new password here. "
+            "For help, email info@jairribeiro.com."
+        )
+
 
 def _reader_collection(
     session: dict, user: dict, table: str, *, order: str, limit: int = 200,
@@ -611,6 +788,8 @@ def _library(session: dict, user: dict) -> None:
             + ("Subscribed" if profile.get("newsletter_opt_in") else "Not subscribed")
         )
         _render_preferences(session, profile, user)
+        _render_password_settings(session)
+        st.caption("Need help with your reader account? Email info@jairribeiro.com.")
 
     st.divider()
     if st.button("Sign out", key="reader_native_logout"):

@@ -280,7 +280,7 @@ def approved_authority_studio(article, row: dict) -> str:
     slug = e(article.slug, quote=True)
     caption = e(str(row.get("caption") or "Original executive infographic by Jair Ribeiro."))
     alt = e(alt, quote=True)
-    download = "/?page=readers&download=" + slug
+    download = "/?page=briefing&amp;article=" + slug + "&amp;pdf=1"
 
     return (
         '<style>'

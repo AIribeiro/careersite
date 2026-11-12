@@ -73,7 +73,7 @@ class BriefingPublicPreviewTests(unittest.TestCase):
             page = render_cms_article(stored)
         self.assertIn("The Leadership Decision", page)
         self.assertIn("A decision to put to work", page)
-        self.assertIn("Continue with the full briefing", page)
+        self.assertIn("Read the complete executive analysis", page)
         self.assertNotIn("UNLOCKED_ONLY_DETAIL_4382", page)
         self.assertNotIn("premium-infographic.webp", page)
 
@@ -89,7 +89,7 @@ class BriefingPublicPreviewTests(unittest.TestCase):
         self.assertIn("A decision to put to work", html)
         self.assertIn("Capacity is part of the approval decision", html)
         self.assertIn("shared specialists", html)
-        self.assertIn("Continue with the full briefing", html)
+        self.assertIn("Read the complete executive analysis", html)
         self.assertIn("A4 PDF", html)
         self.assertNotIn("UNLOCKED_ONLY_DETAIL_4382", html)
         self.assertNotIn("premium-infographic.webp", html)
@@ -125,7 +125,7 @@ class BriefingPublicPreviewTests(unittest.TestCase):
         ):
             public_html = render_cms_article(article)
         self.assertIn("Capacity is part of the approval decision", public_html)
-        self.assertIn("Continue with the full briefing", public_html)
+        self.assertIn("Read the complete executive analysis", public_html)
         self.assertNotIn("UNLOCKED_ONLY_DETAIL_4382", public_html)
         self.assertNotIn("premium-infographic.webp", public_html)
 

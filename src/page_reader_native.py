@@ -216,12 +216,12 @@ def _consume_query_verification() -> None:
 
 def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> None:
     if requested_title and resource_kind == "weekly_ai":
-        st.markdown("### Read this week's complete Weekly AI")
+        st.markdown("### Read the latest complete Weekly AI")
         st.write(
             "Sign in to read **" + requested_title +
-            "** and listen to the narration when available. This week's "
-            "edition is complimentary for Premium Readers, and becomes public "
-            "next Monday."
+            "** and listen to the narration when available. The latest "
+            "published edition remains complimentary for Premium Readers "
+            "until the next edition is published."
         )
     elif requested_title and resource_kind == "article":
         st.markdown("### Read the complete article")
@@ -237,7 +237,7 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
         st.markdown("### Complimentary Premium Reader access")
         st.write(
             "Read public summaries before registering. Your one free account opens "
-            "complete Executive AI Briefings, the current Weekly AI edition and "
+            "complete Executive AI Briefings, the latest Weekly AI edition and "
             "new Articles during their first seven days. Older Weekly AI and "
             "Article editions remain open to everyone."
         )
@@ -745,10 +745,10 @@ def _library(session: dict, user: dict) -> None:
         except (RuntimeError, ValueError, TimeoutError):
             weekly_issues = []
             st.warning("Weekly AI editions are temporarily unavailable.")
-        st.markdown("#### Weekly AI · Current and previous editions")
+        st.markdown("#### Weekly AI · Latest and previous editions")
         st.caption(
-            "The current Stockholm calendar week is exclusive to free Premium "
-            "Readers. Older editions open automatically on Monday."
+            "The latest published edition is available to free Premium Readers. "
+            "Previous editions are open to everyone."
         )
         if weekly_issues:
             page_size = 6
@@ -766,8 +766,8 @@ def _library(session: dict, user: dict) -> None:
                     st.write(str(item.excerpt or item.subtitle or ""))
                     st.caption(
                         edition_label(item) + " · " +
-                        ("Premium this week · Full edition unlocked"
-                         if weekly_ai_is_premium(item) else "Open access")
+                        ("Latest edition · Full access unlocked"
+                         if weekly_ai_is_premium(item, published=weekly_issues) else "Open access")
                     )
                     if st.button("Read full Weekly AI", key="reader_weekly_open_" + slug):
                         st.query_params.from_dict({"page": "thinking", "article": slug})

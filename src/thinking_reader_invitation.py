@@ -70,7 +70,7 @@ def reader_invitation() -> str:
         </div>
         <div class="thinking-reader-actionline">
           <p><strong>Premium Reader access is currently free.</strong>
-          One account covers all three editorial formats. Save useful briefings,
+          One account covers all three editorial formats. Save briefings,
           return to available PDFs and manage your profile in My Library.
           No payment details. Editorial emails are optional and require your explicit choice.</p>
           <div class="thinking-reader-actions">

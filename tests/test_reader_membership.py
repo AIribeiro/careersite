@@ -171,6 +171,19 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertIn('Route("/readers/{action}"', app)
         self.assertNotIn('Route("/~/+/readers/{action}"', app)
 
+    def test_staging_probe_has_no_external_dependencies_or_visitor_data(self):
+        source = self._source("src/reader_membership.py")
+        self.assertIn('if action == "diagnostic":', source)
+        self.assertIn('if request.method == "POST":', source)
+        self.assertIn("POST reached Python", source)
+        self.assertIn("No name, email or other data will be submitted.", source)
+        self.assertIn("<form method='post'>", source)
+        # Must be isolated ahead of the generic session/account actions.
+        self.assertLess(
+            source.index('if action == "diagnostic":'),
+            source.index('if action in {"request", "login", "signin"}'),
+        )
+
     def test_service_registration_does_not_enroll_newsletter_by_default(self):
         source = self._source("src/reader_membership.py")
         self.assertIn('type="checkbox" value="yes"', source)

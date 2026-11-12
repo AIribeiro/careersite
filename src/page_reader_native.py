@@ -665,11 +665,12 @@ def _library(session: dict, user: dict) -> None:
         return
 
     first = str(profile.get("first_name") or "").strip()
-    st.markdown("### Your Executive AI Briefings library")
+    st.markdown("### Your Premium Reader library")
     st.write(
         ("Welcome, " + first + ". " if first else "")
-        + "Your verified reader access unlocks every Executive AI Briefing "
-        + "and early access to Articles during their first seven days."
+        + "Read all complete Executive AI Briefings, save useful editions "
+        + "and access new Articles in full during their first seven days. "
+        + "Older Articles are open to everyone."
     )
     st.caption("Signed in as " + str(user.get("email") or ""))
     st.caption(

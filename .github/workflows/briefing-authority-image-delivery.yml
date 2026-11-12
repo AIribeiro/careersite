@@ -65,7 +65,7 @@ jobs:
           grep -i '^content-type:.*image/webp' /tmp/desktop.headers
           grep -i '^content-type:.*image/webp' /tmp/mobile.headers
           grep -Ei '^HTTP/.* 303' /tmp/pdf.headers
-          grep -i '^location:.*/readers/download/ai-was-approved-who-can-stop-it.pdf' /tmp/pdf.headers
+          grep -i '^location:.*/?page=readers&download=ai-was-approved-who-can-stop-it' /tmp/pdf.headers
           python - <<'PY'
           from PIL import Image
           from pypdf import PdfReader

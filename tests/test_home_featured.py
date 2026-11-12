@@ -91,6 +91,79 @@ class HomeFeaturedArticleTests(unittest.TestCase):
         self.assertIn("page=thinking&article=", selected.href)
         self.assertGreater(len(picker.call_args.args[0]), 1)
 
+    def test_home_top_ten_uses_readership_and_excludes_weekly_and_drafts(self) -> None:
+        from page_home_featured import top_read_home_pool
+
+        articles = tuple(self.article(f"essay-{index}", index + 3) for index in range(12))
+        weekly = self.article("weekly-ai-2026-11-06", 1, kind="Weekly Brief",
+                              category="Weekly AI")
+        draft = self.article("not-published", 1)
+        draft.status = "draft"
+        reads = {article.slug: 120 - index for index, article in enumerate(articles)}
+        reads[weekly.slug] = 10000
+        reads[draft.slug] = 20000
+
+        ranked = top_read_home_pool((weekly, draft) + articles, reads)
+        self.assertEqual(len(ranked), 10)
+        self.assertEqual([item.slug for item in ranked],
+                         [f"essay-{index}" for index in range(10)])
+        self.assertNotIn(weekly.slug, [item.slug for item in ranked])
+        self.assertNotIn(draft.slug, [item.slug for item in ranked])
+
+    def test_top_ten_stably_breaks_equal_read_counts_by_publication_date(self) -> None:
+        from page_home_featured import top_read_home_pool
+        newest = self.article("newest", 1)
+        oldest = self.article("oldest", 50)
+        ranked = top_read_home_pool((oldest, newest), {"oldest": 4, "newest": 4})
+        self.assertEqual([a.slug for a in ranked], ["newest", "oldest"])
+
+    def test_home_popular_selection_reranks_as_reads_change_and_chooses_each_load(self) -> None:
+        from page_home_featured import current_home_popular_article
+
+        articles = tuple(self.article(f"essay-{index}", index + 3) for index in range(12))
+        first_counts = {a.slug: 20 - index for index, a in enumerate(articles)}
+        later_counts = dict(first_counts)
+        later_counts["essay-11"] = 1000
+        with patch("site_cms.fetch_published_articles", return_value=articles), \
+             patch("site_cms.fetch_public_article_reads",
+                   side_effect=(first_counts, later_counts)), \
+             patch("page_home_featured.choice", side_effect=lambda pool: pool[0]) as picker:
+            first = current_home_popular_article()
+            second = current_home_popular_article()
+        self.assertEqual(first.slug, "essay-0")
+        self.assertEqual(second.slug, "essay-11")
+        self.assertEqual(picker.call_count, 2)
+        self.assertEqual(len(picker.call_args_list[0].args[0]), 10)
+        self.assertEqual(len(picker.call_args_list[1].args[0]), 10)
+        self.assertNotIn("essay-11", [a.slug for a in picker.call_args_list[0].args[0]])
+        self.assertIn("essay-11", [a.slug for a in picker.call_args_list[1].args[0]])
+
+    def test_home_popular_falls_back_without_fabricating_readership(self) -> None:
+        from page_home_featured import HomeArticlePreview, current_home_popular_article
+        fallback = HomeArticlePreview(
+            slug="safe-fallback", title="Available editorial preview", deck="An open summary",
+            kind_topic="Article", published_label="1 Nov 2026", read_minutes=2,
+            href="?page=thinking&article=safe-fallback", image_url="", image_alt="Cover",
+        )
+        with patch("site_cms.fetch_published_articles", return_value=()), \
+             patch("site_cms.fetch_public_article_reads", side_effect=RuntimeError("offline")), \
+             patch("page_home_featured.current_snapshot_writing", return_value=fallback):
+            result = current_home_popular_article()
+        self.assertEqual(result.slug, "safe-fallback")
+
+    def test_home_featured_instant_mode_uses_popular_pool(self) -> None:
+        from page_home_featured import HomeArticlePreview, home_featured_article
+        selected = HomeArticlePreview(
+            slug="top-ranked", title="Popular selected article", deck="Executive perspective",
+            kind_topic="Article", published_label="3 Nov 2026", read_minutes=3,
+            href="?page=thinking&article=top-ranked", image_url="", image_alt="Cover",
+        )
+        with patch("page_home_featured.current_home_popular_article", return_value=selected), \
+             patch("page_home_featured.current_snapshot_writing",
+                   side_effect=AssertionError("Do not use static snapshot as the Home pool")):
+            html = home_featured_article(instant=True)
+        self.assertIn("Popular selected article", html)
+
     def test_briefing_card_links_and_cta_match_its_content_type(self) -> None:
         from page_home_featured import HomeArticlePreview, home_featured_article
         briefing = HomeArticlePreview(
@@ -141,7 +214,14 @@ class HomeFeaturedArticleTests(unittest.TestCase):
         """Home should not repeat Weekly AI and Briefings in separate promo strips."""
         from page_home import home
 
-        html = home()
+        from page_home_featured import HomeArticlePreview
+        preview = HomeArticlePreview(
+            slug="stub-article", title="A tested featured article", deck="Editorial context",
+            kind_topic="Article", published_label="2 Nov 2026", read_minutes=3,
+            href="?page=thinking&article=stub-article", image_url="", image_alt="Cover",
+        )
+        with patch("page_home_featured.current_home_popular_article", return_value=preview):
+            html = home()
         self.assertEqual(html.count('data-analytics-section="home-featured-article"'), 1)
         self.assertEqual(html.count('data-analytics-section="home-weekly-ai-promo"'), 1)
         self.assertEqual(html.count('data-analytics-section="home-executive-briefings"'), 1)

@@ -330,52 +330,19 @@ READER_SHELL_CSS = r"""
 .st-key-reader_flow [data-testid="stTabs"] [data-testid="stButton"] button {
   min-height:43px;border-radius:3px!important;font-weight:750!important
 }
+/* Keep the established member layout; correct only the main reading action. */
+.st-key-reader_flow [data-testid="stTabs"] [data-testid="stButton"] button[kind="primary"] {
+  background:#b86134!important;border-color:#b86134!important;color:#fff!important
+}
+.st-key-reader_flow [data-testid="stTabs"] [data-testid="stButton"] button[kind="primary"] p {
+  color:#fff!important;font-weight:800!important;opacity:1!important
+}
 .st-key-reader_flow [data-testid="stTabs"] [data-testid="stButton"] button[kind="secondary"] {
   color:#1b394d!important;background:#fffefa!important;
   border:1px solid #9dafb9!important
 }
 .st-key-reader_flow [data-testid="stTabs"] [data-testid="stButton"] button[kind="secondary"]:hover {
   background:#f1f5f6!important;border-color:#1b394d!important
-}
-/* Signed-in library's reading and download actions: warm brass + deep navy
-   replaces low-contrast navy. Explicit descendant styling matters because
-   Streamlit nests the button label in its own <p> with independent color. */
-.st-key-reader_flow [data-testid="stTabs"] button[kind="primary"],
-.st-key-reader_flow [data-testid="stTabs"] button[data-testid="stBaseButton-primary"] {
-  background:#E9B98E!important;
-  border:1px solid #C58D61!important;
-  color:#142B3D!important;
-  min-height:50px!important;
-  padding:11px 19px!important;
-  box-shadow:0 3px 10px rgba(48,36,24,.09)!important;
-  border-radius:3px!important;
-  font-weight:800!important;
-}
-.st-key-reader_flow [data-testid="stTabs"] button[kind="primary"] :is(p,span,strong),
-.st-key-reader_flow [data-testid="stTabs"] button[data-testid="stBaseButton-primary"] :is(p,span,strong) {
-  color:#142B3D!important;
-  font-weight:800!important;
-  font-size:14px!important;
-  line-height:1.35!important;
-  opacity:1!important;
-}
-.st-key-reader_flow [data-testid="stTabs"] button[kind="primary"]:hover:not(:disabled),
-.st-key-reader_flow [data-testid="stTabs"] button[data-testid="stBaseButton-primary"]:hover:not(:disabled) {
-  background:#F4CDAA!important;border-color:#B77A4B!important;
-  box-shadow:0 5px 16px rgba(48,36,24,.16)!important;filter:none!important
-}
-.st-key-reader_flow [data-testid="stTabs"] button[kind="primary"]:focus-visible,
-.st-key-reader_flow [data-testid="stTabs"] button[data-testid="stBaseButton-primary"]:focus-visible {
-  outline:3px solid #1A455F!important;outline-offset:3px
-}
-.st-key-reader_flow [data-testid="stTabs"] button[kind="primary"]:disabled,
-.st-key-reader_flow [data-testid="stTabs"] button[data-testid="stBaseButton-primary"]:disabled {
-  background:#EEE5DA!important;color:#53616D!important;
-  border-color:#CCC1B5!important;box-shadow:none!important;cursor:not-allowed
-}
-.st-key-reader_flow [data-testid="stTabs"] button[kind="primary"]:disabled :is(p,span,strong),
-.st-key-reader_flow [data-testid="stTabs"] button[data-testid="stBaseButton-primary"]:disabled :is(p,span,strong) {
-  color:#53616D!important
 }
 .st-key-reader_flow [data-testid="stTabs"] [data-testid="stTextInput"] input,
 .st-key-reader_flow [data-testid="stTabs"] [data-testid="stSelectbox"] > div {

@@ -960,7 +960,7 @@ def executive_briefings() -> str:
         'data-hq-event="briefings_explore_library">Explore the briefings <span aria-hidden="true">↓</span></a>'
         '<a class="be-text-action" href="?page=contact" target="_self" '
         'data-hq-event="briefings_hero_contact">Discuss an AI decision ↗</a>'
-         '<a class="be-text-action" href="/~/+/readers/library" target="_blank" rel="noopener" '
+         '<a class="be-text-action" href="/?page=readers" target="_blank" rel="noopener" '
          'data-hq-event="briefings_reader_library">My PDF library ↗</a>'
         '</div>'
         '<p class="be-hero-attribution">An independent editorial series by '

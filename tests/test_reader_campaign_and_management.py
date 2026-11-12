@@ -99,6 +99,28 @@ class ReaderCampaignManagementTests(TestCase):
             with self.assertRaises(RuntimeError):
                 reader_registration_totals.__wrapped__("today")
 
+    def test_streamlit_owner_workspace_renders_with_mock_reader(self):
+        from streamlit.testing.v1 import AppTest
+        app = AppTest.from_file(
+            str(ROOT / "tests" / "reader_management_smoke_app.py"),
+            default_timeout=45,
+        ).run()
+        self.assertFalse(app.exception, [str(e.message) for e in app.exception])
+        self.assertTrue(
+            any("Reader Management" in str(x.value) for x in app.title),
+            "The owner-only back office should render a real Streamlit page",
+        )
+        self.assertTrue(
+            any("Internal editorial mailing list" in str(x.value)
+                for x in app.subheader),
+            "The mailing list must be available inside the reader workspace",
+        )
+        self.assertTrue(
+            any("Editorial campaign drafts" in str(x.value)
+                for x in app.subheader),
+            "Campaign drafts must be integrated into the owner workspace",
+        )
+
     def test_drafts_have_no_send_endpoint_or_client_side_auth_token(self):
         draft = self.source("src/page_reader_campaign_drafts.py")
         self.assertIn("portfolio_reader_mail_drafts", draft)

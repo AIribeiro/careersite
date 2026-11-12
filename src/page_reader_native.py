@@ -64,19 +64,57 @@ def _host_origin() -> str:
         raise ValueError("Invalid configured reader callback origin.")
     return "https://" + parts.hostname
 
-def _verify(payload: dict) -> dict:
-    session = _request_json(
-        "POST", ANALYTICS_URL.rstrip("/") + "/auth/v1/verify",
-        payload=payload, timeout=12,
-    )
+def _accept_reader_session(session: dict) -> dict:
+    """Validate email and account status before accepting an Auth session."""
     if not isinstance(session, dict) or not session.get("access_token") or not session.get("refresh_token"):
-        raise RuntimeError("Verification did not establish a reader session.")
-    user = _verified_user(session["access_token"])
+        raise RuntimeError("Authentication did not establish a reader session.")
+    token = str(session["access_token"])
+    user = _verified_user(token)
+    status = _request_json(
+        "POST", _rest_url("rpc/portfolio_reader_member_status_v1"),
+        token=token, payload={}, timeout=10,
+    )
+    if status != "active":
+        raise ValueError("Reader account access is unavailable.")
     _register_profile(session, user)
     st.session_state["reader_native_session"] = session
     st.session_state["reader_native_user"] = user
     st.session_state.pop("reader_native_sent_email", None)
     return user
+
+
+def _verify(payload: dict) -> dict:
+    session = _request_json(
+        "POST", ANALYTICS_URL.rstrip("/") + "/auth/v1/verify",
+        payload=payload, timeout=12,
+    )
+    return _accept_reader_session(session)
+
+
+def _password_signin(email: str, password: str) -> dict:
+    """Use Supabase Auth, never a local password table or credential cookie."""
+    if not EMAIL.fullmatch(str(email or "").strip().lower()) or not password:
+        raise ValueError("Valid email and password required.")
+    session = _request_json(
+        "POST", ANALYTICS_URL.rstrip("/") + "/auth/v1/token?grant_type=password",
+        payload={"email": email.strip().lower(), "password": password},
+        timeout=12,
+    )
+    return _accept_reader_session(session)
+
+
+def _set_reader_password(session: dict, new_password: str) -> None:
+    """Supabase Auth owns the secret; never persist it in reader profiles."""
+    if len(new_password) < 12 or len(new_password) > 128:
+        raise ValueError("Choose a password between 12 and 128 characters.")
+    updated = _request_json(
+        "PUT", ANALYTICS_URL.rstrip("/") + "/auth/v1/user",
+        token=str(session["access_token"]),
+        payload={"password": new_password}, timeout=12,
+    )
+    if not isinstance(updated, dict) or not updated.get("id"):
+        raise RuntimeError("The password change was not confirmed.")
+
 
 def _session() -> tuple[dict | None, dict | None]:
     session = st.session_state.get("reader_native_session")
@@ -173,23 +211,53 @@ def _login(requested_title: str = "") -> None:
     if requested_title:
         st.markdown("### Continue to the complete briefing")
         st.write(
-            "Verify your email to read **" + requested_title +
+            "Sign in to read **" + requested_title +
             "** in full, including the executive decision framework and "
-            "original infographic. Access is free, and editorial emails "
-            "are optional."
+            "original infographic. Access is free; editorial emails are optional."
         )
     else:
         st.markdown("### Complimentary access to executive resources")
         st.write(
             "Read the opening of any briefing without an account. "
-            "Verify your email for complete Executive AI Briefings, original "
-            "infographics and A4 PDF downloads. Editorial updates are optional."
+            "Sign in for complete editions, original infographics and A4 PDFs."
         )
+
     returning = st.radio(
         "Reader status", ["I'm new here", "I already have an account"],
         index=1 if str(st.query_params.get("signin", "")) == "1" else 0,
         horizontal=True, label_visibility="visible", key="reader_native_mode",
     ) == "I already have an account"
+
+    if returning:
+        method = st.radio(
+            "Sign-in method", ["Email and password", "Email verification code"],
+            horizontal=True, key="reader_signin_method",
+        )
+        if method == "Email and password":
+            with st.form("reader_password_signin_form", clear_on_submit=True):
+                email = st.text_input(
+                    "Email address", max_chars=254,
+                    placeholder="you@example.com", key="reader_password_email",
+                )
+                password = st.text_input(
+                    "Password", type="password", max_chars=128,
+                    key="reader_password_secret",
+                )
+                sign_in = st.form_submit_button("Sign in to my library", type="primary")
+            if sign_in:
+                try:
+                    _password_signin(str(email or "").strip(), str(password or ""))
+                    st.rerun()
+                except (RuntimeError, ValueError, TimeoutError, KeyError):
+                    # Keep failures generic: do not reveal registered addresses.
+                    st.error("Could not sign in. Check your credentials or use email verification.")
+            st.caption(
+                "No password yet, or forgotten it? Select Email verification code "
+                "above. After signing in, set a password in My Profile."
+            )
+            st.caption("Reader support: info@jairribeiro.com")
+            return
+
     with st.form("reader_native_login_form"):
         first = st.text_input("First name", max_chars=80, disabled=returning)
         email = st.text_input("Email address", max_chars=254, placeholder="you@example.com")
@@ -208,8 +276,7 @@ def _login(requested_title: str = "") -> None:
                 _request_email(first, email, bool(subscribe), returning)
                 st.success("Check your inbox for a verification email.")
             except (RuntimeError, ValueError, TimeoutError):
-                # Avoid disclosing whether an email address is already registered.
-                st.error("We couldn't send the verification email. Check the email delivery settings and try again.")
+                st.error("We couldn't send the verification email. Try again or contact reader support.")
     if st.session_state.get("reader_native_sent_email"):
         st.info("Open the verification link in your email, or enter its one-time code below.")
         with st.form("reader_native_code_form"):
@@ -233,6 +300,8 @@ def _login(requested_title: str = "") -> None:
         "We use your email to verify reader access and track requested PDFs. "
         "Editorial updates are sent only if you choose to subscribe."
     )
+    st.caption("Need help? Email info@jairribeiro.com.")
+
 
 def _record_download(token: str, user_id: str, slug: str) -> None:
     try:

@@ -1,5 +1,8 @@
 name: Resend DNS public diagnostic (staging only)
 on:
+  pull_request:
+    paths:
+      - .github/workflows/resend-dns-diagnostic.yml
   push:
     branches:
       - feature/verified-briefings-readers-20261111

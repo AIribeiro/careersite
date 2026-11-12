@@ -119,7 +119,9 @@ def opening_paragraphs(content_html: str, *, max_words: int = 300) -> tuple[str,
     # Offer the actual decision, first move and at least one reason from the
     # published edition. A preview must be credible, not a generic cliffhanger.
     # The fraction bounds protect especially short editions from full release.
-    budget = min(max_words, 375, max(90, int(total * .38)))
+    # Never render every extracted word, including unusually short editions.
+    # Prefer a useful, bounded opening over a full preview of a short article.
+    budget = min(max_words, 300, max(45, int(total * .38)), total - 1)
     selected: list[str] = []
     count = 0
     for paragraph in paragraphs:

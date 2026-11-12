@@ -66,7 +66,7 @@ RECOMMENDED_ATTRIBUTION_SOURCES = (
 ENTRY_DOMAIN_JS = r"""
   const entryContext = (() => {
     const normalize = host => String(host || '').toLowerCase().replace(/^www\./, '');
-    const nativeHosts = new Set(['jairribeiro-ai.streamlit.app', 'jairibeiro-ai.streamlit.app']);
+    const nativeHosts = new Set(['jairribeiro-ai.streamlit.app']);
     const branded = 'jairribeiro.com';
     const host = normalize(win.location.hostname);
     let embedded = false;
@@ -244,7 +244,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     try {{
       if (!doc.referrer || (entryContext.masked && entryContext.domain === 'jairribeiro.com')) return null;
       const host = new URL(doc.referrer).hostname.toLowerCase();
-      const own = ['jairribeiro.com','www.jairribeiro.com','jairibeiro-ai.streamlit.app','jairribeiro-ai.streamlit.app'];
+      const own = ['jairribeiro.com','www.jairribeiro.com','jairribeiro-ai.streamlit.app'];
       return host && !own.includes(host) ? host.slice(0,255) : null;
     }} catch (_) {{
       return null;

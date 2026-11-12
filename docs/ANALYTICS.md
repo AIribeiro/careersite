@@ -287,60 +287,32 @@ All measures respect the current reporting window, established test-traffic and 
 
 ## Entry address versus acquisition channel (12 November 2026)
 
-The registered custom address `jairribeiro.com` currently uses a provider-managed
-masked forwarding frame to `jairibeiro-ai.streamlit.app`. The Streamlit server
-cannot infer the external address from its own hostname. The two questions
-must be reported separately:
+The canonical reporting addresses are only:
 
-- **Entry address:** the address used for the portfolio, either branded or
-  native Streamlit. The browser collector labels a native top-level load as
-  `direct_host`, a confirmed custom-domain iframe as `embed_ancestor` or
-  `embed_referrer`, and a frame whose parent cannot be confirmed as
-  `embedded_unresolved`. No unverified frame is assumed native.
-- **Acquisition channel:** explicitly tagged `source` / UTM parameters first,
-  then an observed external referrer, then direct/unknown. The branded
-  framing page is *first-party infrastructure*, not a marketing referral.
-  It is intentionally excluded from the `referrer_host` column.
+- `jairribeiro.com` — branded domain, recorded when the browser can verify
+  the top-level hostname or embedding source.
+- `jairribeiro-ai.streamlit.app` — native Streamlit address and consolidated
+  legacy/unresolved reporting category. No alternative native host is recognized.
 
-The additive events fields are `entry_domain` and
-`entry_domain_evidence`. Their values are tightly constrained in
-Postgres and included in both the ordinary portfolio and article collectors.
-The existing anonymous insert RLS remains in force and includes the two new
-fields. No extra cookies, IPs, persistent IDs or raw referring URLs are stored.
+The native-domain category **includes all historical visits with no entry-domain
+measurement**, as well as masked frames where the browser cannot prove the
+external domain. This is an explicit reporting convention requested for a
+two-category dashboard, not historical evidence. The browser still records
+`entry_domain = NULL` and `entry_domain_evidence = embedded_unresolved`
+for unknown frames. Original event rows are never backfilled or rewritten.
 
-The public Portfolio Analytics panel **Entry address & traffic origins** uses
-`careersite_entry_domain_report_v1`, a scoped, aggregate-only RPC with
-the existing period selector. It reports mutually exclusive session cohorts,
-canonical content views, tagged/external-referrer/unknown source evidence,
-and a daily split. Site-wide totals, article views, WEEKLY AI and briefing
-views remain unchanged; a content view is never counted again as a
-separate domain hit. Browser-tab sessions are not unique people.
+The aggregate-only RPC `careersite_entry_domain_report_v1` counts canonical
+content views and one session per browser-tab ID. For each of the two
+categories it returns `verified_views`, `verified_sessions`,
+`assigned_views` and `assigned_sessions` so readers can distinguish
+browser-observed traffic from traffic assigned by policy. The dates,
+page/article counting rules, exclusions, attribution-source tags and
+privacy boundaries remain unchanged. Reports use the existing Stockholm
+reporting periods. No raw IPs, persistent IDs or referring URLs are exposed.
 
-**Historical rows are not backfilled.** Pre-collector observations are
-shown as **Not measured (historical)**; unavailable iframe parent evidence
-is **Unresolved embedded address**. A masked forwarding service may strip
-the original website referrer and URL parameters. The inner Streamlit
-application cannot recover information the wrapper never passes.
-For reliable campaign-level reporting, configure the domain forwarding
-service to pass incoming query parameters to the iframe, or preferably
-replace masking with a genuine redirect/canonical first-party host.
-A normal HTTP redirect preserves a Streamlit destination but the visible
-browser address changes; maintaining the custom address end-to-end needs
-supported custom-domain hosting/reverse proxy rather than mask-only forwarding.
-Do not claim upstream referrer completeness for masked traffic.
-
-Deploy order: additive DB migration, collector/UI code, then monitor
-`entry_domain_evidence` distribution. Test both direct and masked entry in
-real browsers (especially Safari and Firefox) and check whether the mask
-propagates `source`, `utm_medium` and `utm_campaign` parameters.
-
-### Streamlit native hostname variant (12 November 2026)
-
-The portfolio repository's canonical publication links currently use
-`jairribeiro-ai.streamlit.app` (double 'r'), while the originally reported
-forwarding target is `jairibeiro-ai.streamlit.app` (single 'r'). The collector
-and database allow **both exact observed hostnames** as separate entry-address
-labels instead of silently assuming either spelling. The dashboard's top-level
-"Streamlit native address" metric combines both, and its detailed table preserves
-the separate exact addresses. Confirm the domain registrar's actual target
-before retiring either variant.
+The masking provider may strip query parameters and the upstream referrer.
+The collector never invents a LinkedIn/email/search source when no evidence
+is available; the entry-address classification does not replace the separate
+source attribution field. For complete acquisition reporting, the hosting
+setup should preserve campaign query parameters or use supported first-party
+hosting instead of masking-only forwarding.

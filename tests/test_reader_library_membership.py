@@ -167,6 +167,43 @@ class ReaderLibraryMembershipTests(unittest.TestCase):
         ):
             self.assertIn(expected, button_labels)
 
+    def test_native_reader_and_analytics_can_log_slow_renders_without_html_timers(self):
+        """Exercise the real telemetry block without HTML-only local variables."""
+        from unittest.mock import patch
+
+        source = self.source("main.py")
+        telemetry = source.split(
+            "# Slow-only, privacy-preserving diagnostics. No article content or visitors.",
+            1,
+        )[1]
+        for page in ("readers", "analytics"):
+            with self.subTest(page=page):
+                context = {
+                    "PAGE": page,
+                    "RUN_STARTED": 1.0,
+                    "perf_counter": lambda: 2.0,
+                    "logging": __import__("logging"),
+                    # build_done/build_started/footer_done/html_done/page_html_size
+                    # intentionally undefined, as in native Streamlit routes.
+                }
+                with patch("logging.getLogger") as logger:
+                    exec(compile(telemetry, "main.py:slow_render", "exec"), context)
+                    warning = logger.return_value.warning
+                    warning.assert_called_once()
+                    arguments = warning.call_args.args
+                    self.assertEqual(arguments[1], page)
+                    self.assertEqual(arguments[3:], (0, 0, 0, 0))
+
+    def test_signed_in_read_buttons_use_readable_warm_fill_and_label_color(self):
+        shell = self.source("src/site_reader_shell.py")
+        self.assertIn('background:#E9B98E!important', shell)
+        self.assertIn('color:#142B3D!important', shell)
+        self.assertIn('button[kind="primary"] :is(p,span,strong)', shell)
+        self.assertIn('button[data-testid="stBaseButton-primary"]', shell)
+        self.assertIn('button[kind="primary"]:focus-visible', shell)
+        self.assertIn('button[kind="primary"]:disabled', shell)
+        self.assertIn('background:#F4CDAA!important', shell)
+
     def test_personal_collections_never_have_anonymous_access(self):
         native = self.source("src/page_reader_native.py")
         self.assertIn('token=str(session["access_token"])', native)

@@ -11,7 +11,6 @@ from urllib.parse import quote
 from briefing_reader_preview import PREVIEW_CSS, opening_paragraphs, next_edition_sections
 from site_components import footer, nav
 from thinking_core import THINKING_CSS
-from article_access import public_access_explanation
 
 
 def render_public_article_preview(article, read_metadata: str = "") -> str:
@@ -42,7 +41,6 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         "<p>The full argument, supporting evidence and practical implications.</p>"
     )
     destination = "?page=thinking&amp;article=" + escape(slug, quote=True) + "&amp;access=1"
-    public_rule = escape(public_access_explanation(article))
 
     return (
         THINKING_CSS + PREVIEW_CSS + nav("thinking")
@@ -62,19 +60,19 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         + body + '</div></article>'
         '<aside class="briefing-preview-aside">'
         '<strong>Inside the complete article</strong>' + inside
-        + f'<p>{public_rule}</p>'
+        + '<p>Premium Readers can access the full article and its supporting argument.</p>'
         '</aside></div>'
         '<section class="briefing-unlock" data-analytics-section="article-reader-free-access">'
         '<div class="briefing-unlock-inner"><div><p class="eyebrow">'
         'Complimentary registered-reader access</p>'
         '<h2>Read the complete article now.</h2>'
-        '<p>Get the complete reasoning, practical implications and references '
-        'without waiting for the public release. One free account also '
-        'opens every Executive AI Briefing and the latest Weekly AI edition.</p></div>'
+        '<p>Read the complete reasoning, practical implications and references. '
+        'One complimentary account also opens every Executive AI Briefing '
+        'and the latest Weekly AI edition.</p></div>'
         '<ul class="briefing-unlock-benefits">'
         '<li>Read the complete article immediately</li>'
         '<li>Use one account across Articles and Executive AI Briefings</li>'
-        '<li>Older Articles open once a successor is published and seven days have passed</li>'
+        '<li>Keep one account for Premium Articles and executive resources</li>'
         '</ul></div><div class="briefing-unlock-actions">'
         f'<a class="briefing-unlock-primary" href="{destination}" target="_self" '
         'data-hq-event="article_unlock_register">Read full article · Free</a>'

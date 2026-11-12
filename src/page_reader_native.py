@@ -298,7 +298,7 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
             "Send my Premium Reader access link" if not returning else "Email me a sign-in link",
             type="primary",
         )
-    st.caption("We will email a verification link. No payment or newsletter subscription is required.")
+    st.caption("We will email a verification link. No newsletter subscription is required.")
     if sent:
         first = str(first or "").strip()
         email = str(email or "").strip().lower()
@@ -1054,6 +1054,8 @@ def render_reader_native() -> None:
     staging = _host_origin().startswith("https://jairribeiro-reader-test.")
     st.html(reader_header(staging=staging))
     with st.container(key="reader_flow"):
+        # Same-page editorial CTA lands directly at the real Streamlit form.
+        st.html('<span id="reader-access" aria-hidden="true"></span>')
         notice = st.session_state.pop("reader_native_flash", None)
         if notice and notice[0] == "success":
             st.success(notice[1])

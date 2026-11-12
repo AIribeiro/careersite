@@ -181,10 +181,19 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
     subtitle = escape(str(article.subtitle or article.excerpt or ""))
     opening = opening_paragraphs(str(article.content_html or ""))
     if not opening:
+        # Never invent editorial substance when an edition lacks extractable
+        # paragraphs. Reuse its actual published summary; otherwise state
+        # clearly that the public opening is unavailable.
+        published_summary = str(article.excerpt or article.subtitle or "").strip()
         opening = (
-            str(article.excerpt or article.subtitle or
-                "The executive question starts with the business decision, its owner and the evidence needed before committing."),
+            published_summary or
+            "The public opening is temporarily unavailable for this edition.",
         )
+    first_is_decision = bool(re.match(
+        r"^The (?:Leadership Decision|executive decision|executive question)\\s*:?\\s*",
+        opening[0], flags=re.I,
+    ))
+    opening_heading = "The Leadership Decision" if first_is_decision else "The executive perspective"
     # Use precisely the editorial judgments the author published; never
     # synthesize claims, benefits, sources, percentages or quotations.
     decision = re.sub(
@@ -207,7 +216,7 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
     )
     context_html = (
         '<div class="briefing-preview-context"><span class="briefing-preview-small-head">'
-        'Why the choice is not straightforward</span>'
+        'Why it matters in practice</span>'
         + "".join(f"<p>{escape(p)}</p>" for p in context) + '</div>'
         if context else ""
     )
@@ -232,7 +241,7 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
         '<div class="container"><div class="briefing-preview-grid">'
         '<article class="briefing-preview-copy"><div class="briefing-preview-decision">'
         '<span class="briefing-preview-small-head">From the published edition</span>'
-        '<h2>The Leadership Decision</h2>' + decision_html + '</div>'
+        + '<h2>' + opening_heading + '</h2>' + decision_html + '</div>'
         + move_html + context_html + '</article>'
         '<aside class="briefing-preview-aside">'
         '<strong>Inside the complete edition</strong>'

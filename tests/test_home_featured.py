@@ -137,6 +137,28 @@ class HomeFeaturedArticleTests(unittest.TestCase):
         self.assertEqual(html.count('href="?page=thinking&amp;article=a-slug"'), 3)
         self.assertIn('data-hq-event="home_featured_article_open"', html)
 
+    def test_home_has_one_editorial_area_and_discreet_premium_library_link(self) -> None:
+        """Home should not repeat Weekly AI and Briefings in separate promo strips."""
+        from page_home import home
+
+        html = home()
+        self.assertEqual(html.count('data-analytics-section="home-featured-article"'), 1)
+        self.assertEqual(html.count('data-analytics-section="home-weekly-ai-promo"'), 1)
+        self.assertEqual(html.count('data-analytics-section="home-executive-briefings"'), 1)
+        self.assertEqual(html.count('data-analytics-section="home-premium-library"'), 1)
+        self.assertNotIn('class="home-weekly-bridge"', html)
+        self.assertNotIn('class="briefings-home-strip"', html)
+        self.assertNotIn('Explore the collections', html)
+        self.assertIn('href="?page=thinking#weekly-ai"', html)
+        self.assertIn('href="?page=briefings"', html)
+        self.assertIn('href="?page=readers"', html)
+        self.assertIn('Access is complimentary.', html)
+        feature = html.index('data-analytics-section="home-featured-article"')
+        reader = html.index('data-analytics-section="home-premium-library"')
+        contact = html.index('data-hq-event="contact_home_final"')
+        self.assertLess(feature, reader)
+        self.assertLess(reader, contact)
+
     def test_footer_excludes_current_reader_from_random_choice(self) -> None:
         from page_home_featured import current_home_article
         current = self.article("the-current-briefing", 2, kind="Executive Briefing")

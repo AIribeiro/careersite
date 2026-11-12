@@ -142,6 +142,31 @@ class ReaderLibraryMembershipTests(unittest.TestCase):
         self.assertIn("html_escape(str(user.get", native)
         self.assertIn('token=str(session["access_token"])', native)
 
+    def test_signed_in_member_library_renders_all_collections_without_network(self):
+        from streamlit.testing.v1 import AppTest
+
+        app = AppTest.from_file(
+            str(ROOT / "tests" / "reader_member_workspace_smoke_app.py"),
+            default_timeout=45,
+        ).run()
+        self.assertFalse(app.exception, [str(x.message) for x in app.exception])
+        self.assertEqual(
+            [str(tab.label) for tab in app.tabs],
+            ["All briefings", "Articles", "Weekly AI", "Saved", "My PDFs", "My profile"],
+        )
+        search_labels = {str(item.label) for item in app.text_input}
+        for expected in (
+            "Find a briefing", "Find an article", "Find a Weekly AI edition",
+            "Find a downloaded infographic",
+        ):
+            self.assertIn(expected, search_labels)
+        button_labels = {str(item.label) for item in app.button}
+        for expected in (
+            "Read complete briefing", "Read complete article",
+            "Read this Weekly AI edition", "Open related briefing",
+        ):
+            self.assertIn(expected, button_labels)
+
     def test_personal_collections_never_have_anonymous_access(self):
         native = self.source("src/page_reader_native.py")
         self.assertIn('token=str(session["access_token"])', native)

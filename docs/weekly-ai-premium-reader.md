@@ -1,40 +1,46 @@
-# Weekly AI — current-week complimentary Premium Reader access
+# Weekly AI — latest published edition is Premium
 
-## Editorial rule
+## Corrected publication rule (12 November 2026)
 
-The **edition covering the current ISO 8601 calendar week in Europe/Stockholm** is the Premium Reader edition. Anonymous visitors see a useful summary derived from the published text and can sign in or register for free to see the full issue. Premium Reader status is calculated from the Weekly AI edition's existing `edition_week()` semantics, not merely its publication timestamp.
+The **newest published Weekly AI edition**, rather than the edition corresponding to the current ISO calendar week, is the complimentary Premium Reader issue. It remains available in full only to authenticated readers until a newer Weekly AI edition is **actually published**. As soon as a newer edition is published, the previous edition becomes public.
 
-At **Monday 00:00 Europe/Stockholm immediately following the covered week**, that edition becomes completely public. This is **not a rolling seven-day lock**. A Friday issue is Premium Friday–Sunday; earlier editions are always open even if the next Friday issue has not been published. The rule handles ISO-year rollover and Stockholm DST transitions, and does not require a scheduled job.
+This is editorial release-based access, **not** a rolling seven-day expiry and **not** a Monday calendar unlock. The rule works during gaps in the publishing calendar, delayed Friday releases, year changes and week-number transitions. No scheduled unlock job is needed. Drafts and unpublished editions do not release the latest published issue. A metadata lookup outage fails closed for the requested published Weekly AI edition.
 
-Other membership rules remain unchanged:
-- Executive AI Briefings: full content requires registration.
-- Articles: first 168 hours after publication require registration, then open to all.
-- Weekly AI: current covered calendar week requires registration, then open to all.
+### Verified example
 
-## Experience
+On 12 November 2026 (Stockholm, ISO week 46), the latest published Weekly AI in the CMS was **Week 45** (`weekly-ai-2026-11-06`, published 6 November 2026). No Week 46 edition was published. Therefore:
 
-1. Thinking's fixed Premium Reader section now describes **all three** editorial benefits. Hourly ordering only moves the three editorial collections, never the reader section.
-2. Current Weekly AI opens to a credible public summary with the week's editorial question and a bounded extract from the actual published edition. Full story collection, source links, leadership signal and embedded audio player are not in that anonymous HTML.
-3. The **same** account works for Weekly AI, Articles and Executive AI Briefings: email verification or password, verified account controls, single session, and profile.
-4. The library offers a separate Weekly AI tab with current Premium and earlier open editions, preserving existing Briefings, Articles, Saved, PDFs and Profile tabs.
-5. The Weekly AI catalogue and public archive label the current issue **Premium this week** and older weeks **Open access**. The latest featured Weekly AI suppresses its direct audio link during the Premium week and links to its public summary instead.
-6. New registrants from Weekly AI have immutable `acquisition_source=weekly_ai` and computed back-office tag `origin:weekly_ai`. Existing profiles are not re-attributed or duplicated. All mailing follows explicit consent and suppression settings.
-7. No payment details are requested.
+- **Week 45:** Premium Reader full edition (public summary)
+- **Week 44 and earlier:** fully open without sign-in
+- **When a Week 46 issue is actually published:** Week 45 becomes fully public and Week 46 becomes Premium
 
-## Authentication callback prerequisites
+A delayed, skipped, or unpublished new edition must never open the current latest issue merely because Monday arrived.
 
-As with Article access, allowlist your first-party `?page=thinking&article=*&access=1` URL patterns in Supabase Auth Redirect URLs for the production and staging Streamlit hosts. Verify password, email code and emailed-link sign-in on desktop/mobile, including session continuity when navigating to the next article or briefing.
+## Other editorial access rules
 
-## Release criteria
+- **Executive AI Briefings:** Full content requires the complimentary verified reader account.
+- **Articles:** Registered-reader access during the first 168 hours after publication; then publicly open.
+- **Weekly AI:** Latest **published** issue Premium; all earlier published issues publicly open.
 
-- Verify **current** Friday and Sunday 23:59 Stockholm access remains Premium.
-- Verify Monday 00:00 Stockholm opens last week's full issue without login, including its audio player.
-- Verify anonymous current-week rendered HTML has no full CMS article body and no `<audio>` or media URL.
-- Verify registered access to the selected issue and all previously open weeks without additional registration.
-- Verify the original public archive, automatic Thinking section ranking and Briefings/Articles access rules still work.
-- Verify new registration source and consent remain separate.
-- Confirm live deployment independently; code merge and CI do not prove that external masked-domain routes or email links are correct.
+## Reader experience
 
-## Security boundary
+- Public preview exposes a bounded executive summary, never the full Weekly AI HTML or embedded media controls. It says access will open **when the next issue is published**, never promises Monday.
+- Existing email verification and password sign-in unlock the complete latest issue with the same account and session as Briefings and Articles.
+- The Weekly AI archive, Thinking featured card and My Library tab label the **Latest edition · Premium Reader** and older editions **Open access**.
+- The featured current Premium issue does not advertise a direct audio link in the public HTML. Audio is available in the authenticated full-issue reader when supplied.
+- New-account source attribution remains `origin:weekly_ai`; existing readers retain their original sign-up attribution, and mailing consent remains optional.
+- The Premium Reader explanation below the Thinking hero stays fixed and focuses on executive value; only the three editorial collections are dynamically reordered.
 
-This extends the website's **presentation-level member gate**, as used by Articles and Briefings. The underlying Supabase CMS Data API currently returns full `content_html` through public reads, and Weekly AI MP3 files are available from public repository/CDN media URLs. The public preview does not link to the current narration, but this does **not** prevent direct access to those public files. Real restricted publication would require private content storage and a backend authorization-controlled delivery path for both text and audio, plus a review of social/indexer flows. Do not market this as encryption, DRM or a paywall.
+## Acceptance tests
+
+1. On 12 November 2026 with Week 45 published and Week 46 absent, Week 45 is Premium, Week 44 open.
+2. On subsequent days with no newly published edition, Week 45 **remains Premium**.
+3. Once Week 46 is published, Week 45 automatically becomes open and Week 46 Premium.
+4. Drafts, year/week boundaries or outages never incorrectly expose the most recent live full text.
+5. Anonymous HTML does not include restricted editorial body or audio player; registered readers access full issue.
+6. Reader account, metadata labels and prior Article/Briefing rules remain unchanged.
+7. Check live deployment and actual password/email-link return navigation after merging.
+
+## Access security boundary
+
+This is a **website presentation gate**, matching the site's current Article/Briefing approach. Full text remains obtainable via the public CMS Data API; narrated MP3 files also remain publicly downloadable from repository/CDN paths. Actual private content delivery requires restricted backend APIs and storage for both body and audio. Do not describe this as DRM or a true paywall.

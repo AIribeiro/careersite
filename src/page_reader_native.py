@@ -1011,7 +1011,7 @@ def _library(session: dict, user: dict) -> None:
                     )
                     st.markdown("#### " + str(article.title))
                     st.caption(
-                        "Last prepared: " + last_download
+                        "Last downloaded: " + last_download
                         + " · " + str(times) + " previous download"
                         + ("" if times == 1 else "s")
                     )

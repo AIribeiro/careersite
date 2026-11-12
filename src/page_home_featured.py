@@ -1,7 +1,7 @@
-"""A rotating Home preview drawn from published Thinking and Executive Briefings.
+"""Featured Home writing and compact editorial continuation panels.
 
-The Home selection is independent of Thinking's latest/most-read ranking.
-Each render samples the eligible published catalog; Weekly AI is separate.
+The Home feature samples the ten most-read published articles and Executive
+Briefings on each render. Weekly AI has its own separate Home destination.
 """
 from __future__ import annotations
 
@@ -24,48 +24,102 @@ class HomeArticlePreview:
     content_type: str = "article"
 
 
-def current_home_article(*, exclude_slug: str = "") -> HomeArticlePreview:
-    """Select one published Thinking article or Executive AI Briefing per render.
-
-    CMS publication status is authoritative. The legacy Thinking catalog remains
-    an editorial fallback during a CMS outage, and it rotates independently too.
-    """
-    from site_cms import (
-        article_relative_url,
-        cms_feature_image_url,
-        fetch_published_articles,
-    )
+def _eligible_home_writing(published: tuple) -> tuple:
+    """Only current, published Thinking articles and Executive AI Briefings."""
     from thinking_weekly_brief import is_weekly_brief
 
-    try:
-        published = fetch_published_articles()
-    except (RuntimeError, ValueError, TimeoutError):
-        published = ()
-
-    eligible = tuple(
+    return tuple(
         article for article in published
         if article.status == "published"
         and article.slug.strip()
         and article.title.strip()
         and not is_weekly_brief(article)
     )
+
+
+def top_read_home_pool(published: tuple, counts: dict[str, int], *, limit: int = 10) -> tuple:
+    """Rank by genuine unique-session readership, then choose only from Top N.
+
+    Publication recency and slug make equal-read ties deterministic. The pool
+    may be smaller than ten when fewer eligible records exist. Never use
+    unpublished items or Weekly AI issues to fill it.
+    """
+    eligible = _eligible_home_writing(published)
+    if not eligible or limit < 1:
+        return ()
+    # Stable-sort the date tie-breaker before sorting by verified read counts.
+    ordered = sorted(
+        eligible,
+        key=lambda item: (item.published_at or item.updated_at or "", item.slug),
+        reverse=True,
+    )
+    ordered.sort(key=lambda item: max(0, counts.get(item.slug, 0)), reverse=True)
+    return tuple(ordered[:limit])
+
+
+def _cms_home_preview(article) -> HomeArticlePreview:
+    """Convert a published CMS record into a safe, linked Home preview."""
+    from site_cms import article_relative_url, cms_feature_image_url
+
+    is_briefing = article.kind.strip().casefold() == "executive briefing"
+    return HomeArticlePreview(
+        slug=article.slug,
+        title=article.title,
+        deck=article.subtitle.strip() or article.excerpt.strip(),
+        kind_topic=article.kind_topic,
+        published_label=article.published_label,
+        read_minutes=article.read_minutes,
+        href=article_relative_url(article),
+        image_url=cms_feature_image_url(article),
+        image_alt=article.header_image_alt or article.title,
+        content_type="briefing" if is_briefing else "article",
+    )
+
+
+def current_home_popular_article() -> HomeArticlePreview:
+    """Select afresh from the live Top 10; reuse cached metadata/read counts.
+
+    CMS and read-count queries are cached for 180 seconds by the shared
+    portfolio layer. Only the *candidate pool* is stable during that window;
+    the displayed story is selected anew on every Home render.
+    """
+    from site_cms import fetch_published_articles, fetch_public_article_reads
+
+    try:
+        published = fetch_published_articles()
+        reads = fetch_public_article_reads()
+        ranked = top_read_home_pool(published, reads)
+        if ranked:
+            return _cms_home_preview(choice(ranked))
+    except (RuntimeError, ValueError, TimeoutError, TypeError):
+        # The homepage must remain functional during analytics/CMS outages.
+        # Avoid presenting a stale static preview as an independently
+        # verified readership ranking.
+        pass
+
+    # Only used if current readership or catalogue data cannot be retrieved.
+    # This does not claim to be a popularity-ranked selection.
+    return current_snapshot_writing()
+
+
+def current_home_article(*, exclude_slug: str = "") -> HomeArticlePreview:
+    """Select one published Thinking article or Executive AI Briefing per render.
+
+    CMS publication status is authoritative. The legacy Thinking catalog remains
+    an editorial fallback during a CMS outage, and it rotates independently too.
+    """
+    from site_cms import fetch_published_articles
+
+    try:
+        published = fetch_published_articles()
+    except (RuntimeError, ValueError, TimeoutError):
+        published = ()
+
+    eligible = _eligible_home_writing(published)
     if eligible:
-        # On a reader page, suggest another publication whenever possible.
+        # Footer recommendations stay independent of the Home Top 10.
         alternatives = tuple(item for item in eligible if item.slug != exclude_slug)
-        selected = choice(alternatives if alternatives else eligible)
-        is_briefing = selected.kind.strip().casefold() == "executive briefing"
-        return HomeArticlePreview(
-            slug=selected.slug,
-            title=selected.title,
-            deck=selected.subtitle.strip() or selected.excerpt.strip(),
-            kind_topic=selected.kind_topic,
-            published_label=selected.published_label,
-            read_minutes=selected.read_minutes,
-            href=article_relative_url(selected),
-            image_url=cms_feature_image_url(selected),
-            image_alt=selected.header_image_alt or selected.title,
-            content_type="briefing" if is_briefing else "article",
-        )
+        return _cms_home_preview(choice(alternatives if alternatives else eligible))
 
     from thinking_articles import article_relative_url as legacy_relative_url
     from thinking_articles import article_social_image_url, published_articles
@@ -200,7 +254,7 @@ HOME_EDITORIAL_CSS = """<style>
 
 def home_featured_article(*, instant: bool = False) -> str:
     """Render Home editorial preview; instant mode avoids cold CMS latency."""
-    article = current_snapshot_writing() if instant else current_home_article()
+    article = current_home_popular_article() if instant else current_home_article()
     is_briefing = article.content_type == "briefing"
 
     title = escape(article.title)

@@ -56,21 +56,22 @@ def reader_invitation() -> str:
             Download the original A4 infographic where one is available.</p>
           </article>
           <article class="thinking-reader-benefit">
+            <span>Weekly AI · Current-week edition</span>
+            <h3>Read the week's complete perspective.</h3>
+            <p>The current week's edition is available in full to Premium Readers,
+            including audio narration when available. Previous weeks remain open to everyone.</p>
+          </article>
+          <article class="thinking-reader-benefit">
             <span>Articles · Seven-day early access</span>
             <h3>Read new articles in full.</h3>
             <p>Registered readers have immediate access to complete new articles.
             After seven days, every article is available to everyone without signing in.</p>
           </article>
-          <article class="thinking-reader-benefit">
-            <span>Your reading space</span>
-            <h3>Keep what is useful.</h3>
-            <p>One account works across Articles and Briefings.
-            Save briefings, return to available PDFs and manage your reader profile in one place.</p>
-          </article>
         </div>
         <div class="thinking-reader-actionline">
           <p><strong>Premium Reader access is currently free.</strong>
-          You can register with your email, or sign in with an existing account.
+          One account covers all three editorial formats. Save useful briefings,
+          return to available PDFs and manage your profile in My Library.
           No payment details. Editorial emails are optional and require your explicit choice.</p>
           <div class="thinking-reader-actions">
             <a href="?page=readers" target="_self" data-hq-event="thinking_premium_reader_access">Access the reader library</a>

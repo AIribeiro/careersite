@@ -882,6 +882,33 @@ def _briefing_access_dialog(slug: str, title: str, purpose: str) -> None:
         st.rerun()
 
 
+def _dismiss_article_dialog() -> None:
+    st.query_params.pop("access", None)
+    st.query_params.pop("signin", None)
+
+
+@st.dialog("Article · Free early access", width="large",
+           on_dismiss=_dismiss_article_dialog)
+def _article_access_dialog(slug: str, title: str) -> None:
+    session, user = _session()
+    if not session or not user:
+        _login(title or "this article", resource_kind="article")
+        return
+    st.markdown("### Full article unlocked")
+    st.write("This account also opens every Executive AI Briefing.")
+    st.caption("Signed in as " + str(user.get("email") or ""))
+    if st.button("Continue reading the article", key="reader_article_dialog_close",
+                 type="primary"):
+        _dismiss_article_dialog()
+        st.rerun()
+
+
+def render_article_access_dialog(slug: str, title: str = "") -> None:
+    clean = _clean_slug(slug)
+    if clean:
+        _article_access_dialog(clean, title)
+
+
 def render_briefing_access_dialog(slug: str, title: str = "",
                                   purpose: str = "access") -> None:
     """Authenticate for the specific edition, not a detached PDF library."""

@@ -67,7 +67,7 @@ class RoiInfographicTests(unittest.TestCase):
         self.assertIn('data-hq-event="briefing_reader_pdf"', html)
         self.assertIn("https://raw.githubusercontent.com/AIribeiro/careersite/main/static/briefing-ai-roi-proof-before-scale.webp", html)
         self.assertNotIn("data:image/webp;base64,", html)
-        self.assertIn('/?page=readers&download=ai-roi-what-executives-must-prove-before-scaling', html)
+        self.assertIn('/?page=briefing&amp;article=ai-roi-what-executives-must-prove-before-scaling', html)
         self.assertNotIn("data:image/png;base64,", html)
         self.assertNotIn("Open full-resolution image", html)
         self.assertNotIn("infographic.png", html)
@@ -94,7 +94,7 @@ class RoiInfographicTests(unittest.TestCase):
         html = approved_infographic_for(article, row=row)
         self.assertIn('data-analytics-section="briefing-infographic"', html)
         self.assertIn("Download the infographic (PDF)", html)
-        self.assertIn("/?page=readers&download=ai-roi-what-executives-must-prove-before-scaling", html)
+        self.assertIn("/?page=briefing&amp;article=ai-roi-what-executives-must-prove-before-scaling", html)
         with patch("briefing_infographic_store.fetch_public_infographic", side_effect=RuntimeError("temporary")), patch(
             "briefing_infographic_store.source_fingerprint", return_value=_ROI_APPROVED_FINGERPRINT
         ):

@@ -216,40 +216,45 @@ def _consume_query_verification() -> None:
 
 def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> None:
     if requested_title and resource_kind == "weekly_ai":
-        st.markdown("### Read the latest complete Weekly AI")
+        st.markdown("### Continue with the complete Weekly AI edition")
         st.write(
-            "Sign in to read **" + requested_title +
-            "** and listen to the narration when available. The latest "
-            "published edition remains complimentary for Premium Readers "
-            "until the next edition is published."
-        )
-    elif requested_title and resource_kind == "article":
-        st.markdown("### Read the complete article")
-        st.write(
-            "Sign in to read **" + requested_title +
-            "** in full, including its analysis and practical considerations. "
+            "Read **" + requested_title +
+            "** in full, including the editorial perspective behind this week's "
+            "enterprise AI developments. Audio is available when published. "
             "Premium Reader access is complimentary."
         )
-    elif requested_title:
-        st.markdown("### Continue to the complete briefing")
+    elif requested_title and resource_kind == "article":
+        st.markdown("### Continue beyond the article preview")
         st.write(
-            "Sign in to read **" + requested_title +
-            "** in full, including the executive decision framework and "
-            "original infographic. Access is free; editorial emails are optional."
+            "Access the full perspective on **" + requested_title +
+            "**, including the business trade-offs and practical questions "
+            "behind the analysis. Premium Reader access is complimentary."
+        )
+    elif requested_title:
+        st.markdown("### Explore the complete executive briefing")
+        st.write(
+            "Read **" + requested_title +
+            "** beyond the public preview, including the leadership decisions "
+            "and original infographic where available. "
+            "Premium Reader access is complimentary."
         )
     else:
-        st.markdown("### Complimentary Premium Reader access")
-        st.write(
-            "Read public summaries before registering. Your one free account opens "
-            "complete Executive AI Briefings, the latest Weekly AI edition and "
-            "Premium Articles. Previous Weekly AI editions and open-access "
-            "Articles can be read without registration."
+        st.html("""<div class="reader-join-heading">
+        <span class="reader-join-eyebrow">YOUR READER ACCESS</span>
+        <h2>Read beyond the summary.</h2>
+        <p>One account opens complete Executive AI Briefings, Premium Articles
+        and the latest Weekly AI edition. Save the perspectives relevant to
+        your work and return to your infographic downloads in your own library.</p>
+        </div>""")
+        st.caption(
+            "Complimentary membership · No payment details · "
+            "Editorial updates only with your consent."
         )
 
     returning = st.radio(
-        "Reader status", ["I'm new here", "I already have an account"],
+        "Reader status", ["Create my reader access", "I already have an account"],
         index=1 if str(st.query_params.get("signin", "")) == "1" else 0,
-        horizontal=True, label_visibility="visible", key="reader_native_mode",
+        horizontal=True, label_visibility="collapsed", key="reader_native_mode",
     ) == "I already have an account"
 
     if returning:
@@ -286,10 +291,14 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
         first = st.text_input("First name", max_chars=80, disabled=returning)
         email = st.text_input("Email address", max_chars=254, placeholder="you@example.com")
         subscribe = st.checkbox(
-            "Email me new Articles, Executive AI Briefings, Weekly AI and occasional AI leadership resources.",
+            "Send me new briefings, articles and Weekly AI perspectives by email (optional).",
             value=False, disabled=returning,
         )
-        sent = st.form_submit_button("Send my secure access email", type="primary")
+        sent = st.form_submit_button(
+            "Send my Premium Reader access link" if not returning else "Email me a sign-in link",
+            type="primary",
+        )
+    st.caption("We will email a verification link. No payment or newsletter subscription is required.")
     if sent:
         first = str(first or "").strip()
         email = str(email or "").strip().lower()
@@ -321,10 +330,10 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
                 except (RuntimeError, ValueError, TimeoutError):
                     st.error("The code was invalid or expired. Request a new email.")
     st.caption(
-        "We use your email to verify reader access and track requested PDFs. "
-        "Editorial updates are sent only if you choose to subscribe."
+        "Your verified email keeps the library and PDF history attached to your account. "
+        "Editorial emails are separate and optional."
     )
-    st.caption("Need help? Email info@jairribeiro.com.")
+    st.caption("Questions about access? info@jairribeiro.com.")
 
 
 def _record_download(token: str, user_id: str, slug: str) -> None:
@@ -684,10 +693,10 @@ def _library(session: dict, user: dict) -> None:
     first = str(profile.get("first_name") or "").strip()
     st.markdown("### Your Premium Reader library")
     st.write(
-        ("Welcome, " + first + ". " if first else "")
-        + "Your account includes complete Executive AI Briefings, the latest "
-        + "Weekly AI edition and Premium Articles. Explore the complete "
-        + "analysis and return to editions that matter to your work."
+        ("Welcome back, " + first + ". " if first else "")
+        + "Continue reading the executive perspectives relevant to your work. "
+        "Your complete briefings, Premium Articles, latest Weekly AI edition, "
+        "saved items and infographic downloads are available below."
     )
     st.caption("Signed in as " + str(user.get("email") or ""))
     st.caption(

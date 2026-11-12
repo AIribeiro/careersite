@@ -14,17 +14,22 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 
 class EntryDomainReportTests(unittest.TestCase):
-    def test_missing_historical_domain_is_not_assigned_to_native(self):
+    def test_historical_traffic_is_grouped_into_native_reporting_only(self):
         from page_entry_domain_analytics import entry_domain_rows, source_evidence_rows
         rows = entry_domain_rows({"domains": [
-            {"domain_label": "Not measured (historical)", "sessions": 9, "views": 13}
+            {"domain_label": "jairribeiro.com", "sessions": 3, "views": 4,
+             "verified_views": 4, "assigned_views": 0},
+            {"domain_label": "jairribeiro-ai.streamlit.app",
+             "sessions": 9, "views": 13, "verified_sessions": 0,
+             "assigned_sessions": 9, "assigned_views": 13},
         ]})
-        self.assertEqual(rows[0]["Sessions"], 0)
-        self.assertEqual(rows[1]["Views"], 0)
-        self.assertEqual(rows[2]["Views"], 0)
-        self.assertEqual(rows[4]["Sessions"], 9)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["Sessions"], 3)
+        self.assertEqual(rows[1]["Sessions"], 9)
+        self.assertEqual(rows[1]["Assigned views"], 13)
+        self.assertEqual(rows[1]["Assigned sessions"], 9)
         self.assertEqual(source_evidence_rows({"source_evidence": [{
-            "domain_label": "Not measured (historical)",
+            "domain_label": "jairribeiro-ai.streamlit.app",
             "source_evidence": "Direct / source unknown", "sessions": 9
         }]})[0]["Direct / unknown"], 9)
 
@@ -88,16 +93,15 @@ function run(host, framed, referrer, ancestors, expectedDomain, expectedEvidence
 }
 run('jairribeiro-ai.streamlit.app',false,'',[],
     'jairribeiro-ai.streamlit.app','direct_host',false);
-run('jairibeiro-ai.streamlit.app',false,'',[],
-    'jairibeiro-ai.streamlit.app','direct_host',false);
-run('jairibeiro-ai.streamlit.app',true,'https://jairribeiro.com/',[],
+run('jairribeiro-ai.streamlit.app',true,'https://jairribeiro.com/',[],
     'jairribeiro.com','embed_referrer',true);
-run('jairibeiro-ai.streamlit.app',true,'',['https://jairribeiro.com'],
+run('jairribeiro-ai.streamlit.app',true,'',['https://jairribeiro.com'],
     'jairribeiro.com','embed_ancestor',false);
-run('jairibeiro-ai.streamlit.app',true,'',[],
+run('jairribeiro-ai.streamlit.app',true,'',[],
     null,'embedded_unresolved',false);
-run('jairibeiro-ai.streamlit.app',false,'https://jairribeiro.com/',[],
-    'jairibeiro-ai.streamlit.app','direct_host',false);
+run('jairribeiro-ai.streamlit.app',false,'https://jairribeiro.com/',[],
+    'jairribeiro-ai.streamlit.app','direct_host',false);
+run('unknown.example',false,'',[],null,null,false);
 console.log('entry domain behavior passed');
 """.replace("ARTICLE", json.dumps(article_js)).replace("PAGE", json.dumps(page_js))
         result = subprocess.run(["node", "-e", harness], text=True, capture_output=True)

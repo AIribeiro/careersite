@@ -483,8 +483,13 @@ async def _weekly_ai_evergreen_image(_request):
 # Current Streamlit exposes the Starlette ASGI application directly. Keeping
 # the interactive UI in main.py lets this launcher provide crawler-visible
 # article, social-image, robots and sitemap routes on the same public domain.
+# STAGING-ONLY ENTRY OVERRIDE — DO NOT MERGE INTO PRODUCTION AS-IS.
+# Existing Community Cloud app is registered against app.py and cannot switch
+# its entry file in Settings. During draft PR #54 testing, launch the isolated
+# reader_test.py instead of the portfolio dispatcher that falls back to Home.
+# Revert this override to App("main.py") before merging PR #54 into main.
 app = App(
-    "main.py",
+    "reader_test.py",
     routes=[
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
         Route("/readers/download/{slug}.pdf", reader_download, methods=["GET"]),

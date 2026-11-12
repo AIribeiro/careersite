@@ -1,0 +1,47 @@
+name: Resend DNS public diagnostic (staging only)
+on:
+  pull_request:
+    paths:
+      - .github/workflows/resend-dns-diagnostic.yml
+  push:
+    branches:
+      - feature/verified-briefings-readers-20261111
+    paths:
+      - .github/workflows/resend-dns-diagnostic.yml
+jobs:
+  check-public-dns:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Inspect active public DNS records without secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '===== Authoritative NS for jairribeiro.com ====='
+          dig +time=3 +tries=1 +noall +answer NS jairribeiro.com || true
+          echo '===== Delegation/authority for auth.jairribeiro.com ====='
+          dig +time=3 +tries=1 +noall +answer NS auth.jairribeiro.com || true
+          dig +time=3 +tries=1 +noall +authority SOA rsend.auth.jairribeiro.com || true
+          for dns in 1.1.1.1 8.8.8.8; do
+            for hostname in rsend.auth.jairribeiro.com send.auth.jairribeiro.com; do
+              echo "===== Resolver ${dns}: CNAME ${hostname} ====="
+              dig @${dns} +time=3 +tries=1 +noall +comments +answer +authority CNAME ${hostname} || true
+            done
+          done
+          echo '===== Authoritative DNS CNAME responses ====='
+          for ns in $(dig +time=3 +tries=1 +short NS jairribeiro.com | sed 's/\.$//'); do
+            echo "----- ${ns} -----"
+            dig @${ns} +time=3 +tries=1 +noall +comments +answer +authority CNAME rsend.auth.jairribeiro.com || true
+          done
+          echo '===== Do expected records conflict with other types? ====='
+          for typ in A AAAA MX TXT NS; do
+            echo "----- ${typ} rsend.auth.jairribeiro.com -----"
+            dig @1.1.1.1 +time=3 +tries=1 +noall +answer ${typ} rsend.auth.jairribeiro.com || true
+          done
+
+          echo '===== DKIM public TXT check (redacted to presence) ====='
+          for ns in resend._domainkey.auth.jairribeiro.com resend._domainkey.jairribeiro.com; do
+            echo "----- ${ns} -----"
+            answer=$(dig @1.1.1.1 +time=3 +tries=1 +short TXT "${ns}" || true)
+            if [[ -z "$answer" ]]; then echo "NOT FOUND"; else echo "PRESENT: $(printf '%s' "$answer" | cut -c1-70)..."; fi
+          done

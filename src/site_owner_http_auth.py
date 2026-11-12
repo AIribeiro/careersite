@@ -107,7 +107,7 @@ color:white;border:0;font:inherit;cursor:pointer}}
 </style></head><body><main>
 <h1>Portfolio owner sign-in</h1>
 <p>One secure sign-in for Analytics and the CMS.</p>{notice}
-<form method="post" action="/owner-auth/login?next={destination}" autocomplete="on">
+<form method="post" action="/~/+/owner-auth/login?next={destination}" autocomplete="on">
 <input type="hidden" name="next" value="{destination}">
 <label for="owner_password">Password</label>
 <input autofocus required autocomplete="current-password" type="password"
@@ -219,7 +219,7 @@ async def owner_auth_route(request) -> Response:
             return _no_store(Response("Method not allowed",status_code=405))
         old_refresh = str(request.cookies.get(REFRESH_COOKIE) or "")
         if not old_refresh:
-            return _clear(RedirectResponse(f"/owner-auth/login?next={dest}",status_code=303))
+            return _clear(RedirectResponse(f"/~/+/owner-auth/login?next={dest}",status_code=303))
         try:
             session = await run_in_threadpool(owner_refresh,old_refresh)
             user = session.get("user") if isinstance(session,dict) else None
@@ -234,7 +234,7 @@ async def owner_auth_route(request) -> Response:
                     raise RuntimeError("Owner identity mismatch")
             return _set_session(RedirectResponse(_after(dest),status_code=303),session)
         except (RuntimeError,ValueError,TimeoutError):
-            return _clear(RedirectResponse(f"/owner-auth/login?next={dest}",status_code=303))
+            return _clear(RedirectResponse(f"/~/+/owner-auth/login?next={dest}",status_code=303))
 
     if action == "logout":
         if request.method == "GET":
@@ -244,7 +244,7 @@ async def owner_auth_route(request) -> Response:
                 '<title>Sign out | Portfolio</title></head>'
                 '<body style="font:16px system-ui;padding:3em;background:#f4f0e8">'
                 '<h1>Sign out</h1><p>Revoke this browser session?</p>'
-                '<form method="post" action="/owner-auth/logout">'
+                '<form method="post" action="/~/+/owner-auth/logout">'
                 '<button type="submit" style="padding:12px 20px">Sign out</button>'
                 '</form></body></html>'
             )

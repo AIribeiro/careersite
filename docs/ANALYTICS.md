@@ -333,3 +333,14 @@ Deploy order: additive DB migration, collector/UI code, then monitor
 `entry_domain_evidence` distribution. Test both direct and masked entry in
 real browsers (especially Safari and Firefox) and check whether the mask
 propagates `source`, `utm_medium` and `utm_campaign` parameters.
+
+### Streamlit native hostname variant (12 November 2026)
+
+The portfolio repository's canonical publication links currently use
+`jairribeiro-ai.streamlit.app` (double 'r'), while the originally reported
+forwarding target is `jairibeiro-ai.streamlit.app` (single 'r'). The collector
+and database allow **both exact observed hostnames** as separate entry-address
+labels instead of silently assuming either spelling. The dashboard's top-level
+"Streamlit native address" metric combines both, and its detailed table preserves
+the separate exact addresses. Confirm the domain registrar's actual target
+before retiring either variant.

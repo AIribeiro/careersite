@@ -41,9 +41,11 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
         self.assertIn("No payment details", rendered)
         self.assertIn("editorial emails", rendered)
         self.assertIn("Access at a glance", rendered)
-        self.assertIn("when a newer Article is published", rendered)
+        self.assertIn("Premium Articles", rendered)
         self.assertIn("Executive AI Briefings", rendered)
-        # Keep the value proposition first; editorial timing belongs only\n        # in the small policy note at the bottom of the section.\n        self.assertNotIn("seven days", rendered.split("Access at a glance")[0].lower())\n        self.assertIn("seven days", rendered.split("Access at a glance")[1].lower())
+        self.assertNotIn("until another Article is published", rendered)
+        self.assertNotIn("when a newer Article is published", rendered)
+        self.assertNotIn("seven days", rendered.lower())
         self.assertNotIn("day 7", rendered.lower())
         self.assertNotIn("guaranteed", rendered.lower())
         # Make the content-value argument before access conditions appear.
@@ -59,10 +61,19 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
     def test_unified_reader_hero_recognizes_both_formats(self):
         rendered = reader_header()
         self.assertIn("Your executive reading library", rendered)
-        self.assertIn("at least seven days", rendered)
+        self.assertIn("Premium Articles", rendered)
         self.assertIn("Executive AI Briefings", rendered)
-        self.assertIn("A4 infographic PDFs", rendered)
-        self.assertIn("until another Article is published", rendered)
+        self.assertIn("A4 briefing infographics", rendered)
+        self.assertNotIn("until another Article is published", rendered)
+        self.assertNotIn("at least seven days", rendered)
+
+    def test_article_library_status_labels_are_reader_focused(self):
+        native = (SRC / "page_reader_native.py").read_text("utf-8")
+        self.assertIn("Premium · Included with your reader account", native)
+        self.assertIn('"Open access"', native)
+        self.assertIn("article_is_locked(item, published=editorial)", native)
+        self.assertNotIn("Premium until another Article is published", native)
+        self.assertNotIn("The latest Article stays Premium until", native)
 
     def test_cms_injection_preserves_invitation_on_thinking_page(self):
         from page_thinking import _thinking_landing_with_catalog

@@ -165,8 +165,9 @@ def _login(requested_title: str = "") -> None:
     else:
         st.markdown("### Complimentary access to executive resources")
         st.write(
-            "Read the briefings online without an account. Register once to access "
-            "the downloadable A4 infographic PDFs. The newsletter is optional."
+            "Read the opening of any briefing without an account. "
+            "Verify your email for complete Executive AI Briefings, original "
+            "infographics and A4 PDF downloads. Editorial updates are optional."
         )
     returning = st.radio(
         "Reader status", ["I'm new here", "I already have an account"],
@@ -267,7 +268,7 @@ def _library(session: dict, user: dict) -> None:
         return
     name = str(profile.get("first_name") or "").strip()
     st.markdown("### Your executive library")
-    st.write("Welcome" + (", " + name if name else "") + ". Your A4 executive infographic PDFs are available below.")
+    st.write("Welcome" + (", " + name if name else "") + ". Your complete Executive AI Briefings and A4 infographic PDFs are available below.")
     st.caption("Authenticated as " + str(user.get("email") or ""))
     st.divider()
 

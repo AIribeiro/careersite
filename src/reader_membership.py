@@ -546,8 +546,8 @@ text-decoration:none!important;font:750 12px/1.4 Arial,sans-serif}
 @media(max-width:650px){.site .reader-resource-cta a{width:100%}}</style>
 <div><span>Complimentary executive resource</span><h3>Keep the decision framework at hand.</h3>
 <p>Access the A4 infographic PDF with one verified reader account. Online reading remains free.</p>
-</div><a data-hq-event="briefing_reader_pdf" href="/~/+/readers/download/""" +
-            escape(slug, quote=True) + """.pdf" target="_blank" rel="noopener">Download PDF ↓</a></aside>""")
+</div><a data-hq-event="briefing_reader_pdf" href="/?page=readers&amp;download=""" +
+            escape(slug, quote=True) + """ target="_blank" rel="noopener">Download PDF ↓</a></aside>""")
 
 
 async def reader_download(request) -> Response:

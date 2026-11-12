@@ -454,7 +454,10 @@ def _mailing_workspace(
     )
     tags = sorted({
         tag for p in eligible
-        for tag in (controls.get(str(p.get("user_id")), {}).get("tags") or [])
+        for tag in (
+            list(controls.get(str(p.get("user_id")), {}).get("tags") or [])
+            + [_reader_origin_tag(p)]
+        )
     })
     tag = st.selectbox(
         "Segment by internal tag", ["All eligible readers"] + tags,
@@ -463,7 +466,8 @@ def _mailing_workspace(
     segment = [
         p for p in eligible
         if tag == "All eligible readers" or tag in (
-            controls.get(str(p.get("user_id")), {}).get("tags") or []
+            list(controls.get(str(p.get("user_id")), {}).get("tags") or [])
+            + [_reader_origin_tag(p)]
         )
     ]
     phrase = st.text_input(
@@ -481,14 +485,20 @@ def _mailing_workspace(
         "Name": p.get("first_name"),
         "Email": p.get("email"),
         "Consent date": str(p.get("newsletter_consent_at") or "")[:10],
-        "Tags": ", ".join(controls.get(str(p.get("user_id")), {}).get("tags") or []),
+        "Tags": ", ".join(
+            list(controls.get(str(p.get("user_id")), {}).get("tags") or [])
+            + [_reader_origin_tag(p)]
+        ),
     } for p in segment]
     st.dataframe(table[:500], hide_index=True, use_container_width=True)
     csv = _csv_bytes(
         ["First name", "Email", "Consent timestamp", "Notice version", "Tags"],
         [[p.get("first_name"), p.get("email"), p.get("newsletter_consent_at"),
           p.get("consent_notice_version"),
-          ", ".join(controls.get(str(p.get("user_id")), {}).get("tags") or [])]
+          ", ".join(
+              list(controls.get(str(p.get("user_id")), {}).get("tags") or [])
+              + [_reader_origin_tag(p)]
+          )]
          for p in segment],
     )
     st.download_button(

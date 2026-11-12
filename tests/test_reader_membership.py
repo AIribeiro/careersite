@@ -114,6 +114,35 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertNotIn('action="/readers/request"', native)
         self.assertNotIn('action="/~/+/readers/request"', native)
 
+    def test_reader_library_premium_editorial_funnel(self):
+        """Membership is sold on editorial value without implying paid access."""
+        shell = self.source("src/site_reader_shell.py")
+        native = self.source("src/page_reader_native.py")
+        for phrase in (
+            "A clearer view of the AI decisions that matter.",
+            "Decision-focused briefings",
+            "Deeper editorial analysis",
+            "Original decision visuals",
+            "Premium Articles",
+            "reader-hero-grid",
+            "reader-hero-benefits",
+            "reader-benefits-list",
+            "https://jairribeiro.com",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, shell)
+        self.assertNotIn("Your executive reading library.", shell)
+        self.assertIn("Read beyond the summary.", native)
+        self.assertIn("Save the perspectives relevant to", native)
+        self.assertIn("your infographic downloads", native)
+        self.assertIn("Editorial updates only with your consent.", native)
+        self.assertIn("value=False, disabled=returning", native)
+        self.assertIn("Send my Premium Reader access link", native)
+        self.assertIn("Email me a sign-in link", native)
+        self.assertIn("st.radio(", native)
+        self.assertIn("reader_native_login_form", native)
+        self.assertIn("reader_password_signin_form", native)
+
     def test_native_email_identity_and_optional_consent(self):
         native = self.source("src/page_reader_native.py")
         legacy = self.source("src/reader_membership.py")

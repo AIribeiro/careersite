@@ -905,17 +905,22 @@ def _library(session: dict, user: dict) -> None:
             st.info("No articles are published yet.")
 
     with all_tab:
-        st.markdown("#### Complete Executive AI Briefings")
-        st.caption("Every published edition is available with this verified account.")
+        _reader_section_header(
+            "THE COMPLETE BRIEFING LIBRARY",
+            "A reference library for consequential AI decisions.",
+            "Work through the questions behind AI investments, ownership, "
+            "governance, adoption and business value. Every published briefing "
+            "is available here in full.",
+        )
         search = st.text_input(
-            "Find a briefing", placeholder="Search by title or topic",
+            "Find a briefing", placeholder="Search a title, executive decision or topic",
             key="reader_find_briefing",
         ).strip().casefold()
         matching = [
             article for article in articles
             if search in (
-                str(article.title) + " " +
-                str(article.subtitle or article.excerpt or "")
+                str(article.title) + " " + str(article.category or "") + " "
+                + str(article.subtitle or "") + " " + str(article.excerpt or "")
             ).casefold()
         ]
         _reader_selected_edition(
@@ -923,65 +928,128 @@ def _library(session: dict, user: dict) -> None:
         )
 
     with saved_tab:
-        st.markdown("#### Your saved editions")
-        st.caption("Save or remove editions at any time. Saved titles remain "
-                   "available when you return and sign in again.")
+        _reader_section_header(
+            "YOUR PERSONAL READING LIST",
+            "Keep the decisions worth revisiting.",
+            "Return to the briefings you have saved for discussion, "
+            "reference or a decision ahead. Remove any title when it no longer "
+            "belongs in your reading list.",
+        )
+        # The server returns most recently saved first; preserve that order.
         saved_articles = [
-            by_slug[slug] for slug in saved_slugs if slug in by_slug
+            by_slug[str(row.get("article_slug") or "")]
+            for row in saved
+            if str(row.get("article_slug") or "") in by_slug
         ]
-        saved_articles.sort(key=lambda a: str(a.title).casefold())
         _reader_selected_edition(
             session, user, saved_articles, saved_slugs, view="saved",
         )
 
     with pdf_tab:
-        st.markdown("#### Your infographic PDFs")
-        st.caption(
-            "Review which briefing PDFs you downloaded and download them again. "
-            "Actual files are generated when requested, rather than stored "
-            "as personal copies on the website."
+        _reader_section_header(
+            "YOUR DECISION VISUALS",
+            "Your infographic collection.",
+            "Find the original A4 briefing visuals you have previously "
+            "downloaded. Prepare a fresh copy whenever you need one "
+            "for your own review or discussion.",
         )
         available_downloads = [
             (by_slug[slug], row) for slug, row in unique_downloads.items()
             if slug in by_slug
         ]
         if not available_downloads:
-            st.info("No infographic PDFs have been downloaded with this account.")
+            st.info(
+                "No infographic downloads in your history yet. "
+                "Open an Executive AI Briefing to find its available A4 visual."
+            )
         else:
-            summary = []
-            for article, row in available_downloads:
-                when = str(row.get("downloaded_at") or "")
-                summary.append({
-                    "Briefing": str(article.title),
-                    "Last download": when[:10] if when else "Not recorded",
-                    "Downloads": sum(
-                        1 for event in downloaded
-                        if str(event.get("article_slug")) == str(article.slug)
-                    ),
-                })
-            st.dataframe(summary, hide_index=True, use_container_width=True)
-            chosen = st.selectbox(
-                "Download again",
-                range(len(available_downloads)),
-                format_func=lambda i: str(available_downloads[i][0].title),
-                key="reader_select_pdf_history",
+            pdf_search = st.text_input(
+                "Find a downloaded infographic",
+                placeholder="Search your briefing visuals",
+                key="reader_pdf_search",
+            ).strip().casefold()
+            matching_pdfs = [
+                (article, row) for article, row in available_downloads
+                if pdf_search in (
+                    str(article.title) + " " + str(article.category or "")
+                ).casefold()
+            ]
+            st.caption(
+                f"{len(matching_pdfs)} infographic"
+                + ("" if len(matching_pdfs) == 1 else "s")
+                + " in your download history"
             )
-            article, _ = available_downloads[chosen]
-            _reader_pdf_controls(
-                session, user, str(article.slug), view="history",
+            pdf_page_size = 5
+            pdf_pages = max(1, (len(matching_pdfs) + pdf_page_size - 1) // pdf_page_size)
+            pdf_page = (
+                st.selectbox(
+                    "Browse PDF history pages", range(pdf_pages),
+                    format_func=lambda i: f"Page {i + 1} of {pdf_pages}",
+                    key="reader_pdf_history_page",
+                )
+                if pdf_pages > 1 else 0
             )
+            for article, row in matching_pdfs[
+                int(pdf_page) * pdf_page_size:(int(pdf_page) + 1) * pdf_page_size
+            ]:
+                slug = _clean_slug(str(article.slug))
+                if not slug:
+                    continue
+                last_download = str(row.get("downloaded_at") or "")[:10] or "Date unavailable"
+                times = sum(
+                    1 for event in downloaded
+                    if str(event.get("article_slug") or "") == slug
+                )
+                with st.container(border=True, key="reader_resource_" + slug):
+                    st.caption(
+                        "EXECUTIVE INFOGRAPHIC · "
+                        + str(article.category or "Enterprise AI")
+                    )
+                    st.markdown("#### " + str(article.title))
+                    st.caption(
+                        "Last prepared: " + last_download
+                        + " · " + str(times) + " previous download"
+                        + ("" if times == 1 else "s")
+                    )
+                    st.caption("Download again from the original briefing's A4 visual.")
+                    if st.button(
+                        "Open related briefing",
+                        key="reader_pdf_open_" + slug,
+                        use_container_width=False,
+                    ):
+                        _open_reader_briefing(slug)
+                    _reader_pdf_controls(
+                        session, user, slug, view="history_" + slug,
+                    )
+            if not matching_pdfs:
+                st.info("No saved PDF matches that search. Try another topic.")
 
     with profile_tab:
-        st.markdown("#### My reader profile")
-        st.write("**Verified email:** " + str(user.get("email") or ""))
-        st.write("**Member since:** " + str(profile.get("created_at") or "")[:10])
-        st.write(
-            "**Editorial updates:** "
-            + ("Subscribed" if profile.get("newsletter_opt_in") else "Not subscribed")
+        _reader_section_header(
+            "YOUR ACCOUNT & READING PREFERENCES",
+            "A library that stays yours.",
+            "Manage how you return to your reading, the professional topics "
+            "you follow and whether you receive editorial emails. "
+            "Profile information is not displayed publicly.",
         )
-        _render_preferences(session, profile, user)
+        email = html_escape(str(user.get("email") or ""))
+        joined = html_escape(str(profile.get("created_at") or "")[:10] or "Not recorded")
+        updates = "On — by your choice" if profile.get("newsletter_opt_in") else "Off"
+        st.html(
+            '<section class="reader-account-summary" aria-label="Membership overview">'
+            '<div><span>READER IDENTITY</span><strong>' + email + '</strong>'
+            '<small>Verified email</small></div>'
+            '<div><span>MEMBER SINCE</span><strong>' + joined + '</strong>'
+            '<small>Complimentary Premium Reader access</small></div>'
+            '<div><span>EDITORIAL EMAILS</span><strong>' + updates + '</strong>'
+            '<small>Your preference, managed below</small></div></section>'
+        )
+        with st.expander("Edit my professional profile and editorial interests", expanded=False):
+            _render_preferences(session, profile, user)
         _render_password_settings(session)
-        st.caption("Need help with your reader account? Email info@jairribeiro.com.")
+        st.caption(
+            "Questions about your account or data? Email info@jairribeiro.com."
+        )
 
     st.divider()
     if st.button("Sign out", key="reader_native_logout"):

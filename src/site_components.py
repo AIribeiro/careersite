@@ -9,6 +9,18 @@ CV_DOWNLOAD_NAME = "Jair_Ribeiro_CV.pdf"
 
 
 def nav(active: str) -> str:
+    # Give signed-in readers a persistent account destination. No secrets or
+    # email addresses are placed into HTML; unverified visitors see no link.
+    try:
+        import streamlit as st
+        member_link = (
+            '<a class="link" href="?page=readers" target="_self" '
+            'data-hq-event="reader_member_nav">My Library</a>'
+            if isinstance(st.session_state.get("reader_native_session"), dict)
+            else ""
+        )
+    except (RuntimeError, AttributeError, KeyError):
+        member_link = ""
     top_item_style = "display:inline-flex!important;align-items:center;justify-content:center;white-space:nowrap"
 
     def link(page: str, label: str) -> str:
@@ -34,6 +46,7 @@ def nav(active: str) -> str:
         f'{link("impact", "AI Leadership")}'
         f'{link("ai-data-governance", "AI & Data Governance")}'
         f'{link("thinking", "Thinking")}'
+        f'{member_link}'
         f'{link("about", "About")}'
         f'<a class="link contactlink{" on" if active == "contact" else ""}" style="{top_item_style}" href="?page=contact" '
         'target="_self" data-hq-event="contact_nav">Contact</a>'

@@ -260,82 +260,285 @@ def _render_preferences(session: dict, profile: dict, user: dict) -> None:
                 except (RuntimeError, ValueError, TimeoutError):
                     st.error("Your preferences could not be saved.")
 
+def _reader_collection(
+    session: dict, user: dict, table: str, *, order: str, limit: int = 200,
+) -> list[dict]:
+    """Read only this verified user's rows; RLS independently enforces scope."""
+    if table not in {"portfolio_reader_downloads", "portfolio_reader_saved_briefings"}:
+        raise ValueError("Unsupported reader collection.")
+    from urllib.parse import quote
+    user_id = str(user["id"])
+    result = _request_json(
+        "GET", _rest_url(
+            table + "?select=*&user_id=eq." + quote(user_id, safe="")
+            + "&order=" + order + "&limit=" + str(min(limit, 200))
+        ),
+        token=str(session["access_token"]),
+    )
+    if not isinstance(result, list):
+        raise RuntimeError("Reader collection could not be loaded.")
+    return [row for row in result if isinstance(row, dict)]
+
+
+def _update_saved(session: dict, user: dict, slug: str, *, saved: bool) -> None:
+    from urllib.parse import quote
+    clean = _clean_slug(slug)
+    if not clean:
+        raise ValueError("Invalid briefing identifier.")
+    target = "portfolio_reader_saved_briefings"
+    token = str(session["access_token"])
+    if saved:
+        _request_json("POST", _rest_url(target), token=token,
+                      payload={"user_id": str(user["id"]), "article_slug": clean})
+    else:
+        _request_json(
+            "DELETE", _rest_url(
+                target + "?user_id=eq." + quote(str(user["id"]), safe="")
+                + "&article_slug=eq." + quote(clean, safe="")
+            ), token=token,
+        )
+
+
+def _open_reader_briefing(slug: str) -> None:
+    """Navigate inside the active Streamlit session; do not reload the tab."""
+    st.query_params.from_dict({"page": "briefing", "article": _clean_slug(slug)})
+    st.rerun()
+
+
+def _reader_pdf_controls(
+    session: dict, user: dict, slug: str, *, view: str,
+) -> None:
+    if not has_briefing_pdf(slug):
+        st.caption("An A4 infographic PDF is not published for this edition.")
+        return
+    selected_key = "reader_native_prepared"
+    if st.button("Prepare infographic PDF", key="reader_prepare_" + view):
+        st.session_state[selected_key] = (view, slug)
+    if st.session_state.get(selected_key) != (view, slug):
+        return
+    try:
+        with st.spinner("Preparing your A4 infographic"):
+            pdf = _pdf_for_article(slug)
+        if pdf:
+            st.download_button(
+                "Download A4 infographic",
+                data=pdf,
+                file_name=f"{slug}-executive-infographic.pdf",
+                mime="application/pdf",
+                type="primary",
+                key="reader_download_" + view,
+                on_click=_record_download,
+                args=(session["access_token"], str(user["id"]), slug),
+            )
+        else:
+            st.warning("This infographic is temporarily unavailable.")
+    except (RuntimeError, ValueError, TimeoutError, OSError):
+        st.error("The infographic could not be prepared.")
+
+
+def _reader_selected_edition(
+    session: dict, user: dict, articles: list, saved_slugs: set[str],
+    *, view: str,
+) -> None:
+    """Scannable member-library cards; never make all 20 editions a dropdown."""
+    if not articles:
+        st.info("No briefings match this selection.")
+        return
+    st.caption(f"{len(articles)} available edition" + ("" if len(articles) == 1 else "s"))
+    page_size = 5
+    page_count = (len(articles) + page_size - 1) // page_size
+    page = (
+        st.selectbox(
+            "Browse library pages", range(page_count),
+            format_func=lambda i: f"Page {i + 1} of {page_count}",
+            key="reader_catalog_page_" + view,
+        ) if page_count > 1 else 0
+    )
+    offset = int(page) * page_size
+    for article in articles[offset: offset + page_size]:
+        slug = _clean_slug(str(article.slug))
+        with st.container(border=True):
+            st.markdown("#### " + str(article.title))
+            subtitle = str(article.subtitle or article.excerpt or "").strip()
+            if subtitle:
+                st.write(subtitle)
+            st.caption(
+                "Complete briefing unlocked"
+                + (" · A4 infographic available" if has_briefing_pdf(slug)
+                   else " · No infographic PDF published")
+            )
+            left, right = st.columns(2)
+            with left:
+                if st.button("Read complete briefing", type="primary",
+                             key="reader_open_" + view + "_" + slug):
+                    _open_reader_briefing(slug)
+            with right:
+                saved = slug in saved_slugs
+                label = "Remove from saved" if saved else "Save to my library"
+                if st.button(label, key="reader_save_" + view + "_" + slug):
+                    try:
+                        _update_saved(session, user, slug, saved=not saved)
+                        st.rerun()
+                    except (RuntimeError, ValueError, TimeoutError):
+                        st.error("Could not update your saved briefings.")
+            if has_briefing_pdf(slug):
+                _reader_pdf_controls(
+                    session, user, slug, view=view + "_" + slug,
+                )
+
+
 def _library(session: dict, user: dict) -> None:
+    """Member hub: full catalog, saved editions, PDF history, profile."""
     try:
         profile = _register_profile(session, user)
     except (RuntimeError, ValueError, TimeoutError):
         st.error("Your verified account could not be loaded.")
         return
-    name = str(profile.get("first_name") or "").strip()
-    st.markdown("### Your executive library")
-    st.write("Welcome" + (", " + name if name else "") + ". Your complete Executive AI Briefings and A4 infographic PDFs are available below.")
-    st.caption("Authenticated as " + str(user.get("email") or ""))
+
+    first = str(profile.get("first_name") or "").strip()
+    st.markdown("### Your Executive AI Briefings library")
+    st.write(
+        ("Welcome, " + first + ". " if first else "")
+        + "Your verified reader access unlocks every published complete edition "
+        + "and its infographic wherever available."
+    )
+    st.caption("Signed in as " + str(user.get("email") or ""))
     st.divider()
 
     try:
         articles = [
             item for item in fetch_published_articles()
             if str(item.kind).strip().casefold() == "executive briefing"
+            and _clean_slug(str(item.slug))
         ]
-        articles.sort(key=lambda a: str(a.published_at or a.created_at or ""), reverse=True)
-        available = [a for a in articles if _clean_slug(a.slug) and has_briefing_pdf(a.slug)]
+        articles.sort(key=lambda a: str(a.published_at or a.created_at or ""),
+                      reverse=True)
     except (RuntimeError, ValueError, TimeoutError):
-        st.error("The briefing catalog is temporarily unavailable.")
-        available = []
-    if not available:
-        st.info("There are no downloadable briefings available yet.")
-    else:
-        options = {a.title: a.slug for a in available}
-        requested = str(st.query_params.get("download", "") or "")
-        initial = next((i for i, a in enumerate(available) if a.slug == requested), 0)
-        selected = st.selectbox("Select an Executive AI Briefing", list(options.keys()), index=initial)
-        slug = options[selected]
-        # Navigate natively in production so the authenticated Streamlit
-        # session is retained while switching to the complete briefing.
-        # A normal HTML href causes a new WebSocket and can lose session_state.
-        if _host_origin().startswith("https://jairribeiro-reader-test."):
-            briefing_url = BASE_URL.rstrip("/") + "/?page=briefing&article=" + slug
-            st.html(
-                '<div class="reader-publication-link"><a href="'
-                + html_escape(briefing_url, quote=True)
-                + '" target="_self">Read this briefing on the portfolio →</a></div>'
+        st.error("The complete briefing catalog is temporarily unavailable.")
+        articles = []
+
+    collection_error = False
+    try:
+        saved = _reader_collection(
+            session, user, "portfolio_reader_saved_briefings",
+            order="saved_at.desc",
+        )
+        downloaded = _reader_collection(
+            session, user, "portfolio_reader_downloads",
+            order="downloaded_at.desc",
+        )
+    except (RuntimeError, ValueError, TimeoutError):
+        collection_error = True
+        saved, downloaded = [], []
+    if collection_error:
+        st.warning("Saved briefings or download history could not be loaded.")
+
+    saved_slugs = {str(row.get("article_slug") or "") for row in saved}
+    by_slug = {str(article.slug): article for article in articles}
+    unique_downloads: dict[str, dict] = {}
+    for row in downloaded:
+        slug = str(row.get("article_slug") or "")
+        if slug and slug not in unique_downloads:
+            unique_downloads[slug] = row
+
+    st.caption(
+        f"{len(articles)} complete editions · "
+        f"{len(saved_slugs)} saved · "
+        f"{len(unique_downloads)} previously downloaded PDFs"
+    )
+
+    all_tab, saved_tab, pdf_tab, profile_tab = st.tabs([
+        "All briefings", "Saved", "My PDFs", "My profile",
+    ])
+    with all_tab:
+        st.markdown("#### Complete Executive AI Briefings")
+        st.caption("Every published edition is available with this verified account.")
+        search = st.text_input(
+            "Find a briefing", placeholder="Search by title or topic",
+            key="reader_find_briefing",
+        ).strip().casefold()
+        matching = [
+            article for article in articles
+            if search in (
+                str(article.title) + " " +
+                str(article.subtitle or article.excerpt or "")
+            ).casefold()
+        ]
+        _reader_selected_edition(
+            session, user, matching, saved_slugs, view="all",
+        )
+
+    with saved_tab:
+        st.markdown("#### Your saved editions")
+        st.caption("Save or remove editions at any time. Saved titles remain "
+                   "available when you return and sign in again.")
+        saved_articles = [
+            by_slug[slug] for slug in saved_slugs if slug in by_slug
+        ]
+        saved_articles.sort(key=lambda a: str(a.title).casefold())
+        _reader_selected_edition(
+            session, user, saved_articles, saved_slugs, view="saved",
+        )
+
+    with pdf_tab:
+        st.markdown("#### Your infographic PDFs")
+        st.caption(
+            "Review which briefing PDFs you downloaded and download them again. "
+            "Actual files are generated when requested, rather than stored "
+            "as personal copies on the website."
+        )
+        available_downloads = [
+            (by_slug[slug], row) for slug, row in unique_downloads.items()
+            if slug in by_slug
+        ]
+        if not available_downloads:
+            st.info("No infographic PDFs have been downloaded with this account.")
+        else:
+            summary = []
+            for article, row in available_downloads:
+                when = str(row.get("downloaded_at") or "")
+                summary.append({
+                    "Briefing": str(article.title),
+                    "Last download": when[:10] if when else "Not recorded",
+                    "Downloads": sum(
+                        1 for event in downloaded
+                        if str(event.get("article_slug")) == str(article.slug)
+                    ),
+                })
+            st.dataframe(summary, hide_index=True, use_container_width=True)
+            chosen = st.selectbox(
+                "Download again",
+                range(len(available_downloads)),
+                format_func=lambda i: str(available_downloads[i][0].title),
+                key="reader_select_pdf_history",
             )
-        elif st.button("Read the complete briefing →", key="reader_native_open_article"):
-            st.query_params["page"] = "briefing"
-            st.query_params["article"] = slug
-            st.query_params.pop("download", None)
-            st.rerun()
-        if st.button("Prepare PDF", key="reader_native_prepare"):
-            st.session_state["reader_native_prepared"] = slug
-        if st.session_state.get("reader_native_prepared") == slug:
-            try:
-                with st.spinner("Preparing your infographic"):
-                    pdf = _pdf_for_article(slug)
-                if not pdf:
-                    st.warning("A verified PDF is not available for this edition.")
-                else:
-                    st.download_button(
-                        "Download A4 infographic",
-                        data=pdf,
-                        file_name=f"{slug}-executive-infographic.pdf",
-                        mime="application/pdf",
-                        type="primary",
-                        key="reader_native_download_button",
-                        on_click=_record_download,
-                        args=(session["access_token"], str(user["id"]), slug),
-                    )
-            except (RuntimeError, ValueError, TimeoutError, OSError):
-                st.error("The requested PDF could not be generated.")
-    _render_preferences(session, profile, user)
+            article, _ = available_downloads[chosen]
+            _reader_pdf_controls(
+                session, user, str(article.slug), view="history",
+            )
+
+    with profile_tab:
+        st.markdown("#### My reader profile")
+        st.write("**Verified email:** " + str(user.get("email") or ""))
+        st.write("**Member since:** " + str(profile.get("created_at") or "")[:10])
+        st.write(
+            "**Editorial updates:** "
+            + ("Subscribed" if profile.get("newsletter_opt_in") else "Not subscribed")
+        )
+        _render_preferences(session, profile, user)
+
+    st.divider()
     if st.button("Sign out", key="reader_native_logout"):
         try:
             _request_json("POST", ANALYTICS_URL.rstrip("/") + "/auth/v1/logout",
                           token=session["access_token"], payload={})
         except (RuntimeError, ValueError, TimeoutError):
             pass
-        for key in ("reader_native_session", "reader_native_user", "reader_native_prepared"):
+        for key in ("reader_native_session", "reader_native_user",
+                    "reader_native_prepared"):
             st.session_state.pop(key, None)
         st.rerun()
+
 
 def _dismiss_briefing_dialog() -> None:
     # Dismiss a prompt, not the reader's verified session.

@@ -2,13 +2,17 @@ name: Executive Briefings reader membership
 on:
   push:
     branches:
-      - feature/briefing-download-signin-dialog-20261112
+      - feature/reader-membership-session-library-20261112
   pull_request:
     paths:
       - app.py
       - main.py
       - reader_test.py
       - src/page_reader_native.py
+      - src/site_reader_navigation.py
+      - tests/test_reader_library_membership.py
+      - tests/reader_navigation_smoke_app.py
+      - tests/reader_navigation_browser_smoke.py
       - src/briefing_reader_preview.py
       - src/site_cms.py
       - tests/test_briefing_public_preview.py
@@ -35,6 +39,28 @@ jobs:
         run: python -m pip install -r requirements.txt
       - name: Check source syntax and reader contracts
         run: |
-          python -m compileall -q reader_test.py main.py src/briefing_reader_preview.py src/site_cms.py src/page_reader_native.py src/site_reader_shell.py src/site_components.py app.py src/reader_membership.py src/reader_catalog_admin.py src/page_owner_workspaces.py src/page_executive_briefings.py src/briefing_approved_asset_renderer.py src/briefing_roi_studio.py src/briefing_authority_artwork.py
+          python -m compileall -q reader_test.py main.py src/briefing_reader_preview.py src/site_cms.py src/page_reader_native.py src/site_reader_navigation.py src/site_reader_shell.py src/site_components.py app.py src/reader_membership.py src/reader_catalog_admin.py src/page_owner_workspaces.py src/page_executive_briefings.py src/briefing_approved_asset_renderer.py src/briefing_roi_studio.py src/briefing_authority_artwork.py
           python -m unittest discover -s tests -p test_reader_membership.py -v
           python -m unittest discover -s tests -p test_briefing_public_preview.py -v
+          python -m unittest discover -s tests -p test_reader_library_membership.py -v
+
+  authenticated_navigation_browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Streamlit and Chromium browser tooling
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Run browser check for signed-in navigation
+        run: |
+          streamlit run tests/reader_navigation_smoke_app.py --server.headless=true --server.port=8515 --server.address=127.0.0.1 > /tmp/reader-smoke.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl --silent --fail http://127.0.0.1:8515/_stcore/health > /dev/null; then break; fi
+            sleep 1
+          done
+          python tests/reader_navigation_browser_smoke.py || (cat /tmp/reader-smoke.log && exit 1)

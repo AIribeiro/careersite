@@ -133,6 +133,14 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# Verified readers must keep the same Streamlit WebSocket when navigating
+# through the portfolio's HTML cards, header and footer. Ordinary HTML links
+# create new sessions and would otherwise require email authentication again.
+# Only mount this first-party navigation bridge for an existing Auth session.
+if isinstance(st.session_state.get("reader_native_session"), dict):
+    from site_reader_navigation import mount_reader_navigation
+    mount_reader_navigation()
+
 # Normalize the address after configuring Streamlit, leaving its public
 # render flow untouched. Old Admin bookmarks now open the unified CMS.
 if LEGACY_ADMIN_LINK:

@@ -46,8 +46,9 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertNotIn('"reader_test.py",', app)
         self.assertIn('if PAGE == "readers":', main)
         self.assertIn('render_reader_native()', main)
-        self.assertIn('href="?page=readers"', footer)
-        self.assertIn('reader_library_footer', footer)
+        self.assertIn('href="?page=briefings"', footer)
+        self.assertIn('briefings_footer', footer)
+        self.assertNotIn('reader_library_footer', footer)
         self.assertNotIn("from page_home import", launcher)
 
     def test_native_staging_app_renders_registration_in_streamlit(self):

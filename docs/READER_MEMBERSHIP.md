@@ -218,3 +218,43 @@ retrieval and production redirect configuration are checked.
 8. Complete privacy notice details (controller, contact, retention, deletion rights, appropriate legal bases and processors), review CI, and merge only after successful staging tests.
 
 The previous Starlette routes are **not** authoritative for new sign-in. Native Streamlit `/?page=readers` is the supported reader entry point. Keep incomplete checks and release blockers explicit in the PR; never treat unrelated CI failures as passing.
+
+
+## Executive AI Briefings public-preview release (12 November 2026)
+
+**The production website uses the `main` branch.** The separate
+`jairribeiro-reader-test.streamlit.app` Cloud application still tracks
+`feature/verified-briefings-readers-20261111` and is an **old authentication
+test**, not the current briefing preview branch. Do not use that test-app URL
+to judge the published design unless its deployment branch is explicitly changed.
+
+- `/?page=home` → public Home.
+- `/?page=briefings` → public catalog without sign-in.
+- `/?page=briefing&article=<slug>` → substantive public preview based on the
+  published edition, followed by a free reader registration / sign-in invitation.
+- `/?page=briefing&article=<slug>&access=1` → contextual reader access prompt.
+  Verified readers see the full edition; no second generic-library selection.
+- `/?page=briefing&article=<slug>&pdf=1` → contextual reader sign-in / PDF.
+- The shared footer now links to the **public** Briefings catalog rather
+  than taking anonymous Home visitors straight to login.
+
+**Supabase Auth callback configuration:** Email verification preserves a specific
+briefing by requesting the same-host URL with `article=<slug>` and
+`access=1` or `pdf=1`. In Auth → URL Configuration, permit these redirect
+targets before relying on one-click email links:
+`https://jairribeiro-ai.streamlit.app/**` (production), and only if needed,
+`https://jairribeiro-reader-test.streamlit.app/**` (test).
+Keep the exact existing `/?page=readers` callback URLs and confirm email
+templates use `{{ .RedirectTo }}` and `{{ .TokenHash }}`. Until this is
+configured, the existing six-digit code entered on the original page is the
+safe same-tab verification path; a magic link may return to the wrong page.
+
+**Access limitation:** The new app renderer does not include the full CMS
+HTML or infographic in anonymous page markup, but the published CMS records
+are still publicly readable through the existing Supabase API. This is a
+*reader registration journey*, not an enforceable paywall. Before selling
+private content or claiming content protection, move full content and
+private PDF objects behind a token-checked server/storage boundary, retaining
+public previews as separate anonymous-safe records. Avoid locking public
+select policy now: doing so without first updating the public CMS data path
+would break the existing public catalog and other articles.

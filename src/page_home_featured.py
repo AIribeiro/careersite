@@ -139,6 +139,65 @@ def current_snapshot_writing(*, exclude_slug: str = "") -> HomeArticlePreview:
     )
 
 
+
+HOME_EDITORIAL_CSS = """<style>
+/* One editorial destination instead of three competing Home promotions. */
+.site .home-featured-topline a.home-featured-archive{
+  color:var(--ink)!important;text-decoration:none!important;
+  font:750 12px/1.5 Arial,sans-serif;border-bottom:1px solid rgba(154,96,58,.5);
+  padding-bottom:4px;white-space:nowrap
+}
+.site .home-featured-topline a.home-featured-archive:hover{color:var(--copper)!important;border-bottom-color:var(--copper)}
+.site .home-editorial-options{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;
+  margin-top:17px;border-bottom:1px solid #d9d2ca
+}
+.site a.home-editorial-option{
+  display:flex;min-width:0;flex-direction:column;gap:8px;
+  padding:20px 25px 21px 0;color:var(--ink)!important;
+  text-decoration:none!important
+}
+.site a.home-editorial-option:last-child{border-left:1px solid #d9d2ca;padding:20px 0 21px 25px}
+.site .home-editorial-option-label{
+  color:#986344;font:800 10px/1.5 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase
+}
+.site .home-editorial-option-title{
+  color:#1a2d40;font:500 clamp(19px,2vw,23px)/1.2 Georgia,serif
+}
+.site .home-editorial-option-summary{
+  color:#5b6671;font:400 13px/1.55 Arial,sans-serif;max-width:43ch
+}
+.site .home-editorial-option-action{
+  margin-top:auto;padding-top:4px;color:#8f5836;font:750 12px/1.5 Arial,sans-serif
+}
+.site a.home-editorial-option:hover .home-editorial-option-action{text-decoration:underline;text-underline-offset:4px}
+.site .home-reader-invitation{
+  display:flex;justify-content:space-between;align-items:center;gap:20px;
+  padding:21px 0 0
+}
+.site .home-reader-invitation-copy{min-width:0;max-width:700px}
+.site .home-reader-invitation-label{
+  display:block;color:#8d6045;font:800 10px/1.5 Arial,sans-serif;
+  letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px
+}
+.site .home-reader-invitation p{margin:0;color:#596570;font:400 13px/1.6 Arial,sans-serif}
+.site a.home-reader-invitation-link{
+  flex:0 0 auto;color:var(--ink)!important;text-decoration:none!important;
+  font:750 12px/1.5 Arial,sans-serif;border-bottom:1px solid rgba(154,96,58,.6);
+  padding:8px 0;white-space:nowrap
+}
+.site a.home-reader-invitation-link:hover{color:var(--copper)!important;border-bottom-color:var(--copper)}
+.site .home-featured-archive:focus-visible,.site .home-editorial-option:focus-visible,
+.site .home-reader-invitation-link:focus-visible{outline:3px solid var(--copper);outline-offset:4px}
+@media(max-width:700px){
+  .site .home-editorial-options{grid-template-columns:minmax(0,1fr)}
+  .site a.home-editorial-option{padding:19px 0}
+  .site a.home-editorial-option:last-child{border-left:0;border-top:1px solid #d9d2ca;padding:19px 0}
+  .site .home-reader-invitation{align-items:flex-start;flex-direction:column;gap:8px}
+  .site a.home-reader-invitation-link{align-self:flex-start}
+}
+</style>"""
+
 def home_featured_article(*, instant: bool = False) -> str:
     """Render Home editorial preview; instant mode avoids cold CMS latency."""
     article = current_snapshot_writing() if instant else current_home_article()
@@ -173,11 +232,13 @@ def home_featured_article(*, instant: bool = False) -> str:
         '<span class="home-featured-art-fallback" aria-hidden="true">AI · Data · Leadership</span>'
     )
     return (
-        '<section class="section home-featured" data-analytics-section="home-featured-article">'
+        HOME_EDITORIAL_CSS
+        + '<section class="section home-featured" data-analytics-section="home-featured-article">'
         '<div class="container">'
         '<div class="home-featured-topline">'
         '<p class="eyebrow">From my writing</p>'
-        '<p>Thinking articles and Executive AI Briefings on the decisions shaping enterprise AI.</p>'
+        '<a class="home-featured-archive" href="?page=thinking" target="_self" '
+        'data-hq-event="home_writing_thinking">Thinking articles <span aria-hidden="true">→</span></a>'
         '</div>'
         '<article class="home-featured-story">'
         f'<a class="home-featured-media" href="{href}" target="_self" '
@@ -194,12 +255,32 @@ def home_featured_article(*, instant: bool = False) -> str:
         f'data-hq-event="home_featured_article_open" data-hq-content-type="{content_type}" '
         f'data-hq-content-slug="{slug}">{read_label} <span aria-hidden="true">→</span></a>'
         '</div></article>'
-        '<nav class="home-featured-paths" aria-label="Explore my writing">'
-        '<span>Explore the collections</span>'
-        '<a href="?page=thinking" target="_self" data-hq-event="home_writing_thinking">Thinking articles <span aria-hidden="true">→</span></a>'
-        '<a href="?page=thinking#weekly-ai" target="_self" data-hq-event="home_writing_weekly_ai">Weekly AI <span aria-hidden="true">→</span></a>'
-        '<a href="?page=briefings" target="_self" data-hq-event="home_writing_briefings">Executive AI Briefings <span aria-hidden="true">→</span></a>'
-        '</nav>'
+        '<div class="home-editorial-options" aria-label="Explore the editorial collections">'
+        '<a class="home-editorial-option" href="?page=thinking#weekly-ai" target="_self" '
+        'data-analytics-section="home-weekly-ai-promo" data-hq-event="home_weekly_ai_open">'
+        '<span class="home-editorial-option-label">Weekly AI · Every Friday</span>'
+        '<span class="home-editorial-option-title">The AI week, through a leadership lens.</span>'
+        '<span class="home-editorial-option-summary">A one-minute read or listen on what changed and what deserves attention.</span>'
+        '<span class="home-editorial-option-action">Read Weekly AI <span aria-hidden="true">→</span></span>'
+        '</a>'
+        '<a class="home-editorial-option" href="?page=briefings" target="_self" '
+        'data-analytics-section="home-executive-briefings" data-hq-event="briefings_home_open">'
+        '<span class="home-editorial-option-label">Executive AI Briefings</span>'
+        '<span class="home-editorial-option-title">The decisions behind the technology.</span>'
+        '<span class="home-editorial-option-summary">Operating perspectives on ownership, risk, investment and business value.</span>'
+        '<span class="home-editorial-option-action">Explore briefings <span aria-hidden="true">→</span></span>'
+        '</a>'
+        '</div>'
+        '<aside class="home-reader-invitation" data-analytics-section="home-premium-library" '
+        'aria-label="Premium Reader Library">'
+        '<div class="home-reader-invitation-copy">'
+        '<span class="home-reader-invitation-label">Premium Reader Library</span>'
+        '<p>Complete briefings, original infographics and the newest Premium editions, '
+        'together in one reader library. Access is complimentary.</p>'
+        '</div>'
+        '<a class="home-reader-invitation-link" href="?page=readers" target="_self" '
+        'data-hq-event="home_premium_library_open">Open the reader library <span aria-hidden="true">→</span></a>'
+        '</aside>'
         '</div></section>'
     )
 

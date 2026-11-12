@@ -43,7 +43,7 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
         self.assertIn("Access at a glance", rendered)
         self.assertIn("when a newer Article is published", rendered)
         self.assertIn("Executive AI Briefings", rendered)
-        self.assertNotIn("seven days", rendered.lower())
+        # Keep the value proposition first; editorial timing belongs only\n        # in the small policy note at the bottom of the section.\n        self.assertNotIn("seven days", rendered.split("Access at a glance")[0].lower())\n        self.assertIn("seven days", rendered.split("Access at a glance")[1].lower())
         self.assertNotIn("day 7", rendered.lower())
         self.assertNotIn("guaranteed", rendered.lower())
         # Make the content-value argument before access conditions appear.

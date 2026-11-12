@@ -318,6 +318,12 @@ def render_public_portfolio_overview() -> None:
         reader_counts = None
     st.html(reader_registration_kpi(str(window), reader_counts))
 
+    # Report the address used to enter the portfolio independently of
+    # tagged marketing channels. Keep missing pre-release data unknown.
+    from page_entry_domain_analytics import render_entry_domain_report
+    render_entry_domain_report(str(window), expected_site_views=site_views)
+
+
     if site_views is not None:
         # Place the accounting directly under the four cards. Ordinary page
         # views exclude historical Thinking events; both belong to the site

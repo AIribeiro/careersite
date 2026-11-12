@@ -4,7 +4,7 @@ import json
 
 import streamlit.components.v1 as components
 
-from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_TABLE, ANALYTICS_URL
+from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_TABLE, ANALYTICS_URL, ENTRY_DOMAIN_JS
 from thinking_articles import ArticleMeta
 
 
@@ -37,6 +37,7 @@ def inject_article_analytics(
   const endpoint = {json.dumps(endpoint)};
   const apiKey = {json.dumps(ANALYTICS_PUBLISHABLE_KEY)};
   const source = {json.dumps(source)};
+{ENTRY_DOMAIN_JS}
   const page = {json.dumps(page)};
   const currentArticle = {json.dumps(article_payload)};
 
@@ -127,9 +128,10 @@ def inject_article_analytics(
 
   const referrerHost = () => {{
     try {{
-      if (!doc.referrer) return null;
-      const host = new URL(doc.referrer).hostname;
-      return host && host !== win.location.hostname ? host.slice(0, 255) : null;
+      if (!doc.referrer || (entryContext.masked && entryContext.domain === 'jairribeiro.com')) return null;
+      const host = new URL(doc.referrer).hostname.toLowerCase();
+      const own = ['jairribeiro.com','www.jairribeiro.com','jairibeiro-ai.streamlit.app'];
+      return host && !own.includes(host) ? host.slice(0,255) : null;
     }} catch (_) {{
       return null;
     }}
@@ -187,6 +189,8 @@ def inject_article_analytics(
       source,
       session_id: sessionId,
       referrer_host: referrerHost(),
+      entry_domain: entryContext.domain,
+      entry_domain_evidence: entryContext.evidence,
       attribution_source: attribution.source,
       attribution_role: attribution.role,
       utm_source: attribution.utm_source,

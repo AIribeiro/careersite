@@ -284,3 +284,52 @@ Each reading category reuses the `careersite_content_intelligence_v2` first-part
 The Executive Briefings detail uses existing per-content aggregates and instrumented `briefings-library` / `home-executive-briefings` section reach and briefing-card exposures/clicks. Its four primary measures are library visits, published-briefing item-session reads, engaged-read rate (active ≥10 seconds) and *subsequent within-session contact actions*, where the last is **not** evidence of a causal conversion. The detail also shows card exposure-based CTR, item views, measured read depth, shares, later CV actions, a comparative readership chart and a link to each individual published briefing. Scroll rates use only observed depth denominators; average confirmed time may be unavailable. Direct visitors can bypass the library; discovery and readership are *not* a linear funnel.
 
 All measures respect the current reporting window, established test-traffic and attribution exclusions. Historic periods cannot retroactively acquire card impressions that were not instrumented. The dashboard does not identify people or infer recruiter interest. If reporting is unreachable, display an explicit unavailable state rather than claiming no traffic.
+
+## Entry address versus acquisition channel (12 November 2026)
+
+The registered custom address `jairribeiro.com` currently uses a provider-managed
+masked forwarding frame to `jairibeiro-ai.streamlit.app`. The Streamlit server
+cannot infer the external address from its own hostname. The two questions
+must be reported separately:
+
+- **Entry address:** the address used for the portfolio, either branded or
+  native Streamlit. The browser collector labels a native top-level load as
+  `direct_host`, a confirmed custom-domain iframe as `embed_ancestor` or
+  `embed_referrer`, and a frame whose parent cannot be confirmed as
+  `embedded_unresolved`. No unverified frame is assumed native.
+- **Acquisition channel:** explicitly tagged `source` / UTM parameters first,
+  then an observed external referrer, then direct/unknown. The branded
+  framing page is *first-party infrastructure*, not a marketing referral.
+  It is intentionally excluded from the `referrer_host` column.
+
+The additive events fields are `entry_domain` and
+`entry_domain_evidence`. Their values are tightly constrained in
+Postgres and included in both the ordinary portfolio and article collectors.
+The existing anonymous insert RLS remains in force and includes the two new
+fields. No extra cookies, IPs, persistent IDs or raw referring URLs are stored.
+
+The public Portfolio Analytics panel **Entry address & traffic origins** uses
+`careersite_entry_domain_report_v1`, a scoped, aggregate-only RPC with
+the existing period selector. It reports mutually exclusive session cohorts,
+canonical content views, tagged/external-referrer/unknown source evidence,
+and a daily split. Site-wide totals, article views, WEEKLY AI and briefing
+views remain unchanged; a content view is never counted again as a
+separate domain hit. Browser-tab sessions are not unique people.
+
+**Historical rows are not backfilled.** Pre-collector observations are
+shown as **Not measured (historical)**; unavailable iframe parent evidence
+is **Unresolved embedded address**. A masked forwarding service may strip
+the original website referrer and URL parameters. The inner Streamlit
+application cannot recover information the wrapper never passes.
+For reliable campaign-level reporting, configure the domain forwarding
+service to pass incoming query parameters to the iframe, or preferably
+replace masking with a genuine redirect/canonical first-party host.
+A normal HTTP redirect preserves a Streamlit destination but the visible
+browser address changes; maintaining the custom address end-to-end needs
+supported custom-domain hosting/reverse proxy rather than mask-only forwarding.
+Do not claim upstream referrer completeness for masked traffic.
+
+Deploy order: additive DB migration, collector/UI code, then monitor
+`entry_domain_evidence` distribution. Test both direct and masked entry in
+real browsers (especially Safari and Firefox) and check whether the mask
+propagates `source`, `utm_medium` and `utm_campaign` parameters.

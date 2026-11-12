@@ -41,6 +41,9 @@ from site_cms import (
     update_article_header_image,
     upload_header_image,
 )
+from premium_article_editorial import (
+    is_editorial_format, needs_first_publication_review, premium_article_issues,
+)
 
 BRIEFING_REVIEW_CRITERIA = (
     "Decision and judgment: one clear business choice and defensible position.",
@@ -373,6 +376,12 @@ def _metadata(article: CmsArticle, prefix: str, force: bool = False) -> None:
     }
     for source, target in mappings.items():
         key = f"{prefix}_{target}"
+        # The Premium preview excerpt is purposeful editorial text, not a
+        # disposable SEO field. Metadata regeneration must not overwrite it.
+        if (source == "excerpt" and is_editorial_format(
+            st.session_state.get(f"{prefix}_kind", article.kind)
+        ) and st.session_state.get(key)):
+            continue
         if force or not st.session_state.get(key):
             st.session_state[key] = generated[source]
     if force or not st.session_state.get(f"{prefix}_keywords"):
@@ -396,8 +405,11 @@ document.getElementById({json.dumps(key)}).addEventListener('click', async () =>
     )
 
 
-def _preview_document(article: CmsArticle, header_bytes: bytes | None = None) -> str:
-    """Build a standalone document that matches the public article renderer."""
+def _preview_document(
+    article: CmsArticle, header_bytes: bytes | None = None,
+    *, audience: str = "full",
+) -> str:
+    """Build a standalone Article preview for an explicit audience."""
     from site_cms import render_cms_article
     from site_image_styles import IMAGE_CSS
     from site_styles import CSS
@@ -406,6 +418,16 @@ def _preview_document(article: CmsArticle, header_bytes: bytes | None = None) ->
     if header_bytes:
         preview_src = "data:image/webp;base64," + base64.b64encode(header_bytes).decode("ascii")
         preview_article = replace(article, header_image_url=preview_src)
+
+    if is_editorial_format(preview_article.kind) and audience == "public":
+        from article_reader_preview import render_public_article_preview
+        rendered = render_public_article_preview(preview_article, preview_article.read_label)
+    elif is_editorial_format(preview_article.kind):
+        # The draft status shows the complete edition independent of the
+        # owner's active reader session or the production release catalogue.
+        rendered = render_cms_article(replace(preview_article, status="draft"))
+    else:
+        rendered = render_cms_article(preview_article)
 
     return (
         '<!doctype html><html lang="en"><head>'
@@ -418,7 +440,7 @@ def _preview_document(article: CmsArticle, header_bytes: bytes | None = None) ->
         'body{min-width:0}.site{width:100%;min-width:0}'
         '.nav{position:relative!important}'
         '</style></head><body><div class="site">'
-        + render_cms_article(preview_article)
+        + rendered
         + '</div><script>window.scrollTo(0,0);</script></body></html>'
     )
 
@@ -428,21 +450,41 @@ def _preview(article: CmsArticle, header_bytes: bytes | None = None) -> None:
         st.warning("Add a title and article body before previewing.")
         return
 
-    preview_html = _preview_document(article, header_bytes)
-
-    with st.expander("Preview", expanded=True):
-        st.caption("Live preview of the current editor state · same styling and image rules as the public article.")
-        st.components.v1.html(
-            preview_html,
-            height=1100,
-            scrolling=True,
-        )
+    with st.expander("Reader experience · Preview before publishing", expanded=True):
+        if is_editorial_format(article.kind):
+            st.caption(
+                "Check the real automatically extracted public introduction, then "
+                "inspect the complete edition. Both reflect unsaved editor changes."
+            )
+            public_tab, full_tab = st.tabs([
+                "Public introduction · No sign-in",
+                "Complete article · Premium Reader",
+            ])
+            with public_tab:
+                st.components.v1.html(
+                    _preview_document(article, header_bytes, audience="public"),
+                    height=1000, scrolling=True,
+                )
+            with full_tab:
+                st.components.v1.html(
+                    _preview_document(article, header_bytes, audience="full"),
+                    height=1100, scrolling=True,
+                )
+        else:
+            st.caption("Live preview of the current editor state.")
+            st.components.v1.html(
+                _preview_document(article, header_bytes),
+                height=1100, scrolling=True,
+            )
 
 
 def _editor(article: CmsArticle, access_token: str) -> None:
     prefix = f"cms_{article.id or 'new'}"
     _load_editor_state(article, prefix)
     _editor_back_control(article, prefix)
+    editorial_format = is_editorial_format(
+        st.session_state.get(f"{prefix}_kind", article.kind)
+    )
 
     left, right = st.columns([1.55, .75], gap="large")
     with left:
@@ -450,13 +492,36 @@ def _editor(article: CmsArticle, access_token: str) -> None:
         st.text_input("Title", key=f"{prefix}_title")
         st.text_area("Subtitle / deck", key=f"{prefix}_subtitle", height=80)
 
+        if editorial_format:
+            st.markdown("#### Public executive introduction")
+            st.caption(
+                "This executive summary appears to everyone before sign-in. "
+                "Give readers a credible argument, not a promotional teaser. "
+                "The introduction continues in the first paragraphs of the article below."
+            )
+            st.text_area(
+                "Executive summary · Public", key=f"{prefix}_excerpt", height=155,
+                placeholder="State the leadership problem, your judgment and why it matters…",
+            )
+            st.caption(
+                "The public page automatically combines this summary with a "
+                "bounded portion of the article's opening paragraphs and "
+                "the actual section headings. There is no separate preview HTML field."
+            )
+            st.markdown("#### Complete article · Premium Reader")
+            st.caption(
+                "Write the public-facing opening first, then develop the deeper "
+                "evidence, trade-offs, decisions and conclusion. The full manuscript "
+                "is also readable without sign-in after its normal release period."
+            )
+
         st.caption(
             "Paste plain text, lightweight Markdown, or safe HTML. "
             "Formatting: ## heading, ### subheading, **bold**, *italic*, "
             "> quote, - bullets, 1. numbered items, [text](https://link), and --- divider."
         )
         st.text_area(
-            "Article body",
+            "Article body · Public opening followed by full analysis" if editorial_format else "Article body",
             key=f"{prefix}_body",
             height=540,
             placeholder="Paste or write the complete article here…",
@@ -649,7 +714,13 @@ def _editor(article: CmsArticle, access_token: str) -> None:
                     "(portfolio GitHub repository). The review below is a human acknowledgement, "
                     "not automated fact checking or a claim that the deployed page was inspected."
                 )
-        st.text_area("Excerpt", key=f"{prefix}_excerpt", height=120)
+        if not editorial_format:
+            st.text_area("Excerpt", key=f"{prefix}_excerpt", height=120)
+        else:
+            st.caption(
+                "Public summary is managed beside the manuscript; regenerating "
+                "SEO metadata will preserve your approved executive wording."
+            )
         st.text_input("SEO title", key=f"{prefix}_seo_title")
         st.text_area("Meta description", key=f"{prefix}_meta_description", height=100)
         st.text_input("Keywords", key=f"{prefix}_keywords", help="Comma-separated")
@@ -666,6 +737,24 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             st.text_area("Aside HTML", key=f"{prefix}_aside", height=160)
 
         draft = _article_from_state(article, prefix)
+        article_issues = premium_article_issues(draft) if editorial_format else ()
+        if editorial_format:
+            with st.expander("Premium Article · Editorial release check", expanded=True):
+                st.caption(
+                    "The public introduction must be useful on its own; "
+                    "the complete article must provide the evidence and decisions. "
+                    "These checks apply to first publication, not revisions of existing work."
+                )
+                if article_issues:
+                    for issue in article_issues:
+                        st.warning(issue)
+                else:
+                    st.success("Executive summary and opening meet the CMS structural checks.")
+                st.caption(
+                    "Use Preview to inspect the exact anonymous opening and the "
+                    "complete registered-reader edition. Structural checks do not "
+                    "substitute for source verification or editorial review."
+                )
         infographic_ready = render_briefing_infographic_editor(article, draft, access_token, prefix)
         premium_ready = premium_artwork_ready(draft)
         if premium_artwork_required(draft):
@@ -706,7 +795,8 @@ def _editor(article: CmsArticle, access_token: str) -> None:
             pub_label, type="primary", use_container_width=True,
             key=f"{prefix}_publish",
             disabled=(not briefing_release_ready(draft.kind, review_acknowledged, infographic_ready)
-                      or not premium_ready),
+                      or not premium_ready
+                      or (needs_first_publication_review(draft) and bool(article_issues))),
         ):
             try:
                 saved = save_article(access_token, replace(draft, status="published"))

@@ -92,6 +92,56 @@ class ReaderLibraryMembershipTests(unittest.TestCase):
         )
         self.assertIn("st.query_params.from_dict", native)
 
+    def test_premium_member_navigation_and_every_tab_has_a_distinct_purpose(self):
+        native = self.source("src/page_reader_native.py")
+        shell = self.source("src/site_reader_shell.py")
+        self.assertIn("reader-member-welcome", native)
+        self.assertIn("reader-member-stats", native)
+        self.assertIn("reader-member-number", shell)
+        self.assertIn('reader-tab-hint', native)
+        self.assertIn('Swipe to see all six sections', native)
+        self.assertIn('aria-selected="true"', shell)
+        self.assertIn('min-height:49px', shell)
+        self.assertIn('overflow-x:auto', shell)
+        self.assertIn('grid-template-columns:repeat(3,minmax(0,1fr))', shell)
+        self.assertIn('st.tabs([', native)
+        for tab in (
+            '"All briefings"', '"Articles"', '"Weekly AI"',
+            '"Saved"', '"My PDFs"', '"My profile"',
+        ):
+            self.assertIn(tab, native)
+        for section in (
+            "THE COMPLETE BRIEFING LIBRARY",
+            "ARTICLES · LEADERSHIP JUDGMENT",
+            "WEEKLY AI · EXECUTIVE PERSPECTIVES",
+            "YOUR PERSONAL READING LIST",
+            "YOUR DECISION VISUALS",
+            "YOUR ACCOUNT & READING PREFERENCES",
+        ):
+            with self.subTest(section=section):
+                self.assertIn(section, native)
+
+    def test_member_search_cards_and_pdf_history_are_customer_oriented(self):
+        native = self.source("src/page_reader_native.py")
+        for label in (
+            "Find a briefing", "Find an article", "Find a Weekly AI edition",
+            "Find a downloaded infographic", "Read complete briefing",
+            "Read complete article", "Read this Weekly AI edition",
+            "Save to my library", "Remove from saved",
+            "Last downloaded: ", "reader_resource_",
+            "reader_edition_", "reader_account",
+        ):
+            with self.subTest(label=label):
+                if label == "reader_account":
+                    self.assertIn("reader-account-summary", native)
+                else:
+                    self.assertIn(label, native)
+        self.assertIn('with st.expander("Edit my professional profile', native)
+        self.assertIn("_render_password_settings(session)", native)
+        self.assertNotIn("st.dataframe(summary", native)
+        self.assertIn("html_escape(str(user.get", native)
+        self.assertIn('token=str(session["access_token"])', native)
+
     def test_personal_collections_never_have_anonymous_access(self):
         native = self.source("src/page_reader_native.py")
         self.assertIn('token=str(session["access_token"])', native)

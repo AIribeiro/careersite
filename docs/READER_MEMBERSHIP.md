@@ -45,6 +45,56 @@ In [Supabase Authentication URL Configuration](https://supabase.com/dashboard/pr
 
 Keep existing allowlist entries until migration is verified.
 
+## Troubleshooting: confirmation goes to localhost:3000
+
+The SMTP delivery path can work while the login fails: on 12 November 2026,
+Supabase confirmed a reader identity, but the default email link redirected to
+`http://localhost:3000`. That is Supabase's undeployed default Site URL,
+not a Streamlit login, and it does not restore the verified reader's browser
+session. A second click may report an expired or invalid one-time link.
+
+**Project-wide URL Configuration** in
+https://supabase.com/dashboard/project/rnqweoxtynelfirffmlr/auth/url-configuration:
+
+1. Set **Site URL** to `https://jairribeiro-ai.streamlit.app/` (the permanent
+   portfolio host, not `http://localhost:3000`). This project-wide setting
+   affects any other Auth flow relying on the default Site URL; review them.
+2. Add **Redirect URLs**:
+   - `https://jairribeiro-reader-test.streamlit.app/?page=readers`
+   - `https://jairribeiro-ai.streamlit.app/?page=readers`
+3. Keep existing URLs needed by other live Auth flows. The staging launcher
+   explicitly pins `PORTFOLIO_READER_CALLBACK_ORIGIN` to
+   `https://jairribeiro-reader-test.streamlit.app`, and the app calls
+   `POST /auth/v1/otp?redirect_to=<percent-encoded staging reader URL>`.
+
+In **Authentication → Email Templates** configure **both** *Confirm signup* and
+*Magic Link / OTP* to **not** use `{{ .SiteURL }}` or
+`{{ .ConfirmationURL }}` as the final direct application destination.
+For the native Streamlit verification contract, use the same content in both:
+
+```html
+<h2>Your Executive AI Briefings access</h2>
+<p>Use this one-time code on the reader registration page:</p>
+<p style="font-size:24px;font-weight:700">{{ .Token }}</p>
+<p>Or verify with the secure link:</p>
+<p><a href="{{ .RedirectTo }}&amp;token_hash={{ .TokenHash }}&amp;type=email">Open my reader library</a></p>
+<p>If you did not request this, you can ignore this message.</p>
+```
+
+`{{ .Token }}` is the six-digit code and supports code entry without clicking
+a link. `{{ .RedirectTo }}` is the allowlisted staging/production reader URL
+that the application requests. `{{ .TokenHash }}` can be exchanged with the
+Supabase Auth Verify OTP endpoint. The HTML `&amp;` is required within the
+attribute because the base redirect already includes `?page=readers`.
+
+**Staging retest:** Since the first confirmation may already have been
+consumed, choose *I already have an account* at
+https://jairribeiro-reader-test.streamlit.app/ and request a fresh email.
+Then use the displayed six-digit code (simplest) or follow the updated link.
+Never post a live code, token hash, session key or full magic link into a chat.
+The final test is that the verified user's actual Streamlit session opens the
+PDF library, not merely that Supabase has a confirmed user row.
+
 ## Reader contract
 
 - Full public briefing remains readable without sign-in.

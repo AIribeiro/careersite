@@ -168,6 +168,9 @@ def _register_profile(session: dict, user: dict) -> dict:
     metadata = user.get("user_metadata") if isinstance(user.get("user_metadata"), dict) else {}
     first_name = str(metadata.get("reader_first_name") or "").strip()[:80]
     opted_in = metadata.get("reader_editorial_opt_in") is True
+    origin = str(metadata.get("reader_acquisition_source") or "").strip().casefold()
+    if origin not in {"articles", "briefings"}:
+        origin = "briefings"
     payload = {
         "user_id": user_id,
         "email": str(user["email"]).strip().lower(),
@@ -175,7 +178,7 @@ def _register_profile(session: dict, user: dict) -> dict:
         "newsletter_opt_in": opted_in,
         "newsletter_consent_at": _utc_now() if opted_in else None,
         "consent_notice_version": CONSENT_VERSION if opted_in else None,
-        "acquisition_source": "briefing_pdf",
+        "acquisition_source": origin,
     }
     rows = _request_json("POST", _rest_url("portfolio_reader_profiles"),
                          token=token, payload=payload, prefer="return=representation")

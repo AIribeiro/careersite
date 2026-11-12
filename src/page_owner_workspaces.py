@@ -165,7 +165,7 @@ def render_owner_portfolio(session: dict) -> None:
     )
     st.markdown(
         '<div style="margin:-4px 0 21px;font-size:13px;">'
-        '<a href="/readers-admin" target="_self" '
+        '<a href="/~/+/readers-admin" target="_self" '
         'style="font-weight:750;color:#8c5736;text-decoration:underline;text-underline-offset:4px;">'
         'Reader catalog · verified registrations and PDF downloads →</a></div>',
         unsafe_allow_html=True,

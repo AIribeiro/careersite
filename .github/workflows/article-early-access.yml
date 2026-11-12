@@ -1,0 +1,35 @@
+name: Article early-access checks
+
+on:
+  pull_request:
+    paths:
+      - main.py
+      - src/article_access.py
+      - src/article_reader_preview.py
+      - src/page_reader_native.py
+      - src/reader_membership.py
+      - src/site_cms.py
+      - src/page_owner_reader_management.py
+      - tests/test_article_early_access.py
+      - .github/workflows/article-early-access.yml
+  workflow_dispatch:
+
+jobs:
+  article-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime dependencies
+        run: pip install -r requirements.txt
+      - name: Check Python syntax
+        run: python -m compileall -q main.py src/article_access.py src/article_reader_preview.py src/page_reader_native.py src/reader_membership.py src/site_cms.py src/page_owner_reader_management.py
+      - name: Verify Article expiry, preview, shared account and open-access tests
+        run: python -m unittest discover -s tests -p test_article_early_access.py -v
+      - name: Check existing Executive AI Briefings preview remains unchanged
+        run: python -m unittest discover -s tests -p test_briefing_public_preview.py -v

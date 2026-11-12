@@ -1,6 +1,6 @@
 # Articles — Seven-day registered-reader early access
 
-Status: feature branch; not a production rollout until CI, staging authentication and Supabase redirect allowlist are verified.
+Status (12 November 2026): merged into `main` via PR #60. Dedicated Article and reader-membership checks passed. Supabase magic-link callback allowlisting, live deployment confirmation and full-site acceptance testing remain outstanding; do not equate the Git merge with fully validated production access.
 
 ## Editorial policy
 
@@ -21,7 +21,7 @@ Status: feature branch; not a production rollout until CI, staging authenticatio
 - Reader library now has an **Articles** tab beside Briefings, Saved, PDFs and Profile, with early-access and public status.
 - Registered-reader counts in Public Analytics continue to count unique verified profiles, never one account per content format.
 
-## Authentication redirect setup (required before merging)
+## Authentication redirect setup (required for reliable magic-link callbacks)
 
 Add both patterns to **Supabase Authentication → URL Configuration → Redirect URLs**. Retain existing reader and briefing URL patterns:
 

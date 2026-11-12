@@ -34,6 +34,7 @@ from reader_membership import (
     has_briefing_pdf,
 )
 from site_analytics import ANALYTICS_URL
+from site_reader_shell import reader_footer, reader_header
 from site_cms import _request_json, _rest_url, fetch_published_articles
 from thinking_articles import BASE_URL
 
@@ -116,16 +117,16 @@ def _consume_query_verification() -> None:
     st.query_params.pop("token_hash", None)
     st.query_params.pop("type", None)
     if not isinstance(token, str) or len(token) > 512 or not re.fullmatch(r"[A-Za-z0-9._~-]{20,512}", token):
-        st.error("Invalid verification link. Request a new email.")
+        st.session_state["reader_native_flash"] = ("error", "Invalid verification link. Request a new email.")
         return
     if auth_type != "email":
-        st.error("Unsupported verification link. Request a new email.")
+        st.session_state["reader_native_flash"] = ("error", "Unsupported verification link. Request a new email.")
         return
     try:
         _verify({"token_hash": token, "type": "email"})
-        st.success("Email verified. Welcome to your reader library.")
+        st.session_state["reader_native_flash"] = ("success", "Email verified. Welcome to your reader library.")
     except (RuntimeError, ValueError, TimeoutError):
-        st.error("The verification link has expired or could not be confirmed. Request a new email.")
+        st.session_state["reader_native_flash"] = ("error", "The verification link has expired or could not be confirmed. Request a new email.")
 
 def _login() -> None:
     st.markdown("### Complimentary access to executive resources")
@@ -286,25 +287,29 @@ def _library(session: dict, user: dict) -> None:
         st.rerun()
 
 def render_reader_native() -> None:
-    """Single first-party Streamlit page; no Cloud custom HTML POST needed."""
-    st.html("""<style>
-    [data-testid="stAppViewContainer"] {background:#f4f0e8}
-    .block-container {max-width:860px!important;padding:42px 25px 100px!important}
-    [data-testid="stHeader"] {background:transparent}
-    </style>""")
-    st.caption("JAIR RIBEIRO  /  EXECUTIVE AI BRIEFINGS  /  VERIFIED READER ACCESS")
-    st.title("Take the briefings with you")
-    st.markdown("[← Executive AI Briefings](/?page=briefings)")
+    """Verified reader flow embedded in the real portfolio navigation and footer."""
+    # Consume the single-use token BEFORE rendering the shared navigation logo
+    # or any external media. The token must never leak in a Referer header.
     _consume_query_verification()
-    session, user = _session()
-    if session and user:
-        _library(session, user)
-    else:
-        _login()
-    st.divider()
-    st.caption(
-        "Reader accounts and download activity are stored in Supabase. "
-        "The full public briefings remain free to read. "
-        "To request access, correction or deletion of personal data, "
-        "use the portfolio Contact page."
-    )
+    staging = _host_origin().startswith("https://jairribeiro-reader-test.")
+    st.html(reader_header(staging=staging))
+    with st.container(key="reader_flow"):
+        notice = st.session_state.pop("reader_native_flash", None)
+        if notice and notice[0] == "success":
+            st.success(notice[1])
+        elif notice and notice[0] == "error":
+            st.error(notice[1])
+
+        session, user = _session()
+        if session and user:
+            _library(session, user)
+        else:
+            _login()
+        st.divider()
+        st.caption(
+            "Reader registration confirms email access; it does not subscribe "
+            "you to editorial updates. Download activity and preferences are "
+            "stored with your verified reader account. "
+            "For access, corrections or deletion, use the Contact page."
+        )
+    st.html(reader_footer())

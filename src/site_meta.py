@@ -19,6 +19,8 @@ DESCRIPTIONS = {
     "certifications": "Selected AI, data and leadership credentials covering agentic AI, Responsible AI, GenAI strategy, data platforms, product and technical foundations.",
     "presence": "Selected speaking, publications and externally documented contributions across enterprise AI, Data, responsible adoption and governance.",
     "contact": "Contact Jair Ribeiro about AI, Data and Analytics mandates involving strategy, portfolio, governance, adoption and operating capability.",
+    "advisory": "Executive AI and Data advisory with Jair Ribeiro: independent decision review, portfolio priorities, governance, adoption and operating-model choices.",
+    "privacy": "Privacy notice for Jair Ribeiro’s portfolio and Premium Reader library: information collected, access, correspondence, website measurement and GDPR rights.",
     "enterprise": "Enterprise AI & Data experience across strategy, portfolio, operating models, governance, adoption and technical judgment.",
     "transformation": "AI transformation and adoption experience connecting experimentation with capability building, workflow change, governance and scale-readiness.",
     "governance": "AI governance and operating-model experience across decision rights, lifecycle ownership, Responsible AI, data trust and scale-readiness.",

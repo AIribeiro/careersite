@@ -46,6 +46,29 @@ class ShortArticleLinkTests(unittest.TestCase):
                 })
                 self.assertLess(len(link), 60)
 
+    def test_nvidia_succession_article_tracks_all_channels(self):
+        slug = "nvidia-without-jensen-huang-the-price-of-building-an-ai-economy-around-giants"
+        for channel, suffix, medium in (
+            ("linkedin", "l", "social"),
+            ("x", "x", "social"),
+            ("threads", "t", "social"),
+            ("facebook", "f", "social"),
+            ("whatsapp", "w", "messaging"),
+        ):
+            with self.subTest(channel=channel):
+                code = "n" + suffix
+                self.assertEqual(
+                    short_article_link(slug, channel),
+                    f"https://airibeiro.github.io/careersite/go/{code}/",
+                )
+                target = expand_shortlink(code)
+                self.assertEqual(target, {
+                    "page": "thinking", "article": slug, "source": channel,
+                    "role": "article", "utm_source": channel,
+                    "utm_medium": medium, "utm_campaign": "thinking",
+                    "utm_content": slug,
+                })
+
     def test_executive_briefing_has_channel_specific_permanent_links(self):
         slug = "15-ways-ai-can-change-your-business"
         for channel, suffix, medium in (

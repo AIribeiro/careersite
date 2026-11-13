@@ -202,15 +202,15 @@ def privacy() -> str:
     <li><strong>Correspondence:</strong> the email address and information you choose to share when contacting me, including advisory and privacy requests.</li>
     <li><strong>Service security:</strong> technical events and connection details that may be processed by hosting or authentication providers to operate and protect the service.</li>
    </ul>
-   <p>Payment details are not requested for complimentary Premium Reader access. Avoid placing confidential or sensitive personal information in an initial inquiry.</p>
+   <p>Payment details are not requested for complimentary Premium Reader access, and reader contact details are not sold. Avoid placing confidential or sensitive personal information in an initial inquiry.</p>
   </section>
   <section id="privacy-purpose"><h2>Why information is used</h2>
    <ul>
-    <li><strong>Reader access and downloads:</strong> to establish and maintain an account, verify identity and deliver access to content you requested. This supports the reader service you choose to use.</li>
+    <li><strong>Reader access and downloads:</strong> to establish and maintain an account, verify identity and deliver access to content you requested. The legal basis is the provision of a requested service and, where applicable, the legitimate interest in keeping your account secure.</li>
     <li><strong>Service measurement:</strong> to understand which pages and publications are useful, how visitors reach them and where the website needs attention. First-party site measurement is carried out for the legitimate interest of maintaining and improving the portfolio, subject to applicable rights.</li>
-    <li><strong>Requested correspondence:</strong> to reply to your questions or consider potential advisory discussions, including steps you ask to take before a possible engagement.</li>
-    <li><strong>Optional editorial emails:</strong> only if you choose the separate subscription option. You can withdraw that choice through your reader preferences or by contacting <a href="mailto:{READERS_EMAIL}">{READERS_EMAIL}</a>.</li>
-    <li><strong>Security and legal duties:</strong> where necessary to protect the service, respond to valid requests or meet applicable legal requirements.</li>
+    <li><strong>Requested correspondence:</strong> to reply to your questions or consider potential advisory discussions. The legal basis is legitimate interest in responding and, when relevant, steps requested before a possible agreement.</li>
+    <li><strong>Optional editorial emails:</strong> based on your separate, optional consent. You can withdraw that choice through your reader preferences or by contacting <a href="mailto:{READERS_EMAIL}">{READERS_EMAIL}</a>.</li>
+    <li><strong>Security and legal duties:</strong> where necessary for legitimate security interests or to comply with legal obligations.</li>
    </ul>
    <p>Creating a reader account does not itself subscribe you to editorial messages. Site activity is not used to make decisions with legal or comparably significant effects about you.</p>
   </section>

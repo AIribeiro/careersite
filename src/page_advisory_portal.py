@@ -119,11 +119,11 @@ def _sign_out() -> None:
 
 def _advisory_login() -> None:
     st.html("""<section class="advisory-portal-intro"><h2>A private point of contact for executive work.</h2>
-<p>Create advisory access to share your decision context and maintain a direct professional
+<p>Create your advisory account to share your decision context and maintain a direct professional
 relationship. Registration is complimentary and does not establish a consulting engagement.
 It also includes access to the complete Premium Reader library.</p></section>""")
     returning = st.radio(
-        "Advisory account", ["Create advisory access", "Sign in to advisory"],
+        "Advisory account", ["Create your advisory account", "Sign in to advisory"],
         index=1 if st.query_params.get("signin") == "1" else 0,
         horizontal=True, key="advisory_auth_mode",
     ) == "Sign in to advisory"

@@ -83,7 +83,7 @@ class AdvisoryRegistrationTests(unittest.TestCase):
         ).run()
         self.assertFalse(app.exception, [str(x.message) for x in app.exception])
         labels = [x.label for x in app.text_input]
-        self.assertIn("New password", labels)
+        self.assertIn("New or existing password", labels)
         self.assertIn("Confirm password", labels)
         self.assertTrue(any("activate my account" in x.label for x in app.button))
         self.assertFalse(app.radio)
@@ -111,6 +111,57 @@ class AdvisoryRegistrationTests(unittest.TestCase):
         self.assertNotIn('Email my sign-in link', source)
         self.assertIn('Email my verification link', source)
         self.assertIn('with st.form("advisory_password_signin"', source)
+
+    def test_supabase_same_password_is_idempotent_for_advisory_activation(self):
+        from unittest.mock import patch
+        from page_advisory_portal import (
+            _complete_advisory_password_setup, _existing_password_error,
+        )
+        session = {"access_token": "test-token"}
+        user = {"id": "test-id", "email": "example@company.test"}
+        existing = RuntimeError(
+            "Supabase request failed (422): New password should be different from the old password."
+        )
+        self.assertTrue(_existing_password_error(existing))
+        self.assertTrue(_existing_password_error(RuntimeError("same_password")))
+        self.assertFalse(_existing_password_error(RuntimeError("invalid_token")))
+        with patch("page_advisory_portal._set_reader_password", side_effect=existing) as update:
+            with patch("page_advisory_portal._password_signin", return_value={"id": "test-id"}) as signin:
+                self.assertTrue(
+                    _complete_advisory_password_setup(session, user, "validpassphrase123")
+                )
+                update.assert_called_once_with(session, "validpassphrase123")
+                signin.assert_called_once_with("example@company.test", "validpassphrase123")
+
+    def test_new_password_success_and_signin_failure_are_distinguished(self):
+        from unittest.mock import patch
+        from page_advisory_portal import (
+            _complete_advisory_password_setup, AdvisoryPasswordSigninPending,
+        )
+        session = {"access_token": "test-token"}
+        user = {"id": "test-id", "email": "example@company.test"}
+        with patch("page_advisory_portal._set_reader_password", return_value=None):
+            with patch("page_advisory_portal._password_signin", return_value={"id": "test-id"}):
+                self.assertFalse(
+                    _complete_advisory_password_setup(session, user, "newpassphrase123")
+                )
+        with patch("page_advisory_portal._set_reader_password", return_value=None):
+            with patch("page_advisory_portal._password_signin", side_effect=RuntimeError("temporary")):
+                with self.assertRaises(AdvisoryPasswordSigninPending):
+                    _complete_advisory_password_setup(session, user, "newpassphrase123")
+        with patch("page_advisory_portal._set_reader_password", side_effect=RuntimeError("invalid JWT")):
+            with patch("page_advisory_portal._password_signin") as signin:
+                with self.assertRaisesRegex(RuntimeError, "invalid JWT"):
+                    _complete_advisory_password_setup(session, user, "newpassphrase123")
+                signin.assert_not_called()
+
+    def test_password_activation_can_resume_without_repeating_update(self):
+        source = self.source("src/page_advisory_portal.py")
+        self.assertIn('"advisory_password_saved_user_id"', source)
+        self.assertIn('with st.form("advisory_finish_password_signin"', source)
+        self.assertIn('st.session_state["advisory_password_saved_user_id"] = account_id', source)
+        self.assertIn("class AdvisoryPasswordSigninPending", source)
+        self.assertIn("def _complete_advisory_password_setup(", source)
 
     def test_reader_magic_link_cannot_open_advisory_account(self):
         source = self.source("src/page_advisory_portal.py")

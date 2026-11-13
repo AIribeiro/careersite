@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from agent_discovery import (
     PUBLIC_ORIGIN, agents_text, catalogue_json, llms_text,
-    markdown_summary, plain_text, public_catalogue, robots_text, safe_slug,
+    markdown_summary, open_edition_markdown, plain_text, public_catalogue, robots_text, safe_slug,
 )
 
 
@@ -70,6 +70,29 @@ class AgentDiscoveryTests(unittest.TestCase):
             self.assertNotIn("PRIVATE_READER_ADDRESS@example.org", output)
         self.assertIn("free registration", summary)
         self.assertEqual(json.loads(response)["count"], 1)
+
+
+    def test_complete_markdown_only_for_confirmed_open_publication(self):
+        older = article(
+            "an-older-article",
+            published_at="2026-10-01T12:00:00Z",
+            content_html="<h2>Executive argument</h2><p>Full public decision text.</p>"
+                         "<figure>HIDDEN_FIGURE_ASSET</figure>"
+                         "<script>HIDDEN_SCRIPT</script>",
+        )
+        latest = article("latest-article", published_at="2026-11-12T12:00:00Z")
+        published = (older, latest)
+        items = {it["slug"]: it for it in public_catalogue(published, now=self.now)["content"]}
+        open_markdown = open_edition_markdown(items["an-older-article"], older, published, now=self.now)
+        self.assertIn("## Full public edition", open_markdown)
+        self.assertIn("Full public decision text.", open_markdown)
+        self.assertNotIn("HIDDEN_FIGURE_ASSET", open_markdown)
+        self.assertNotIn("HIDDEN_SCRIPT", open_markdown)
+        gated = open_edition_markdown(items["latest-article"], latest, published, now=self.now)
+        self.assertNotIn("## Full public edition", gated)
+        changed = article("an-older-article", status="draft", content_html="LEAKED_AFTER_UNPUBLISH")
+        self.assertNotIn("LEAKED_AFTER_UNPUBLISH",
+                         open_edition_markdown(items["an-older-article"], changed, published, now=self.now))
 
     def test_slug_html_and_url_safety(self):
         self.assertEqual(safe_slug("Valid-Slug"), "valid-slug")

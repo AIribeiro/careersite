@@ -163,7 +163,7 @@ def _briefing_access_request() -> tuple[str, str]:
     return (slug, "pdf" if pdf_flag == "1" else "access") if slug else ("", "")
 
 
-def _request_email(first_name: str, email: str, subscribe: bool, returning: bool, *, destination: str = "readers") -> None:
+def _request_email(first_name: str, email: str, subscribe: bool, returning: bool, *, destination: str = "readers", advisory_intake: dict | None = None) -> None:
     if destination not in {"readers", "advisory-access"}:
         raise ValueError("Unsupported account destination.")
     target = _host_origin() + "/?page=" + destination
@@ -191,6 +191,22 @@ def _request_email(first_name: str, email: str, subscribe: bool, returning: bool
             else "articles" if page == "thinking" else "briefings"
         ),
     }
+    if destination == "advisory-access" and not returning and advisory_intake:
+        # Staged profile fields are not used for authorization. Revalidate
+        # after verifying the user's email, before writing the protected profile.
+        fields = {
+            "first_name": 80,
+            "last_name": 80,
+            "organization": 180,
+            "role_title": 160,
+            "decision_context": 1200,
+            "advisory_focus": 90,
+            "decision_horizon": 60,
+        }
+        data["advisory_intake_v1"] = True
+        for field, limit in fields.items():
+            data["advisory_" + field] = str(advisory_intake.get(field) or "").strip()[:limit]
+        data["advisory_privacy_notice_ack"] = advisory_intake.get("privacy_notice_ack") is True
     _request_json("POST", url, payload={
         "email": email, "create_user": not returning, "data": data,
     }, timeout=12)

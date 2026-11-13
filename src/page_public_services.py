@@ -311,7 +311,7 @@ def privacy() -> str:
    <ul>
     <li><strong>Website visits:</strong> page views, on-site interactions, source or campaign attribution, approximate session duration, broad browser or device characteristics and related operational information.</li>
     <li><strong>Premium Reader accounts:</strong> the name and email you provide, verification and account status, optional profile or editorial interests, subscription preference, and records needed to show your reading or PDF-download history.</li>
-    <li><strong>Advisory accounts:</strong> your verified email, first name, optional organization, professional title and business decision context, plus account and engagement status needed to operate the dedicated service. Advisory registration also grants Reader library access; Reader registration does not automatically create Advisory access.</li>
+    <li><strong>Advisory accounts:</strong> your verified professional email, first and last name, role or title, organization and a short description of your business decision or objective. You may also provide your advisory focus and expected decision timeframe. Account and engagement status support the dedicated service. Advisory registration also grants Reader library access; Reader registration does not automatically create Advisory access.</li>
     <li><strong>Correspondence:</strong> the email address and information you choose to share when contacting me, including advisory and privacy requests.</li>
     <li><strong>Service security:</strong> technical events and connection details that may be processed by hosting or authentication providers to operate and protect the service.</li>
    </ul>

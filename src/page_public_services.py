@@ -225,7 +225,7 @@ def privacy() -> str:
   <section id="privacy-rights"><h2>Your choices and rights</h2>
    <p>Subject to applicable conditions, you may request access, correction, erasure, restriction, portability or object to certain processing. Where processing relies on consent, you may withdraw that consent without affecting earlier lawful processing.</p>
    <p>You may use the reader account area to update your editorial email choice. To request data access, correction, export or account deletion, email <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>. Identity verification may be needed before releasing or deleting account data.</p>
-   <p>You may also lodge a complaint with the Swedish Authority for Privacy Protection (<a href="https://www.imy.se/en/individuals/" target="_blank" rel="noopener noreferrer">Integritetsskyddsmyndigheten, IMY</a>) or another competent data-protection authority.</p>
+   <p>You may also lodge a complaint with the Swedish Authority for Privacy Protection (<a href="https://www.imy.se/en/individuals/data-protection/your-rights-as-a-data-subject/" target="_blank" rel="noopener noreferrer">Integritetsskyddsmyndigheten, IMY</a>) or another competent data-protection authority.</p>
   </section>
   <section id="privacy-contact"><h2>Questions or a data request?</h2>
    <div class="privacy-contact"><strong>Privacy and personal-data requests</strong><a href="mailto:{PRIVACY_EMAIL}" data-hq-event="privacy_email">{PRIVACY_EMAIL}</a><span>For reader access questions, use <a href="mailto:{READERS_EMAIL}">{READERS_EMAIL}</a>.</span></div>

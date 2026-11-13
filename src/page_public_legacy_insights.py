@@ -46,7 +46,7 @@ def _source_channel(label: object) -> str:
         return "Email / newsletter"
     if raw == "reddit" or "reddit" in raw:
         return "Reddit"
-    if raw in ("x", "wa", "fb") or any(value in raw for value in (
+    if raw in ("x", "wa", "fb", "social") or any(value in raw for value in (
         "facebook", "instagram", "threads", "twitter", "x.com",
         "whatsapp", "bluesky",
     )):

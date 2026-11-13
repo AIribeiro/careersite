@@ -35,7 +35,7 @@ jobs:
 
           nofollow = urllib.request.build_opener(NoFollow())
           follow = urllib.request.build_opener()
-          for hostname in ["ai.jairribeiro.com", "jairribeiro-ai.streamlit.app"]:
+          for hostname in ["ai.jairribeiro.com", "jairribeiro-ai.streamlit.app", "airibeiro.github.io"]:
               try:
                   print("DNS", hostname, sorted({x[4][0] for x in socket.getaddrinfo(hostname, 443, type=socket.SOCK_STREAM)}))
               except Exception as exc:
@@ -65,4 +65,30 @@ jobs:
                   except Exception as exc:
                       print(label + "_ERROR", type(exc).__name__, str(exc)[:300])
               print("END", url)
+          PY
+
+      - name: Evaluate redirected AI discovery readiness
+        run: |
+          python - <<'PY'
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError, URLError
+
+          expected = {
+              "/llms.txt": ("text/plain", "https://airibeiro.github.io/careersite/llms.txt"),
+              "/agents.md": ("text/markdown", "https://airibeiro.github.io/careersite/agents.md"),
+              "/agent/catalog.json": ("application/json", "https://airibeiro.github.io/careersite/agent/catalog.json"),
+          }
+          passed = 0
+          for path, (mime, target) in expected.items():
+              origin = "https://ai.jairribeiro.com" + path
+              try:
+                  with urlopen(Request(origin, headers={"User-Agent": "PortfolioDiscoveryReadiness/1.1"}), timeout=20) as response:
+                      actual_type = response.headers.get("Content-Type", "")
+                      final_url = response.geturl()
+                      valid = response.status == 200 and actual_type.startswith(mime) and final_url == target
+                      print(("PASS" if valid else "NOT_READY"), path, "HTTP", response.status, "type", actual_type, "final", final_url)
+                      passed += int(valid)
+              except Exception as exc:
+                  print("NOT_READY", path, type(exc).__name__, str(exc)[:240])
+          print("READINESS", str(passed) + "/" + str(len(expected)), "paths return public machine-readable content via ai.jairribeiro.com")
           PY

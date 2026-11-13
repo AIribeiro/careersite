@@ -163,9 +163,11 @@ def _briefing_access_request() -> tuple[str, str]:
     return (slug, "pdf" if pdf_flag == "1" else "access") if slug else ("", "")
 
 
-def _request_email(first_name: str, email: str, subscribe: bool, returning: bool) -> None:
-    target = _host_origin() + "/?page=readers"
-    requested, purpose = _briefing_access_request()
+def _request_email(first_name: str, email: str, subscribe: bool, returning: bool, *, destination: str = "readers") -> None:
+    if destination not in {"readers", "advisory-access"}:
+        raise ValueError("Unsupported account destination.")
+    target = _host_origin() + "/?page=" + destination
+    requested, purpose = _briefing_access_request() if destination == "readers" else ("", "")
     page = "briefing" if requested else ""
     if not requested and st.query_params.get("page") == "thinking" and st.query_params.get("access") == "1":
         requested = _clean_slug(st.query_params.get("article", ""))
@@ -184,7 +186,8 @@ def _request_email(first_name: str, email: str, subscribe: bool, returning: bool
         "reader_editorial_opt_in": bool(subscribe),
         "reader_notice_version": CONSENT_VERSION,
         "reader_acquisition_source": (
-            "weekly_ai" if page == "thinking" and requested.startswith("weekly-ai-")
+            "advisory" if destination == "advisory-access"
+            else "weekly_ai" if page == "thinking" and requested.startswith("weekly-ai-")
             else "articles" if page == "thinking" else "briefings"
         ),
     }
@@ -211,7 +214,12 @@ def _consume_query_verification() -> None:
         return
     try:
         _verify({"token_hash": token, "type": "email"})
-        st.session_state["reader_native_flash"] = ("success", "Email verified. Welcome to your reader library.")
+        destination = str(st.query_params.get("page", "readers"))
+        st.session_state["reader_native_flash"] = (
+            "success",
+            "Email verified. Complete your advisory profile below." if destination == "advisory-access"
+            else "Email verified. Welcome to your reader library.",
+        )
     except (RuntimeError, ValueError, TimeoutError):
         st.session_state["reader_native_flash"] = ("error", "The verification link has expired or could not be confirmed. Request a new email.")
 

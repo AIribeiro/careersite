@@ -64,7 +64,7 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
+PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -109,6 +109,7 @@ TITLES = {
     "about": "About | Jair Ribeiro",
     "contact": "Contact | Jair Ribeiro",
     "advisory": "Executive AI & Data Advisory | Jair Ribeiro",
+    "advisory-access": "Executive Advisory Account | Jair Ribeiro",
     "privacy": "Privacy & Data | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
     "analytics": "Portfolio & Career Intelligence | Jair Ribeiro",
@@ -160,6 +161,11 @@ if PAGE == "readers":
     # Do not mount page analytics before one-time token hashes are consumed.
     from page_reader_native import render_reader_native
     render_reader_native()
+elif PAGE == "advisory-access":
+    # Dedicated verified membership. Advisory members inherit Reader access;
+    # existing Reader sign-in never grants Advisory membership.
+    from page_advisory_portal import render_advisory_portal
+    render_advisory_portal()
 elif PAGE == "analytics":
     # Heavy, authenticated analytics dependencies are not imported for public pages.
     from page_analytics_v2 import render_analytics_dashboard

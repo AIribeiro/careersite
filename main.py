@@ -167,9 +167,14 @@ elif PAGE == "advisory-access":
     from page_advisory_portal import render_advisory_portal
     render_advisory_portal()
 elif PAGE == "analytics":
-    # Heavy, authenticated analytics dependencies are not imported for public pages.
+    # Keep public analytics, owner reporting and the CMS native forms inside
+    # the same real portfolio navigation/footer as editorial and reader pages.
     from page_analytics_v2 import render_analytics_dashboard
-    render_analytics_dashboard()
+    from site_native_shell import native_header, native_footer
+    st.html(native_header("analytics"))
+    with st.container(key="native_analytics_content"):
+        render_analytics_dashboard()
+    st.html(native_footer("analytics"))
 else:
     if CMS_ARTICLE_META is not None:
         from site_cms import inject_cms_article_metadata
@@ -305,7 +310,7 @@ else:
 # exist, so never access those variables outside the public HTML branch.
 elapsed_ms = round((perf_counter() - RUN_STARTED) * 1000)
 if elapsed_ms >= 750:
-    if PAGE in {"readers", "analytics"}:
+    if PAGE in {"readers", "analytics", "advisory-access"}:
         timings = (0, 0, 0)
         html_kib = 0
     else:

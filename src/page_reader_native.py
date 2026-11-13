@@ -8,7 +8,10 @@ the verified user's access token; no service-role key is needed.
 
 For email links set Confirm signup + Magic Link templates to point to:
 {{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email
-The configured OTP redirect_to uses https://jairribeiro.com/?page=readers.\nSupabase Auth URL configuration must allow this branded origin and query redirects.
+For password recovery use: {{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery
+Reader callback: https://jairribeiro.com/?page=readers.
+Advisory callback: https://advisory.jairribeiro.com/?page=advisory-access.
+Both must be allowlisted in Supabase Authentication URL Configuration.
 Optionally include {{ .Token }} in each email for manual code verification.
 """
 from __future__ import annotations
@@ -43,6 +46,7 @@ from thinking_articles import BASE_URL
 LOG = logging.getLogger("careersite.reader")
 
 BRANDED_PREMIUM_ORIGIN = "https://jairribeiro.com"
+ADVISORY_CALLBACK_ORIGIN = "https://advisory.jairribeiro.com"
 
 
 def _host_origin() -> str:
@@ -59,6 +63,27 @@ def _host_origin() -> str:
     ):
         return "https://jairribeiro-reader-test.streamlit.app"
     return BRANDED_PREMIUM_ORIGIN
+
+
+def _callback_origin(destination: str) -> str:
+    """Fixed HTTPS callback by membership; never derived from Host headers."""
+    if destination == "advisory-access":
+        return ADVISORY_CALLBACK_ORIGIN
+    if destination == "readers":
+        return _host_origin()
+    raise ValueError("Unsupported account callback destination.")
+
+
+def _request_password_recovery(email: str, *, destination: str = "advisory-access") -> None:
+    """Send true Supabase recovery email, not a passwordless OTP sign-in link."""
+    address = str(email or "").strip().lower()
+    if not EMAIL.fullmatch(address):
+        raise ValueError("Enter a valid email address.")
+    target = _callback_origin(destination) + "/?page=" + destination
+    url = ANALYTICS_URL.rstrip("/") + "/auth/v1/recover?" + urlencode(
+        {"redirect_to": target}
+    )
+    _request_json("POST", url, payload={"email": address}, timeout=12)
 
 
 def _accept_reader_session(session: dict) -> dict:
@@ -163,7 +188,7 @@ def _briefing_access_request() -> tuple[str, str]:
 def _request_email(first_name: str, email: str, subscribe: bool, returning: bool, *, destination: str = "readers", advisory_intake: dict | None = None) -> None:
     if destination not in {"readers", "advisory-access"}:
         raise ValueError("Unsupported account destination.")
-    target = _host_origin() + "/?page=" + destination
+    target = _callback_origin(destination) + "/?page=" + destination
     requested, purpose = _briefing_access_request() if destination == "readers" else ("", "")
     page = "briefing" if requested else ""
     if not requested and st.query_params.get("page") == "thinking" and st.query_params.get("access") == "1":
@@ -173,7 +198,7 @@ def _request_email(first_name: str, email: str, subscribe: bool, returning: bool
         # Preserve the specific publication after email verification even
         # if the reader opens the secure link in a fresh browser tab.
         # Add same-host briefing callback patterns to the Supabase allowlist.
-        target = _host_origin() + "/?" + urlencode({
+        target = _callback_origin(destination) + "/?" + urlencode({
             "page": page, "article": requested,
             "pdf" if purpose == "pdf" else "access": "1",
         })
@@ -222,11 +247,15 @@ def _consume_query_verification() -> None:
     if not isinstance(token, str) or len(token) > 512 or not re.fullmatch(r"[A-Za-z0-9._~-]{20,512}", token):
         st.session_state["reader_native_flash"] = ("error", "Invalid verification link. Request a new email.")
         return
-    if auth_type != "email":
+    destination = str(st.query_params.get("page", "readers"))
+    permitted = {"email", "recovery"} if destination == "advisory-access" else {"email"}
+    if auth_type not in permitted:
         st.session_state["reader_native_flash"] = ("error", "Unsupported verification link. Request a new email.")
         return
     try:
-        user = _verify({"token_hash": token, "type": "email"})
+        user = _verify({"token_hash": token, "type": auth_type})
+        if auth_type == "recovery" and destination == "advisory-access":
+            st.session_state["advisory_recovery_verified"] = True
         destination = str(st.query_params.get("page", "readers"))
         # Preserve an explicit Advisory registration independently of Reader
         # membership, even when the user has not yet set a password.
@@ -251,7 +280,10 @@ def _consume_query_verification() -> None:
                     LOG.warning("Verified Advisory registration intent could not be recorded.")
         st.session_state["reader_native_flash"] = (
             "success",
-            "Email verified. Set your password to activate your advisory account." if destination == "advisory-access"
+            "Password-reset email verified. Choose a new password below."
+            if auth_type == "recovery"
+            else "Email verified. Set your password to activate your advisory account."
+            if destination == "advisory-access"
             else "Email verified. Welcome to your reader library.",
         )
     except (RuntimeError, ValueError, TimeoutError):

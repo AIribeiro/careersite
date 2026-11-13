@@ -94,7 +94,7 @@ def inject_article_analytics(
   ensureArticleSession();
 
   const attributionKey = 'jair_hq_attribution_v1';
-  const params = new URL(win.location.href).searchParams;
+  const params = entryAttributionParams;
   let attribution = {{ source: null, role: null, utm_source: null, utm_medium: null, utm_campaign: null }};
   try {{
     attribution = JSON.parse(win.sessionStorage.getItem(attributionKey) || 'null') || attribution;
@@ -128,10 +128,10 @@ def inject_article_analytics(
 
   const referrerHost = () => {{
     try {{
-      if (!doc.referrer || (entryContext.masked && entryContext.domain === 'jairribeiro.com')) return null;
+      if (!doc.referrer || (entryContext.masked && isBrandedHostname(entryContext.domain))) return null;
       const host = new URL(doc.referrer).hostname.toLowerCase();
-      const own = ['jairribeiro.com','www.jairribeiro.com','jairribeiro-ai.streamlit.app'];
-      return host && !own.includes(host) ? host.slice(0,255) : null;
+      return host && !isBrandedHostname(host) && host !== nativeEntryHost
+        ? host.slice(0, 255) : null;
     }} catch (_) {{
       return null;
     }}

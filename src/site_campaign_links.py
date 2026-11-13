@@ -9,7 +9,8 @@ from __future__ import annotations
 import re
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-PUBLIC_SITE = "https://jairribeiro-ai.streamlit.app"
+PUBLIC_SITE = "https://jairribeiro.com"
+_ALLOWED_HOSTS = frozenset({"jairribeiro.com", "jairribeiro-ai.streamlit.app"})
 CHANNEL_MEDIA = {
     "linkedin": "social",
     "threads": "social",
@@ -59,7 +60,7 @@ def make_distribution_link(
     channel = canonical_channel(channel)
     campaign = canonical_campaign(campaign)
     target = urlsplit(str(destination).strip())
-    if target.scheme != "https" or target.hostname != "jairribeiro-ai.streamlit.app" \
+    if target.scheme != "https" or target.hostname not in _ALLOWED_HOSTS \
             or target.port is not None or target.username is not None \
             or target.password is not None:
         raise ValueError("Destination must be the public portfolio site.")
@@ -99,7 +100,7 @@ def make_distribution_link(
     if role:
         clean_role = canonical_campaign(role)
         params.append(("role", clean_role))
-    return urlunsplit(("https", target.netloc, path, urlencode(params), ""))
+    return urlunsplit(("https", "jairribeiro.com", path, urlencode(params), ""))
 
 
 def article_distribution_link(
@@ -121,7 +122,7 @@ def linkedin_share_url(target_url: str) -> str:
     target = urlsplit(str(target_url).strip())
     if target.scheme != "https" or not target.hostname or (
         target.hostname not in (
-            "jairribeiro-ai.streamlit.app", "airibeiro.github.io"
+            "jairribeiro.com", "jairribeiro-ai.streamlit.app", "airibeiro.github.io"
         )
     ):
         raise ValueError("LinkedIn share destination must be a trusted portfolio URL.")
@@ -129,6 +130,9 @@ def linkedin_share_url(target_url: str) -> str:
         raise ValueError("LinkedIn share destination must be a trusted portfolio URL.")
     if target.hostname == "airibeiro.github.io" and not target.path.startswith("/careersite/thinking/"):
         raise ValueError("Unexpected preview-link path.")
+    if target.hostname == "jairribeiro-ai.streamlit.app":
+        target_url = urlunsplit(("https", "jairribeiro.com", target.path,
+                                 target.query, target.fragment))
     return "https://www.linkedin.com/sharing/share-offsite/?" + urlencode(
         {"url": target_url}
     )

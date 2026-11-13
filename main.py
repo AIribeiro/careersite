@@ -187,6 +187,10 @@ elif PAGE == "analytics":
         st.html(native_footer("analytics", navigation_locked=True))
     else:
         st.html(native_footer("analytics"))
+    # Native owner workspaces need the same mobile correction as Advisory
+    # when the branded domain is presented inside a desktop-width mask.
+    from site_embedded_mobile import mount_native_masked_mobile_fix
+    mount_native_masked_mobile_fix()
 else:
     if CMS_ARTICLE_META is not None:
         from site_cms import inject_cms_article_metadata

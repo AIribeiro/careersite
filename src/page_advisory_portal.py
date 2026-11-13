@@ -150,6 +150,7 @@ def _sign_out() -> None:
     st.session_state.pop("advisory_member", None)
     st.session_state.pop("advisory_pending_email", None)
     st.session_state.pop("advisory_signup_intake", None)
+    st.session_state.pop("advisory_password_saved_user_id", None)
     st.rerun()
 
 
@@ -164,15 +165,82 @@ def _password_authenticated(session: dict) -> bool:
         return False
 
 
+class AdvisoryPasswordSigninPending(RuntimeError):
+    """Password is saved (or already current), but automatic sign-in did not finish."""
+
+
+def _existing_password_error(exc: Exception) -> bool:
+    """Supabase returns 422 same_password for an idempotent password submission."""
+    detail = str(exc).casefold()
+    return "same_password" in detail or (
+        "new password should be different from the old password" in detail
+    )
+
+
+def _complete_advisory_password_setup(session: dict, user: dict, password: str) -> bool:
+    """Set a password, or reuse the same current one; then authenticate it.
+
+    Return True if the supplied password was already current. An Auth update
+    and a subsequent Reader session/provisioning are separate operations.
+    Never suggest that the password failed merely because sign-in failed.
+    """
+    already_current = False
+    try:
+        _set_reader_password(session, str(password))
+    except RuntimeError as exc:
+        if not _existing_password_error(exc):
+            raise
+        already_current = True
+
+    try:
+        _password_signin(str(user["email"]).strip().lower(), str(password))
+    except (RuntimeError, ValueError, TimeoutError, KeyError) as exc:
+        raise AdvisoryPasswordSigninPending(
+            "The password is saved, but automatic sign-in did not complete."
+        ) from exc
+    return already_current
+
+
 def _first_password_form(session: dict, user: dict) -> None:
+    account_id = str(user.get("id") or "")
+    if st.session_state.get("advisory_password_saved_user_id") == account_id:
+        st.html("""<section class="advisory-portal-intro">
+<h2>Your password is ready. Complete your sign-in.</h2>
+<p>The password is already set. Sign in with it to finish activating your
+Advisory account. No new email or password reset is required.</p>
+</section>""")
+        with st.form("advisory_finish_password_signin", clear_on_submit=True):
+            saved_password = st.text_input(
+                "Your account password", type="password", max_chars=128,
+            )
+            finish = st.form_submit_button(
+                "Sign in and open my advisory account", type="primary",
+            )
+        if finish:
+            try:
+                _password_signin(str(user["email"]).strip().lower(), str(saved_password))
+                st.session_state.pop("advisory_password_saved_user_id", None)
+                st.session_state.pop("advisory_pending_email", None)
+                st.rerun()
+            except (RuntimeError, ValueError, TimeoutError, KeyError):
+                st.error(
+                    "Sign-in could not be completed. Check your existing password "
+                    "or use password recovery on the sign-in page."
+                )
+        if st.button("Choose a different password instead", key="advisory_choose_new_password"):
+            st.session_state.pop("advisory_password_saved_user_id", None)
+            st.rerun()
+        return
+
     st.html("""<section class="advisory-portal-intro">
 <h2>Email confirmed. Set your password.</h2>
-<p>Your email has been confirmed. Set a password to activate your Advisory account.
+<p>Your email has been confirmed. Choose a password to activate your Advisory
+account. If you already use a password for the Reader library, you may keep it.
 Future visits use your email and password, not an email access link.</p>
 </section>""")
     with st.form("advisory_first_password", clear_on_submit=True):
         password = st.text_input(
-            "New password", type="password", max_chars=128,
+            "New or existing password", type="password", max_chars=128,
             help="Use a unique password of at least 12 characters.",
         )
         confirmation = st.text_input(
@@ -182,7 +250,7 @@ Future visits use your email and password, not an email access link.</p>
             "Set password and activate my account", type="primary",
         )
     if not submit:
-        st.caption("Advisory access remains inactive until your password is saved.")
+        st.caption("Advisory access remains inactive until password sign-in succeeds.")
         with st.expander("Already have an advisory password?"):
             with st.form("advisory_existing_password"):
                 existing_password = st.text_input(
@@ -200,18 +268,33 @@ Future visits use your email and password, not an email access link.</p>
     if password != confirmation:
         st.error("The passwords do not match.")
         return
+
     try:
-        _set_reader_password(session, str(password))
-        # A new password login creates a fresh signed JWT with AMR=password,
-        # required by the Advisory database policy before profile activation.
-        _password_signin(str(user["email"]).strip().lower(), str(password))
-        st.session_state.pop("advisory_pending_email", None)
-        st.rerun()
+        already_current = _complete_advisory_password_setup(session, user, str(password))
     except ValueError as exc:
         st.error(str(exc))
+        return
+    except AdvisoryPasswordSigninPending:
+        # A password can be saved successfully even when subsequent sign-in or
+        # Reader profile provisioning encounters an unrelated failure.
+        st.session_state["advisory_password_saved_user_id"] = account_id
+        st.rerun()
+        return
     except (RuntimeError, TimeoutError, KeyError):
-        st.error("The password could not be confirmed. "
-                 "Try again, or request a new password reset email.")
+        st.error(
+            "Supabase could not save the password. Your account was not changed "
+            "by this attempt. Please verify your email session or use password "
+            "recovery if you already have an account."
+        )
+        return
+
+    st.session_state.pop("advisory_password_saved_user_id", None)
+    st.session_state.pop("advisory_pending_email", None)
+    if already_current:
+        st.session_state["advisory_activation_message"] = (
+            "Your existing password was accepted. Advisory access is ready."
+        )
+    st.rerun()
 
 
 def _advisory_login() -> None:
@@ -516,6 +599,9 @@ def render_advisory_portal() -> None:
     st.html(ADVISORY_CSS)
 
     with st.container(key="native_advisory_content"):
+        advisory_notice = st.session_state.pop("advisory_activation_message", None)
+        if advisory_notice:
+            st.success(str(advisory_notice))
         session, user = _session()
         if session is None or user is None:
             notice = st.session_state.pop("reader_native_flash", None)

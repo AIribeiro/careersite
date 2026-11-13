@@ -89,12 +89,12 @@ def _article_schema(article: ArticleMeta) -> dict[str, object]:
         "author": {
             "@type": "Person",
             "name": "Jair Ribeiro",
-            "url": "https://jairribeiro-ai.streamlit.app/",
+            "url": "https://jairribeiro.com/",
         },
         "publisher": {
             "@type": "Person",
             "name": "Jair Ribeiro",
-            "url": "https://jairribeiro-ai.streamlit.app/",
+            "url": "https://jairribeiro.com/",
         },
         "articleSection": article.topic,
         "keywords": list(article.tags),

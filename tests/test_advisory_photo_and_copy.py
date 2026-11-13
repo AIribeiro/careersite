@@ -29,8 +29,9 @@ def test_direct_advisory_account_language_is_consistent():
     page = PUBLIC_PAGE.read_text(encoding="utf-8")
     portal = PORTAL.read_text(encoding="utf-8")
     assert "Create a separate Advisory account" not in page
-    assert "Create your advisory account to keep" in page
-    assert ">Create your advisory account →</a>" in page
+    assert "Create your advisory account." in page
+    assert '>{cta}</a>' in page
+    assert "Open my advisory space" in page
     assert "A professional introduction, without the paperwork." in portal
     assert '["Create your advisory account", "Sign in to advisory"]' in portal
 
@@ -61,7 +62,8 @@ def test_advisory_intake_is_collected_upfront_and_carried_into_verified_profile(
 
 def test_advisory_signin_stays_simple_and_reader_permissions_remain_distinct():
     portal = PORTAL.read_text(encoding="utf-8")
-    assert 'with st.form("advisory_email_access_returning")' in portal
+    assert 'with st.form("advisory_password_recovery")' in portal
+    assert '_request_password_recovery(address, destination="advisory-access")' in portal
     assert 'with st.form("advisory_password_signin"' in portal
     assert 'if not EMAIL.fullmatch(address)' in portal
     assert 'if not user.get("email_confirmed_at")' in portal

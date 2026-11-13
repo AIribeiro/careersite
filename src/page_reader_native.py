@@ -34,6 +34,7 @@ from reader_membership import (
     _verified_user,
     has_briefing_pdf,
 )
+from site_assets import READERS_EMAIL, PRIVACY_EMAIL
 from site_analytics import ANALYTICS_URL
 from site_reader_shell import reader_footer, reader_header
 from site_cms import _request_json, _rest_url, fetch_published_articles
@@ -284,7 +285,7 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
                 "No password yet, or forgotten it? Select Email verification code "
                 "above. After signing in, set a password in My Profile."
             )
-            st.caption("Reader support: info@jairribeiro.com")
+            st.caption(f"Reader support: {READERS_EMAIL} · [Privacy notice](?page=privacy)")
             return
 
     with st.form("reader_native_login_form"):
@@ -333,7 +334,7 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
         "Your verified email keeps the library and PDF history attached to your account. "
         "Editorial emails are separate and optional."
     )
-    st.caption("Questions about access? info@jairribeiro.com.")
+    st.caption(f"Questions about access? {READERS_EMAIL} · [Privacy notice](?page=privacy)")
 
 
 def _record_download(token: str, user_id: str, slug: str) -> None:
@@ -551,7 +552,7 @@ def _render_password_settings(session: dict) -> None:
         st.caption(
             "Forgot your password? Use the email verification option to access "
             "your account, then set a new password here. "
-            "For help, email info@jairribeiro.com."
+            f"For help, email {READERS_EMAIL}."
         )
 
 
@@ -1052,7 +1053,7 @@ def _library(session: dict, user: dict) -> None:
             _render_preferences(session, profile, user)
         _render_password_settings(session)
         st.caption(
-            "Questions about your account or data? Email info@jairribeiro.com."
+            f"Account support: {READERS_EMAIL} · Privacy requests: {PRIVACY_EMAIL}. See [Privacy notice](?page=privacy)."
         )
 
     st.divider()
@@ -1238,8 +1239,9 @@ def render_reader_native() -> None:
                 "preference in the reader library."
             )
             st.write(
-                "For account help, access, correction, deletion or "
-                "questions about your information, email "
-                "info@jairribeiro.com."
+                f"For account help, email {READERS_EMAIL}. For access, "
+                f"correction, deletion or other privacy requests, email {PRIVACY_EMAIL}."
+            )
+            st.markdown("[Read the full privacy notice](?page=privacy)"
             )
     st.html(reader_footer())

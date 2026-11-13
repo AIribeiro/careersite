@@ -291,12 +291,16 @@ def render_owner_advisory_management(owner_session: dict) -> None:
     kpi[2].metric("Completed accounts", sum(p.get("onboarding") == "Profile completed" for p in people))
     kpi[3].metric("Engaged relationships", sum(p.get("relationship_stage") == "engaged" for p in people))
     st.caption(
-        "A registration is not a paid engagement. These metrics never include "
-        "Reader-only accounts unless they separately registered for Advisory."
+        "Registration only confirms the Advisory account. A specific request, "
+        "owner response and agreed scope are separate steps. "
+        "Open **Action inbox** to respond to client input and move the work forward."
     )
-    directory, pipeline, audit_tab = st.tabs(
-        ["Advisory directory", "Relationship pipeline", "Administration audit"]
+    inbox_tab, directory, pipeline, audit_tab = st.tabs(
+        ["Action inbox", "Advisory directory", "Relationship pipeline", "Administration audit"]
     )
+    with inbox_tab:
+        from page_owner_advisory_requests import render_advisory_action_inbox
+        render_advisory_action_inbox(token, people)
     with directory:
         search = st.text_input(
             "Find an advisory registrant",

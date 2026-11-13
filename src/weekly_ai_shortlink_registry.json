@@ -83,6 +83,26 @@
         "Reuters",
         "Reuters"
       ]
+    },
+    {
+      "iso_year": 2026,
+      "iso_week": 46,
+      "slug": "weekly-ai-2026-11-13",
+      "distribution_mode": "friday_wrap",
+      "story_keys": [
+        "gartner_agent_governance_readiness",
+        "openai_business_information_agents",
+        "google_regulated_tpu_encryption",
+        "fed_ai_productivity_jobs_costs"
+      ],
+      "edition_title": "AI's Next Bottleneck Is Accountability",
+      "cover_subtitle": "Friday perspective · one minute",
+      "publisher_names": [
+        "Gartner",
+        "OpenAI",
+        "Reuters",
+        "Reuters"
+      ]
     }
   ]
 }

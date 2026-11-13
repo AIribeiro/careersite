@@ -91,3 +91,58 @@ EMBEDDED_MOBILE_SCRIPT = r"""
 def mount_masked_mobile_fix() -> None:
     """Mount only for public pages, after the portfolio HTML has been emitted."""
     st.html(EMBEDDED_MOBILE_SCRIPT, unsafe_allow_javascript=True)
+
+
+NATIVE_EMBEDDED_MOBILE_SCRIPT = r"""
+<script>
+(function () {
+  "use strict";
+  // Streamlit's native forms are siblings of the branded HTML rather than
+  // children of .site; zooming .site alone cannot fix the password inputs.
+  function adjustNativeLayout() {
+    var app = document.querySelector('[data-testid="stAppViewContainer"]');
+    if (!app || !document.querySelector('.native-shell-header')) return;
+
+    var framed = false;
+    try { framed = window.self !== window.top; }
+    catch (_error) { framed = true; }
+
+    var physical = Number(window.screen && window.screen.width) || 0;
+    var viewport = Number(window.innerWidth) || 0;
+    var oversizedFrame =
+      framed && physical >= 280 && physical <= 720 &&
+      viewport >= 760 && viewport > physical * 1.45;
+    if (oversizedFrame) {
+      // An outer frame missing viewport metadata can appear 980 CSS px wide
+      // on a 390 px phone. The browser shrinks everything to desktop size.
+      // Give the entire Streamlit app a phone-sized layout canvas and zoom
+      // it back to readable physical size, INCLUDING native form controls.
+      var ratio = Math.min(3.5, viewport / physical);
+      app.style.setProperty('width', physical + 'px', 'important');
+      app.style.setProperty('min-width', '0', 'important');
+      app.style.setProperty('max-width', physical + 'px', 'important');
+      app.style.zoom = String(ratio);
+      document.documentElement.setAttribute('data-jr-native-masked-mobile','true');
+    } else {
+      app.style.removeProperty('width');
+      app.style.removeProperty('min-width');
+      app.style.removeProperty('max-width');
+      app.style.removeProperty('zoom');
+      document.documentElement.removeAttribute('data-jr-native-masked-mobile');
+    }
+  }
+
+  if (!window.__jrNativeMobileFix) {
+    window.__jrNativeMobileFix = adjustNativeLayout;
+    window.addEventListener('resize', adjustNativeLayout, {passive:true});
+    window.addEventListener('orientationchange', adjustNativeLayout);
+  }
+  window.__jrNativeMobileFix();
+})();
+</script>
+"""
+
+
+def mount_native_masked_mobile_fix() -> None:
+    """Correct device-scale when native Streamlit forms load in a masked frame."""
+    st.html(NATIVE_EMBEDDED_MOBILE_SCRIPT, unsafe_allow_javascript=True)

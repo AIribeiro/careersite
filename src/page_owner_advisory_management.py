@@ -297,6 +297,20 @@ def render_owner_advisory_management(owner_session: dict) -> None:
         st.error("The Advisory directory is temporarily unavailable.")
         return
     people = _reflect_request_journey(_people(profiles, intents, controls), requests)
+    from page_owner_advisory_requests import _client_waiting, _overdue
+    unanswered=sum(1 for item in requests if _client_waiting(item))
+    follow_ups=sum(1 for item in requests if _overdue(item))
+    if unanswered:
+        st.warning(
+            f"**{unanswered} Advisory request(s) or client replies need your response.** "
+            "Open the Action inbox below to review the business question, respond "
+            "and record the next step."
+        )
+    elif follow_ups:
+        st.info(
+            f"**{follow_ups} Advisory follow-up(s) are due.** "
+            "Review the next actions in your Action inbox."
+        )
 
     kpi = st.columns(4)
     kpi[0].metric("Advisory registrations", len(people))

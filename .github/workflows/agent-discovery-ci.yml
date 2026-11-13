@@ -39,6 +39,24 @@ jobs:
         run: |
           python -m py_compile app.py src/agent_discovery.py scripts/build_agent_discovery_static.py tests/test_agent_discovery.py tests/test_agent_static_bridge.py
           python -m unittest discover -s tests -p "test_agent*.py" -v
+      - name: Build agent discovery snapshot from live published CMS metadata
+        run: |
+          python scripts/build_agent_discovery_static.py --output _agent_ci_mirror --share-base https://airibeiro.github.io/careersite
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          site = Path("_agent_ci_mirror")
+          catalogue = json.loads((site / "agent/catalog.json").read_text())
+          assert catalogue["catalogue_status"] == "complete"
+          assert catalogue["content_policy"] == "summary_only"
+          assert catalogue["count"] > 0
+          assert len(list((site / "agent/content").glob("*.md"))) == catalogue["count"]
+          assert all(c["url"].startswith("https://jairribeiro.com/")
+                     for c in catalogue["content"])
+          assert all(c["markdown_url"].startswith("https://airibeiro.github.io/careersite/")
+                     for c in catalogue["content"])
+          print("Live published CMS snapshot generated safely with", catalogue["count"], "records.")
+          PY
       - name: Start application
         run: |
           streamlit run app.py --server.headless true --server.port 8501 > /tmp/agent-discovery.log 2>&1 &

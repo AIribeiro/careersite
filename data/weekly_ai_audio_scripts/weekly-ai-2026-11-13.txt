@@ -1,0 +1,15 @@
+Welcome to Weekly A I, the Friday perspective from my A I and Data Portfolio.
+
+This week, four developments point to the same leadership challenge: the technology is moving faster than the decisions needed to make it dependable.
+
+Gartner says seventy-one percent of surveyed organizations expect to deploy agentic A I within a year, but only twenty-one percent report having agentic governance capabilities today. That's a warning about readiness, not proof that those deployments will happen.
+
+Open A I introduced Businesses in ChatGPT, allowing eligible companies to manage their information and, in some cases, offer business agents. When A I becomes a customer touchpoint, who owns the accuracy of what it says?
+
+Reuters reports that Google introduced new A I chips, including a version designed to protect sensitive data in regulated industries.
+
+And Reuters describes how Federal Reserve officials are weighing A I's potential productivity gains against infrastructure costs and disruption to jobs.
+
+These are different stories, but they meet in one place: accountability.
+
+My takeaway is to make the business owner, information owner and decision rights explicit before expanding autonomy. Then measure what changes for customers and employees, not simply how much A I the organization has bought.

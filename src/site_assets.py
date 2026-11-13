@@ -16,6 +16,13 @@ IMAGE_DIR = ROOT / "images"
 LINKEDIN = "https://www.linkedin.com/in/jairribeiro"
 MEDIUM = "https://jairribeiro.medium.com"
 EMAIL = "jair@jairribeiro.com"
+ADVISORY_EMAIL = "advisory@jairribeiro.com"
+READERS_EMAIL = "readers@jairribeiro.com"
+PRIVACY_EMAIL = "privacy@jairribeiro.com"
+INFO_EMAIL = "info@jairribeiro.com"
+CONTACT_EMAIL = "contact@jairribeiro.com"
+NO_REPLY_EMAIL = "no-reply@jairribeiro.com"
+ADMIN_NOTIFICATIONS_EMAIL = "admin@jairribeiro.com"
 
 
 def image_bytes(name: str) -> bytes:

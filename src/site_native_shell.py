@@ -186,6 +186,9 @@ def native_header(page: str, *, navigation_locked: bool = False) -> str:
             crumbs.append('<span class="current" aria-current="page">'
                           + escape(label) + '</span>')
     trail_html = '<span aria-hidden="true">/</span>'.join(crumbs)
+    if navigation_locked:
+        trail_html = _inert_links(trail_html)
+        included = _inert_links(included)
     top_menu = nav(active)
     if navigation_locked:
         top_menu = _inert_links(top_menu)

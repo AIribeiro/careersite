@@ -15,6 +15,7 @@ on:
       - "scripts/build_agent_discovery_static.py"
       - "scripts/discovery_search_surface.py"
       - "scripts/indexnow_discovery.py"
+      - "scripts/google_search_console_verification.py"
       - "scripts/verify_agent_discovery_live.py"
       - "src/agent_discovery.py"
       - "static/thinking-visuals/**"
@@ -79,6 +80,13 @@ jobs:
           INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
         run: |
           python scripts/indexnow_discovery.py write-key --output _share_site --key "$INDEXNOW_KEY"
+
+      - name: Prepare optional Google Search Console URL-prefix ownership verification
+        env:
+          GOOGLE_SEARCH_CONSOLE_FILE: ${{ secrets.GOOGLE_SEARCH_CONSOLE_FILE }}
+          GOOGLE_SEARCH_CONSOLE_TOKEN: ${{ secrets.GOOGLE_SEARCH_CONSOLE_TOKEN }}
+        run: |
+          python scripts/google_search_console_verification.py --output _share_site --file-name "$GOOGLE_SEARCH_CONSOLE_FILE" --meta-token "$GOOGLE_SEARCH_CONSOLE_TOKEN"
 
       - name: Validate generated social share page
         run: |

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from html import unescape
+from html.parser import HTMLParser
 import json
 import re
 from urllib.parse import urlencode
@@ -266,6 +267,110 @@ def markdown_summary(item: dict) -> str:
         ])
     return "\n".join(lines)
 
+
+
+class _PublicEditionMarkdown(HTMLParser):
+    """Minimal text-first HTML to Markdown conversion for **open** editions.
+
+    Preserve the argument and citations; discard decorative assets, embedded
+    code, forms, navigation and interactive elements. No HTML is returned.
+    """
+
+    DROP = frozenset({
+        "script", "style", "svg", "figure", "figcaption", "iframe",
+        "nav", "footer", "form", "button", "noscript", "canvas",
+    })
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+        self.drop_depth = 0
+        self.href_stack: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        if tag in self.DROP:
+            self.drop_depth += 1
+            return
+        if self.drop_depth:
+            return
+        if tag in {"p", "div", "section", "blockquote", "ul", "ol"}:
+            self.parts.append("\n\n")
+        elif tag in {"h1", "h2", "h3", "h4"}:
+            level = max(2, int(tag[1]))
+            self.parts.append("\n\n" + "#" * level + " ")
+        elif tag == "li":
+            self.parts.append("\n- ")
+        elif tag == "br":
+            self.parts.append("\n")
+        elif tag in {"strong", "b"}:
+            self.parts.append("**")
+        elif tag in {"em", "i"}:
+            self.parts.append("*")
+        elif tag == "a":
+            href = next((value for key, value in attrs if key == "href" and value), "")
+            self.href_stack.append(href if href.startswith(("https://", "http://")) else "")
+
+    def handle_endtag(self, tag: str) -> None:
+        tag = tag.lower()
+        if tag in self.DROP:
+            self.drop_depth = max(self.drop_depth - 1, 0)
+            return
+        if self.drop_depth:
+            return
+        if tag == "a" and self.href_stack:
+            href = self.href_stack.pop()
+            if href:
+                self.parts.append(" (" + href.replace(")", "%29") + ")")
+        elif tag in {"strong", "b"}:
+            self.parts.append("**")
+        elif tag in {"em", "i"}:
+            self.parts.append("*")
+        elif tag in {"p", "div", "blockquote", "li", "h1", "h2", "h3", "h4"}:
+            self.parts.append("\n\n")
+
+    def handle_data(self, data: str) -> None:
+        if not self.drop_depth:
+            self.parts.append(data)
+
+    def result(self) -> str:
+        out = "".join(self.parts)
+        out = re.sub(r"[^\S\n]+", " ", out)
+        out = re.sub(r"\n[ \t]+", "\n", out)
+        out = re.sub(r"\n{3,}", "\n\n", out).strip()
+        return out[:100000]
+
+
+def can_export_open_edition(item: dict, article: object, published: tuple | list, *, now=None) -> bool:
+    """Fail closed if the real CMS record is no longer public or now Premium."""
+    if item.get("access") != "open":
+        return False
+    if safe_slug(getattr(article, "slug", "")) != item.get("slug"):
+        return False
+    if str(getattr(article, "status", "") or "").casefold() != "published":
+        return False
+    current = tuple(published)
+    if not any(getattr(row, "slug", None) == item["slug"] for row in current):
+        return False
+    type_ = _type(article)
+    if type_ != item.get("type"):
+        return False
+    now = now or datetime.now(timezone.utc)
+    weekly_latest = latest_weekly_ai_slug(current) if type_ == "weekly_ai" else None
+    return _access(article, type_, current, weekly_latest, now) == "open"
+
+
+def open_edition_markdown(item: dict, article: object, published: tuple | list, *, now=None) -> str:
+    """Supply full Markdown only where the current published access rule permits."""
+    front = markdown_summary(item)
+    if not can_export_open_edition(item, article, published, now=now):
+        return front
+    parser = _PublicEditionMarkdown()
+    parser.feed(str(getattr(article, "content_html", "") or ""))
+    body = parser.result()
+    if not body:
+        return front
+    return front + "\n## Full public edition\n\n" + body + "\n"
 
 def robots_text() -> str:
     return "\n".join([

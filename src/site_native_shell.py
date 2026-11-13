@@ -148,7 +148,7 @@ def native_header(page: str) -> str:
         )
         compact = ""
     elif page == "analytics":
-        active = "home"
+        active = "analytics"
         title = "Portfolio intelligence."
         kicker = "JAIR RIBEIRO / PORTFOLIO"
         introduction = (

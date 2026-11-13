@@ -196,7 +196,7 @@ def agents_text() -> str:
         "",
         "Website: " + PUBLIC_ORIGIN,
         "Publisher: Jair Ribeiro",
-        "Contact: info@jairribeiro.com",
+        "Contact: https://jairribeiro.com/?page=contact",
         "",
         "## Purpose",
         "",

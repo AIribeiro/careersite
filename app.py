@@ -21,7 +21,7 @@ if str(SRC) not in sys.path:
 from thinking_articles import ARTICLES, BASE_URL, article_app_url, article_url, resolve_article
 from briefings_visual import briefing_image_svg
 from thinking_social import ensure_article_share_page, ensure_article_social_image
-from site_cms import bundled_header_bytes, cms_share_document, cms_sitemap_entries, fetch_public_article, render_cms_social_image
+from site_cms import bundled_header_bytes, cms_share_document, cms_sitemap_entries, fetch_public_article, fetch_published_articles, render_cms_social_image
 from site_social_preview import PUBLIC_URL as SITE_SOCIAL_IMAGE
 from site_owner_http_auth import owner_auth_route
 from reader_membership import (reader_route, reader_download, ROI_SLUG, AUTHORITY_SLUG)

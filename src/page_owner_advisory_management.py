@@ -401,7 +401,26 @@ def render_owner_advisory_management(owner_session: dict) -> None:
                         )
         st.caption("Pipeline stages follow the owner-managed request journey. A submitted request is never treated as a paid engagement.")
     with audit_tab:
-        st.caption("Every owner stage, note, follow-up or account action is recorded.")
+        st.caption("An auditable record of client-request decisions, stages, and private account administration.")
+        st.markdown("#### Advisory request history")
+        from page_owner_advisory_requests import read_request_history
+        try:
+            request_history=read_request_history(token)
+        except (RuntimeError,ValueError,TimeoutError):
+            st.error("The request audit is temporarily unavailable.")
+            request_history=[]
+        if request_history:
+            labels={str(r.get("id")):str(r.get("title") or "Request") for r in requests}
+            st.dataframe([{
+                "When":str(row.get("created_at") or "")[:19],
+                "Request":labels.get(str(row.get("request_id")),str(row.get("request_id"))),
+                "Action":str(row.get("action") or ""),
+                "From":str(row.get("old_status") or ""),
+                "To":str(row.get("new_status") or ""),
+            } for row in request_history],hide_index=True,use_container_width=True)
+        else:
+            st.caption("No Advisory request transitions have been recorded.")
+        st.markdown("#### Membership administration")
         if audit:
             by_id = {str(p["user_id"]): str(p.get("email") or "") for p in people}
             st.dataframe([{

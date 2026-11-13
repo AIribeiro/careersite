@@ -66,7 +66,7 @@ RECOMMENDED_ATTRIBUTION_SOURCES = (
 ENTRY_DOMAIN_JS = r"""
   // Keep the exact verified entry hostname: root, www, go, readers, and
   // arbitrary future subdomains under jairribeiro.com. Never trust lookalikes.
-  const cleanEntryHost = host => String(host || '').trim().toLowerCase().replace(/\\.$/, '');
+  const cleanEntryHost = host => String(host || '').trim().toLowerCase().replace(/\.$/, '');
   const isBrandedHostname = input => {
     const host = cleanEntryHost(input);
     return host === 'jairribeiro.com' || host.endsWith('.jairribeiro.com');

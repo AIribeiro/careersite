@@ -1,8 +1,10 @@
 """Read-only, public, machine-readable discovery for Jair Ribeiro's portfolio.
 
-This module deliberately consumes *catalogue metadata* only. It never loads
-article body HTML, reader identities, unpublished drafts, infographics or PDFs.
-Website agent guidance is not a substitute for authentication or RLS.
+The catalogue and Premium summaries use published metadata only. The Markdown
+converter may transform full published bodies only for currently open-access
+editions after rechecking editorial access. Reader identities, unpublished
+drafts and protected assets are never exported by this module. Website agent
+guidance does not replace authentication or RLS.
 """
 from __future__ import annotations
 

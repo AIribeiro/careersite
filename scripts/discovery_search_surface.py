@@ -206,6 +206,7 @@ def write_search_surface(output: Path, catalogue: dict, share_base: str) -> dict
             "",
         ]), encoding="utf-8",
     )
+    (output / "agent").mkdir(parents=True, exist_ok=True)
     (output / "agent" / "publication-state.json").write_text(
         json.dumps({"version": 1, "canonical_discovery_base": base,
                     "records": manifest}, sort_keys=True, separators=(",", ":")) + "\n",

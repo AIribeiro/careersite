@@ -295,12 +295,13 @@ def privacy() -> str:
  </nav>
  <div class="privacy-content">
   <section id="privacy-controller"><h2>Who is responsible</h2>
-   <p>This professional portfolio and its Premium Reader service are operated by Jair Ribeiro, based in Gothenburg, Sweden. For requests about personal information processed through this site, contact <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>.</p>
+   <p>This professional portfolio, its Premium Reader service and its separate Advisory registration are operated by Jair Ribeiro, based in Gothenburg, Sweden. For requests about personal information processed through this site, contact <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>.</p>
   </section>
   <section id="privacy-collection"><h2>What information may be collected</h2>
    <ul>
     <li><strong>Website visits:</strong> page views, on-site interactions, source or campaign attribution, approximate session duration, broad browser or device characteristics and related operational information.</li>
     <li><strong>Premium Reader accounts:</strong> the name and email you provide, verification and account status, optional profile or editorial interests, subscription preference, and records needed to show your reading or PDF-download history.</li>
+    <li><strong>Advisory accounts:</strong> your verified email, first name, optional organization, professional title and business decision context, plus account and engagement status needed to operate the dedicated service. Advisory registration also grants Reader library access; Reader registration does not automatically create Advisory access.</li>
     <li><strong>Correspondence:</strong> the email address and information you choose to share when contacting me, including advisory and privacy requests.</li>
     <li><strong>Service security:</strong> technical events and connection details that may be processed by hosting or authentication providers to operate and protect the service.</li>
    </ul>
@@ -308,25 +309,25 @@ def privacy() -> str:
   </section>
   <section id="privacy-purpose"><h2>Why information is used</h2>
    <ul>
-    <li><strong>Reader access and downloads:</strong> to establish and maintain an account, verify identity and deliver access to content you requested. The legal basis is the provision of a requested service and, where applicable, the legitimate interest in keeping your account secure.</li>
+    <li><strong>Reader and Advisory account access:</strong> to establish and maintain a requested account, verify identity and deliver access to content you requested. The legal basis is the provision of a requested service and, where applicable, the legitimate interest in keeping your account secure.</li>
     <li><strong>Service measurement:</strong> to understand which pages and publications are useful, how visitors reach them and where the website needs attention. First-party site measurement is carried out for the legitimate interest of maintaining and improving the portfolio, subject to applicable rights.</li>
-    <li><strong>Requested correspondence:</strong> to reply to your questions or consider potential advisory discussions. The legal basis is legitimate interest in responding and, when relevant, steps requested before a possible agreement.</li>
+    <li><strong>Advisory context and correspondence:</strong> to retain a decision context you choose to save, reply to your questions or consider potential advisory discussions. The legal basis is legitimate interest in responding and, when relevant, steps requested before a possible agreement.</li>
     <li><strong>Optional editorial emails:</strong> based on your separate, optional consent. You can withdraw that choice through your reader preferences or by contacting <a href="mailto:{READERS_EMAIL}">{READERS_EMAIL}</a>.</li>
     <li><strong>Security and legal duties:</strong> where necessary for legitimate security interests or to comply with legal obligations.</li>
    </ul>
    <p>Creating a reader account does not itself subscribe you to editorial messages. Site activity is not used to make decisions with legal or comparably significant effects about you.</p>
   </section>
   <section id="privacy-providers"><h2>Service providers and external destinations</h2>
-   <p>The portfolio is hosted through Streamlit, and the Premium Reader service and first-party reporting use Supabase. Authentication and verification messages depend on the configured authentication email service. These providers may handle information needed to operate the relevant function under their own contractual and technical arrangements.</p>
+   <p>The portfolio is hosted through Streamlit, and the Premium Reader and Advisory account services and first-party reporting use Supabase. Authentication and verification messages depend on the configured authentication email service. These providers may handle information needed to operate the relevant function under their own contractual and technical arrangements.</p>
    <p>Links to LinkedIn and other external websites take you to services with their own privacy practices. A branded or masked domain may also involve the domain or forwarding provider. Depending on the provider and configuration, personal data may be processed outside Sweden or the European Economic Area; you can request details of the arrangements relevant to your data through <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>.</p>
   </section>
   <section id="privacy-storage"><h2>Session data, cookies and retention</h2>
    <p>The first-party portfolio analytics uses browser session storage for short-lived visit and attribution context rather than an analytics cookie intended to identify you across visits. Account access and hosting can use technically necessary cookies, security tokens and server-side records. The site's first-party analytics is not an advertising tracking service.</p>
-   <p>Account and reading records are held while needed for the reader service and to support access, correction or deletion requests, subject to applicable legal or security needs. Correspondence is kept as needed to handle the inquiry or any resulting relationship. Measurement and security records are retained according to their operational purpose and applicable service settings; there is not one universal retention period for every record. You can ask about the status or removal of your information.</p>
+   <p>Reader, Advisory account and reading records are held while needed for the respective services and to support access, correction or deletion requests, subject to applicable legal or security needs. Correspondence is kept as needed to handle the inquiry or any resulting relationship. Measurement and security records are retained according to their operational purpose and applicable service settings; there is not one universal retention period for every record. You can ask about the status or removal of your information.</p>
   </section>
   <section id="privacy-rights"><h2>Your choices and rights</h2>
    <p>Subject to applicable conditions, you may request access, correction, erasure, restriction, portability or object to certain processing. Where processing relies on consent, you may withdraw that consent without affecting earlier lawful processing.</p>
-   <p>You may use the reader account area to update your editorial email choice. To request data access, correction, export or account deletion, email <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>. Identity verification may be needed before releasing or deleting account data.</p>
+   <p>You may use the reader account area to update your editorial email choice, and the advisory account area to update professional context. To request data access, correction, export or account deletion, email <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>. Identity verification may be needed before releasing or deleting account data.</p>
    <p>You may also lodge a complaint with the Swedish Authority for Privacy Protection (<a href="https://www.imy.se/en/individuals/data-protection/your-rights-as-a-data-subject/" target="_blank" rel="noopener noreferrer">Integritetsskyddsmyndigheten, IMY</a>) or another competent data-protection authority.</p>
   </section>
   <section id="privacy-contact"><h2>Questions or a data request?</h2>

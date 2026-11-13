@@ -69,6 +69,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
+          from thinking_articles import ARTICLES
 
           slug = 'when-an-ai-use-case-should-be-stopped'
           html = Path(f'_share_site/thinking/{slug}/index.html').read_text(encoding='utf-8')

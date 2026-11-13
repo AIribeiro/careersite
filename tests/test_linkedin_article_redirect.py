@@ -35,7 +35,7 @@ class ArticleShareRedirectTests(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.headers["cache-control"], "no-store")
         result = urlparse(response.headers["location"])
-        self.assertEqual(result.netloc, "jairribeiro-ai.streamlit.app")
+        self.assertEqual(result.netloc, "jairribeiro.com")
         params = parse_qs(result.query)
         self.assertEqual(params["page"], ["thinking"])
         self.assertEqual(params["article"], [slug])

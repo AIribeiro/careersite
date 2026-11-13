@@ -130,7 +130,7 @@ NATIVE_SHELL_CSS = r"""
 def native_header(page: str) -> str:
     """Render the real site menu and a contextual editorial header."""
     if page == "advisory-access":
-        active = "advisory"
+        active = "advisory-access"
         title = "Your executive advisory space."
         kicker = "JAIR RIBEIRO / PRIVATE EXECUTIVE ADVISORY"
         introduction = (

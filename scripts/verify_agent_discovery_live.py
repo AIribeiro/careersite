@@ -114,16 +114,28 @@ def verify_pages() -> None:
 
 
 def probe_agent_subdomain() -> bool:
-    """The ai. hostname is a path-preserving 301 to the actual Pages server."""
-    from urllib.request import urlopen
-    try:
-        status, ctype, body = get("https://ai.jairribeiro.com/llms.txt", tries=1)
-        valid = status == 200 and ctype.lower().startswith("text/plain") and body.startswith(b"# Jair Ribeiro")
-        print("ai.jairribeiro.com/llms.txt", "READY" if valid else "NOT_READY", status, ctype)
-        return valid
-    except Exception as exc:
-        print("ai.jairribeiro.com/llms.txt UNVERIFIED", type(exc).__name__)
-        return False
+    """Verify actual path-preserving redirects and public MIME types."""
+    expected = (
+        ("/llms.txt", "text/plain"),
+        ("/agents.md", "text/markdown"),
+        ("/agent/catalog.json", "application/json"),
+        ("/robots.txt", "text/plain"),
+        ("/sitemap.xml", "application/xml"),
+        ("/feed.xml", "application/xml"),
+        ("/discover/", "text/html"),
+    )
+    successes = 0
+    for path, mime in expected:
+        try:
+            status, ctype, body = get("https://ai.jairribeiro.com" + path, tries=1)
+            correct = status == 200 and ctype.lower().startswith(mime) and len(body) > 0
+            print("BRANDED_DISCOVERY", "PASS" if correct else "NOT_READY",
+                  "ai.jairribeiro.com" + path, status, ctype)
+            successes += int(correct)
+        except Exception as exc:
+            print("BRANDED_DISCOVERY UNVERIFIED", path, type(exc).__name__)
+    print("BRANDED_DISCOVERY_STATUS", successes, "/", len(expected))
+    return successes == len(expected)
 
 
 def probe_branded() -> bool:

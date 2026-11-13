@@ -263,7 +263,7 @@ def advisory() -> str:
   <div>
    <p class="service-eyebrow">Your next step</p>
    <h2>Create your advisory account.</h2>
-   <p>A direct space to share the business decision you are considering and keep the conversation moving. Registration is complimentary; advisory scope and terms are agreed only if we decide to work together.</p>
+   <p>A direct space to share the business decision you are considering and keep the conversation moving. Verify your email and choose a password to activate your complimentary account. Advisory work, scope and terms are agreed separately.</p>
    <div class="advisory-actions">
     <a class="advisory-button" href="?page=advisory-access" target="_self" data-hq-event="advisory_access_register">Create your advisory account →</a>
    </div>

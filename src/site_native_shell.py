@@ -190,9 +190,9 @@ def native_header(page: str, *, navigation_locked: bool = False) -> str:
         title = "Your executive advisory space."
         kicker = "JAIR RIBEIRO / PRIVATE EXECUTIVE ADVISORY"
         introduction = (
-            "A direct relationship for the business decisions behind enterprise AI "
-            "and Data. Register, verify your email and set your password, or return "
-            "to your existing advisory account."
+            "A private space to turn an executive question into a focused "
+            "conversation, an agreed next step and, where appropriate, "
+            "a defined advisory engagement."
         )
         trail = (
             ('?page=home', 'Home'),

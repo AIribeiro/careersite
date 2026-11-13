@@ -18,11 +18,11 @@ STATUS = {
     "discovery": ("Discovery discussion", "Clarify the decision, context and a useful way of working."),
     "proposal": ("Scope under discussion", "Review the proposed approach and respond before any commercial commitment."),
     "active": ("Engagement underway", "The agreed advisory work is in progress. Follow the messages and next steps."),
-    "completed": ("Work completed", "Review the outcome and any final follow-up."),
+    "completed": ("Outcome delivered — review & handover", "Review the outcome, raise final questions and reply before the request is closed."),
     "closed": ("Conversation closed", "This request is closed. You can begin another discussion when needed."),
     "declined": ("Unable to proceed", "This request is closed without an engagement. You may start another request."),
 }
-CLOSED = {"completed", "closed", "declined"}
+CLOSED = {"closed", "declined"}
 
 
 def _client_requests(token: str, uid: str) -> list[dict]:

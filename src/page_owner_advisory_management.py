@@ -259,6 +259,19 @@ def render_owner_advisory_management(owner_session: dict) -> None:
         "Private executive relationships · Prospective advisory clients, onboarding, "
         "decision context, follow-ups and separately agreed engagements."
     )
+    shortcuts = st.columns([1, 1, 3])
+    with shortcuts[0]:
+        st.link_button(
+            "Advisory service ↗",
+            "https://jairribeiro.com/?page=advisory",
+            use_container_width=True,
+        )
+    with shortcuts[1]:
+        st.link_button(
+            "Advisory account ↗",
+            "https://jairribeiro.com/?page=advisory-access",
+            use_container_width=True,
+        )
     if st.button("Refresh advisory data", key="advisory_owner_refresh"):
         st.rerun()
 

@@ -120,6 +120,16 @@ SERVICES_CSS = """
 .site .advisory-access .advisory-access-inclusion{border-left:3px solid #db9b70;padding-left:20px}
 .site .advisory-access .advisory-access-inclusion strong{display:block;color:#ffe2cb;font:500 24px/1.3 Georgia,serif;margin-bottom:12px}
 .site .advisory-small-link{display:inline-block;font-size:13px;font-weight:750;text-decoration:underline!important;color:#f8eee7!important;text-underline-offset:4px;margin-top:16px}
+
+.site .advisory-access .service-eyebrow{color:#e9b58e}
+.site .advisory-access .advisory-actions{margin-top:27px}
+.site .advisory-access .advisory-access-inclusion{padding-top:7px}
+.site .advisory-access-direct{margin-top:27px;padding-top:24px;border-top:1px solid rgba(255,255,255,.2);scroll-margin-top:100px}
+.site .advisory-access-direct span{display:block;font-size:13px;font-weight:800;color:#faf5f0;letter-spacing:.01em}
+.site .advisory-access-direct p{margin:9px 0 12px;color:#c4d0dc;font-size:13px;line-height:1.67}
+.site .advisory-access-direct a{color:#f0b98f!important;font-size:13px;font-weight:800;text-decoration:underline!important;text-underline-offset:4px;overflow-wrap:anywhere}
+.site .advisory-access-direct a:focus-visible{outline:3px solid #e9b48b;outline-offset:4px}
+
 .site .service-method-note{margin:25px 0 0;font-size:13px;line-height:1.75;color:#627185}
 .site .advisory-button:focus-visible,.site .advisory-small-link:focus-visible{outline:3px solid #e9b48b;outline-offset:4px}
 @media(max-width:850px){
@@ -251,30 +261,23 @@ def advisory() -> str:
 <section class="advisory-access" id="advisory-membership" data-analytics-section="advisory-membership">
  <div class="container advisory-access-grid">
   <div>
-   <p class="service-eyebrow">A dedicated advisory relationship</p>
-   <h2>Your executive advisory space.</h2>
-   <p>Create your advisory account to keep your decision context in one place and maintain a direct professional contact route. Registration is complimentary. It is not a consultancy booking, subscription purchase or commercial agreement.</p>
-   <a class="advisory-button" href="?page=advisory-access" target="_self" data-hq-event="advisory_access_register">Create your advisory account →</a>
-   <p><a class="advisory-small-link" href="?page=advisory-access&amp;signin=1" target="_self" data-hq-event="advisory_access_signin">Already have advisory access? Sign in</a></p>
+   <p class="service-eyebrow">Your next step</p>
+   <h2>Create your advisory account.</h2>
+   <p>A direct space to share the business decision you are considering and keep the conversation moving. Registration is complimentary; advisory scope and terms are agreed only if we decide to work together.</p>
+   <div class="advisory-actions">
+    <a class="advisory-button" href="?page=advisory-access" target="_self" data-hq-event="advisory_access_register">Create your advisory account →</a>
+   </div>
+   <a class="advisory-small-link" href="?page=advisory-access&amp;signin=1" target="_self" data-hq-event="advisory_access_signin">Already have an account? Sign in</a>
   </div>
-  <aside class="advisory-access-inclusion">
-   <strong>Full Premium Reader library included.</strong>
-   <p>Your Advisory account also provides the complete Executive AI Briefings collection, premium Thinking articles, Weekly AI editions and available infographic downloads.</p>
-   <p>Advisory membership includes Reader access. A Reader account alone does not grant Advisory membership or establish an advisory relationship.</p>
+  <aside class="advisory-access-inclusion" aria-label="Included access and direct contact">
+   <strong>Your Premium Reader library is included.</strong>
+   <p>Full Executive AI Briefings, premium articles, Weekly AI editions and available infographic downloads are part of your advisory access.</p>
+   <div class="advisory-access-direct" id="advisory-contact" data-analytics-section="advisory-inquiry">
+    <span>Prefer a direct introduction?</span>
+    <p>Tell me what decision you are facing, who owns it and when it matters. No confidential details are needed.</p>
+    <a href="mailto:{ADVISORY_EMAIL}?subject=Executive%20advisory%20discussion" data-hq-event="advisory_email_final">Email {ADVISORY_EMAIL} →</a>
+   </div>
   </aside>
- </div>
-</section>
-
-<section class="service-contact" id="advisory-contact" data-analytics-section="advisory-inquiry">
- <div class="container service-contact-layout">
-  <div><p class="service-eyebrow">Begin with the business question</p><h2>What decision needs a clearer answer?</h2>
-   <p>Share the decision, the accountable sponsor, and the time horizon. A few lines are enough for an initial exchange. Please keep confidential, regulated or personally sensitive information out of your first message.</p>
-   <p class="service-note">After an initial fit discussion, we can agree the relevant participants, format, timetable and commercial scope. No work is committed until that is confirmed.</p>
-  </div>
-  <div><a class="advisory-button" href="mailto:{ADVISORY_EMAIL}?subject=Executive%20advisory%20discussion" data-hq-event="advisory_email_final">Discuss an executive decision →</a>
-   <p class="service-mail"><a href="mailto:{ADVISORY_EMAIL}" data-hq-event="advisory_email_address">{ADVISORY_EMAIL}</a></p>
-   <p class="service-note">Prefer to establish your account first? <a href="?page=advisory-access" target="_self">Create your advisory account</a>.</p>
-  </div>
  </div>
 </section>
 </main>{footer()}'''

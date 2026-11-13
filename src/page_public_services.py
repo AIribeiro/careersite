@@ -5,7 +5,8 @@ and the privileged owner/CMS account. No email is sent by these page renderers.
 """
 from __future__ import annotations
 
-from site_assets import ADVISORY_EMAIL, EMAIL, PRIVACY_EMAIL, READERS_EMAIL, IMAGE_DIR
+from site_assets import ADVISORY_EMAIL, EMAIL, PRIVACY_EMAIL, READERS_EMAIL
+from site_media import IMAGE_DIR
 from site_components import footer, nav
 
 

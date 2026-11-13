@@ -183,6 +183,19 @@ Future visits use your email and password, not an email access link.</p>
         )
     if not submit:
         st.caption("Advisory access remains inactive until your password is saved.")
+        with st.expander("Already have an advisory password?"):
+            with st.form("advisory_existing_password"):
+                existing_password = st.text_input(
+                    "Existing password", type="password", max_chars=128,
+                )
+                use_existing = st.form_submit_button("Sign in with existing password")
+            if use_existing:
+                try:
+                    _password_signin(str(user["email"]).strip().lower(),
+                                     str(existing_password))
+                    st.rerun()
+                except (RuntimeError, ValueError, TimeoutError, KeyError):
+                    st.error("Sign-in failed. Check your password.")
         return
     if password != confirmation:
         st.error("The passwords do not match.")

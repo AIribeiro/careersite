@@ -75,5 +75,50 @@ class AdvisoryRegistrationTests(unittest.TestCase):
         self.assertNotIn("Professional email *", labels)
 
 
+    def test_password_setup_widget_is_first_step_after_email_confirmation(self):
+        from streamlit.testing.v1 import AppTest
+        app = AppTest.from_file(
+            str(ROOT / "tests" / "advisory_password_setup_smoke_app.py"),
+            default_timeout=30,
+        ).run()
+        self.assertFalse(app.exception, [str(x.message) for x in app.exception])
+        labels = [x.label for x in app.text_input]
+        self.assertIn("New password", labels)
+        self.assertIn("Confirm password", labels)
+        self.assertTrue(any("activate my account" in x.label for x in app.button))
+        self.assertFalse(app.radio)
+
+    def test_advisory_password_amr_is_checked_by_authenticated_rpc(self):
+        from unittest.mock import patch
+        from page_advisory_portal import _password_authenticated
+        session = {"access_token": "test-not-real"}
+        with patch("page_advisory_portal._request_json", return_value=True) as call:
+            self.assertTrue(_password_authenticated(session))
+            self.assertIn("portfolio_advisory_password_session_v1", call.call_args.args[1])
+            self.assertEqual(call.call_args.kwargs["token"], "test-not-real")
+        with patch("page_advisory_portal._request_json", return_value=False):
+            self.assertFalse(_password_authenticated(session))
+
+    def test_confirmation_link_uses_password_setup_not_otp_code(self):
+        source = self.source("src/page_advisory_portal.py")
+        self.assertIn("_consume_query_verification()", source)
+        self.assertIn("_first_password_form(session, user)", source)
+        self.assertIn('with st.form("advisory_first_password"', source)
+        self.assertIn('_set_reader_password(session, str(password))', source)
+        self.assertIn('_password_signin(str(user["email"]).strip().lower(), str(password))', source)
+        self.assertNotIn('with st.form("advisory_email_code")', source)
+        self.assertNotIn('Email my sign-in link', source)
+        self.assertIn('Email my verification link', source)
+        self.assertIn('with st.form("advisory_password_signin"', source)
+
+    def test_reader_magic_link_cannot_open_advisory_account(self):
+        source = self.source("src/page_advisory_portal.py")
+        self.assertLess(source.index("if not _password_authenticated(session):",
+                                     source.index("def render_advisory_portal")),
+                        source.index("_get_advisory_profile(session, user)",
+                                     source.index("def render_advisory_portal")))
+        self.assertIn("Email confirmation establishes identity only", source)
+
+
 if __name__ == "__main__":
     unittest.main()

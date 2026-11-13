@@ -6,6 +6,8 @@ on:
     paths:
       - "app.py"
       - "src/agent_discovery.py"
+      - "scripts/build_agent_discovery_static.py"
+      - "tests/test_agent_static_bridge.py"
       - "tests/test_agent_discovery.py"
       - ".github/workflows/agent-discovery-ci.yml"
   push:
@@ -35,8 +37,8 @@ jobs:
         run: pip install -r requirements.txt
       - name: Validate access rules and syntax
         run: |
-          python -m py_compile app.py src/agent_discovery.py tests/test_agent_discovery.py
-          python -m unittest discover -s tests -p "test_agent_discovery.py" -v
+          python -m py_compile app.py src/agent_discovery.py scripts/build_agent_discovery_static.py tests/test_agent_discovery.py tests/test_agent_static_bridge.py
+          python -m unittest discover -s tests -p "test_agent*.py" -v
       - name: Start application
         run: |
           streamlit run app.py --server.headless true --server.port 8501 > /tmp/agent-discovery.log 2>&1 &

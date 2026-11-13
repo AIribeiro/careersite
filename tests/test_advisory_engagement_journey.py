@@ -112,7 +112,7 @@ class AdvisoryJourneyTests(unittest.TestCase):
         ).run()
         self.assertFalse(app.exception,[str(e.message) for e in app.exception])
         self.assertTrue(any(w.label=="Your action" for w in app.selectbox))
-        self.assertTrue(any(w.label=="Save and update the client" for w in app.button))
+        self.assertTrue(any(w.label=="Save next step / response" for w in app.button))
         self.assertTrue(any(w.label=="Needs your response" for w in app.metric))
 
     def test_profile_editor_is_secondary_to_business_request(self):

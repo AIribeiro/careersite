@@ -17,6 +17,7 @@ from site_analytics import (
 
 DASHBOARD_RPC = "careersite_analytics_dashboard_v2"
 HIRING_INTELLIGENCE_RPC = "careersite_hiring_intelligence_v1"
+TRAFFIC_QUALITY_RPC = "careersite_traffic_quality_audit_v1"
 PUBLIC_DASHBOARD_TOKEN = "public-readonly-v1"
 PUBLIC_BASE_URL = "https://jairribeiro-ai.streamlit.app/"
 REPORTING_WINDOWS = (
@@ -122,6 +123,23 @@ def _fetch_hiring_intelligence(window: str) -> dict:
     except (error.HTTPError, error.URLError, TimeoutError, json.JSONDecodeError):
         return {}
 
+    return data if isinstance(data, dict) else {}
+
+
+def _fetch_traffic_quality(window: str) -> dict:
+    """Aggregate-only traffic classification; keeps raw identifiers server-side."""
+    endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{TRAFFIC_QUALITY_RPC}"
+    req = request.Request(
+        endpoint,
+        data=json.dumps(_dashboard_payload(window)).encode("utf-8"),
+        method="POST",
+        headers=public_analytics_rpc_headers(),
+    )
+    try:
+        with request.urlopen(req, timeout=12) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except (error.HTTPError, error.URLError, TimeoutError, json.JSONDecodeError):
+        return {}
     return data if isinstance(data, dict) else {}
 
 
@@ -799,6 +817,7 @@ def render_analytics_dashboard() -> None:
         return
 
     hiring = _fetch_hiring_intelligence(str(window))
+    traffic_audit = _fetch_traffic_quality(str(window))
 
     period_label = str(data.get("period_label") or REPORTING_WINDOW_LABELS.get(str(window), str(window)))
     period_since = data.get("period_since")
@@ -859,8 +878,22 @@ def render_analytics_dashboard() -> None:
             "Sessions are browser-tab sessions, not unique people."
         )
 
+    if traffic_audit:
+        st.subheader("Traffic integrity")
+        t1, t2, t3, t4 = st.columns(4)
+        t1.metric("Recorded sessions", _count(traffic_audit.get("raw_sessions")))
+        t2.metric("Internal QA excluded", _count(traffic_audit.get("internal_qa_sessions")))
+        t3.metric("Suspected automation excluded", _count(traffic_audit.get("suspected_automation_sessions")))
+        t4.metric("Unclassified sessions", _count(traffic_audit.get("unclassified_sessions")))
+        st.caption(
+            "Raw events are retained for diagnosis. Internal QA is explicitly tagged or matched to a "
+            "known production browser-test route. Suspected automation uses browser automation "
+            "evidence or a conservative repeated short-session signature. Unclassified sessions "
+            "are not verified human visitors."
+        )
+
     k1, k2, k3, k4, k5 = st.columns(5)
-    k1.metric("Measured sessions", sessions)
+    k1.metric("Audience-reporting sessions", sessions)
     k2.metric("Engagement", _pct(engaged_sessions, sessions), f"{engaged_sessions} engaged")
     k3.metric(
         "Avg active time",
@@ -870,8 +903,9 @@ def render_analytics_dashboard() -> None:
     k4.metric("Pages / session", f"{float(totals.get('avg_pages_per_session', 0) or 0):.2f}")
     k5.metric("CV downloads", cv_download_events, f"{cv_sessions} downloading sessions")
     st.caption(
-        "Recorded-traffic metrics below remain available for continuity. They can include automation and telemetry-only sessions; "
-        "use the quality layer above for behavioral interpretation. Sessions are distinct browser-tab session IDs, not unique people."
+        "Audience reporting excludes identifiable internal QA and high-confidence browser automation; "
+        "unclassified sessions may still include bots and telemetry-only visits. The quality layer "
+        "above further evaluates engagement. Sessions are browser-tab session IDs, not unique people."
     )
 
     o1, o2, o3, o4, o5 = st.columns(5)

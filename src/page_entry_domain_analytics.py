@@ -34,6 +34,53 @@ def entry_domain_rows(report: dict) -> list[dict]:
     ]
 
 
+def branded_host_rows(report: dict) -> list[dict]:
+    """Exact verified branded hosts, without promoting historical unknowns."""
+    evidence: dict[str, dict[str, int]] = {}
+    for item in report.get("host_source_evidence", []):
+        if not isinstance(item, dict):
+            continue
+        host = str(item.get("host_label") or "")
+        kind = str(item.get("source_evidence") or "")
+        if kind in ("Tagged", "External referrer", "Direct / source unknown"):
+            evidence.setdefault(host, {})[kind] = max(0, int(item.get("sessions") or 0))
+    hosts: list[dict] = []
+    for item in report.get("hosts", []):
+        if not isinstance(item, dict) or item.get("domain_label") != "jairribeiro.com":
+            continue
+        host = str(item.get("host_label") or "")
+        if host != "jairribeiro.com" and not host.endswith(".jairribeiro.com"):
+            continue
+        sources = evidence.get(host, {})
+        hosts.append({
+            "Entry hostname": host,
+            "Sessions": max(0, int(item.get("sessions") or 0)),
+            "Views": max(0, int(item.get("views") or 0)),
+            "Tagged": sources.get("Tagged", 0),
+            "External referral": sources.get("External referrer", 0),
+            "Direct / unknown source": sources.get("Direct / source unknown", 0),
+        })
+    return sorted(hosts, key=lambda row: (-row["Sessions"], row["Entry hostname"]))
+
+
+def campaign_attribution_rows(report: dict) -> list[dict]:
+    """Aggregated declared marketing tags, grouped by observed hostname."""
+    result: list[dict] = []
+    for item in report.get("campaigns", []):
+        if not isinstance(item, dict):
+            continue
+        result.append({
+            "Entry hostname": str(item.get("host_label") or ""),
+            "Declared source": item.get("attribution_source") or "—",
+            "UTM source": item.get("utm_source") or "—",
+            "Medium": item.get("utm_medium") or "—",
+            "Campaign": item.get("utm_campaign") or "—",
+            "Content": item.get("utm_content") or "—",
+            "Sessions": max(0, int(item.get("sessions") or 0)),
+        })
+    return result
+
+
 def source_evidence_rows(report: dict) -> list[dict]:
     """A domain is not a referring channel; source evidence is a separate split."""
     grouped: dict[str, dict] = {}
@@ -59,6 +106,7 @@ def source_evidence_rows(report: dict) -> list[dict]:
 def render_entry_domain_report(window: str, *, expected_site_views: int | None = None) -> None:
     st.subheader("Entry address & traffic origins")
     st.caption(
+        "Root and branded subdomains roll up together; exact verified hostnames appear below. "
         "Which address opened the portfolio is separate from where the visit came from. "
         "Both are reported per browser-tab session; views count content opens."
     )
@@ -72,7 +120,7 @@ def render_entry_domain_report(window: str, *, expected_site_views: int | None =
     branded, native = rows
     columns = st.columns(2, gap="small")
     with columns[0]:
-        st.metric("jairribeiro.com", f'{branded["Sessions"]:,} sessions')
+        st.metric("jairribeiro.com · all subdomains", f'{branded["Sessions"]:,} sessions')
         st.caption(f'{branded["Views"]:,} verified-domain views · selected period')
     with columns[1]:
         st.metric("jairribeiro-ai.streamlit.app", f'{native["Sessions"]:,} sessions')
@@ -88,6 +136,26 @@ def render_entry_domain_report(window: str, *, expected_site_views: int | None =
         "those visits originally used; verified and assigned observations are "
         "shown separately. No original event records were changed."
     )
+
+    branded_hosts = branded_host_rows(report)
+    if branded_hosts:
+        st.markdown("**Branded entry hostnames**")
+        st.dataframe(branded_hosts, hide_index=True, use_container_width=True)
+        st.caption(
+            "Exact verified entry addresses, including go.jairribeiro.com, "
+            "readers.jairribeiro.com and any other branded subdomains. "
+            "These counts are already included in the jairribeiro.com total."
+        )
+
+    campaigns = campaign_attribution_rows(report)
+    if campaigns:
+        with st.expander("Campaign attribution by entry hostname", expanded=False):
+            st.dataframe(campaigns, hide_index=True, use_container_width=True)
+            st.caption(
+                "Declared source (?source=) and UTM source (?utm_source=) are "
+                "independent values. A masked page may conceal outer query "
+                "parameters; values not visible to the browser remain unknown."
+            )
 
     evidence_rows = source_evidence_rows(report)
     if evidence_rows:

@@ -285,34 +285,62 @@ The Executive Briefings detail uses existing per-content aggregates and instrume
 
 All measures respect the current reporting window, established test-traffic and attribution exclusions. Historic periods cannot retroactively acquire card impressions that were not instrumented. The dashboard does not identify people or infer recruiter interest. If reporting is unreachable, display an explicit unavailable state rather than claiming no traffic.
 
-## Entry address versus acquisition channel (12 November 2026)
+## Entry address, subdomains and campaign attribution (13 November 2026)
 
-The canonical reporting addresses are only:
+The entry-address report has two **top-level reporting families**:
 
-- `jairribeiro.com` — branded domain, recorded when the browser can verify
-  the top-level hostname or embedding source.
-- `jairribeiro-ai.streamlit.app` — native Streamlit address and consolidated
-  legacy/unresolved reporting category. No alternative native host is recognized.
+- `jairribeiro.com` covers the root domain and every verified branded
+  subdomain (`www.jairribeiro.com`, `go.jairribeiro.com`,
+  `readers.jairribeiro.com`, future `*.jairribeiro.com` addresses).
+  The browser records the **exact** hostname in `entry_domain`, and the
+  dashboard lists each verified branded hostname beneath the family total.
+  Each visit counts **once** in the branded total; the hostname split is
+  a breakdown, not an extra set of visits.
+- `jairribeiro-ai.streamlit.app` covers the verified native Streamlit
+  address and all historical or unresolved events *assigned* to the native
+  reporting group. Exact hostname is never inferred from old data; the
+  RPC exposes `assigned_views`, `assigned_sessions`,
+  `verified_views` and `verified_sessions` separately.
 
-The native-domain category **includes all historical visits with no entry-domain
-measurement**, as well as masked frames where the browser cannot prove the
-external domain. This is an explicit reporting convention requested for a
-two-category dashboard, not historical evidence. The browser still records
-`entry_domain = NULL` and `entry_domain_evidence = embedded_unresolved`
-for unknown frames. Original event rows are never backfilled or rewritten.
+Hostname checks use exact suffix boundaries, not substring matching.
+`go.jairribeiro.com.evil.tld` and `eviljairribeiro.com` are not treated
+as branded. Insert-side RLS and table constraints permit only the canonical
+Streamlit native hostname or valid `*.jairribeiro.com` hostnames,
+up to DNS hostname length limits. Old event records are not rewritten.
 
-The aggregate-only RPC `careersite_entry_domain_report_v1` counts canonical
-content views and one session per browser-tab ID. For each of the two
-categories it returns `verified_views`, `verified_sessions`,
-`assigned_views` and `assigned_sessions` so readers can distinguish
-browser-observed traffic from traffic assigned by policy. The dates,
-page/article counting rules, exclusions, attribution-source tags and
-privacy boundaries remain unchanged. Reports use the existing Stockholm
-reporting periods. No raw IPs, persistent IDs or referring URLs are exposed.
+The browser collector uses the real top-level hostname for direct visits,
+and the highest available verified branded iframe ancestor origin or
+the iframe's embedding referrer when masked. Neither is guaranteed on all
+browsers: frames that hide their parent remain unresolved. The wrapper
+host is **not** an external acquisition referrer.
 
-The masking provider may strip query parameters and the upstream referrer.
-The collector never invents a LinkedIn/email/search source when no evidence
-is available; the entry-address classification does not replace the separate
-source attribution field. For complete acquisition reporting, the hosting
-setup should preserve campaign query parameters or use supported first-party
-hosting instead of masking-only forwarding.
+The entry-domain RPC includes a per-host session/view breakdown, per-host
+tagged/direct/external-source session counts, and a capped aggregate campaign
+table. It reports `source` and `utm_source` **as separate declared
+signals**. For example:
+
+```text
+https://go.jairribeiro.com/?page=briefing&article=ai-governance-explained-to-executives&source=linkedin&utm_medium=social&utm_campaign=masked_test_20261113&utm_content=ai-governance-explained-to-executives&utm_source=chatgpt.com
+```
+
+Given those parameters *reaching the browser collector*, the recorded
+`entry_domain` is `go.jairribeiro.com` (when verified by host/ancestor
+or referrer), `attribution_source` is `linkedin`,
+`utm_source` is `chatgpt.com`, `utm_medium` is `social`, and the
+campaign/content remain as supplied. The host contributes to the
+`jairribeiro.com` family total.
+
+The iframe URL remains the primary source of campaign parameters. If it
+does not contain them, the collector can recover known marketing tags
+from the embedding referrer **only when** the browser exposes the full
+verified branded referrer URL. Standard cross-origin referrer policies
+often return only the origin, and `ancestorOrigins` never contains query
+parameters. If a domain-masking service discards the campaign query from
+the iframe URL and hides the full wrapper referrer, those parameters
+**cannot be recovered** through Streamlit's frame; attribution stays
+unknown rather than invented. Ensure the masking provider forwards all
+URL parameters or use native custom-domain hosting.
+
+The report is aggregate-only: it returns no raw session identifiers,
+visitor identities, browser IPs or raw referrer URLs. It reuses existing
+reporting periods, canonical content-view rules, and test exclusions.

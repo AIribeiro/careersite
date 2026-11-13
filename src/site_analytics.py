@@ -64,36 +64,65 @@ RECOMMENDED_ATTRIBUTION_SOURCES = (
 # Detect the address actually used to enter the portfolio without reading
 # cross-origin top-level locations or creating persistent visitor identifiers.
 ENTRY_DOMAIN_JS = r"""
+  // Keep the exact verified entry hostname: root, www, go, readers, and
+  // arbitrary future subdomains under jairribeiro.com. Never trust lookalikes.
+  const cleanEntryHost = host => String(host || '').trim().toLowerCase().replace(/\.$/, '');
+  const isBrandedHostname = input => {
+    const host = cleanEntryHost(input);
+    return host === 'jairribeiro.com' || host.endsWith('.jairribeiro.com');
+  };
+  const nativeEntryHost = 'jairribeiro-ai.streamlit.app';
   const entryContext = (() => {
-    const normalize = host => String(host || '').toLowerCase().replace(/^www\./, '');
-    const nativeHosts = new Set(['jairribeiro-ai.streamlit.app']);
-    const branded = 'jairribeiro.com';
-    const host = normalize(win.location.hostname);
+    const host = cleanEntryHost(win.location.hostname);
     let embedded = false;
     try { embedded = win.top !== win; } catch (_) { embedded = true; }
     if (!embedded) {
-      return {
-        domain: nativeHosts.has(host) ? host : (host === branded ? branded : null),
-        evidence: nativeHosts.has(host) || host === branded ? 'direct_host' : null,
-        masked: false
-      };
+      const recognized = host === nativeEntryHost || isBrandedHostname(host);
+      return { domain: recognized ? host : null,
+               evidence: recognized ? 'direct_host' : null,
+               masked: false };
     }
+    // In Chromium, ancestorOrigins supplies all framing origins; the
+    // outermost verified branded origin is the visitor-facing address.
     try {
       const ancestors = win.location.ancestorOrigins || [];
       for (let i = ancestors.length - 1; i >= 0; i--) {
-        if (normalize(new URL(ancestors[i]).hostname) === branded) {
-          return { domain: branded, evidence: 'embed_ancestor', masked: true };
+        const host = cleanEntryHost(new URL(ancestors[i]).hostname);
+        if (isBrandedHostname(host)) {
+          return { domain: host, evidence: 'embed_ancestor', masked: true };
         }
       }
     } catch (_) {}
+    // Browser referrer is usually just the origin across domains, which is
+    // enough to identify go.jairribeiro.com versus readers.jairribeiro.com.
     try {
-      if (normalize(new URL(doc.referrer).hostname) === branded) {
-        return { domain: branded, evidence: 'embed_referrer', masked: true };
+      const host = cleanEntryHost(new URL(doc.referrer).hostname);
+      if (isBrandedHostname(host)) {
+        return { domain: host, evidence: 'embed_referrer', masked: true };
       }
     } catch (_) {}
     return { domain: null, evidence: 'embedded_unresolved', masked: true };
   })();
-""";
+
+  // Only use campaign parameters from a *verified branded wrapper* if the
+  // iframe URL omitted them and the browser supplied the full referrer URL.
+  // Standard origin-only referrers cannot reveal wrapper query parameters.
+  const entryAttributionParams = (() => {
+    const params = new URL(win.location.href).searchParams;
+    if (!entryContext.masked || !isBrandedHostname(entryContext.domain)) return params;
+    try {
+      const outer = new URL(doc.referrer);
+      if (!isBrandedHostname(outer.hostname)) return params;
+      for (const key of ['source','src','role','utm_source','utm_medium',
+                         'utm_campaign','utm_content']) {
+        if (!params.has(key) && outer.searchParams.has(key)) {
+          params.set(key, outer.searchParams.get(key));
+        }
+      }
+    } catch (_) {}
+    return params;
+  })();
+"""
 
 
 def inject_analytics(page: str, source: str = "streamlit") -> None:
@@ -188,7 +217,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   // the site, never an individual. Persist it only for this browser tab so
   // internal navigation can drop query parameters without losing the funnel.
   const attributionKey = 'jair_hq_attribution_v1';
-  const params = new URL(win.location.href).searchParams;
+  const params = entryAttributionParams;
   let attribution = {{ source: null, role: null, utm_source: null, utm_medium: null, utm_campaign: null }};
   try {{
     attribution = JSON.parse(win.sessionStorage.getItem(attributionKey) || 'null') || attribution;
@@ -242,10 +271,10 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
 
   const referrerHost = () => {{
     try {{
-      if (!doc.referrer || (entryContext.masked && entryContext.domain === 'jairribeiro.com')) return null;
+      if (!doc.referrer || (entryContext.masked && isBrandedHostname(entryContext.domain))) return null;
       const host = new URL(doc.referrer).hostname.toLowerCase();
-      const own = ['jairribeiro.com','www.jairribeiro.com','jairribeiro-ai.streamlit.app'];
-      return host && !own.includes(host) ? host.slice(0,255) : null;
+      return host && !isBrandedHostname(host) && host !== nativeEntryHost
+        ? host.slice(0, 255) : null;
     }} catch (_) {{
       return null;
     }}

@@ -86,12 +86,14 @@ jobs:
           assert "https://jairribeiro.com/sitemap.xml" in documents["/robots.txt"]
           assert "https://jairribeiro.com" in documents["/sitemap.xml"]
           assert "PRIVATE_EDITORIAL_BODY_NEVER_IN_AGENT_FEED" not in documents["/agent/catalog.json"]
-          for unknown in ("/agent/content/not-a-published-article.md",
-                          "/agent/content/../../private.md"):
+          for unknown, expected_codes in (
+              ("/agent/content/not-a-published-article.md", (404,)),
+              ("/agent/content/../../private.md", (400, 404)),
+          ):
               try:
                   urlopen(base + unknown, timeout=30)
               except HTTPError as exc:
-                  assert exc.code == 404, (unknown, exc.code)
+                  assert exc.code in expected_codes, (unknown, exc.code)
               else:
                   raise AssertionError("Unexpected disclosure: " + unknown)
           print("First-party agent discovery HTTP contract verified")

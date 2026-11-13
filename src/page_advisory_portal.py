@@ -166,7 +166,7 @@ def _password_authenticated(session: dict) -> bool:
 
 def _first_password_form(session: dict, user: dict) -> None:
     st.html("""<section class="advisory-portal-intro">
-<h2>Verify your email. Set your password.</h2>
+<h2>Email confirmed. Set your password.</h2>
 <p>Your email has been confirmed. Set a password to activate your Advisory account.
 Future visits use your email and password, not an email access link.</p>
 </section>""")

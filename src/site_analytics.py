@@ -231,10 +231,13 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     ? decodeURIComponent(compositeRoleMatch[1].replace(/\+/g, ' ')).trim().slice(0, 120)
     : null;
   const incomingSource = rawIncomingSource
-    ? rawIncomingSource.split(/[?&]role=/i)[0].trim().slice(0, 100) || null
+    ? rawIncomingSource.split(/[?&]role=/i)[0].trim().toLowerCase().slice(0, 100) || null
     : null;
   const incomingRole = (params.get('role') || compositeRole || '').trim().slice(0, 120) || null;
-  const incomingUtmSource = (params.get('utm_source') || params.get('src') || '').trim().slice(0, 100) || null;
+  // Normalize first-party channel labels for consistent reporting; do not
+  // overwrite a conflicting UTM value from an intermediary such as ChatGPT.
+  const incomingUtmSource = (params.get('utm_source') || params.get('src') || '')
+    .trim().toLowerCase().slice(0, 100) || null;
   const incomingMedium = (params.get('utm_medium') || '').trim().toLowerCase()
     .replace(/[^a-z0-9_-]/g, '').slice(0, 32) || null;
   const incomingCampaign = (params.get('utm_campaign') || '').trim().slice(0, 100) || null;
@@ -250,6 +253,12 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       attribution.role = attribution.role || decodeURIComponent(storedComposite[2].replace(/\+/g, ' ')).trim().slice(0, 120) || null;
       win.sessionStorage.setItem(attributionKey, JSON.stringify(attribution));
     }}
+  }}
+
+  // Normalize historical mixed-case labels carried in this tab; retain both
+  // independently supplied source fields even when they disagree.
+  for (const key of ['source', 'utm_source']) {{
+    if (attribution[key]) attribution[key] = String(attribution[key]).trim().toLowerCase().slice(0, 100) || null;
   }}
 
   if (incomingSource || incomingRole || incomingUtmSource || incomingMedium || incomingCampaign || incomingContent) {{

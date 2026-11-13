@@ -69,10 +69,19 @@ def campaign_attribution_rows(report: dict) -> list[dict]:
     for item in report.get("campaigns", []):
         if not isinstance(item, dict):
             continue
+        declared = str(item.get("attribution_source") or "").strip()
+        utm = str(item.get("utm_source") or "").strip()
+        if declared and utm:
+            consistency = "Consistent" if declared.casefold() == utm.casefold() else "Different tags"
+        elif declared or utm:
+            consistency = "Partial"
+        else:
+            consistency = "Unattributed"
         result.append({
             "Entry hostname": str(item.get("host_label") or ""),
-            "Declared source": item.get("attribution_source") or "—",
-            "UTM source": item.get("utm_source") or "—",
+            "Declared source": declared or "—",
+            "UTM source": utm or "—",
+            "Source agreement": consistency,
             "Medium": item.get("utm_medium") or "—",
             "Campaign": item.get("utm_campaign") or "—",
             "Content": item.get("utm_content") or "—",
@@ -153,8 +162,10 @@ def render_entry_domain_report(window: str, *, expected_site_views: int | None =
             st.dataframe(campaigns, hide_index=True, use_container_width=True)
             st.caption(
                 "Declared source (?source=) and UTM source (?utm_source=) are "
-                "independent values. A masked page may conceal outer query "
-                "parameters; values not visible to the browser remain unknown."
+                "independent values. Source agreement highlights differences without "
+                "rewriting either value. Chat clients can append their own UTM source; "
+                "a different tag is not proof of where the visitor actually came from. "
+                "Parameters not visible to the browser remain unknown."
             )
 
     evidence_rows = source_evidence_rows(report)

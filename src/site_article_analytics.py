@@ -102,13 +102,19 @@ def inject_article_analytics(
 
   const incomingSource = (
     params.get('source') || params.get('utm_source') || params.get('src') || ''
-  ).trim().slice(0, 100) || null;
+  ).trim().toLowerCase().slice(0, 100) || null;
   const incomingRole = (params.get('role') || '').trim().slice(0, 120) || null;
-  const incomingUtmSource = (params.get('utm_source') || params.get('src') || '').trim().slice(0, 100) || null;
+  const incomingUtmSource = (params.get('utm_source') || params.get('src') || '')
+    .trim().toLowerCase().slice(0, 100) || null;
   const incomingMedium = (params.get('utm_medium') || '').trim().toLowerCase()
     .replace(/[^a-z0-9_-]/g, '').slice(0, 32) || null;
   const incomingCampaign = (params.get('utm_campaign') || '').trim().slice(0, 100) || null;
   const incomingContent = (params.get('utm_content') || '').trim().slice(0, 100) || null;
+  // Keep article and page collectors consistent even when sharing clients
+  // append their own UTM source. Normalize casing, never infer the referrer.
+  for (const key of ['source', 'utm_source']) {{
+    if (attribution[key]) attribution[key] = String(attribution[key]).trim().toLowerCase().slice(0, 100) || null;
+  }}
   if (incomingSource || incomingRole || incomingUtmSource || incomingMedium || incomingCampaign || incomingContent) {{
     attribution = {{
       source: incomingSource || attribution.source || null,

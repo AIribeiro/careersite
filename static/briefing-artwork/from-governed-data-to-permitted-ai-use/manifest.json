@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "slug": "from-governed-data-to-permitted-ai-use",
+  "revision": "v1.1-approved-20261113",
+  "article_fingerprint": "73277aba3e36002a354b85535e90960675359a947f28cabc1b5bad089c4faaa8",
+  "heading": "Four assurances. One accountable decision.",
+  "deck": "How to assess the permission, behavior and operating evidence behind a specific enterprise AI use.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "ad003ef0d23b12c50886bd6fec48eaf3a01525a5a2b6f74b050af375dc26051e",
+    "width": 1199,
+    "height": 1312
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "4ae2928aca8766a59dc7c6bab8b86e73597d377c09507c66c3222ee8c1c1492e",
+    "width": 960,
+    "height": 2560
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "3b6dbe628afbb7c0a9d1c2dfc0b2148c67d9fe8a0563cf5ff96011386d301a51",
+    "pages": 1
+  },
+  "alt_text": "Four assurance dimensions — data, permitted use, AI behavior and operating assurance — converge on a decision to proceed, restrict, hold or stop a specific AI operation.",
+  "caption": "Original management framework by Jair Ribeiro. This is not an EU AI Act conformity assessment, certification or legal authorization.",
+  "author": "Jair Ribeiro",
+  "legal_review_as_of": "2026-11-13",
+  "release_status": "approved by owner for publication on 2026-11-13; publication pending release gates"
+}

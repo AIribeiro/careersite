@@ -28,7 +28,7 @@ from reader_membership import (reader_route, reader_download, ROI_SLUG, AUTHORIT
 from reader_catalog_admin import reader_admin_route
 from weekly_ai_audio import mp3_path
 from agent_discovery import (PUBLIC_ORIGIN, agents_text, catalogue_json,
-                             llms_text, markdown_summary, public_catalogue,
+                             llms_text, markdown_summary, open_edition_markdown, public_catalogue,
                              robots_text, safe_slug)
 
 # Source-level compatibility anchors for the established smoke tests. The
@@ -370,8 +370,19 @@ async def _agent_content(request):
         return PlainTextResponse("Not found", status_code=404)
     for item in _published_agent_catalogue()["content"]:
         if item["slug"] == slug:
+            document = markdown_summary(item)
+            if item["access"] == "open":
+                # Only fetch HTML for candidate *open* editions. Recheck the
+                # current CMS record and editorial rule before emitting body.
+                try:
+                    published = fetch_published_articles()
+                    full = fetch_public_article(slug)
+                    if full is not None:
+                        document = open_edition_markdown(item, full, published)
+                except (RuntimeError, ValueError, TimeoutError):
+                    pass
             return PlainTextResponse(
-                markdown_summary(item), media_type="text/markdown; charset=utf-8",
+                document, media_type="text/markdown; charset=utf-8",
                 headers={
                     **_AGENT_HEADERS,
                     "Link": f'<{PUBLIC_ORIGIN}/llms.txt>; rel="describedby"',

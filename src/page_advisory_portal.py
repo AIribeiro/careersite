@@ -44,6 +44,21 @@ ADVISORY_CSS = """
 [data-testid="stForm"]{border:1px solid #d5cabf!important;
  background:#fffdfa!important;padding:clamp(20px,3vw,34px)!important;
  box-shadow:0 12px 30px rgba(16,31,48,.045)}
+.advisory-process-guide{margin:24px 0 32px;padding:25px;border:1px solid #d9cdbd;background:#fffaf3}
+.advisory-process-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+.advisory-process-steps div{padding:0 13px 0 0;border-right:1px solid #e8ded0}
+.advisory-process-steps div:last-child{border-right:none}
+.advisory-process-steps strong{display:block;font:700 13px/1.5 Arial,sans-serif;color:#172d42}
+.advisory-process-steps span{display:block;font:12px/1.6 Arial,sans-serif;color:#5c6875;margin-top:8px}
+@media(max-width:720px), (max-device-width:720px){
+ .advisory-process-steps{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+ .advisory-process-steps div{border-right:0}
+}
+@media(max-width:420px), (max-device-width:420px){
+ .advisory-process-guide{padding:20px 16px}
+ .advisory-process-steps{grid-template-columns:1fr;gap:12px}
+ .advisory-process-steps div{padding-bottom:12px;border-bottom:1px solid #e8ded0}
+}
 [data-testid="stForm"] label{color:#22364b!important}
 [data-testid="stButton"] button[kind="primary"],
 [data-testid="stFormSubmitButton"] button[kind="primary"]{background:#b76c42!important;

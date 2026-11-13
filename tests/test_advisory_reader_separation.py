@@ -98,7 +98,7 @@ class AdvisoryReaderSeparationTests(unittest.TestCase):
         self.assertEqual(_host_origin(), "https://jairribeiro.com")
         self.assertEqual(BRANDED_PREMIUM_ORIGIN, BASE_URL)
         reader = self.source("src/page_reader_native.py")
-        self.assertIn('target = _host_origin() + "/?page=" + destination', reader)
+        self.assertIn('target = _callback_origin(destination) + "/?page=" + destination', reader)
         meta = self.source("src/site_meta.py")
         self.assertIn('const base = "https://jairribeiro.com/";', meta)
         self.assertNotIn('"url": "https://jairribeiro-ai.streamlit.app/"', meta)

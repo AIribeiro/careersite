@@ -22,7 +22,7 @@ TABLES = {
     "portfolio_advisory_admin_records": ("*", "updated_at.desc"),
     "portfolio_advisory_admin_audit": ("*", "created_at.desc"),
 }
-STAGES = ("inquiry", "discovery", "proposal", "engaged", "closed")
+STAGES = ("inquiry", "discovery", "proposal", "engaged", "handover", "closed")
 
 
 def _read_advisory(token: str, table: str) -> list[dict]:
@@ -95,7 +95,7 @@ def _reflect_request_journey(people: list[dict],requests: list[dict]) -> list[di
     mapped={
         "submitted":"inquiry","reviewing":"inquiry","awaiting_client":"inquiry",
         "discovery":"discovery","proposal":"proposal","active":"engaged",
-        "completed":"closed","closed":"closed","declined":"closed",
+        "completed":"handover","closed":"closed","declined":"closed",
     }
     latest={}
     for req in sorted(requests,key=lambda x:str(x.get("created_at") or ""),reverse=True):

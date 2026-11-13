@@ -507,7 +507,15 @@ Executive AI Briefings, full articles and downloadable infographics.</p>
 </header>""")
     session, user = _session()
     if session is None or user is None:
+        notice = st.session_state.get("reader_native_flash")
+        if isinstance(notice, tuple) and notice[0] == "error":
+            st.error(str(notice[1]))
+            st.session_state.pop("reader_native_flash", None)
         _advisory_login()
+        return
+    if not _password_authenticated(session):
+        # Email confirmation establishes identity only; never Advisory access.
+        _first_password_form(session, user)
         return
     try:
         profile = _get_advisory_profile(session, user)

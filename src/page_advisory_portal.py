@@ -500,90 +500,62 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
         st.error("This advisory account is not currently active. Contact advisory support.")
         return
     st.session_state["advisory_member"] = True
-    name = str(profile.get("first_name") or "there")
-    st.html("""<div class="advisory-portal-badge">
-<strong>Your advisory account is active.</strong> Full access to the Premium Reader library
-is included. Registration gives you a direct advisory contact channel;
-scope, availability and commercial terms are agreed separately.</div>""")
-    st.markdown("### Welcome, " + name.replace("<", "").replace(">", "") + ".")
-    st.write(
-        "Use this space to keep the executive question current. For an actual engagement, "
-        "we begin with the decision, mandate, stakeholders and available evidence, "
-        "then agree a focused scope and tangible outputs."
-    )
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Open my full Premium Reader library", type="primary", use_container_width=True):
-            _open_library()
-    with col2:
-        st.link_button(
-            "Discuss an advisory decision",
-            f"mailto:{ADVISORY_EMAIL}?subject=Advisory%20discussion",
-            use_container_width=True,
-        )
+    from page_advisory_client_journey import render_advisory_client_journey
+    render_advisory_client_journey(session, user, profile)
 
-    st.markdown("#### Your professional context")
-    st.caption("Keep your information current. Only high-level, non-confidential business context should be entered here.")
-    with st.form("advisory_context"):
-        a, b = st.columns(2)
-        with a:
-            first = st.text_input(
-                "First name", value=str(profile.get("first_name") or ""), max_chars=80)
-        with b:
-            last = st.text_input(
-                "Last name", value=str(profile.get("last_name") or ""), max_chars=80)
-        a, b = st.columns(2)
-        with a:
-            role = st.text_input(
-                "Job title / role", value=str(profile.get("role_title") or ""), max_chars=160)
-        with b:
-            organization = st.text_input(
-                "Organization", value=str(profile.get("organization") or ""), max_chars=180)
-        decision = st.text_area(
-            "The decision or business outcome you are working through",
-            value=str(profile.get("decision_context") or ""),
-            max_chars=1200, height=120,
-        )
-        a, b = st.columns(2)
-        with a:
-            current_focus = str(profile.get("advisory_focus") or "")
-            focus = st.selectbox(
-                "Advisory focus", FOCUS_OPTIONS,
-                index=FOCUS_OPTIONS.index(current_focus) if current_focus in FOCUS_OPTIONS else 0,
-                format_func=lambda v: v or "Not specified",
+    with st.expander("Your professional profile and account details"):
+        st.markdown("#### Your professional context")
+        st.caption("Keep your information current. Only high-level, non-confidential business context should be entered here.")
+        with st.form("advisory_context"):
+            a, b = st.columns(2)
+            with a:
+                first = st.text_input(
+                    "First name", value=str(profile.get("first_name") or ""), max_chars=80)
+            with b:
+                last = st.text_input(
+                    "Last name", value=str(profile.get("last_name") or ""), max_chars=80)
+            a, b = st.columns(2)
+            with a:
+                role = st.text_input(
+                    "Job title / role", value=str(profile.get("role_title") or ""), max_chars=160)
+            with b:
+                organization = st.text_input(
+                    "Organization", value=str(profile.get("organization") or ""), max_chars=180)
+            decision = st.text_area(
+                "The decision or business outcome you are working through",
+                value=str(profile.get("decision_context") or ""),
+                max_chars=1200, height=120,
             )
-        with b:
-            current_horizon = str(profile.get("decision_horizon") or "")
-            horizon = st.selectbox(
-                "Decision timeframe", HORIZON_OPTIONS,
-                index=HORIZON_OPTIONS.index(current_horizon) if current_horizon in HORIZON_OPTIONS else 0,
-                format_func=lambda v: v or "Not specified",
-            )
-        save = st.form_submit_button("Update my advisory context")
-    if save:
-        try:
-            _update_context(session, user, {
-                "first_name": first, "last_name": last, "organization": organization,
-                "role_title": role, "decision_context": decision,
-                "advisory_focus": focus, "decision_horizon": horizon,
-            })
-            st.success("Your advisory context has been updated.")
-            st.rerun()
-        except ValueError as exc:
-            st.error(str(exc))
-        except (RuntimeError, TimeoutError):
-            st.error("The update could not be saved.")
-    st.markdown("#### How we work")
-    st.write(
-        "**1. Frame the decision.** Identify the business outcome, decision rights and time horizon.  "
-        "**2. Assess the situation.** Review evidence, risks, operating dependencies and viable options.  "
-        "**3. Agree the engagement.** Define the counterpart, working sessions and deliverables.  "
-        "**4. Make the next move.** Leave with documented recommendations, owners and the next decision point."
-    )
-    st.caption(
-        "Your account is not a contract, subscription purchase or promise of availability. "
-        "Scheduling and commercial terms are agreed directly."
-    )
+            a, b = st.columns(2)
+            with a:
+                current_focus = str(profile.get("advisory_focus") or "")
+                focus = st.selectbox(
+                    "Advisory focus", FOCUS_OPTIONS,
+                    index=FOCUS_OPTIONS.index(current_focus) if current_focus in FOCUS_OPTIONS else 0,
+                    format_func=lambda v: v or "Not specified",
+                )
+            with b:
+                current_horizon = str(profile.get("decision_horizon") or "")
+                horizon = st.selectbox(
+                    "Decision timeframe", HORIZON_OPTIONS,
+                    index=HORIZON_OPTIONS.index(current_horizon) if current_horizon in HORIZON_OPTIONS else 0,
+                    format_func=lambda v: v or "Not specified",
+                )
+            save = st.form_submit_button("Update my advisory context")
+        if save:
+            try:
+                _update_context(session, user, {
+                    "first_name": first, "last_name": last, "organization": organization,
+                    "role_title": role, "decision_context": decision,
+                    "advisory_focus": focus, "decision_horizon": horizon,
+                })
+                st.success("Your advisory context has been updated.")
+                st.rerun()
+            except ValueError as exc:
+                st.error(str(exc))
+            except (RuntimeError, TimeoutError):
+                st.error("The update could not be saved.")
+
     with st.expander("Account security and sign-out"):
         with st.form("advisory_set_password", clear_on_submit=True):
             pwd = st.text_input("Set or change password (12 characters minimum)", type="password", max_chars=128)

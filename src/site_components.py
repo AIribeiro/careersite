@@ -47,6 +47,7 @@ def nav(active: str) -> str:
         f'{link("ai-data-governance", "AI & Data Governance")}'
         f'{link("thinking", "Thinking")}'
         f'{member_link}'
+        f'{link("advisory", "Advisory")}'
         f'{link("about", "About")}'
         f'<a class="link contactlink{" on" if active == "contact" else ""}" style="{top_item_style}" href="?page=contact" '
         'target="_self" data-hq-event="contact_nav">Contact</a>'
@@ -56,11 +57,11 @@ def nav(active: str) -> str:
 
 def footer() -> str:
     cv = f'<a href="{CV_URI}" download="{CV_DOWNLOAD_NAME}" data-hq-event="cv_download_footer">Download CV ↓</a>' if CV_URI else ""
-    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI &amp; Data · Gothenburg, Sweden · International experience.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_footer">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_footer">Medium ↗</a><a href="?page=briefings" target="_self" data-hq-event="briefings_footer">Executive AI Briefings →</a><a href="mailto:{EMAIL}" data-hq-event="email_footer">Email</a>{cv}</div></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
+    return f'''<footer class="footer"><div class="container"><div class="footertop"><div><strong>Jair Ribeiro</strong><p>Enterprise AI &amp; Data · Gothenburg, Sweden · International experience.</p></div><div class="footerlinks"><a href="{LINKEDIN}" target="_blank" rel="noopener" data-hq-event="linkedin_footer">LinkedIn ↗</a><a href="{MEDIUM}" target="_blank" rel="noopener" data-hq-event="medium_footer">Medium ↗</a><a href="?page=briefings" target="_self" data-hq-event="briefings_footer">Executive AI Briefings →</a><a href="?page=advisory" target="_self" data-hq-event="advisory_footer">Executive Advisory</a><a href="?page=privacy" target="_self" data-hq-event="privacy_footer">Privacy &amp; data</a><a href="mailto:{EMAIL}" data-hq-event="email_footer">Email</a>{cv}</div></div><div class="copy">© 2026 Jair Ribeiro · Gothenburg, Sweden</div></div></footer>'''
 
 
 def opportunity() -> str:
-    return '''<section class="cta"><div class="container ctain"><div><h2>Working on a similar enterprise AI or data problem?</h2><p>If the context involves strategy, governance, adoption, portfolio choices or operating ownership, the experience on this site may be relevant.</p></div><a class="btn ghost" href="?page=contact" target="_self" data-hq-event="contact_opportunity">Contact →</a></div></section>'''
+    return '''<section class="cta"><div class="container ctain"><div><h2>Working on a similar enterprise AI or data problem?</h2><p>If the context involves strategy, governance, adoption, portfolio choices or operating ownership, the experience on this site may be relevant.</p></div><a class="btn ghost" href="?page=advisory" target="_self" data-hq-event="advisory_opportunity">Discuss an advisory question →</a></div></section>'''
 
 
 def journey_next(page: str) -> str:

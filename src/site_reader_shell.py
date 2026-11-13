@@ -7,6 +7,7 @@ launcher renders only the reader flow, regardless of ?page.
 """
 from __future__ import annotations
 
+from site_assets import READERS_EMAIL
 from site_components import footer, nav
 from site_image_styles import IMAGE_CSS
 from site_styles import CSS
@@ -505,7 +506,8 @@ def reader_footer() -> str:
     support = (
         '<div class="reader-account-help" role="note">'
         'Need help with your reader account or available downloads? '
-        '<a href="mailto:info@jairribeiro.com">info@jairribeiro.com</a>'
+        f'<a href="mailto:{READERS_EMAIL}">{READERS_EMAIL}</a> · '
+        '<a href="?page=privacy" target="_self">Privacy &amp; data</a>'
         '</div>'
     )
     return '<div class="site reader-shell-footer">' + support + footer() + '</div>'

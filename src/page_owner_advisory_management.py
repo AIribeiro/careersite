@@ -90,6 +90,28 @@ def _people(profiles: list[dict], intents: list[dict],
     return sorted(output, key=lambda p: str(p.get("created_at") or ""), reverse=True)
 
 
+def _reflect_request_journey(people: list[dict],requests: list[dict]) -> list[dict]:
+    """Request stages, not arbitrary member-stage tags, determine the real pipeline."""
+    mapped={
+        "submitted":"inquiry","reviewing":"inquiry","awaiting_client":"inquiry",
+        "discovery":"discovery","proposal":"proposal","active":"engaged",
+        "completed":"closed","closed":"closed","declined":"closed",
+    }
+    latest={}
+    for req in sorted(requests,key=lambda x:str(x.get("created_at") or ""),reverse=True):
+        latest.setdefault(str(req.get("user_id") or ""),req)
+    updated=[]
+    for person in people:
+        entry={**person}
+        req=latest.get(str(person["user_id"]))
+        entry["request_count"]=sum(str(x.get("user_id"))==str(person["user_id"]) for x in requests)
+        entry["has_request"]=req is not None
+        entry["latest_request_status"]=str(req.get("status") or "") if req else ""
+        entry["relationship_stage"]=mapped.get(str(req.get("status")),"not_requested") if req else "not_requested"
+        updated.append(entry)
+    return updated
+
+
 def _owner_action(token: str, uid: str, action: str,
                   *, value: str | None = None, follow_up: str | None = None) -> dict:
     if action not in ("stage", "note", "next_action", "follow_up", "suspend", "reinstate"):
@@ -151,21 +173,10 @@ def _details(token: str, person: dict) -> None:
     st.caption("Client status and commercial terms must be agreed separately. No marketing consent is inferred.")
 
     with st.expander("Relationship stage and next step", expanded=True):
-        stage = str(person.get("relationship_stage") or "inquiry")
-        selected = st.selectbox(
-            "Relationship stage", STAGES,
-            index=STAGES.index(stage) if stage in STAGES else 0,
-            format_func=lambda v: v.title(),
-            key="advisory_stage_" + uid,
-        )
-        if st.button("Save relationship stage", key="advisory_stage_save_" + uid,
-                     disabled=selected == stage):
-            try:
-                _owner_action(token, uid, "stage", value=selected)
-                st.success("Relationship stage saved and audited.")
-                st.rerun()
-            except (RuntimeError, ValueError, TimeoutError):
-                st.error("Stage could not be updated.")
+        stage = str(person.get("relationship_stage") or "not_requested")
+        st.write("**Current relationship stage:** " +
+                 ("Registered · no request yet" if stage=="not_requested" else stage.title()))
+        st.caption("Client-facing stages are managed from Action inbox, where a specific request and conversation can be reviewed.")
         with st.form("advisory_next_action_" + uid):
             action = st.text_area(
                 "Next agreed action / follow-up", value=str(person.get("next_action") or ""),
@@ -280,16 +291,18 @@ def render_owner_advisory_management(owner_session: dict) -> None:
         intents = _read_advisory(token, "portfolio_advisory_intents")
         controls = _read_advisory(token, "portfolio_advisory_admin_records")
         audit = _read_advisory(token, "portfolio_advisory_admin_audit")
+        from page_owner_advisory_requests import _read_owner_requests
+        requests = _read_owner_requests(token)
     except (RuntimeError, ValueError, TimeoutError):
         st.error("The Advisory directory is temporarily unavailable.")
         return
-    people = _people(profiles, intents, controls)
+    people = _reflect_request_journey(_people(profiles, intents, controls), requests)
 
     kpi = st.columns(4)
     kpi[0].metric("Advisory registrations", len(people))
     kpi[1].metric("Pending onboarding", sum(p.get("onboarding") != "Profile completed" for p in people))
     kpi[2].metric("Completed accounts", sum(p.get("onboarding") == "Profile completed" for p in people))
-    kpi[3].metric("Engaged relationships", sum(p.get("relationship_stage") == "engaged" for p in people))
+    kpi[3].metric("Active engagements", sum(p.get("relationship_stage") == "engaged" for p in people))
     st.caption(
         "Registration only confirms the Advisory account. A specific request, "
         "owner response and agreed scope are separate steps. "
@@ -300,7 +313,7 @@ def render_owner_advisory_management(owner_session: dict) -> None:
     )
     with inbox_tab:
         from page_owner_advisory_requests import render_advisory_action_inbox
-        render_advisory_action_inbox(token, people)
+        render_advisory_action_inbox(token, people, requests)
     with directory:
         search = st.text_input(
             "Find an advisory registrant",
@@ -373,9 +386,10 @@ def render_owner_advisory_management(owner_session: dict) -> None:
             key="advisory_owner_directory_csv",
         )
     with pipeline:
-        for stage_name in STAGES:
+        st.caption("The pipeline advances with actual client requests, not account registration alone.")
+        for stage_name in ("not_requested",) + STAGES:
             group = [p for p in people if p.get("relationship_stage") == stage_name]
-            with st.expander(stage_name.title() + f" · {len(group)}", expanded=stage_name == "inquiry"):
+            with st.expander(("Registered — no request" if stage_name=="not_requested" else stage_name.title()) + f" · {len(group)}", expanded=stage_name in ("not_requested","inquiry")):
                 if not group:
                     st.caption("No relationships at this stage.")
                 else:
@@ -385,7 +399,7 @@ def render_owner_advisory_management(owner_session: dict) -> None:
                             str(p.get("onboarding")) + " · Next: " +
                             str(p.get("next_action") or "Not set")
                         )
-        st.caption("Pipeline stage is set by the owner. No automatic conversion to a paid client.")
+        st.caption("Pipeline stages follow the owner-managed request journey. A submitted request is never treated as a paid engagement.")
     with audit_tab:
         st.caption("Every owner stage, note, follow-up or account action is recorded.")
         if audit:

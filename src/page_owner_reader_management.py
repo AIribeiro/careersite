@@ -553,6 +553,10 @@ def render_owner_reader_management(session: dict) -> None:
         "Owner-only audience operations · Executive AI Briefings membership, "
         "consented mailing lists and reader activity."
     )
+    st.link_button(
+        "Open Premium Reader library ↗",
+        "https://jairribeiro.com/?page=readers",
+    )
     if st.button("Refresh reader data", key="admin_refresh_reader_records"):
         st.rerun()
 

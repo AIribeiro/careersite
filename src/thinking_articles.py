@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 
-BASE_URL = "https://jairribeiro-ai.streamlit.app"
+BASE_URL = "https://jairribeiro.com"
 
 
 @dataclass(frozen=True)

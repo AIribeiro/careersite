@@ -406,6 +406,8 @@ async def _sitemap(_request):
         (PUBLIC_ORIGIN + "/?page=briefings", "2026-10-31"),
         (PUBLIC_ORIGIN + "/?page=about", "2026-09-17"),
         (PUBLIC_ORIGIN + "/?page=contact", "2026-09-17"),
+        (PUBLIC_ORIGIN + "/?page=advisory", "2026-11-13"),
+        (PUBLIC_ORIGIN + "/?page=privacy", "2026-11-13"),
         (PUBLIC_ORIGIN + "/?page=ai-data-governance", "2026-09-27"),
     ]
     entries.extend((item["url"], item["published"]) for item in catalogue["content"])

@@ -16,6 +16,20 @@ from site_campaign_links import (
 
 
 class AttributionLinkTests(unittest.TestCase):
+    def test_branded_destination_and_legacy_host_are_canonicalized(self):
+        first = make_distribution_link(
+            "https://jairribeiro.com/?page=advisory-access",
+            channel="linkedin", campaign="advisory_launch",
+        )
+        self.assertEqual(urlparse(first).netloc, "jairribeiro.com")
+        self.assertEqual(parse_qs(urlparse(first).query)["page"], ["advisory-access"])
+        legacy = make_distribution_link(
+            "https://jairribeiro-ai.streamlit.app/?page=readers",
+            channel="email", campaign="reader_welcome",
+        )
+        self.assertEqual(urlparse(legacy).netloc, "jairribeiro.com")
+        self.assertEqual(parse_qs(urlparse(legacy).query)["page"], ["readers"])
+
     def test_channels_have_canonical_names_and_media(self):
         self.assertEqual(canonical_channel("LiNkEdIn"), "linkedin")
         self.assertEqual(canonical_channel("thre"), "threads")
@@ -93,7 +107,7 @@ class AttributionLinkTests(unittest.TestCase):
             slug=slug, kind="Executive Briefing", status="published",
         ))
         self.assertIn(
-            f'data-copy-url="https://jairribeiro-ai.streamlit.app/?page=briefing&amp;article={slug}"',
+            f'data-copy-url="https://jairribeiro.com/?page=briefing&amp;article={slug}"',
             markup,
         )
         self.assertIn("More Executive AI Briefings", markup)
@@ -210,7 +224,7 @@ class AttributionLinkTests(unittest.TestCase):
             markup = _safe_share_footer(article)
         self.assertIn("Copy article link", markup)
         self.assertIn(
-            f'data-copy-url="https://jairribeiro-ai.streamlit.app/?page=briefing&amp;article={slug}"',
+            f'data-copy-url="https://jairribeiro.com/?page=briefing&amp;article={slug}"',
             markup,
         )
 
@@ -235,7 +249,7 @@ class AttributionLinkTests(unittest.TestCase):
         self.assertEqual(parsed.path, "/sharing/share-offsite/")
         self.assertEqual(set(parse_qs(parsed.query)), {"url"})
         target = urlparse(parse_qs(parsed.query)["url"][0])
-        self.assertEqual(target.netloc, "jairribeiro-ai.streamlit.app")
+        self.assertEqual(target.netloc, "jairribeiro.com")
         self.assertEqual(target.path, f"/thinking/{slug}")
         inner = parse_qs(target.query)
         self.assertEqual(inner["utm_source"], ["linkedin"])
@@ -246,7 +260,7 @@ class AttributionLinkTests(unittest.TestCase):
         # Copied links open the Streamlit article without an ASGI redirect.
         # They are deliberately untagged: a copy action does not prove the channel.
         self.assertIn(
-            f'data-copy-url="https://jairribeiro-ai.streamlit.app/?page=thinking&amp;article={slug}"',
+            f'data-copy-url="https://jairribeiro.com/?page=thinking&amp;article={slug}"',
             markup,
         )
 

@@ -9,6 +9,7 @@ import argparse
 from datetime import datetime, timezone
 import json
 import time
+from xml.etree import ElementTree as ET
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -83,7 +84,46 @@ def verify_pages() -> None:
     if "## Full public edition" in text:
         raise AssertionError("Static Pages export unexpectedly contained complete content")
     print("PASS", "/agent/content/" + sample["slug"] + ".md", content_type)
-    print("Verified static agent catalogue for", len(items), "published items.")
+    additional = [
+        ("/robots.txt", "text/plain"),
+        ("/sitemap.xml", "application/xml"),
+        ("/feed.xml", "application/xml"),
+        ("/discover/", "text/html"),
+        ("/discover/" + sample["slug"] + "/", "text/html"),
+        ("/agent/publication-state.json", "application/json"),
+        ("/agent/change-report.json", "application/json"),
+    ]
+    for path, expected in additional:
+        status, content_type, body = get(PAGES + path)
+        if status != 200 or not content_type.lower().startswith(expected):
+            raise AssertionError("Discovery route unavailable: " + path + " " + content_type)
+        if path == "/robots.txt" and b"OAI-SearchBot" not in body:
+            raise AssertionError("OpenAI search bot guidance missing")
+        if path == "/sitemap.xml":
+            root = ET.fromstring(body)
+            locs = [node.text for node in root.iter() if node.tag.endswith("}loc")]
+            if len(locs) != len(items) + 1:
+                raise AssertionError("Sitemap must index each published public summary once")
+            if not all(loc.startswith(PAGES + "/discover/") for loc in locs):
+                raise AssertionError("Sitemap contains wrong-host or redirect-only pages")
+        if path.startswith("/discover/") and b"<html" not in body.lower():
+            raise AssertionError("Crawlable discovery HTML not delivered")
+        print("PASS", path, status, content_type, len(body), "bytes")
+
+    print("Verified static agent catalogue and crawlable metadata for", len(items), "published items.")
+
+
+def probe_agent_subdomain() -> bool:
+    """The ai. hostname is a path-preserving 301 to the actual Pages server."""
+    from urllib.request import urlopen
+    try:
+        status, ctype, body = get("https://ai.jairribeiro.com/llms.txt", tries=1)
+        valid = status == 200 and ctype.lower().startswith("text/plain") and body.startswith(b"# Jair Ribeiro")
+        print("ai.jairribeiro.com/llms.txt", "READY" if valid else "NOT_READY", status, ctype)
+        return valid
+    except Exception as exc:
+        print("ai.jairribeiro.com/llms.txt UNVERIFIED", type(exc).__name__)
+        return False
 
 
 def probe_branded() -> bool:
@@ -104,6 +144,7 @@ def main() -> None:
     parser.add_argument("--require-branded", action="store_true")
     args = parser.parse_args()
     verify_pages()
+    probe_agent_subdomain()
     if args.require_branded and not probe_branded():
         raise SystemExit("Branded root is not yet serving raw llms.txt")
     if not args.require_branded:

@@ -13,6 +13,8 @@ on:
       - "scripts/generate_weekly_ai_covers.py"
       - "scripts/build_linkedin_share_site.py"
       - "scripts/build_agent_discovery_static.py"
+      - "scripts/discovery_search_surface.py"
+      - "scripts/indexnow_discovery.py"
       - "scripts/verify_agent_discovery_live.py"
       - "src/agent_discovery.py"
       - "static/thinking-visuals/**"
@@ -58,12 +60,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Capture previously published discovery state
+        run: python scripts/indexnow_discovery.py snapshot --output _previous_agent_state.json
+
       - name: Build static social share site
         run: python scripts/build_linkedin_share_site.py --output _share_site --share-base https://airibeiro.github.io/careersite
 
       - name: Build public AI discovery mirror from live CMS metadata
         run: |
           python scripts/build_agent_discovery_static.py --output _share_site --share-base https://airibeiro.github.io/careersite
+
+      - name: Detect recently added, updated or removed public discovery pages
+        run: |
+          python scripts/indexnow_discovery.py diff --previous _previous_agent_state.json --current _share_site/agent/publication-state.json --output _share_site/agent/change-report.json
+
+      - name: Prepare IndexNow ownership proof when configured
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: |
+          python scripts/indexnow_discovery.py write-key --output _share_site --key "$INDEXNOW_KEY"
 
       - name: Validate generated social share page
         run: |
@@ -165,7 +180,26 @@ jobs:
               assert item["title"] in markdown, item["slug"]
               assert "## Full public edition" not in markdown, item["slug"]
               assert "content_html" not in markdown, item["slug"]
-          print('Static article redirects, campaign tags, social assets, and public-safe agent discovery validated')
+          from xml.etree import ElementTree as ET
+          assert (agent_dir / "discover/index.html").is_file()
+          assert (agent_dir / "robots.txt").is_file()
+          assert (agent_dir / "feed.xml").is_file()
+          assert "OAI-SearchBot" in (agent_dir / "robots.txt").read_text()
+          sitemap_root = ET.parse(agent_dir / "sitemap.xml").getroot()
+          links = [n.text for n in sitemap_root.iter() if n.tag.endswith("}loc")]
+          assert len(links) == catalog["count"] + 1
+          assert all(link.startswith("https://airibeiro.github.io/careersite/discover/") for link in links)
+          state = json.loads((agent_dir / "agent/publication-state.json").read_text())
+          report = json.loads((agent_dir / "agent/change-report.json").read_text())
+          assert set(state["records"]) == {row["slug"] for row in catalog["content"]}
+          assert report["status"] in {"bootstrap", "complete", "unavailable"}
+          for item in catalog["content"]:
+              page = (agent_dir / "discover" / item["slug"] / "index.html").read_text()
+              assert item["title"] in page, item["slug"]
+              assert "PRIVATE_PREMIUM_COPY" not in page
+              assert "content_html" not in page
+              assert 'rel="canonical"' in page
+          print('Static share pages and metadata-only crawlable discovery validated')
           PY
 
       - name: Configure GitHub Pages
@@ -200,3 +234,8 @@ jobs:
           python scripts/verify_weekly_ai_live_pages.py --briefing-slug emotional-intelligence-ai-leadership-adoption
       - name: Verify public AI agent discovery files after Pages deployment
         run: python scripts/verify_agent_discovery_live.py
+      - name: Notify participating search engines of changed public summaries
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: |
+          python scripts/indexnow_discovery.py notify --report https://airibeiro.github.io/careersite/agent/change-report.json --key "$INDEXNOW_KEY"

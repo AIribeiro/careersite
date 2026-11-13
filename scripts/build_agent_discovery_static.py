@@ -15,6 +15,8 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
@@ -23,6 +25,7 @@ from agent_discovery import (
     markdown_summary, public_catalogue,
 )
 from thinking_articles import ARTICLES
+from scripts.discovery_search_surface import write_search_surface
 
 DEFAULT_SHARE_BASE = "https://airibeiro.github.io/careersite"
 
@@ -105,7 +108,41 @@ def write_static_discovery(output: Path, catalogue: dict, share_base: str) -> di
     ).replace(
         "GET /sitemap.xml", "GET " + PUBLIC_ORIGIN + "/sitemap.xml"
     )
+    guide = guide.replace(
+        "- GET " + PUBLIC_ORIGIN + "/sitemap.xml",
+        "- GET " + base + "/sitemap.xml"
+    )
+    guide += (
+        "\n## Public crawlable editorial summaries\n\n"
+        "- HTML index: " + base + "/discover/\n"
+        "- Publication feed: " + base + "/feed.xml\n"
+        "- Robots directives for the ai.jairribeiro.com forwarding endpoint: "
+        + base + "/robots.txt\n"
+        "- These resources are public metadata summaries only; complete Premium "
+        "content stays behind the Reader account experience.\n"
+    )
     (output / "agents.md").write_text(guide, encoding="utf-8")
+
+    # The Pages mirror is the actual final HTTP host of ai.jairribeiro.com.
+    # Add searchable public HTML and sitemap without exporting CMS HTML bodies.
+    result = write_search_surface(output, mirrored, base)
+    llms_path = output / "llms.txt"
+    llms = llms_path.read_text(encoding="utf-8")
+    llms = llms.replace(
+        "## Recent published perspectives",
+        "## Crawlable discovery\n\n"
+        "- [Public editorial summaries](" + base + "/discover/): "
+        "Public, indexable HTML introductions and original article links.\n"
+        "- [XML sitemap](" + base + "/sitemap.xml): "
+        "Published discovery URLs; source publication dates.\n"
+        "- [RSS updates](" + base + "/feed.xml): "
+        "Latest public summaries and publication links.\n"
+        "- [Crawler preferences](" + base + "/robots.txt): "
+        "Public paths, including OAI-SearchBot.\n\n"
+        "## Recent published perspectives",
+    )
+    llms_path.write_text(llms, encoding="utf-8")
+    assert result["count"] == mirrored["count"]
     return mirrored
 
 

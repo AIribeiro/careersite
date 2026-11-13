@@ -90,6 +90,31 @@ class AdvisoryJourneyTests(unittest.TestCase):
         self.assertEqual(active[0]["relationship_stage"],"engaged")
         self.assertEqual(active[0]["request_count"],1)
 
+    def test_client_request_form_is_actual_first_step_on_activated_account(self):
+        from streamlit.testing.v1 import AppTest
+        app=AppTest.from_file(
+            str(ROOT/"tests"/"advisory_client_journey_smoke_app.py"),
+            default_timeout=30,
+        ).run()
+        self.assertFalse(app.exception,[str(e.message) for e in app.exception])
+        labels=[w.label for w in app.text_input]
+        self.assertIn("The decision or challenge *",labels)
+        self.assertIn("What do you need to decide or achieve? *",
+                      [w.label for w in app.text_area])
+        self.assertIn("Send my advisory request",[w.label for w in app.button])
+        self.assertIn("Preferred first contact",[w.label for w in app.selectbox])
+
+    def test_owner_inbox_prompts_action_for_new_request(self):
+        from streamlit.testing.v1 import AppTest
+        app=AppTest.from_file(
+            str(ROOT/"tests"/"advisory_owner_inbox_smoke_app.py"),
+            default_timeout=30,
+        ).run()
+        self.assertFalse(app.exception,[str(e.message) for e in app.exception])
+        self.assertTrue(any(w.label=="Your action" for w in app.selectbox))
+        self.assertTrue(any(w.label=="Save and update the client" for w in app.button))
+        self.assertTrue(any(w.label=="Needs your response" for w in app.metric))
+
     def test_profile_editor_is_secondary_to_business_request(self):
         source=(ROOT/"src/page_advisory_portal.py").read_text(encoding="utf-8")
         account=source.split("def _advisory_account(",1)[1].split(

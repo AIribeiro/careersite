@@ -1,2 +1,3 @@
 2026-10-30 Week 44 recovery: generate missing branded Friday cover for already-published weekly-ai-2026-10-30; preserve audio, script and older editions.
 2026-11-06 Week 45 recovery: rerun existing weekly-ai-audio workflow for published weekly-ai-2026-11-06; generate missing MP3, transcript and approved branded cover without changing the CMS issue or archived assets.
+2026-11-13 Week 46 recovery: generate missing approved Week 43-style cover for already-published weekly-ai-2026-11-13; preserve existing CMS, audio, transcript, registry and archives.

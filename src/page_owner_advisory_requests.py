@@ -172,7 +172,7 @@ def _request_owner_detail(token: str,req: dict,people: dict) -> None:
             confirmed=st.checkbox(
                 "I have separately agreed the advisory scope, terms and permission to begin with the client."
             )
-        submitted=st.form_submit_button("Save and update the client",type="primary")
+        submitted=st.form_submit_button("Save next step / response",type="primary")
     if submitted:
         if action=="start" and not confirmed:
             st.error("Confirm that the engagement has been agreed before marking it active.")
@@ -188,7 +188,7 @@ def _request_owner_detail(token: str,req: dict,people: dict) -> None:
                     next_step=next_step.strip() if next_step.strip() else None,
                     follow_up=day.isoformat() if day else None,
                 )
-                st.success("Saved and added to the private client journey.")
+                st.success("Action recorded. Client-facing updates appear in the Advisory conversation.")
                 st.rerun()
             except (RuntimeError,TimeoutError,ValueError,KeyError):
                 st.error("The action was not saved. Review the stage and retry.")

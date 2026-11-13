@@ -7,6 +7,7 @@ native widget layout or carrying authentication secrets into links.
 from __future__ import annotations
 
 from html import escape
+import re
 
 from site_components import footer, nav
 
@@ -127,7 +128,19 @@ NATIVE_SHELL_CSS = r"""
 """
 
 
-def native_header(page: str) -> str:
+def _inert_links(markup: str) -> str:
+    """Keep the site menu visible during CMS editing without clickable routes."""
+    def replace_tag(match: re.Match[str]) -> str:
+        attrs = re.sub(
+            r'\s+(?:href|target|rel|download|data-hq-event)="[^"]*"',
+            "", match.group(1),
+        )
+        return ('<span' + attrs + ' aria-disabled="true"'
+                ' title="Finish editing before navigating">')
+    return re.sub(r'<a\b([^>]*)>', replace_tag, markup).replace('</a>', '</span>')
+
+
+def native_header(page: str, *, navigation_locked: bool = False) -> str:
     """Render the real site menu and a contextual editorial header."""
     if page == "advisory-access":
         active = "advisory-access"
@@ -173,10 +186,13 @@ def native_header(page: str) -> str:
             crumbs.append('<span class="current" aria-current="page">'
                           + escape(label) + '</span>')
     trail_html = '<span aria-hidden="true">/</span>'.join(crumbs)
+    top_menu = nav(active)
+    if navigation_locked:
+        top_menu = _inert_links(top_menu)
     return (
         NATIVE_SHELL_CSS
         + '<div class="site native-shell native-shell-header">'
-        + nav(active)
+        + top_menu
         + '<header class="native-hero' + compact + '">'
         + '<div class="container"><nav class="native-crumb" aria-label="Breadcrumb">'
         + trail_html + '</nav>'
@@ -188,7 +204,7 @@ def native_header(page: str) -> str:
     )
 
 
-def native_footer(page: str) -> str:
+def native_footer(page: str, *, navigation_locked: bool = False) -> str:
     """Real portfolio footer plus contextual support, never credentials."""
     if page == "advisory-access":
         from site_assets import ADVISORY_EMAIL, PRIVACY_EMAIL
@@ -205,8 +221,12 @@ def native_footer(page: str) -> str:
         )
     else:
         raise ValueError("Unknown native portfolio page")
+    site_footer = footer()
+    if navigation_locked:
+        note = _inert_links(note)
+        site_footer = _inert_links(site_footer)
     return (
         '<div class="site native-shell native-shell-footer">'
         + '<div class="native-support" role="note">' + note + '</div>'
-        + footer() + '</div>'
+        + site_footer + '</div>'
     )

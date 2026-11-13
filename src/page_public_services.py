@@ -5,7 +5,7 @@ and the privileged owner/CMS account. No email is sent by these page renderers.
 """
 from __future__ import annotations
 
-from site_assets import ADVISORY_EMAIL, EMAIL, PRIVACY_EMAIL, READERS_EMAIL, image_uri
+from site_assets import ADVISORY_EMAIL, EMAIL, PRIVACY_EMAIL, READERS_EMAIL, IMAGE_DIR
 from site_components import footer, nav
 
 
@@ -139,7 +139,13 @@ SERVICES_CSS = """
 
 def advisory() -> str:
     """Executive-grade advisory value, method, fit and distinct access."""
-    photo = image_uri("advisory-portrait.webp")
+    # A repository-backed, optimized WebP; committed as plain base64 text so
+    # it can be delivered reliably through the managed code connection.
+    try:
+        encoded_photo = (IMAGE_DIR / "advisory-portrait.webp.b64").read_text(encoding="ascii").strip()
+        photo = "data:image/webp;base64," + encoded_photo if encoded_photo.startswith("UklGR") else ""
+    except OSError:
+        photo = ""
     portrait = (
         f'<img src="{photo}" alt="Jair Ribeiro in a relaxed professional portrait beside a stack of books" '
         'loading="lazy" decoding="async" width="540" height="540">'

@@ -643,3 +643,8 @@ def render_advisory_portal() -> None:
                     _advisory_account(session, user, profile)
 
     st.html(native_footer("advisory-access"))
+    # A branded domain hosted via a legacy masked frame may expose a 980px
+    # desktop layout viewport to a real phone. The native form, not only the
+    # HTML header/footer, must participate in the mobile scale correction.
+    from site_embedded_mobile import mount_native_masked_mobile_fix
+    mount_native_masked_mobile_fix()

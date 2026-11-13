@@ -8,7 +8,7 @@ the verified user's access token; no service-role key is needed.
 
 For email links set Confirm signup + Magic Link templates to point to:
 {{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email
-The configured OTP redirect_to is always https://<app>.streamlit.app/?page=readers.
+The configured OTP redirect_to uses https://jairribeiro.com/?page=readers.\nSupabase Auth URL configuration must allow this branded origin and query redirects.
 Optionally include {{ .Token }} in each email for manual code verification.
 """
 from __future__ import annotations
@@ -42,27 +42,18 @@ from thinking_articles import BASE_URL
 
 LOG = logging.getLogger("careersite.reader")
 
+BRANDED_PREMIUM_ORIGIN = "https://jairribeiro.com"
+
+
 def _host_origin() -> str:
-    """Explicit, allowlisted HTTPS origin; no request-Host-based redirects."""
-    configured = os.environ.get("PORTFOLIO_READER_CALLBACK_ORIGIN", "").strip()
-    if not configured:
-        try:
-            configured = str(st.secrets.get("PORTFOLIO_READER_CALLBACK_ORIGIN", "")).strip()
-        except (FileNotFoundError, KeyError):
-            pass
-    if not configured:
-        configured = BASE_URL
-    parts = urlsplit(configured)
-    if (
-        parts.scheme != "https"
-        or not parts.hostname
-        or not re.fullmatch(r"[a-z0-9-]+\.streamlit\.app", parts.hostname)
-        or parts.username or parts.password or parts.port
-        or parts.path not in ("", "/")
-        or parts.query or parts.fragment
-    ):
-        raise ValueError("Invalid configured reader callback origin.")
-    return "https://" + parts.hostname
+    """Public-facing canonical origin for premium Reader and Advisory URLs.
+
+    Never derive redirects from an untrusted Host header or arbitrary input.
+    All premium verification links use the root branded domain.
+    Supabase Auth must allowlist the root URL and its callback routes.
+    """
+    return BRANDED_PREMIUM_ORIGIN
+
 
 def _accept_reader_session(session: dict) -> dict:
     """Validate email and account status before accepting an Auth session."""

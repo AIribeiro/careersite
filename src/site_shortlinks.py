@@ -24,6 +24,7 @@ _SHORT_ARTICLES: dict[str, str] = {
     "f": "ai-can-make-every-team-faster-and-still-leave-the-business-slow",
     "g": "the-ai-innovation-future-i-see-from-gothenburg",
     "h": "when-your-best-people-disagree-with-the-ai",
+    "n": "nvidia-without-jensen-huang-the-price-of-building-an-ai-economy-around-giants",
 }
 
 # Dedicated Daily Quote aliases. Each prefix is immutable and binds one

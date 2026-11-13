@@ -179,11 +179,11 @@ def _details(token: str, person: dict) -> None:
         st.caption("Client-facing stages are managed from Action inbox, where a specific request and conversation can be reviewed.")
         with st.form("advisory_next_action_" + uid):
             action = st.text_area(
-                "Next agreed action / follow-up", value=str(person.get("next_action") or ""),
+                "Private relationship planning note (not visible to client)", value=str(person.get("next_action") or ""),
                 max_chars=2000, height=75,
                 help="Keep private client context relevant, proportionate and secure.",
             )
-            save_action = st.form_submit_button("Save next action")
+            save_action = st.form_submit_button("Save internal planning note")
         if save_action:
             try:
                 _owner_action(token, uid, "next_action", value=action)
@@ -410,7 +410,7 @@ def render_owner_advisory_management(owner_session: dict) -> None:
                     for p in group:
                         st.write(
                             "**" + str(p.get("email") or "") + "** · " +
-                            str(p.get("onboarding")) + " · Next: " +
+                            str(p.get("onboarding")) + " · Internal next: " +
                             str(p.get("next_action") or "Not set")
                         )
         st.caption("Pipeline stages follow the owner-managed request journey. A submitted request is never treated as a paid engagement.")

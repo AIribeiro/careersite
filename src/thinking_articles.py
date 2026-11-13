@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from typing import Iterable
 
 BASE_URL = "https://jairribeiro.com"
-# Social card PNGs are static assets served directly from the application.\n# These are media resources, not reader/advisory service links.\nSOCIAL_IMAGE_ASSET_ORIGIN = "https://jairribeiro-ai.streamlit.app"
+# Social card PNGs are static assets served directly from the application.
+# These are media resources, not reader/advisory service links.
+SOCIAL_IMAGE_ASSET_ORIGIN = "https://jairribeiro-ai.streamlit.app"
 
 
 @dataclass(frozen=True)

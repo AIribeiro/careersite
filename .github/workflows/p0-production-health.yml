@@ -16,7 +16,8 @@ permissions:
 
 jobs:
   live-browser:
-    runs-on: ubuntu-latest
+    # Playwright Chromium 1.58 does not support the Ubuntu 26.04 runner.
+    runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
       - name: Set up Python
@@ -76,6 +77,11 @@ jobs:
                   ("AI and Data Governance", "?page=ai-data-governance", ".site main"),
                   ("About", "?page=about", ".site main"),
                   ("Contact", "?page=contact", ".site main"),
+                  ("Advisory", "?page=advisory", ".site .advisory-page"),
+                  ("Advisory account", "?page=advisory-access", ".site.native-shell-header .native-hero"),
+                  ("Reader library", "?page=readers", ".site.reader-shell .reader-hero"),
+                  ("Portfolio intelligence", "?page=analytics", ".site.native-shell-header .native-hero"),
+                  ("Privacy", "?page=privacy", ".site .privacy-page"),
               ]
               timings = []
               base = os.environ["SITE_URL"].rstrip("/") + "/"
@@ -84,6 +90,17 @@ jobs:
                   try:
                       page.goto(base + query, wait_until="domcontentloaded", timeout=30000)
                       page.wait_for_selector(selector, state="attached", timeout=30000)
+                      if label in ("Advisory account", "Portfolio intelligence"):
+                          page.wait_for_selector(
+                              ".site.native-shell-header nav.nav, .site.native-shell-footer footer.footer",
+                              state="attached", timeout=30000,
+                          )
+                          if page.locator(".site.native-shell-header nav.nav").count() != 1:
+                              raise RuntimeError("Portfolio top navigation missing on native page")
+                          page.wait_for_selector(
+                              ".site.native-shell-footer footer.footer",
+                              state="attached", timeout=30000,
+                          )
                       elapsed = round((time.monotonic() - started) * 1000)
                       timings.append((label, elapsed))
                       print(f"PUBLIC PAGE {label}: content visible after {elapsed} ms", flush=True)

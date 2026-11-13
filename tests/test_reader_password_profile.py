@@ -101,7 +101,8 @@ class ReaderPasswordProfileTests(unittest.TestCase):
                 self.assertIn(expected, labels)
         self.assertTrue(any("Executive AI topics" in str(x.label) for x in app.multiselect))
         self.assertTrue(any("Account security" in str(x.label) for x in app.expander))
-        self.assertIn("info@jairribeiro.com", self.source("src/page_reader_native.py"))
+        self.assertIn("from site_assets import READERS_EMAIL, PRIVACY_EMAIL", self.source("src/page_reader_native.py"))
+        self.assertNotIn("info@jairribeiro.com", self.source("src/page_reader_native.py"))
 
     def test_login_preserves_email_code_fallback_and_generic_auth_errors(self):
         text = self.source("src/page_reader_native.py")

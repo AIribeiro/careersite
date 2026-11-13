@@ -10,8 +10,22 @@ from thinking_articles import ArticleMeta, article_social_image_url, article_url
 # resize or write images merely to populate a social sharing meta tag.
 SOCIAL_IMAGE = "https://jairribeiro-ai.streamlit.app/app/static/jair-ribeiro-social-preview.png"
 
+# Keep the native Streamlit homepage consistent with the branded frame's
+# public metadata. Individual publication pages retain their own SEO fields.
+HOME_TITLE = "Jair Ribeiro | Enterprise AI & Data Leadership"
+HOME_DESCRIPTION = (
+    "Jair Ribeiro explores how leaders turn enterprise AI and data strategy "
+    "into business results. Executive briefings, governance perspectives "
+    "and practical insights on AI adoption."
+)
+HOME_KEYWORDS = (
+    "Jair Ribeiro, Enterprise AI, AI Strategy, AI Governance, AI Adoption, "
+    "Responsible AI, Data Strategy, Data Governance, AI Leadership, "
+    "Executive AI Briefings, AI Operating Models, AI Advisory"
+)
+
 DESCRIPTIONS = {
-    "home": "Selected experience and writing from Jair Ribeiro across enterprise AI, Data & Analytics, governance, adoption and operating models.",
+    "home": HOME_DESCRIPTION,
     "impact": "Selected enterprise AI and Data experience showing responsibilities, trade-offs, cross-functional work and what changed.",
     "thinking": "Articles by Jair Ribeiro on enterprise AI and data leadership, governance, adoption, portfolio decisions, operating models and business value.",
     "briefings": "Executive AI Briefings by Jair Ribeiro: plain-language explanations of AI capabilities, enterprise operating choices, ownership and business value.",
@@ -87,6 +101,7 @@ def _article_schema(article: ArticleMeta) -> dict[str, object]:
 def inject_metadata(page: str, title: str) -> None:
     """Add page metadata without third-party tracking."""
     description = DESCRIPTIONS.get(page, DESCRIPTIONS["home"])
+    keywords = HOME_KEYWORDS if page == "home" else ""
     person = _person_schema()
     script = rf"""
 <script>
@@ -95,6 +110,7 @@ def inject_metadata(page: str, title: str) -> None:
   const page = {json.dumps(page)};
   const title = {json.dumps(title)};
   const description = {json.dumps(description)};
+  const keywords = {json.dumps(keywords)};
   const socialImage = {json.dumps(SOCIAL_IMAGE)};
   const socialAlt = "Jair Ribeiro — Enterprise AI & Data Leader";
   const base = "https://jairribeiro.com/";
@@ -118,6 +134,13 @@ def inject_metadata(page: str, title: str) -> None:
   }};
 
   meta('meta[name="description"]', 'name', 'description', description);
+  meta('meta[name="author"]', 'name', 'author', 'Jair Ribeiro');
+  if (keywords) {{
+    meta('meta[name="keywords"]', 'name', 'keywords', keywords);
+  }} else {{
+    // Clear home/article keywords on an unrelated internal page.
+    doc.head.querySelector('meta[name="keywords"]')?.remove();
+  }}
   meta('meta[name="robots"]', 'name', 'robots', 'index,follow,max-image-preview:large');
   meta('meta[property="og:title"]', 'property', 'og:title', title);
   meta('meta[property="og:description"]', 'property', 'og:description', description);

@@ -608,6 +608,9 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
         (win.__jairArticleContext ? win.__jairArticleContext.slug : null),
       content_kind: win.__jairArticleContext ? 'article' : 'page',
       tracking_version: 5,
+      // Coarse browser automation signal; no IP, full user agent or durable ID.
+      // Production smoke is explicitly tagged as internal_qa/smoke instead.
+      browser_automation: Boolean(win.navigator && win.navigator.webdriver === true),
       page_engaged_ms: Math.round(pageEngagedMs),
       scroll_depth: scrollDepth(),
       element_kind: extra.element_kind ? safeText(extra.element_kind, 32) : null,

@@ -15,7 +15,8 @@ import streamlit as st
 
 _ALLOWED_PAGES = frozenset({
     "home", "impact", "thinking", "briefings", "briefing", "about",
-    "contact", "ai-data-governance", "readers",
+    "contact", "ai-data-governance", "readers", "advisory", "advisory-access",
+    "privacy", "analytics",
 })
 _ALLOWED_QUERY = frozenset({
     "page", "article", "briefings_page", "weekly_ai", "access", "pdf",
@@ -38,7 +39,8 @@ export default function(component) {
       return;
     const page = url.searchParams.get('page');
     if (!['home','impact','thinking','briefings','briefing','about',
-           'contact','ai-data-governance','readers'].includes(page)) return;
+           'contact','ai-data-governance','readers','advisory',
+           'advisory-access','privacy','analytics'].includes(page)) return;
     // Let ordinary within-page hash links continue to behave normally.
     if (url.search === window.location.search && url.hash) return;
     if (url.search.length > 1900) return;

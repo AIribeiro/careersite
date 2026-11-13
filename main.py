@@ -64,7 +64,7 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
+PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -108,6 +108,8 @@ TITLES = {
     "readers": "Premium Reader Library | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
     "contact": "Contact | Jair Ribeiro",
+    "advisory": "Executive AI & Data Advisory | Jair Ribeiro",
+    "privacy": "Privacy & Data | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
     "analytics": "Portfolio & Career Intelligence | Jair Ribeiro",
     "admin": "Content Studio | Jair Ribeiro",
@@ -191,6 +193,12 @@ else:
     elif PAGE == "contact":
         from page_contact import contact
         render_page = contact
+    elif PAGE == "advisory":
+        from page_public_services import advisory
+        render_page = advisory
+    elif PAGE == "privacy":
+        from page_public_services import privacy
+        render_page = privacy
     elif PAGE == "ai-data-governance":
         from page_ai_data_governance import ai_data_governance
         render_page = ai_data_governance

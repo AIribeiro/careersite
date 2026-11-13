@@ -28,12 +28,15 @@ BEGIN
   FROM pg_policy
   WHERE polrelid='public.careersite_analytics_events'::regclass
     AND polname='careersite public insert only';
-  IF old_check IS NULL OR position(old_clause in old_check) = 0 THEN
-    RAISE EXCEPTION 'Could not locate exact previous entry-domain clause; policy unchanged';
+  IF old_check IS NULL THEN
+    RAISE EXCEPTION 'Analytics insert policy missing';
+  ELSIF position(old_clause in old_check) > 0 THEN
+    EXECUTE format('ALTER POLICY %I ON public.careersite_analytics_events WITH CHECK (%s)',
+                   'careersite public insert only',
+                   replace(old_check,old_clause,new_clause));
+  ELSIF position(new_clause in old_check) = 0 THEN
+    RAISE EXCEPTION 'Unrecognized analytics insert policy; not changing existing checks';
   END IF;
-  EXECUTE format('ALTER POLICY %I ON public.careersite_analytics_events WITH CHECK (%s)',
-                 'careersite public insert only',
-                 replace(old_check,old_clause,new_clause));
 END;
 $policy$;
 

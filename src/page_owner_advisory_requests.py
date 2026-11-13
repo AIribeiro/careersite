@@ -22,7 +22,7 @@ ACTIONS = {
     "close": "Close request",
     "decline": "Decline request",
     "reply": "Send an update (keep stage)",
-    "plan": "Update next step and follow-up",
+    "plan": "Set next step and follow-up",
 }
 ACTIONS_FOR_STATUS = {
     "submitted": ("review","ask_client","invite_discovery","decline","reply","plan"),
@@ -148,10 +148,13 @@ def _request_owner_detail(token: str,req: dict,people: dict) -> None:
 
     st.markdown("#### Take the next step")
     choices=ACTIONS_FOR_STATUS.get(stage,("reply","plan"))
+    # Keep the stage selector outside the form: selecting "Start agreed engagement"
+    # must reveal the explicit confirmation control before the user submits.
+    action=st.selectbox(
+        "Your action",choices,format_func=lambda x:ACTIONS[x],
+        key="advisory_owner_action_selection_"+rid,
+    )
     with st.form("advisory_owner_request_action_"+rid):
-        action=st.selectbox(
-            "Your action",choices,format_func=lambda x:ACTIONS[x],
-        )
         st.caption("Changing the stage is a deliberate decision. A submitted request is not a booking, contract or paid client.")
         message=st.text_area(
             "Message visible to client",

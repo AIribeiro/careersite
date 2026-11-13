@@ -1,0 +1,236 @@
+"""Public advisory offering and privacy notice.
+
+These two first-party pages are deliberately separate from reader authentication
+and the privileged owner/CMS account. No email is sent by these page renderers.
+"""
+from __future__ import annotations
+
+from site_assets import ADVISORY_EMAIL, EMAIL, PRIVACY_EMAIL, READERS_EMAIL
+from site_components import footer, nav
+
+
+SERVICES_CSS = """
+<style>
+.site .advisory-page,.site .privacy-page{color:#142032;background:#f6f3ed}
+.site .advisory-page *, .site .privacy-page *{box-sizing:border-box}
+.site .service-eyebrow{margin:0 0 19px;color:#b96b40;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+.site .service-lede{font-size:clamp(18px,2vw,22px);line-height:1.62;max-width:760px;color:#c5ced9}
+.site .advisory-hero{background:#0c1728;color:#f9f6f0;padding:104px 0 90px;overflow:hidden}
+.site .advisory-hero-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(275px,.68fr);gap:72px;align-items:center}
+.site .advisory-hero h1{font:500 clamp(48px,6.6vw,82px)/1.03 Georgia,serif;letter-spacing:-.045em;max-width:900px;margin:0 0 27px}
+.site .advisory-actions{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:34px}
+.site .advisory-button{display:inline-flex;align-items:center;justify-content:center;min-height:51px;padding:15px 23px;background:#d69b75;color:#142032!important;text-decoration:none!important;font-size:13px;font-weight:850;letter-spacing:.01em;border:1px solid #d69b75;transition:background .15s ease}
+.site .advisory-button:hover{background:#edbb9c}
+.site .advisory-button--outline{background:transparent;color:#f3eee8!important;border-color:#7e8b9b}
+.site .advisory-button--outline:hover{background:#263850}
+.site .advisory-aside{border:1px solid #586777;padding:38px 33px;background:linear-gradient(155deg,#1b2e46,#101c2f);position:relative}
+.site .advisory-aside:before{content:"";display:block;width:52px;height:3px;background:#d69b75;margin-bottom:40px}
+.site .advisory-aside small{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#d4b39d;font-weight:800}
+.site .advisory-aside blockquote{font:500 clamp(25px,2.7vw,36px)/1.23 Georgia,serif;letter-spacing:-.02em;margin:24px 0 26px}
+.site .advisory-aside p{font-size:13px;line-height:1.75;color:#bdc8d5;margin:0}
+.site .service-section{padding:85px 0}
+.site .service-section--white{background:#fffefa}
+.site .service-section--ink{background:#102039;color:#f6f4ee}
+.site .service-section-header{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.75fr);gap:60px;align-items:end;margin-bottom:36px}
+.site .service-section h2{font:500 clamp(37px,4.6vw,61px)/1.08 Georgia,serif;letter-spacing:-.025em;margin:0}
+.site .service-section-header>p,.site .service-intro{line-height:1.78;color:#546276;font-size:16px;margin:0}
+.site .service-section--ink .service-section-header>p,.site .service-section--ink .service-intro{color:#c4cfdb}
+.site .service-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.site .service-card{background:#f6f3ed;border:1px solid #e0d9ce;padding:32px 35px;min-height:230px}
+.site .service-card span{display:block;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:#b46439;font-weight:850}
+.site .service-card h3{font:500 29px/1.16 Georgia,serif;margin:24px 0 13px;letter-spacing:-.015em}
+.site .service-card p{line-height:1.75;font-size:14px;color:#526174;margin:0}
+.site .service-formats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.site .service-format{border-top:2px solid #ca8a5d;padding:25px 26px;background:#1c2e46;min-height:252px}
+.site .service-format small{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#d6a682;font-weight:800}
+.site .service-format h3{font:500 27px/1.22 Georgia,serif;margin:26px 0 13px}
+.site .service-format p{font-size:14px;line-height:1.76;color:#c0ccd9;margin:0}
+.site .service-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-top:1px solid #ded8cd;border-bottom:1px solid #ded8cd;margin-top:36px}
+.site .service-step{padding:29px 25px 29px 0}
+.site .service-step+.service-step{border-left:1px solid #ded8cd;padding-left:25px}
+.site .service-step span{font:500 32px Georgia,serif;color:#b86c43}
+.site .service-step h3{font-size:16px;line-height:1.3;margin:22px 0 10px}
+.site .service-step p{font-size:13px;line-height:1.75;color:#526174;margin:0}
+.site .service-contact{background:#f1e7da;border-top:1px solid #dccbb8;padding:66px 0}
+.site .service-contact-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,.65fr);gap:55px;align-items:center}
+.site .service-contact h2{font:500 clamp(37px,4.6vw,58px)/1.09 Georgia,serif;letter-spacing:-.02em;margin:0 0 15px}
+.site .service-contact p{line-height:1.73;font-size:15px;max-width:680px;color:#536073}
+.site .service-contact .service-mail{font-size:17px;font-weight:750;overflow-wrap:anywhere;color:#18304d}
+.site .service-note{font-size:12px!important;color:#6b6d6b!important;line-height:1.6!important}
+.site .privacy-hero{background:#0e1c31;color:#f9f6ef;padding:90px 0 75px}
+.site .privacy-hero h1{margin:0 0 18px;font:500 clamp(47px,6vw,76px)/1.06 Georgia,serif;letter-spacing:-.035em}
+.site .privacy-hero p:not(.service-eyebrow){max-width:790px;color:#c7d1df;font-size:19px;line-height:1.65}
+.site .privacy-effective{color:#e0b294!important;font-size:12px!important;letter-spacing:.04em}
+.site .privacy-body{display:grid;grid-template-columns:250px minmax(0,780px);gap:70px;align-items:start;padding:75px 0 95px}
+.site .privacy-toc{position:sticky;top:105px;padding:20px 23px;background:#eee8df;border:1px solid #ddd5c8}
+.site .privacy-toc strong{display:block;font-size:11px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px}
+.site .privacy-toc a{display:block;margin:12px 0;color:#2d4563!important;text-decoration:none!important;font-size:13px;line-height:1.4}
+.site .privacy-content section{padding:0 0 34px;margin:0 0 37px;border-bottom:1px solid #dcd5cb;scroll-margin-top:110px}
+.site .privacy-content h2{font:500 31px/1.2 Georgia,serif;letter-spacing:-.015em;margin:0 0 17px}
+.site .privacy-content p,.site .privacy-content li{font-size:15px;line-height:1.82;color:#45566b}
+.site .privacy-content ul{padding-left:22px}
+.site .privacy-content li{margin-bottom:9px}
+.site .privacy-content a{color:#214d77!important;text-underline-offset:3px}
+.site .privacy-contact{display:flex;align-items:flex-start;flex-direction:column;gap:5px;border-left:3px solid #b96b40;padding:16px 20px;background:#f0e9df}
+.site .privacy-contact a{font-weight:800;overflow-wrap:anywhere}
+@media(max-width:850px){
+.site .advisory-hero-grid,.site .service-section-header,.site .service-contact-layout{grid-template-columns:1fr;gap:29px}
+.site .service-formats{grid-template-columns:1fr}
+.site .service-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+.site .service-step:nth-child(3){border-left:0;padding-left:0}
+.site .privacy-body{grid-template-columns:1fr;gap:26px}
+.site .privacy-toc{position:static}
+}
+@media(max-width:620px){
+.site .advisory-hero{padding:62px 0}
+.site .advisory-hero h1{font-size:clamp(42px,11vw,60px)}
+.site .advisory-aside{padding:26px}
+.site .service-section{padding:58px 0}
+.site .service-grid,.site .service-steps{grid-template-columns:1fr}
+.site .service-step,.site .service-step+.service-step{border-left:0;border-bottom:1px solid #ddd5cb;padding:24px 0}
+.site .service-card{padding:26px;min-height:0}
+.site .service-contact{padding:50px 0}
+.site .privacy-hero{padding:62px 0 50px}
+.site .privacy-body{padding:48px 0}
+}
+</style>
+"""
+
+
+def advisory() -> str:
+    """Executive-facing overview of the scope, approach and contact route."""
+    return f'''{SERVICES_CSS}{nav("advisory")}
+<main class="advisory-page">
+<section class="advisory-hero" aria-labelledby="advisory-title">
+ <div class="container advisory-hero-grid">
+  <div>
+   <p class="service-eyebrow">Executive advisory / Enterprise AI &amp; Data</p>
+   <h1 id="advisory-title">A clearer decision before a larger commitment.</h1>
+   <p class="service-lede">For executives navigating consequential AI and data choices: where to invest, what should change in the operating model, what evidence is missing, and who needs to own the result.</p>
+   <div class="advisory-actions">
+    <a class="advisory-button" href="mailto:{ADVISORY_EMAIL}?subject=Executive%20advisory%20inquiry" data-hq-event="advisory_email_primary">Discuss a decision →</a>
+    <a class="advisory-button advisory-button--outline" href="#advisory-focus" data-hq-event="advisory_explore_scope">Explore the scope ↓</a>
+   </div>
+  </div>
+  <aside class="advisory-aside" aria-label="Advisory principle">
+   <small>Executive judgement</small>
+   <blockquote>What needs to be true before this becomes a sound business decision?</blockquote>
+   <p>Start with the mandate, constraints and accountability. Technology selection comes later.</p>
+  </aside>
+ </div>
+</section>
+<section class="service-section service-section--white" id="advisory-focus" data-analytics-section="advisory-focus">
+ <div class="container">
+  <p class="service-eyebrow">Where an outside perspective helps</p>
+  <div class="service-section-header"><h2>Decisions that deserve more than another AI presentation.</h2><p>Advisory work starts with the specific business decision. These are recurring challenges where executive sponsorship, data conditions and organisational readiness determine whether AI delivers value.</p></div>
+  <div class="service-grid">
+   <article class="service-card"><span>01 / Investment choices</span><h3>AI portfolio and priorities</h3><p>Separate credible opportunities from activity. Examine strategic fit, economic assumptions, dependencies, risk and evidence for continuing, stopping or scaling.</p></article>
+   <article class="service-card"><span>02 / Accountability</span><h3>Operating model and ownership</h3><p>Clarify sponsorship, decision rights, CoE responsibilities, business ownership and the points at which central standards should enable rather than slow teams.</p></article>
+   <article class="service-card"><span>03 / Business adoption</span><h3>Value and changed work</h3><p>Test whether a proposed capability will change workflows, decisions and outcomes. Distinguish deployment and training activity from sustained use with measurable business consequences.</p></article>
+   <article class="service-card"><span>04 / Responsible scale</span><h3>Governance and data readiness</h3><p>Identify the controls, evidence, stewardship and escalation paths appropriate to the use case. Make risk visible before a pilot becomes an operating dependency.</p></article>
+  </div>
+ </div>
+</section>
+<section class="service-section service-section--ink" id="advisory-engagements" data-analytics-section="advisory-engagements">
+ <div class="container">
+  <p class="service-eyebrow">How we might work</p>
+  <div class="service-section-header"><h2>Focused support. A defined executive question.</h2><p>Any engagement is agreed around the decision to be made, available evidence, stakeholders and time horizon. The formats below describe possible starting points, not pre-packaged promises.</p></div>
+  <div class="service-formats">
+   <article class="service-format"><small>01 / Independent challenge</small><h3>Decision review</h3><p>A structured second opinion on an AI plan, investment case, governance proposal or portfolio. The aim is to expose assumptions, options and the consequences of each.</p></article>
+   <article class="service-format"><small>02 / Focused working engagement</small><h3>Executive working sessions</h3><p>Targeted conversations with leadership and relevant owners to shape a mandate, prioritisation criteria, value measures or accountability model.</p></article>
+   <article class="service-format"><small>03 / Leadership continuity</small><h3>Advisory or interim contribution</h3><p>For defined periods when an established organisation needs senior AI and data judgement, cross-functional coordination or a credible basis for the next phase.</p></article>
+  </div>
+ </div>
+</section>
+<section class="service-section" data-analytics-section="advisory-method">
+ <div class="container">
+  <p class="service-eyebrow">A practical starting point</p>
+  <div class="service-section-header"><h2>From open question to a defensible next move.</h2><p>The purpose of an initial conversation is not to sell a framework. It is to understand whether the problem, the mandate and the expected contribution fit.</p></div>
+  <div class="service-steps">
+   <div class="service-step"><span>01</span><h3>Frame the decision</h3><p>What is at stake, who owns it and what would happen if nothing changed?</p></div>
+   <div class="service-step"><span>02</span><h3>Examine the facts</h3><p>What is known, what is assumed and which constraints cannot be ignored?</p></div>
+   <div class="service-step"><span>03</span><h3>Define the contribution</h3><p>Agree the appropriate scope, counterpart, timing and decision outputs.</p></div>
+   <div class="service-step"><span>04</span><h3>Make the next call</h3><p>Move forward only when a useful contribution and clear ownership are established.</p></div>
+  </div>
+ </div>
+</section>
+<section class="service-section service-section--white" id="advisory-perspective" data-analytics-section="advisory-credibility">
+ <div class="container">
+  <p class="service-eyebrow">The perspective behind the work</p>
+  <div class="service-section-header"><h2>Experience inside the enterprise, not at a distance from it.</h2><p>My work spans enterprise AI and Data leadership, portfolio decisions, governance, adoption and organisational ownership. The recurring lesson: useful AI depends as much on the business system around it as on the technology itself.</p></div>
+  <p class="service-intro">This is a selective, senior-level advisory offer. It is most relevant where an executive team needs clarity on priorities, sponsorship, governance or value. It is not a substitute for hands-on engineering delivery, an implementation vendor or legal advice. You can explore the <a href="?page=impact" target="_self">leadership experience</a> and <a href="?page=briefings" target="_self">Executive AI Briefings</a> before getting in touch.</p>
+ </div>
+</section>
+<section class="service-contact" id="advisory-contact" data-analytics-section="advisory-inquiry">
+ <div class="container service-contact-layout">
+  <div><p class="service-eyebrow">A first conversation</p><h2>What decision are you working through?</h2><p>A useful introduction names the business problem, the decision owner and the horizon for action. A few lines are enough. Please avoid sending commercially sensitive information in an initial email.</p><p class="service-note">Availability, scope and commercial terms are discussed individually. No engagement is established by sending an inquiry.</p></div>
+  <div><a class="advisory-button" href="mailto:{ADVISORY_EMAIL}?subject=Executive%20advisory%20inquiry" data-hq-event="advisory_email_final">Start a conversation →</a><p class="service-mail"><a href="mailto:{ADVISORY_EMAIL}" data-hq-event="advisory_email_address">{ADVISORY_EMAIL}</a></p><p class="service-note">For personal, career or speaking contact, use <a href="mailto:{EMAIL}">{EMAIL}</a>.</p></div>
+ </div>
+</section>
+</main>{footer()}'''
+
+
+def privacy() -> str:
+    """Public privacy notice for portfolio visitors and registered readers."""
+    return f'''{SERVICES_CSS}{nav("privacy")}
+<main class="privacy-page">
+<section class="privacy-hero"><div class="container">
+ <p class="service-eyebrow">Transparency / Reader trust</p>
+ <h1>Privacy &amp; data.</h1>
+ <p>What information this portfolio handles, why it is used, and how to make a request. Access to the Premium Reader library does not require agreeing to marketing messages.</p>
+ <p class="privacy-effective">Last updated: 13 November 2026</p>
+</div></section>
+<div class="container privacy-body">
+ <nav class="privacy-toc" aria-label="Privacy notice sections">
+  <strong>In this notice</strong>
+  <a href="#privacy-controller">Who is responsible</a>
+  <a href="#privacy-collection">Information collected</a>
+  <a href="#privacy-purpose">Purposes and legal grounds</a>
+  <a href="#privacy-providers">Providers and transfers</a>
+  <a href="#privacy-storage">Storage and retention</a>
+  <a href="#privacy-rights">Your rights</a>
+  <a href="#privacy-contact">Contact</a>
+ </nav>
+ <div class="privacy-content">
+  <section id="privacy-controller"><h2>Who is responsible</h2>
+   <p>This professional portfolio and its Premium Reader service are operated by Jair Ribeiro, based in Gothenburg, Sweden. For requests about personal information processed through this site, contact <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>.</p>
+  </section>
+  <section id="privacy-collection"><h2>What information may be collected</h2>
+   <ul>
+    <li><strong>Website visits:</strong> page views, on-site interactions, source or campaign attribution, approximate session duration, broad browser or device characteristics and related operational information.</li>
+    <li><strong>Premium Reader accounts:</strong> the name and email you provide, verification and account status, optional profile or editorial interests, subscription preference, and records needed to show your reading or PDF-download history.</li>
+    <li><strong>Correspondence:</strong> the email address and information you choose to share when contacting me, including advisory and privacy requests.</li>
+    <li><strong>Service security:</strong> technical events and connection details that may be processed by hosting or authentication providers to operate and protect the service.</li>
+   </ul>
+   <p>Payment details are not requested for complimentary Premium Reader access. Avoid placing confidential or sensitive personal information in an initial inquiry.</p>
+  </section>
+  <section id="privacy-purpose"><h2>Why information is used</h2>
+   <ul>
+    <li><strong>Reader access and downloads:</strong> to establish and maintain an account, verify identity and deliver access to content you requested. This supports the reader service you choose to use.</li>
+    <li><strong>Service measurement:</strong> to understand which pages and publications are useful, how visitors reach them and where the website needs attention. First-party site measurement is carried out for the legitimate interest of maintaining and improving the portfolio, subject to applicable rights.</li>
+    <li><strong>Requested correspondence:</strong> to reply to your questions or consider potential advisory discussions, including steps you ask to take before a possible engagement.</li>
+    <li><strong>Optional editorial emails:</strong> only if you choose the separate subscription option. You can withdraw that choice through your reader preferences or by contacting <a href="mailto:{READERS_EMAIL}">{READERS_EMAIL}</a>.</li>
+    <li><strong>Security and legal duties:</strong> where necessary to protect the service, respond to valid requests or meet applicable legal requirements.</li>
+   </ul>
+   <p>Creating a reader account does not itself subscribe you to editorial messages. Site activity is not used to make decisions with legal or comparably significant effects about you.</p>
+  </section>
+  <section id="privacy-providers"><h2>Service providers and external destinations</h2>
+   <p>The portfolio is hosted through Streamlit, and the Premium Reader service and first-party reporting use Supabase. Authentication and verification messages depend on the configured authentication email service. These providers may handle information needed to operate the relevant function under their own contractual and technical arrangements.</p>
+   <p>Links to LinkedIn and other external websites take you to services with their own privacy practices. A branded or masked domain may also involve the domain or forwarding provider. Depending on the provider and configuration, personal data may be processed outside Sweden or the European Economic Area; you can request details of the arrangements relevant to your data through <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>.</p>
+  </section>
+  <section id="privacy-storage"><h2>Session data, cookies and retention</h2>
+   <p>The first-party portfolio analytics uses browser session storage for short-lived visit and attribution context rather than an analytics cookie intended to identify you across visits. Account access and hosting can use technically necessary cookies, security tokens and server-side records. The site's first-party analytics is not an advertising tracking service.</p>
+   <p>Account and reading records are held while needed for the reader service and to support access, correction or deletion requests, subject to applicable legal or security needs. Correspondence is kept as needed to handle the inquiry or any resulting relationship. Measurement and security records are retained according to their operational purpose and applicable service settings; there is not one universal retention period for every record. You can ask about the status or removal of your information.</p>
+  </section>
+  <section id="privacy-rights"><h2>Your choices and rights</h2>
+   <p>Subject to applicable conditions, you may request access, correction, erasure, restriction, portability or object to certain processing. Where processing relies on consent, you may withdraw that consent without affecting earlier lawful processing.</p>
+   <p>You may use the reader account area to update your editorial email choice. To request data access, correction, export or account deletion, email <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>. Identity verification may be needed before releasing or deleting account data.</p>
+   <p>You may also lodge a complaint with the Swedish Authority for Privacy Protection (<a href="https://www.imy.se/en/individuals/" target="_blank" rel="noopener noreferrer">Integritetsskyddsmyndigheten, IMY</a>) or another competent data-protection authority.</p>
+  </section>
+  <section id="privacy-contact"><h2>Questions or a data request?</h2>
+   <div class="privacy-contact"><strong>Privacy and personal-data requests</strong><a href="mailto:{PRIVACY_EMAIL}" data-hq-event="privacy_email">{PRIVACY_EMAIL}</a><span>For reader access questions, use <a href="mailto:{READERS_EMAIL}">{READERS_EMAIL}</a>.</span></div>
+   <p>When the service or its data practices change materially, this notice will be updated with a revised date.</p>
+  </section>
+ </div>
+</div>
+</main>{footer()}'''

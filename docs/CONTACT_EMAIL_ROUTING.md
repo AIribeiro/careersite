@@ -10,8 +10,8 @@ Updated: 2026-11-13. Public-facing addresses belong to the `jairribeiro.com` dom
 | `advisory@jairribeiro.com` | Executive AI/Data advisory and scoped business inquiries | Public Advisory page and Contact pathways |
 | `readers@jairribeiro.com` | Premium Reader access, account questions, downloadable resources | Reader sign-in, account support, library footer, Contact pathways |
 | `privacy@jairribeiro.com` | Data-subject rights, GDPR inquiries and privacy concerns | Public Privacy page and Reader account guidance |
-| `info@jairribeiro.com` | General informational mailbox | Retained as an alias; not displayed as a competing reader-support address |
-| `contact@jairribeiro.com` | General inquiry alias | Retained as a fallback; the public Contact page uses specific routes |
+| `info@jairribeiro.com` | General informational mailbox | Available as a general-purpose mailbox; not displayed as a competing reader-support address |
+| `contact@jairribeiro.com` | General inquiry alias | Available for fallback inquiries; the public Contact page uses specific routes |
 | `no-reply@jairribeiro.com` | Automated account verification and other transactional mail | **Address reserved; sender is not configured by this code change** |
 | `admin@jairribeiro.com` | Internal owner alerts and operations | **Address reserved; not used as the current Supabase administrator login** |
 

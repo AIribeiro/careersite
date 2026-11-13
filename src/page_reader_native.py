@@ -233,7 +233,7 @@ def _consume_query_verification() -> None:
         destination = str(st.query_params.get("page", "readers"))
         st.session_state["reader_native_flash"] = (
             "success",
-            "Email verified. Complete your advisory profile below." if destination == "advisory-access"
+            "Email verified. Set your password to activate your advisory account." if destination == "advisory-access"
             else "Email verified. Welcome to your reader library.",
         )
     except (RuntimeError, ValueError, TimeoutError):

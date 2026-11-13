@@ -36,6 +36,8 @@ _TABLES = {
     "portfolio_reader_admin_audit": (
         "user_id,actor_id,action,detail,created_at", "created_at.desc",
     ),
+    "portfolio_advisory_profiles": ("user_id,account_status", "created_at.desc"),
+    "portfolio_advisory_intents": ("user_id,email", "created_at.desc"),
 }
 
 
@@ -243,14 +245,23 @@ def _reader_origin_tag(profile: dict) -> str:
         return "origin:articles"
     if source == "weekly_ai":
         return "origin:weekly_ai"
+    if source == "advisory":
+        return "origin:advisory"
     return "origin:briefings"
 
 
 def _reader_management(
     token: str, profiles: list[dict], downloads: list[dict],
     saved: list[dict], consents: list[dict], controls: dict[str, dict],
+    advisory_membership: dict[str, str] | None = None,
 ) -> None:
+    advisory_membership = advisory_membership or {}
     st.subheader("Reader directory")
+    st.caption(
+        "Reader entitlement is independent of the Advisory relationship. "
+        "An Advisory account includes Reader access, but registration here "
+        "does not grant Advisory access."
+    )
     search = st.text_input(
         "Find a registered reader",
         placeholder="Search name, email or tag",
@@ -260,7 +271,8 @@ def _reader_management(
         "Audience filter",
         ["All readers", "Registered via Articles", "Registered via Briefings",
          "Registered via Weekly AI", "Editorial opt-in", "Not subscribed",
-         "Mailing suppressed", "Suspended"],
+         "Mailing suppressed", "Suspended",
+         "Advisory included", "Advisory pending"],
         key="admin_readers_filter",
     )
 
@@ -284,6 +296,10 @@ def _reader_management(
             return _reader_origin_tag(p) == "origin:briefings"
         if status_filter == "Registered via Weekly AI":
             return _reader_origin_tag(p) == "origin:weekly_ai"
+        if status_filter == "Advisory included":
+            return advisory_membership.get(user_id) == "Advisory + Reader"
+        if status_filter == "Advisory pending":
+            return advisory_membership.get(user_id) == "Advisory pending"
         if status_filter == "Editorial opt-in":
             return p.get("newsletter_opt_in") is True
         if status_filter == "Not subscribed":
@@ -311,6 +327,7 @@ def _reader_management(
             "Country": str(p.get("country") or ""),
             "Registered": str(p.get("created_at") or "")[:10],
             "Registration origin": _reader_origin_tag(p),
+            "Membership": advisory_membership.get(str(p.get("user_id")), "Reader only"),
             "Editorial opt-in": bool(p.get("newsletter_opt_in")),
             "Status": str(controls.get(str(p.get("user_id")), {}).get("account_status", "active")),
             "Suppressed": bool(controls.get(str(p.get("user_id")), {}).get("mailing_suppressed")),
@@ -546,11 +563,21 @@ def render_owner_reader_management(session: dict) -> None:
         consents = _read_table(token, "portfolio_reader_consent_events")
         flags = _read_table(token, "portfolio_reader_admin_controls")
         audit = _read_table(token, "portfolio_reader_admin_audit")
+        advisory = _read_table(token, "portfolio_advisory_profiles")
+        pending_advisory = _read_table(token, "portfolio_advisory_intents")
     except (RuntimeError, ValueError, TimeoutError, PermissionError):
         st.error("Reader management data is temporarily unavailable.")
         return
 
     controls = {str(row["user_id"]): row for row in flags}
+    advisory_membership = {
+        str(p.get("user_id")): "Advisory pending"
+        for p in pending_advisory if p.get("user_id")
+    }
+    advisory_membership.update({
+        str(p.get("user_id")): "Advisory + Reader"
+        for p in advisory if p.get("user_id") and p.get("account_status") == "active"
+    })
     eligible = _effective_mailing(profiles, controls)
     kpis = st.columns(4)
     kpis[0].metric("Registered readers", len(profiles))
@@ -564,7 +591,8 @@ def render_owner_reader_management(session: dict) -> None:
         "Registered readers", "Mailing list", "Campaign drafts", "Admin activity",
     ])
     with directory:
-        _reader_management(token, profiles, downloads, saved, consents, controls)
+        _reader_management(token, profiles, downloads, saved, consents, controls,
+                           advisory_membership)
     with mailing:
         _mailing_workspace(profiles, controls)
     with drafts:

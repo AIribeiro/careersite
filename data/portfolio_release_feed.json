@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "page:advisory-access",
+      "type": "New page",
+      "title": "Executive Advisory Account",
+      "description": "Discover the newly published portfolio page.",
+      "date": "2026-11-13T11:35:51+01:00",
+      "href": "?page=advisory-access",
+      "cta": "Explore the page"
+    },
+    {
       "key": "page:advisory",
       "type": "New page",
       "title": "Executive AI & Data Advisory",

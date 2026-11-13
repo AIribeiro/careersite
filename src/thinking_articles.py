@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 BASE_URL = "https://jairribeiro.com"
+# Social card PNGs are static assets served directly from the application.\n# These are media resources, not reader/advisory service links.\nSOCIAL_IMAGE_ASSET_ORIGIN = "https://jairribeiro-ai.streamlit.app"
 
 
 @dataclass(frozen=True)
@@ -205,7 +206,7 @@ def article_url(article: ArticleMeta) -> str:
 
 
 def article_social_image_url(article: ArticleMeta) -> str:
-    return f"{BASE_URL}/social/{article.slug}.png"
+    return f"{SOCIAL_IMAGE_ASSET_ORIGIN}/social/{article.slug}.png"
 
 
 def article_share_url(article: ArticleMeta) -> str:

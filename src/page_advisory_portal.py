@@ -15,6 +15,7 @@ from page_reader_native import (
     _consume_query_verification,
     _password_signin,
     _request_email,
+    _request_password_recovery,
     _session,
     _set_reader_password,
     _verify,
@@ -151,6 +152,7 @@ def _sign_out() -> None:
     st.session_state.pop("advisory_pending_email", None)
     st.session_state.pop("advisory_signup_intake", None)
     st.session_state.pop("advisory_password_saved_user_id", None)
+    st.session_state.pop("advisory_recovery_verified", None)
     st.rerun()
 
 
@@ -221,6 +223,7 @@ Advisory account. No new email or password reset is required.</p>
                 _password_signin(str(user["email"]).strip().lower(), str(saved_password))
                 st.session_state.pop("advisory_password_saved_user_id", None)
                 st.session_state.pop("advisory_pending_email", None)
+                st.session_state.pop("advisory_recovery_verified", None)
                 st.rerun()
             except (RuntimeError, ValueError, TimeoutError, KeyError):
                 st.error(
@@ -232,7 +235,15 @@ Advisory account. No new email or password reset is required.</p>
             st.rerun()
         return
 
-    st.html("""<section class="advisory-portal-intro">
+    is_recovery = st.session_state.get("advisory_recovery_verified") is True
+    if is_recovery:
+        st.html("""<section class="advisory-portal-intro">
+<h2>Reset your Advisory password.</h2>
+<p>Your password-recovery email has been verified. Choose a new password below.
+Once saved, sign in to return to your Advisory account.</p>
+</section>""")
+    else:
+        st.html("""<section class="advisory-portal-intro">
 <h2>Email confirmed. Set your password.</h2>
 <p>Your email has been confirmed. Choose a password to activate your Advisory
 account. If you already use a password for the Reader library, you may keep it.
@@ -240,14 +251,16 @@ Future visits use your email and password, not an email access link.</p>
 </section>""")
     with st.form("advisory_first_password", clear_on_submit=True):
         password = st.text_input(
-            "New or existing password", type="password", max_chars=128,
+            "New password" if is_recovery else "New or existing password",
+            type="password", max_chars=128,
             help="Use a unique password of at least 12 characters.",
         )
         confirmation = st.text_input(
             "Confirm password", type="password", max_chars=128,
         )
         submit = st.form_submit_button(
-            "Set password and activate my account", type="primary",
+            "Reset password and sign in" if is_recovery
+            else "Set password and activate my account", type="primary",
         )
     if not submit:
         st.caption("Advisory access remains inactive until password sign-in succeeds.")
@@ -290,6 +303,7 @@ Future visits use your email and password, not an email access link.</p>
 
     st.session_state.pop("advisory_password_saved_user_id", None)
     st.session_state.pop("advisory_pending_email", None)
+    st.session_state.pop("advisory_recovery_verified", None)
     if already_current:
         st.session_state["advisory_activation_message"] = (
             "Your existing password was accepted. Advisory access is ready."
@@ -332,7 +346,7 @@ Your advisory account also includes the complete Premium Reader library.</p>
                     st.error("Enter a valid email address.")
                 else:
                     try:
-                        _request_email("", address, False, True, destination="advisory-access")
+                        _request_password_recovery(address, destination="advisory-access")
                         st.success("If the account exists, check that inbox for a "
                                    "confirmation link to set a new password.")
                     except (RuntimeError, ValueError, TimeoutError):

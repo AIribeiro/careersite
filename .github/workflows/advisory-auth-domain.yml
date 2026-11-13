@@ -1,0 +1,68 @@
+name: Advisory auth callback domain check
+on:
+  push:
+    paths:
+      - src/page_advisory_portal.py
+      - src/page_reader_native.py
+      - docs/advisory-auth-redirects.md
+      - .github/workflows/advisory-auth-domain.yml
+  workflow_dispatch:
+
+jobs:
+  auth-domain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Test public Advisory domain with harmless query parameters
+        shell: python
+        run: |
+          import html
+          import re
+          import sys
+          import urllib.error
+          import urllib.request
+          from urllib.parse import urlparse, parse_qs
+
+          test_url = (
+              "https://advisory.jairribeiro.com/?page=advisory-access"
+              "&probe=advisory-domain-check"
+          )
+          request = urllib.request.Request(test_url, headers={
+              "User-Agent": "JairRibeiro-Advisory-Auth-Health/1.0"
+          })
+          try:
+              response = urllib.request.urlopen(request, timeout=20)
+              body = response.read(80000).decode("utf-8", errors="replace")
+              final = response.url
+              status = response.status
+          except Exception as exc:
+              print("Auth domain check failed:", type(exc).__name__,
+                    str(exc).splitlines()[0][:200])
+              sys.exit(1)
+          target = urlparse(final)
+          print("HTTP:", status, "final host:", target.hostname)
+          print("Final query keys:", sorted(parse_qs(target.query)))
+          if target.hostname != "advisory.jairribeiro.com":
+              print("FAIL: visible callback host changed unexpectedly")
+              sys.exit(1)
+          if status >= 400:
+              print("FAIL: Advisory callback returned an error")
+              sys.exit(1)
+          frames = re.findall(
+              r'<iframe[^>]+src=[\x22\x27]([^\x22\x27]+)',
+              body, flags=re.I
+          )
+          if frames:
+              for source in frames[:3]:
+                  p = urlparse(html.unescape(source))
+                  print("Iframe host:", p.hostname,
+                        "iframe query keys:", sorted(parse_qs(p.query)))
+              if not any(
+                  parse_qs(urlparse(html.unescape(src)).query).get("page") == ["advisory-access"]
+                  for src in frames
+              ):
+                  print("FAIL: masked domain iframe drops Advisory route parameters")
+                  sys.exit(1)
+          else:
+              print("No masked-domain iframe detected in initial HTML.")
+          print("PASS: Domain stays branded and visible route is not dropped in initial response")

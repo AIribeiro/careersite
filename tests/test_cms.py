@@ -44,7 +44,7 @@ class CareersiteCmsTests(unittest.TestCase):
         article = CmsArticle(title="Preview", slug="preview-article")
         self.assertEqual(
             article_preview_url(article),
-            "https://jairribeiro-ai.streamlit.app/thinking/preview-article?source=application&role=Test",
+            "https://jairribeiro.com/thinking/preview-article?source=application&role=Test",
         )
 
     def test_latest_article_has_no_stale_bundled_header(self) -> None:

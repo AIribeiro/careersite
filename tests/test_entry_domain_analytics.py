@@ -39,7 +39,15 @@ class EntryDomainReportTests(unittest.TestCase):
         campaign = campaign_attribution_rows(report)[0]
         self.assertEqual(campaign["Declared source"], "linkedin")
         self.assertEqual(campaign["UTM source"], "chatgpt.com")
+        self.assertEqual(campaign["Source agreement"], "Different tags")
         self.assertEqual(campaign["Campaign"], "masked_test_20261113")
+        matching = campaign_attribution_rows({"campaigns": [
+            {"attribution_source": "LinkedIn", "utm_source": "linkedin"},
+            {"attribution_source": "linkedin", "utm_source": None},
+            {},
+        ]})
+        self.assertEqual([row["Source agreement"] for row in matching],
+                         ["Consistent", "Partial", "Unattributed"])
 
         rows = entry_domain_rows({"domains": [
             {"domain_label": "jairribeiro.com", "sessions": 3, "views": 4,
@@ -148,6 +156,10 @@ run('jairribeiro-ai.streamlit.app',true,
 run('jairribeiro-ai.streamlit.app',true,
     'https://go.jairribeiro.com/',[],
     'go.jairribeiro.com','embed_referrer',false,'');
+run('jairribeiro-ai.streamlit.app',true,
+    'https://go.jairribeiro.com/',[],
+    'go.jairribeiro.com','embed_referrer',true,
+    '&source=LiNkEdIn&utm_medium=social&utm_campaign=masked_test_20261113&utm_content=ai-governance-explained-to-executives&utm_source=CHATGPT.COM');
 run('www.jairribeiro.com',false,'',[],
     'www.jairribeiro.com','direct_host',false);
 run('readers.eu.jairribeiro.com',false,'',[],

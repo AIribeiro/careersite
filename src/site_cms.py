@@ -31,8 +31,9 @@ from premium_article_editorial import (
 OWNER_EMAIL = "jair.ribeiro@outlook.it"
 TABLE = "careersite_articles"
 IMAGE_BUCKET = "careersite-article-images"
-BASE_URL = "https://jairribeiro-ai.streamlit.app"
-DEFAULT_SOCIAL_IMAGE = f"{BASE_URL}/app/static/jair-ribeiro-social-preview.png"
+BASE_URL = "https://jairribeiro.com"
+MEDIA_ORIGIN = "https://jairribeiro-ai.streamlit.app"  # Static assets, not premium page links.
+DEFAULT_SOCIAL_IMAGE = f"{MEDIA_ORIGIN}/app/static/jair-ribeiro-social-preview.png"
 
 ALLOWED_TAGS = [
     "p", "br", "h2", "h3", "h4", "strong", "b", "em", "i", "u", "s",
@@ -1031,7 +1032,7 @@ def effective_header_image_url(article: CmsArticle) -> str:
         )
         if source.is_file():
             version = parse.quote(COMPETITIVE_ADVANTAGE_HEADER_REVISION, safe="")
-            return f"{BASE_URL}/cms-header/{normalized}.webp?v={version}"
+            return f"{MEDIA_ORIGIN}/cms-header/{normalized}.webp?v={version}"
         return ""
 
     parts = bundled_header_parts(normalized)
@@ -1043,7 +1044,7 @@ def effective_header_image_url(article: CmsArticle) -> str:
     except OSError:
         return ""
     version = hashlib.sha256(version_input.encode("utf-8")).hexdigest()[:12]
-    return f"{BASE_URL}/cms-header/{normalized}.webp?v={version}"
+    return f"{MEDIA_ORIGIN}/cms-header/{normalized}.webp?v={version}"
 
 
 def embedded_header_image_src(article: CmsArticle) -> str:
@@ -1106,7 +1107,7 @@ def cms_social_image_url(article: CmsArticle) -> str:
         ]
     )
     version = hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]
-    return f"{BASE_URL}/cms-social/{parse.quote(slugify(article.slug), safe='')}.png?v={version}"
+    return f"{MEDIA_ORIGIN}/cms-social/{parse.quote(slugify(article.slug), safe='')}.png?v={version}"
 
 
 def cms_feature_image_url(article: CmsArticle) -> str:
@@ -1735,7 +1736,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
         href = escape(article_relative_url(featured), quote=True)
         slug = escape(featured.slug, quote=True)
         art_url = cms_feature_image_url(featured)
-        if art_url.startswith((f"{BASE_URL}/cms-header/", f"{BASE_URL}/cms-social/")):
+        if art_url.startswith((f"{MEDIA_ORIGIN}/cms-header/", f"{MEDIA_ORIGIN}/cms-social/")):
             art_url = ""
         image = (
             f'<img src="{escape(art_url, quote=True)}" '
@@ -1925,7 +1926,7 @@ def inject_cms_landing(document: str, *, listing_page: int | str | None = None) 
 def cms_share_document(article: CmsArticle) -> str:
     canonical = article_url(article)
     if article.legacy_key:
-        image = f"{BASE_URL}/social/{article.slug}.png"
+        image = f"{MEDIA_ORIGIN}/social/{article.slug}.png"
         image_type, image_width, image_height = "image/png", 1200, 627
     else:
         image, image_type, image_width, image_height = cms_feature_image_meta(article)
@@ -1956,7 +1957,7 @@ def cms_share_document(article: CmsArticle) -> str:
 def inject_cms_article_metadata(article: CmsArticle) -> None:
     canonical = article_url(article)
     if article.legacy_key:
-        image = f"{BASE_URL}/social/{article.slug}.png"
+        image = f"{MEDIA_ORIGIN}/social/{article.slug}.png"
         image_type, image_width, image_height = "image/png", 1200, 627
     else:
         image, image_type, image_width, image_height = cms_feature_image_meta(article)

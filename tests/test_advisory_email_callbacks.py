@@ -83,7 +83,7 @@ class AdvisoryEmailCallbackTests(unittest.TestCase):
     def test_recovery_email_is_not_a_passwordless_signin_email(self):
         source=(ROOT/"src"/"page_advisory_portal.py").read_text(encoding="utf-8")
         self.assertIn('_request_password_recovery(address, destination="advisory-access")',source)
-        self.assertIn('"Reset your Advisory password."',source)
+        self.assertIn("<h2>Reset your Advisory password.</h2>",source)
         self.assertNotIn('_request_email("", address, False, True, destination="advisory-access")',source)
 
 if __name__=="__main__":

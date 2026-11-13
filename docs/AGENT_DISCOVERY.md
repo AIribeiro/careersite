@@ -124,6 +124,60 @@ category, access state and canonical links. If the previous state cannot be
 verified, the workflow **does not** pretend that everything was newly released
 and emits an `unavailable` report instead.
 
+### Google Search Console — authenticated sitemap submission
+
+**The Google route is sitemap discovery, not the Google Indexing API.** Google's
+Indexing API is restricted to eligible JobPosting pages and BroadcastEvent in
+VideoObject. Ordinary executive articles do not qualify. An unauthenticated
+`google.com/ping?sitemap=...` endpoint is deprecated; do not use it.
+
+Google Search Console submission requires an authenticated **verified owner**
+of the site property. This repository does not have credentials authorizing
+an actual Search Console submission. Use Google's
+[Search Console](https://search.google.com/search-console) to:
+
+1. Add a **URL-prefix property** for the actual hosting prefix:
+   `https://airibeiro.github.io/careersite/`. Use the final host rather
+   than the `ai.jairribeiro.com` 301-forwarding entry point.
+2. Choose HTML **file** verification. Google supplies a file such as
+   `google0123456789abcdef.html`. Set the GitHub Actions repository secret
+   `GOOGLE_SEARCH_CONSOLE_FILE` to this **filename alone**. The existing
+   Pages build will publish `google-site-verification: <filename>` at
+   `https://airibeiro.github.io/careersite/<filename>`. Confirm the exact
+   expected content and public URL in Google's own verification wizard.
+   Alternatively select the HTML **tag** method and set the optional
+   `GOOGLE_SEARCH_CONSOLE_TOKEN` Actions secret to just the value of
+   its `content` attribute; the build will insert the meta tag in the
+   Pages entrypoint HTML head.
+3. Run the Social Share Pages workflow on `main` or use its scheduled
+   rebuild. Check the proof file or meta tag from an unauthenticated browser.
+   Click **Verify** in Search Console.
+4. Under **Indexing → Sitemaps**, submit `sitemap.xml` for that property
+   (the full URL is
+   `https://airibeiro.github.io/careersite/sitemap.xml`).
+5. Use the **Page indexing**, **Sitemaps**, and **Performance** reports
+   to monitor discovered/indexed URLs, crawl errors, clicks and impressions.
+
+If the user prefers to verify the **branded domain** in Search Console,
+create a separate Domain property `jairribeiro.com` with a DNS TXT challenge
+via Spaceship. This verifies the user's ownership of the brand domain, but
+does **not** verify ownership of `airibeiro.github.io` or make the Pages
+discovery sitemap appear on the branded domain. The non-frame branded
+subdomain is a **301 redirect**, so Google is likely to select the final
+GitHub Pages URL as canonical rather than index `ai.jairribeiro.com`.
+The apex masked Streamlit site remains a separate indexing concern.
+
+The `GOOGLE_SEARCH_CONSOLE_FILE` and `GOOGLE_SEARCH_CONSOLE_TOKEN` GitHub
+secrets are optional. Without either, the pipeline logs setup required
+and makes **no** change to site verification status. With them, proof files
+or tags persist across subsequent scheduled Pages releases. No Search Console
+credentials, service-account keys or arbitrary upload contents are embedded
+in the public site.
+
+Submitting a sitemap **does not guarantee** crawling, indexing or placement.
+Search Console must report the result; neither publication nor a successful
+site ownership check proves indexing has happened.
+
 ### Optional IndexNow push for participating search engines
 
 IndexNow is **not** an OpenAI/ChatGPT push API. Search engines accepting an

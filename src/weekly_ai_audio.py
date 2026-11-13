@@ -34,7 +34,7 @@ def audio_url(slug: str) -> str | None:
     # A revised narrated edition reuses its canonical slug. Its MP3 content
     # fingerprint avoids Safari/Streamlit/CDN returning the old cached file.
     revision = hashlib.sha256(path.read_bytes()).hexdigest()[:12]
-    return "https://jairribeiro-ai.streamlit.app/weekly-ai-audio/" + slug + ".mp3?v=" + revision
+    return "https://raw.githubusercontent.com/AIribeiro/careersite/main/static/weekly-ai/" + slug + ".mp3?v=" + revision
 
 
 class ParagraphReader(HTMLParser):
@@ -118,7 +118,7 @@ def audio_player_html(slug: str) -> str:
     """Offer local range-capable audio, a second CDN source and a direct-open fallback.
 
     Host-qualified URLs avoid Streamlit's /~/+/ page-prefix ambiguity on mobile.
-    A visible open-audio link remains usable if an embedded browser blocks media.
+    The direct-open link uses the primary immutable GitHub MP3, not the app route.
     """
     url = audio_url(slug)
     if not url:
@@ -126,7 +126,7 @@ def audio_player_html(slug: str) -> str:
     local = escape(url, quote=True)
     revision = url.split("?v=", 1)[-1]
     backup = escape(
-        "https://raw.githubusercontent.com/AIribeiro/careersite/main/static/weekly-ai/"
+        "https://jairribeiro-ai.streamlit.app/weekly-ai-audio/"
         + slug + ".mp3?v=" + revision, quote=True
     )
     return (
@@ -140,7 +140,7 @@ def audio_player_html(slug: str) -> str:
         '<source src="' + backup + '" type="audio/mpeg">'
         'Your browser does not support audio playback.</audio>'
         '<p>Approximately one minute. The written edition below contains the original sources.</p>'
-        '<p><a class="weekly-ai-audio-backup" href="' + backup + '" target="_blank" '
+        '<p><a class="weekly-ai-audio-backup" href="' + local + '" target="_blank" '
         'rel="noopener noreferrer" data-hq-event="weekly_ai_audio_direct_open">'
         'Audio not playing? Open the MP3 directly ↗</a></p>'
         '</aside>'

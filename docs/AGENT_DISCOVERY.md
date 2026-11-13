@@ -84,6 +84,80 @@ Do **not** move the apex to GitHub Pages A records blindly: this would replace
 the current branded site, and GitHub Pages currently serves social-share
 bridges, not the full interactive portfolio.
 
+## ChatGPT Search discovery and ongoing publication updates (Nov 2026)
+
+**Supported outcome:** makes published editorial summaries crawlable by ordinary
+search engines and OpenAI's `OAI-SearchBot`. This is not a direct ChatGPT
+submission channel or a promise of indexing, citation, ranking or model updates.
+
+The existing `ai.jairribeiro.com` **non-frame 301 redirect** now preserves the
+URL path and forwards to the first-party GitHub Pages deployment. The public
+site generated from CMS metadata adds:
+
+- `https://ai.jairribeiro.com/discover/` — browsable, indexable HTML editorial index.
+- `https://ai.jairribeiro.com/discover/{slug}/` — standalone public **summary**
+  page with HTML title, description, canonical URL at the **final serving host**,
+  visible executive synopsis, author and publication date, and Article JSON-LD.
+- `https://ai.jairribeiro.com/sitemap.xml` — an XML sitemap of indexable
+  summary pages at the final GitHub Pages host, excluding redirect-only social
+  pages, admin routes and protected content. A page's `lastmod` uses its known
+  publication date, not the two-hour export run time.
+- `https://ai.jairribeiro.com/feed.xml` — RSS of public summaries.
+- `https://ai.jairribeiro.com/robots.txt` — crawler instructions allowing
+  OAI-SearchBot to access public resources. Note that the **final** host is
+  `airibeiro.github.io`; host-level robots policy there belongs to GitHub Pages.
+  A `robots.txt` in a project subdirectory does not override that root policy.
+  No rule in the generated file should be mistaken for a technical access gate.
+
+These HTML summary pages are separate from the Premium Reader product; **no
+CMS article bodies, registration state or PDFs are published** to this surface.
+The original content URL in each synopsis links to `jairribeiro.com`.
+Share links and social media tracking remain unchanged.
+
+### CMS publication change tracking
+
+The two-hour GitHub Actions Pages workflow captures the previously published
+metadata manifest, rebuilds the complete public set, computes digest changes
+(`added`, `updated`, `removed`), and releases a small
+`/agent/change-report.json`. Comparisons use only public title, excerpt,
+category, access state and canonical links. If the previous state cannot be
+verified, the workflow **does not** pretend that everything was newly released
+and emits an `unavailable` report instead.
+
+### Optional IndexNow push for participating search engines
+
+IndexNow is **not** an OpenAI/ChatGPT push API. Search engines accepting an
+IndexNow notification do not guarantee indexing. Google has its own sitemap
+and indexing discovery procedures.
+
+Configure GitHub Actions repository secret `INDEXNOW_KEY` with a valid unique
+8–128 character key when ready. During publication, the workflow publishes
+the required verification text file at
+`https://airibeiro.github.io/careersite/{key}.txt`, then **only after Pages
+deployment and external verification** may POST newly added, changed or removed
+public `/discover/{slug}/` URLs to `https://api.indexnow.org/indexnow`.
+The submission specifies `keyLocation` inside `/careersite/` on the **same
+final host** as the URLs being submitted. This is necessary because the
+branded subdomain's 301 redirect cannot prove host ownership for a different
+host by itself. Without the key, the workflow safely logs
+`INDEXNOW_PENDING_SETUP` and makes no external submission. An accepted HTTP
+200/202 means only that IndexNow received the notice.
+
+### Monitoring boundaries
+
+The scheduled workflow checks live HTTP status, content types, catalog
+completeness, public page counts, sitemap, RSS, crawler preferences and correct
+branded redirect, plus records publication change counts. These checks measure
+**availability**, not crawler activity.
+
+Real `OAI-SearchBot` visits cannot be counted from a browser analytics script,
+a synthetic GitHub Actions request, or a user-agent string alone. GitHub Pages
+does not expose raw HTTP request logs to this repository. Actual crawler visit
+analytics require request logs from a first-party edge/proxy or a hosting
+provider that supports logged requests, and validation against OpenAI's
+current published searchbot IP ranges. Do not report fabricated bot traffic,
+unique user counts or ChatGPT citation numbers.
+
 ## Branded domain and deployment
 
 The Streamlit code now handles these paths when requests actually reach its `app.py` Starlette routes. That does **not** mean that the endpoints resolve at `jairribeiro.com`.

@@ -104,6 +104,7 @@ class AdvisoryRegistrationTests(unittest.TestCase):
         self.assertIn("_consume_query_verification()", source)
         self.assertIn("_first_password_form(session, user)", source)
         self.assertIn('with st.form("advisory_first_password"', source)
+        self.assertIn('with st.form("advisory_existing_password"', source)
         self.assertIn('_set_reader_password(session, str(password))', source)
         self.assertIn('_password_signin(str(user["email"]).strip().lower(), str(password))', source)
         self.assertNotIn('with st.form("advisory_email_code")', source)

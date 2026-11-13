@@ -153,6 +153,54 @@ def _sign_out() -> None:
     st.rerun()
 
 
+def _password_authenticated(session: dict) -> bool:
+    """The server checks the Auth password method; Supabase RLS enforces it too."""
+    try:
+        return _request_json(
+            "POST", _rest_url("rpc/portfolio_advisory_password_session_v1"),
+            token=str(session["access_token"]), payload={}, timeout=10,
+        ) is True
+    except (RuntimeError, ValueError, TimeoutError, KeyError):
+        return False
+
+
+def _first_password_form(session: dict, user: dict) -> None:
+    st.html("""<section class="advisory-portal-intro">
+<h2>Verify your email. Set your password.</h2>
+<p>Your email has been confirmed. Set a password to activate your Advisory account.
+Future visits use your email and password, not an email access link.</p>
+</section>""")
+    with st.form("advisory_first_password", clear_on_submit=True):
+        password = st.text_input(
+            "New password", type="password", max_chars=128,
+            help="Use a unique password of at least 12 characters.",
+        )
+        confirmation = st.text_input(
+            "Confirm password", type="password", max_chars=128,
+        )
+        submit = st.form_submit_button(
+            "Set password and activate my account", type="primary",
+        )
+    if not submit:
+        st.caption("Advisory access remains inactive until your password is saved.")
+        return
+    if password != confirmation:
+        st.error("The passwords do not match.")
+        return
+    try:
+        _set_reader_password(session, str(password))
+        # A new password login creates a fresh signed JWT with AMR=password,
+        # required by the Advisory database policy before profile activation.
+        _password_signin(str(user["email"]).strip().lower(), str(password))
+        st.session_state.pop("advisory_pending_email", None)
+        st.rerun()
+    except ValueError as exc:
+        st.error(str(exc))
+    except (RuntimeError, TimeoutError, KeyError):
+        st.error("The password could not be confirmed. "
+                 "Try again, or request a new password reset email.")
+
+
 def _advisory_login() -> None:
     st.html("""<section class="advisory-portal-intro">
 <h2>A professional introduction, without the paperwork.</h2>

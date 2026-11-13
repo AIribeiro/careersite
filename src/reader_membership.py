@@ -240,7 +240,7 @@ footer a{margin-right:16px}
 @media(max-width:560px){.library-item{display:block}.library-item a{display:inline-block;margin-top:9px}}
 </style></head><body><nav><a href="/?page=briefings">JAIR RIBEIRO / EXECUTIVE AI BRIEFINGS</a></nav>
 <main><section><div class="kicker">Reader access · Complimentary</div><h1>""" + escape(title) + "</h1>" + message + body + """</section></main>
-<footer><a href="/?page=briefings">All briefings</a><a href="/~/+/readers/privacy">Privacy &amp; data</a><a href="/?page=contact">Contact</a></footer>
+<footer><a href="/?page=briefings">All briefings</a><a href="/?page=privacy">Privacy &amp; data</a><a href="/?page=contact">Contact</a></footer>
 </body></html>"""
     return _no_cache(HTMLResponse(doc))
 
@@ -265,7 +265,7 @@ def _login(request, *, notice: str = "") -> Response:
         '<p class="small">Already a reader? <a href="/~/+/readers/signin">Sign in using your email</a>.</p>'
         '<p class="small">We use your email to verify access and maintain your download library. '
         'Editorial emails are only sent if you select the optional checkbox. '
-        '<a href="/~/+/readers/privacy">How your data is used</a>.</p>')
+        '<a href="/?page=privacy">How your data is used</a>.</p>')
     return _layout("Take the briefings with you", body, notice=notice)
 
 
@@ -344,20 +344,8 @@ def _library(request, profile: dict) -> Response:
 
 
 def _privacy() -> Response:
-    return _layout("Privacy and reader data",
-        '<p>This free reader service is operated by Jair Ribeiro. We collect '
-        'your name, verified email, download activity and any optional editorial '
-        'email preference to provide your account and understand resource use.</p>'
-        '<h2>Choice and control</h2><p>You can access the library without subscribing '
-        'to email updates. You can withdraw editorial email consent in My preferences. '
-        'Access and correction requests, data export and deletion requests can be sent '
-        'using the <a href="/?page=contact">portfolio contact page</a>.</p>'
-        '<h2>Storage</h2><p>Reader accounts and records are held in the portfolio\'s '
-        'Supabase database. Verification links are delivered by its authentication '
-        'email service. We do not sell reader contact details. We retain account '
-        'records while the membership remains active, subject to legal requirements '
-        'and erasure requests. Briefing downloads are free.</p>'
-        '<p class="small">Notice version: ' + CONSENT_VERSION + '.</p>')
+    """Preserve historic reader-privacy URLs and show the canonical notice."""
+    return RedirectResponse("/?page=privacy", status_code=303)
 
 
 def _preferences(profile: dict, *, notice: str = "") -> Response:

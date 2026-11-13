@@ -71,13 +71,13 @@ def _article_schema(article: ArticleMeta) -> dict[str, object]:
         "author": {
             "@type": "Person",
             "name": "Jair Ribeiro",
-            "url": "https://jairribeiro-ai.streamlit.app/",
+            "url": "https://jairribeiro.com/",
             "sameAs": [LINKEDIN, MEDIUM],
         },
         "publisher": {
             "@type": "Person",
             "name": "Jair Ribeiro",
-            "url": "https://jairribeiro-ai.streamlit.app/",
+            "url": "https://jairribeiro.com/",
         },
         "articleSection": article.topic,
         "keywords": list(article.tags),
@@ -97,7 +97,7 @@ def inject_metadata(page: str, title: str) -> None:
   const description = {json.dumps(description)};
   const socialImage = {json.dumps(SOCIAL_IMAGE)};
   const socialAlt = "Jair Ribeiro — Enterprise AI & Data Leader";
-  const base = window.parent.location.origin + window.parent.location.pathname;
+  const base = "https://jairribeiro.com/";
   const canonical = page === 'home'
     ? base
     : page === 'ai-data-governance'
@@ -245,7 +245,7 @@ def inject_article_metadata(article: ArticleMeta) -> None:
     doc.head.appendChild(personSchema);
   }}
   const person = {json.dumps(person)};
-  person.url = win.location.origin + win.location.pathname;
+  person.url = "https://jairribeiro.com/";
   personSchema.textContent = JSON.stringify(person);
 
   let articleSchema = doc.head.querySelector('script[data-jair-article]');

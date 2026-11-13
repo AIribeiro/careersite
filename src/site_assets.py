@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent
 IMAGE_DIR = ROOT / "images"
 LINKEDIN = "https://www.linkedin.com/in/jairribeiro"
 MEDIUM = "https://jairribeiro.medium.com"
-EMAIL = "jair.ribeiro@outlook.it"
+EMAIL = "jair@jairribeiro.com"
 
 
 def image_bytes(name: str) -> bytes:
@@ -69,7 +69,7 @@ def build_cv_pdf() -> bytes:
     pdf.cell(0, 6, "Enterprise AI & Data Leader | Strategy, Governance, Adoption & Business Value", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 8.5)
     pdf.set_text_color(70, 76, 84)
-    pdf.multi_cell(0, 4.5, "Gothenburg, Sweden | jair.ribeiro@outlook.it | +46 76 761 2158 | linkedin.com/in/jairribeiro", new_x="LMARGIN", new_y="NEXT")
+    pdf.multi_cell(0, 4.5, "Gothenburg, Sweden | jair@jairribeiro.com | +46 76 761 2158 | linkedin.com/in/jairribeiro", new_x="LMARGIN", new_y="NEXT")
 
     heading("Executive Profile")
     body(f"Across two Volvo Group roles in Poland and Sweden, led business-facing AI and analytics work spanning requirements, stakeholder engagement and adoption. Portfolio work covered {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects across regions, with operational AI work in warranty, sales and aftermarket. At MSX International, continued the cross-functional enterprise AI mandate in an explicit Director role, establishing CoE portfolio, governance and data ownership foundations.")

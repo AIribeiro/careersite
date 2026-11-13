@@ -47,6 +47,17 @@ def _read_owner_requests(token: str) -> list[dict]:
     return rows
 
 
+def read_request_history(token: str) -> list[dict]:
+    rows=_request_json(
+        "GET",_rest_url("portfolio_advisory_request_audit?select=*"
+                        "&order=created_at.desc&limit=500"),
+        token=token,timeout=15,
+    )
+    if not isinstance(rows,list):
+        raise RuntimeError("Cannot load Advisory request audit")
+    return rows
+
+
 def _read_thread(token: str,rid: str) -> list[dict]:
     rows = _request_json(
         "GET",_rest_url("portfolio_advisory_messages?select=*&request_id=eq."

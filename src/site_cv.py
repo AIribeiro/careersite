@@ -162,7 +162,7 @@ def build_public_cv() -> bytes:
     pdf.cell(
         0,
         4.0,
-        "Gothenburg, Sweden | jair.ribeiro@outlook.it | +46 76 761 21 58",
+        "Gothenburg, Sweden | jair@jairribeiro.com | +46 76 761 21 58",
         new_x="LMARGIN",
         new_y="NEXT",
     )

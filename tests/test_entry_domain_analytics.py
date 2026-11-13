@@ -16,6 +16,31 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 class EntryDomainReportTests(unittest.TestCase):
     def test_historical_traffic_is_grouped_into_native_reporting_only(self):
         from page_entry_domain_analytics import entry_domain_rows, source_evidence_rows
+        from page_entry_domain_analytics import branded_host_rows, campaign_attribution_rows
+        report = {"hosts": [
+            {"host_label": "go.jairribeiro.com", "domain_label": "jairribeiro.com",
+             "sessions": 4, "views": 6},
+            {"host_label": "readers.jairribeiro.com", "domain_label": "jairribeiro.com",
+             "sessions": 2, "views": 3},
+            {"host_label": "jairribeiro-ai.streamlit.app",
+             "domain_label": "jairribeiro-ai.streamlit.app", "sessions": 9, "views": 13}
+        ], "host_source_evidence": [
+            {"host_label": "go.jairribeiro.com", "source_evidence": "Tagged", "sessions": 4}
+        ], "campaigns": [
+            {"host_label": "go.jairribeiro.com", "attribution_source": "linkedin",
+             "utm_source": "chatgpt.com", "utm_medium": "social",
+             "utm_campaign": "masked_test_20261113",
+             "utm_content": "ai-governance-explained-to-executives", "sessions": 1}
+        ]}
+        hosts = branded_host_rows(report)
+        self.assertEqual(len(hosts), 2)
+        self.assertEqual(hosts[0]["Entry hostname"], "go.jairribeiro.com")
+        self.assertEqual(hosts[0]["Tagged"], 4)
+        campaign = campaign_attribution_rows(report)[0]
+        self.assertEqual(campaign["Declared source"], "linkedin")
+        self.assertEqual(campaign["UTM source"], "chatgpt.com")
+        self.assertEqual(campaign["Campaign"], "masked_test_20261113")
+
         rows = entry_domain_rows({"domains": [
             {"domain_label": "jairribeiro.com", "sessions": 3, "views": 4,
              "verified_views": 4, "assigned_views": 0},
@@ -51,7 +76,7 @@ class EntryDomainReportTests(unittest.TestCase):
         harness = r"""
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
-function run(host, framed, referrer, ancestors, expectedDomain, expectedEvidence, campaign) {
+function run(host, framed, referrer, ancestors, expectedDomain, expectedEvidence, campaign, overrideQuery=null) {
   const events=[], cache=new Map();
   const doc={
     referrer,visibilityState:'visible',
@@ -59,7 +84,7 @@ function run(host, framed, referrer, ancestors, expectedDomain, expectedEvidence
     querySelector:()=>null,
     addEventListener:()=>{}
   };
-  const url='https://'+host+'/?page=thinking&article=test-article'+(campaign?'&source=linkedin':'');
+  const url='https://'+host+'/?page=thinking&article=test-article'+(overrideQuery!==null?overrideQuery:(campaign?'&source=linkedin':''));
   const win={
     document:doc,
     location:{href:url,hostname:host,ancestorOrigins:ancestors||[]},
@@ -87,8 +112,14 @@ function run(host, framed, referrer, ancestors, expectedDomain, expectedEvidence
   for(const event of views) {
     assert.equal(event.entry_domain,expectedDomain);
     assert.equal(event.entry_domain_evidence,expectedEvidence);
-    if (expectedDomain==='jairribeiro.com') assert.equal(event.referrer_host,null);
+    if (expectedDomain==='jairribeiro.com' || (expectedDomain||'').endsWith('.jairribeiro.com')) assert.equal(event.referrer_host,null);
     assert.equal(event.attribution_source,campaign?'linkedin':null);
+    if (url.includes('masked_test_20261113') || referrer.includes('masked_test_20261113')) {
+      assert.equal(event.utm_source,'chatgpt.com');
+      assert.equal(event.utm_medium,'social');
+      assert.equal(event.utm_campaign,'masked_test_20261113');
+      assert.equal(event.utm_content,'ai-governance-explained-to-executives');
+    }
   }
 }
 run('jairribeiro-ai.streamlit.app',false,'',[],
@@ -102,6 +133,31 @@ run('jairribeiro-ai.streamlit.app',true,'',[],
 run('jairribeiro-ai.streamlit.app',false,'https://jairribeiro.com/',[],
     'jairribeiro-ai.streamlit.app','direct_host',false);
 run('unknown.example',false,'',[],null,null,false);
+run('go.jairribeiro.com',false,'',[],
+    'go.jairribeiro.com','direct_host',true,
+    '&source=linkedin&utm_medium=social&utm_campaign=masked_test_20261113&utm_content=ai-governance-explained-to-executives&utm_source=chatgpt.com');
+run('jairribeiro-ai.streamlit.app',true,'https://go.jairribeiro.com/',[],
+    'go.jairribeiro.com','embed_referrer',true,
+    '&source=linkedin&utm_medium=social&utm_campaign=masked_test_20261113&utm_content=ai-governance-explained-to-executives&utm_source=chatgpt.com');
+run('jairribeiro-ai.streamlit.app',true,'',
+    ['https://readers.jairribeiro.com'],
+    'readers.jairribeiro.com','embed_ancestor',false);
+run('jairribeiro-ai.streamlit.app',true,
+    'https://go.jairribeiro.com/?source=linkedin&utm_medium=social&utm_campaign=masked_test_20261113&utm_content=ai-governance-explained-to-executives&utm_source=chatgpt.com',[],
+    'go.jairribeiro.com','embed_referrer',true,'');
+run('jairribeiro-ai.streamlit.app',true,
+    'https://go.jairribeiro.com/',[],
+    'go.jairribeiro.com','embed_referrer',false,'');
+run('www.jairribeiro.com',false,'',[],
+    'www.jairribeiro.com','direct_host',false);
+run('readers.eu.jairribeiro.com',false,'',[],
+    'readers.eu.jairribeiro.com','direct_host',false);
+run('jairribeiro-ai.streamlit.app',true,
+    'https://go.jairribeiro.com.evil.tld/',[],
+    null,'embedded_unresolved',false);
+run('eviljairribeiro.com',false,'',[],null,null,false);
+run('go.jairribeiro.com.evil.tld',false,'',[],null,null,false);
+
 console.log('entry domain behavior passed');
 """.replace("ARTICLE", json.dumps(article_js)).replace("PAGE", json.dumps(page_js))
         result = subprocess.run(["node", "-e", harness], text=True, capture_output=True)

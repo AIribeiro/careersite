@@ -52,6 +52,12 @@ def _host_origin() -> str:
     All premium verification links use the root branded domain.
     Supabase Auth must allowlist the root URL and its callback routes.
     """
+    # The dedicated staging launcher owns its fixed, test-only callback.
+    # A stale production setting can never restore the Streamlit host.
+    if os.environ.get("PORTFOLIO_READER_CALLBACK_ORIGIN", "").strip() == (
+        "https://jairribeiro-reader-test.streamlit.app"
+    ):
+        return "https://jairribeiro-reader-test.streamlit.app"
     return BRANDED_PREMIUM_ORIGIN
 
 

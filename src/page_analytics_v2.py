@@ -148,13 +148,14 @@ _WORKSPACE_LABELS = {
     "linkedin": "Social Media Presence",
     "cms": "Content Studio",
     "readers": "Reader Management",
+    "advisory": "Advisory Management",
 }
 
 
 def _resolve_workspace(requested: object, authenticated: bool) -> str:
     """Never route an anonymous browser to a private analytics/CMS renderer."""
     value = str(requested or "public").lower().strip()
-    return value if authenticated and value in ("private", "cms", "linkedin", "readers") else "public"
+    return value if authenticated and value in ("private", "cms", "linkedin", "readers", "advisory") else "public"
 
 
 def _workspace_from_url(authenticated: bool) -> str:
@@ -174,7 +175,7 @@ def _workspace_from_url(authenticated: bool) -> str:
 def _update_workspace_url() -> None:
     """Switch workspaces without carrying a different domain's report route."""
     workspace = st.session_state.get(_WORKSPACE_STATE_KEY, "public")
-    if workspace in ("private", "cms", "linkedin", "readers"):
+    if workspace in ("private", "cms", "linkedin", "readers", "advisory"):
         st.query_params["workspace"] = workspace
     else:
         st.query_params.pop("workspace", None)
@@ -266,6 +267,10 @@ def render_analytics_dashboard() -> None:
     if workspace == "readers":
         from page_owner_reader_management import render_owner_reader_management
         render_owner_reader_management(owner)
+        return
+    if workspace == "advisory":
+        from page_owner_advisory_management import render_owner_advisory_management
+        render_owner_advisory_management(owner)
         return
 
     owner_css()

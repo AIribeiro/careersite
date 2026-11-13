@@ -8,6 +8,7 @@ from __future__ import annotations
 from site_assets import ADVISORY_EMAIL, EMAIL, PRIVACY_EMAIL, READERS_EMAIL
 from site_media import IMAGE_DIR
 from site_components import footer, nav
+import streamlit as st
 
 
 SERVICES_CSS = """
@@ -150,6 +151,20 @@ SERVICES_CSS = """
 
 def advisory() -> str:
     """Executive-grade advisory value, method, fit and distinct access."""
+    member_signed_in = st.session_state.get("advisory_member") is True
+    invitation = ("Continue your advisory conversation." if member_signed_in
+                  else "Create your advisory account.")
+    cta = ("Open my advisory space →" if member_signed_in
+           else "Create your advisory account →")
+    invitation_text = (
+        "Your private conversation, requests and next steps are available in your "
+        "Advisory account. The Premium Reader library remains included."
+        if member_signed_in
+        else "A direct space to share the business decision you are considering and "
+        "keep the conversation moving. Verify your email and choose a password to "
+        "activate your complimentary account. Advisory work, scope and terms are agreed separately."
+    )
+
     # A repository-backed, optimized WebP; committed as plain base64 text so
     # it can be delivered reliably through the managed code connection.
     try:
@@ -262,10 +277,10 @@ def advisory() -> str:
  <div class="container advisory-access-grid">
   <div>
    <p class="service-eyebrow">Your next step</p>
-   <h2>Create your advisory account.</h2>
-   <p>A direct space to share the business decision you are considering and keep the conversation moving. Verify your email and choose a password to activate your complimentary account. Advisory work, scope and terms are agreed separately.</p>
+   <h2>{invitation}</h2>
+   <p>{invitation_text}</p>
    <div class="advisory-actions">
-    <a class="advisory-button" href="?page=advisory-access" target="_self" data-hq-event="advisory_access_register">Create your advisory account →</a>
+    <a class="advisory-button" href="?page=advisory-access" target="_self" data-hq-event="advisory_access_register">{cta}</a>
    </div>
    <a class="advisory-small-link" href="?page=advisory-access&amp;signin=1" target="_self" data-hq-event="advisory_access_signin">Already have an account? Sign in</a>
   </div>

@@ -7,6 +7,10 @@ on:
       - "app.py"
       - "src/agent_discovery.py"
       - "scripts/build_agent_discovery_static.py"
+      - "scripts/discovery_search_surface.py"
+      - "scripts/indexnow_discovery.py"
+      - "scripts/verify_agent_discovery_live.py"
+      - "tests/test_discovery_search_surface.py"
       - "tests/test_agent_static_bridge.py"
       - "tests/test_agent_discovery.py"
       - ".github/workflows/agent-discovery-ci.yml"
@@ -38,7 +42,9 @@ jobs:
       - name: Validate access rules and syntax
         run: |
           python -m py_compile app.py src/agent_discovery.py scripts/build_agent_discovery_static.py tests/test_agent_discovery.py tests/test_agent_static_bridge.py
+          python -m py_compile scripts/discovery_search_surface.py scripts/indexnow_discovery.py scripts/verify_agent_discovery_live.py
           python -m unittest discover -s tests -p "test_agent*.py" -v
+          python -m unittest discover -s tests -p "test_discovery_search_surface.py" -v
       - name: Build agent discovery snapshot from live published CMS metadata
         run: |
           python scripts/build_agent_discovery_static.py --output _agent_ci_mirror --share-base https://airibeiro.github.io/careersite
@@ -51,6 +57,10 @@ jobs:
           assert catalogue["content_policy"] == "summary_only"
           assert catalogue["count"] > 0
           assert len(list((site / "agent/content").glob("*.md"))) == catalogue["count"]
+          assert len(list((site / "discover").glob("*/index.html"))) == catalogue["count"]
+          assert (site / "sitemap.xml").is_file()
+          assert (site / "feed.xml").is_file()
+          assert (site / "robots.txt").is_file()
           assert all(c["url"].startswith("https://jairribeiro.com/")
                      for c in catalogue["content"])
           assert all(c["markdown_url"].startswith("https://airibeiro.github.io/careersite/")

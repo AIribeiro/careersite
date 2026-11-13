@@ -9,7 +9,7 @@ import sys
 from urllib.parse import urlencode
 from xml.sax.saxutils import escape
 
-from starlette.responses import FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse, Response
+from starlette.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from starlette.routing import Route
 from streamlit.starlette import App
 
@@ -27,6 +27,9 @@ from site_owner_http_auth import owner_auth_route
 from reader_membership import (reader_route, reader_download, ROI_SLUG, AUTHORITY_SLUG)
 from reader_catalog_admin import reader_admin_route
 from weekly_ai_audio import mp3_path
+from agent_discovery import (PUBLIC_ORIGIN, agents_text, catalogue_json,
+                             llms_text, markdown_summary, public_catalogue,
+                             robots_text, safe_slug)
 
 # Source-level compatibility anchors for the established smoke tests. The
 # executable UI moved to main.py; these strings document that architecture
@@ -318,38 +321,95 @@ async def _weekly_ai_audio_file(request):
     )
 
 
+
+def _published_agent_catalogue() -> dict:
+    """Refresh from published metadata. A CMS failure never makes drafts public."""
+    try:
+        published = fetch_published_articles()
+        status = "complete"
+    except (RuntimeError, ValueError, TimeoutError):
+        published = ()
+        status = "partial"
+    return public_catalogue(published, ARTICLES, catalogue_status=status)
+
+
+_AGENT_HEADERS = {
+    "Cache-Control": "public, max-age=180, stale-while-revalidate=300",
+    "X-Content-Type-Options": "nosniff",
+}
+
+
+async def _llms(_request):
+    return PlainTextResponse(
+        llms_text(_published_agent_catalogue()),
+        media_type="text/plain; charset=utf-8",
+        headers=_AGENT_HEADERS,
+    )
+
+
+async def _agents(_request):
+    return PlainTextResponse(
+        agents_text(), media_type="text/markdown; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=3600", "X-Content-Type-Options": "nosniff"},
+    )
+
+
+async def _agent_catalogue(_request):
+    return Response(
+        catalogue_json(_published_agent_catalogue()),
+        media_type="application/json",
+        headers=_AGENT_HEADERS,
+    )
+
+
+async def _agent_content(request):
+    slug = safe_slug(request.path_params.get("slug"))
+    if not slug:
+        return PlainTextResponse("Not found", status_code=404)
+    for item in _published_agent_catalogue()["content"]:
+        if item["slug"] == slug:
+            return PlainTextResponse(
+                markdown_summary(item), media_type="text/markdown; charset=utf-8",
+                headers={
+                    **_AGENT_HEADERS,
+                    "Link": f'<{PUBLIC_ORIGIN}/llms.txt>; rel="describedby"',
+                },
+            )
+    return PlainTextResponse("Not found", status_code=404)
+
+
 async def _robots(_request):
     return PlainTextResponse(
-        f"User-agent: *\nAllow: /\n\nUser-agent: LinkedInBot\nAllow: /thinking/\nAllow: /social/\nAllow: /cms-header/\n\nSitemap: {BASE_URL}/sitemap.xml\n",
-        headers={"Cache-Control": "public, max-age=3600"},
+        robots_text(),
+        headers={"Cache-Control": "public, max-age=3600", "X-Content-Type-Options": "nosniff"},
     )
 
 
 async def _sitemap(_request):
+    catalogue = _published_agent_catalogue()
     entries = [
-        (f"{BASE_URL}/", "2026-09-17"),
-        (f"{BASE_URL}/ai-data-governance", "2026-09-27"),
-        (f"{BASE_URL}/briefings", "2026-10-31"),
-    ] + [
-        (article_url(article), article.published_iso) for article in ARTICLES
+        (PUBLIC_ORIGIN + "/", "2026-09-17"),
+        (PUBLIC_ORIGIN + "/?page=thinking", "2026-09-17"),
+        (PUBLIC_ORIGIN + "/?page=briefings", "2026-10-31"),
+        (PUBLIC_ORIGIN + "/?page=about", "2026-09-17"),
+        (PUBLIC_ORIGIN + "/?page=contact", "2026-09-17"),
+        (PUBLIC_ORIGIN + "/?page=ai-data-governance", "2026-09-27"),
     ]
-    try:
-        entries.extend(cms_sitemap_entries())
-    except RuntimeError:
-        pass
+    entries.extend((item["url"], item["published"]) for item in catalogue["content"])
     deduped = {}
     for url, lastmod in entries:
         deduped[url] = max(lastmod, deduped.get(url, ""))
-    entries = list(deduped.items())
     body = "".join(
         f"<url><loc>{escape(url)}</loc><lastmod>{lastmod}</lastmod></url>"
-        for url, lastmod in entries
+        for url, lastmod in deduped.items() if lastmod
     )
-    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{body}</urlset>'
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+           + body + '</urlset>')
     return Response(
         xml,
         media_type="application/xml",
-        headers={"Cache-Control": "public, max-age=3600"},
+        headers={"Cache-Control": "public, max-age=180", "X-Content-Type-Options": "nosniff"},
     )
 
 
@@ -509,6 +569,10 @@ app = App(
         Route("/executive-ai-briefings.svg", _executive_briefing_image, methods=["GET", "HEAD"]),
         Route("/cms-header/{slug}.webp", _cms_header_image, methods=["GET", "HEAD"]),
         Route("/cms-social/{slug}.png", _cms_social_image, methods=["GET", "HEAD"]),
+        Route("/llms.txt", _llms, methods=["GET", "HEAD"]),
+        Route("/agents.md", _agents, methods=["GET", "HEAD"]),
+        Route("/agent/catalog.json", _agent_catalogue, methods=["GET", "HEAD"]),
+        Route("/agent/content/{slug}.md", _agent_content, methods=["GET", "HEAD"]),
         Route("/robots.txt", _robots, methods=["GET", "HEAD"]),
         Route("/sitemap.xml", _sitemap, methods=["GET", "HEAD"]),
     ],

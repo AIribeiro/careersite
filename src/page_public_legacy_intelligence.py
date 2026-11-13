@@ -261,8 +261,8 @@ def _channels(data: dict) -> None:
             [{"Channel": r["Channel"], "Sessions": r["sessions"],
               "Measured sessions": r["sessions"]} for r in grouped],
             "Channel", "Sessions", title="Reach by source channel", color=ACCENT,
-            note="LinkedIn, Facebook, Threads, X, WhatsApp and other recognizable sources "
-                 "are kept distinct. Exact counts appear on hover.",
+            note="LinkedIn, Reddit, Facebook, Threads, X, WhatsApp and other recognizable "
+                 "sources are kept distinct. Exact counts appear on hover.",
             limit=12,
         )
     with right:

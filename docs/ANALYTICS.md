@@ -242,6 +242,19 @@ Source labels that begin with `linkedin` (for example `linkedin` and `linkedin_l
 
 The aggregate implementation is `public.careersite_hiring_intelligence_v1(...)`, versioned in `sql/analytics_hiring_intelligence_v1.sql`.
 
+## Internal production checks versus real audience (November 2026)
+
+The site runs a Playwright headless Chromium production smoke test on qualifying pushes to the main branch. This is useful for finding broken public routes, missing assets and navigation regressions. It is **not reader activity**.
+
+- Browser QA passes `source=internal_qa&role=smoke` on each real page navigation. The collector retains its events for diagnosis.
+- A coarse `browser_automation` boolean records `navigator.webdriver === true` without persisting a raw user agent, IP address or cross-session identity.
+- Earlier internal smoke runs with the exact documented navigation sequence are marked by `public.careersite_internal_qa_sessions_v1`; repeated US/UTC/Linux/Chrome sessions with one page view, no actions and <=10 seconds active time are **suspected automation**, not definitively identified visitors.
+- Audience, article, library, lifetime, popularity and engagement reporting read from `public.careersite_reporting_events_v1`. This view excludes the internal QA tags, identified historical QA sessions and high-confidence automation signals, while the event table remains untouched.
+- The aggregate-only `public.careersite_traffic_quality_audit_v1` reports **recorded**, **internal QA**, **suspected automation** and **unclassified** sessions. Unclassified traffic is *not* a verified-human count; undetected bots remain possible.
+- The two evidence tables are RLS-protected and unavailable for anonymous direct reads. The reporting view is `security_invoker=true` and not directly exposed to readers.
+
+These categories are intentionally conservative and will change as better server-side verification becomes available. The source-tag distinction is for analytics quality, not authentication or security access control. Site QA must not be disabled simply to improve a traffic chart.
+
 ## Collector integrity controls
 
 When a 30-minute session timeout creates a new session on the same open document, the document-level view guard is cleared so the new session can record its own `page_view`. This prevents background behavior summaries from becoming telemetry-only sessions simply because the document remained open.

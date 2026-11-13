@@ -106,7 +106,8 @@ def source_evidence_rows(report: dict) -> list[dict]:
 def render_entry_domain_report(window: str, *, expected_site_views: int | None = None) -> None:
     st.subheader("Entry address & traffic origins")
     st.caption(
-        "Root and branded subdomains roll up together; exact verified hostnames appear below. "\n        "Which address opened the portfolio is separate from where the visit came from. "
+        "Root and branded subdomains roll up together; exact verified hostnames appear below. "
+        "Which address opened the portfolio is separate from where the visit came from. "
         "Both are reported per browser-tab session; views count content opens."
     )
     try:

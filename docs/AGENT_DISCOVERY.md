@@ -52,7 +52,7 @@ Suggested acceptance checks against the **branded domain**, not merely the nativ
 curl -fsSL -D - https://jairribeiro.com/llms.txt | head -25
 curl -fsSL -D - https://jairribeiro.com/agents.md | head -25
 curl -fsSL https://jairribeiro.com/agent/catalog.json | python -m json.tool | head -25
-curl -fsSL https://jairribeiro.com/agent/content/ai-governance-explained-to-executives.md
+curl -fsSL https://jairribeiro.com/agent/content/the-ai-governance-gate-i-would-never-remove.md
 curl -fsSL https://jairribeiro.com/robots.txt
 curl -fsSL https://jairribeiro.com/sitemap.xml
 ```

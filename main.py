@@ -171,10 +171,20 @@ elif PAGE == "analytics":
     # the same real portfolio navigation/footer as editorial and reader pages.
     from page_analytics_v2 import render_analytics_dashboard
     from site_native_shell import native_header, native_footer
-    st.html(native_header("analytics"))
+    editing_owner_draft = (
+        str(st.query_params.get("workspace", "")).lower() == "cms"
+        and bool(st.session_state.get("cms_edit_id"))
+    )
+    if editing_owner_draft:
+        st.html(native_header("analytics", navigation_locked=True))
+    else:
+        st.html(native_header("analytics"))
     with st.container(key="native_analytics_content"):
         render_analytics_dashboard()
-    st.html(native_footer("analytics"))
+    if editing_owner_draft:
+        st.html(native_footer("analytics", navigation_locked=True))
+    else:
+        st.html(native_footer("analytics"))
 else:
     if CMS_ARTICLE_META is not None:
         from site_cms import inject_cms_article_metadata

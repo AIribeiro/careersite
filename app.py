@@ -128,6 +128,8 @@ async def _thinking_article(request, page_override="thinking"):
         headers={
             "Cache-Control": "public, max-age=900, stale-while-revalidate=3600",
             "X-Robots-Tag": "index, follow, max-image-preview:large",
+            "Link": (f'<{PUBLIC_ORIGIN}/agent/content/{slug}.md>; rel="alternate"; type="text/markdown", '
+                     f'<{PUBLIC_ORIGIN}/llms.txt>; rel="describedby"'),
         },
     )
 

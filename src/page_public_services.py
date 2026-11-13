@@ -246,8 +246,8 @@ def advisory() -> str:
   <div>
    <p class="service-eyebrow">A dedicated advisory relationship</p>
    <h2>Your executive advisory space.</h2>
-   <p>Create a separate Advisory account to keep your decision context in one place and maintain a direct professional contact route. Registration is complimentary. It is not a consultancy booking, subscription purchase or commercial agreement.</p>
-   <a class="advisory-button" href="?page=advisory-access" target="_self" data-hq-event="advisory_access_register">Create advisory access →</a>
+   <p>Create your advisory account to keep your decision context in one place and maintain a direct professional contact route. Registration is complimentary. It is not a consultancy booking, subscription purchase or commercial agreement.</p>
+   <a class="advisory-button" href="?page=advisory-access" target="_self" data-hq-event="advisory_access_register">Create your advisory account →</a>
    <p><a class="advisory-small-link" href="?page=advisory-access&amp;signin=1" target="_self" data-hq-event="advisory_access_signin">Already have advisory access? Sign in</a></p>
   </div>
   <aside class="advisory-access-inclusion">
@@ -266,7 +266,7 @@ def advisory() -> str:
   </div>
   <div><a class="advisory-button" href="mailto:{ADVISORY_EMAIL}?subject=Executive%20advisory%20discussion" data-hq-event="advisory_email_final">Discuss an executive decision →</a>
    <p class="service-mail"><a href="mailto:{ADVISORY_EMAIL}" data-hq-event="advisory_email_address">{ADVISORY_EMAIL}</a></p>
-   <p class="service-note">Prefer to establish your account first? <a href="?page=advisory-access" target="_self">Create Advisory access</a>.</p>
+   <p class="service-note">Prefer to establish your account first? <a href="?page=advisory-access" target="_self">Create your advisory account</a>.</p>
   </div>
  </div>
 </section>

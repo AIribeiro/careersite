@@ -1,0 +1,88 @@
+name: Advisory mobile viewport smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - "main.py"
+      - "src/page_advisory_portal.py"
+      - "src/site_embedded_mobile.py"
+      - "src/site_native_shell.py"
+      - ".github/workflows/advisory-mobile.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - name: Install Playwright Chromium
+        run: |
+          python -m pip install --quiet playwright==1.58.0
+          python -m playwright install chromium
+      - name: Check Advisory on iPhone-sized viewport
+        run: |
+          python - <<'PY'
+          import time
+          from playwright.sync_api import sync_playwright
+
+          url = ("https://advisory.jairribeiro.com/?page=advisory-access"
+                 "&source=internal_qa&role=smoke")
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True)
+              device = p.devices["iPhone 13"]
+              context = browser.new_context(**device)
+              page = context.new_page()
+              page.goto(url, wait_until="domcontentloaded", timeout=45000)
+              target = None
+              for attempt in range(16):
+                  for frame in page.frames:
+                      try:
+                          if frame.locator(".native-shell-header").count() and (
+                              frame.locator(".st-key-native_advisory_content").count()
+                          ):
+                              target = frame
+                              break
+                      except Exception:
+                          pass
+                  if target:
+                      break
+                  time.sleep(4)
+              if not target:
+                  raise RuntimeError(
+                      "The branded Advisory domain did not render its native account page."
+                  )
+              # Fix is active after footer; wait for Streamlit's late UI updates.
+              target.wait_for_selector(".native-shell-footer", timeout=20000)
+              target.wait_for_timeout(1500)
+              metrics = target.evaluate("""() => {
+                const app=document.querySelector('[data-testid="stAppViewContainer"]');
+                const form=document.querySelector('.st-key-native_advisory_content [data-testid="stForm"]');
+                const horizontal=document.querySelector('.st-key-native_advisory_content [data-testid="stHorizontalBlock"]');
+                return {
+                  screen: screen.width,
+                  viewport: innerWidth,
+                  iframe: window.self !== window.top,
+                  fixed: document.documentElement.hasAttribute('data-jr-native-masked-mobile'),
+                  zoom: app ? getComputedStyle(app).zoom : 'missing',
+                  appWidth: app ? app.getBoundingClientRect().width : null,
+                  formWidth: form ? form.getBoundingClientRect().width : null,
+                  columns: horizontal ? getComputedStyle(horizontal).flexDirection : 'none',
+                  documentWidth: document.documentElement.scrollWidth,
+                };
+              }""")
+              print("MOBILE ADVISORY METRICS:",metrics,flush=True)
+              if metrics["screen"] > 620:
+                  raise RuntimeError("Mobile device emulation did not initialize")
+              if metrics["columns"] not in ("column","none"):
+                  raise RuntimeError("Advisory inputs are still arranged as desktop columns")
+              if metrics["iframe"] and metrics["viewport"] > metrics["screen"]*1.45 and not metrics["fixed"]:
+                  raise RuntimeError("Masked desktop viewport not corrected")
+              if metrics["formWidth"] is None or metrics["formWidth"] > metrics["viewport"] + 30:
+                  raise RuntimeError("Advisory form does not fit inside its viewing area")
+              print("PASS: Branded Advisory account is mobile-responsive",flush=True)
+              context.close()
+              browser.close()
+          PY

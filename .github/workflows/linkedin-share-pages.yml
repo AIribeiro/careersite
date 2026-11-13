@@ -12,9 +12,15 @@ on:
       - "src/weekly_ai_brand_cover.py"
       - "scripts/generate_weekly_ai_covers.py"
       - "scripts/build_linkedin_share_site.py"
+      - "scripts/build_agent_discovery_static.py"
+      - "src/agent_discovery.py"
       - "static/thinking-visuals/**"
       - ".github/workflows/linkedin-share-pages.yml"
   workflow_dispatch:
+  # CMS publications do not always create repository commits. Refresh the
+  # summary-only Pages mirror regularly without modifying Streamlit readers.
+  schedule:
+    - cron: "23 */2 * * *"
   # Audio and the branded cover are committed by the Weekly AI workflow's bot;
   # those bot pushes do not trigger ordinary push workflows.
   workflow_run:
@@ -54,11 +60,16 @@ jobs:
       - name: Build static social share site
         run: python scripts/build_linkedin_share_site.py --output _share_site --share-base https://airibeiro.github.io/careersite
 
+      - name: Build public AI discovery mirror from live CMS metadata
+        run: |
+          python scripts/build_agent_discovery_static.py --output _share_site --share-base https://airibeiro.github.io/careersite
+
       - name: Validate generated social share page
         run: |
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
+          from thinking_articles import ARTICLES
 
           slug = 'when-an-ai-use-case-should-be-stopped'
           html = Path(f'_share_site/thinking/{slug}/index.html').read_text(encoding='utf-8')
@@ -138,7 +149,22 @@ jobs:
                       short_markup = Path(f'_share_site/go/{code}/index.html').read_text()
                       assert f'/social/{slug}.png' in short_markup, code
                       assert edition['edition_title'] in unescape(short_markup), code
-          print('Static article redirects, campaign tags, and social assets validated')
+          agent_dir = Path("_share_site")
+          catalog = json.loads((agent_dir / "agent" / "catalog.json").read_text(encoding="utf-8"))
+          assert catalog["catalogue_status"] == "complete"
+          assert catalog["content_policy"] == "summary_only"
+          assert catalog["count"] >= len(ARTICLES)
+          assert (agent_dir / "llms.txt").is_file()
+          assert (agent_dir / "agents.md").is_file()
+          assert "https://airibeiro.github.io/careersite/agent/catalog.json" in (agent_dir / "llms.txt").read_text(encoding="utf-8")
+          assert all(item["url"].startswith("https://jairribeiro.com/") for item in catalog["content"])
+          assert all(item["markdown_url"].startswith("https://airibeiro.github.io/careersite/agent/content/") for item in catalog["content"])
+          for item in catalog["content"]:
+              markdown = (agent_dir / "agent" / "content" / (item["slug"] + ".md")).read_text(encoding="utf-8")
+              assert item["title"] in markdown, item["slug"]
+              assert "## Full public edition" not in markdown, item["slug"]
+              assert "content_html" not in markdown, item["slug"]
+          print('Static article redirects, campaign tags, social assets, and public-safe agent discovery validated')
           PY
 
       - name: Configure GitHub Pages

@@ -38,6 +38,52 @@ This implementation does **not** claim to secure Premium CMS text end-to-end. As
 
 Agent discovery does not expand the Premium exposure: it indexes only metadata and exports full text solely for editions that are already open under the editorial policy. Do not publish `llms-full.txt` from existing CMS rows.
 
+## GitHub Pages static discovery bridge
+
+A separate **public summary-only discovery mirror** is generated alongside the
+existing GitHub Pages social preview/shortlink assets. This allows research agents
+to read a real text file even while Spaceship continues masking the Streamlit site.
+
+- `https://airibeiro.github.io/careersite/llms.txt`
+- `https://airibeiro.github.io/careersite/agents.md`
+- `https://airibeiro.github.io/careersite/agent/catalog.json`
+- `https://airibeiro.github.io/careersite/agent/content/{slug}.md`
+
+`.github/workflows/linkedin-share-pages.yml` rebuilds the complete Pages artifact
+on ordinary source changes, new Weekly AI assets, and a two-hour UTC schedule
+because CMS publication does not always produce a repository commit.
+`scripts/build_agent_discovery_static.py` reads the published CMS metadata
+and refuses to replace a valid release with an empty/partial catalogue.
+The mirror stores **only summaries** for every edition, including formerly
+open articles, because static assets cannot be revoked immediately when
+unpublished. The dynamic application route can provide complete Markdown for
+currently open editions after rechecking their status.
+
+Discovery URLs in the Pages mirror correctly point to Pages-hosted files.
+Canonical human reading URLs remain branded `https://jairribeiro.com/`.
+`generated_at` and `content_policy: summary_only` identify the snapshot.
+The Pages mirror is **not** the same as serving those files at the branded root.
+
+The workflow's Pages deployment replaces the whole social preview site.
+Never deploy a new independent GitHub Pages site or change GitHub Pages
+custom-domain settings without protecting existing `/go/`, `/social/`
+and `/social-x/` publication links.
+
+### Spaceship handoff
+
+Spaceship's *masked URL forwarding* does not support content-type-aware
+per-path responses merely by adding application routes or editing DNS.
+To make `https://jairribeiro.com/llms.txt` authoritative, put a path-aware
+HTTP serving layer in front of the existing masked site, or host the domain
+on a path-aware web server. Route `/llms.txt`, `/agents.md`, and `/agent/*`
+to the public text/JSON resources while preserving the current homepage,
+subdomains, reader sessions, analytics attribution, and all existing MX,
+SPF, DKIM, DMARC, and other mail-related DNS settings.
+
+Do **not** move the apex to GitHub Pages A records blindly: this would replace
+the current branded site, and GitHub Pages currently serves social-share
+bridges, not the full interactive portfolio.
+
 ## Branded domain and deployment
 
 The Streamlit code now handles these paths when requests actually reach its `app.py` Starlette routes. That does **not** mean that the endpoints resolve at `jairribeiro.com`.

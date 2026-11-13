@@ -13,14 +13,24 @@ def nav(active: str) -> str:
     # email addresses are placed into HTML; unverified visitors see no link.
     try:
         import streamlit as st
+        signed_in = isinstance(st.session_state.get("reader_native_session"), dict)
         member_link = (
-            '<a class="link" href="?page=readers" target="_self" '
+            '<a class="link' + (' on' if active == "readers" else '') +
+            '" href="?page=readers" target="_self" '
             'data-hq-event="reader_member_nav">My Library</a>'
-            if isinstance(st.session_state.get("reader_native_session"), dict)
-            else ""
+            if signed_in else ""
+        )
+        has_advisory = signed_in and st.session_state.get("advisory_member") is True
+        advisory_account_link = (
+            '<a class="link' + (' on' if active == "advisory-access" else '') +
+            '" href="?page=advisory-access" target="_self" '
+            'data-hq-event="advisory_member_nav">' +
+            ('My Advisory' if has_advisory else 'Advisory account') + '</a>'
+            if has_advisory or active == "advisory-access" else ""
         )
     except (RuntimeError, AttributeError, KeyError):
         member_link = ""
+        advisory_account_link = ""
     top_item_style = "display:inline-flex!important;align-items:center;justify-content:center;white-space:nowrap"
 
     def link(page: str, label: str) -> str:
@@ -48,6 +58,7 @@ def nav(active: str) -> str:
         f'{link("thinking", "Thinking")}'
         f'{member_link}'
         f'{link("advisory", "Advisory")}'
+        f'{advisory_account_link}'
         f'{link("about", "About")}'
         f'<a class="link contactlink{" on" if active == "contact" else ""}" style="{top_item_style}" href="?page=contact" '
         'target="_self" data-hq-event="contact_nav">Contact</a>'

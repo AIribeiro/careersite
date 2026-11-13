@@ -118,7 +118,7 @@ class AdvisoryRegistrationTests(unittest.TestCase):
                                      source.index("def render_advisory_portal")),
                         source.index("_get_advisory_profile(session, user)",
                                      source.index("def render_advisory_portal")))
-        self.assertIn("Email confirmation establishes identity only", source)
+        self.assertIn("Verified email is identity proof, not permission to use Advisory", source)
 
 
 if __name__ == "__main__":

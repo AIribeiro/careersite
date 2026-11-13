@@ -10,6 +10,7 @@ from html import escape
 import re
 
 from site_components import footer, nav
+from site_embedded_mobile import support_masked_mobile_media
 
 NATIVE_SHELL_CSS = r"""
 <style>
@@ -102,8 +103,50 @@ NATIVE_SHELL_CSS = r"""
  padding:38px 0 65px
 }
 .st-key-native_advisory_content [data-testid="stForm"] {
- max-width:1040px
+ max-width:1040px;min-width:0;width:100%;box-sizing:border-box
 }
+.st-key-native_advisory_content [data-testid="stForm"] input,
+.st-key-native_advisory_content [data-testid="stForm"] textarea {
+ max-width:100%;min-width:0;box-sizing:border-box
+}
+.st-key-native_advisory_content [data-testid="stHorizontalBlock"] {
+ min-width:0
+}
+.st-key-native_advisory_content [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+ min-width:0
+}
+/* In a registrar-masked frame the inner viewport can be 980px even when the
+   physical device is 390px wide. The same phone rules must match either. */
+@media(max-width:620px), (max-device-width:620px) {
+ .site.native-shell .links {
+  display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:thin;-webkit-overflow-scrolling:touch;
+  max-width:100%;padding:2px 0 7px
+ }
+ .site.native-shell .link {white-space:nowrap;min-height:40px;display:inline-flex;align-items:center}
+ .site.native-shell .navin {min-width:0}
+ .site.native-shell .native-hero h1 {font-size:clamp(30px,8vw,39px);line-height:1.13}
+ .site.native-shell .native-hero .lede {font-size:15px;line-height:1.6}
+ .site.native-shell .native-hero .included {font-size:12px}
+ .st-key-native_advisory_content [data-testid="stHorizontalBlock"] {
+  flex-direction:column!important;align-items:stretch!important;gap:12px!important
+ }
+ .st-key-native_advisory_content [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+  flex:0 1 auto!important;width:100%!important;max-width:100%!important;
+  min-width:0!important
+ }
+ .st-key-native_advisory_content [data-testid="stForm"] {
+  width:100%!important;max-width:100%!important;padding:22px 18px!important
+ }
+ .st-key-native_advisory_content [data-testid="stFormSubmitButton"] button,
+ .st-key-native_advisory_content [data-testid="stButton"] button {
+  width:100%;min-height:47px;white-space:normal
+ }
+ .st-key-native_advisory_content [data-testid="stTextInput"],
+ .st-key-native_advisory_content [data-testid="stTextArea"],
+ .st-key-native_advisory_content [data-testid="stSelectbox"] {width:100%;min-width:0}
+}
+
 @media(max-width:800px) {
  .site.native-shell .footertop {grid-template-columns:1fr}
  .site.native-shell .footerlinks {justify-content:flex-start}
@@ -193,7 +236,7 @@ def native_header(page: str, *, navigation_locked: bool = False) -> str:
     if navigation_locked:
         top_menu = _inert_links(top_menu)
     return (
-        NATIVE_SHELL_CSS
+        support_masked_mobile_media(NATIVE_SHELL_CSS)
         + '<div class="site native-shell native-shell-header">'
         + top_menu
         + '<header class="native-hero' + compact + '">'

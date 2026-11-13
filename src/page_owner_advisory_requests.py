@@ -149,7 +149,8 @@ def _request_owner_detail(token: str,req: dict,people: dict) -> None:
         )
         next_step=st.text_input(
             "Clear next step visible to client (optional)",
-            value=str(req.get("next_step") or ""),
+            value="",
+            placeholder=str(req.get("next_step") or "Leave blank for the suggested next step."),
             max_chars=1000,
         )
         day=st.date_input("Your follow-up date (for planning)",
@@ -188,17 +189,18 @@ def _request_owner_detail(token: str,req: dict,people: dict) -> None:
     )
 
 
-def render_advisory_action_inbox(token: str,people_list: list[dict]) -> None:
+def render_advisory_action_inbox(token: str,people_list: list[dict], requests: list[dict] | None = None) -> None:
     st.markdown("### Client requests & next actions")
     st.caption(
         "An active account is not an engagement. When a client submits an actual "
         "business question, it appears here for review and follow-up."
     )
-    try:
-        requests=_read_owner_requests(token)
-    except (RuntimeError,TimeoutError,KeyError):
-        st.error("Unable to load the Advisory request inbox.")
-        return
+    if requests is None:
+        try:
+            requests=_read_owner_requests(token)
+        except (RuntimeError,TimeoutError,KeyError):
+            st.error("Unable to load the Advisory request inbox.")
+            return
     waiting=[x for x in requests if _client_waiting(x)]
     overdue=[x for x in requests if _overdue(x)]
     awaiting=[x for x in requests if x.get("status")=="awaiting_client"]

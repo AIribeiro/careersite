@@ -220,8 +220,29 @@ def _consume_query_verification() -> None:
         st.session_state["reader_native_flash"] = ("error", "Unsupported verification link. Request a new email.")
         return
     try:
-        _verify({"token_hash": token, "type": "email"})
+        user = _verify({"token_hash": token, "type": "email"})
         destination = str(st.query_params.get("page", "readers"))
+        # Preserve an explicit Advisory registration independently of Reader
+        # membership, even when the user has not yet set a password.
+        if destination == "advisory-access":
+            meta = user.get("user_metadata") if isinstance(user.get("user_metadata"), dict) else {}
+            if (meta.get("advisory_intake_v1") is True
+                    and meta.get("advisory_privacy_notice_ack") is True):
+                try:
+                    session = st.session_state.get("reader_native_session")
+                    _request_json(
+                        "POST",
+                        _rest_url("portfolio_advisory_intents?on_conflict=user_id"),
+                        token=str(session["access_token"]),
+                        payload={
+                            "user_id": str(user["id"]),
+                            "email": str(user["email"]).strip().lower(),
+                            "source": "self_signup",
+                        },
+                        prefer="resolution=ignore-duplicates", timeout=12,
+                    )
+                except (RuntimeError, ValueError, TimeoutError, KeyError, TypeError):
+                    LOG.warning("Verified Advisory registration intent could not be recorded.")
         st.session_state["reader_native_flash"] = (
             "success",
             "Email verified. Set your password to activate your advisory account." if destination == "advisory-access"

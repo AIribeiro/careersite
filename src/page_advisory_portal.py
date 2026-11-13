@@ -215,38 +215,33 @@ Your advisory account also includes the complete Premium Reader library.</p>
     ) == "Sign in to advisory"
 
     if returning:
-        signin_method = st.radio(
-            "Sign-in method", ["Email and password", "Email verification code"],
-            horizontal=True, key="advisory_signin_method",
-        )
-        if signin_method == "Email and password":
-            with st.form("advisory_password_signin", clear_on_submit=True):
-                email = st.text_input("Email address", max_chars=254)
-                password = st.text_input("Password", type="password", max_chars=128)
-                submit = st.form_submit_button("Sign in", type="primary")
-            if submit:
-                try:
-                    _password_signin(str(email).strip().lower(), str(password))
-                    st.rerun()
-                except (RuntimeError, ValueError, TimeoutError, KeyError):
-                    st.error("Sign-in failed. Verify your details or use an email code.")
-            st.caption("No password yet? Choose Email verification code to verify your address.")
-            return
-
-        with st.form("advisory_email_access_returning"):
+        with st.form("advisory_password_signin", clear_on_submit=True):
             email = st.text_input("Email address", max_chars=254)
-            submit = st.form_submit_button("Email my sign-in link", type="primary")
+            password = st.text_input("Password", type="password", max_chars=128)
+            submit = st.form_submit_button("Sign in to advisory", type="primary")
         if submit:
-            address = str(email).strip().lower()
-            if not EMAIL.fullmatch(address):
-                st.error("Enter a valid email address.")
-            else:
-                try:
-                    _request_email("", address, False, True, destination="advisory-access")
-                    st.session_state["advisory_pending_email"] = address
-                    st.success("Check your inbox for your sign-in link or code.")
-                except (RuntimeError, ValueError, TimeoutError):
-                    st.error("Verification email could not be sent. Please try again.")
+            try:
+                _password_signin(str(email).strip().lower(), str(password))
+                st.rerun()
+            except (RuntimeError, ValueError, TimeoutError, KeyError):
+                st.error("Sign-in failed. Check your email and password.")
+        with st.expander("Forgot your password?"):
+            st.write("Request a one-time email confirmation to set a new password.")
+            with st.form("advisory_password_recovery"):
+                recovery_email = st.text_input("Account email address", max_chars=254)
+                recover = st.form_submit_button("Send password reset email")
+            if recover:
+                address = str(recovery_email).strip().lower()
+                if not EMAIL.fullmatch(address):
+                    st.error("Enter a valid email address.")
+                else:
+                    try:
+                        _request_email("", address, False, True, destination="advisory-access")
+                        st.success("If the account exists, check that inbox for a "
+                                   "confirmation link to set a new password.")
+                    except (RuntimeError, ValueError, TimeoutError):
+                        st.error("Password recovery email could not be sent.")
+        return
     else:
         st.caption("Professional details · Required fields are marked *")
         with st.form("advisory_initial_registration"):
@@ -280,7 +275,7 @@ Your advisory account also includes the complete Premium Reader library.</p>
                 )
             st.caption("Keep the description high-level. No budget, confidential documents or phone number are required.")
             accepted = st.checkbox("I have read the Privacy & Data notice.")
-            submit = st.form_submit_button("Verify my email and create my account", type="primary")
+            submit = st.form_submit_button("Email my verification link", type="primary")
         st.caption("Review the [Privacy & Data notice](?page=privacy). Advisory registration is complimentary; any paid engagement is agreed separately.")
         if submit:
             address = str(email).strip().lower()
@@ -302,27 +297,15 @@ Your advisory account also includes the complete Premium Reader library.</p>
                     **details, "privacy_notice_ack": True, "_email": address,
                 }
                 st.session_state["advisory_pending_email"] = address
-                st.success("Check your inbox to verify your email. Your professional introduction is saved for the next step.")
+                st.success("Open the verification link sent to your email. It will take you to the password setup page; your Advisory account activates only after you set a password.")
             except ValueError as exc:
                 st.error(str(exc))
             except (RuntimeError, TimeoutError):
                 st.error("Verification email could not be sent. Please try again.")
 
-    pending = st.session_state.get("advisory_pending_email")
-    if pending:
-        with st.form("advisory_email_code"):
-            code = st.text_input("Email verification code", max_chars=10)
-            verified = st.form_submit_button("Verify and continue")
-        if verified:
-            if not re.fullmatch(r"\d{6,10}", str(code).strip()):
-                st.error("Enter the numeric code from the email.")
-            else:
-                try:
-                    _verify({"email": pending, "token": str(code).strip(), "type": "email"})
-                    st.session_state.pop("advisory_pending_email", None)
-                    st.rerun()
-                except (RuntimeError, ValueError, TimeoutError):
-                    st.error("The code expired or could not be verified.")
+    if st.session_state.get("advisory_pending_email"):
+        st.info("Check your inbox and follow the verification link to set your password. "
+                "No sign-in link or verification code is needed.")
     st.caption("Registration does not subscribe you to editorial emails.")
     st.markdown(f"Questions: [{ADVISORY_EMAIL}](mailto:{ADVISORY_EMAIL}) · [Privacy & Data notice](?page=privacy)")
 

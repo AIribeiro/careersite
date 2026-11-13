@@ -50,6 +50,21 @@ class NativePortfolioIntegrationTests(unittest.TestCase):
         self.assertIn('class="footer"', foot)
         self.assertIn('href="?page=home"', foot)
 
+    def test_unsaved_cms_edits_keep_menu_visible_but_disable_routes(self):
+        from site_native_shell import native_header, native_footer
+        header = native_header("analytics", navigation_locked=True)
+        foot = native_footer("analytics", navigation_locked=True)
+        self.assertIn('class="nav"', header)
+        self.assertIn('class="footer"', foot)
+        self.assertIn('aria-disabled="true"', header)
+        self.assertIn('aria-disabled="true"', foot)
+        self.assertNotIn('href="?page=home"', header)
+        self.assertNotIn('href="?page=privacy"', foot)
+        main = self.source("main.py")
+        self.assertIn('and bool(st.session_state.get("cms_edit_id"))', main)
+        self.assertIn('native_header("analytics", navigation_locked=True)', main)
+        self.assertIn('native_footer("analytics", navigation_locked=True)', main)
+
     def test_advisory_does_not_expose_one_time_token_before_brand_image(self):
         source = self.source("src/page_advisory_portal.py")
         renderer = source.split('def render_advisory_portal() -> None:', 1)[1]

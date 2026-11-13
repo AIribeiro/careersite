@@ -1,0 +1,103 @@
+name: Agent-readable portfolio discovery
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app.py"
+      - "src/agent_discovery.py"
+      - "tests/test_agent_discovery.py"
+      - ".github/workflows/agent-discovery-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "app.py"
+      - "src/agent_discovery.py"
+      - "tests/test_agent_discovery.py"
+      - ".github/workflows/agent-discovery-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  public-agent-discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install runtime dependencies
+        run: pip install -r requirements.txt
+      - name: Validate access rules and syntax
+        run: |
+          python -m py_compile app.py src/agent_discovery.py tests/test_agent_discovery.py
+          python -m unittest discover -s tests -p "test_agent_discovery.py" -v
+      - name: Start application
+        run: |
+          streamlit run app.py --server.headless true --server.port 8501 > /tmp/agent-discovery.log 2>&1 &
+          echo $! > /tmp/agent-discovery.pid
+          for i in {1..40}; do
+            if curl -fsS http://127.0.0.1:8501/_stcore/health >/dev/null; then
+              echo "Application is healthy"
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/agent-discovery.log
+          exit 1
+      - name: Verify live HTTP content types and access boundaries
+        run: |
+          python - <<'PY'
+          import json
+          from urllib.error import HTTPError
+          from urllib.request import urlopen
+
+          base = "http://127.0.0.1:8501"
+          expectations = {
+              "/llms.txt": "text/plain",
+              "/agents.md": "text/markdown",
+              "/agent/catalog.json": "application/json",
+              "/agent/content/why-enterprise-ai-often-stalls-between-pilot-and-scale.md": "text/markdown",
+              "/robots.txt": "text/plain",
+              "/sitemap.xml": "application/xml",
+          }
+          documents = {}
+          for path, expected_type in expectations.items():
+              with urlopen(base + path, timeout=45) as response:
+                  assert response.status == 200, (path, response.status)
+                  media_type = response.headers.get("Content-Type", "")
+                  assert media_type.startswith(expected_type), (path, media_type)
+                  text = response.read().decode("utf-8")
+                  assert text and "<iframe" not in text.lower(), path
+                  documents[path] = text
+                  print(path, media_type, len(text), "bytes")
+          catalogue = json.loads(documents["/agent/catalog.json"])
+          assert catalogue["count"] > 0
+          assert catalogue["site"] == "https://jairribeiro.com"
+          assert all(item["url"].startswith("https://jairribeiro.com/") for item in catalogue["content"])
+          assert all(item["access"] in ("open", "premium") for item in catalogue["content"])
+          assert all(item["type"] != "executive_briefing" or item["access"] == "premium"
+                     for item in catalogue["content"])
+          assert "https://jairribeiro.com/sitemap.xml" in documents["/robots.txt"]
+          assert "https://jairribeiro.com" in documents["/sitemap.xml"]
+          assert "PRIVATE_EDITORIAL_BODY_NEVER_IN_AGENT_FEED" not in documents["/agent/catalog.json"]
+          for unknown, expected_codes in (
+              ("/agent/content/not-a-published-article.md", (404,)),
+              ("/agent/content/../../private.md", (400, 404)),
+          ):
+              try:
+                  urlopen(base + unknown, timeout=30)
+              except HTTPError as exc:
+                  assert exc.code in expected_codes, (unknown, exc.code)
+              else:
+                  raise AssertionError("Unexpected disclosure: " + unknown)
+          print("First-party agent discovery HTTP contract verified")
+          PY
+      - name: Show application logs on failure
+        if: failure()
+        run: cat /tmp/agent-discovery.log || true

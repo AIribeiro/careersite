@@ -507,36 +507,39 @@ scope, availability and commercial terms are agreed separately.</div>""")
 
 
 def render_advisory_portal() -> None:
-    # Consume OTP hash before rendering page media or other scripts.
+    """Advisory registration, confirmation, password and member views in one site."""
+    # Strip one-time tokens before any menu, logo, media or footer renders.
     _consume_query_verification()
+    from site_native_shell import native_header, native_footer
+
+    st.html(native_header("advisory-access"))
     st.html(ADVISORY_CSS)
-    st.html("""<header class="advisory-private-hero">
-<p class="eyebrow">Jair Ribeiro / Private Executive Advisory</p>
-<h1>Clearer decisions. Practical next steps.</h1>
-<p>A direct place to explore enterprise AI, data, governance, portfolio priorities
-and the operating decisions behind measurable business value.</p>
-<p class="benefit">Included with Advisory access: the complete Premium Reader library,
-Executive AI Briefings, full articles and downloadable infographics.</p>
-</header>""")
-    session, user = _session()
-    if session is None or user is None:
-        notice = st.session_state.get("reader_native_flash")
-        if isinstance(notice, tuple) and notice[0] == "error":
-            st.error(str(notice[1]))
-            st.session_state.pop("reader_native_flash", None)
-        _advisory_login()
-        return
-    if not _password_authenticated(session):
-        # Email confirmation establishes identity only; never Advisory access.
-        _first_password_form(session, user)
-        return
-    try:
-        profile = _get_advisory_profile(session, user)
-    except (RuntimeError, ValueError, TimeoutError):
-        st.error("We could not confirm your advisory membership. Please retry.")
-        return
-    if not profile:
-        st.session_state.pop("advisory_member", None)
-        _advisory_enroll(session, user)
-        return
-    _advisory_account(session, user, profile)
+
+    with st.container(key="native_advisory_content"):
+        session, user = _session()
+        if session is None or user is None:
+            notice = st.session_state.pop("reader_native_flash", None)
+            if isinstance(notice, tuple):
+                if notice[0] == "error":
+                    st.error(str(notice[1]))
+                elif notice[0] == "success":
+                    st.success(str(notice[1]))
+            st.session_state.pop("advisory_member", None)
+            _advisory_login()
+        elif not _password_authenticated(session):
+            # Verified email is identity proof, not permission to use Advisory.
+            st.session_state.pop("advisory_member", None)
+            _first_password_form(session, user)
+        else:
+            try:
+                profile = _get_advisory_profile(session, user)
+            except (RuntimeError, ValueError, TimeoutError):
+                st.error("We could not confirm your advisory membership. Please retry.")
+            else:
+                if not profile:
+                    st.session_state.pop("advisory_member", None)
+                    _advisory_enroll(session, user)
+                else:
+                    _advisory_account(session, user, profile)
+
+    st.html(native_footer("advisory-access"))

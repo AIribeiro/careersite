@@ -146,6 +146,14 @@ def _request_form(token: str,uid: str,profile: dict) -> None:
 <p>Describe the business question and what a useful outcome would look like.
 That gives Jair a basis to respond personally with a focused next step.</p>
 </section>""")
+    st.html("""<div class="advisory-process-guide">
+<div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:#a5643f;margin-bottom:14px">WHAT HAPPENS NEXT</div>
+<div class="advisory-process-steps">
+<div><strong>01 · Your question</strong><span>Tell me the decision and desired outcome.</span></div>
+<div><strong>02 · My assessment</strong><span>I review it and respond in this private space.</span></div>
+<div><strong>03 · Agreed approach</strong><span>We decide if discovery or a defined scope makes sense.</span></div>
+<div><strong>04 · Delivery &amp; close</strong><span>If engaged, we track the agreed work and its conclusion.</span></div>
+</div></div>""")
     with st.form("advisory_client_new_request",clear_on_submit=False):
         title=st.text_input(
             "The decision or challenge *",max_chars=160,

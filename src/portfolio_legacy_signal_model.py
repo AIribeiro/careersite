@@ -52,8 +52,10 @@ def channel_label(label: object) -> str:
         return "AI assistants"
     if source == "application":
         return "Application links"
-    if source in ("social", "reddit", "bluesky") or any(
-        tag in source for tag in ("reddit", "bluesky", "instagram")
+    if source == "reddit" or "reddit" in source:
+        return "Reddit"
+    if source in ("social", "bluesky") or any(
+        tag in source for tag in ("bluesky", "instagram")
     ):
         return "Other social"
     if source in ("", "direct", "direct/unknown", "unattributed", "unknown",

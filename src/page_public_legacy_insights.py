@@ -44,9 +44,11 @@ def _source_channel(label: object) -> str:
         return "Search"
     if any(value in raw for value in ("newsletter", "email", "outlook", "gmail")):
         return "Email / newsletter"
-    if raw in ("x", "wa", "fb") or any(value in raw for value in (
+    if raw == "reddit" or "reddit" in raw:
+        return "Reddit"
+    if raw in ("x", "wa", "fb", "social") or any(value in raw for value in (
         "facebook", "instagram", "threads", "twitter", "x.com",
-        "whatsapp", "reddit", "bluesky",
+        "whatsapp", "bluesky",
     )):
         return "Other social"
     if raw in ("", "direct", "direct/unknown", "unattributed", "unknown", "none", "(direct)"):

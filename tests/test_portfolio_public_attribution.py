@@ -92,6 +92,7 @@ def test_known_social_channels_remain_separate():
     expected = {
         "LinkedIn": "LinkedIn",
         "facebook": "Facebook",
+        "reddit": "Reddit",
         "Threads": "Threads",
         "x": "X",
         "whatsapp": "WhatsApp",
@@ -106,6 +107,23 @@ def test_known_social_channels_remain_separate():
     result = channel_rollup(rows)
     assert sum(row["sessions"] for row in result) == 3 * len(expected)
     assert {row["Channel"] for row in result} == set(expected.values())
+
+
+def test_reddit_is_separate_in_public_legacy_analytics():
+    from page_public_legacy_insights import _source_channel, _channel_rows
+
+    assert _source_channel("reddit") == "Reddit"
+    assert _source_channel("Reddit?utm_campaign=thinking_articles") == "Reddit"
+    assert _source_channel("bluesky") == "Other social"
+    rows = _channel_rows([
+        {"attribution_source": "reddit", "sessions": 2},
+        {"attribution_source": "Reddit", "sessions": 1},
+        {"attribution_source": "bluesky", "sessions": 3},
+        {"attribution_source": "linkedin", "sessions": 4},
+    ])
+    assert sum(r["sessions"] for r in rows) == 10
+    assert next(r for r in rows if r["channel"] == "Reddit")["sessions"] == 3
+    assert next(r for r in rows if r["channel"] == "Other social")["sessions"] == 3
 
 
 def test_referer_hosts_are_coarse_and_not_people():

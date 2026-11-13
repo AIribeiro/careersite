@@ -32,6 +32,30 @@ def test_channel_names_are_broad_and_cohorts_reconcile():
     assert all("role=" not in str(item) for item in grouped)
 
 
+def test_reddit_is_separate_from_other_social_and_counts_reconcile():
+    assert channel_label("reddit") == "Reddit"
+    assert channel_label("Reddit") == "Reddit"
+    assert channel_label("reddit.com") == "Reddit"
+    assert channel_label("reddit?utm_campaign=thinking_articles") == "Reddit"
+    assert channel_label("bluesky") == "Other social"
+    assert channel_label("instagram") == "Other social"
+
+    rows = [
+        {"attribution_source": "reddit", "sessions": 2, "engaged_sessions": 1,
+         "article_sessions": 1},
+        {"attribution_source": "Reddit?role=article", "sessions": 3,
+         "engaged_sessions": 2, "article_sessions": 2},
+        {"attribution_source": "bluesky", "sessions": 4},
+        {"attribution_source": "social", "sessions": 5},
+        {"attribution_source": "linkedin", "sessions": 6},
+    ]
+    grouped = channel_rollup(rows)
+    assert sum(row["sessions"] for row in grouped) == 20
+    assert next(row for row in grouped if row["Channel"] == "Reddit")["sessions"] == 5
+    assert next(row for row in grouped if row["Channel"] == "Other social")["sessions"] == 9
+    assert next(row for row in grouped if row["Channel"] == "LinkedIn")["sessions"] == 6
+
+
 def test_missing_denominators_are_not_zero_percent():
     assert percentage(0, 0) is None
     assert percentage(8, 5) is None

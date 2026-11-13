@@ -169,7 +169,7 @@ def _register_profile(session: dict, user: dict) -> dict:
     first_name = str(metadata.get("reader_first_name") or "").strip()[:80]
     opted_in = metadata.get("reader_editorial_opt_in") is True
     origin = str(metadata.get("reader_acquisition_source") or "").strip().casefold()
-    if origin not in {"articles", "briefings", "weekly_ai"}:
+    if origin not in {"articles", "briefings", "weekly_ai", "advisory"}:
         origin = "briefings"
     payload = {
         "user_id": user_id,

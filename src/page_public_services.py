@@ -5,7 +5,7 @@ and the privileged owner/CMS account. No email is sent by these page renderers.
 """
 from __future__ import annotations
 
-from site_assets import ADVISORY_EMAIL, EMAIL, PRIVACY_EMAIL, READERS_EMAIL
+from site_assets import ADVISORY_EMAIL, EMAIL, PRIVACY_EMAIL, READERS_EMAIL, image_uri
 from site_components import footer, nav
 
 
@@ -93,82 +93,184 @@ SERVICES_CSS = """
 .site .privacy-hero{padding:62px 0 50px}
 .site .privacy-body{padding:48px 0}
 }
+
+.site .advisory-hero{padding:86px 0 76px}
+.site .advisory-hero-grid{grid-template-columns:minmax(0,1.26fr) minmax(280px,.72fr);gap:62px}
+.site .advisory-hero h1{font-size:clamp(45px,6vw,75px);line-height:1.08}
+.site .advisory-proofline{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px}
+.site .advisory-proofline span{border:1px solid #5d7184;padding:9px 13px;font-size:11px;font-weight:700;color:#e2e9f2}
+.site .service-section--ink .service-eyebrow{color:#e4ad84}
+.site .service-intro a{color:#a35a31!important;text-underline-offset:3px}
+.site .advisory-personal{display:grid;grid-template-columns:minmax(250px,.77fr) minmax(0,1.15fr);gap:70px;align-items:center}
+.site .advisory-portrait{margin:0;position:relative}
+.site .advisory-portrait img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:#d5d0c8;filter:saturate(.85)}
+.site .advisory-portrait figcaption{font-size:12px;line-height:1.5;color:#687381;margin-top:14px}
+.site .advisory-personal h2{font:500 clamp(36px,4.4vw,58px)/1.1 Georgia,serif;letter-spacing:-.025em;margin:0 0 22px}
+.site .advisory-personal p:not(.service-eyebrow){line-height:1.82;color:#49586b;font-size:15px;margin:0 0 17px}
+.site .advisory-personal .advisory-signoff{color:#173047!important;font-weight:800;font-size:13px!important;letter-spacing:.02em;margin-top:24px!important}
+.site .advisory-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-top:22px}
+.site .advisory-result{padding:26px;border:1px solid #d7d1c8;background:#fffefa}
+.site .advisory-result strong{display:block;font:500 22px/1.22 Georgia,serif;color:#1a2d43;margin-bottom:12px}
+.site .advisory-result p{font-size:13px;color:#536175;line-height:1.72;margin:0}
+.site .advisory-access{padding:66px 0;background:#102039;color:#f6f4ef;border-top:1px solid #26394e}
+.site .advisory-access-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(250px,.8fr);gap:60px;align-items:center}
+.site .advisory-access h2{font:500 clamp(36px,4vw,56px)/1.13 Georgia,serif;margin:0 0 19px}
+.site .advisory-access p{color:#c4d0dc;font-size:15px;line-height:1.76}
+.site .advisory-access .advisory-access-inclusion{border-left:3px solid #db9b70;padding-left:20px}
+.site .advisory-access .advisory-access-inclusion strong{display:block;color:#ffe2cb;font:500 24px/1.3 Georgia,serif;margin-bottom:12px}
+.site .advisory-small-link{display:inline-block;font-size:13px;font-weight:750;text-decoration:underline!important;color:#f8eee7!important;text-underline-offset:4px;margin-top:16px}
+.site .service-method-note{margin:25px 0 0;font-size:13px;line-height:1.75;color:#627185}
+.site .advisory-button:focus-visible,.site .advisory-small-link:focus-visible{outline:3px solid #e9b48b;outline-offset:4px}
+@media(max-width:850px){
+.site .advisory-personal,.site .advisory-access-grid{grid-template-columns:1fr;gap:30px}
+.site .advisory-results{grid-template-columns:1fr}
+.site .advisory-personal .advisory-portrait{max-width:520px}
+}
+@media(max-width:620px){
+.site .advisory-hero{padding:60px 0}
+.site .advisory-proofline{gap:7px}
+.site .advisory-proofline span{padding:8px 10px}
+.site .advisory-access{padding:53px 0}
+}
+
 </style>
 """
 
 
 def advisory() -> str:
-    """Executive-facing overview of the scope, approach and contact route."""
+    """Executive-grade advisory value, method, fit and distinct access."""
+    photo = image_uri("advisory-portrait.webp")
+    portrait = (
+        f'<img src="{photo}" alt="Jair Ribeiro in a relaxed professional portrait beside a stack of books" '
+        'loading="lazy" decoding="async" width="540" height="540">'
+        if photo else ""
+    )
     return f'''{SERVICES_CSS}{nav("advisory")}
 <main class="advisory-page">
 <section class="advisory-hero" aria-labelledby="advisory-title">
  <div class="container advisory-hero-grid">
   <div>
-   <p class="service-eyebrow">Executive advisory / Enterprise AI &amp; Data</p>
-   <h1 id="advisory-title">A clearer decision before a larger commitment.</h1>
-   <p class="service-lede">For executives navigating consequential AI and data choices: where to invest, what should change in the operating model, what evidence is missing, and who needs to own the result.</p>
+   <p class="service-eyebrow">Independent executive advisory / AI &amp; Data</p>
+   <h1 id="advisory-title">Better AI decisions. Clearer ownership. Measurable business value.</h1>
+   <p class="service-lede">For leaders who need to decide where AI and data should create value, what to stop or scale, and how to make the operating model accountable for the outcome.</p>
    <div class="advisory-actions">
-    <a class="advisory-button" href="mailto:{ADVISORY_EMAIL}?subject=Executive%20advisory%20inquiry" data-hq-event="advisory_email_primary">Discuss a decision →</a>
-    <a class="advisory-button advisory-button--outline" href="#advisory-focus" data-hq-event="advisory_explore_scope">Explore the scope ↓</a>
+    <a class="advisory-button" href="#advisory-focus" data-hq-event="advisory_explore_value">See where I can help →</a>
+    <a class="advisory-button advisory-button--outline" href="#advisory-contact" data-hq-event="advisory_email_primary">Discuss a decision →</a>
    </div>
+   <div class="advisory-proofline" aria-label="Advisory disciplines"><span>Portfolio judgement</span><span>AI &amp; data governance</span><span>Operating model</span><span>Adoption &amp; value</span></div>
   </div>
   <aside class="advisory-aside" aria-label="Advisory principle">
    <small>Executive judgement</small>
-   <blockquote>What needs to be true before this becomes a sound business decision?</blockquote>
-   <p>Start with the mandate, constraints and accountability. Technology selection comes later.</p>
+   <blockquote>What should the business decide, own and measure differently?</blockquote>
+   <p>The technology matters. The business case, decision rights and evidence for change determine whether it earns a place in operations.</p>
   </aside>
  </div>
 </section>
+
 <section class="service-section service-section--white" id="advisory-focus" data-analytics-section="advisory-focus">
  <div class="container">
-  <p class="service-eyebrow">Where an outside perspective helps</p>
-  <div class="service-section-header"><h2>Decisions that deserve more than another AI presentation.</h2><p>Advisory work starts with the specific business decision. These are recurring challenges where executive sponsorship, data conditions and organisational readiness determine whether AI delivers value.</p></div>
+  <p class="service-eyebrow">Where I contribute</p>
+  <div class="service-section-header"><h2>The decisions between AI ambition and business results.</h2>
+   <p>I work at the intersection of strategy, governance, data, Lean and the way people actually work. The aim is not to produce more AI activity; it is to improve the quality of the decisions that determine value.</p>
+  </div>
   <div class="service-grid">
-   <article class="service-card"><span>01 / Investment choices</span><h3>AI portfolio and priorities</h3><p>Separate credible opportunities from activity. Examine strategic fit, economic assumptions, dependencies, risk and evidence for continuing, stopping or scaling.</p></article>
-   <article class="service-card"><span>02 / Accountability</span><h3>Operating model and ownership</h3><p>Clarify sponsorship, decision rights, CoE responsibilities, business ownership and the points at which central standards should enable rather than slow teams.</p></article>
-   <article class="service-card"><span>03 / Business adoption</span><h3>Value and changed work</h3><p>Test whether a proposed capability will change workflows, decisions and outcomes. Distinguish deployment and training activity from sustained use with measurable business consequences.</p></article>
-   <article class="service-card"><span>04 / Responsible scale</span><h3>Governance and data readiness</h3><p>Identify the controls, evidence, stewardship and escalation paths appropriate to the use case. Make risk visible before a pilot becomes an operating dependency.</p></article>
+   <article class="service-card"><span>01 / Investment judgement</span><h3>Which AI bets deserve capital?</h3><p>Challenge the portfolio against value, feasibility, reuse, cost and risk. Identify what to stop, test further, consolidate or prepare to scale—before another pilot becomes a permanent commitment.</p></article>
+   <article class="service-card"><span>02 / Operating accountability</span><h3>Who owns the result?</h3><p>Set useful decision rights, business ownership and CoE responsibilities. Clarify how priorities are approved, how exceptions move, and where accountability sits after delivery.</p></article>
+   <article class="service-card"><span>03 / Adoption and business change</span><h3>What will change in the work?</h3><p>Connect AI to process design, people, confidence and incentives. Measure changed workflows, decision quality and operational outcomes—not just licences, attendance or tool launches.</p></article>
+   <article class="service-card"><span>04 / Trustworthy scale</span><h3>What conditions make scale credible?</h3><p>Examine data ownership and quality, AI controls, lifecycle evidence, stewardship and regulation. Make governance proportional to the business risk, without losing the ability to act.</p></article>
   </div>
  </div>
 </section>
+
+<section class="service-section" id="advisory-outcomes" data-analytics-section="advisory-outcomes">
+ <div class="container">
+  <p class="service-eyebrow">What the business should gain</p>
+  <div class="service-section-header"><h2>Clarity you can take into the next decision.</h2>
+   <p>Outputs depend on the mandate and evidence available. We agree them before starting; they are meant to be used in leadership and operating discussions, not left as a presentation.</p>
+  </div>
+  <div class="advisory-results">
+   <article class="advisory-result"><strong>A defensible decision</strong><p>Options, trade-offs, assumptions and a recommendation that makes the cost of action—and inaction—visible.</p></article>
+   <article class="advisory-result"><strong>Named accountability</strong><p>Decision owners, milestones, governance boundaries and the dependencies that must be resolved.</p></article>
+   <article class="advisory-result"><strong>A way to test value</strong><p>Business measures, evidence thresholds and a practical next step for stop, adapt, prove or scale.</p></article>
+  </div>
+ </div>
+</section>
+
 <section class="service-section service-section--ink" id="advisory-engagements" data-analytics-section="advisory-engagements">
  <div class="container">
-  <p class="service-eyebrow">How we might work</p>
-  <div class="service-section-header"><h2>Focused support. A defined executive question.</h2><p>Any engagement is agreed around the decision to be made, available evidence, stakeholders and time horizon. The formats below describe possible starting points, not pre-packaged promises.</p></div>
+  <p class="service-eyebrow">Ways of working</p>
+  <div class="service-section-header"><h2>The right level of involvement for the decision.</h2>
+   <p>A focused review may be enough. A broader challenge may need time with the executive team, operating owners and delivery leads. The scope, duration, counterpart and outputs are agreed individually.</p>
+  </div>
   <div class="service-formats">
-   <article class="service-format"><small>01 / Independent challenge</small><h3>Decision review</h3><p>A structured second opinion on an AI plan, investment case, governance proposal or portfolio. The aim is to expose assumptions, options and the consequences of each.</p></article>
-   <article class="service-format"><small>02 / Focused working engagement</small><h3>Executive working sessions</h3><p>Targeted conversations with leadership and relevant owners to shape a mandate, prioritisation criteria, value measures or accountability model.</p></article>
-   <article class="service-format"><small>03 / Leadership continuity</small><h3>Advisory or interim contribution</h3><p>For defined periods when an established organisation needs senior AI and data judgement, cross-functional coordination or a credible basis for the next phase.</p></article>
+   <article class="service-format"><small>01 / Independent assessment</small><h3>Decision review</h3><p>Challenge a strategy, AI business case, investment portfolio or governance proposal. Typical result: a concise assessment of options, assumptions, risks and the recommended next decision.</p></article>
+   <article class="service-format"><small>02 / Leadership working engagement</small><h3>Executive working sessions</h3><p>Work with sponsors and accountable leaders to define priorities, decision rights, operating measures and a practical route forward. Typical result: a decision record and agreed actions.</p></article>
+   <article class="service-format"><small>03 / Defined senior contribution</small><h3>Ongoing advisory or interim support</h3><p>Provide continuity across a defined enterprise AI or data agenda when a senior perspective is needed for portfolio review, governance, adoption and business coordination.</p></article>
   </div>
  </div>
 </section>
-<section class="service-section" data-analytics-section="advisory-method">
+
+<section class="service-section service-section--white" id="advisory-method" data-analytics-section="advisory-method">
  <div class="container">
-  <p class="service-eyebrow">A practical starting point</p>
-  <div class="service-section-header"><h2>From open question to a defensible next move.</h2><p>The purpose of an initial conversation is not to sell a framework. It is to understand whether the problem, the mandate and the expected contribution fit.</p></div>
+  <p class="service-eyebrow">The method</p>
+  <div class="service-section-header"><h2>From executive question to an owned next move.</h2>
+   <p>The method is deliberately simple. It draws on enterprise portfolio management, Lean, evidence-based prioritisation, risk controls and experience of the organisational realities behind AI adoption.</p>
+  </div>
   <div class="service-steps">
-   <div class="service-step"><span>01</span><h3>Frame the decision</h3><p>What is at stake, who owns it and what would happen if nothing changed?</p></div>
-   <div class="service-step"><span>02</span><h3>Examine the facts</h3><p>What is known, what is assumed and which constraints cannot be ignored?</p></div>
-   <div class="service-step"><span>03</span><h3>Define the contribution</h3><p>Agree the appropriate scope, counterpart, timing and decision outputs.</p></div>
-   <div class="service-step"><span>04</span><h3>Make the next call</h3><p>Move forward only when a useful contribution and clear ownership are established.</p></div>
+   <div class="service-step"><span>01</span><h3>Frame the decision</h3><p>Business outcome, sponsor, affected process, constraints and the cost of doing nothing.</p></div>
+   <div class="service-step"><span>02</span><h3>Examine the evidence</h3><p>Current state, value case, data readiness, process friction, risk, stakeholders and missing facts.</p></div>
+   <div class="service-step"><span>03</span><h3>Challenge the options</h3><p>What to stop, rework, test or scale; consequences, ownership and proportional controls.</p></div>
+   <div class="service-step"><span>04</span><h3>Agree action and proof</h3><p>Decision record, named owners, next milestone and measures for checking whether it worked.</p></div>
+  </div>
+  <p class="service-method-note">A first conversation tests fit and urgency. If there is a useful contribution to make, we agree a written scope, working rhythm, information boundaries, deliverables and terms before any engagement begins.</p>
+ </div>
+</section>
+
+<section class="service-section" id="advisory-perspective" data-analytics-section="advisory-credibility">
+ <div class="container advisory-personal">
+  <figure class="advisory-portrait">{portrait}<figcaption>Jair Ribeiro · Enterprise AI &amp; Data leadership</figcaption></figure>
+  <div>
+   <p class="service-eyebrow">The person behind the advice</p>
+   <h2>Experience from inside the decisions, not outside the business.</h2>
+   <p>I have worked across enterprise AI, analytics and data leadership, often in the uncomfortable space between an attractive idea and the realities of funding, governance, ownership and adoption.</p>
+   <p>I have built portfolio views to help leaders prioritise, challenged whether pilots were ready to scale, shaped governance and stewardship, and worked with business teams to make new capabilities useful in day-to-day operations.</p>
+   <p>That experience shapes my approach: listen to the people accountable for the result, examine what the evidence supports, and make the next decision clearer. I don't offer a substitute for engineering delivery or legal advice.</p>
+   <p class="advisory-signoff">Jair Ribeiro / Independent executive perspective</p>
+   <p><a href="?page=impact" target="_self">Explore my leadership experience →</a> &nbsp; <a href="?page=thinking" target="_self">Read my perspectives →</a></p>
   </div>
  </div>
 </section>
-<section class="service-section service-section--white" id="advisory-perspective" data-analytics-section="advisory-credibility">
- <div class="container">
-  <p class="service-eyebrow">The perspective behind the work</p>
-  <div class="service-section-header"><h2>Experience inside the enterprise, not at a distance from it.</h2><p>My work spans enterprise AI and Data leadership, portfolio decisions, governance, adoption and organisational ownership. The recurring lesson: useful AI depends as much on the business system around it as on the technology itself.</p></div>
-  <p class="service-intro">This is a selective, senior-level advisory offer. It is most relevant where an executive team needs clarity on priorities, sponsorship, governance or value. It is not a substitute for hands-on engineering delivery, an implementation vendor or legal advice. You can explore the <a href="?page=impact" target="_self">leadership experience</a> and <a href="?page=briefings" target="_self">Executive AI Briefings</a> before getting in touch.</p>
+
+<section class="advisory-access" id="advisory-membership" data-analytics-section="advisory-membership">
+ <div class="container advisory-access-grid">
+  <div>
+   <p class="service-eyebrow">A dedicated advisory relationship</p>
+   <h2>Your executive advisory space.</h2>
+   <p>Create a separate Advisory account to keep your decision context in one place and maintain a direct professional contact route. Registration is complimentary. It is not a consultancy booking, subscription purchase or commercial agreement.</p>
+   <a class="advisory-button" href="?page=advisory-access" target="_self" data-hq-event="advisory_access_register">Create advisory access →</a>
+   <p><a class="advisory-small-link" href="?page=advisory-access&amp;signin=1" target="_self" data-hq-event="advisory_access_signin">Already have advisory access? Sign in</a></p>
+  </div>
+  <aside class="advisory-access-inclusion">
+   <strong>Full Premium Reader library included.</strong>
+   <p>Your Advisory account also provides the complete Executive AI Briefings collection, premium Thinking articles, Weekly AI editions and available infographic downloads.</p>
+   <p>Advisory membership includes Reader access. A Reader account alone does not grant Advisory membership or establish an advisory relationship.</p>
+  </aside>
  </div>
 </section>
+
 <section class="service-contact" id="advisory-contact" data-analytics-section="advisory-inquiry">
  <div class="container service-contact-layout">
-  <div><p class="service-eyebrow">A first conversation</p><h2>What decision are you working through?</h2><p>A useful introduction names the business problem, the decision owner and the horizon for action. A few lines are enough. Please avoid sending commercially sensitive information in an initial email.</p><p class="service-note">Availability, scope and commercial terms are discussed individually. No engagement is established by sending an inquiry.</p></div>
-  <div><a class="advisory-button" href="mailto:{ADVISORY_EMAIL}?subject=Executive%20advisory%20inquiry" data-hq-event="advisory_email_final">Start a conversation →</a><p class="service-mail"><a href="mailto:{ADVISORY_EMAIL}" data-hq-event="advisory_email_address">{ADVISORY_EMAIL}</a></p><p class="service-note">For personal, career or speaking contact, use <a href="mailto:{EMAIL}">{EMAIL}</a>.</p></div>
+  <div><p class="service-eyebrow">Begin with the business question</p><h2>What decision needs a clearer answer?</h2>
+   <p>Share the decision, the accountable sponsor, and the time horizon. A few lines are enough for an initial exchange. Please keep confidential, regulated or personally sensitive information out of your first message.</p>
+   <p class="service-note">After an initial fit discussion, we can agree the relevant participants, format, timetable and commercial scope. No work is committed until that is confirmed.</p>
+  </div>
+  <div><a class="advisory-button" href="mailto:{ADVISORY_EMAIL}?subject=Executive%20advisory%20discussion" data-hq-event="advisory_email_final">Discuss an executive decision →</a>
+   <p class="service-mail"><a href="mailto:{ADVISORY_EMAIL}" data-hq-event="advisory_email_address">{ADVISORY_EMAIL}</a></p>
+   <p class="service-note">Prefer to establish your account first? <a href="?page=advisory-access" target="_self">Create Advisory access</a>.</p>
+  </div>
  </div>
 </section>
 </main>{footer()}'''
-
 
 def privacy() -> str:
     """Public privacy notice for portfolio visitors and registered readers."""

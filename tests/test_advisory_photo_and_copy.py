@@ -38,6 +38,21 @@ def test_direct_advisory_account_language_is_consistent():
     assert '["Register free", "Sign in to advisory"]' in portal
 
 
+
+def test_premium_advisory_layout_is_preserved_with_one_discreet_scorecard_reference():
+    page = PUBLIC_PAGE.read_text(encoding="utf-8")
+    # The original two-column hero, three engagement cards, portrait and
+    # dedicated account section remain; no new full-width marketing section.
+    assert '.site .advisory-hero-grid{grid-template-columns:minmax(0,1.26fr) minmax(280px,.72fr);gap:62px}' in page
+    assert page.count('<article class="service-format">') == 3
+    assert 'id="advisory-scorecard-service"' not in page
+    assert 'class="advisory-tool-reference"' in page
+    assert page.count('href="?page=advisory-scorecard"') == 1
+    assert 'First on-demand advisory resource' in page
+    assert 'Registration alone does not provide access.' in page
+    assert 'id="advisory-membership"' in page
+
+
 def test_advisory_intake_is_collected_upfront_and_carried_into_verified_profile():
     import ast
     portal = PORTAL.read_text(encoding="utf-8")

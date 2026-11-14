@@ -73,7 +73,7 @@ class BriefingPublicPreviewTests(unittest.TestCase):
             page = render_cms_article(stored)
         self.assertIn("The Leadership Decision", page)
         self.assertIn("A decision to put to work", page)
-        self.assertIn("Read the complete executive analysis", page)
+        self.assertIn("Examine the decision and its trade-offs", page)
         self.assertNotIn("UNLOCKED_ONLY_DETAIL_4382", page)
         self.assertNotIn("premium-infographic.webp", page)
 
@@ -89,8 +89,8 @@ class BriefingPublicPreviewTests(unittest.TestCase):
         self.assertIn("A decision to put to work", html)
         self.assertIn("Capacity is part of the approval decision", html)
         self.assertIn("shared specialists", html)
-        self.assertIn("Read the complete executive analysis", html)
-        self.assertIn("A4 PDF", html)
+        self.assertIn("Examine the decision and its trade-offs", html)
+        self.assertIn("original infographic, where available", html)
         self.assertNotIn("UNLOCKED_ONLY_DETAIL_4382", html)
         self.assertNotIn("premium-infographic.webp", html)
         self.assertNotIn("<figure", html)
@@ -103,7 +103,7 @@ class BriefingPublicPreviewTests(unittest.TestCase):
         )
         self.assertIn("access=1&amp;signin=1", html)
         self.assertIn("No payment details", html)
-        self.assertIn("Editorial email updates are optional", html)
+        self.assertIn("editorial emails are optional", html)
 
     def test_cms_does_not_render_full_article_to_anonymous_visitor(self):
         # The real CMS renderer must branch BEFORE rendering the full article;
@@ -125,7 +125,7 @@ class BriefingPublicPreviewTests(unittest.TestCase):
         ):
             public_html = render_cms_article(article)
         self.assertIn("Capacity is part of the approval decision", public_html)
-        self.assertIn("Read the complete executive analysis", public_html)
+        self.assertIn("Examine the decision and its trade-offs", public_html)
         self.assertNotIn("UNLOCKED_ONLY_DETAIL_4382", public_html)
         self.assertNotIn("premium-infographic.webp", public_html)
 

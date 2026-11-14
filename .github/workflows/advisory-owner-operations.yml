@@ -1,0 +1,52 @@
+name: Advisory owner operations regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/page_owner_advisory_management.py"
+      - "src/page_owner_advisory_operations.py"
+      - "src/page_owner_advisory_requests.py"
+      - "src/page_owner_reader_management.py"
+      - "supabase/migrations/*advisory_operations*"
+      - "tests/test_advisory_owner_operations.py"
+      - "tests/test_advisory_engagement_journey.py"
+      - ".github/workflows/advisory-owner-operations.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/page_owner_advisory_management.py"
+      - "src/page_owner_advisory_operations.py"
+      - "src/page_owner_advisory_requests.py"
+      - "src/page_owner_reader_management.py"
+      - "supabase/migrations/*advisory_operations*"
+      - "tests/test_advisory_owner_operations.py"
+      - "tests/test_advisory_engagement_journey.py"
+      - ".github/workflows/advisory-owner-operations.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  advisory-operations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Compile owner management modules
+        run: python -m py_compile src/page_owner_advisory_management.py src/page_owner_advisory_operations.py src/page_owner_advisory_requests.py src/page_owner_reader_management.py
+      - name: Verify advisory relationship, approval and privacy contracts
+        run: |
+          python -m unittest discover -s tests -p 'test_advisory_owner_operations.py' -v
+          python -m unittest discover -s tests -p 'test_advisory_engagement_journey.py' -v
+          python -m unittest discover -s tests -p 'test_advisory_reader_separation.py' -v
+          python -m unittest discover -s tests -p 'test_advisory_scorecard_access_requests.py' -v

@@ -38,6 +38,12 @@ def _secret(key: str) -> str:
         return ""
 
 
+def mail_transport_ready() -> bool:
+    """Check whether a server-side transactional sender is configured."""
+    return bool(_secret("RESEND_API_KEY") or _secret("RESEND_SMTP_PASSWORD")
+                or _secret("SMTP_PASSWORD"))
+
+
 def _message(service: str) -> tuple[str, str, str]:
     if service not in SERVICE_NAMES:
         raise ValueError("Unsupported Advisory email service")

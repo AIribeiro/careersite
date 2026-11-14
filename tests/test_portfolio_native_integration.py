@@ -81,14 +81,20 @@ class NativePortfolioIntegrationTests(unittest.TestCase):
     def test_same_session_navigation_handles_every_portfolio_account_page(self):
         from site_reader_navigation import _parse_portfolio_route
         for page in ("home", "thinking", "readers", "advisory",
-                     "advisory-access", "privacy", "analytics", "about"):
+                     "advisory-access", "advisory-scorecard", "advisory-rollout",
+                     "privacy", "analytics", "about", "certifications"):
             with self.subTest(page=page):
                 self.assertEqual(
                     _parse_portfolio_route("?page=" + page), {"page": page},
                 )
         self.assertIsNone(_parse_portfolio_route("?page=advisory-access&token_hash=abc"))
-        js = self.source("src/site_reader_navigation.py")
-        self.assertIn("'advisory-access','privacy','analytics'", js)
+        from site_reader_navigation import _ALLOWED_PAGES, _JS
+        self.assertTrue(
+            {"advisory-access", "advisory-scorecard", "advisory-rollout",
+             "privacy", "analytics"} <= _ALLOWED_PAGES
+        )
+        self.assertIn("advisory.jairribeiro.com", _JS)
+        self.assertIn("firstPartyRoute", _JS)
 
     def test_main_dispatches_all_native_pages_through_one_shared_shell(self):
         main = self.source("main.py")

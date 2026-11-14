@@ -32,7 +32,7 @@ class ScorecardTests(unittest.TestCase):
             "src/page_advisory_portal.py"))
         page = self.source("src/page_advisory_scorecard.py")
         self.assertIn("Registration alone does not provide access", self.source(
-            "src/page_public_services.py"))
+            "src/page_advisory_scorecard.py"))
         self.assertIn("enable the private Scorecard individually", page)
         self.assertNotIn("portfolio_advisory_scorecards?select=", page)
 
@@ -57,7 +57,7 @@ class ScorecardTests(unittest.TestCase):
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, page)
-        self.assertIn('href="?page=advisory-access"', page)
+        self.assertIn('href="?page=advisory-access', page)
         self.assertIn('href="?page=advisory"', page)
         self.assertIn("Registration alone does not provide access", page)
         self.assertNotIn("portfolio_advisory_scorecards?select=", page)

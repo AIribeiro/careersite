@@ -138,5 +138,22 @@ class RolloutAdvisorTests(unittest.TestCase):
         self.assertIn("grant execute",schema)
 
 
+    def test_synthetic_owner_demo_is_clearly_identified_in_pdf(self):
+        from io import BytesIO
+        from pypdf import PdfReader
+        from page_advisory_rollout import assess, _pdf_report
+        answers = self._answers()
+        answers["demo"] = {
+            "is_demo": True,
+            "evidence_status": "Synthetic fictional evaluation data",
+        }
+        pdf = _pdf_report(assess(answers), answers)
+        text = " ".join(page.extract_text() or "" for page in PdfReader(BytesIO(pdf)).pages)
+        self.assertIn("SYNTHETIC TEST DATA - NOT VERIFIED", text)
+        source = self.source("src/page_advisory_rollout.py")
+        self.assertIn("Inspect all 18 ratings and supporting evidence", source)
+        self.assertIn("Owner QA scenario", source)
+        self.assertIn("Evidence basis", source)
+
 if __name__=="__main__":
     unittest.main()

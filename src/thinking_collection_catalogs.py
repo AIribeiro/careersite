@@ -302,7 +302,7 @@ def _collection(kind: str, published: tuple, counts: dict[str, int] | None) -> s
         description = (
             "A concise Friday perspective on relevant AI developments and their "
             "implications for business leaders. The latest published edition is available "
-            "in full to free Premium Readers; previous editions are public."
+            "in full with free reader registration; previous editions are public."
         )
         eyebrow = "Weekly AI · Friday perspective"
         heading = "Previous editions"

@@ -431,10 +431,38 @@ def _policy(token: str,workspace: dict,data: dict) -> None:
         })
         _commit(token,workspace,next_data,"Decision policy saved.")
     st.markdown("#### Scoring anchors")
-    st.write("**1** — weak or unsupported; **3** — plausible but incomplete; "
-             "**5** — demonstrated and ready. Use scores 2 and 4 between anchors.")
-    for name,desc in CRITERIA:
-        st.markdown("**"+name+"** — "+desc)
+    st.caption("Use 1, 3 or 5 against the following evidence anchors; "
+               "2 and 4 lie between them. The criterion is scored as it stands today.")
+    anchors = (
+        ("No approved priority or sponsor.",
+         "Relevant priority; sponsor interest but outcome still broad.",
+         "Named enterprise priority, accountable sponsor and operational KPI."),
+        ("Claimed value without a baseline.",
+         "Benefit range estimated; cost and attribution partly understood.",
+         "Baseline, assumptions, attributable incremental benefit and benefit owner."),
+        ("Delivery and operating dependencies untested.",
+         "Feasible route identified; material dependencies remain.",
+         "Integration, workflow and operating constraints demonstrated."),
+        ("Critical capacity unavailable; displaces more important work.",
+         "Capacity provisionally identified; opportunity cost made visible.",
+         "Named funded capacity, budget and accepted displacement."),
+        ("Required data unowned, inaccessible or unreliable.",
+         "Usable data exists, with mitigated quality or access gaps.",
+         "Ownership, quality, access, provenance and monitoring demonstrated."),
+        ("No accountable process owner or changed-work measure.",
+         "Owner identified and a practical adoption plan proposed.",
+         "Workflow change agreed, leadership committed and outcomes measurable."),
+        ("Material legal or operating risks unclear; controls absent.",
+         "Risks assessed broadly with controls and approvals outstanding.",
+         "Proportionate controls, human oversight and audit paths documented."),
+    )
+    for (name,desc),(weak,medium,strong) in zip(CRITERIA,anchors):
+        with st.expander(name):
+            st.write(desc)
+            st.write("**1 — Weak:** "+weak)
+            st.write("**3 — Partial:** "+medium)
+            st.write("**5 — Demonstrated:** "+strong)
+            st.caption("Confirm source evidence before using this score in an executive review.")
     st.warning("Stop / hold decisions and all regulatory, privacy, security and "
                "operating controls must be assessed independently of the score.")
 

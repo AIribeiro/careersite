@@ -130,6 +130,21 @@ def _ranking_chart(rows: list[dict], *, compact: bool = False) -> None:
     st.altair_chart(chart, width="stretch")
 
 
+@st.cache_data(ttl=120, max_entries=8, show_spinner=False)
+def _fast_portfolio_overview(window: str) -> dict:
+    """Year/lifetime headlines from a small canonical-view aggregate.
+
+    The detailed content RPC performs several telemetry scans. It must not
+    gate the Portfolio overview when a broad calendar window is selected.
+    """
+    if window not in ("this_year", "all"):
+        raise ValueError("Fast overview supports only Year and All.")
+    return _fetch_rpc(
+        "careersite_portfolio_overview_fast_v1",
+        {"p_token": _dashboard_payload(window)["p_token"], "p_window": window},
+    )
+
+
 @st.cache_data(ttl=300, show_spinner=False)
 def _recent_content_report() -> dict:
     """Lightweight recent comparison, rechecked within five minutes.
@@ -167,12 +182,20 @@ def render_public_portfolio_overview() -> None:
     if st.button("Refresh insights", key="portfolio_refresh_insights"):
         _lifetime_content_report.clear()
         _recent_content_report.clear()
+        _fast_portfolio_overview.clear()
+        fetch_intelligence.clear()
         from portfolio_reader_kpi import reader_registration_totals
         reader_registration_totals.clear()
         st.rerun()
 
     try:
-        report = fetch_intelligence(str(window))
+        # Broad windows use the fast canonical reader/page counter. Detailed
+        # engagement and campaign reports remain in Explore content.
+        report = (
+            _fast_portfolio_overview(str(window))
+            if str(window) in ("this_year", "all")
+            else fetch_intelligence(str(window))
+        )
     except (RuntimeError, ValueError, TimeoutError) as exc:
         st.warning("Portfolio reporting is temporarily unavailable.")
         st.caption(str(exc))

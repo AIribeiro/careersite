@@ -145,6 +145,13 @@ def _fast_portfolio_overview(window: str) -> dict:
     )
 
 
+def _selected_portfolio_report(window: str) -> dict:
+    """Use canonical lightweight headlines for long windows; detail elsewhere."""
+    if window in ("this_year", "all"):
+        return _fast_portfolio_overview(window)
+    return fetch_intelligence(window)
+
+
 @st.cache_data(ttl=300, show_spinner=False)
 def _recent_content_report() -> dict:
     """Lightweight recent comparison, rechecked within five minutes.
@@ -191,11 +198,7 @@ def render_public_portfolio_overview() -> None:
     try:
         # Broad windows use the fast canonical reader/page counter. Detailed
         # engagement and campaign reports remain in Explore content.
-        report = (
-            _fast_portfolio_overview(str(window))
-            if str(window) in ("this_year", "all")
-            else fetch_intelligence(str(window))
-        )
+        report = _selected_portfolio_report(str(window))
     except (RuntimeError, ValueError, TimeoutError) as exc:
         st.warning("Portfolio reporting is temporarily unavailable.")
         st.caption(str(exc))

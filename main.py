@@ -189,6 +189,22 @@ if PAGE == "readers":
 elif PAGE == "advisory-access":
     # Dedicated verified membership. Advisory members inherit Reader access;
     # existing Reader sign-in never grants Advisory membership.
+    #
+    # Report release v2_20261115: Streamlit reruns main.py in long-lived
+    # sessions without necessarily re-importing imported report modules.
+    # Refresh an outdated report/UI pair once so an existing session cannot
+    # keep exporting the retired plain-text decision memo after deployment.
+    import importlib
+    import page_advisory_scorecard_report as _scorecard_report
+    import page_advisory_scorecard_decision_ui as _scorecard_decision_ui
+
+    if (
+        getattr(_scorecard_report, "REPORT_VERSION", None) != "v2_20261115"
+        or getattr(_scorecard_decision_ui, "REPORT_VERSION", None) != "v2_20261115"
+    ):
+        importlib.invalidate_caches()
+        importlib.reload(_scorecard_report)
+        importlib.reload(_scorecard_decision_ui)
     from page_advisory_portal import render_advisory_portal
     render_advisory_portal()
 elif PAGE == "analytics":

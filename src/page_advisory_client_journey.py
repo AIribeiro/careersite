@@ -143,15 +143,16 @@ def _request_form(token: str,uid: str,profile: dict) -> None:
     st.html("""<section class="advisory-portal-intro">
 <p style="color:#a5643f;font-size:11px;letter-spacing:.14em;font-weight:800">YOUR FIRST STEP</p>
 <h2>What decision do you need help with?</h2>
-<p>Describe the business question and what a useful outcome would look like.
-That gives Jair a basis to respond personally with a focused next step.</p>
+<p>Describe the business question and the outcome you need. Requests are
+reviewed individually for relevance and availability. Selected discussions
+are pro-bono and focused on a defined decision.</p>
 </section>""")
     st.html("""<div class="advisory-process-guide">
 <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:#a5643f;margin-bottom:14px">WHAT HAPPENS NEXT</div>
 <div class="advisory-process-steps">
 <div><strong>01 · Your question</strong><span>Tell me the decision and desired outcome.</span></div>
 <div><strong>02 · My assessment</strong><span>I review it and respond in this private space.</span></div>
-<div><strong>03 · Agreed approach</strong><span>We decide if discovery or a defined scope makes sense.</span></div>
+<div><strong>03 · If selected</strong><span>Agree the question and scope of a free discussion.</span></div>
 <div><strong>04 · Delivery &amp; close</strong><span>If engaged, we track the agreed work and its conclusion.</span></div>
 </div></div>""")
     with st.form("advisory_client_new_request",clear_on_submit=False):
@@ -177,7 +178,7 @@ That gives Jair a basis to respond personally with a focused next step.</p>
         with b:
             contact=st.selectbox("Preferred first contact",["Email","Video call"])
         acknowledged=st.checkbox(
-            "I understand this is an initial advisory request, not a booking or paid agreement."
+            "I understand this free request is assessed individually and does not guarantee a pro-bono discussion."
         )
         submit=st.form_submit_button("Send my advisory request",type="primary",
                                      use_container_width=True)
@@ -205,9 +206,9 @@ def render_advisory_client_journey(session: dict,user: dict,profile: dict) -> No
     name=str(profile.get("first_name") or "there")
     st.markdown("## Welcome, " + name + ".")
     st.html("""<div class="advisory-portal-badge">
-<strong>Your Advisory account is active.</strong> Your professional details are
-on file. The next step is to tell me which business decision you want help with.
-Your Premium Reader library is included throughout the relationship.
+<strong>Your Advisory account is active.</strong> You can now describe a
+specific business decision for individual review. Pro-bono discussions are
+selective, not automatically booked. Your free Reader Library remains available.
 </div>""")
     try:
         requests=_client_requests(token,uid)
@@ -243,5 +244,5 @@ Your Premium Reader library is included throughout the relationship.
             st.query_params["page"]="readers"
             st.rerun()
     with b:
-        st.caption("Every request begins with an assessment. Scope, scheduling, fees "
-                   "and availability are agreed separately; registration is complimentary.")
+        st.caption("Every request is reviewed individually. Selected discussions are pro-bono "
+                   "and free of charge; scope and timing depend on availability.")

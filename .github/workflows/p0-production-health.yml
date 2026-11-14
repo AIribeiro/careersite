@@ -144,6 +144,44 @@ jobs:
                           time.sleep(8)
               if roi_error:
                   failed.append("AI ROI infographic: " + roi_error)
+              # Validate the exact owner-approved 14 November infographic in the
+              # actual public reader. Generic CMS SVG cards are NOT the artwork
+              # approved by the owner and must never pass this smoke test.
+              authorization_slug = "when-ai-acts-without-permission-what-leaders-need-to-know"
+              authorization_error = None
+              for attempt in range(3):
+                  try:
+                      page.goto(qa_url(base + "?page=briefing&article=" + authorization_slug),
+                                wait_until="domcontentloaded", timeout=35000)
+                      page.wait_for_selector(
+                          ".site .canonical-infographic-section img.canonical-desktop",
+                          state="attached", timeout=30000,
+                      )
+                      page.wait_for_function(
+                          "() => {const section=document.querySelector('.site .canonical-infographic-section');"
+                          "const im=section&&section.querySelector('img.canonical-desktop');"
+                          "return !!(im && im.complete && im.naturalWidth===1800 && im.naturalHeight===2550"
+                          " && im.src.startsWith('data:image/webp;base64,'));}",
+                          timeout=18000,
+                      )
+                      if page.locator(".site .ebi-kicker").count() > 0:
+                          raise RuntimeError("Generic CMS infographic is visible instead of approved artwork")
+                      button = page.locator(".site .canonical-infographic-download")
+                      if button.count() != 1:
+                          raise RuntimeError("Premium infographic A4 PDF CTA missing")
+                      href = button.first.get_attribute("href") or ""
+                      if "article=" + authorization_slug not in href or "pdf=1" not in href:
+                          raise RuntimeError("Premium PDF CTA is not linked to the approved edition")
+                      authorization_error = None
+                      print("PUBLIC AUTHORIZATION BRIEFING: approved WebP rendered at 1800x2550 with A4 CTA", flush=True)
+                      break
+                  except Exception as exc:
+                      authorization_error = f"{type(exc).__name__}: {str(exc)[:200]}"
+                      print(f"Authorization artwork browser check {attempt+1}/3: {authorization_error}", flush=True)
+                      if attempt < 2:
+                          time.sleep(9)
+              if authorization_error:
+                  failed.append("Authorization briefing infographic: " + authorization_error)
               # The hero is the first meaningful photo on Home. Avoid silently
               # accepting a missing asset as a passing page smoke test.
               try:

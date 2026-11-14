@@ -62,6 +62,7 @@ def render_executive_recommendation(data: dict, workspace: dict, *,
         generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     )
     st.markdown("### Executive portfolio recommendation")
+    st.caption(f"Active report template: {REPORT_EDITION}")
     st.caption(
         "Decision-ready analysis of the current Scorecard revision. "
         "Recommendations are generated from your own assessments, "

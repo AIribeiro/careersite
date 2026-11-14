@@ -16,15 +16,10 @@ from site_cms import _request_json, _rest_url
 
 def read_owner_feedback(token: str) -> list[dict]:
     rows = _request_json(
-        "GET",
-        _rest_url(
-            "portfolio_advisory_interaction_feedback?"
-            "select=id,user_id,service_key,stage,request_id,scorecard_id,"
-            "rating,comment,followup_answer,contact_ok,owner_status,"
-            "owner_note,reviewed_at,created_at"
-            "&order=created_at.desc&limit=1000"
-        ),
+        "POST",
+        _rest_url("rpc/portfolio_advisory_feedback_owner_list_v1"),
         token=token,
+        payload={"p_limit":1000},
         timeout=14,
     )
     if not isinstance(rows, list):

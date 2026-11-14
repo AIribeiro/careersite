@@ -331,7 +331,7 @@ def privacy() -> str:
     <li><strong>Correspondence:</strong> the email address and information you choose to share when contacting me, including advisory and privacy requests.</li>
     <li><strong>Service security:</strong> technical events and connection details that may be processed by hosting or authentication providers to operate and protect the service.</li>
    </ul>
-   <p>Payment details are not requested for complimentary Premium Reader access, and reader contact details are not sold. Avoid placing confidential or sensitive personal information in an initial inquiry.</p>
+   <p>No payment details are requested for free Reader Library registration, and reader contact details are not sold. Avoid placing confidential or sensitive personal information in an initial inquiry.</p>
   </section>
   <section id="privacy-purpose"><h2>Why information is used</h2>
    <ul>

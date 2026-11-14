@@ -117,6 +117,13 @@ def _display_conversation(token: str, uid: str, req: dict) -> None:
             st.caption("Jair Ribeiro · Advisory" if msg.get("sender")=="advisor" else "You")
             st.write(str(msg.get("body") or ""))
             st.caption(str(msg.get("created_at") or "")[:16].replace("T"," "))
+    # Offer one optional satisfaction rating per real advisor response.
+    last_advisor = next((m for m in reversed(messages)
+                         if m.get("sender") == "advisor"), None)
+    if last_advisor:
+        from page_advisory_feedback import render_feedback
+        render_feedback({"access_token":token},{"id":uid},"advisory",
+                        "conversation",str(last_advisor["id"]),rid)
     if state not in CLOSED:
         with st.form("advisory_client_reply_"+rid,clear_on_submit=True):
             response=st.text_area(

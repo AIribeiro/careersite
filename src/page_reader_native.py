@@ -171,6 +171,60 @@ def _session() -> tuple[dict | None, dict | None]:
         st.session_state.pop("reader_native_user", None)
         return None, None
 
+
+def _logout_member_session(session: dict) -> bool:
+    """Revoke only this Supabase session, then clear both private workspaces.
+
+    Reader and Advisory share one Auth identity. Removing local state must work
+    even when the Auth API cannot be reached; no token goes into a URL or HTML.
+    """
+    revoked = False
+    token = str(session.get("access_token") or "")
+    if token:
+        try:
+            _request_json(
+                "POST", ANALYTICS_URL.rstrip("/") + "/auth/v1/logout?scope=local",
+                token=token, payload={}, timeout=10,
+            )
+            revoked = True
+        except (RuntimeError, ValueError, TimeoutError, KeyError) as exc:
+            LOG.warning("Member sign-out revocation unavailable: %s", type(exc).__name__)
+
+    # Clear identity, draft and widget values before another account signs in
+    # using this WebSocket. Do not touch owner/CMS sessions or public analytics.
+    for key in list(st.session_state):
+        if isinstance(key, str) and key.startswith(
+            ("reader_", "advisory_", "rollout_", "scorecard_")
+        ):
+            st.session_state.pop(key, None)
+    for key in ("view", "request", "pdf", "access", "signin"):
+        st.query_params.pop(key, None)
+    st.session_state["reader_native_flash"] = (
+        ("success", "Signed out of your Reader and Advisory account.")
+        if revoked else
+        ("warning", "Signed out of this browser. Supabase could not confirm "
+         "server-side sign-out; the session may remain valid until it expires.")
+    )
+    return revoked
+
+
+def member_logout_toolbar(session: dict, user: dict, *, context: str) -> None:
+    """A visible, touch-friendly account control above private page content."""
+    if context not in {"reader", "advisory"}:
+        raise ValueError("Unsupported member sign-out context")
+    identity, action = st.columns([5, 1.25], vertical_alignment="center")
+    with identity:
+        st.caption("SIGNED IN · " + str(user.get("email") or "Verified member"))
+    with action:
+        if st.button(
+            "Sign out", key=context + "_member_signout",
+            icon=":material/logout:", type="secondary", width="stretch",
+            help="Signs out of both Reader Library and Advisory on this browser.",
+        ):
+            _logout_member_session(session)
+            st.rerun()
+
+
 def _briefing_access_request() -> tuple[str, str]:
     """Only accept a validated slug and first-party access/PDF intent."""
     page = st.query_params.get("page", "")
@@ -1130,17 +1184,6 @@ def _library(session: dict, user: dict) -> None:
             f"Account support: {READERS_EMAIL} · Privacy requests: {PRIVACY_EMAIL}. See [Privacy notice](?page=privacy)."
         )
 
-    st.divider()
-    if st.button("Sign out", key="reader_native_logout"):
-        try:
-            _request_json("POST", ANALYTICS_URL.rstrip("/") + "/auth/v1/logout",
-                          token=session["access_token"], payload={})
-        except (RuntimeError, ValueError, TimeoutError):
-            pass
-        for key in ("reader_native_session", "reader_native_user",
-                    "reader_native_prepared"):
-            st.session_state.pop(key, None)
-        st.rerun()
 
 
 def _dismiss_briefing_dialog() -> None:
@@ -1283,9 +1326,12 @@ def render_reader_native() -> None:
             st.success(notice[1])
         elif notice and notice[0] == "error":
             st.error(notice[1])
+        elif notice and notice[0] == "warning":
+            st.warning(notice[1])
 
         session, user = _session()
         if session and user:
+            member_logout_toolbar(session, user, context="reader")
             _library(session, user)
         else:
             _login()

@@ -2,6 +2,7 @@ name: Executive Briefings reader membership
 on:
   push:
     branches:
+      - main
       - feature/reader-membership-session-library-20261112
   pull_request:
     paths:
@@ -9,6 +10,10 @@ on:
       - main.py
       - reader_test.py
       - src/page_reader_native.py
+      - src/page_advisory_portal.py
+      - src/page_advisory_client_journey.py
+      - tests/reader_management_smoke_app.py
+      - tests/test_advisory_engagement_journey.py
       - src/site_reader_navigation.py
       - tests/test_reader_library_membership.py
       - tests/reader_navigation_smoke_app.py
@@ -27,6 +32,7 @@ on:
       - src/briefing_authority_artwork.py
       - tests/test_reader_membership.py
       - .github/workflows/reader-membership.yml
+      - tests/test_thinking_premium_reader.py
 jobs:
   verify:
     runs-on: ubuntu-latest

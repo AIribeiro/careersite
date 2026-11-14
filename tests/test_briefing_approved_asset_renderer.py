@@ -200,6 +200,86 @@ class ApprovedAssetContractTests(unittest.TestCase):
             renderer._REMOTE_MANIFESTS.clear()
             renderer._remote_verified_asset.cache_clear()
 
+
+    def test_outdated_local_manifest_recovers_exact_current_artwork(self):
+        """A CMS copy edit must not leave old app checkouts without the approved image."""
+        import json
+        from unittest.mock import patch
+        import briefing_approved_asset_renderer as renderer
+        self.create()
+        current_root = self.root / "published"
+        stale_root = self.root / "stale-runtime"
+        path = stale_root / self.article.slug
+        path.mkdir(parents=True)
+        manifest = json.loads(
+            (current_root / self.article.slug / "manifest.json").read_text()
+        )
+        manifest["article_fingerprint"] = "0" * 64
+        (path / "manifest.json").write_text(json.dumps(manifest))
+
+        def approved_repo_asset(slug, name, max_size):
+            self.assertEqual(slug, self.article.slug)
+            payload = (current_root / slug / name).read_bytes()
+            self.assertLessEqual(len(payload), max_size)
+            return payload
+
+        renderer._REMOTE_MANIFESTS.clear()
+        renderer._remote_verified_asset.cache_clear()
+        try:
+            with patch.object(renderer, "ROOT", stale_root), patch.object(
+                renderer, "_remote_read", side_effect=approved_repo_asset
+            ):
+                output = render_approved_bundle(self.article, self.approved)
+                self.assertEqual(output.count("data:image/webp;base64,"), 2)
+                self.assertEqual(output.count('class="canonical-infographic-download"'), 1)
+                self.assertTrue(verified_pdf_for_article(self.article).startswith(b"%PDF-"))
+        finally:
+            renderer._REMOTE_MANIFESTS.clear()
+            renderer._remote_verified_asset.cache_clear()
+
+    def test_recent_premium_briefing_never_substitutes_generic_svg(self):
+        """Approved premium artwork missing means no deceptive six-card diagram."""
+        from unittest.mock import patch
+        import briefing_approved_asset_renderer as renderer
+        from briefing_infographic_store import approved_infographic_for
+        from site_cms import CmsArticle
+
+        recent = CmsArticle(
+            id=self.article.id, slug=self.article.slug, title=self.article.title,
+            subtitle=self.article.subtitle, content_html=self.article.content_html,
+            kind="Executive Briefing", status="published",
+            created_at="2026-11-14T18:00:00+00:00",
+        )
+        no_assets = self.root / "missing-assets"
+        renderer._REMOTE_MANIFESTS.clear()
+        try:
+            with patch.object(renderer, "ROOT", no_assets), patch.object(
+                renderer, "_remote_manifest", return_value=None
+            ):
+                self.assertEqual(
+                    approved_infographic_for(recent, row=self.approved), ""
+                )
+        finally:
+            renderer._REMOTE_MANIFESTS.clear()
+
+    def test_published_authorization_bundle_contains_actual_webp_and_a4_pdf(self):
+        """The specific approved edition must contain real production image files."""
+        from pypdf import PdfReader
+        from briefing_approved_asset_renderer import ROOT as ARTWORK_ROOT
+        slug = "when-ai-acts-without-permission-what-leaders-need-to-know"
+        published = load_bundle(slug, asset_root=ARTWORK_ROOT)
+        self.assertIsNotNone(published)
+        self.assertEqual(
+            published["article_fingerprint"],
+            "8282cde2da461fd59ae0db4c963397e8972b4efcdad1d85730ec22d65239e7c2",
+        )
+        desktop, mobile, pdf = validate_bundle(published)
+        for item in (desktop, mobile):
+            self.assertEqual(item[:4], b"RIFF")
+            self.assertEqual(item[8:12], b"WEBP")
+        self.assertTrue(pdf.startswith(b"%PDF-"))
+        self.assertEqual(len(PdfReader(BytesIO(pdf), strict=True).pages), 1)
+
     def test_stale_or_unapproved_row_never_displays_old_image(self):
         self.create()
         root = self.root / "published"

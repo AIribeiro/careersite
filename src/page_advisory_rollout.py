@@ -293,6 +293,7 @@ def _input_form(token: str, request_id: str) -> None:
                 "use_case":use_case,"stage":stage,"criticality":criticality,"scope":scope}}
             new_id=_submit_assessment(token,request_id,raw)
             st.session_state["rollout_latest_report_id"]=new_id
+            st.session_state["rollout_new_assessment"]=False
             st.success("Your decision brief has been generated and saved privately.")
             st.rerun()
         except ValueError as ex:
@@ -414,9 +415,11 @@ def render_private_rollout(session: dict,user: dict) -> None:
         if selected_id not in [str(x["id"]) for x in history]:
             selected_id=str(history[0]["id"])
         record=next((x for x in history if str(x["id"])==selected_id),history[0])
-        with st.expander("Latest executive decision brief",expanded=True):
-            _report_ui(session,user,request_id,record)
-    with st.expander("Run a new one-session assessment",expanded=not history):
+        _report_ui(session,user,request_id,record)
+        if st.button("Run a new one-session assessment",key="rollout_new_button"):
+            st.session_state["rollout_new_assessment"]=True
+    if not history or st.session_state.get("rollout_new_assessment"):
+        st.divider()
         _input_form(token,request_id)
 
 def advisory_rollout() -> str:

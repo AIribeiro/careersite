@@ -252,6 +252,9 @@ def render_service_access(token: str, people: list[dict], requests: list[dict],
 def render_reader_invitations(token: str, readers: list[dict],
                               people: list[dict]) -> None:
     st.subheader("Promote a library reader to Advisory")
+    notice = st.session_state.pop("advisory_ops_invite_notice", None)
+    if notice:
+        st.success(notice)
     st.caption(
         "Invite an existing verified reader without creating a duplicate identity or "
         "changing their editorial consent. The member must sign in and complete their "
@@ -299,15 +302,13 @@ def render_reader_invitations(token: str, readers: list[dict],
         else:
             try:
                 outcome = _invite_reader(token, uid)
-                st.success({
+                st.session_state["advisory_ops_invite_notice"] = ({
                     "invited": "Advisory invitation recorded.",
-                    "already_invited": "This reader already has a pending Advisory invitation.",
+                    "already_invited": "A pending invitation already exists.",
                     "already_member": "This reader already has an Advisory account.",
-                }[outcome])
-                st.info(
-                    "Share https://jairribeiro.com/?page=advisory-access with the member "
-                    "through your usual correspondence. An invitation is not a service entitlement."
-                )
+                }[outcome] + " Share https://jairribeiro.com/?page=advisory-access "
+                  "with the member; no message was automatically sent and no "
+                  "individual service entitlement was granted.")
                 st.rerun()
             except (RuntimeError, ValueError, TimeoutError, KeyError) as exc:
                 st.error("Could not record this invitation: " + str(exc))

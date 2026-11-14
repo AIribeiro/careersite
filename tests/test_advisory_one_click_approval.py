@@ -2,7 +2,8 @@
 from __future__ import annotations
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+from urllib.parse import urlparse, parse_qs
 import ast
 import sys
 
@@ -20,22 +21,32 @@ class ApprovalTests(TestCase):
         ):
             ast.parse((ROOT / path).read_text("utf-8"), filename=path)
         operation = (ROOT / "src/page_owner_advisory_operations.py").read_text("utf-8")
-        self.assertIn("Approve access & email client", operation)
+        self.assertIn("Approve access & send Supabase email", operation)
         self.assertNotIn("can_approve = stage == \"active\"", operation)
         self.assertIn('eligible = stage not in ("closed", "declined")', operation)
         inbox = (ROOT / "src/page_owner_advisory_requests.py").read_text("utf-8")
         self.assertIn("render_service_access_for_request(token, req)", inbox)
 
-    def test_email_contents_use_verified_service_link_and_not_marketing(self):
-        from advisory_approval_email import _message, PORTAL_URL
-        for service in ("scorecard", "rollout"):
-            subject, plain, html = _message(service)
-            self.assertIn(PORTAL_URL, plain)
-            self.assertIn("access is approved", subject)
-            self.assertIn("not a marketing subscription", html)
-            self.assertIn("advisory@jairribeiro.com", plain)
+    def test_approval_email_uses_existing_supabase_auth_and_verified_callback(self):
+        from advisory_approval_email import _send_using_supabase_auth
+        from page_reader_native import _callback_origin
+        with patch("advisory_approval_email._request_json", return_value={}) as request:
+            result = _send_using_supabase_auth("Verified@Example.org", "rollout")
+            self.assertEqual(result, "supabase-auth-accepted")
+            url = request.call_args.args[1]
+            self.assertIn("/auth/v1/otp?", url)
+            callback = parse_qs(urlparse(url).query)["redirect_to"][0]
+            self.assertEqual(
+                callback, _callback_origin("advisory-access") + "/?page=advisory-access"
+            )
+            self.assertEqual(
+                request.call_args.kwargs["payload"],
+                {"email": "verified@example.org", "create_user": False},
+            )
         with self.assertRaises(ValueError):
-            _message("not-real")
+            _send_using_supabase_auth("invalid-address", "scorecard")
+        with self.assertRaises(ValueError):
+            _send_using_supabase_auth("verified@example.org", "not-a-service")
 
     def test_owner_grant_uses_audited_rpc(self):
         from page_owner_advisory_operations import _service_action
@@ -60,7 +71,7 @@ class ApprovalTests(TestCase):
                   return_value={"id": "notice-1", "state": "sent"}) as email,
         ):
             message = _approval_decision("owner-token", "request-1", "rollout")
-            self.assertIn("email accepted", message.lower())
+            self.assertIn("Supabase Auth accepted", message)
             email.assert_called_once_with("owner-token", "notice-1")
 
     def test_repeated_active_approval_does_not_create_duplicate_email(self):
@@ -76,7 +87,7 @@ class ApprovalTests(TestCase):
             self.assertIn("already approved", message)
             email.assert_not_called()
 
-    def test_claimed_notification_calls_mail_provider_then_confirms_result(self):
+    def test_claimed_notification_uses_supabase_auth_and_records_acceptance(self):
         from advisory_approval_email import deliver_approval_notice
         def rpc(method, url, **kwargs):
             if "email_claim" in url:
@@ -84,18 +95,19 @@ class ApprovalTests(TestCase):
                         "to": "member@example.org", "service_key": "scorecard"}
             if "email_finish" in url:
                 self.assertEqual(kwargs["payload"]["p_sent"], True)
-                self.assertEqual(kwargs["payload"]["p_provider_message_id"], "provider-123")
+                self.assertEqual(kwargs["payload"]["p_provider_message_id"], "supabase-auth-accepted")
                 return {"id": "notice-1", "state": "sent"}
             raise AssertionError("Wrong RPC")
         with (
             patch("advisory_approval_email._request_json", side_effect=rpc),
-            patch("advisory_approval_email._send_provider", return_value="provider-123") as send,
+            patch("advisory_approval_email._send_using_supabase_auth",
+                  return_value="supabase-auth-accepted") as send,
         ):
             response = deliver_approval_notice("owner-token", "notice-1")
             self.assertEqual(response["state"], "sent")
-            send.assert_called_once_with("notice-1", "member@example.org", "scorecard")
+            send.assert_called_once_with("member@example.org", "scorecard")
 
-    def test_missing_credentials_do_not_claim_sent(self):
+    def test_supabase_auth_rate_limits_are_not_marked_as_sent(self):
         from advisory_approval_email import deliver_approval_notice
         def rpc(method, url, **kwargs):
             if "email_claim" in url:
@@ -103,29 +115,25 @@ class ApprovalTests(TestCase):
                         "to": "member@example.org", "service_key": "rollout"}
             if "email_finish" in url:
                 self.assertFalse(kwargs["payload"]["p_sent"])
-                self.assertEqual(kwargs["payload"]["p_error_category"], "configuration_missing")
+                self.assertEqual(kwargs["payload"]["p_error_category"], "supabase_auth_rate_limited")
                 return {"id": "notice-1", "state": "failed"}
             raise AssertionError("Wrong RPC")
         with (
             patch("advisory_approval_email._request_json", side_effect=rpc),
-            patch("advisory_approval_email._secret", return_value=""),
+            patch("advisory_approval_email._send_using_supabase_auth",
+                  side_effect=RuntimeError("Supabase request failed (429): email rate limit exceeded")),
         ):
             result = deliver_approval_notice("token", "notice-1")
             self.assertEqual(result["state"], "failed")
-            self.assertEqual(result["error_category"], "configuration_missing")
+            self.assertEqual(result["error_category"], "supabase_auth_rate_limited")
 
-    def test_provider_resend_idempotency_header(self):
-        from advisory_approval_email import _send_using_resend
-        fake = MagicMock()
-        fake.read.return_value = b'{"id":"provider123"}'
-        connection = MagicMock()
-        connection.__enter__.return_value = fake
-        with patch("advisory_approval_email.request.urlopen", return_value=connection) as post:
-            mid = _send_using_resend("notice-123", "verified@example.org", "scorecard", "key")
-            self.assertEqual(mid, "provider123")
-            req = post.call_args.args[0]
-            self.assertEqual(req.headers["Idempotency-key"], "advisory-approval/notice-123")
-            self.assertNotIn("key", req.data.decode("utf-8"))
+    def test_user_access_email_cannot_be_misrepresented_as_custom_transactional_mail(self):
+        source = (ROOT / "src/advisory_approval_email.py").read_text("utf-8")
+        self.assertIn("/auth/v1/otp?", source)
+        self.assertNotIn("api.resend.com", source)
+        self.assertNotIn("smtp.resend.com", source)
+        self.assertIn("create_user", source)
+
 
     def test_migration_preserves_request_stage_and_grants_directly(self):
         sql = (ROOT / "supabase/migrations/20261114213000_advisory_one_click_approval_and_email_outbox.sql").read_text("utf-8")

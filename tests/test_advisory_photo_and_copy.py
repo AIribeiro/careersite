@@ -29,11 +29,13 @@ def test_direct_advisory_account_language_is_consistent():
     page = PUBLIC_PAGE.read_text(encoding="utf-8")
     portal = PORTAL.read_text(encoding="utf-8")
     assert "Create a separate Advisory account" not in page
-    assert "Create your advisory account." in page
+    assert "Submit a decision for pro-bono review." in page
     assert '>{cta}</a>' in page
     assert "Open my advisory space" in page
-    assert "A professional introduction, without the paperwork." in portal
-    assert '["Create your advisory account", "Sign in to advisory"]' in portal
+    assert "availability is limited" in page
+    assert "pro-bono" in portal
+    assert "Bring a specific AI or data leadership decision." in portal
+    assert '["Register free", "Sign in to advisory"]' in portal
 
 
 def test_advisory_intake_is_collected_upfront_and_carried_into_verified_profile():

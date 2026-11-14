@@ -33,8 +33,42 @@ class ScorecardTests(unittest.TestCase):
         page = self.source("src/page_advisory_scorecard.py")
         self.assertIn("Registration alone does not provide access", self.source(
             "src/page_public_services.py"))
-        self.assertIn("approved client individually", page)
+        self.assertIn("enable the private Scorecard individually", page)
         self.assertNotIn("portfolio_advisory_scorecards?select=", page)
+
+    def test_public_page_explains_value_method_experience_and_approval(self):
+        page = self.source("src/page_advisory_scorecard.py")
+        self.assertIn("The experience behind the method", page)
+        self.assertIn("years working across enterprise AI", page)
+        self.assertIn("I have been involved in reviewing competing AI initiatives", page)
+        self.assertIn("Fictional examples for explanation only", page)
+        for phrase in (
+            "Service knowledge assistant",
+            "Warranty claim triage",
+            "Demand forecasting",
+            "Management reporting assistant",
+            "Strategic fit",
+            "Business value",
+            "Data readiness",
+            "Adoption",
+            "Risk and controls",
+            "private, editable portfolio decision workspace",
+            "Not every request is accepted",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, page)
+        self.assertIn('href="?page=advisory-access"', page)
+        self.assertIn('href="?page=advisory"', page)
+        self.assertIn("Registration alone does not provide access", page)
+        self.assertNotIn("portfolio_advisory_scorecards?select=", page)
+
+    def test_scorecard_service_has_tablet_and_phone_layouts(self):
+        page = self.source("src/page_advisory_scorecard.py")
+        self.assertIn("@media(max-width:980px)", page)
+        self.assertIn("@media(max-width:760px)", page)
+        self.assertIn("minmax(0,1fr)", page)
+        self.assertIn("overflow-x:auto", page)
+        self.assertIn("width:calc(100% - 36px)", page)
 
     def test_scoring_and_control_override(self):
         from page_advisory_scorecard_workspace import (

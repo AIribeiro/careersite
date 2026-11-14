@@ -463,7 +463,7 @@ def render_weekly_brief_archive(briefs: list["CmsArticle"]) -> str:
         '<div class="weekly-ai-label">WEEKLY AI · EVERY EDITION</div>'
         '<h1>The weekly archive.</h1>'
         '<p>One-minute leadership perspectives on AI developments and the business questions they raise. '
-        'The latest published edition is available in full to complimentary Premium Readers; '
+        'The latest published edition is available in full with free reader registration; '
         'earlier weekly editions are open to everyone, with credited original reporting.</p>'
         '</div>' + ''.join(sections) + '</div></section></main>' + footer()
     )

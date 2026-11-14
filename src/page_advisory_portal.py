@@ -512,27 +512,53 @@ would like to discuss. Registration is free and does not guarantee a pro-bono di
 
 
 def _advisory_account(session: dict, user: dict, profile: dict) -> None:
+    """Verified account shell. Render one section, never every service at once."""
     if profile.get("account_status") != "active":
         st.error("This advisory account is not currently active. Contact advisory support.")
         return
     st.session_state["advisory_member"] = True
-    from page_advisory_client_journey import render_advisory_client_journey
-    render_advisory_client_journey(session, user, profile)
-    from page_advisory_service_feedback import ADVISORY_SERVICE, render_optional_feedback
-    render_optional_feedback(
-        str(session["access_token"]), str(user["id"]),
-        ADVISORY_SERVICE, "registration_access",
+    from page_advisory_member_experience import (
+        MEMBER_CSS, member_navigation, render_overview, render_requests,
+        render_messages, section_heading,
     )
-    from page_advisory_scorecard_workspace import render_private_scorecard
-    st.divider()
-    render_private_scorecard(session, user)
-    from page_advisory_rollout import render_private_rollout
-    st.divider()
-    render_private_rollout(session, user)
+    st.html(MEMBER_CSS)
+    view = member_navigation()
+    if view == "overview":
+        render_overview(session, user, profile)
+    elif view == "requests":
+        render_requests(session, user, profile)
+    elif view == "messages":
+        render_messages(session, user)
+    elif view == "scorecard":
+        section_heading(
+            "APPROVED ADVISORY WORKSPACE", "AI Portfolio Prioritization",
+            "Compare AI opportunities, examine capacity and record executive decisions."
+        )
+        from page_advisory_scorecard_workspace import render_private_scorecard
+        render_private_scorecard(session, user)
+    elif view == "rollout":
+        section_heading(
+            "EXECUTIVE DECISION SERVICE", "Rollout readiness",
+            "Evaluate the conditions for responsible expansion and receive "
+            "a focused decision brief."
+        )
+        from page_advisory_rollout import render_private_rollout
+        render_private_rollout(session, user)
+    elif view == "account":
+        _advisory_account_settings(session, user, profile)
 
-    with st.expander("Your professional profile and account details"):
-        st.markdown("#### Your professional context")
-        st.caption("Keep your information current. Only high-level, non-confidential business context should be entered here.")
+
+def _advisory_account_settings(session: dict, user: dict, profile: dict) -> None:
+    """Professional details and credentials live in account settings alone."""
+    from page_advisory_member_experience import section_heading
+    section_heading(
+        "ACCOUNT MANAGEMENT", "Profile and security",
+        "Maintain your professional context, password and access to "
+        "the included Premium Reader Library."
+    )
+    profile_tab, security_tab = st.tabs(["Professional profile", "Security & sign-out"])
+    with profile_tab:
+        st.caption("Only high-level, non-confidential professional context belongs here.")
         with st.form("advisory_context"):
             a, b = st.columns(2)
             with a:
@@ -549,7 +575,7 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
                 organization = st.text_input(
                     "Organization", value=str(profile.get("organization") or ""), max_chars=180)
             decision = st.text_area(
-                "The decision or business outcome you are working through",
+                "Decision or business outcome",
                 value=str(profile.get("decision_context") or ""),
                 max_chars=1200, height=120,
             )
@@ -568,7 +594,7 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
                     index=HORIZON_OPTIONS.index(current_horizon) if current_horizon in HORIZON_OPTIONS else 0,
                     format_func=lambda v: v or "Not specified",
                 )
-            save = st.form_submit_button("Update my advisory context")
+            save = st.form_submit_button("Save profile changes", type="primary")
         if save:
             try:
                 _update_context(session, user, {
@@ -576,30 +602,43 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
                     "role_title": role, "decision_context": decision,
                     "advisory_focus": focus, "decision_horizon": horizon,
                 })
-                st.success("Your advisory context has been updated.")
+                st.success("Your professional profile has been updated.")
                 st.rerun()
             except ValueError as exc:
                 st.error(str(exc))
             except (RuntimeError, TimeoutError):
                 st.error("The update could not be saved.")
-
-    with st.expander("Account security and sign-out"):
+        from page_advisory_service_feedback import ADVISORY_SERVICE, render_optional_feedback
+        render_optional_feedback(
+            str(session["access_token"]), str(user["id"]),
+            ADVISORY_SERVICE, "registration_access",
+        )
+    with security_tab:
+        st.markdown("#### Password")
+        st.caption("Your Advisory and Premium Reader accounts share one Supabase Auth identity.")
         with st.form("advisory_set_password", clear_on_submit=True):
-            pwd = st.text_input("Set or change password (12 characters minimum)", type="password", max_chars=128)
-            confirm = st.text_input("Confirm password", type="password", max_chars=128)
-            do_change = st.form_submit_button("Save password")
+            pwd = st.text_input(
+                "New password (12 characters minimum)", type="password", max_chars=128)
+            confirm = st.text_input(
+                "Confirm new password", type="password", max_chars=128)
+            do_change = st.form_submit_button("Change password", type="primary")
         if do_change:
             if pwd != confirm:
                 st.error("Passwords do not match.")
             else:
                 try:
                     _set_reader_password(session, str(pwd))
-                    st.success("Password updated. This secures your shared sign-in identity.")
+                    st.success("Password updated for your shared sign-in identity.")
                 except (RuntimeError, ValueError, TimeoutError):
                     st.error("The password could not be changed.")
-        if st.button("Sign out of advisory and reader access"):
+        st.divider()
+        st.markdown("#### Session")
+        if st.button("Sign out of Advisory and Reader", key="advisory_signout"):
             _sign_out()
-    st.caption(f"Privacy requests: {PRIVACY_EMAIL} · Advisory correspondence: {ADVISORY_EMAIL}")
+    st.divider()
+    if st.button("Open my Premium Reader Library", key="advisory_settings_library"):
+        _open_library()
+    st.caption(f"Privacy requests: {PRIVACY_EMAIL} · Advisory support: {ADVISORY_EMAIL}")
 
 
 def render_advisory_portal() -> None:

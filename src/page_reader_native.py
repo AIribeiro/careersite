@@ -1319,3 +1319,7 @@ def render_reader_native() -> None:
             st.markdown("[Read the full privacy notice](?page=privacy)"
             )
     st.html(reader_footer())
+    # The branded masked domain can expose a desktop-sized iframe on phones.
+    # Reader registration uses native Streamlit forms, so correct the whole app.
+    from site_embedded_mobile import mount_native_masked_mobile_fix
+    mount_native_masked_mobile_fix()

@@ -515,6 +515,8 @@ def render_private_scorecard(session: dict,user: dict) -> None:
         st.info("The Scorecard is available only after an Advisory engagement is "
                 "approved and this service is explicitly enabled for your account. "
                 "A registered account alone does not include access.")
+        from page_advisory_scorecard_requests import render_scorecard_access_request
+        render_scorecard_access_request(token, uid)
         st.page_link("https://jairribeiro.com/?page=advisory-scorecard",
                      label="About the on-demand Scorecard service")
         return

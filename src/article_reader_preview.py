@@ -22,7 +22,7 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
     published_summary = str(article.excerpt or "").strip()
     # A question-led CMS summary earns a provocative heading; statement-led
     # summaries retain a neutral, executive-relevant heading.
-    opening_sentence = re.search(r"[.!?](?:\\s|$)", published_summary)
+    opening_sentence = re.search(r"[.!?](?:\s|$)", published_summary)
     summary_heading = (
         "The uncomfortable question"
         if opening_sentence and opening_sentence.group(0).startswith("?")

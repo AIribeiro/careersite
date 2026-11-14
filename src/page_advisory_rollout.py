@@ -130,7 +130,7 @@ def assess(raw: dict) -> dict:
         label = "EVIDENCE INCOMPLETE"
         verdict = "Defer the scaling decision until essential evidence has been collected."
         reason = "Too many readiness conditions remain unassessed to support a credible decision."
-    elif min(dimensions.values()) < 50:
+    elif min(dimensions.values()) <= 50:
         label = "CONTROLLED EXPANSION"
         verdict = "Limit expansion to a controlled operational test with explicit exit criteria."
         reason = "A material business, operating, governance, adoption or scaling weakness remains."
@@ -311,13 +311,13 @@ def _pdf_report(result: dict, data: dict) -> bytes:
         return str(text).replace("—","-").replace("–","-").replace("’","'").replace("•","-").encode("latin-1","replace").decode("latin-1")
     def section(title: str,body: str):
         pdf.set_font("Helvetica","B",12)
-        pdf.ln(4);pdf.multi_cell(0,7,safe(title))
+        pdf.ln(4);pdf.multi_cell(0,7,safe(title),new_x="LMARGIN",new_y="NEXT")
         pdf.set_font("Helvetica","",10)
-        pdf.multi_cell(0,6,safe(body))
+        pdf.multi_cell(0,6,safe(body),new_x="LMARGIN",new_y="NEXT")
     pdf.set_font("Helvetica","B",17)
-    pdf.multi_cell(0,9,"Enterprise AI Rollout - Executive Decision Brief")
+    pdf.multi_cell(0,9,"Enterprise AI Rollout - Executive Decision Brief",new_x="LMARGIN",new_y="NEXT")
     pdf.set_font("Helvetica","",10)
-    pdf.multi_cell(0,6,safe(data["context"]["use_case"]+" | "+data["context"]["stage"]))
+    pdf.multi_cell(0,6,safe(data["context"]["use_case"]+" | "+data["context"]["stage"]),new_x="LMARGIN",new_y="NEXT")
     section("EXECUTIVE VERDICT / "+result["label"],result["verdict"])
     section("Reasoning",result["reason"])
     section("Critical insight",result["insight"])

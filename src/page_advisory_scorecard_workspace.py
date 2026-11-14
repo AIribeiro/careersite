@@ -208,7 +208,9 @@ def _export_csv(payload: dict) -> bytes:
     return out.getvalue().encode("utf-8-sig")
 
 
-def _overview(data: dict) -> None:
+def _overview(data: dict, *, token: str = "", uid: str = "",
+              workspace: dict | None = None,
+              feedback_rows: list[dict] | None = None) -> None:
     rows, settings = data["initiatives"], data["settings"]
     counts = capacity_summary(rows, settings)
     a, b, c = st.columns(3)
@@ -231,9 +233,41 @@ def _overview(data: dict) -> None:
     if rows:
         st.dataframe(_summary_table(rows, settings), hide_index=True,
                      use_container_width=True)
+        export_kwargs = {}
+        if workspace and token and uid:
+            click_key = "scorecard_report_download_clicked_" + str(workspace["id"])
+            export_kwargs["on_click"] = (
+                lambda key=click_key: st.session_state.__setitem__(key, True)
+            )
         st.download_button("Export summary (CSV)", data=_export_csv(data),
                            file_name="ai-portfolio-scorecard-summary.csv",
-                           mime="text/csv", use_container_width=False)
+                           mime="text/csv", use_container_width=False,
+                           **export_kwargs)
+        if workspace and token and uid:
+            from page_advisory_service_feedback import (
+                SCORECARD_SERVICE, render_optional_feedback,
+            )
+            if any(
+                evaluation(row, settings)[0] is not None
+                and row.get("gate") in ("Pass", "Review", "Block")
+                for row in rows
+            ):
+                # Recommendations and evidence are fully visible ABOVE this
+                # optional prompt. Decision Usefulness is the primary measure.
+                render_optional_feedback(
+                    token, uid, SCORECARD_SERVICE, "executive_recommendation",
+                    request_id=str(workspace["request_id"]),
+                    scorecard_id=str(workspace["id"]),
+                    feedback_rows=feedback_rows,
+                )
+            if st.session_state.get(click_key):
+                # The CSV click is never conditional on a rating.
+                render_optional_feedback(
+                    token, uid, SCORECARD_SERVICE, "report_download",
+                    request_id=str(workspace["request_id"]),
+                    scorecard_id=str(workspace["id"]),
+                    feedback_rows=feedback_rows,
+                )
     else:
         st.info("Your private scorecard is empty. Add an initiative to begin.")
     with st.expander("Worked comparison — five fictional initiatives (read-only)"):
@@ -256,7 +290,9 @@ def _overview(data: dict) -> None:
                    "They are never inserted into a client's private portfolio.")
 
 
-def _form_initiative(token: str, workspace: dict, data: dict) -> None:
+def _form_initiative(token: str, workspace: dict, data: dict, *,
+                     uid: str = "",
+                     feedback_rows: list[dict] | None = None) -> None:
     rows = data["initiatives"]
     if st.button("Add an initiative", disabled=len(rows) >= MAX_INITIATIVES,
                  key="scorecard_add_" + str(workspace["id"])):
@@ -349,6 +385,18 @@ def _form_initiative(token: str, workspace: dict, data: dict) -> None:
             next_data=deepcopy(data)
             next_data["initiatives"].pop(idx)
             _commit(token,workspace,next_data,"Initiative removed.")
+    if uid and any(
+        evaluation(item, data["settings"])[0] is not None for item in rows
+    ):
+        from page_advisory_service_feedback import (
+            SCORECARD_SERVICE, render_optional_feedback,
+        )
+        render_optional_feedback(
+            token, uid, SCORECARD_SERVICE, "assessment_completion",
+            request_id=str(workspace["request_id"]),
+            scorecard_id=str(workspace["id"]),
+            feedback_rows=feedback_rows,
+        )
 
 
 def _capacity(data: dict) -> None:
@@ -556,6 +604,11 @@ def render_private_scorecard(session: dict,user: dict) -> None:
     if not workspace:
         return
     data=normalize(workspace.get("payload"))
+    from page_advisory_service_feedback import read_member_feedback
+    try:
+        feedback_rows = read_member_feedback(token, uid)
+    except (RuntimeError, ValueError, TimeoutError, KeyError):
+        feedback_rows = None  # Service access and outputs remain available.
     st.caption("Last saved: "+str(workspace.get("updated_at") or "")[:16].replace("T"," ") +
                " · Revision "+str(workspace.get("revision") or 0))
     st.warning("Use high-level, non-confidential business information only. "
@@ -564,9 +617,17 @@ def render_private_scorecard(session: dict,user: dict) -> None:
         "Portfolio overview","Initiatives","Capacity & value","Decision record","Policy & criteria"
     ])
     with overview:
-        _overview(data)
+        _overview(
+            data,
+            token=token if feedback_rows is not None else "",
+            uid=uid, workspace=workspace, feedback_rows=feedback_rows,
+        )
     with initiatives:
-        _form_initiative(token,workspace,data)
+        _form_initiative(
+            token, workspace, data,
+            uid=uid if feedback_rows is not None else "",
+            feedback_rows=feedback_rows,
+        )
     with capacity:
         _capacity(data)
     with record:

@@ -362,20 +362,16 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
     for area,value in result["dimensions"].items():
         st.progress(value/100,text=area+" · "+str(value)+"%")
     st.markdown("#### The critical insight")
-    st.write(result["insight"])
-    st.markdown("#### Executive action plan")
-    from page_rollout_premium_pdf import build_action_plan
-    for step in build_action_plan(data, result):
-        st.markdown(
-            f"**{step['number']}. {step['title']}**  "
-            f"\n\n**Recommended owner:** {step['owner']}  "
-            f"\n\n**Proposed timing:** {step['due']}  "
-            f"\n\n**Action:** {step['action']}  "
-            f"\n\n**Evidence required:** {step['evidence']}  "
-            f"\n\n**Decision condition:** {step['condition']}"
-        )
     if result["critical_gates"]:
-        st.warning("**Critical conditions:** "+"; ".join(result["critical_gates"]))
+        st.write(
+            "The immediate constraint is the organization's authority to manage "
+            "critical risk at scale, not simply pilot performance. "
+            "Resolve the release blockers before considering wider deployment."
+        )
+    else:
+        st.write(result["insight"])
+    from page_rollout_action_ui import render_action_plan
+    render_action_plan(data, result)
     st.caption("Evidence confidence: "+result["confidence"]+" · "+
                str(result["unassessed"])+" of 18 conditions unassessed. "
                "These are self-reported ratings, not verified evidence.")

@@ -518,6 +518,9 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
     st.session_state["advisory_member"] = True
     from page_advisory_client_journey import render_advisory_client_journey
     render_advisory_client_journey(session, user, profile)
+    from page_advisory_scorecard_workspace import render_private_scorecard
+    st.divider()
+    render_private_scorecard(session, user)
 
     with st.expander("Your professional profile and account details"):
         st.markdown("#### Your professional context")

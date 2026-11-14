@@ -52,7 +52,7 @@ class ScorecardTests(unittest.TestCase):
             "Data readiness",
             "Adoption",
             "Risk and controls",
-            "private, editable portfolio decision workspace",
+            "A portfolio recommendation leaders can review and act on.",
             "Not every request is accepted",
         ):
             with self.subTest(phrase=phrase):

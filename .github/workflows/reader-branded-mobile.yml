@@ -79,6 +79,16 @@ jobs:
                 };
               }""")
               print("READER MOBILE METRICS:", metrics, flush=True)
+              deployment = frame_found.evaluate("""() => ({
+                newReaderHeading: document.body.innerText.includes('The analysis behind consequential AI decisions.'),
+                readerShell: !!document.querySelector('.reader-shell'),
+                readerFooter: !!document.querySelector('.reader-shell-footer'),
+                nativeScriptMarker: !!document.documentElement.hasAttribute('data-jr-native-masked-mobile'),
+                app: !!document.querySelector('[data-testid="stAppViewContainer"]'),
+                inlineScriptCount: document.querySelectorAll('script').length,
+                htmlComponentCount: document.querySelectorAll('[data-testid="stHtml"]').length
+              })""")
+              print("READER DEPLOYMENT DIAGNOSTICS:", deployment, flush=True)
               if metrics["screen"] > 620:
                   raise RuntimeError("iPhone-sized emulation was not active")
               if (metrics["iframe"] and metrics["viewport"] > metrics["screen"]*1.45

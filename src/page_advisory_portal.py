@@ -518,6 +518,11 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
     st.session_state["advisory_member"] = True
     from page_advisory_client_journey import render_advisory_client_journey
     render_advisory_client_journey(session, user, profile)
+    from page_advisory_service_feedback import ADVISORY_SERVICE, render_optional_feedback
+    render_optional_feedback(
+        str(session["access_token"]), str(user["id"]),
+        ADVISORY_SERVICE, "registration_access",
+    )
     from page_advisory_scorecard_workspace import render_private_scorecard
     st.divider()
     render_private_scorecard(session, user)

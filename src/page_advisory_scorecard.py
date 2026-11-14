@@ -179,6 +179,7 @@ def advisory_scorecard() -> str:
  </div>
  <p style="margin-top:27px">The workspace also includes adjustable scoring weights, example scenarios and a CSV summary export. Client work is saved privately within the approved Advisory account; only the authorized client and advisor can access that workspace through its permissions.</p>
  <p>The workspace starts empty. It is intended for high-level, non-confidential information. Detailed company data, personal records or protected material require a separately agreed handling arrangement.</p>
+ <p>At a few natural points—after an assessment, decision guidance or summary export—clients can optionally rate clarity and usefulness in one short step. Comments are optional, and feedback never delays the decision or download. I use it to improve the service and identify where more explanation may be needed.</p>
 </div></section>
 
 <section class="sc-wrap" id="sc-how-it-works" aria-labelledby="sc-process-title">

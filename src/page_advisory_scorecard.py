@@ -170,14 +170,14 @@ def advisory_scorecard() -> str:
 
 <section class="sc-dark"><div class="sc-wrap" aria-labelledby="sc-workspace">
  <span class="sc-kicker">What approved clients receive</span>
- <h2 id="sc-workspace">A private, editable portfolio decision workspace.</h2>
- <p>Approved Advisory clients receive individual access to a working service. It is designed to support a real portfolio discussion and preserve the reasoning behind decisions—not to generate an automatic verdict.</p>
+ <h2 id="sc-workspace">A portfolio recommendation leaders can review and act on.</h2>
+ <p>Approved Advisory clients receive a private working service that compares initiatives, generates a constrained portfolio recommendation, explains which options to advance, test, hold or stop, and produces an executive decision memo. The recommendation is a proposal for leadership review, not an automatic investment approval.</p>
  <div class="sc-grid">
   <article class="sc-card"><span class="sc-num">Portfolio scorecard</span><h3>Compare up to 30 initiatives</h3><p>Record opportunity descriptions, sponsors, business owners, scores, evidence confidence and control gates.</p></article>
   <article class="sc-card"><span class="sc-num">Capacity and value</span><h3>Examine realistic options</h3><p>Model proposed selections against FTE-months, available budget, estimated costs and indicative benefits.</p></article>
-  <article class="sc-card"><span class="sc-num">Decision record</span><h3>Keep an audit trail of judgment</h3><p>Document the rationale, alternatives, conditions, accountability and next review for each proposal.</p></article>
+  <article class="sc-card"><span class="sc-num">Executive decision memo</span><h3>Get a recommended course of action</h3><p>Review a resource-constrained portfolio, compare a lower-commitment alternative, inspect evidence gaps and download a PDF with the rationale and next steps.</p></article>
  </div>
- <p style="margin-top:27px">The workspace also includes adjustable scoring weights, example scenarios and a CSV summary export. Client work is saved privately within the approved Advisory account; only the authorized client and advisor can access that workspace through its permissions.</p>
+ <p style="margin-top:27px">The service also includes adjustable decision weights, a choice of how many limited tests to consider, illustrative examples, a detailed executive decision record and optional CSV data export. The first tab delivers the recommendation and PDF; the remaining tabs support review and revision of its inputs. Client work is saved privately in the approved Advisory account.</p>
  <p>The workspace starts empty. It is intended for high-level, non-confidential information. Detailed company data, personal records or protected material require a separately agreed handling arrangement.</p>
  <p>At a few natural points—after an assessment, decision guidance or summary export—clients can optionally rate clarity and usefulness in one short step. Comments are optional, and feedback never delays the decision or download. I use it to improve the service and identify where more explanation may be needed.</p>
 </div></section>

@@ -322,8 +322,9 @@ def render_owner_advisory_management(owner_session: dict) -> None:
         "owner response and agreed scope are separate steps. "
         "Open **Action inbox** to respond to client input and move the work forward."
     )
-    inbox_tab, directory, pipeline, audit_tab = st.tabs(
-        ["Action inbox", "Advisory directory", "Relationship pipeline", "Administration audit"]
+    inbox_tab, directory, pipeline, feedback_tab, audit_tab = st.tabs(
+        ["Action inbox", "Advisory directory", "Relationship pipeline",
+         "Service feedback", "Administration audit"]
     )
     with inbox_tab:
         from page_owner_advisory_requests import render_advisory_action_inbox
@@ -414,6 +415,9 @@ def render_owner_advisory_management(owner_session: dict) -> None:
                             str(p.get("next_action") or "Not set")
                         )
         st.caption("Pipeline stages follow the owner-managed request journey. A submitted request is never treated as a paid engagement.")
+    with feedback_tab:
+        from page_owner_advisory_feedback import render_owner_feedback
+        render_owner_feedback(token, people)
     with audit_tab:
         st.caption("An auditable record of client-request decisions, stages, and private account administration.")
         st.markdown("#### Advisory request history")

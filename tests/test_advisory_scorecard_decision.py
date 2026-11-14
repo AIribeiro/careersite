@@ -191,6 +191,7 @@ class ExecutivePortfolioDecisionTests(unittest.TestCase):
         self.assertIn("Service Knowledge Copilot",text)
         self.assertIn("Hold for control review",text)
         self.assertIn("Conditions and executive sign-off",text)
+        self.assertIn("Business owner:",text)
 
     def test_recommendation_is_first_tab_and_pdf_precedes_feedback(self):
         workspace=(ROOT/"src/page_advisory_scorecard_workspace.py").read_text()

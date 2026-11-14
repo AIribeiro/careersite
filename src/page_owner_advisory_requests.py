@@ -214,8 +214,8 @@ def _request_owner_detail(token: str,req: dict,people: dict) -> None:
             except (RuntimeError,TimeoutError,ValueError,KeyError):
                 st.error("The action was not saved. Review the stage and retry.")
 
-    from page_owner_advisory_scorecard import render_scorecard_owner_access
-    render_scorecard_owner_access(token, req)
+    from page_owner_advisory_operations import render_service_access_for_request
+    render_service_access_for_request(token, req)
     from page_advisory_rollout import REQUEST_MARKER, REQUEST_TITLE
     rollout_requested = (
         str(req.get("title") or "").casefold() == REQUEST_TITLE.casefold()

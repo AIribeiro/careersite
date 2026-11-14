@@ -313,6 +313,9 @@ def render_owner_advisory_management(owner_session: dict) -> None:
         return
 
     st.title("Advisory Operations")
+    notice = st.session_state.pop("advisory_ops_notification_flash", None)
+    if notice:
+        st.info(str(notice))
     st.caption(
         "A private control center for client requests, selective service access, "
         "reader invitations, relationships, feedback and audit history."

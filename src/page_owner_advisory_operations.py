@@ -1,8 +1,9 @@
 """Owner-only advisory operations: access, reader invitations and truthful pipeline.
 
 Every entitlement change goes through an independently authorized database RPC.
-The interface does not treat registration, a request, and an agreed engagement
-as equivalent. No email is sent by an account invitation.
+Owner service approval is independent of the relationship/engagement stage.
+Each new approval creates a transactional-email notification record.
+Reader onboarding invitations do not grant service access or send email.
 """
 from __future__ import annotations
 
@@ -12,6 +13,7 @@ from zoneinfo import ZoneInfo
 import streamlit as st
 
 from site_cms import _request_json, _rest_url
+from advisory_approval_email import deliver_approval_notice, approval_notice_message, mail_transport_ready
 from page_owner_advisory_requests import _client_waiting, _overdue
 from page_advisory_client_journey import STATUS
 
@@ -66,6 +68,69 @@ def _service_action(token: str, request_id: str, service_key: str, action: str) 
     ):
         raise RuntimeError("Service permission change was not confirmed")
     return result
+
+
+def _latest_notification(token: str, request_id: str, service: str) -> dict | None:
+    if service not in ("scorecard", "rollout"):
+        raise ValueError("Unsupported notification type")
+    rows = _request_json(
+        "GET", _rest_url(
+            "portfolio_advisory_approval_notifications?"
+            "select=id,state,error_category,created_at,sent_at,attempts"
+            "&request_id=eq." + request_id + "&service_key=eq." + service
+            + "&order=created_at.desc&limit=1"
+        ), token=token, timeout=12,
+    )
+    if not isinstance(rows, list):
+        raise RuntimeError("Email status unavailable")
+    return rows[0] if rows else None
+
+
+def _approval_decision(token: str, rid: str, service: str) -> str:
+    """One owner action: approve access, then immediately dispatch its email."""
+    result = _service_action(token, rid, service, "approve")
+    if result.get("unchanged"):
+        return "Service access was already approved. No duplicate email was created."
+    notification_id = str(result.get("notification_id") or "")
+    if not notification_id:
+        return ("Access granted, but no email event was returned. "
+                "Check the notification log before retrying.")
+    try:
+        delivery = deliver_approval_notice(token, notification_id)
+        return approval_notice_message(delivery)
+    except (RuntimeError, ValueError, TimeoutError, KeyError):
+        return ("Access granted and an email event was created, but delivery could not "
+                "be confirmed. Check the email status below and retry if needed.")
+
+
+def _notice_panel(token: str, rid: str, service: str, prefix: str) -> None:
+    """Report provider acceptance separately from the actual access decision."""
+    try:
+        notice = _latest_notification(token, rid, service)
+    except (RuntimeError, ValueError, TimeoutError, KeyError):
+        st.warning("Email delivery status is temporarily unavailable.")
+        return
+    if notice is None:
+        st.caption("No approval notification recorded for this service.")
+        return
+    state = str(notice.get("state") or "pending")
+    labels = {
+        "sent": "Submitted to email provider",
+        "pending": "Awaiting email delivery",
+        "sending": "Sending notification",
+        "failed": "Email failed — retry available",
+    }
+    st.caption("Client notification: " + labels.get(state, state)
+               + (" · " + str(notice.get("sent_at") or "")[:16].replace("T", " ")
+                  if state == "sent" else ""))
+    if state in ("pending", "failed"):
+        if st.button("Retry approval email", key=prefix + "_email_retry_" + rid + "_" + service):
+            try:
+                outcome = deliver_approval_notice(token, str(notice["id"]))
+                st.session_state["advisory_ops_notification_flash"] = approval_notice_message(outcome)
+                st.rerun()
+            except (RuntimeError, ValueError, TimeoutError, KeyError):
+                st.error("The email attempt could not be completed. The grant is unchanged.")
 
 
 def _invite_reader(token: str, user_id: str) -> str:
@@ -152,101 +217,116 @@ def render_operations_overview(people: list[dict], requests: list[dict],
     for col, (key, label, _, _) in zip(cols, SERVICES):
         with col:
             granted = [x for x in access.get(key, []) if x.get("status") == "active"]
-            eligible = {str(r["id"]): r for r in requests if r.get("status") in ("active", "completed")}
+            eligible = {str(r["id"]): r for r in requests
+                        if r.get("status") not in ("closed", "declined")}
             operational = sum(str(x.get("request_id")) in eligible for x in granted)
             st.metric(label, operational)
-            st.caption("Currently granted and attached to an active or completed request")
+            st.caption("Approved individual service access (not a paid engagement)")
+
+
+def _render_request_service_controls(
+    token: str, req: dict, access: dict[str, list[dict]], *, prefix: str
+) -> None:
+    rid = str(req.get("id") or "")
+    if not rid:
+        return
+    stage = str(req.get("status") or "submitted")
+    eligible = stage not in ("closed", "declined")
+    st.caption(
+        "Owner approval grants this service directly. No discovery, proposal or "
+        "engagement-stage update is required. The request journey remains unchanged."
+    )
+    if not mail_transport_ready():
+        st.warning(
+            "Transactional email is not configured on the site server. "
+            "Service approval will still work, but client emails will remain unsent "
+            "until RESEND_API_KEY or RESEND_SMTP_PASSWORD is added to "
+            "the private Streamlit application secrets. Unsent notices can be retried."
+        )
+    if not eligible:
+        st.warning("This request is closed. Reopen it before granting a new service.")
+    for service, label, _, _ in SERVICES:
+        current = _service_status(access, rid, service)
+        with st.container(border=True):
+            st.markdown("**" + label + "**")
+            st.write("Access: **" + ("Approved" if current == "active" else current.title()) + "**")
+            if current == "active":
+                _notice_panel(token, rid, service, prefix)
+                if st.button("Revoke access", key=prefix + "_revoke_" + rid + "_" + service):
+                    try:
+                        _service_action(token, rid, service, "revoke")
+                        st.session_state["advisory_ops_notification_flash"] = (
+                            label + ": access revoked. Previous assessments were retained."
+                        )
+                        st.rerun()
+                    except (RuntimeError, ValueError, TimeoutError, KeyError):
+                        st.error("Access revocation could not be confirmed.")
+            else:
+                if st.button(
+                    "Approve access & email client",
+                    key=prefix + "_approve_" + rid + "_" + service,
+                    type="primary", disabled=not eligible,
+                    help="Grants this individual service and sends an access email. "
+                         "No relationship stage change is required.",
+                ):
+                    try:
+                        message = _approval_decision(token, rid, service)
+                        st.session_state["advisory_ops_notification_flash"] = label + ": " + message
+                        st.rerun()
+                    except (RuntimeError, ValueError, TimeoutError, KeyError) as exc:
+                        st.error("Service approval was not confirmed: " + str(exc))
+
+
+def render_service_access_for_request(token: str, req: dict) -> None:
+    """Inline single-step approval from the selected request's Action inbox."""
+    st.markdown("#### Individual service access")
+    st.caption("Approve directly here. Each new grant generates a client email notification.")
+    try:
+        access = read_service_access(token)
+    except (RuntimeError, ValueError, TimeoutError, KeyError):
+        st.error("Service access status could not be verified.")
+        return
+    _render_request_service_controls(token, req, access, prefix="inbox")
 
 
 def render_service_access(token: str, people: list[dict], requests: list[dict],
                           access: dict[str, list[dict]]) -> None:
-    st.subheader("Service requests & access decisions")
+    st.subheader("Service access & approval")
     st.caption(
-        "Access is individual, recorded and reversible. Approving a service does not "
-        "create a commercial agreement. The client request must first be marked as "
-        "an agreed, active Advisory engagement in **Requests & replies**."
+        "Select the user and service, then approve. A confirmation email is sent "
+        "to their verified address and its outcome recorded. Approval does not "
+        "change the Advisory relationship pipeline or create a paid engagement."
     )
     if not requests:
-        st.info("No Advisory requests to assess. Registration alone does not create a service request.")
+        st.info("No Advisory requests yet. Ask the client to submit a request before choosing a service.")
         return
     people_by_id = {str(p["user_id"]): p for p in people}
     ordered = sorted(requests, key=lambda r: (
-        r.get("status") not in ("submitted", "reviewing", "discovery", "proposal", "active"),
-        not _client_waiting(r), str(r.get("updated_at") or "")
+        r.get("status") in ("closed", "declined"),
+        not _client_waiting(r),
+        str(r.get("updated_at") or ""),
     ))
     st.dataframe([
         {
             "Client": str(people_by_id.get(str(r.get("user_id")), {}).get("email") or "Unknown"),
             "Request": str(r.get("title") or ""),
-            "Journey": STATUS.get(str(r.get("status")), (str(r.get("status")), ""))[0],
+            "Status": STATUS.get(str(r.get("status")), (str(r.get("status")), ""))[0],
             "Scorecard": _service_status(access, str(r["id"]), "scorecard"),
             "Rollout": _service_status(access, str(r["id"]), "rollout"),
         } for r in ordered
     ], hide_index=True, use_container_width=True)
     choices = {str(r["id"]): r for r in ordered}
     rid = st.selectbox(
-        "Manage access for a client request", list(choices),
+        "Choose a client request", list(choices),
         format_func=lambda value: (
             str(people_by_id.get(str(choices[value].get("user_id")), {}).get("email") or "Client")
             + " · " + str(choices[value].get("title") or "Advisory request")
-        ), key="advisory_ops_service_request",
+        ),
+        key="advisory_ops_service_request",
     )
     req = choices[rid]
-    stage = str(req.get("status") or "submitted")
-    st.write("**Current request stage:** " + STATUS.get(stage, (stage, ""))[0])
     st.write("**Business outcome:** " + str(req.get("desired_outcome") or "Not provided"))
-    if stage not in ("active", "completed"):
-        st.info(
-            "Service activation is locked. First review the request, discuss eligibility and "
-            "record the agreed scope. Then use **Start agreed engagement** in Requests & replies."
-        )
-    st.caption(
-        "The approval audit is kept per service. Revocation immediately disables access "
-        "without deleting earlier assessments."
-    )
-    for key, label, _, _ in SERVICES:
-        current = _service_status(access, rid, key)
-        with st.container(border=True):
-            st.markdown("**" + label + "**")
-            st.write("Access: **" + current.title() + "**")
-            if current == "active":
-                if stage not in ("active", "completed"):
-                    st.warning("The underlying request is no longer active. Access is blocked by server checks.")
-                with st.form("advisory_ops_revoke_" + key + "_" + rid):
-                    confirmed = st.checkbox(
-                        "I confirm I want to revoke this individual service access."
-                    )
-                    submit = st.form_submit_button("Revoke access")
-                if submit:
-                    if not confirmed:
-                        st.error("Confirm the revocation.")
-                    else:
-                        try:
-                            _service_action(token, rid, key, "revoke")
-                            st.success("Access revoked and recorded.")
-                            st.rerun()
-                        except (ValueError, RuntimeError, TimeoutError, KeyError) as exc:
-                            st.error("Access change failed: " + str(exc))
-            else:
-                can_approve = stage == "active"
-                with st.form("advisory_ops_grant_" + key + "_" + rid):
-                    confirmed = st.checkbox(
-                        "I have verified eligibility, the requested service and agreed information boundaries."
-                    )
-                    submit = st.form_submit_button(
-                        "Approve individual access" if current == "Not granted" else "Restore individual access",
-                        type="primary", disabled=not can_approve,
-                    )
-                if submit:
-                    if not confirmed:
-                        st.error("Confirm your decision before enabling access.")
-                    else:
-                        try:
-                            _service_action(token, rid, key, "approve")
-                            st.success("Access approved and recorded.")
-                            st.rerun()
-                        except (ValueError, RuntimeError, TimeoutError, KeyError) as exc:
-                            st.error("Approval failed: " + str(exc))
+    _render_request_service_controls(token, req, access, prefix="services")
 
 
 def render_reader_invitations(token: str, readers: list[dict],

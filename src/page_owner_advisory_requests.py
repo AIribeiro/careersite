@@ -137,6 +137,22 @@ def _request_owner_detail(token: str,req: dict,people: dict) -> None:
     except (RuntimeError,TimeoutError,KeyError):
         st.error("Could not load the message history.")
         messages=[]
+    if str(req.get("title") or "").casefold() == "ai portfolio prioritization scorecard — access request":
+        st.warning(
+            "Scorecard access requested. Review the client's business decision "
+            "and pro-bono eligibility before activating the engagement. "
+            "Scorecard access must then be enabled separately."
+        )
+    elif any(
+        msg.get("sender") == "client"
+        and "AI PORTFOLIO SCORECARD ACCESS REQUEST" in str(msg.get("body") or "")
+        for msg in messages
+    ):
+        st.warning(
+            "The client requested individual AI Portfolio Scorecard access "
+            "within this Advisory engagement. Review the request and, if "
+            "appropriate, enable the workspace below."
+        )
     if not messages:
         st.caption("No messages yet. Your first response establishes the advisory conversation.")
     for msg in messages:

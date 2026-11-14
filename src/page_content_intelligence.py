@@ -58,6 +58,7 @@ def _fetch_rpc(name: str, payload: dict[str, object]) -> dict:
     return data
 
 
+@st.cache_data(ttl=120, max_entries=24, show_spinner=False)
 def fetch_intelligence(window: str) -> dict:
     payload = _dashboard_payload(window)
     payload["p_article_metadata"] = _article_metadata()

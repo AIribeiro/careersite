@@ -83,9 +83,12 @@ def render_scorecard_access_request(token: str, uid: str) -> None:
     if already_requested:
         st.info(
             "Scorecard access requested — under individual review. "
-            "You can follow the conversation in your Advisory account. "
             "Approval is not automatic."
         )
+        if st.button("Follow this request in conversations",
+                     key="scorecard_pending_conversation"):
+            from page_advisory_member_experience import navigate
+            navigate("messages")
         return
 
     if st.button(

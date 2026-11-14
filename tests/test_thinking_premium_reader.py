@@ -26,18 +26,18 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
 
     def test_access_copy_leads_with_executive_value_not_access_timers(self):
         rendered = reader_invitation()
-        self.assertIn("Premium Reader library · Complimentary access", rendered)
-        self.assertIn("Go beyond the headline. Examine the decision.", rendered)
-        self.assertIn("Bring better questions to the table.", rendered)
-        self.assertIn("See what deserves your attention.", rendered)
-        self.assertIn("Understand the thinking behind the position.", rendered)
+        self.assertIn("Premium Reader Library · Free registration", rendered)
+        self.assertIn("Read the reasoning behind the decision.", rendered)
+        self.assertIn("Examine the decision criteria.", rendered)
+        self.assertIn("Assess what matters this week.", rendered)
+        self.assertIn("Review the assumptions and implications.", rendered)
         for format_name in ("Executive AI Briefings", "Weekly AI", "Leadership articles"):
             self.assertIn(format_name, rendered)
         self.assertIn("decision frameworks and original infographics", rendered)
         self.assertIn("the original reporting behind them", rendered)
         self.assertIn("prioritization, accountability, governance", rendered)
-        self.assertIn("Save useful briefings", rendered)
-        self.assertIn("Premium Reader access is currently complimentary.", rendered)
+        self.assertIn("Save relevant briefings", rendered)
+        self.assertIn("Registration is free.", rendered)
         self.assertIn("No payment details", rendered)
         self.assertIn("editorial emails", rendered)
         self.assertIn("Access at a glance", rendered)
@@ -49,7 +49,7 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
         self.assertNotIn("day 7", rendered.lower())
         self.assertNotIn("guaranteed", rendered.lower())
         # Make the content-value argument before access conditions appear.
-        self.assertLess(rendered.index("Bring better questions"), rendered.index("Access at a glance"))
+        self.assertLess(rendered.index("Examine the decision criteria."), rendered.index("Access at a glance"))
 
     def test_registration_and_discovery_are_first_party_links(self):
         rendered = reader_invitation()
@@ -60,7 +60,7 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
 
     def test_unified_reader_hero_recognizes_both_formats(self):
         rendered = reader_header()
-        self.assertIn("Your executive reading library", rendered)
+        self.assertIn("The analysis behind consequential AI decisions.", rendered)
         self.assertIn("Premium Articles", rendered)
         self.assertIn("Executive AI Briefings", rendered)
         self.assertIn("A4 briefing infographics", rendered)
@@ -69,8 +69,8 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
 
     def test_article_library_status_labels_are_reader_focused(self):
         native = (SRC / "page_reader_native.py").read_text("utf-8")
-        self.assertIn("Premium · Included with your reader account", native)
-        self.assertIn('"Open access"', native)
+        self.assertIn("PREMIUM ARTICLE · FULL ACCESS", native)
+        self.assertIn('"OPEN ACCESS"', native)
         self.assertIn("article_is_locked(item, published=editorial)", native)
         self.assertNotIn("Premium until another Article is published", native)
         self.assertNotIn("The latest Article stays Premium until", native)

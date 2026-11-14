@@ -87,9 +87,26 @@ def _item(pdf: FPDF, item: dict):
     score = item.get("score")
     label = f"{name}  /  Score {score if score is not None else 'N/A'}/100"
     _text(pdf, label, strong=True, size=9.5)
+    _text(
+        pdf, "Business owner: " + str(item.get("owner") or "Not assigned")
+        + "  |  Sponsor: " + str(item.get("sponsor") or "Not assigned"),
+        size=8.0, color=MUTED, indent=3,
+    )
     _text(pdf, item.get("rationale") or "", size=8.7, indent=3)
     _text(pdf, "Next: " + str(item.get("next_action") or ""),
           size=8.7, color=TEAL, indent=3)
+    recorded = str(item.get("recorded_decision") or "Unreviewed")
+    if recorded != "Unreviewed":
+        _text(
+            pdf, "Client-recorded decision (separate from recommendation): "
+            + recorded + ". " + str(item.get("recorded_rationale") or ""),
+            size=8.1, color=MUTED, indent=3,
+        )
+    if item.get("next_review"):
+        _text(
+            pdf, "Next review: " + str(item["next_review"]),
+            size=8.1, color=MUTED, indent=3,
+        )
 
 
 def build_executive_pdf(decision: dict) -> bytes:

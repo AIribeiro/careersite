@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "page:advisory-rollout",
+      "type": "New page",
+      "title": "Advisory Rollout",
+      "description": "Discover the newly published portfolio page.",
+      "date": "2026-11-14T21:21:20+01:00",
+      "href": "?page=advisory-rollout",
+      "cta": "Explore the page"
+    },
+    {
       "key": "page:advisory-access",
       "type": "New page",
       "title": "Executive Advisory Account",

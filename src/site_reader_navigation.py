@@ -14,38 +14,92 @@ import streamlit as st
 
 
 _ALLOWED_PAGES = frozenset({
-    "home", "impact", "thinking", "briefings", "briefing", "about",
-    "contact", "ai-data-governance", "readers", "advisory", "advisory-scorecard", "advisory-access",
-    "privacy", "analytics",
+    "home",
+    "impact",
+    "thinking",
+    "briefings",
+    "briefing",
+    "about",
+    "certifications",
+    "contact",
+    "advisory",
+    "advisory-scorecard",
+    "advisory-rollout",
+    "advisory-access",
+    "privacy",
+    "enterprise",
+    "transformation",
+    "governance",
+    "consulting",
+    "ai-data-governance",
+    "readers",
+    "analytics",
 })
 _ALLOWED_QUERY = frozenset({
-    "page", "article", "briefings_page", "weekly_ai", "access", "pdf",
-    "signin", "download", "utm_source", "utm_medium", "utm_campaign",
-    "utm_content", "source", "role", "go",
+    "page",
+    "article",
+    "briefings_page",
+    "weekly_ai",
+    "access",
+    "pdf",
+    "signin",
+    "download",
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_content",
+    "utm_term",
+    "source",
+    "role",
+    "go",
+    "view",
+    "request",
+    "workspace",
 })
 
 _JS = r"""
 export default function(component) {
   const { setTriggerValue } = component;
+  const allowedPages = new Set(["home","impact","thinking","briefings","briefing","about","certifications","contact","advisory","advisory-scorecard","advisory-rollout","advisory-access","privacy","enterprise","transformation","governance","consulting","ai-data-governance","readers","analytics"]);
+  const allowedParams = new Set(["page","article","briefings_page","weekly_ai","access","pdf","signin","download","utm_source","utm_medium","utm_campaign","utm_content","utm_term","source","role","go","view","request","workspace"]);
+  const advisoryViews = new Set(["overview","requests","messages","scorecard","rollout","account"]);
+  const brandedHosts = new Set(['jairribeiro.com', 'advisory.jairribeiro.com']);
   const onPortfolioClick = (event) => {
     if (event.defaultPrevented || event.button !== 0 ||
         event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const anchor = event.target.closest?.('a[href]');
     if (!anchor || anchor.hasAttribute('download') ||
-        anchor.target === '_blank' || anchor.closest('[contenteditable="true"]')) return;
+        (anchor.target && anchor.target !== '_self') ||
+        anchor.closest('[contenteditable="true"]')) return;
     let url;
     try { url = new URL(anchor.href, window.location.href); } catch (_) { return; }
-    if (url.origin !== window.location.origin || url.pathname !== window.location.pathname)
-      return;
-    const page = url.searchParams.get('page');
-    if (!['home','impact','thinking','briefings','briefing','about',
-           'contact','ai-data-governance','readers','advisory',
-           'advisory-access','advisory-scorecard','privacy','analytics'].includes(page)) return;
-    // Let ordinary within-page hash links continue to behave normally.
-    if (url.search === window.location.search && url.hash) return;
+    const current = new URL(window.location.href);
+    const sameAppPath = url.origin === current.origin &&
+                        url.pathname === current.pathname;
+    const firstPartyRoute = url.protocol === 'https:' &&
+                            brandedHosts.has(url.hostname) && url.pathname === '/';
+    if (!sameAppPath && !firstPartyRoute) return;
     if (url.search.length > 1900) return;
+    const route = new URLSearchParams(url.search);
+    for (const key of route.keys()) {
+      if (!allowedParams.has(key) || route.getAll(key).length !== 1) return;
+    }
+    // Branded home links without a query should stay in the existing WebSocket.
+    const page = route.get('page') || (firstPartyRoute && !url.search ? 'home' : null);
+    if (!allowedPages.has(page)) return;
+    const article = route.get('article');
+    if (article && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(article)) return;
+    const view = route.get('view');
+    if (view && (page !== 'advisory-access' || !advisoryViews.has(view))) return;
+    const request = route.get('request');
+    if (request && (page !== 'advisory-access' || view !== 'messages' ||
+        !/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(request))) return;
+    if (route.has('workspace') && page !== 'analytics') return;
+    // Do not interfere with section anchors on the current page.
+    if (sameAppPath && url.search === current.search && url.hash) return;
+    if (!route.has('page')) route.set('page', page);
     event.preventDefault();
-    setTriggerValue('route', url.search);
+    setTriggerValue('route', '?' + route.toString());
   };
   document.addEventListener('click', onPortfolioClick, true);
   return () => document.removeEventListener('click', onPortfolioClick, true);
@@ -72,6 +126,18 @@ def _parse_portfolio_route(query: object) -> dict[str, str] | None:
     if ("article" in params and not re.fullmatch(
         r"[a-z0-9]+(?:-[a-z0-9]+)*", params["article"]
     )):
+        return None
+    if "view" in params and (
+        params["page"] != "advisory-access" or
+        params["view"] not in {"overview", "requests", "messages", "scorecard", "rollout", "account"}
+    ):
+        return None
+    if "request" in params and (
+        params["page"] != "advisory-access" or params.get("view") != "messages" or
+        not re.fullmatch(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", params["request"])
+    ):
+        return None
+    if "workspace" in params and params["page"] != "analytics":
         return None
     return params
 

@@ -196,6 +196,9 @@ def _request_owner_detail(token: str,req: dict,people: dict) -> None:
             except (RuntimeError,TimeoutError,ValueError,KeyError):
                 st.error("The action was not saved. Review the stage and retry.")
 
+    from page_owner_advisory_scorecard import render_scorecard_owner_access
+    render_scorecard_owner_access(token, req)
+
     st.caption(
         "This is an in-portal response. The client can see the update after opening "
         "their Advisory account. A separate email or meeting invitation must be sent "

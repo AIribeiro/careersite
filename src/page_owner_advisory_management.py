@@ -21,8 +21,11 @@ TABLES = {
     "portfolio_advisory_intents": ("*", "created_at.desc"),
     "portfolio_advisory_admin_records": ("*", "updated_at.desc"),
     "portfolio_advisory_admin_audit": ("*", "created_at.desc"),
+    "portfolio_reader_profiles": ("*", "created_at.desc"),
+    "portfolio_advisory_scorecard_audit": ("*", "created_at.desc"),
+    "portfolio_advisory_rollout_audit": ("*", "created_at.desc"),
 }
-STAGES = ("inquiry", "discovery", "proposal", "engaged", "handover", "closed")
+STAGES = ("inquiry", "discovery", "proposal", "engaged", "closed")
 
 
 def _read_advisory(token: str, table: str) -> list[dict]:
@@ -47,9 +50,24 @@ def _read_advisory(token: str, table: str) -> list[dict]:
 
 
 def _people(profiles: list[dict], intents: list[dict],
-            records: list[dict]) -> list[dict]:
-    """One row per identity; completed profile supersedes pending intent."""
+            records: list[dict], readers: list[dict] | None = None) -> list[dict]:
+    """One row per verified reader or advisory identity; preserve membership boundaries."""
     by_id: dict[str, dict] = {}
+    for reader in readers or []:
+        uid = str(reader.get("user_id") or "")
+        if uid:
+            by_id[uid] = {
+                "user_id": uid, "email": reader.get("email", ""),
+                "first_name": reader.get("first_name", ""),
+                "last_name": reader.get("last_name", ""),
+                "organization": reader.get("organization", ""),
+                "role_title": reader.get("job_title", ""),
+                "decision_context": "",
+                "account_status": "reader_only",
+                "onboarding": "Reader only",
+                "created_at": reader.get("created_at", ""),
+                "source": reader.get("acquisition_source", "reader_library"),
+            }
     for intent in intents:
         uid = str(intent.get("user_id") or "")
         if uid:
@@ -90,26 +108,27 @@ def _people(profiles: list[dict], intents: list[dict],
     return sorted(output, key=lambda p: str(p.get("created_at") or ""), reverse=True)
 
 
-def _reflect_request_journey(people: list[dict],requests: list[dict]) -> list[dict]:
-    """Request stages, not arbitrary member-stage tags, determine the real pipeline."""
-    mapped={
-        "submitted":"inquiry","reviewing":"inquiry","awaiting_client":"inquiry",
-        "discovery":"discovery","proposal":"proposal","active":"engaged",
-        "completed":"handover","closed":"closed","declined":"closed",
-    }
-    latest={}
-    for req in sorted(requests,key=lambda x:str(x.get("created_at") or ""),reverse=True):
-        latest.setdefault(str(req.get("user_id") or ""),req)
-    updated=[]
+def _reflect_request_journey(people: list[dict], requests: list[dict]) -> list[dict]:
+    """Keep owner relationship stages separate from the real request pipeline."""
+    latest: dict[str, dict] = {}
+    counts: dict[str, int] = {}
+    for req in sorted(requests, key=lambda x: str(x.get("created_at") or ""), reverse=True):
+        uid = str(req.get("user_id") or "")
+        if not uid:
+            continue
+        latest.setdefault(uid, req)
+        counts[uid] = counts.get(uid, 0) + 1
+    result = []
     for person in people:
-        entry={**person}
-        req=latest.get(str(person["user_id"]))
-        entry["request_count"]=sum(str(x.get("user_id"))==str(person["user_id"]) for x in requests)
-        entry["has_request"]=req is not None
-        entry["latest_request_status"]=str(req.get("status") or "") if req else ""
-        entry["relationship_stage"]=mapped.get(str(req.get("status")),"not_requested") if req else "not_requested"
-        updated.append(entry)
-    return updated
+        uid = str(person["user_id"])
+        req = latest.get(uid)
+        result.append({
+            **person,
+            "request_count": counts.get(uid, 0),
+            "has_request": bool(req),
+            "latest_request_status": str(req.get("status") or "") if req else "",
+        })
+    return result
 
 
 def _owner_action(token: str, uid: str, action: str,
@@ -143,6 +162,11 @@ def _details(token: str, person: dict) -> None:
     completed = person.get("onboarding") == "Profile completed"
     st.markdown("#### Relationship record")
     st.write("**Email:** " + label)
+    if person.get("onboarding") == "Reader only":
+        st.info("This is a verified library reader, not yet an Advisory member. "
+                "Use **Access & invitations** to invite this person to Advisory. "
+                "No Advisory services are granted by an invitation.")
+        return
     st.write("**Onboarding:** " + str(person.get("onboarding")))
     st.write("**Access:** " + (
         str(person.get("account_status") or "active").title()
@@ -173,10 +197,27 @@ def _details(token: str, person: dict) -> None:
     st.caption("Client status and commercial terms must be agreed separately. No marketing consent is inferred.")
 
     with st.expander("Relationship stage and next step", expanded=True):
-        stage = str(person.get("relationship_stage") or "not_requested")
-        st.write("**Current relationship stage:** " +
-                 ("Registered · no request yet" if stage=="not_requested" else stage.title()))
-        st.caption("Client-facing stages are managed from Action inbox, where a specific request and conversation can be reviewed.")
+        stage = str(person.get("relationship_stage") or "inquiry")
+        st.write("**Owner-managed relationship stage:** " + stage.title())
+        st.write("**Latest request stage:** " +
+                 (str(person.get("latest_request_status")).replace("_", " ").title()
+                  if person.get("latest_request_status") else "No request submitted"))
+        st.caption("Relationship planning is private. Client-facing request stages "
+                   "must be changed from Requests & replies.")
+        stage_choices = st.selectbox(
+            "Private relationship stage", STAGES,
+            index=STAGES.index(stage) if stage in STAGES else 0,
+            key="advisory_owner_relationship_stage_" + uid,
+        )
+        if st.button("Save relationship stage",
+                     disabled=stage_choices == stage,
+                     key="advisory_owner_relationship_save_" + uid):
+            try:
+                _owner_action(token, uid, "stage", value=stage_choices)
+                st.success("Relationship stage updated and audited.")
+                st.rerun()
+            except (RuntimeError, ValueError, TimeoutError):
+                st.error("Relationship stage could not be saved.")
         with st.form("advisory_next_action_" + uid):
             action = st.text_area(
                 "Private relationship planning note (not visible to client)", value=str(person.get("next_action") or ""),
@@ -260,192 +301,205 @@ def _details(token: str, person: dict) -> None:
 
 
 def render_owner_advisory_management(owner_session: dict) -> None:
+    """One owner workspace for requests, entitlements and member relationships."""
     try:
         token = _verify_owner(owner_session)
     except (PermissionError, RuntimeError, ValueError, TimeoutError):
-        st.error("Advisory Management is restricted to the authenticated portfolio owner.")
+        st.error("Advisory Operations is restricted to the authenticated portfolio owner.")
         return
-    st.title("Advisory Management")
-    st.caption(
-        "Private executive relationships · Prospective advisory clients, onboarding, "
-        "decision context, follow-ups and separately agreed engagements."
-    )
-    shortcuts = st.columns([1, 1, 3])
-    with shortcuts[0]:
-        st.link_button(
-            "Advisory service ↗",
-            "https://jairribeiro.com/?page=advisory",
-            use_container_width=True,
-        )
-    with shortcuts[1]:
-        st.link_button(
-            "Advisory account ↗",
-            "https://jairribeiro.com/?page=advisory-access",
-            use_container_width=True,
-        )
-    if st.button("Refresh advisory data", key="advisory_owner_refresh"):
-        st.rerun()
 
+    st.title("Advisory Operations")
+    st.caption(
+        "A private control center for client requests, selective service access, "
+        "reader invitations, relationships, feedback and audit history."
+    )
+    a, b, c = st.columns([1, 1, 1])
+    with a:
+        st.link_button("Public Advisory services",
+                       "https://jairribeiro.com/?page=advisory", use_container_width=True)
+    with b:
+        st.link_button("Member sign-in",
+                       "https://jairribeiro.com/?page=advisory-access", use_container_width=True)
+    with c:
+        if st.button("Refresh all records", key="advisory_owner_refresh", use_container_width=True):
+            st.rerun()
+
+    from page_owner_advisory_requests import (
+        _read_owner_requests, _client_waiting, _overdue,
+        render_advisory_action_inbox, read_request_history,
+    )
+    from page_owner_advisory_operations import (
+        read_service_access, render_operations_overview, render_reader_invitations,
+        render_service_access, render_request_pipeline,
+    )
     try:
         profiles = _read_advisory(token, "portfolio_advisory_profiles")
         intents = _read_advisory(token, "portfolio_advisory_intents")
         controls = _read_advisory(token, "portfolio_advisory_admin_records")
         audit = _read_advisory(token, "portfolio_advisory_admin_audit")
-        from page_owner_advisory_requests import _read_owner_requests
+        readers = _read_advisory(token, "portfolio_reader_profiles")
         requests = _read_owner_requests(token)
-    except (RuntimeError, ValueError, TimeoutError):
-        st.error("The Advisory directory is temporarily unavailable.")
+        access = read_service_access(token)
+    except (RuntimeError, ValueError, TimeoutError, KeyError):
+        st.error("Advisory management data could not be read. No changes have been made.")
         return
-    people = _reflect_request_journey(_people(profiles, intents, controls), requests)
-    from page_owner_advisory_requests import _client_waiting, _overdue
-    unanswered=sum(1 for item in requests if _client_waiting(item))
-    follow_ups=sum(1 for item in requests if _overdue(item))
-    if unanswered:
-        st.warning(
-            f"**{unanswered} Advisory request(s) or client replies need your response.** "
-            "Open the Action inbox below to review the business question, respond "
-            "and record the next step."
-        )
-    elif follow_ups:
-        st.info(
-            f"**{follow_ups} Advisory follow-up(s) are due.** "
-            "Review the next actions in your Action inbox."
-        )
 
-    kpi = st.columns(4)
-    kpi[0].metric("Advisory registrations", len(people))
-    kpi[1].metric("Pending onboarding", sum(p.get("onboarding") != "Profile completed" for p in people))
-    kpi[2].metric("Completed accounts", sum(p.get("onboarding") == "Profile completed" for p in people))
-    kpi[3].metric("Active engagements", sum(p.get("relationship_stage") == "engaged" for p in people))
+    people = _reflect_request_journey(_people(profiles, intents, controls, readers), requests)
+    responded = sum(_client_waiting(r) for r in requests)
+    overdue = sum(_overdue(r) for r in requests)
+    if responded:
+        st.warning(f"{responded} Advisory request(s) need a response.")
+    if overdue:
+        st.info(f"{overdue} client follow-up(s) are due.")
     st.caption(
-        "Registration only confirms the Advisory account. A specific request, "
-        "owner response and agreed scope are separate steps. "
-        "Open **Action inbox** to respond to client input and move the work forward."
+        f"{len(profiles)} completed Advisory profiles · {len(intents)} invitations / signup intents · "
+        f"{len(readers)} library members · {len(requests)} client requests"
     )
-    inbox_tab, directory, pipeline, feedback_tab, audit_tab = st.tabs(
-        ["Action inbox", "Advisory directory", "Relationship pipeline",
-         "Service feedback", "Administration audit"]
-    )
-    with inbox_tab:
-        from page_owner_advisory_requests import render_advisory_action_inbox
+    overview, inbox, permission_tab, directory, pipeline, feedback_tab, audit_tab = st.tabs([
+        "Overview", "Requests & replies", "Access & invitations",
+        "Relationships", "Pipeline", "Service feedback", "Audit",
+    ])
+
+    with overview:
+        render_operations_overview(people, requests, readers, access)
+
+    with inbox:
         render_advisory_action_inbox(token, people, requests)
+
+    with permission_tab:
+        render_service_access(token, people, requests, access)
+        st.divider()
+        render_reader_invitations(token, readers, people)
+
     with directory:
+        st.subheader("People & advisory relationships")
+        st.caption("The directory includes library-only members so potential Advisory clients are not invisible.")
         search = st.text_input(
-            "Find an advisory registrant",
-            placeholder="Search name, organization, email or decision context",
+            "Search people", placeholder="Name, email, organization or business decision",
             key="advisory_owner_search",
         ).strip().casefold()
-        stage = st.selectbox(
-            "Directory filter",
-            ["All relationships", "Pending onboarding", "Completed profiles",
-             "Inquiries", "Discovery", "Proposal", "Engaged", "Closed"],
-            key="advisory_owner_filter",
+        membership = st.selectbox(
+            "Membership", [
+                "All people", "Reader only", "Advisory invitation pending",
+                "Advisory profile completed", "Suspended Advisory",
+            ], key="advisory_owner_filter",
         )
-        filtered = []
-        for p in people:
-            content = " ".join(str(p.get(field) or "") for field in (
-                "first_name", "last_name", "email", "organization",
-                "role_title", "decision_context", "advisory_focus",
+        matching = []
+        for person in people:
+            content = " ".join(str(person.get(k) or "") for k in (
+                "first_name", "last_name", "email", "organization", "role_title",
+                "decision_context", "advisory_focus",
             )).casefold()
             if search not in content:
                 continue
-            if stage == "Pending onboarding" and p.get("onboarding") == "Profile completed":
+            state = str(person.get("onboarding") or "")
+            if membership == "Reader only" and state != "Reader only":
                 continue
-            if stage == "Completed profiles" and p.get("onboarding") != "Profile completed":
+            if membership == "Advisory invitation pending" and state != "Pending onboarding":
                 continue
-            if stage in ("Inquiries", "Discovery", "Proposal", "Engaged", "Closed") and (
-                str(p.get("relationship_stage", "")).casefold() !=
-                ("inquiry" if stage == "Inquiries" else stage.casefold())
-            ):
+            if membership == "Advisory profile completed" and state != "Profile completed":
                 continue
-            filtered.append(p)
-        st.caption(f"{len(filtered)} Advisory relationships")
-        st.dataframe([{
-            "Name": " ".join(filter(None, [
-                str(p.get("first_name") or ""), str(p.get("last_name") or ""),
-            ])),
-            "Email": str(p.get("email") or ""),
-            "Organization": str(p.get("organization") or ""),
-            "Role": str(p.get("role_title") or ""),
-            "Onboarding": str(p.get("onboarding") or ""),
-            "Relationship": str(p.get("relationship_stage") or "").title(),
-            "Account": str(p.get("account_status") or "").title(),
-            "Follow-up": str(p.get("follow_up_on") or ""),
-            "Registered": str(p.get("created_at") or "")[:10],
-        } for p in filtered[:500]], hide_index=True, use_container_width=True)
-        if filtered:
+            if membership == "Suspended Advisory" and person.get("account_status") != "suspended":
+                continue
+            matching.append(person)
+
+        st.caption(f"{len(matching)} people match the selected filters.")
+        st.dataframe([
+            {
+                "Name": " ".join(filter(None, (str(p.get("first_name") or ""),
+                                               str(p.get("last_name") or "")))),
+                "Email": str(p.get("email") or ""),
+                "Organization": str(p.get("organization") or ""),
+                "Membership": str(p.get("onboarding") or ""),
+                "Access": str(p.get("account_status") or "").title(),
+                "Relationship stage": str(p.get("relationship_stage") or "—").title(),
+                "Requests": int(p.get("request_count") or 0),
+                "Latest request": str(p.get("latest_request_status") or "—").replace("_", " ").title(),
+                "Follow-up": str(p.get("follow_up_on") or "—"),
+            } for p in matching[:500]
+        ], hide_index=True, use_container_width=True)
+        if len(matching) > 500:
+            st.caption("Showing the first 500 results. Narrow your search to select a particular member.")
+        if matching:
+            by_id = {str(p["user_id"]): p for p in matching}
             selected_id = st.selectbox(
-                "Review Advisory relationship",
-                [str(p["user_id"]) for p in filtered],
-                format_func=lambda uid: next(
-                    (str(p.get("email") or "") for p in filtered if str(p["user_id"]) == uid),
-                    uid,
-                ),
+                "Open relationship record", list(by_id),
+                format_func=lambda uid: str(by_id[uid].get("email") or uid),
                 key="advisory_owner_selected_id",
             )
-            person = next((p for p in filtered if str(p["user_id"]) == selected_id), None)
-            if person:
-                st.divider()
-                _details(token, person)
+            st.divider()
+            _details(token, by_id[selected_id])
+
         csv = _csv_bytes(
-            ["Email", "Name", "Organization", "Role", "Onboarding", "Stage", "Follow-up", "Registered"],
-            [[p.get("email"), " ".join(filter(None, (p.get("first_name"),p.get("last_name")))),
-              p.get("organization"), p.get("role_title"), p.get("onboarding"),
-              p.get("relationship_stage"), p.get("follow_up_on"), p.get("created_at")]
-             for p in filtered],
+            ["Email", "Name", "Organization", "Membership", "Stage", "Requests",
+             "Follow-up", "Registered"],
+            [[p.get("email"), " ".join(filter(None, (p.get("first_name"), p.get("last_name")))),
+              p.get("organization"), p.get("onboarding"), p.get("relationship_stage"),
+              p.get("request_count"), p.get("follow_up_on"), p.get("created_at")]
+             for p in matching],
         )
         st.download_button(
-            "Export Advisory directory (CSV)", data=csv,
+            "Export filtered directory (CSV)", data=csv,
             file_name="jairribeiro-advisory-relationships.csv",
-            mime="text/csv", disabled=not filtered,
-            key="advisory_owner_directory_csv",
+            mime="text/csv", disabled=not matching, key="advisory_owner_directory_csv",
         )
+
     with pipeline:
-        st.caption("The pipeline advances with actual client requests, not account registration alone.")
-        for stage_name in ("not_requested",) + STAGES:
-            group = [p for p in people if p.get("relationship_stage") == stage_name]
-            with st.expander(("Registered — no request" if stage_name=="not_requested" else stage_name.title()) + f" · {len(group)}", expanded=stage_name in ("not_requested","inquiry")):
-                if not group:
-                    st.caption("No relationships at this stage.")
-                else:
-                    for p in group:
-                        st.write(
-                            "**" + str(p.get("email") or "") + "** · " +
-                            str(p.get("onboarding")) + " · Internal next: " +
-                            str(p.get("next_action") or "Not set")
-                        )
-        st.caption("Pipeline stages follow the owner-managed request journey. A submitted request is never treated as a paid engagement.")
+        render_request_pipeline(people, requests)
+
     with feedback_tab:
         from page_owner_advisory_feedback import render_owner_feedback
         render_owner_feedback(token, people)
+
     with audit_tab:
-        st.caption("An auditable record of client-request decisions, stages, and private account administration.")
-        st.markdown("#### Advisory request history")
-        from page_owner_advisory_requests import read_request_history
+        st.subheader("Change history")
+        st.caption("Request transitions, service entitlements and account changes are logged separately.")
         try:
-            request_history=read_request_history(token)
-        except (RuntimeError,ValueError,TimeoutError):
-            st.error("The request audit is temporarily unavailable.")
-            request_history=[]
+            request_history = read_request_history(token)
+            scorecard_history = _read_advisory(token, "portfolio_advisory_scorecard_audit")
+            rollout_history = _read_advisory(token, "portfolio_advisory_rollout_audit")
+        except (RuntimeError, ValueError, TimeoutError, KeyError):
+            st.error("Some audit records are temporarily unavailable.")
+            request_history, scorecard_history, rollout_history = [], [], []
+        st.markdown("#### Client request decisions")
         if request_history:
-            labels={str(r.get("id")):str(r.get("title") or "Request") for r in requests}
+            labels = {str(r.get("id")): str(r.get("title") or "Request") for r in requests}
             st.dataframe([{
-                "When":str(row.get("created_at") or "")[:19],
-                "Request":labels.get(str(row.get("request_id")),str(row.get("request_id"))),
-                "Action":str(row.get("action") or ""),
-                "From":str(row.get("old_status") or ""),
-                "To":str(row.get("new_status") or ""),
-            } for row in request_history],hide_index=True,use_container_width=True)
+                "When": str(r.get("created_at") or "")[:19],
+                "Request": labels.get(str(r.get("request_id")), "Historical request"),
+                "Action": str(r.get("action") or ""),
+                "From": str(r.get("old_status") or ""),
+                "To": str(r.get("new_status") or ""),
+            } for r in request_history], hide_index=True, use_container_width=True)
         else:
-            st.caption("No Advisory request transitions have been recorded.")
-        st.markdown("#### Membership administration")
+            st.caption("No recorded request changes.")
+        st.markdown("#### Service access changes")
+        score_ids = {str(x.get("id")): str(x.get("request_id")) for x in access.get("scorecard", [])}
+        roll_ids = {str(x.get("id")): str(x.get("request_id")) for x in access.get("rollout", [])}
+        service_events = (
+            [{"Service": "Scorecard", "Request ID": score_ids.get(str(x.get("scorecard_id")), ""),
+              **x} for x in scorecard_history]
+            + [{"Service": "Rollout", "Request ID": roll_ids.get(str(x.get("access_id")), ""),
+                **x} for x in rollout_history]
+        )
+        if service_events:
+            st.dataframe([{
+                "When": str(r.get("created_at") or "")[:19],
+                "Service": str(r.get("Service") or ""),
+                "Action": str(r.get("action") or ""),
+                "Request": str(r.get("Request ID") or ""),
+            } for r in sorted(service_events, key=lambda x: str(x.get("created_at") or ""), reverse=True)],
+                hide_index=True, use_container_width=True)
+        else:
+            st.caption("No recorded service entitlement changes.")
+        st.markdown("#### Membership and relationship administration")
         if audit:
             by_id = {str(p["user_id"]): str(p.get("email") or "") for p in people}
             st.dataframe([{
-                "When": str(row.get("created_at") or "")[:19],
-                "Relationship": by_id.get(str(row.get("user_id")), "Removed account"),
-                "Action": str(row.get("action") or ""),
-                "Detail": str(row.get("detail") or ""),
-            } for row in audit[:500]], hide_index=True, use_container_width=True)
+                "When": str(r.get("created_at") or "")[:19],
+                "Person": by_id.get(str(r.get("user_id")), "Former account"),
+                "Action": str(r.get("action") or ""),
+                "Detail": str(r.get("detail") or ""),
+            } for r in audit[:500]], hide_index=True, use_container_width=True)
         else:
-            st.caption("No administrative changes yet.")
+            st.caption("No recorded membership administration.")

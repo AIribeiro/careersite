@@ -5,7 +5,8 @@ The request RPC independently checks owner identity before any write.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from urllib.parse import urlencode
 import streamlit as st
 
@@ -99,7 +100,8 @@ def _client_waiting(req: dict) -> bool:
 
 def _overdue(req: dict) -> bool:
     follow=str(req.get("follow_up_on") or "")
-    return bool(follow and follow[:10]<=date.today().isoformat()
+    local_today = datetime.now(ZoneInfo("Europe/Stockholm")).date()
+    return bool(follow and follow[:10] <= local_today.isoformat()
                 and req.get("status") not in CLOSED)
 
 

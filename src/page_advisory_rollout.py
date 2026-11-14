@@ -113,7 +113,10 @@ def assess(raw: dict) -> dict:
         dimensions[area] = round(100 * sum(vals) / (3 * len(vals)))
     overall = round(sum(dimensions.values()) / len(dimensions))
     missing = [q for q in QUESTIONS if response[q[0]] == 0]
-    gates = [q for q in QUESTIONS if q[4] and response[q[0]] < 2]
+    high_impact = answers["context"]["criticality"] == "High"
+    # High-consequence uses require demonstrated safeguards, not partial testing.
+    gates = [q for q in QUESTIONS if q[4] and response[q[0]] <
+             (3 if high_impact and q[0] in ("reliability","security","oversight","regulation") else 2)]
     weak = sorted(QUESTIONS, key=lambda q: (response[q[0]], not q[4]))
     actions = []
     for q in list(gates) + weak:
@@ -121,6 +124,8 @@ def assess(raw: dict) -> dict:
             actions.append(q[3])
         if len(actions) == 3:
             break
+    # A pilot still underway is not sufficient evidence for enterprise deployment.
+    pilot_unfinished = answers["context"]["stage"] == "Pilot in progress"
     if gates:
         label = "PAUSE SCALING"
         verdict = "Do not authorize wider deployment until critical conditions are resolved."
@@ -130,6 +135,10 @@ def assess(raw: dict) -> dict:
         label = "EVIDENCE INCOMPLETE"
         verdict = "Defer the scaling decision until essential evidence has been collected."
         reason = "Too many readiness conditions remain unassessed to support a credible decision."
+    elif pilot_unfinished and answers["context"]["scope"] == "Enterprise-wide":
+        label = "CONTROLLED EXPANSION"
+        verdict = "Complete the pilot validation before authorizing enterprise-wide deployment."
+        reason = "An unfinished pilot cannot establish the evidence needed for broad operational exposure."
     elif min(dimensions.values()) <= 50:
         label = "CONTROLLED EXPANSION"
         verdict = "Limit expansion to a controlled operational test with explicit exit criteria."
@@ -142,6 +151,15 @@ def assess(raw: dict) -> dict:
         label = "CONDITIONAL GO"
         verdict = "Proceed only with a limited next stage and named validation conditions."
         reason = "The foundation is credible, but some conditions still need stronger evidence."
+    for fallback in (
+        "Confirm executive authorization, accountable business ownership and release conditions.",
+        "Expand in controlled waves, with explicit stop and fallback criteria.",
+        "Review actual adoption, business outcomes and operational incidents against the baseline.",
+    ):
+        if len(actions) >= 3:
+            break
+        if fallback not in actions:
+            actions.append(fallback)
     weakest = min(dimensions, key=dimensions.get)
     if weakest == "People and adoption":
         insight = "The limiting factor is adoption: changing work and ownership requires more proof than launching the technology."

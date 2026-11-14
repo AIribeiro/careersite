@@ -285,9 +285,6 @@ def render_service_access_for_request(token: str, req: dict) -> None:
 def render_service_access(token: str, people: list[dict], requests: list[dict],
                           access: dict[str, list[dict]]) -> None:
     st.subheader("Service access & approval")
-    notice = st.session_state.pop("advisory_ops_notification_flash", None)
-    if notice:
-        st.info(str(notice))
     st.caption(
         "Select the user and service, then approve. A confirmation email is sent "
         "to their verified address and its outcome recorded. Approval does not "

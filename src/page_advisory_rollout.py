@@ -291,9 +291,17 @@ def _input_form(token: str, request_id: str) -> None:
             criticality=st.selectbox("Operational consequence if AI is wrong",CRITICALITIES,index=1)
         with b:
             scope=st.selectbox("Intended next rollout scope",SCOPES)
+        # One decision dimension on screen at a time. The form remains a
+        # single verified submission, but never presents 18 open controls.
+        st.caption("Complete the five assessment tabs before generating your brief.")
+        dimension_tabs = st.tabs([
+            "Business value", "Operations", "Governance", "People & adoption", "Scale"
+        ])
         responses={}
-        for area in AREAS:
-            with st.expander(area,expanded=True):
+        for area, tab in zip(AREAS, dimension_tabs):
+            with tab:
+                st.caption(str(sum(q[1] == area for q in QUESTIONS)) +
+                           " evidence-based questions · " + area)
                 for key,question_area,question,action,is_gate in QUESTIONS:
                     if question_area != area:
                         continue

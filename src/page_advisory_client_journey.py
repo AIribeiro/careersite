@@ -137,6 +137,16 @@ def _display_conversation(token: str, uid: str, req: dict) -> None:
                 st.error("Your response could not be saved. Please try again.")
     else:
         st.caption("This discussion is closed. Start a new request for a new decision.")
+    if state in ("active", "completed") and any(
+        m.get("sender") == "advisor" for m in messages
+    ):
+        from page_advisory_service_feedback import (
+            ADVISORY_SERVICE, render_optional_feedback,
+        )
+        render_optional_feedback(
+            token, uid, ADVISORY_SERVICE, "personal_advisory",
+            request_id=rid,
+        )
 
 
 def _request_form(token: str,uid: str,profile: dict) -> None:

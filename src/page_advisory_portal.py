@@ -19,6 +19,8 @@ from page_reader_native import (
     _session,
     _set_reader_password,
     _verify,
+    _logout_member_session,
+    member_logout_toolbar,
 )
 from reader_membership import EMAIL, _utc_now
 from site_assets import ADVISORY_EMAIL, PRIVACY_EMAIL
@@ -160,18 +162,8 @@ def _open_library() -> None:
 
 
 def _sign_out() -> None:
-    # The underlying Supabase identity is shared, not the membership rights.
-    st.session_state.pop("reader_native_session", None)
-    st.session_state.pop("reader_native_user", None)
-    st.session_state.pop("advisory_member", None)
-    st.session_state.pop("advisory_pending_email", None)
-    st.session_state.pop("advisory_signup_intake", None)
-    st.session_state.pop("advisory_password_saved_user_id", None)
-    st.session_state.pop("advisory_recovery_verified", None)
-    st.session_state.pop("advisory_member_navigation", None)
-    st.session_state.pop("advisory_member_conversation", None)
-    st.query_params.pop("view", None)
-    st.query_params.pop("request", None)
+    # Advisory and Reader share one Supabase Auth session and sign-out policy.
+    _logout_member_session(st.session_state.get("reader_native_session") or {})
     st.rerun()
 
 
@@ -672,23 +664,29 @@ def render_advisory_portal() -> None:
                     st.error(str(notice[1]))
                 elif notice[0] == "success":
                     st.success(str(notice[1]))
+                elif notice[0] == "warning":
+                    st.warning(str(notice[1]))
             st.session_state.pop("advisory_member", None)
             _advisory_login()
-        elif not _password_authenticated(session):
-            # Verified email is identity proof, not permission to use Advisory.
-            st.session_state.pop("advisory_member", None)
-            _first_password_form(session, user)
         else:
-            try:
-                profile = _get_advisory_profile(session, user)
-            except (RuntimeError, ValueError, TimeoutError):
-                st.error("We could not confirm your advisory membership. Please retry.")
+            member_logout_toolbar(session, user, context="advisory")
+
+        if session is not None and user is not None:
+            if not _password_authenticated(session):
+                # Verified email is identity proof, not permission to use Advisory.
+                st.session_state.pop("advisory_member", None)
+                _first_password_form(session, user)
             else:
-                if not profile:
-                    st.session_state.pop("advisory_member", None)
-                    _advisory_enroll(session, user)
+                try:
+                    profile = _get_advisory_profile(session, user)
+                except (RuntimeError, ValueError, TimeoutError):
+                    st.error("We could not confirm your advisory membership. Please retry.")
                 else:
-                    _advisory_account(session, user, profile)
+                    if not profile:
+                        st.session_state.pop("advisory_member", None)
+                        _advisory_enroll(session, user)
+                    else:
+                        _advisory_account(session, user, profile)
 
     st.html(native_footer("advisory-access"))
     # A branded domain hosted via a legacy masked frame may expose a 980px

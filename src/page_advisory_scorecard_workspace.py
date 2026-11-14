@@ -538,7 +538,7 @@ def render_private_scorecard(session: dict,user: dict) -> None:
             "- **Test portfolio constraints:** Compare proposed initiatives "
             "against available people, investment, ongoing costs and "
             "indicative benefits.\n"
-            "- **Record executive decisions:** Keep the evidence, control "
+            "- **Receive a decision recommendation:** Compare feasible portfolio options, get initiative-level actions and download an executive PDF memo.\n- **Record executive decisions:** Keep the evidence, control "
             "conditions, accountable owners and next review together in a "
             "private, editable workspace."
         )

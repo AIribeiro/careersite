@@ -105,7 +105,7 @@ def advisory_scorecard() -> str:
  <p class="sc-lead">Which AI initiatives should your organization fund, test, pause or stop—and what evidence supports that decision?</p>
  <p>The Scorecard is a structured working environment for reviewing competing AI opportunities against business value, delivery capacity, operational readiness and control requirements. Its purpose is to help leadership make explicit choices, not simply produce a ranked list.</p>
  <div class="sc-actions">
-  <a class="sc-btn" href="?page=advisory-access" target="_self" data-hq-event="scorecard_apply">Request access through Advisory →</a>
+  <a class="sc-btn" href="?page=advisory-access&amp;view=scorecard" target="_self" data-hq-event="scorecard_apply">Request access through Advisory →</a>
   <a class="sc-btn alt" href="#sc-how-it-works" data-hq-event="scorecard_method">How the service works</a>
  </div>
  <p style="margin-top:20px;font-size:13px">Free for clients individually approved within a selected pro-bono Advisory engagement. Registration alone does not provide access.</p>
@@ -193,7 +193,7 @@ def advisory_scorecard() -> str:
  </ol>
  <div class="sc-boundary"><p><strong>Service boundaries.</strong> The Scorecard is a management decision aid, not a legal or regulatory certification, an independently audited financial forecast or permission to deploy an AI system. It does not replace privacy, security or specialist risk reviews.</p></div>
  <div class="sc-final-actions">
-  <a class="sc-btn" href="?page=advisory-access" target="_self" data-hq-event="scorecard_request_footer">Open Advisory account · Request access →</a>
+  <a class="sc-btn" href="?page=advisory-access&amp;view=scorecard" target="_self" data-hq-event="scorecard_request_footer">Open Advisory account · Request access →</a>
   <a class="sc-btn light" href="?page=advisory" target="_self">Return to Executive Advisory →</a>
  </div>
 </section>

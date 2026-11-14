@@ -153,16 +153,17 @@ def advisory() -> str:
     """Executive-grade advisory value, method, fit and distinct access."""
     member_signed_in = st.session_state.get("advisory_member") is True
     invitation = ("Continue your advisory conversation." if member_signed_in
-                  else "Create your advisory account.")
+                  else "Submit a decision for pro-bono review.")
     cta = ("Open my advisory space →" if member_signed_in
-           else "Create your advisory account →")
+           else "Register free to submit a request →")
     invitation_text = (
         "Your private conversation, requests and next steps are available in your "
         "Advisory account. The Premium Reader library remains included."
         if member_signed_in
-        else "A direct space to share the business decision you are considering and "
-        "keep the conversation moving. Verify your email and choose a password to "
-        "activate your complimentary account. Advisory work, scope and terms are agreed separately."
+        else "Register free to describe the AI or data decision you are facing. "
+        "I review requests individually and may offer a focused pro-bono discussion "
+        "where a senior external perspective could help. There is no charge, "
+        "but availability is limited and registration does not guarantee a session."
     )
 
     # A repository-backed, optimized WebP; committed as plain base64 text so
@@ -182,9 +183,9 @@ def advisory() -> str:
 <section class="advisory-hero" aria-labelledby="advisory-title">
  <div class="container advisory-hero-grid">
   <div>
-   <p class="service-eyebrow">Independent executive advisory / AI &amp; Data</p>
+   <p class="service-eyebrow">Selective pro-bono executive advisory / AI &amp; Data</p>
    <h1 id="advisory-title">Better AI decisions. Clearer ownership. Measurable business value.</h1>
-   <p class="service-lede">For leaders who need to decide where AI and data should create value, what to stop or scale, and how to make the operating model accountable for the outcome.</p>
+   <p class="service-lede">For leaders facing decisions on AI investment, governance, adoption or operating ownership. I consider a limited number of focused pro-bono discussions to examine options, trade-offs and a practical next step.</p>
    <div class="advisory-actions">
     <a class="advisory-button" href="#advisory-focus" data-hq-event="advisory_explore_value">See where I can help →</a>
     <a class="advisory-button advisory-button--outline" href="#advisory-contact" data-hq-event="advisory_email_primary">Discuss a decision →</a>
@@ -218,7 +219,7 @@ def advisory() -> str:
  <div class="container">
   <p class="service-eyebrow">What the business should gain</p>
   <div class="service-section-header"><h2>Clarity you can take into the next decision.</h2>
-   <p>Outputs depend on the mandate and evidence available. We agree them before starting; they are meant to be used in leadership and operating discussions, not left as a presentation.</p>
+   <p>Where a request is selected, the value should be a clearer decision: options, ownership and an evidence-based next step that can be used in a leadership discussion. Scope depends on the question and available information.</p>
   </div>
   <div class="advisory-results">
    <article class="advisory-result"><strong>A defensible decision</strong><p>Options, trade-offs, assumptions and a recommendation that makes the cost of action—and inaction—visible.</p></article>
@@ -232,12 +233,12 @@ def advisory() -> str:
  <div class="container">
   <p class="service-eyebrow">Ways of working</p>
   <div class="service-section-header"><h2>The right level of involvement for the decision.</h2>
-   <p>A focused review may be enough. A broader challenge may need time with the executive team, operating owners and delivery leads. The scope, duration, counterpart and outputs are agreed individually.</p>
+   <p>I consider short decision reviews and defined working discussions on a selective, pro-bono basis. Fit, available time and the question to be examined determine what is possible.</p>
   </div>
   <div class="service-formats">
    <article class="service-format"><small>01 / Independent assessment</small><h3>Decision review</h3><p>Challenge a strategy, AI business case, investment portfolio or governance proposal. Typical result: a concise assessment of options, assumptions, risks and the recommended next decision.</p></article>
    <article class="service-format"><small>02 / Leadership working engagement</small><h3>Executive working sessions</h3><p>Work with sponsors and accountable leaders to define priorities, decision rights, operating measures and a practical route forward. Typical result: a decision record and agreed actions.</p></article>
-   <article class="service-format"><small>03 / Defined senior contribution</small><h3>Ongoing advisory or interim support</h3><p>Provide continuity across a defined enterprise AI or data agenda when a senior perspective is needed for portfolio review, governance, adoption and business coordination.</p></article>
+   <article class="service-format"><small>03 / Selective follow-up</small><h3>Next-step review</h3><p>Where useful, revisit the decision record, remaining evidence gaps and named owners after an initial discussion. Follow-up is limited to the agreed question, not ongoing consulting support.</p></article>
   </div>
  </div>
 </section>
@@ -254,7 +255,7 @@ def advisory() -> str:
    <div class="service-step"><span>03</span><h3>Challenge the options</h3><p>What to stop, rework, test or scale; consequences, ownership and proportional controls.</p></div>
    <div class="service-step"><span>04</span><h3>Agree action and proof</h3><p>Decision record, named owners, next milestone and measures for checking whether it worked.</p></div>
   </div>
-  <p class="service-method-note">A first conversation tests fit and urgency. If there is a useful contribution to make, we agree a written scope, working rhythm, information boundaries, deliverables and terms before any engagement begins.</p>
+  <p class="service-method-note">I assess each request for relevance and available time. If selected, we agree the question, information boundaries and a focused next step. Pro-bono discussions are free of charge; registration alone does not confirm an engagement.</p>
  </div>
 </section>
 
@@ -285,8 +286,8 @@ def advisory() -> str:
    <a class="advisory-small-link" href="?page=advisory-access&amp;signin=1" target="_self" data-hq-event="advisory_access_signin">Already have an account? Sign in</a>
   </div>
   <aside class="advisory-access-inclusion" aria-label="Included access and direct contact">
-   <strong>Your Premium Reader library is included.</strong>
-   <p>Full Executive AI Briefings, premium articles, Weekly AI editions and available infographic downloads are part of your advisory access.</p>
+   <strong>The Executive AI Reader Library is also free.</strong>
+   <p>Register separately or use your verified account to read complete briefings, current articles and Weekly AI, with available infographic downloads. No advisory request is needed.</p>
    <div class="advisory-access-direct" id="advisory-contact" data-analytics-section="advisory-inquiry">
     <span>Prefer a direct introduction?</span>
     <p>Tell me what decision you are facing, who owns it and when it matters. No confidential details are needed.</p>

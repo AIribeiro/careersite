@@ -5,15 +5,16 @@ on:
     paths:
       - "main.py"
       - "src/page_advisory_rollout.py"
-      - "src/page_advisory_feedback.py"
+      - "src/page_advisory_service_feedback.py"
       - "src/page_owner_advisory_rollout.py"
+      - "src/page_owner_advisory_feedback.py"
       - "src/page_owner_advisory_management.py"
       - "src/page_owner_advisory_requests.py"
       - "src/page_advisory_client_journey.py"
       - "src/page_advisory_portal.py"
       - "src/page_public_services.py"
       - "src/page_advisory_scorecard_workspace.py"
-      - "supabase/migrations/20261114_rollout_decision_advisor_feedback.sql"
+      - "supabase/migrations/20261114_rollout_readiness_advisor_shared_feedback.sql"
       - "tests/test_advisory_rollout_advisor.py"
       - ".github/workflows/rollout-advisor-regression.yml"
   push:
@@ -39,7 +40,7 @@ jobs:
         run: pip install -r requirements.txt
       - name: Verify syntax and deterministic advice
         run: |
-          python -m py_compile main.py src/page_advisory_rollout.py src/page_advisory_feedback.py src/page_owner_advisory_rollout.py
+          python -m py_compile main.py src/page_advisory_rollout.py src/page_advisory_service_feedback.py src/page_owner_advisory_rollout.py
           python -m unittest discover -s tests -p 'test_advisory_rollout_advisor.py' -v
           python -m unittest discover -s tests -p 'test_advisory_scorecard_service.py' -v
           python -m unittest discover -s tests -p 'test_advisory_engagement_journey.py' -v

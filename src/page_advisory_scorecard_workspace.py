@@ -208,10 +208,6 @@ def _overview(data: dict, *, token: str = "", uid: str = "",
     a.metric("Capacity headroom", f'{counts["fte_headroom"]:.1f} FTE-months')
     b.metric("Budget headroom", f'{counts["budget_headroom"]:,.0f} SEK')
     c.metric("Annual net benefit (indicative)", f'{counts["annual_net"]:,.0f} SEK')
-    if float(settings["capacity_fte_months"]) == 12 and float(settings["budget_sek"]) == 1200000:
-        st.caption("Planning limits currently use fictional template defaults "
-                   "(12 FTE-months and 1,200,000 SEK). Replace them in Policy & criteria "
-                   "before making any real portfolio recommendation.")
     if counts["fte_headroom"] < 0 or counts["budget_headroom"] < 0:
         st.error("Your proposed selection exceeds the available planning envelope.")
     if counts["blocked"] or counts["unsigned"]:
@@ -227,24 +223,6 @@ def _overview(data: dict, *, token: str = "", uid: str = "",
                            mime="text/csv", use_container_width=False)
     else:
         st.info("Your private scorecard is empty. Add an initiative to begin.")
-    with st.expander("Worked comparison — five fictional initiatives (read-only)"):
-        examples = (
-            ("Warranty claim triage assistant",[5,4,4,3,4,4,3],"Medium","Review"),
-            ("Service knowledge assistant",[5,4,4,4,4,5,4],"Medium","Pass"),
-            ("Spare-parts demand planning",[5,5,3,2,3,3,4],"Medium","Pass"),
-            ("Automated employee screening",[2,3,3,3,2,2,1],"Low","Block"),
-            ("Management reporting assistant",[3,3,5,5,4,5,4],"High","Pass"),
-        )
-        worked = []
-        for name, scores, evidence, gate in examples:
-            ex = {"name":name,"owner":"Illustrative owner","scores":scores,
-                  "evidence":evidence,"gate":gate}
-            score,action=evaluation(ex,settings)
-            worked.append({"Example":name,"Score /100":score,
-                           "Gate":gate,"Suggested action":action})
-        st.dataframe(worked,hide_index=True,use_container_width=True)
-        st.caption("These are fictional demonstrations of the default scoring weights. "
-                   "They are never inserted into a client's private portfolio.")
 
 
 def _form_initiative(token: str, workspace: dict, data: dict, *,

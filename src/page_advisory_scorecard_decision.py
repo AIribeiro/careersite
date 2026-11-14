@@ -282,10 +282,9 @@ def recommend(payload: dict, *, revision: int | None = None,
         caveats.append("Sponsor and/or capacity confirmations are outstanding.")
     if method_a == "heuristic" or method_b == "heuristic":
         caveats.append("The constrained selection uses a bounded heuristic rather than an exhaustive search.")
-    if cap == 12.0 and budget == 1200000.0:
-        caveats.append("Budget and capacity match template defaults; confirm real limits before acting.")
-    if any("DEMO" in x["name"].upper() for x in records):
-        caveats.insert(0, "DEMONSTRATION ONLY: one or more initiatives contain fictional test data.")
+    # Recommendation eligibility never depends on an initiative name or
+    # the origin of the client's data. Apply the same scoring and gates to
+    # every approved workspace, including owner testing.
     if chosen:
         advances_n = len(picked_advances)
         tests_n = len(picked_tests)

@@ -348,6 +348,10 @@ def _pdf_report(result: dict, data: dict) -> bytes:
     pdf.multi_cell(0,9,"Enterprise AI Rollout - Executive Decision Brief",new_x="LMARGIN",new_y="NEXT")
     pdf.set_font("Helvetica","",10)
     pdf.multi_cell(0,6,safe(data["context"]["use_case"]+" | "+data["context"]["stage"]),new_x="LMARGIN",new_y="NEXT")
+    if isinstance(data.get("demo"), dict) and data["demo"].get("is_demo") is True:
+        section("SYNTHETIC TEST DATA - NOT VERIFIED",
+                "This report contains fictional QA scores and simulated evidence only. "
+                "It must not be represented as a real client assessment or used to authorize deployment.")
     section("EXECUTIVE VERDICT / "+result["label"],result["verdict"])
     section("Reasoning",result["reason"])
     section("Critical insight",result["insight"])
@@ -375,6 +379,13 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
         st.error("This assessment could not be interpreted. Start a new assessment.")
         return
     rid=str(record["id"])
+    demo = data.get("demo") if isinstance(data.get("demo"), dict) else {}
+    if demo.get("is_demo") is True:
+        st.warning(
+            "**Owner QA scenario · Synthetic data.** All pilot statistics, "
+            "assessment ratings and evidence references are illustrative. "
+            "This is not a real enterprise assessment."
+        )
     st.markdown("### Your executive decision brief")
     st.caption("Assessment "+str(record.get("created_at") or "")[:10]+" · Rule set: rollout-v1")
     if result["label"] in ("PAUSE SCALING","EVIDENCE INCOMPLETE"):
@@ -397,10 +408,38 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
                "These are self-reported ratings, not verified evidence.")
     st.caption("The output supports executive judgment; it cannot authorize deployment "
                "or replace legal, risk, security or operational reviews.")
-    render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
-                             "assessment_completion",request_id=request_id)
-    render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
-                             "executive_recommendation",request_id=request_id)
+    evidence = data.get("evidence") if isinstance(data.get("evidence"), dict) else {}
+    if evidence:
+        with st.expander("Inspect all 18 ratings and supporting evidence", expanded=False):
+            st.caption(
+                "Audit trail for this assessment. Each row explains why a specific "
+                "rating was chosen. For this owner QA case, these are fictional examples, "
+                "not actual signed or independently verified evidence."
+                if demo.get("is_demo") else
+                "Evidence notes submitted with this assessment are self-reported, not independently verified."
+            )
+            evidence_rows = []
+            for key, area, question, action, critical in QUESTIONS:
+                source = evidence.get(key)
+                item = source if isinstance(source, dict) else {}
+                value = data["responses"].get(key, 0)
+                evidence_rows.append({
+                    "Dimension": area,
+                    "Readiness question": question,
+                    "Rating": OPTIONS[value] if type(value) is int and 0 <= value < len(OPTIONS) else "Unknown",
+                    "Evidence reference": str(item.get("ref") or ""),
+                    "Evidence basis": str(item.get("detail") or ""),
+                    "Critical gate": "Yes" if critical else "No",
+                })
+            st.dataframe(evidence_rows, hide_index=True, use_container_width=True)
+    if demo.get("is_demo") is True:
+        st.caption("Satisfaction surveys are disabled for synthetic owner tests, "
+                   "so QA responses do not distort customer feedback metrics.")
+    else:
+        render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
+                                 "assessment_completion",request_id=request_id)
+        render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
+                                 "executive_recommendation",request_id=request_id)
     try:
         pdf=_pdf_report(result,data)
     except (RuntimeError,ValueError,UnicodeError):
@@ -413,7 +452,7 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
     )
     if clicked:
         st.session_state["rollout_downloaded_"+rid]=True
-    if st.session_state.get("rollout_downloaded_"+rid):
+    if st.session_state.get("rollout_downloaded_"+rid) and demo.get("is_demo") is not True:
         render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
                                  "report_download",request_id=request_id)
 

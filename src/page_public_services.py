@@ -289,6 +289,14 @@ def advisory() -> str:
    </div>
    <a href="?page=advisory-scorecard" target="_self" data-hq-event="advisory_scorecard_service">Explore the service →</a>
   </div>
+  <div class="advisory-tool-reference" data-analytics-section="advisory-rollout">
+   <div>
+    <small>Executive AI Decision Advisor · Individual approval</small>
+    <strong>Enterprise AI Rollout Readiness Advisor</strong>
+    <p>A focused, one-session assessment of business value, operational readiness, governance, adoption and scaling capability. Receive a clear executive verdict, its reasoning and three priority actions. Free for individually approved Advisory clients.</p>
+   </div>
+   <a href="?page=advisory-rollout" target="_self" data-hq-event="advisory_rollout_service">Explore the service →</a>
+  </div>
  </div>
 </section>
 
@@ -379,6 +387,8 @@ def privacy() -> str:
     <li><strong>Advisory accounts:</strong> your verified professional email, first and last name, role or title, organization and a short description of your business decision or objective. You may also provide your advisory focus and expected decision timeframe. If you submit an advisory request, the service stores your stated business objective, context, requested next step, private conversation, response history, request stage and follow-up dates. Account and engagement status support the dedicated service. Advisory registration also grants Reader library access; Reader registration does not automatically create Advisory access.</li>
     <li><strong>Optional Advisory service feedback:</strong> when you choose to rate an interaction, the site stores the relevant service and stage, a 1–5 rating, any optional comments, your separate choice about follow-up, and the account and submission time. Feedback is used privately to understand decision usefulness and improve the service; it is never required to access recommendations or downloads.</li>
     <li><strong>Approved AI Portfolio Scorecard workspaces:</strong> for clients individually approved for this pro-bono Advisory service, the system stores initiative names, business roles, evidence scores, capacity and cost estimates, control conditions, decision records, workspace revisions, and approval and access audit events. The advisor can review workspace information during the engagement. Clients may view only their own active, authorized workspace; registration alone does not provide access. Do not enter confidential business data, personal records or protected information without a separate handling agreement.</li>
+    <li><strong>Approved rollout readiness assessments:</strong> for individually approved clients, the system stores high-level use-case descriptions, responses to 18 readiness questions, assessment history, the resulting executive decision brief and access audit events. Reports reflect self-reported information and are not independently verified.</li>
+    <li><strong>Voluntary advisory satisfaction feedback:</strong> 1–5 ratings and optional comments or suggestions recorded against a requested service and interaction stage. A rating is never required for the recommendation, report or continued access; low ratings may be reviewed privately and contact takes place only where requested.</li>
     <li><strong>Correspondence:</strong> the email address and information you choose to share when contacting me, including advisory and privacy requests.</li>
     <li><strong>Service security:</strong> technical events and connection details that may be processed by hosting or authentication providers to operate and protect the service.</li>
    </ul>
@@ -391,6 +401,7 @@ def privacy() -> str:
     <li><strong>Advisory context and correspondence:</strong> to retain the business context you choose to share, review your request, maintain the private response thread, record agreed next steps and manage an actual advisory relationship where one develops. The legal basis is legitimate interest in responding and, when relevant, steps requested before a possible agreement.</li>
     <li><strong>Optional satisfaction feedback:</strong> to evaluate the clarity, usefulness and quality of Advisory services, identify problems and address concerns where you have agreed to follow-up. Leaving feedback is optional and does not subscribe you to marketing.</li>
     <li><strong>Approved Scorecard workspaces:</strong> to provide the on-demand evaluation tool, record its individual approval, preserve work between sessions, and control or revoke access. These records are associated with the agreed pro-bono Advisory request and handled to provide that requested service and maintain accountable access.</li>
+    <li><strong>Rollout decision support and service feedback:</strong> to provide an individually requested Advisory assessment, control its access, and measure whether users find the service clear and useful. Voluntary service feedback is processed for quality improvement and authorized follow-up. No satisfaction rating is used to alter the decision verdict or eligibility.</li>
     <li><strong>Optional editorial emails:</strong> based on your separate, optional consent. You can withdraw that choice through your reader preferences or by contacting <a href="mailto:{READERS_EMAIL}">{READERS_EMAIL}</a>.</li>
     <li><strong>Security and legal duties:</strong> where necessary for legitimate security interests or to comply with legal obligations.</li>
    </ul>
@@ -402,7 +413,7 @@ def privacy() -> str:
   </section>
   <section id="privacy-storage"><h2>Session data, cookies and retention</h2>
    <p>The first-party portfolio analytics uses browser session storage for short-lived visit and attribution context rather than an analytics cookie intended to identify you across visits. Account access and hosting can use technically necessary cookies, security tokens and server-side records. The site's first-party analytics is not an advertising tracking service.</p>
-   <p>Reader, Advisory account, approved Scorecard and reading records are held while needed for the respective services and to support access, correction or deletion requests, subject to applicable legal or security needs. Correspondence is kept as needed to handle the inquiry or any resulting relationship. Voluntary feedback and its review record are held while needed for service quality and feedback follow-up, subject to correction or deletion requests. Measurement and security records are retained according to their operational purpose and applicable service settings; there is not one universal retention period for every record. You can ask about the status or removal of your information.</p>
+   <p>Reader, Advisory account, approved Scorecard, rollout assessment, voluntary satisfaction feedback and reading records are held while needed for the respective services and to support access, correction or deletion requests, subject to applicable legal or security needs. Correspondence is kept as needed to handle the inquiry or any resulting relationship. Voluntary feedback and its review record are held while needed for service quality and feedback follow-up, subject to correction or deletion requests. Measurement and security records are retained according to their operational purpose and applicable service settings; there is not one universal retention period for every record. You can ask about the status or removal of your information.</p>
   </section>
   <section id="privacy-rights"><h2>Your choices and rights</h2>
    <p>Subject to applicable conditions, you may request access, correction, erasure, restriction, portability or object to certain processing. Where processing relies on consent, you may withdraw that consent without affecting earlier lawful processing.</p>

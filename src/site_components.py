@@ -8,6 +8,45 @@ from site_assets import BRAND_ICON_URI, CV_URI, LINKEDIN, MEDIUM, EMAIL
 CV_DOWNLOAD_NAME = "Jair_Ribeiro_CV.pdf"
 
 
+MOBILE_NAV_CSS = """
+<style>
+.site .mobile-menu{display:none}
+@media(max-width:700px), (max-device-width:700px){
+ .site .nav{position:relative;overflow:visible}
+ .site .nav .navin{display:flex;flex-wrap:nowrap!important;align-items:center;
+   justify-content:space-between;gap:10px;min-height:64px;min-width:0;
+   width:calc(100% - 26px);max-width:100%}
+ .site .nav .brand{min-width:0;flex:0 1 auto!important}
+ .site .nav .brand strong{font-size:15px;white-space:nowrap}
+ .site .nav .brand img{flex-shrink:0}
+ .site .nav .navin>.links{display:none!important}
+ .site .nav .mobile-menu{display:block;position:relative;flex:0 0 auto;z-index:1100}
+ .site .nav .mobile-menu>summary{display:flex;align-items:center;justify-content:center;
+   gap:9px;min-width:88px;min-height:44px;list-style:none;cursor:pointer;
+   border:1px solid rgba(255,255,255,.3);border-radius:4px;
+   padding:9px 13px;color:#f7f8fa;background:#1c2c40;
+   font:700 13px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+ .site .nav .mobile-menu>summary::-webkit-details-marker{display:none}
+ .site .nav .mobile-menu>summary:focus-visible{outline:2px solid #e2aa83;outline-offset:3px}
+ .site .nav .mobile-menu[open]>summary{background:#2c4058}
+ .site .nav .mobile-menu-links{display:none}
+ .site .nav .mobile-menu[open] .mobile-menu-links{display:flex;flex-direction:column;
+   position:absolute;right:0;top:calc(100% + 7px);z-index:1200;
+   width:min(306px,calc(100vw - 30px));max-height:74vh;
+   overflow-y:auto;overscroll-behavior:contain;
+   padding:9px;background:#101d2e;border:1px solid #506175;
+   box-shadow:0 18px 28px rgba(0,0,0,.3)}
+ .site .nav .mobile-menu-links .link{display:flex!important;width:100%;
+   min-height:42px;justify-content:flex-start!important;align-items:center;
+   white-space:normal!important;line-height:1.4;padding:10px 13px!important;
+   font-size:13px!important;text-align:left}
+ .site .nav .mobile-menu-links .link.on{background:#293d53;color:#fff!important}
+ .site .nav .mobile-menu-links .contactlink{margin-top:4px}
+}
+</style>
+"""
+
+
 def nav(active: str) -> str:
     # Give signed-in readers a persistent account destination. No secrets or
     # email addresses are placed into HTML; unverified visitors see no link.
@@ -47,11 +86,7 @@ def nav(active: str) -> str:
         else ""
     )
 
-    return (
-        '<nav class="nav"><div class="navin" style="flex-wrap:wrap;padding:6px 0">'
-        f'<a class="brand" style="flex:0 0 auto" href="?page=home" target="_self">{brand_icon}<div><strong>Jair Ribeiro</strong>'
-        '<span>Enterprise AI &amp; Data Leader</span></div></a>'
-        '<div class="links" style="flex:1 1 560px;min-width:0;align-items:center;justify-content:flex-end">'
+    menu_links = (
         f'{link("home", "Home")}'
         f'{link("analytics", "Analytics") if active == "analytics" else ""}'
         f'{link("impact", "AI Leadership")}'
@@ -61,9 +96,21 @@ def nav(active: str) -> str:
         f'{link("advisory", "Advisory")}'
         f'{advisory_account_link}'
         f'{link("about", "About")}'
-        f'<a class="link contactlink{" on" if active == "contact" else ""}" style="{top_item_style}" href="?page=contact" '
-        'target="_self" data-hq-event="contact_nav">Contact</a>'
-        '</div></div></nav>'
+        f'<a class="link contactlink{" on" if active == "contact" else ""}" '
+        f'style="{top_item_style}" href="?page=contact" target="_self" '
+        f'data-hq-event="contact_nav">Contact</a>'
+    )
+    return (
+        MOBILE_NAV_CSS
+        + '<nav class="nav"><div class="navin" style="flex-wrap:wrap;padding:6px 0">'
+        + f'<a class="brand" style="flex:0 0 auto" href="?page=home" target="_self">{brand_icon}'
+        + '<div><strong>Jair Ribeiro</strong><span>Enterprise AI &amp; Data Leader</span></div></a>'
+        + '<div class="links" style="flex:1 1 560px;min-width:0;align-items:center;justify-content:flex-end">'
+        + menu_links + '</div>'
+        + '<details class="mobile-menu"><summary><span aria-hidden="true">☰</span> Menu</summary>'
+        + '<div class="mobile-menu-links" aria-label="Mobile navigation">'
+        + menu_links + '</div></details>'
+        + '</div></nav>'
     )
 
 

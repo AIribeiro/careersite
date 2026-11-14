@@ -419,7 +419,7 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
         st.error("The report could not be generated; your decision brief remains visible.")
         return
     clicked=st.download_button(
-        "Download premium executive decision brief (PDF · v2)",data=pdf,
+        "Download executive decision brief · premium v2 (PDF)",data=pdf,
         file_name="enterprise-ai-rollout-executive-decision-brief-v2.pdf",
         mime="application/pdf",key="rollout_pdf_"+rid,use_container_width=True,
     )

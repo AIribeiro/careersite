@@ -512,13 +512,39 @@ def render_private_scorecard(session: dict,user: dict) -> None:
         st.error("Could not verify Scorecard access. Retry from your Advisory account.")
         return
     if not workspaces:
-        st.info("The Scorecard is available only after an Advisory engagement is "
-                "approved and this service is explicitly enabled for your account. "
-                "A registered account alone does not include access.")
+        st.markdown(
+            "When several AI opportunities compete for the same investment, "
+            "specialist capacity and management attention, the Scorecard helps "
+            "leadership teams decide **which initiatives to advance, test, hold "
+            "or stop**—and document the reasoning behind each decision."
+        )
+        st.markdown(
+            "**What approved clients can do**\n\n"
+            "- **Compare opportunities:** Assess up to 30 initiatives against "
+            "seven weighted criteria covering strategic fit, business value, "
+            "feasibility, capacity, data readiness, adoption and controls.\n"
+            "- **Test portfolio constraints:** Compare proposed initiatives "
+            "against available people, investment, ongoing costs and "
+            "indicative benefits.\n"
+            "- **Record executive decisions:** Keep the evidence, control "
+            "conditions, accountable owners and next review together in a "
+            "private, editable workspace."
+        )
+        st.caption(
+            "The Scorecard supports executive judgment; a score does not "
+            "authorize funding or deployment."
+        )
+        st.page_link(
+            "https://jairribeiro.com/?page=advisory-scorecard",
+            label="Explore the full Scorecard service",
+        )
+        st.info(
+            "This on-demand service is free for individually selected pro-bono "
+            "Advisory clients. A request is reviewed before any access is "
+            "enabled; registering alone does not grant access."
+        )
         from page_advisory_scorecard_requests import render_scorecard_access_request
         render_scorecard_access_request(token, uid)
-        st.page_link("https://jairribeiro.com/?page=advisory-scorecard",
-                     label="About the on-demand Scorecard service")
         return
     selected_id=st.selectbox("Approved workspace",
                               [str(x["id"]) for x in workspaces],

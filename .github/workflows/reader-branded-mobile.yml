@@ -1,0 +1,87 @@
+name: Branded Reader mobile and route smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/page_reader_native.py"
+      - "src/site_reader_shell.py"
+      - "src/site_embedded_mobile.py"
+      - ".github/workflows/reader-branded-mobile.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-reader:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Install Playwright browser
+        run: |
+          python -m pip install --quiet playwright==1.58.0
+          python -m playwright install chromium
+      - name: Verify branded Reader page, registration and mobile sizing
+        run: |
+          python - <<'PY'
+          from urllib.parse import urlparse, parse_qs
+          from playwright.sync_api import sync_playwright
+          import time
+
+          url = ("https://jairribeiro.com/?page=readers"
+                 "&source=internal_qa&role=smoke&probe=reader-route-check")
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True)
+              context = browser.new_context(**p.devices["iPhone 13"])
+              page = context.new_page()
+              page.goto(url, wait_until="domcontentloaded", timeout=45000)
+              frame_found = None
+              for _ in range(15):
+                  for frame in page.frames:
+                      try:
+                          if (frame.locator(".site.reader-shell .reader-hero").count()
+                              and frame.locator('[data-testid="stForm"]').count()
+                              and frame.get_by_text("Email address").count()):
+                              frame_found = frame
+                              break
+                      except Exception:
+                          pass
+                  if frame_found:
+                      break
+                  time.sleep(3)
+              if not frame_found:
+                  raise RuntimeError("Branded Reader registration was not visible on an iPhone-sized browser")
+              query = parse_qs(urlparse(frame_found.url).query)
+              print("READER ROUTING:", {
+                  "outer_host": urlparse(page.url).hostname,
+                  "inner_host": urlparse(frame_found.url).hostname,
+                  "inner_page": query.get("page", []),
+                  "probe_present": query.get("probe") == ["reader-route-check"],
+              }, flush=True)
+              if urlparse(page.url).hostname != "jairribeiro.com":
+                  raise RuntimeError("Reader link did not retain the branded host")
+              if query.get("page") != ["readers"]:
+                  raise RuntimeError("Branded domain did not forward page=readers to Streamlit")
+              if query.get("probe") != ["reader-route-check"]:
+                  raise RuntimeError("Branded domain lost a non-secret query parameter")
+              metrics = frame_found.evaluate("""() => {
+                const app=document.querySelector('[data-testid="stAppViewContainer"]');
+                const form=document.querySelector('[data-testid="stForm"]');
+                return {
+                  screen: screen.width, viewport: innerWidth, iframe: window.self!==window.top,
+                  fixed: document.documentElement.hasAttribute('data-jr-native-masked-mobile'),
+                  zoom: app ? getComputedStyle(app).zoom : 'missing',
+                  formWidth: form ? form.getBoundingClientRect().width : null
+                };
+              }""")
+              print("READER MOBILE METRICS:", metrics, flush=True)
+              if metrics["screen"] > 620:
+                  raise RuntimeError("iPhone-sized emulation was not active")
+              if (metrics["iframe"] and metrics["viewport"] > metrics["screen"]*1.45
+                      and not metrics["fixed"]):
+                  raise RuntimeError("Reader native form mobile correction did not activate")
+              if metrics["formWidth"] is None or metrics["formWidth"] > metrics["viewport"]+30:
+                  raise RuntimeError("Reader registration form exceeds its viewing area")
+              print("PASS: Branded Reader registration renders and preserves route on mobile", flush=True)
+              browser.close()
+          PY

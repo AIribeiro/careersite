@@ -69,9 +69,19 @@ EMBEDDED_MOBILE_SCRIPT = r"""
       // 390px phone. CSS zoom reduces the available CSS layout width, while
       // enlarging the content back to an ordinary mobile-readable scale.
       var scale = Math.min(3.5, layoutWidth / deviceWidth);
+      // zoom changes the layout width available to an auto-sized element.
+      // Without an explicit phone-width canvas the Advisory two-column grid
+      // can collapse into narrow slivers and the header links spill sideways.
+      // Match the working native-form adapter: size first, then zoom.
+      site.style.setProperty("width", deviceWidth + "px", "important");
+      site.style.setProperty("min-width", "0", "important");
+      site.style.setProperty("max-width", "none", "important");
       site.style.zoom = String(scale);
       root.setAttribute("data-jr-masked-mobile", "true");
     } else {
+      site.style.removeProperty("width");
+      site.style.removeProperty("min-width");
+      site.style.removeProperty("max-width");
       site.style.removeProperty("zoom");
       root.removeAttribute("data-jr-masked-mobile");
     }

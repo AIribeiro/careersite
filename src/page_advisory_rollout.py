@@ -256,7 +256,11 @@ def _access_request_ui(token: str, uid: str) -> None:
         st.error("The Advisory request state is temporarily unavailable.")
         return
     if requested:
-        st.info("Your request is under individual review in your existing Advisory conversation.")
+        st.info("Your access request is under individual review.")
+        if st.button("Follow this request in conversations",
+                     key="rollout_pending_conversation"):
+            from page_advisory_member_experience import navigate
+            navigate("messages")
         return
     with st.form("rollout_access_request"):
         challenge = st.text_area("What rollout decision are you facing?",max_chars=1200,

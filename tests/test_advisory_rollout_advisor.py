@@ -121,6 +121,53 @@ class RolloutAdvisorTests(unittest.TestCase):
         self.assertIn("Download executive decision brief",self.source("src/page_advisory_rollout.py"))
         self.assertNotIn("if rating:",self.source("src/page_advisory_rollout.py"))
 
+    def test_live_premium_pdf_is_two_pages_with_executive_actions(self):
+        from io import BytesIO
+        from pypdf import PdfReader
+        from page_advisory_rollout import assess, _pdf_report
+        from page_rollout_premium_pdf import build_action_plan
+        data=self._answers()
+        data["context"]["use_case"]="Automotive after-sales knowledge assistant"
+        data["context"]["criticality"]="High"
+        data["context"]["scope"]="Enterprise-wide"
+        data["responses"].update({"oversight":2,"regulation":2,"exit":1})
+        result=assess(data)
+        self.assertEqual(result["label"],"PAUSE SCALING")
+        plan=build_action_plan(data,result)
+        self.assertEqual([a["key"] for a in plan],["oversight","regulation","exit"])
+        self.assertTrue(all(a["owner"] and a["due"] and a["evidence"]
+                            and a["condition"] for a in plan))
+        report=PdfReader(BytesIO(_pdf_report(result,data)))
+        self.assertEqual(len(report.pages),2)
+        pages=[page.extract_text() or "" for page in report.pages]
+        self.assertIn("EXECUTIVE DECISION BRIEF",pages[0])
+        self.assertIn("EXECUTIVE VERDICT",pages[0])
+        self.assertIn("EXECUTIVE SUMMARY",pages[0])
+        self.assertIn("READINESS PROFILE",pages[0])
+        self.assertIn("DECISION EVIDENCE",pages[0])
+        self.assertIn("PAUSE SCALING",pages[0])
+        self.assertIn("DECISION EXECUTION",pages[1])
+        self.assertIn("PROPOSED OWNER",pages[1])
+        self.assertIn("RELEASE GATE",pages[1])
+        self.assertIn("CONDITIONS FOR RECONSIDERATION",pages[1])
+        self.assertIn("Formalize human oversight",pages[1])
+        self.assertIn("Confirm regulatory",pages[1])
+        self.assertIn("Approve release, stop and rollback",pages[1])
+
+    def test_report_uses_case_specific_data_and_is_versioned(self):
+        from io import BytesIO
+        from pypdf import PdfReader
+        from page_advisory_rollout import assess,_pdf_report
+        data=self._answers()
+        data["context"]["use_case"]="Knowledge assistant - regional warehouses"
+        result=assess(data)
+        text=" ".join(p.extract_text() or "" for p in PdfReader(BytesIO(_pdf_report(result,data))).pages)
+        self.assertIn("Knowledge assistant - regional warehouses",text)
+        self.assertIn("PHASED GO",text)
+        self.assertNotIn("Automotive after-sales",text)
+        self.assertIn("premium-v2",self.source("src/page_advisory_rollout.py"))
+        self.assertIn("executive-decision-brief-v2.pdf",self.source("src/page_advisory_rollout.py"))
+
     def test_schema_enforces_rls_and_reuses_feedback_store(self):
         schema=self.source("supabase/migrations/20261114_rollout_readiness_advisor_shared_feedback.sql")
         for table in ("portfolio_advisory_rollout_access",

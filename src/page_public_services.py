@@ -145,6 +145,45 @@ SERVICES_CSS = """
 .site .advisory-access{padding:53px 0}
 }
 
+/* These rules deliberately come AFTER the desktop Advisory refinements.
+   A masked registrar frame can have a 980px layout viewport on a phone;
+   support_masked_mobile_media also adds the device-width equivalents. */
+@media(max-width:850px){
+ .site .advisory-hero-grid,
+ .site .service-section-header,
+ .site .service-contact-layout,
+ .site .advisory-access-grid,
+ .site .advisory-personal{
+   grid-template-columns:minmax(0,1fr);
+   gap:28px;
+ }
+ .site .advisory-hero-grid>*,
+ .site .advisory-access-grid>*,
+ .site .service-section-header>*,
+ .site .advisory-personal>*{min-width:0;max-width:100%}
+ .site .advisory-results,
+ .site .service-formats{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:620px){
+ .site .advisory-hero{padding:52px 0 57px}
+ .site .advisory-hero h1{font-size:clamp(35px,9.2vw,46px);line-height:1.12}
+ .site .advisory-hero-grid{gap:25px}
+ .site .advisory-hero .service-lede{font-size:16px;line-height:1.65}
+ .site .advisory-actions{display:flex;flex-direction:column;align-items:stretch;gap:12px;width:100%}
+ .site .advisory-actions .advisory-button{display:flex;width:100%;min-width:0;
+   min-height:48px;text-align:center;white-space:normal;padding:13px 16px}
+ .site .advisory-proofline{gap:7px;margin-top:24px}
+ .site .advisory-proofline span{font-size:11px;padding:8px 10px;max-width:100%}
+ .site .advisory-aside{padding:24px 22px}
+ .site .service-section-header{gap:17px}
+ .site .service-section h2{font-size:clamp(32px,8.3vw,43px)}
+ .site .service-step{min-width:0}
+ .site .service-card{padding:24px 22px}
+ .site .advisory-access{padding:50px 0}
+ .site .advisory-access h2{font-size:clamp(34px,8.5vw,45px)}
+ .site .advisory-page{overflow-wrap:break-word}
+}
+
 </style>
 """
 

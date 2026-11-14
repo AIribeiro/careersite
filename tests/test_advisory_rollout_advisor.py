@@ -16,7 +16,7 @@ class RolloutAdvisorTests(unittest.TestCase):
 
     def test_modules_and_routes_parse(self):
         for path in ("main.py","src/page_advisory_rollout.py",
-                     "src/page_advisory_feedback.py",
+                     "src/page_advisory_service_feedback.py",
                      "src/page_owner_advisory_rollout.py",
                      "src/page_advisory_portal.py",
                      "src/page_advisory_client_journey.py",

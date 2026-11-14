@@ -573,3 +573,6 @@ def render_private_scorecard(session: dict,user: dict) -> None:
         _decision_record(token,workspace,data)
     with policy:
         _policy(token,workspace,data)
+    from page_advisory_feedback import render_feedback
+    render_feedback(session,user,"scorecard","decision",str(workspace["id"]),
+                    str(workspace["request_id"]))

@@ -40,7 +40,7 @@ def _read_access(token: str, table: str) -> list[dict]:
     if table not in {"portfolio_advisory_scorecards", "portfolio_advisory_rollout_access"}:
         raise ValueError("Unsupported service entitlement")
     data = _request_json(
-        "GET", _rest_url(table + "?select=request_id,user_id,status,approved_at,revoked_at"
+        "GET", _rest_url(table + "?select=id,request_id,user_id,status,approved_at,revoked_at"
                          "&order=approved_at.desc&limit=1000"),
         token=token, timeout=15,
     )
@@ -114,7 +114,7 @@ def render_operations_overview(people: list[dict], requests: list[dict],
     due = [r for r in requests if _overdue(r)]
     open_requests = [r for r in requests if r.get("status") not in ("closed", "declined")]
     active = [r for r in requests if r.get("status") == "active"]
-    reader_only = [p for p in readers if str(p.get("user_id") or "") not in pmap]
+    reader_only = [p for p in readers if pmap.get(str(p.get("user_id") or ""), {}).get("onboarding") == "Reader only"]
 
     k = st.columns(5)
     k[0].metric("Needs reply", len(awaiting))
@@ -258,9 +258,9 @@ def render_reader_invitations(token: str, readers: list[dict],
         "Advisory professional details before using the service. No invitation email is "
         "automatically sent."
     )
-    present = {str(p.get("user_id") or "") for p in people}
     eligible = [p for p in readers if p.get("user_id")
-                and str(p["user_id"]) not in present]
+                and next((person.get("onboarding") for person in people
+                          if str(person.get("user_id")) == str(p["user_id"])), None) == "Reader only"]
     st.metric("Library members without Advisory onboarding", len(eligible))
     if not eligible:
         st.info("No reader-only memberships currently available for invitation.")

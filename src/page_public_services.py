@@ -289,6 +289,14 @@ def advisory() -> str:
    </div>
    <a href="?page=advisory-scorecard" target="_self" data-hq-event="advisory_scorecard_service">Explore the service →</a>
   </div>
+  <div class="advisory-tool-reference" data-analytics-section="advisory-rollout">
+   <div>
+    <small>Executive AI Decision Advisor · Individual approval</small>
+    <strong>Enterprise AI Rollout Readiness Advisor</strong>
+    <p>A focused, one-session assessment of business value, operational readiness, governance, adoption and scaling capability. Receive a clear executive verdict, its reasoning and three priority actions. Free for individually approved Advisory clients.</p>
+   </div>
+   <a href="?page=advisory-rollout" target="_self" data-hq-event="advisory_rollout_service">Explore the service →</a>
+  </div>
  </div>
 </section>
 

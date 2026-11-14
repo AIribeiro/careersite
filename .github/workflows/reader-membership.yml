@@ -15,6 +15,7 @@ on:
       - tests/reader_management_smoke_app.py
       - tests/test_advisory_engagement_journey.py
       - src/site_reader_navigation.py
+      - src/site_embedded_mobile.py
       - tests/test_reader_library_membership.py
       - tests/reader_navigation_smoke_app.py
       - tests/reader_navigation_browser_smoke.py

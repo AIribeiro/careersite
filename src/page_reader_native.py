@@ -294,16 +294,16 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
         st.markdown("### Continue with the complete Weekly AI edition")
         st.write(
             "Read **" + requested_title +
-            "** in full, including the editorial perspective behind this week's "
-            "enterprise AI developments. Audio is available when published. "
-            "Premium Reader access is complimentary."
+            "** in full, with the implications for enterprise AI decisions and "
+            "references to the original reporting. Audio is available when published. "
+            "Registration is free."
         )
     elif requested_title and resource_kind == "article":
         st.markdown("### Continue beyond the article preview")
         st.write(
             "Access the full perspective on **" + requested_title +
-            "**, including the business trade-offs and practical questions "
-            "behind the analysis. Premium Reader access is complimentary."
+            "**, including the evidence, business trade-offs and practical questions "
+            "behind the position. Registration is free."
         )
     elif requested_title:
         st.markdown("### Explore the complete executive briefing")
@@ -311,23 +311,23 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
             "Read **" + requested_title +
             "** beyond the public preview, including the leadership decisions "
             "and original infographic where available. "
-            "Premium Reader access is complimentary."
+            "Registration is free."
         )
     else:
         st.html("""<div class="reader-join-heading">
         <span class="reader-join-eyebrow">YOUR READER ACCESS</span>
-        <h2>Read beyond the summary.</h2>
-        <p>One account opens complete Executive AI Briefings, Premium Articles
-        and the latest Weekly AI edition. Save the perspectives relevant to
-        your work and return to your infographic downloads in your own library.</p>
+        <h2>Read the full analysis and decision frameworks.</h2>
+        <p>Register free for complete Executive AI Briefings, current articles
+        and the latest Weekly AI edition. Examine the evidence and trade-offs,
+        save relevant briefings and revisit available infographic PDFs.</p>
         </div>""")
         st.caption(
-            "Complimentary membership · No payment details · "
+            "Free registration · No payment details · "
             "Editorial updates only with your consent."
         )
 
     returning = st.radio(
-        "Reader status", ["Create my reader access", "I already have an account"],
+        "Reader status", ["Register free", "I already have an account"],
         index=1 if str(st.query_params.get("signin", "")) == "1" else 0,
         horizontal=True, label_visibility="collapsed", key="reader_native_mode",
     ) == "I already have an account"
@@ -370,7 +370,7 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
             value=False, disabled=returning,
         )
         sent = st.form_submit_button(
-            "Send my Premium Reader access link" if not returning else "Email me a sign-in link",
+            "Email my registration link · Free" if not returning else "Email me a sign-in link",
             type="primary",
         )
     st.caption("We will email a verification link. No newsletter subscription is required.")
@@ -405,8 +405,8 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
                 except (RuntimeError, ValueError, TimeoutError):
                     st.error("The code was invalid or expired. Request a new email.")
     st.caption(
-        "Your verified email keeps the library and PDF history attached to your account. "
-        "Editorial emails are separate and optional."
+        "Your verified email keeps your saved reading and infographic history with your "
+        "free account. Editorial emails require a separate, optional choice."
     )
     st.caption(f"Questions about access? {READERS_EMAIL} · [Privacy notice](?page=privacy)")
 
@@ -478,9 +478,9 @@ def _profile_url(raw: str, *, linkedin: bool = False) -> str:
 def _render_preferences(session: dict, profile: dict, user: dict) -> None:
     st.markdown("#### Your professional profile")
     st.caption(
-        "All professional fields are optional except first name. They help us "
-        "understand the audience and develop more relevant executive resources. "
-        "Your information is not shown publicly and is not a mailing-list subscription."
+        "All professional fields are optional except first name. They help me "
+        "understand the decisions and topics readers work on when choosing future "
+        "resources. Your details are not public; this is not a mailing-list subscription."
     )
     with st.form("reader_native_preferences"):
         st.markdown("**About you**")

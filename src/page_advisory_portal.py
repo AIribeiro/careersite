@@ -550,6 +550,12 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
         render_private_rollout(session, user)
     elif view == "account":
         _advisory_account_settings(session, user, profile)
+    if view in ("scorecard", "rollout"):
+        st.divider()
+        if st.button("Return to Advisory overview",
+                     key="advisory_return_" + view):
+            from page_advisory_member_experience import navigate
+            navigate("overview")
 
 
 def _advisory_account_settings(session: dict, user: dict, profile: dict) -> None:

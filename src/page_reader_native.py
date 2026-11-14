@@ -1119,7 +1119,7 @@ def _library(session: dict, user: dict) -> None:
             '<div><span>READER IDENTITY</span><strong>' + email + '</strong>'
             '<small>Verified email</small></div>'
             '<div><span>MEMBER SINCE</span><strong>' + joined + '</strong>'
-            '<small>Complimentary Premium Reader access</small></div>'
+            '<small>Free reader registration</small></div>'
             '<div><span>EDITORIAL EMAILS</span><strong>' + updates + '</strong>'
             '<small>Your preference, managed below</small></div></section>'
         )

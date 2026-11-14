@@ -449,21 +449,21 @@ def reader_header(*, staging: bool = False) -> str:
             ("03", "Your collection", "Revisit saved briefings and downloadable infographics, where available."),
         )
     else:
-        headline = "A clearer view of the AI decisions that matter."
+        headline = "The analysis behind consequential AI decisions."
         intro = (
-            "An independent reading library for executives accountable for AI "
-            "investment, governance and adoption. Explore the business choices, "
-            "trade-offs and operating conditions behind meaningful results."
+            "Register free for complete Executive AI Briefings, current articles "
+            "and the latest Weekly AI edition. Examine the evidence, trade-offs "
+            "and ownership behind decisions on investment, governance and adoption."
         )
-        context = "PREMIUM READER LIBRARY · JAIR RIBEIRO"
+        context = "PREMIUM READER LIBRARY · FREE REGISTRATION"
         benefit_heading = "WHAT YOU CAN WORK WITH"
         benefits = (
             ("01", "Decision-focused briefings",
-             "Complete executive perspectives on the decisions, risks and trade-offs leaders must own."),
+             "Read the full reasoning, decision criteria and accountability behind each briefing."),
             ("02", "Deeper editorial analysis",
-             "Premium Articles and the latest Weekly AI perspective, beyond the public summaries."),
+             "Access complete current articles and the latest Weekly AI analysis, beyond the public previews."),
             ("03", "Original decision visuals",
-             "Downloadable A4 briefing infographics, where available, to support discussion and review."),
+             "Use available A4 briefing infographics to structure a discussion or revisit a decision."),
         )
 
     from html import escape
@@ -491,7 +491,7 @@ def reader_header(*, staging: bool = False) -> str:
            'leadership, governance and adoption experience.</p>' if not is_member else '')
         + '<div class="reader-hero-actions">'
         + '<a class="reader-hero-join" href="#reader-access" data-hq-event="reader_premium_hero_access">'
-        + ('Open my library' if is_member else 'Get Premium Reader access')
+        + ('Open my library' if is_member else 'Register free · Open the library')
         + ' <span aria-hidden="true">→</span></a>'
         + f'<a class="reader-hero-link" href="{briefings}" target="_self" data-hq-event="reader_premium_hero_preview">'
         + 'Preview the Executive AI Briefings <span aria-hidden="true">→</span></a>'

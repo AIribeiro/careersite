@@ -86,7 +86,11 @@ jobs:
                 nativeScriptMarker: !!document.documentElement.hasAttribute('data-jr-native-masked-mobile'),
                 app: !!document.querySelector('[data-testid="stAppViewContainer"]'),
                 inlineScriptCount: document.querySelectorAll('script').length,
-                htmlComponentCount: document.querySelectorAll('[data-testid="stHtml"]').length
+                htmlComponentCount: document.querySelectorAll('[data-testid="stHtml"]').length,
+                nativeFixRegistered: typeof window.__jrNativeMobileFix === 'function',
+                nativeFixInScripts: [...document.querySelectorAll('script')].some(
+                  el => (el.textContent || '').includes('__jrNativeMobileFix'))
+
               })""")
               print("READER DEPLOYMENT DIAGNOSTICS:", deployment, flush=True)
               if metrics["screen"] > 620:

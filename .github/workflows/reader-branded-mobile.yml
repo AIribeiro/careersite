@@ -51,6 +51,10 @@ jobs:
                   time.sleep(3)
               if not frame_found:
                   raise RuntimeError("Branded Reader registration was not visible on an iPhone-sized browser")
+              # Native form scripts mount after the Reader footer; wait for
+              # that late lifecycle step before measuring the settled layout.
+              frame_found.wait_for_selector(".reader-shell-footer", timeout=20000)
+              frame_found.wait_for_timeout(1500)
               query = parse_qs(urlparse(frame_found.url).query)
               print("READER ROUTING:", {
                   "outer_host": urlparse(page.url).hostname,

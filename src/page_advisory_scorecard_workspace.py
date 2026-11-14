@@ -227,6 +227,24 @@ def _overview(data: dict) -> None:
                            mime="text/csv", use_container_width=False)
     else:
         st.info("Your private scorecard is empty. Add an initiative to begin.")
+    with st.expander("Worked comparison — five fictional initiatives (read-only)"):
+        examples = (
+            ("Warranty claim triage assistant",[5,4,4,3,4,4,3],"Medium","Review"),
+            ("Service knowledge assistant",[5,4,4,4,4,5,4],"Medium","Pass"),
+            ("Spare-parts demand planning",[5,5,3,2,3,3,4],"Medium","Pass"),
+            ("Automated employee screening",[2,3,3,3,2,2,1],"Low","Block"),
+            ("Management reporting assistant",[3,3,5,5,4,5,4],"High","Pass"),
+        )
+        worked = []
+        for name, scores, evidence, gate in examples:
+            ex = {"name":name,"owner":"Illustrative owner","scores":scores,
+                  "evidence":evidence,"gate":gate}
+            score,action=evaluation(ex,settings)
+            worked.append({"Example":name,"Score /100":score,
+                           "Gate":gate,"Suggested action":action})
+        st.dataframe(worked,hide_index=True,use_container_width=True)
+        st.caption("These are fictional demonstrations of the default scoring weights. "
+                   "They are never inserted into a client's private portfolio.")
 
 
 def _form_initiative(token: str, workspace: dict, data: dict) -> None:

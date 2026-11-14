@@ -41,53 +41,52 @@ def reader_invitation() -> str:
     return READER_INVITATION_CSS + """<section class="thinking-reader-invite" id="premium-reader-library"
         data-analytics-section="thinking-premium-reader-library" aria-labelledby="thinking-reader-heading">
       <div class="container">
-        <span class="thinking-reader-kicker">Premium Reader library · Complimentary access</span>
+        <span class="thinking-reader-kicker">Premium Reader Library · Free registration</span>
         <div class="thinking-reader-intro">
-          <h2 id="thinking-reader-heading">Go beyond the headline. Examine the decision.</h2>
-          <p>A short summary tells you what a piece is about. The full edition
-          explores the reasoning: what is at stake, which assumptions to challenge,
-          and what leaders need to consider before acting. That is the purpose
-          of this library.</p>
+          <h2 id="thinking-reader-heading">Read the reasoning behind the decision.</h2>
+          <p>The public summaries explain the question. Complete editions examine the
+          evidence, assumptions, trade-offs and accountability behind it.
+          Register free to read the analysis and revisit the material that is
+          relevant to your own decisions.</p>
         </div>
         <div class="thinking-reader-benefits">
           <article class="thinking-reader-benefit">
             <span>Executive AI Briefings</span>
-            <h3>Bring better questions to the table.</h3>
+            <h3>Examine the decision criteria.</h3>
             <p>Examine choices about investment, governance and adoption through
             complete briefings, decision frameworks and original infographics
             where available.</p>
           </article>
           <article class="thinking-reader-benefit">
             <span>Weekly AI</span>
-            <h3>See what deserves your attention.</h3>
+            <h3>Assess what matters this week.</h3>
             <p>A considered selection of AI developments, why they matter for
             business and the original reporting behind them. Listen to the
             narrated edition when available.</p>
           </article>
           <article class="thinking-reader-benefit">
             <span>Leadership articles</span>
-            <h3>Understand the thinking behind the position.</h3>
+            <h3>Review the assumptions and implications.</h3>
             <p>Go deeper into prioritization, accountability, governance,
             adoption and business value, including the trade-offs and practical
             questions that rarely fit in a summary.</p>
           </article>
         </div>
         <div class="thinking-reader-actionline">
-          <p><strong>Premium Reader access is currently complimentary.</strong>
-          One account gives you the full reading experience across all three
-          formats. Save useful briefings, return to available PDFs and manage
-          your profile in My Library. No payment details; editorial emails
-          are optional.</p>
+          <p><strong>Registration is free.</strong> One account provides complete
+          Executive AI Briefings, current articles and the latest Weekly AI.
+          Save relevant briefings and revisit available infographic PDFs.
+          No payment details are required; editorial emails are optional.</p>
           <div class="thinking-reader-actions">
-            <a href="?page=readers" target="_self" data-hq-event="thinking_premium_reader_access">Access the reader library</a>
+            <a href="?page=readers" target="_self" data-hq-event="thinking_premium_reader_access">Open the library · Free</a>
             <a href="?page=briefings" target="_self" data-hq-event="thinking_premium_reader_explore">Browse the briefings</a>
           </div>
         </div>
         <div class="thinking-reader-steps">
           <strong>Access at a glance</strong>
           <p>Explore public summaries before deciding what deserves a closer read.
-          Your complimentary Premium Reader account opens complete Executive AI
-          Briefings, Premium Articles and the latest Weekly AI edition.
+          Free registration opens complete Executive AI Briefings,
+          current Premium Articles and the latest Weekly AI edition.
           Open-access editions remain available to everyone.</p>
         </div>
       </div>

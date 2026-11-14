@@ -28,4 +28,8 @@ st.html("""<section class="site">
   <a id="smoke-briefing-b" href="?page=briefing&article=ai-governance-explained-to-executives" target="_self">Briefing B</a>
   <a id="smoke-catalog" href="?page=briefings" target="_self">All Briefings</a>
   <a id="smoke-library" href="?page=readers" target="_self">My Library</a>
+  <a id="smoke-advisory-account" href="?page=advisory-access&amp;view=scorecard" target="_self">Advisory account</a>
+  <a id="smoke-branded-advisory" href="https://advisory.jairribeiro.com/?page=advisory-access&amp;view=rollout" target="_self">Branded Advisory</a>
+  <a id="smoke-rollout-public" href="?page=advisory-rollout" target="_self">Public Rollout</a>
+  <a id="smoke-branded-home" href="https://jairribeiro.com/" target="_self">Branded home</a>
 </section>""")

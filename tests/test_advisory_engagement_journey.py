@@ -123,8 +123,16 @@ class AdvisoryJourneyTests(unittest.TestCase):
         source=(ROOT/"src/page_advisory_portal.py").read_text(encoding="utf-8")
         account=source.split("def _advisory_account(",1)[1].split(
             "\ndef render_advisory_portal",1)[0]
-        self.assertLess(account.index("render_advisory_client_journey("),
-                        account.index('st.expander("Your professional profile'))
+        # The dedicated member navigation now separates requests from account
+        # settings. Preserve that structure rather than the retired expander.
+        self.assertIn("member_navigation()", account)
+        self.assertIn("render_requests(session, user, profile)", account)
+        self.assertIn("_advisory_account_settings(session, user, profile)", account)
+        self.assertLess(account.index('if view == "overview":'),
+                        account.index('elif view == "account":'))
+        member=(ROOT/"src/page_advisory_member_experience.py").read_text(encoding="utf-8")
+        self.assertIn("_request_form(token, uid, profile)", member)
+        self.assertIn('"account": "Account"', member)
         client=(ROOT/"src/page_advisory_client_journey.py").read_text(encoding="utf-8")
         self.assertIn("What decision do you need help with?",client)
         self.assertIn("Send my advisory request",client)

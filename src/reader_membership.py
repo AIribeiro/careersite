@@ -493,14 +493,35 @@ def _pdf_for_article(slug: str) -> bytes | None:
 
 
 def has_briefing_pdf(slug: str) -> bool:
-    """Only advertise PDFs that are actually present in the published bundle."""
+    """Advertise a PDF only for the current published source-locked edition.
+
+    A manifest's presence alone is insufficient: verify the actual PDF bytes
+    and the article fingerprint. Bundles missing from a lagging Streamlit
+    checkout can be recovered from the canonical GitHub assets by the shared
+    renderer, with the same checksum checks as local files.
+    """
     slug = _clean_slug(slug)
+    if not slug:
+        return False
     if slug in (ROI_SLUG, AUTHORITY_SLUG):
-        return True
-    from briefing_approved_asset_renderer import load_bundle, ArtworkError
+        return True  # Preserved legacy source-verified delivery paths.
+    from briefing_approved_asset_renderer import (
+        load_bundle, validate_bundle, ArtworkError,
+    )
+    from briefing_infographic_engine import source_fingerprint
+    from site_cms import fetch_public_article
     try:
-        return bool(slug and load_bundle(slug))
-    except ArtworkError:
+        article = fetch_public_article(slug)
+        if not article or str(article.status) != "published":
+            return False
+        if str(article.kind).strip().casefold() != "executive briefing":
+            return False
+        bundle = load_bundle(slug)
+        if not bundle or bundle["article_fingerprint"] != source_fingerprint(article):
+            return False
+        _, _, pdf = validate_bundle(bundle)
+        return bool(pdf and pdf.startswith(b"%PDF-"))
+    except (ArtworkError, RuntimeError, ValueError, TimeoutError, OSError, KeyError):
         return False
 
 

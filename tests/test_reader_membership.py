@@ -119,7 +119,7 @@ class ReaderMembershipContractTests(unittest.TestCase):
         shell = self.source("src/site_reader_shell.py")
         native = self.source("src/page_reader_native.py")
         for phrase in (
-            "A clearer view of the AI decisions that matter.",
+            "The analysis behind consequential AI decisions.",
             "Decision-focused briefings",
             "Deeper editorial analysis",
             "Original decision visuals",
@@ -132,12 +132,12 @@ class ReaderMembershipContractTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, shell)
         self.assertNotIn("Your executive reading library.", shell)
-        self.assertIn("Read beyond the summary.", native)
-        self.assertIn("Save the perspectives relevant to", native)
-        self.assertIn("your infographic downloads", native)
+        self.assertIn("Read the full analysis and decision frameworks.", native)
+        self.assertIn("save relevant briefings", native)
+        self.assertIn("revisit available infographic PDFs", native)
         self.assertIn("Editorial updates only with your consent.", native)
         self.assertIn("value=False, disabled=returning", native)
-        self.assertIn("Send my Premium Reader access link", native)
+        self.assertIn("Email my registration link · Free", native)
         self.assertIn("Email me a sign-in link", native)
         self.assertIn('href="#reader-access"', shell)
         self.assertIn('id="reader-access"', native)

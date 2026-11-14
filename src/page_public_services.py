@@ -145,43 +145,45 @@ SERVICES_CSS = """
 .site .advisory-access{padding:53px 0}
 }
 
-/* These rules deliberately come AFTER the desktop Advisory refinements.
-   A masked registrar frame can have a 980px layout viewport on a phone;
-   support_masked_mobile_media also adds the device-width equivalents. */
+/* Minimal additions: original premium layout and desktop typography are intact.
+   Only ensure the original intended mobile grid wins over its desktop override. */
 @media(max-width:850px){
- .site .advisory-hero-grid,
- .site .service-section-header,
- .site .service-contact-layout,
- .site .advisory-access-grid,
- .site .advisory-personal{
-   grid-template-columns:minmax(0,1fr);
-   gap:28px;
- }
- .site .advisory-hero-grid>*,
- .site .advisory-access-grid>*,
- .site .service-section-header>*,
- .site .advisory-personal>*{min-width:0;max-width:100%}
- .site .advisory-results,
- .site .service-formats{grid-template-columns:minmax(0,1fr)}
+.site .advisory-hero-grid{grid-template-columns:minmax(0,1fr);gap:29px}
+.site .advisory-hero-grid>*{min-width:0}
 }
 @media(max-width:620px){
- .site .advisory-hero{padding:52px 0 57px}
- .site .advisory-hero h1{font-size:clamp(35px,9.2vw,46px);line-height:1.12}
- .site .advisory-hero-grid{gap:25px}
- .site .advisory-hero .service-lede{font-size:16px;line-height:1.65}
- .site .advisory-actions{display:flex;flex-direction:column;align-items:stretch;gap:12px;width:100%}
- .site .advisory-actions .advisory-button{display:flex;width:100%;min-width:0;
-   min-height:48px;text-align:center;white-space:normal;padding:13px 16px}
- .site .advisory-proofline{gap:7px;margin-top:24px}
- .site .advisory-proofline span{font-size:11px;padding:8px 10px;max-width:100%}
- .site .advisory-aside{padding:24px 22px}
- .site .service-section-header{gap:17px}
- .site .service-section h2{font-size:clamp(32px,8.3vw,43px)}
- .site .service-step{min-width:0}
- .site .service-card{padding:24px 22px}
- .site .advisory-access{padding:50px 0}
- .site .advisory-access h2{font-size:clamp(34px,8.5vw,45px)}
- .site .advisory-page{overflow-wrap:break-word}
+.site .advisory-hero h1{font-size:clamp(42px,11vw,60px)}
+}
+/* A quiet editorial reference beneath the three established engagement formats. */
+.site .advisory-tool-reference{
+ display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:17px 28px;margin-top:23px;padding:22px 25px;
+ background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.17)
+}
+.site .advisory-tool-reference>div{flex:1 1 360px;min-width:0}
+.site .advisory-tool-reference small{
+ display:block;color:#e0ab86;font:800 10px/1.4 Arial,sans-serif;
+ text-transform:uppercase;letter-spacing:.13em
+}
+.site .advisory-tool-reference strong{
+ display:block;margin-top:9px;color:#f8f5ef;
+ font:500 22px/1.2 Georgia,serif
+}
+.site .advisory-tool-reference p{
+ max-width:780px;margin:9px 0 0;color:#c2ceda;
+ font:13px/1.65 Arial,sans-serif
+}
+.site .advisory-tool-reference>a{
+ flex:0 0 auto;color:#f0b994!important;
+ font:800 12px/1.4 Arial,sans-serif;
+ text-decoration:none!important;border-bottom:1px solid #bb8662;
+ padding:9px 0
+}
+.site .advisory-tool-reference>a:focus-visible{outline:2px solid #e9b48b;outline-offset:4px}
+@media(max-width:620px){
+.site .advisory-tool-reference{padding:19px 20px;margin-top:17px;gap:9px}
+.site .advisory-tool-reference strong{font-size:20px}
+.site .advisory-tool-reference>a{min-height:40px;display:inline-flex;align-items:center}
 }
 
 </style>
@@ -279,18 +281,14 @@ def advisory() -> str:
    <article class="service-format"><small>02 / Leadership working engagement</small><h3>Executive working sessions</h3><p>Work with sponsors and accountable leaders to define priorities, decision rights, operating measures and a practical route forward. Typical result: a decision record and agreed actions.</p></article>
    <article class="service-format"><small>03 / Selective follow-up</small><h3>Next-step review</h3><p>Where useful, revisit the decision record, remaining evidence gaps and named owners after an initial discussion. Follow-up is limited to the agreed question, not ongoing consulting support.</p></article>
   </div>
- </div>
-</section>
-
-<section class="service-section service-section--white" id="advisory-scorecard-service" data-analytics-section="advisory-scorecard">
- <div class="container">
-  <p class="service-eyebrow">On-demand service / Individually approved</p>
-  <div class="service-section-header"><h2>AI Portfolio Prioritization Scorecard.</h2>
-   <p>Evaluate competing AI initiatives against strategic fit, value, feasibility, capacity, data readiness, adoption and controls. An online working scorecard supports a defensible selection, with a recorded executive decision and explicit guardrails.</p>
+  <div class="advisory-tool-reference" data-analytics-section="advisory-scorecard">
+   <div>
+    <small>First on-demand advisory resource · Individual approval</small>
+    <strong>AI Portfolio Prioritization Scorecard</strong>
+    <p>Compare AI initiatives against value, capacity, readiness and control conditions. The private workspace is free for clients individually approved for a pro-bono Advisory engagement; registration alone does not grant access.</p>
+   </div>
+   <a href="?page=advisory-scorecard" target="_self" data-hq-event="advisory_scorecard_service">Explore the service →</a>
   </div>
-  <p class="service-intro">Available without charge only to registered Advisory clients individually approved for this service as part of an agreed pro-bono engagement. Registration alone does not provide access.</p>
-  <div class="advisory-actions"><a class="advisory-button" href="?page=advisory-scorecard" target="_self" data-hq-event="advisory_scorecard_service">Explore the Scorecard service →</a>
-  <a class="advisory-button advisory-button--outline" style="color:#172e46!important;border-color:#8f9da7" href="?page=advisory-access" target="_self">Access my Advisory account →</a></div>
  </div>
 </section>
 

@@ -80,7 +80,7 @@ class AdvisoryServiceFeedbackTests(unittest.TestCase):
         code=self.source("src/page_advisory_service_feedback.py")
         self.assertIn("if rating is not None and rating <= 3:",code)
         self.assertIn("Send optional feedback",code)
-        self.assertIn("can skip this",code)
+        self.assertIn("You can skip this",code)
 
     def test_recommendation_and_download_are_never_gated_by_feedback(self):
         code=self.source("src/page_advisory_scorecard_workspace.py")

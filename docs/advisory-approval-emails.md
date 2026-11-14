@@ -1,42 +1,36 @@
-# Advisory service approvals and client notifications
+# Advisory service approval and Supabase Auth email access
 
-Owner workspace: `https://jairribeiro.com/?page=analytics&workspace=advisory`
+Owner workspace: https://jairribeiro.com/?page=analytics&workspace=advisory
 
-## One-click approval
-In **Requests & replies** or **Access & invitations**, select a real, open Advisory request and click **Approve access & email client** under the requested service. This immediately grants the individual Scorecard or Rollout entitlement without changing the advisory relationship stage. Closed or declined requests must first be reopened.
+## Current approval process
 
-Approvals are recorded in the corresponding service audit and in the private `portfolio_advisory_approval_notifications` table. A new approval after revocation creates a new email event. Repeating approval on an already active entitlement does not send a duplicate notice. Revocation preserves earlier client reports and immediately blocks further access.
+Select an existing Advisory request under **Requests & replies** or **Access & invitations** and click **Approve access & send Supabase email**. This immediately grants the selected service without changing the private relationship stage. The service must be attached to an open request and a verified, active Advisory member.
 
-## One-time email provider setup
+The approval generates a private row in `portfolio_advisory_approval_notifications`. Client access uses the existing password-verified Advisory account and per-service permission. Repeated approval on an already-active grant does not create a duplicate notification. Revocation preserves client reports and blocks access.
 
-The site application must have **one** server-only transactional email credential. Configure in the deployed Streamlit app **Settings → Secrets** (or an equivalent protected runtime environment); **never** put the credential in GitHub, code, a URL, or the browser.
+## What email is actually sent
 
-Preferred:
+Both Library and Advisory signups use Supabase Auth `POST /auth/v1/otp`, with their preconfigured authentication mail templates. Password recovery uses `POST /auth/v1/recover`. The approval workflow now invokes **that same Supabase Auth OTP/magic-link endpoint** for the *existing verified* Advisory account, with `create_user: false` and the same configured Advisory callback:
 
-```toml
-RESEND_API_KEY = "<private Resend API key>"
-```
+`https://advisory.jairribeiro.com/?page=advisory-access`
 
-Supported SMTP alternative (with verified `jairribeiro.com` sender domain):
+The email is an **account access / sign-in email** issued by Supabase Auth. It is **not a custom service-approval email**, because Supabase Auth does not expose a general-purpose transactional email endpoint. The recipient sees the exact approved Scorecard or Rollout service on their Advisory account after password sign-in. Do not describe the Auth email as a custom "Scorecard approved" email or promise an approval-specific subject.
 
-```toml
-RESEND_SMTP_PASSWORD = "<private Resend SMTP API key>"
-```
+There is **no separate Resend/SMTP credential required in Streamlit**, and the previous warning demanding `RESEND_API_KEY` has been removed. Supabase Auth uses whatever email configuration already supports Library and Advisory registration. The existing Auth sender/template and rate limits apply.
 
-Optional SMTP overrides are `RESEND_SMTP_USERNAME`, `RESEND_SMTP_HOST`, `RESEND_SMTP_PORT`, and generic `SMTP_USERNAME`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_PASSWORD`. The default SMTP username is `resend`, host `smtp.resend.com`, port `465`. The sender is `advisory@jairribeiro.com`; the reply-to address is the same.
+## Auditable delivery state
 
-The Resend API uses an `Idempotency-Key` header per database notification. The response state **sent** means the mail provider accepted the email request; it is not proof that it reached the recipient's inbox. SMTP acceptance is labeled similarly. These are transactional emails only; Reader marketing consent is not changed.
+- `sent`: Supabase Auth accepted the request to send its sign-in email; **inbox delivery is not verified**.
+- `failed`: Supabase Auth rejected the request, or request transport failed. The service entitlement remains active; owner can retry from the same screen.
+- `sending`: a send attempt has already been claimed and is not retried concurrently.
+- `pending`: the grant was approved, but sending has not yet been attempted.
 
-If no mail credentials are available, the service grant still works but the panel **explicitly says the email was not sent**, records a retryable failed notification, and exposes **Retry approval email** after configuration. Retrying does not create a new access grant. Never claim client delivery based on a queued record.
+A single approval event is re-used for retries. Supabase Auth can rate-limit repeated OTP requests; do not automatically retry in a tight loop. The private email queue never contains an auth token or password. Auth builds the short-lived magic link securely. There is no change to Reader editorial consent.
 
-## Operations
-- **Service approved / provider accepted:** permission active, notification `sent`, provider ID retained.
-- **Service approved / mail failed:** permission active, notification `failed`, use Retry.
-- **Service approved / sending:** permission active, notification temporarily `sending`; claim is leased to one sender for 10 minutes.
-- **Service revoked:** permission disabled, previous saved work remains.
-- **Request closed / declined:** new approval is blocked; existing service access is also blocked by client RLS.
+## If a service-specific branded email is needed
 
-Admin RPCs check the verified owner identity against Supabase Auth. Public and anonymous roles cannot call the privileged approval or email-claim functions. The notification table is owner-private via RLS. Never include a client's business decision details in the access email.
+A custom message with its own subject and service name requires a **separate transactional sender**, usually Supabase Edge Functions invoking a mail provider through server-side credentials. Even when deployed on Supabase, this is not provided by the Auth OTP endpoint. Do not reuse password recovery or a misleading login template to simulate an approval-specific message.
 
 ## Verification
-Regression: `python -m unittest discover -s tests -p 'test_advisory_one_click_approval.py' -v`; full owner regression is run by `.github/workflows/advisory-owner-operations.yml`. Confirm a provider accepted one real approval email before treating production email delivery as operational.
+
+Run `python -m unittest discover -s tests -p 'test_advisory_one_click_approval.py' -v` and the owner regression workflow. Use the same verified account as the existing registration smoke test; inspect the saved notification and Supabase Auth logs after trying a retry. Until a live attempt, status is only deployment-ready, not delivery-confirmed.

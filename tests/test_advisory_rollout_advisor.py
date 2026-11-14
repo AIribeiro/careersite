@@ -168,6 +168,44 @@ class RolloutAdvisorTests(unittest.TestCase):
         self.assertIn("premium-v2",self.source("src/page_advisory_rollout.py"))
         self.assertIn("executive-decision-brief-v2.pdf",self.source("src/page_advisory_rollout.py"))
 
+    def test_executive_action_cards_are_compact_and_decision_led(self):
+        from page_advisory_rollout import assess
+        from page_rollout_action_ui import action_plan_html
+        raw=self._answers()
+        raw["context"]["criticality"]="High"
+        raw["context"]["scope"]="Enterprise-wide"
+        raw["responses"].update({"oversight":2,"regulation":2,"exit":1})
+        verdict=assess(raw)
+        html=action_plan_html(raw,verdict)
+        self.assertEqual(html.count('<article class="rl-card'),3)
+        self.assertEqual(html.count('<details class="rl-details">'),3)
+        self.assertIn("Three priorities. Clear release conditions.",html)
+        self.assertIn("What changes the decision",html)
+        self.assertIn("Accountable role",html)
+        self.assertIn("Suggested timing",html)
+        self.assertIn("02</strong><span>Critical gates",html)
+        self.assertIn("Formalize human oversight",html)
+        self.assertIn("Confirm regulatory and liability readiness",html)
+        self.assertIn("Approve release, stop and rollback thresholds",html)
+        self.assertNotIn("Are human oversight and escalation responsibilities explicit?",html)
+        self.assertNotIn("<script",html)
+
+    def test_action_cards_are_responsive_and_escape_dynamic_content(self):
+        from page_advisory_rollout import assess
+        from page_rollout_action_ui import action_plan_html,_safe
+        raw=self._answers()
+        html=action_plan_html(raw,assess(raw))
+        self.assertIn("@media(max-width:720px)",html)
+        self.assertIn("grid-template-columns:1fr",html)
+        self.assertIn("Next executive decision",html)
+        self.assertIn("not confirmed client commitments",html)
+        self.assertEqual(_safe('<img src=x onerror="boom">'),
+                         '&lt;img src=x onerror=&quot;boom&quot;&gt;')
+        self.assertIn("render_action_plan(data, result)",
+                      self.source("src/page_advisory_rollout.py"))
+        self.assertNotIn('st.warning("**Critical conditions:**',
+                         self.source("src/page_advisory_rollout.py"))
+
     def test_schema_enforces_rls_and_reuses_feedback_store(self):
         schema=self.source("supabase/migrations/20261114_rollout_readiness_advisor_shared_feedback.sql")
         for table in ("portfolio_advisory_rollout_access",

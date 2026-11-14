@@ -92,7 +92,7 @@ def member_navigation() -> str:
     st.pills(
         "Advisory sections", VIEWS,
         format_func=lambda v: VIEW_LABELS[v],
-        selection_mode="single", key="advisory_member_navigation",
+        selection_mode="single", required=True, key="advisory_member_navigation",
         on_change=_nav_changed, label_visibility="collapsed", wrap=False,
         width="stretch",
     )
@@ -148,6 +148,19 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
         "each in its own private workspace.",
     )
     requests = _load_requests(token, uid)
+    # Retrieve actual entitlements, not inferred approvals from account status.
+    try:
+        from page_advisory_scorecard_workspace import _read_workspaces
+        scorecard_status = ("Approved workspace" if _read_workspaces(token, uid)
+                            else "Individual approval required")
+    except (RuntimeError, ValueError, TimeoutError, KeyError):
+        scorecard_status = "Access status unavailable"
+    try:
+        from page_advisory_rollout import _entitlements
+        rollout_status = ("Access approved" if _entitlements(token, uid)
+                          else "Individual approval required")
+    except (RuntimeError, ValueError, TimeoutError, KeyError):
+        rollout_status = "Access status unavailable"
     current = next(
         (r for r in requests if str(r.get("status")) not in CLOSED), None
     ) if requests is not None else None
@@ -192,8 +205,8 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             st.caption("02 · AI INVESTMENT DECISIONS")
             st.markdown("#### Portfolio Scorecard")
             st.write("Compare competing initiatives and record investment decisions.")
-            st.caption("Individually approved private workspace")
-            if st.button("Open AI Scorecard", key="overview_scorecard",
+            st.caption(scorecard_status)
+            if st.button("Open Scorecard workspace", key="overview_scorecard",
                          use_container_width=True):
                 navigate("scorecard")
     with c:
@@ -201,7 +214,7 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             st.caption("03 · AI ADOPTION & SCALE")
             st.markdown("#### Rollout Readiness Advisor")
             st.write("Assess rollout conditions and receive an executive decision brief.")
-            st.caption("Single-session service · Individual approval")
+            st.caption(rollout_status + " · Single-session service")
             if st.button("Open Rollout Advisor", key="overview_rollout",
                          use_container_width=True):
                 navigate("rollout")
@@ -261,6 +274,12 @@ def render_requests(session: dict, user: dict, profile: dict) -> None:
                     navigate("messages", str(request["id"]))
 
 
+def _conversation_changed() -> None:
+    selected = st.session_state.get("advisory_member_conversation")
+    if selected:
+        st.query_params["request"] = str(selected)
+
+
 def render_messages(session: dict, user: dict) -> None:
     section_heading(
         "PRIVATE CORRESPONDENCE", "Your conversations",
@@ -280,6 +299,8 @@ def render_messages(session: dict, user: dict) -> None:
     ids = [str(r["id"]) for r in requests]
     request_id = str(st.query_params.get("request") or "")
     selected_index = ids.index(request_id) if request_id in ids else 0
+    if st.session_state.get("advisory_member_conversation") != ids[selected_index]:
+        st.session_state["advisory_member_conversation"] = ids[selected_index]
     selected = st.selectbox(
         "Conversation", ids,
         index=selected_index,
@@ -287,7 +308,7 @@ def render_messages(session: dict, user: dict) -> None:
             (str(r.get("title") or "Advisory request") + " · " + _status(r)[0]
              for r in requests if str(r["id"]) == rid), "Advisory request"
         ),
-        key="advisory_member_conversation",
+        key="advisory_member_conversation", on_change=_conversation_changed,
     )
     target = next((r for r in requests if str(r["id"]) == selected), None)
     if target:

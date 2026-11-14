@@ -26,6 +26,21 @@ class ScorecardAccessRequestTests(TestCase):
         self.assertIn('"Submit access request"',client)
         self.assertNotIn("portfolio_advisory_scorecard_owner_action_v1",client)
 
+    def test_member_sees_service_details_and_page_link_before_request(self):
+        source=(ROOT/"src/page_advisory_scorecard_workspace.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("which initiatives to advance, test, hold ",source)
+        self.assertIn("Compare opportunities:",source)
+        self.assertIn("Test portfolio constraints:",source)
+        self.assertIn("Record executive decisions:",source)
+        self.assertIn("https://jairribeiro.com/?page=advisory-scorecard",source)
+        self.assertIn("Explore the full Scorecard service",source)
+        self.assertLess(
+            source.index("Explore the full Scorecard service"),
+            source.index("render_scorecard_access_request(token, uid)")
+        )
+
     def test_existing_engagement_receives_a_message_not_duplicate_request(self):
         from page_advisory_scorecard_requests import submit_scorecard_access
         current={"id":"engagement-one","status":"active","title":"Existing advisory discussion"}

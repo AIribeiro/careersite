@@ -452,7 +452,7 @@ def advisory_rollout() -> str:
  <h1>Enterprise AI Rollout Readiness Advisor.</h1>
  <p class="sc-lead">Your pilot works. Is your organization actually ready to scale it?</p>
  <p>Complete a focused readiness assessment and receive a clear executive position: proceed in phases, expand conditionally, test further or pause. The recommendation identifies critical constraints and your three highest-priority next actions.</p>
- <div class="sc-actions"><a class="sc-btn" href="?page=advisory-access" target="_self">Request individual access →</a>
+ <div class="sc-actions"><a class="sc-btn" href="?page=advisory-access&amp;view=rollout" target="_self">Request individual access →</a>
  <a class="sc-btn alt" href="#rollout-method">See the assessment method</a></div>
  <p style="font-size:13px;margin-top:19px">No payment required. Access is individually approved for selected Advisory clients; registration alone does not grant this service.</p>
 </div></section>
@@ -485,7 +485,7 @@ def advisory_rollout() -> str:
  <h2>One assessment. One clear perspective.</h2>
  <p>Answer 18 structured questions in approximately 8–12 minutes, then receive your decision brief. Assessment responses and reports are private to the individually approved client and the Advisory owner. The experience requires no recurring updates.</p>
  <p class="sc-note">This service is a decision aid based on self-reported information, not an independent audit, deployment authorization or regulatory certification. No confidential operational documents are required.</p>
- <div class="sc-actions"><a class="sc-btn" href="?page=advisory-access" target="_self">Open Advisory account →</a>
+ <div class="sc-actions"><a class="sc-btn" href="?page=advisory-access&amp;view=rollout" target="_self">Open Advisory account →</a>
  <a class="sc-btn light" href="?page=advisory" target="_self">Return to Executive Advisory →</a></div>
 </section>
 </main>{footer()}'''

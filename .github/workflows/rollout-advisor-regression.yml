@@ -1,0 +1,45 @@
+name: Rollout Decision Advisor regression
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "main.py"
+      - "src/page_advisory_rollout.py"
+      - "src/page_advisory_feedback.py"
+      - "src/page_owner_advisory_rollout.py"
+      - "src/page_owner_advisory_management.py"
+      - "src/page_owner_advisory_requests.py"
+      - "src/page_advisory_client_journey.py"
+      - "src/page_advisory_portal.py"
+      - "src/page_public_services.py"
+      - "src/page_advisory_scorecard_workspace.py"
+      - "supabase/migrations/20261114_rollout_decision_advisor_feedback.sql"
+      - "tests/test_advisory_rollout_advisor.py"
+      - ".github/workflows/rollout-advisor-regression.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  advisor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install pinned requirements
+        run: pip install -r requirements.txt
+      - name: Verify syntax and deterministic advice
+        run: |
+          python -m py_compile main.py src/page_advisory_rollout.py src/page_advisory_feedback.py src/page_owner_advisory_rollout.py
+          python -m unittest discover -s tests -p 'test_advisory_rollout_advisor.py' -v
+          python -m unittest discover -s tests -p 'test_advisory_scorecard_service.py' -v
+          python -m unittest discover -s tests -p 'test_advisory_engagement_journey.py' -v

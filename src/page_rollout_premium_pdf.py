@@ -182,7 +182,7 @@ def _base(pdf: FPDF, page: int, is_demo: bool) -> None:
     _single(pdf,16,283,"jairribeiro.com  |  Private Executive Advisory",7.4,False,MUTED)
     _single(pdf,174,283,f"{page} / 2",7.4,True,MUTED)
     if is_demo:
-        _single(pdf,16,290,"SYNTHETIC OWNER QA - NOT CLIENT EVIDENCE",7,True,ALERT)
+        _single(pdf,16,290,"SYNTHETIC TEST DATA - NOT VERIFIED",7,True,ALERT)
 
 
 def _section(pdf: FPDF, x: float, y: float, title: str):

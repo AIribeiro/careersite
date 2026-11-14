@@ -172,7 +172,7 @@ class ArticleAccessTests(unittest.TestCase):
         self.assertIn("Public executive summary", html)
         self.assertIn("Business capacity belongs in the investment decision", html)
         self.assertIn("Leaders approving AI must test", html)
-        self.assertIn("Premium Reader access includes the full article", html)
+        self.assertIn("Free registration gives you the complete article", html)
         self.assertNotIn("once a newer Article has been published", html)
         self.assertNotIn("seven days", html.lower())
         self.assertNotIn("Open to everyone from", html)

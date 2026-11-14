@@ -9,6 +9,9 @@ from typing import Any
 import unicodedata
 from fpdf import FPDF
 
+REPORT_VERSION = "v2_20261115"
+REPORT_EDITION = "Executive Decision Brief | Edition 2"
+
 NAVY = (13,31,50)
 NAVY2 = (26,51,72)
 COPPER = (188,126,86)
@@ -318,7 +321,7 @@ def build_executive_pdf(decision: dict) -> bytes:
     pdf.alias_nb_pages()
     pdf.add_page()
 
-    _label(pdf,"BOARD / EXECUTIVE DECISION BRIEF",size=7.5)
+    _label(pdf,"BOARD / EXECUTIVE DECISION BRIEF | EDITION 2",size=7.5)
     pdf.set_font("Helvetica","B",22)
     pdf.set_text_color(*NAVY)
     pdf.set_x(LEFT)

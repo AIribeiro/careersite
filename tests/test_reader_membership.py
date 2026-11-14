@@ -30,7 +30,7 @@ class ReaderMembershipContractTests(unittest.TestCase):
             launcher,
         )
         self.assertIn("https://jairribeiro-reader-test.streamlit.app", launcher)
-        self.assertIn('target = _host_origin() + "/?page=readers"', native)
+        self.assertIn('target = _callback_origin(destination) + "/?page=" + destination', native)
         self.assertIn('urlencode({"redirect_to": target})', native)
         self.assertNotIn("localhost:3000", native)
 
@@ -162,9 +162,9 @@ class ReaderMembershipContractTests(unittest.TestCase):
         native = self.source("src/page_reader_native.py")
         self.assertIn('st.query_params.get("token_hash"', native)
         self.assertIn('st.query_params.pop("token_hash", None)', native)
-        self.assertIn('"token_hash": token, "type": "email"', native)
-        self.assertIn('"/?page=readers"', native)
-        self.assertIn('"https://" + parts.hostname', native)
+        self.assertIn('"token_hash": token, "type": auth_type', native)
+        self.assertIn('BRANDED_PREMIUM_ORIGIN = "https://jairribeiro.com"', native)
+        self.assertIn('ADVISORY_CALLBACK_ORIGIN = "https://advisory.jairribeiro.com"', native)
         self.assertNotIn("st.write(token)", native)
         self.assertNotIn("st.session_state['service_role']", native)
 
@@ -188,7 +188,7 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertIn("render_briefing_access_dialog", self.source("main.py"))
         self.assertIn('"access"', self.source("src/page_reader_native.py"))
         self.assertIn('render_public_briefing_preview', self.source("src/site_cms.py"))
-        self.assertIn('get full briefing', self.source("src/briefing_reader_preview.py").lower())
+        self.assertIn('access the full briefing · free', self.source("src/briefing_reader_preview.py").lower())
 
 
     def test_reader_catalog_is_owner_only(self):

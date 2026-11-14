@@ -98,18 +98,20 @@ class RolloutAdvisorTests(unittest.TestCase):
             self.assertIn("portfolio_advisory_rollout_assess_v1",api.call_args.args[1])
             self.assertEqual(api.call_args.kwargs["payload"]["p_request_id"],"request-1")
 
-    def test_feedback_is_optional_owner_only_and_staged(self):
-        from page_advisory_feedback import _submit,PROMPTS
-        self.assertIn(("rollout","recommendation"),PROMPTS)
-        self.assertIn(("rollout","download"),PROMPTS)
-        self.assertIn(("advisory","conversation"),PROMPTS)
-        with patch("page_advisory_feedback._request_json",return_value=[{"id":"feedback"}]) as api:
-            _submit("token","user-1","rollout","recommendation",
-                    "assessment-1","request-1",5,"Useful")
-            self.assertEqual(api.call_args.kwargs["payload"]["rating"],5)
-            self.assertEqual(api.call_args.kwargs["payload"]["interaction_key"],"assessment-1")
+    def test_unified_feedback_is_optional_and_permission_checked(self):
+        from page_advisory_service_feedback import submit_feedback,ROLLOUT_SERVICE,STAGE_QUESTIONS
+        self.assertIn("executive_recommendation",STAGE_QUESTIONS)
+        with patch("page_advisory_service_feedback._request_json",
+                   return_value={"status":"recorded","id":"feedback"}) as api:
+            self.assertEqual(submit_feedback("token",ROLLOUT_SERVICE,
+                             "executive_recommendation",5,comment="Useful",
+                             request_id="request-1"),"recorded")
+            self.assertIn("portfolio_advisory_rollout_feedback_submit_v1",
+                          api.call_args.args[1])
+            self.assertEqual(api.call_args.kwargs["payload"]["p_rating"],5)
         with self.assertRaises(ValueError):
-            _submit("token","user","rollout","recommendation","a",None,6,"")
+            submit_feedback("token",ROLLOUT_SERVICE,"executive_recommendation",6,
+                            request_id="request-1")
 
     def test_pdf_download_not_gated_by_rating(self):
         from page_advisory_rollout import assess,_pdf_report
@@ -119,17 +121,22 @@ class RolloutAdvisorTests(unittest.TestCase):
         self.assertIn("Download executive decision brief",self.source("src/page_advisory_rollout.py"))
         self.assertNotIn("if rating:",self.source("src/page_advisory_rollout.py"))
 
-    def test_schema_enforces_rls_and_no_unapproved_access(self):
-        schema=self.source("supabase/migrations/20261114_rollout_decision_advisor_feedback.sql")
-        for t in ("portfolio_advisory_rollout_access",
-                  "portfolio_advisory_rollout_assessments",
-                  "portfolio_advisory_rollout_audit","portfolio_advisory_feedback"):
-            self.assertIn("alter table public."+t+" enable row level security",schema)
+    def test_schema_enforces_rls_and_reuses_feedback_store(self):
+        schema=self.source("supabase/migrations/20261114_rollout_readiness_advisor_shared_feedback.sql")
+        for table in ("portfolio_advisory_rollout_access",
+                      "portfolio_advisory_rollout_assessments",
+                      "portfolio_advisory_rollout_audit"):
+            self.assertIn("alter table public."+table+" enable row level security",schema)
+        self.assertNotIn("create table if not exists public.portfolio_advisory_feedback",schema)
+        self.assertIn("portfolio_advisory_interaction_feedback",schema)
         self.assertIn("portfolio_advisory_password_session_v1()",schema)
         self.assertIn("p.account_status='active'",schema)
         self.assertIn("r.status in ('active','completed')",schema)
         self.assertIn("portfolio_advisory_rollout_owner_action_v1",schema)
         self.assertIn("portfolio_advisory_rollout_assess_v1",schema)
+        self.assertIn("portfolio_advisory_rollout_feedback_submit_v1",schema)
+        self.assertIn("grant execute",schema)
+
 
 if __name__=="__main__":
     unittest.main()

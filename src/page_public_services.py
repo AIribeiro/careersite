@@ -285,7 +285,7 @@ def advisory() -> str:
    <div>
     <small>First on-demand advisory resource · Individual approval</small>
     <strong>AI Portfolio Prioritization Scorecard</strong>
-    <p>Compare AI initiatives against value, capacity, readiness and control conditions. The private workspace is free for clients individually approved for a pro-bono Advisory engagement; registration alone does not grant access.</p>
+    <p>Compare AI initiatives against value, capacity, readiness and control conditions. The private workspace is free for clients individually approved within a pro-bono Advisory engagement. Registration alone does not provide access.</p>
    </div>
    <a href="?page=advisory-scorecard" target="_self" data-hq-event="advisory_scorecard_service">Explore the service →</a>
   </div>

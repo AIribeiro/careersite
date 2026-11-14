@@ -255,6 +255,28 @@ The site runs a Playwright headless Chromium production smoke test on qualifying
 
 These categories are intentionally conservative and will change as better server-side verification becomes available. The source-tag distinction is for analytics quality, not authentication or security access control. Site QA must not be disabled simply to improve a traffic chart.
 
+## Reliable Year and lifetime portfolio overview (14 November 2026)
+
+The public **Visits & reads** overview uses `careersite_portfolio_overview_fast_v1`
+for **This year** and **All**. This dedicated SQL aggregate counts canonical
+`page_view` and `article_view` events from
+`careersite_reporting_events_v1`, retaining internal-QA and suspected-automation
+exclusions and the reporting reset baseline. It returns page/article/legacy
+Thinking view totals, distinct site/content sessions and per-content ranking
+rows. It does **not** run the detailed behavioral telemetry analysis.
+
+The heavier `careersite_content_intelligence_v2` remains available under
+**Explore content**, where attention, source and journey detail is relevant.
+That report is cached for 120 seconds to reduce simultaneous broad-window
+queries. The overview's `Refresh insights` action explicitly clears
+the caches.
+
+The dedicated report was reconciled against the established Year aggregation
+for site views, page views, article views, legacy Thinking views and
+site/content session totals. Do not substitute unfiltered raw event counts
+or legacy `careersite_content_intelligence` as a fallback: the legacy query
+can be costly on broad windows.
+
 ## Collector integrity controls
 
 When a 30-minute session timeout creates a new session on the same open document, the document-level view guard is cleared so the new session can record its own `page_view`. This prevents background behavior summaries from becoming telemetry-only sessions simply because the document remained open.

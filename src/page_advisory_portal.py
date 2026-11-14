@@ -328,13 +328,14 @@ Future visits use your email and password, not an email access link.</p>
 
 def _advisory_login() -> None:
     st.html("""<section class="advisory-portal-intro">
-<h2>A professional introduction, without the paperwork.</h2>
-<p>Tell me who you are and the decision you are facing. This gives our first
-conversation useful context without requiring a lengthy application.
-Your advisory account also includes the complete Premium Reader library.</p>
+<h2>Bring a specific AI or data leadership decision.</h2>
+<p>Register free to submit a decision or challenge for individual review.
+I consider a limited number of focused pro-bono discussions where an external
+perspective may help. Registration does not guarantee a meeting.
+Your account also provides free access to the Executive AI Reader Library.</p>
 </section>""")
     returning = st.radio(
-        "Advisory account", ["Create your advisory account", "Sign in to advisory"],
+        "Advisory account", ["Register free", "Sign in to advisory"],
         index=1 if st.query_params.get("signin") == "1" else 0,
         horizontal=True, key="advisory_auth_mode",
     ) == "Sign in to advisory"
@@ -401,7 +402,7 @@ Your advisory account also includes the complete Premium Reader library.</p>
             st.caption("Keep the description high-level. No budget, confidential documents or phone number are required.")
             accepted = st.checkbox("I have read the Privacy & Data notice.")
             submit = st.form_submit_button("Email my verification link", type="primary")
-        st.caption("Review the [Privacy & Data notice](?page=privacy). Advisory registration is complimentary; any paid engagement is agreed separately.")
+        st.caption("Review the [Privacy & Data notice](?page=privacy). Registration is free. Pro-bono requests are reviewed individually; a meeting is not guaranteed.")
         if submit:
             address = str(email).strip().lower()
             try:
@@ -452,7 +453,7 @@ def _advisory_enroll(session: dict, user: dict) -> None:
     st.html("""<section class="advisory-portal-intro">
 <h2>Complete your advisory account.</h2>
 <p>Your email is verified. Confirm your professional details and the decision you
-would like to discuss. This does not establish a commercial engagement.</p>
+would like to discuss. Registration is free and does not guarantee a pro-bono discussion.</p>
 </section>""")
     meta = user.get("user_metadata") if isinstance(user.get("user_metadata"), dict) else {}
     pref = {}
@@ -501,7 +502,7 @@ would like to discuss. This does not establish a commercial engagement.</p>
             })
             _register_advisory(session, user, details)
             st.session_state.pop("advisory_signup_intake", None)
-            st.success("Your advisory account is ready. Full Premium Reader access is included.")
+            st.success("Your account is ready. You can submit a pro-bono request or use the free reader library.")
             st.rerun()
         except ValueError as exc:
             st.error(str(exc))

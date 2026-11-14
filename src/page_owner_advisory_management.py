@@ -71,11 +71,15 @@ def _people(profiles: list[dict], intents: list[dict],
     for intent in intents:
         uid = str(intent.get("user_id") or "")
         if uid:
+            reader = by_id.get(uid, {})
             by_id[uid] = {
                 "user_id": uid,
                 "email": intent.get("email", ""),
-                "first_name": "", "last_name": "", "organization": "",
-                "role_title": "", "decision_context": "",
+                "first_name": reader.get("first_name", ""),
+                "last_name": reader.get("last_name", ""),
+                "organization": reader.get("organization", ""),
+                "role_title": reader.get("role_title", ""),
+                "decision_context": "",
                 "account_status": "pending",
                 "onboarding": "Pending onboarding",
                 "created_at": intent.get("created_at", ""),

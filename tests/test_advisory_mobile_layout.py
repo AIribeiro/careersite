@@ -42,6 +42,19 @@ class AdvisoryMobileTests(unittest.TestCase):
         self.assertLess(portal.index('st.html(native_footer("advisory-access"))'),
                         portal.index("mount_native_masked_mobile_fix()"))
 
+    def test_advisory_grid_phone_rules_are_last_and_frame_aware(self):
+        from page_public_services import SERVICES_CSS
+        from site_embedded_mobile import support_masked_mobile_media
+        self.assertGreater(
+            SERVICES_CSS.rfind('@media(max-width:850px)'),
+            SERVICES_CSS.index('.site .advisory-hero-grid{grid-template-columns:minmax(0,1.26fr)')
+        )
+        responsive = support_masked_mobile_media(SERVICES_CSS)
+        self.assertIn('@media(max-width:850px), (max-device-width:850px)', responsive)
+        self.assertIn('@media(max-width:620px), (max-device-width:620px)', responsive)
+        self.assertIn('grid-template-columns:minmax(0,1fr)', responsive)
+        self.assertIn('.site .advisory-actions .advisory-button{display:flex;width:100%', responsive)
+
     def test_password_recovery_form_has_no_hard_coded_desktop_columns(self):
         from streamlit.testing.v1 import AppTest
         app=AppTest.from_file(

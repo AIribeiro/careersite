@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "slug": "when-ai-acts-without-permission-what-leaders-need-to-know",
-  "revision": "r03-source-credit-20261115",
-  "article_fingerprint": "273ae72ef628e8573a8be6725d4d6b755d4d6cfb65d495db039bbffffa4db6f8",
+  "revision": "r04-editorial-source-cleanup-20261115",
+  "article_fingerprint": "8282cde2da461fd59ae0db4c963397e8972b4efcdad1d85730ec22d65239e7c2",
   "heading": "WHEN AI ACTS WITHOUT PERMISSION: WHAT LEADERS NEED TO KNOW",
   "deck": "Diagnose why AI attempted an action, then verify the system had permission to execute it.",
   "desktop": {

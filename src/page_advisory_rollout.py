@@ -432,10 +432,14 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
                     "Critical gate": "Yes" if critical else "No",
                 })
             st.dataframe(evidence_rows, hide_index=True, use_container_width=True)
-    render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
-                             "assessment_completion",request_id=request_id)
-    render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
-                             "executive_recommendation",request_id=request_id)
+    if demo.get("is_demo") is True:
+        st.caption("Satisfaction surveys are disabled for synthetic owner tests, "
+                   "so QA responses do not distort customer feedback metrics.")
+    else:
+        render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
+                                 "assessment_completion",request_id=request_id)
+        render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
+                                 "executive_recommendation",request_id=request_id)
     try:
         pdf=_pdf_report(result,data)
     except (RuntimeError,ValueError,UnicodeError):
@@ -448,7 +452,7 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
     )
     if clicked:
         st.session_state["rollout_downloaded_"+rid]=True
-    if st.session_state.get("rollout_downloaded_"+rid):
+    if st.session_state.get("rollout_downloaded_"+rid) and demo.get("is_demo") is not True:
         render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
                                  "report_download",request_id=request_id)
 

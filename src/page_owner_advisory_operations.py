@@ -2,7 +2,7 @@
 
 Every entitlement change goes through an independently authorized database RPC.
 Owner service approval is independent of the relationship/engagement stage.
-Each new approval creates a transactional-email notification record.
+Each new approval creates a Supabase Auth access-email notification record.
 Reader onboarding invitations do not grant service access or send email.
 """
 from __future__ import annotations
@@ -116,8 +116,8 @@ def _notice_panel(token: str, rid: str, service: str, prefix: str) -> None:
     state = str(notice.get("state") or "pending")
     labels = {
         "sent": "Supabase Auth accepted access email request",
-        "pending": "Awaiting email delivery",
-        "sending": "Sending notification",
+        "pending": "Access email not yet requested",
+        "sending": "Supabase Auth request in progress",
         "failed": "Supabase access email failed — retry available",
     }
     st.caption("Client notification: " + labels.get(state, state)
@@ -291,8 +291,9 @@ def render_service_access(token: str, people: list[dict], requests: list[dict],
                           access: dict[str, list[dict]]) -> None:
     st.subheader("Service access & approval")
     st.caption(
-        "Select the user and service, then approve. A confirmation email is sent "
-        "to their verified address and its outcome recorded. Approval does not "
+        "Select a client and service, then approve. Supabase Auth requests an "
+        "account-access email to their verified address; the request status is recorded. "
+        "Approval does not "
         "change the Advisory relationship pipeline or create a paid engagement."
     )
     if not requests:

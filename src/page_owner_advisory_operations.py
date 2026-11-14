@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 import streamlit as st
 
 from site_cms import _request_json, _rest_url
-from advisory_approval_email import deliver_approval_notice, approval_notice_message
+from advisory_approval_email import deliver_approval_notice, approval_notice_message, mail_transport_ready
 from page_owner_advisory_requests import _client_waiting, _overdue
 from page_advisory_client_journey import STATUS
 
@@ -236,6 +236,13 @@ def _render_request_service_controls(
         "Owner approval grants this service directly. No discovery, proposal or "
         "engagement-stage update is required. The request journey remains unchanged."
     )
+    if not mail_transport_ready():
+        st.warning(
+            "Transactional email is not configured on the site server. "
+            "Service approval will still work, but client emails will remain unsent "
+            "until RESEND_API_KEY or RESEND_SMTP_PASSWORD is added to "
+            "the private Streamlit application secrets. Unsent notices can be retried."
+        )
     if not eligible:
         st.warning("This request is closed. Reopen it before granting a new service.")
     for service, label, _, _ in SERVICES:

@@ -138,6 +138,20 @@ NATIVE_EMBEDDED_MOBILE_SCRIPT = r"""
     window.addEventListener('orientationchange', adjustNativeLayout);
   }
   window.__jrNativeMobileFix();
+  // Streamlit may mount native forms and the portfolio shell after this
+  // script is inserted. Apply once when those elements become available.
+  const ready = () => !!document.querySelector('[data-testid="stAppViewContainer"]') &&
+    !!(document.querySelector('.native-shell-header') || document.querySelector('.reader-shell'));
+  if (!ready() && !window.__jrNativeMobileObserver) {
+    const observer = new MutationObserver(() => {
+      if (!ready()) return;
+      observer.disconnect();
+      window.__jrNativeMobileObserver = null;
+      window.__jrNativeMobileFix();
+    });
+    window.__jrNativeMobileObserver = observer;
+    observer.observe(document.documentElement, {childList:true, subtree:true});
+  }
 })();
 </script>
 """

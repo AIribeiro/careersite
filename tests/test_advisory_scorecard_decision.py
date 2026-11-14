@@ -189,6 +189,7 @@ class ExecutivePortfolioDecisionTests(unittest.TestCase):
         self.assertIn("Executive Portfolio Decision",text)
         self.assertNotIn("DEMONSTRATION REPORT",text)
         self.assertIn("BOARD / EXECUTIVE DECISION BRIEF",text)
+        self.assertIn("EDITION 2",text)
         self.assertIn("EXECUTIVE SUMMARY",text)
         self.assertIn("DECISION REQUESTED",text)
         self.assertIn("What leadership does next",text)
@@ -214,6 +215,11 @@ class ExecutivePortfolioDecisionTests(unittest.TestCase):
         self.assertLess(ui.index('st.download_button('),ui.index('"report_download"'))
         self.assertLess(ui.index('st.markdown("#### Recommended decision")'),ui.index('"executive_recommendation"'))
         self.assertIn('build_executive_pdf(report)',ui)
+        self.assertIn("AI_Portfolio_Executive_Decision_Brief_",ui)
+        self.assertIn("Document format:",ui)
+        main=(ROOT/"main.py").read_text(encoding="utf-8")
+        self.assertIn('getattr(_scorecard_report, "REPORT_VERSION", None)',main)
+        self.assertIn("importlib.reload(_scorecard_decision_ui)",main)
         self.assertIn('Current client selection',ui) if False else None
 
 

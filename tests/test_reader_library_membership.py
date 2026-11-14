@@ -195,6 +195,14 @@ class ReaderLibraryMembershipTests(unittest.TestCase):
                     self.assertEqual(arguments[1], page)
                     self.assertEqual(arguments[3:], (0, 0, 0, 0))
 
+    def test_reader_native_forms_are_corrected_in_oversized_mobile_masks(self):
+        native = self.source("src/page_reader_native.py")
+        mobile = self.source("src/site_embedded_mobile.py")
+        self.assertIn("mount_native_masked_mobile_fix()", native)
+        self.assertIn("document.querySelector('.reader-shell')", mobile)
+        self.assertIn("framed && physical", mobile)
+        self.assertIn("app.style.zoom", mobile)
+
     def test_reader_button_contrast_without_member_layout_overrides(self):
         shell = self.source("src/site_reader_shell.py")
         self.assertIn(

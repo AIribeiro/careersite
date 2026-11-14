@@ -322,9 +322,13 @@ def render_owner_advisory_management(owner_session: dict) -> None:
         "owner response and agreed scope are separate steps. "
         "Open **Action inbox** to respond to client input and move the work forward."
     )
-    inbox_tab, directory, pipeline, audit_tab = st.tabs(
-        ["Action inbox", "Advisory directory", "Relationship pipeline", "Administration audit"]
+    inbox_tab, directory, pipeline, feedback_tab, audit_tab = st.tabs(
+        ["Action inbox", "Advisory directory", "Relationship pipeline",
+         "Customer satisfaction", "Administration audit"]
     )
+    with feedback_tab:
+        from page_advisory_feedback import render_owner_feedback
+        render_owner_feedback(token)
     with inbox_tab:
         from page_owner_advisory_requests import render_advisory_action_inbox
         render_advisory_action_inbox(token, people, requests)

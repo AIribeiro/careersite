@@ -112,6 +112,21 @@ class AdvisoryServiceFeedbackTests(unittest.TestCase):
             })
             self.assertIn("rpc/portfolio_advisory_feedback_owner_review_v1",api.call_args.args[1])
 
+    def test_owner_private_notes_are_not_member_readable(self):
+        migration=self.source(
+            "supabase/migrations/20261114_advisory_feedback_owner_notes_private.sql"
+        )
+        self.assertIn("revoke all on public.portfolio_advisory_interaction_feedback from authenticated",migration)
+        self.assertIn("grant select (",migration)
+        self.assertNotIn("rating,comment,followup_answer,contact_ok,owner_status",migration.split("grant select (")[1].split(") on")[0])
+        self.assertIn("portfolio_advisory_feedback_owner_list_v1",migration)
+        self.assertIn("lower(u.email)='jair.ribeiro@outlook.it'",migration)
+        from page_owner_advisory_feedback import read_owner_feedback
+        with patch("page_owner_advisory_feedback._request_json",return_value=[]) as api:
+            self.assertEqual(read_owner_feedback("owner-jwt"),[])
+            self.assertIn("rpc/portfolio_advisory_feedback_owner_list_v1",api.call_args.args[1])
+            self.assertEqual(api.call_args.kwargs["token"],"owner-jwt")
+
     def test_service_and_privacy_disclose_optionality(self):
         service=self.source("src/page_advisory_scorecard.py")
         notice=self.source("src/page_public_services.py")

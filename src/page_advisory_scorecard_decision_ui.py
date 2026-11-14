@@ -76,69 +76,136 @@ def render_executive_recommendation(data: dict, workspace: dict, *,
     st.markdown("**" + report["verdict"] + "**")
     if report["advanced_count"] + report["test_count"] == 0:
         st.error(
-            "No initiative qualifies within the present evidence, control and "
-            "resource conditions. Complete the missing assessments or review the "
-            "planning envelope; do not issue a funding or deployment approval."
+            "No initiative currently meets the evidence, control and "
+            "resource requirements. Resolve the missing inputs or review "
+            "the planning limits before authorizing further work."
         )
 
     summary = report["recommended"]
-    a,b,c = st.columns(3)
-    a.metric("Business cases to review",report["advanced_count"])
-    b.metric("Scoped tests to consider",report["test_count"])
-    c.metric("Proposed initiatives",summary["count"])
-    a,b,c = st.columns(3)
-    a.metric("Capacity",f'{summary["fte_months"]:.1f} / {float(report["settings"]["capacity_fte_months"]):.1f} FTE-mo')
-    b.metric("Planning investment",_money(summary["investment_sek"]))
-    c.metric("Budget headroom",_money(summary["budget_headroom"]))
+    a, b, c = st.columns(3)
+    a.metric("Business cases to review", report["advanced_count"])
+    b.metric("Evidence tests to scope", report["test_count"])
+    c.metric("Recommended portfolio", summary["count"])
+    a, b, c = st.columns(3)
+    a.metric(
+        "Capacity",
+        f'{summary["fte_months"]:.1f} / '
+        f'{float(report["settings"]["capacity_fte_months"]):.1f} FTE-mo'
+    )
+    b.metric("Planning investment", _money(summary["investment_sek"]))
+    c.metric("Budget headroom", _money(summary["budget_headroom"]))
     st.caption(
-        "Resource figures are the client-entered planning estimates, including "
-        "full estimated investment for a test candidate; they are not verified "
-        "pilot costs or approved allocations."
+        "Amounts and resource requirements are based on the current "
+        "client-entered estimates. A recommendation is not an approval."
     )
 
-    st.markdown("#### What to advance, test, hold or stop")
-    headings = (
-        ("Advance to business-case review", "Advance to business case",
-         "Build a formal investment case; do not assume funding is approved."),
-        ("Time-boxed evidence test", "Time-boxed test",
-         "Prove a specific uncertainty with defined scope and a go/no-go gate."),
-        ("Hold pending control review", "Hold - control review",
-         "Resolve safeguards and specialist review before considering deployment."),
-        ("Stop or redesign", "Stop / redesign",
-         "The blocked control gate overrides the score."),
-    )
-    for heading, status, message in headings:
-        rows=report["categories"].get(status,[])
-        if not rows:
-            continue
-        st.markdown(f"**{heading} · {len(rows)}**")
-        st.caption(message)
-        for r in rows:
-            with st.container(border=True):
-                st.markdown(
-                    f'**{r["name"]}** · {r["score"] if r["score"] is not None else "N/A"}/100'
-                )
-                st.write(r["rationale"])
-                st.caption("Next action: " + r["next_action"])
+    st.markdown("#### Executive action plan")
+    advances = report["categories"].get("Advance to business case", [])
+    tests = report["categories"].get("Time-boxed test", [])
+    holds = report["categories"].get("Hold - control review", [])
+    blocked = report["categories"].get("Stop / redesign", [])
+    a, b, c = st.columns(3)
+    with a:
+        with st.container(border=True):
+            st.markdown("**01 · Commission business cases**")
+            st.write(
+                f"{len(advances)} initiative(s). Validate benefit baselines, "
+                "sponsorship and the financial case before requesting investment."
+                if advances else
+                "No initiative qualifies for business-case review yet."
+            )
+    with b:
+        with st.container(border=True):
+            st.markdown("**02 · Define the evidence test**")
+            st.write(
+                f"{tests[0]['name']}: agree success criteria, scope and a "
+                "go/no-go checkpoint."
+                if tests else
+                "No candidate currently qualifies for a scoped test."
+            )
+    with c:
+        with st.container(border=True):
+            st.markdown("**03 · Resolve control decisions**")
+            st.write(
+                f"{len(holds)} held for review; {len(blocked)} blocked. "
+                "Clear the necessary reviews before reconsidering them."
+                if holds or blocked else
+                "No current control holds in the assessment."
+            )
 
-    st.markdown("#### Three portfolio options")
-    st.dataframe(_scenario_rows(report),hide_index=True,use_container_width=True)
+    st.markdown("#### Prioritized recommendations")
+    included = sorted(
+        [r for r in report["rows"] if r["included_in_proposal"]],
+        key=lambda r: (
+            r["recommendation"] != "Advance to business case",
+            -(r["score"] or 0),
+            r["name"],
+        ),
+    )
+    if included:
+        st.dataframe(
+            [
+                {
+                    "Recommended route": r["recommendation"],
+                    "Initiative": r["name"],
+                    "Business owner": r["owner"] or "Not recorded",
+                    "Score": r["score"],
+                    "Why this route": r["rationale"],
+                    "Required next step": r["next_action"],
+                } for r in included
+            ],
+            hide_index=True,
+            use_container_width=True,
+        )
+    else:
+        st.info("No eligible portfolio can be selected under the current conditions.")
+
+    excluded = [
+        r for r in report["rows"] if not r["included_in_proposal"]
+    ]
+    if excluded:
+        st.markdown("#### Hold, redesign and defer")
+        st.dataframe(
+            [
+                {
+                    "Initiative": r["name"],
+                    "Decision": r["recommendation"],
+                    "Accountable owner": r["owner"] or "Not recorded",
+                    "Next condition": r["next_action"],
+                } for r in excluded
+            ],
+            hide_index=True,
+            use_container_width=True,
+        )
+
+    st.markdown("#### Portfolio alternatives and trade-offs")
+    st.dataframe(
+        _scenario_rows(report), hide_index=True, use_container_width=True
+    )
     current = report["current_selection"]
     if not current["fits"]:
         st.error(
             "Your current selection exceeds at least one planning limit. "
-            "The recommended candidate portfolio fits both configured limits."
+            "The recommended portfolio fits both constraints."
             if summary["fits"] else
-            "The current selection exceeds planning limits. "
-            "No qualifying alternative could be fitted."
+            "Your current selection exceeds planning limits. "
+            "No eligible alternative fits the current constraints."
         )
-    change=report["changes"]
-    if change["added"]:
-        st.write("**Add compared with your current selection:** "+
-                 "; ".join(change["added"]))
-    if change["removed"]:
-        st.write("**Defer or remove from your current selection:** "+
-                 "; ".join(change["removed"]))
+    changes = report["changes"]
+    if changes["added"]:
+        st.write(
+            "**Add versus current proposal:** " + "; ".join(changes["added"])
+        )
+    if changes["removed"]:
+        st.write(
+            "**Hold or remove versus current proposal:** "
+            + "; ".join(changes["removed"])
+        )
+    st.caption(
+        "Take the proposal to the portfolio decision forum. Confirm accountable "
+        "sponsors, control conditions, resource commitments and the next review. "
+        "Record the formal outcome separately in the Decision record tab."
+    )
 
     with st.expander("All initiatives: verdict, rationale and required next evidence"):
         st.dataframe(_outcome_rows(report),hide_index=True,use_container_width=True)

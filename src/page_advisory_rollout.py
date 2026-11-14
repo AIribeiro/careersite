@@ -332,44 +332,9 @@ def _input_form(token: str, request_id: str) -> None:
             st.error("Your assessment could not be saved. Check your access and try again.")
 
 def _pdf_report(result: dict, data: dict) -> bytes:
-    from fpdf import FPDF
-    pdf=FPDF(format="A4")
-    pdf.set_auto_page_break(auto=True,margin=18)
-    pdf.add_page()
-    pdf.set_margins(20,20,20)
-    def safe(text: object) -> str:
-        return str(text).replace("—","-").replace("–","-").replace("’","'").replace("•","-").encode("latin-1","replace").decode("latin-1")
-    def section(title: str,body: str):
-        pdf.set_font("Helvetica","B",12)
-        pdf.ln(4);pdf.multi_cell(0,7,safe(title),new_x="LMARGIN",new_y="NEXT")
-        pdf.set_font("Helvetica","",10)
-        pdf.multi_cell(0,6,safe(body),new_x="LMARGIN",new_y="NEXT")
-    pdf.set_font("Helvetica","B",17)
-    pdf.multi_cell(0,9,"Enterprise AI Rollout - Executive Decision Brief",new_x="LMARGIN",new_y="NEXT")
-    pdf.set_font("Helvetica","",10)
-    pdf.multi_cell(0,6,safe(data["context"]["use_case"]+" | "+data["context"]["stage"]),new_x="LMARGIN",new_y="NEXT")
-    if isinstance(data.get("demo"), dict) and data["demo"].get("is_demo") is True:
-        section("SYNTHETIC TEST DATA - NOT VERIFIED",
-                "This report contains fictional QA scores and simulated evidence only. "
-                "It must not be represented as a real client assessment or used to authorize deployment.")
-    section("EXECUTIVE VERDICT / "+result["label"],result["verdict"])
-    section("Reasoning",result["reason"])
-    section("Critical insight",result["insight"])
-    section("Readiness profile","\n".join(
-        k+": "+str(v)+"%" for k,v in result["dimensions"].items()))
-    section("Three priorities","\n".join(str(i+1)+". "+v
-        for i,v in enumerate(result["priorities"])))
-    if result["critical_gates"]:
-        section("Critical unresolved conditions",
-                "\n".join("- "+v for v in result["critical_gates"]))
-    section("Evidence confidence",result["confidence"]+
-            "; "+str(result["unassessed"])+" of 18 conditions unassessed.")
-    section("Decision boundary","Self-reported inputs and rule-based advisory guidance. "
-            "Independent security, legal, regulatory, technical and operational approvals "
-            "remain the organization's responsibility. This is not a compliance certification.")
-    pdf.set_y(-17);pdf.set_font("Helvetica","I",8)
-    pdf.cell(0,9,"Jair Ribeiro  |  jairribeiro.com  |  Selective Executive AI Advisory")
-    return bytes(pdf.output())
+    """Live premium v2 PDF: management verdict, readiness, action owners, release conditions."""
+    from page_rollout_premium_pdf import render_premium_rollout_pdf
+    return render_premium_rollout_pdf(result, data)
 
 def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
     data=record.get("answers")
@@ -387,7 +352,7 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
             "This is not a real enterprise assessment."
         )
     st.markdown("### Your executive decision brief")
-    st.caption("Assessment "+str(record.get("created_at") or "")[:10]+" · Rule set: rollout-v1")
+    st.caption("Assessment "+str(record.get("created_at") or "")[:10]+" · Rule set: rollout-v1 · Report edition: premium-v2")
     if result["label"] in ("PAUSE SCALING","EVIDENCE INCOMPLETE"):
         st.warning("**"+result["label"]+"** · "+result["verdict"])
     else:
@@ -398,9 +363,17 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
         st.progress(value/100,text=area+" · "+str(value)+"%")
     st.markdown("#### The critical insight")
     st.write(result["insight"])
-    st.markdown("#### What to do next")
-    for i,action in enumerate(result["priorities"],1):
-        st.markdown(str(i)+". "+action)
+    st.markdown("#### Executive action plan")
+    from page_rollout_premium_pdf import build_action_plan
+    for step in build_action_plan(data, result):
+        st.markdown(
+            f"**{step['number']}. {step['title']}**  "
+            f"\n\n**Recommended owner:** {step['owner']}  "
+            f"\n\n**Proposed timing:** {step['due']}  "
+            f"\n\n**Action:** {step['action']}  "
+            f"\n\n**Evidence required:** {step['evidence']}  "
+            f"\n\n**Decision condition:** {step['condition']}"
+        )
     if result["critical_gates"]:
         st.warning("**Critical conditions:** "+"; ".join(result["critical_gates"]))
     st.caption("Evidence confidence: "+result["confidence"]+" · "+
@@ -446,8 +419,8 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
         st.error("The report could not be generated; your decision brief remains visible.")
         return
     clicked=st.download_button(
-        "Download executive decision brief (PDF)",data=pdf,
-        file_name="enterprise-ai-rollout-decision-brief.pdf",
+        "Download premium executive decision brief (PDF · v2)",data=pdf,
+        file_name="enterprise-ai-rollout-executive-decision-brief-v2.pdf",
         mime="application/pdf",key="rollout_pdf_"+rid,use_container_width=True,
     )
     if clicked:

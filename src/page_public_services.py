@@ -243,6 +243,18 @@ def advisory() -> str:
  </div>
 </section>
 
+<section class="service-section service-section--white" id="advisory-scorecard-service" data-analytics-section="advisory-scorecard">
+ <div class="container">
+  <p class="service-eyebrow">On-demand service / Individually approved</p>
+  <div class="service-section-header"><h2>AI Portfolio Prioritization Scorecard.</h2>
+   <p>Evaluate competing AI initiatives against strategic fit, value, feasibility, capacity, data readiness, adoption and controls. An online working scorecard supports a defensible selection, with a recorded executive decision and explicit guardrails.</p>
+  </div>
+  <p class="service-intro">Available without charge only to registered Advisory clients individually approved for this service as part of an agreed pro-bono engagement. Registration alone does not provide access.</p>
+  <div class="advisory-actions"><a class="advisory-button" href="?page=advisory-scorecard" target="_self" data-hq-event="advisory_scorecard_service">Explore the Scorecard service →</a>
+  <a class="advisory-button advisory-button--outline" style="color:#172e46!important;border-color:#8f9da7" href="?page=advisory-access" target="_self">Access my Advisory account →</a></div>
+ </div>
+</section>
+
 <section class="service-section service-section--white" id="advisory-method" data-analytics-section="advisory-method">
  <div class="container">
   <p class="service-eyebrow">The method</p>

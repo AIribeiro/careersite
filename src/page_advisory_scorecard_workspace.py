@@ -122,7 +122,12 @@ def capacity_summary(rows: list[dict], settings: dict) -> dict:
               - float(r.get("run_cost_sek") or 0) for r in chosen)
     blocked = sum(
         1 for r in chosen
-        if r.get("gate") != "Pass" or evaluation(r, settings)[1] != "ADVANCE TO CASE"
+        if r.get("gate") != "Pass" or
+        evaluation(r, settings)[1] in (
+            "OWNER REQUIRED", "NOT SCORED", "EVIDENCE NEEDED",
+            "VALIDATE EVIDENCE", "CONTROL REVIEW", "STOP / REDESIGN",
+            "NAME REQUIRED",
+        )
     )
     unsigned = sum(
         int(not bool(r.get("sponsor_signed")))
@@ -214,6 +219,10 @@ def _overview(data: dict) -> None:
     a.metric("Capacity headroom", f'{counts["fte_headroom"]:.1f} FTE-months')
     b.metric("Budget headroom", f'{counts["budget_headroom"]:,.0f} SEK')
     c.metric("Annual net benefit (indicative)", f'{counts["annual_net"]:,.0f} SEK')
+    if float(settings["capacity_fte_months"]) == 12 and float(settings["budget_sek"]) == 1200000:
+        st.caption("Planning limits currently use fictional template defaults "
+                   "(12 FTE-months and 1,200,000 SEK). Replace them in Policy & criteria "
+                   "before making any real portfolio recommendation.")
     if counts["fte_headroom"] < 0 or counts["budget_headroom"] < 0:
         st.error("Your proposed selection exceeds the available planning envelope.")
     if counts["blocked"] or counts["unsigned"]:
@@ -371,8 +380,8 @@ def _capacity(data: dict) -> None:
                "12 × one-time investment / annual net; excludes ramp-up, uncertainty, "
                "discounting and indirect costs. Financial values are input estimates.")
     if capacity_summary(rows,settings)["blocked"]:
-        st.warning("A proposed initiative has not met its control, evidence or scoring conditions. "
-                   "A high ranking is never permission to proceed.")
+        st.warning("At least one proposed initiative has an unresolved control, ownership "
+                   "or evidence issue. A high ranking is never permission to proceed.")
 
 
 def _decision_record(token: str,workspace: dict,data: dict) -> None:

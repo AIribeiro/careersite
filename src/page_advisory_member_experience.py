@@ -252,7 +252,11 @@ def render_requests(session: dict, user: dict, profile: dict) -> None:
         for idx, request in enumerate(past):
             with st.expander(str(request.get("title") or "Request") +
                              " · " + _status(request)[0]):
-                _request_summary(request, show_details=True)
+                _request_summary(request, show_details=False)
+                st.write(str(request.get("desired_outcome") or ""))
+                if request.get("business_context"):
+                    st.caption("Business context")
+                    st.write(str(request["business_context"]))
                 if st.button("Open this conversation", key="requests_old_" + str(idx)):
                     navigate("messages", str(request["id"]))
 

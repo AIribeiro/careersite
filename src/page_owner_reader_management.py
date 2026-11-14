@@ -351,6 +351,15 @@ def _reader_management(
     user_id = str(p["user_id"])
     control = controls.get(user_id, {})
     st.divider()
+    if advisory_membership.get(user_id, "Reader only") == "Reader only":
+        st.info("This member has Reader access only. Use Advisory Operations to "
+                "invite them to complete Advisory onboarding; do not create a duplicate account.")
+        st.link_button(
+            "Open Advisory invitations",
+            "https://jairribeiro.com/?page=analytics&workspace=advisory",
+        )
+    elif advisory_membership.get(user_id) == "Advisory pending":
+        st.caption("Advisory invitation or account onboarding is pending.")
     _profile_snapshot(p, downloads, saved, consents, control)
 
     with st.expander("Export reader data · privacy requests", expanded=False):

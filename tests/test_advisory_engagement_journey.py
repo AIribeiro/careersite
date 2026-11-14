@@ -77,18 +77,22 @@ class AdvisoryJourneyTests(unittest.TestCase):
         self.assertFalse(_client_waiting({**new,"status":"closed"}))
         self.assertFalse(_overdue({**new,"follow_up_on":None}))
 
-    def test_analytics_pipeline_is_driven_by_request_not_registration(self):
+    def test_request_status_and_owner_relationship_stage_are_separate(self):
         from page_owner_advisory_management import _reflect_request_journey
         person={"user_id":"u1","email":"example@example.org",
-                "relationship_stage":"engaged","onboarding":"Profile completed"}
+                "relationship_stage":"discovery","onboarding":"Profile completed"}
         empty=_reflect_request_journey([person],[])
-        self.assertEqual(empty[0]["relationship_stage"],"not_requested")
+        self.assertEqual(empty[0]["relationship_stage"],"discovery")
         self.assertEqual(empty[0]["request_count"],0)
-        active=_reflect_request_journey([person],[{
-            "user_id":"u1","status":"active","created_at":"2026-11-13T14:00:00Z"
-        }])
-        self.assertEqual(active[0]["relationship_stage"],"engaged")
-        self.assertEqual(active[0]["request_count"],1)
+        self.assertFalse(empty[0]["has_request"])
+        requests=[
+            {"user_id":"u1","status":"active","created_at":"2026-11-13T14:00:00Z"},
+            {"user_id":"u1","status":"closed","created_at":"2026-11-12T14:00:00Z"},
+        ]
+        active=_reflect_request_journey([person],requests)
+        self.assertEqual(active[0]["relationship_stage"],"discovery")
+        self.assertEqual(active[0]["latest_request_status"],"active")
+        self.assertEqual(active[0]["request_count"],2)
 
     def test_client_request_form_is_actual_first_step_on_activated_account(self):
         from streamlit.testing.v1 import AppTest
@@ -129,7 +133,9 @@ class AdvisoryJourneyTests(unittest.TestCase):
 
     def test_owner_has_prominent_action_inbox(self):
         admin=(ROOT/"src/page_owner_advisory_management.py").read_text(encoding="utf-8")
-        self.assertIn('"Action inbox"',admin)
+        self.assertIn('"Requests & replies"',admin)
+        self.assertIn('"Access & invitations"',admin)
+        self.assertIn('"Pipeline"',admin)
         self.assertIn("render_advisory_action_inbox(token, people, requests)",admin)
         owner=(ROOT/"src/page_owner_advisory_requests.py").read_text(encoding="utf-8")
         self.assertIn("Needs your response",owner)

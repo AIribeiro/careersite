@@ -72,12 +72,6 @@ def render_executive_recommendation(data: dict, workspace: dict, *,
         )
         return
 
-    if any("DEMONSTRATION ONLY" in caveat for caveat in report["caveats"]):
-        st.warning(
-            "DEMO — Fictional initiatives and financial assumptions. "
-            "This is a test of decision logic, not an investment recommendation for a real company."
-        )
-
     st.markdown("#### Recommended decision")
     st.markdown("**" + report["verdict"] + "**")
     if report["advanced_count"] + report["test_count"] == 0:

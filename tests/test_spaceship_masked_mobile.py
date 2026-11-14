@@ -47,6 +47,36 @@ class MaskedForwardingMobileTests(unittest.TestCase):
         self.assertIn('site.style.removeProperty("zoom")', EMBEDDED_MOBILE_SCRIPT)
         self.assertNotIn("window.top.document", EMBEDDED_MOBILE_SCRIPT)
 
+    def test_phone_canvas_is_explicit_before_public_zoom(self):
+        # A 980px frame plus zoom on an auto-sized element collapses the
+        # Advisory grid into an unreadable narrow column.
+        self.assertIn('site.style.setProperty("width", deviceWidth + "px", "important")',
+                      EMBEDDED_MOBILE_SCRIPT)
+        self.assertIn('site.style.setProperty("min-width", "0", "important")',
+                      EMBEDDED_MOBILE_SCRIPT)
+        self.assertIn('site.style.removeProperty("width")', EMBEDDED_MOBILE_SCRIPT)
+        self.assertLess(
+            EMBEDDED_MOBILE_SCRIPT.index('site.style.setProperty("width", deviceWidth'),
+            EMBEDDED_MOBILE_SCRIPT.index('site.style.zoom = String(scale)')
+        )
+
+    def test_page_specific_styles_are_adapted_for_masked_frames(self):
+        main = (Path(__file__).resolve().parents[1] / "main.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("responsive_document = support_masked_mobile_media(page_document)", main)
+        self.assertIn("responsive_document + '</div>'", main)
+
+    def test_phone_menu_replaces_wrapping_desktop_navigation(self):
+        from site_components import MOBILE_NAV_CSS, nav
+        self.assertIn("@media(max-width:700px), (max-device-width:700px)", MOBILE_NAV_CSS)
+        self.assertIn("navin>.links{display:none!important}", MOBILE_NAV_CSS)
+        markup = nav("advisory")
+        self.assertIn('<details class="mobile-menu">', markup)
+        self.assertIn('class="mobile-menu-links"', markup)
+        self.assertIn('Menu</summary>', markup)
+        self.assertEqual(markup.count('href="?page=thinking"'), 2)
+
     def test_main_mounts_after_public_site_html_only(self):
         main = (Path(__file__).resolve().parents[1] / "main.py").read_text(
             encoding="utf-8"

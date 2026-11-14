@@ -120,13 +120,6 @@ def build_executive_pdf(decision: dict) -> bytes:
     _text(pdf, "Prepared " + str(decision.get("generated_at") or "") +
           "   |   Source revision " + str(decision.get("revision") if decision.get("revision") is not None else "not supplied"),
           size=8, color=MUTED)
-    if any("DEMONSTRATION" in str(x) for x in decision.get("caveats") or []):
-        pdf.set_fill_color(252, 242, 229)
-        pdf.set_text_color(103, 62, 38)
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.multi_cell(0, 7, "DEMONSTRATION REPORT - Fictional input data; not an actual investment recommendation",
-                       border=0, fill=True, new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(4)
     _heading(pdf, "Decision in brief")
     _text(pdf, decision.get("verdict") or "No decision available", strong=True, size=10.5)
     rec = decision["recommended"]

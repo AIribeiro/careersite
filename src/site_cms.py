@@ -550,7 +550,9 @@ def premium_artwork_ready(article: CmsArticle) -> bool:
     )
     from briefing_infographic_engine import source_fingerprint
     try:
-        manifest = load_bundle(article.slug)
+        manifest = load_bundle(
+            article.slug, expected_fingerprint=source_fingerprint(article)
+        )
         if manifest is None or manifest["article_fingerprint"] != source_fingerprint(article):
             return False
         validate_bundle(manifest)

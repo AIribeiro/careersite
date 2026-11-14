@@ -2,7 +2,7 @@
 
 Every entitlement change goes through an independently authorized database RPC.
 Owner service approval is independent of the relationship/engagement stage.
-Each new approval creates a transactional-email notification record.
+Each new approval creates a Supabase Auth access-email notification record.
 Reader onboarding invitations do not grant service access or send email.
 """
 from __future__ import annotations
@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 import streamlit as st
 
 from site_cms import _request_json, _rest_url
-from advisory_approval_email import deliver_approval_notice, approval_notice_message, mail_transport_ready
+from advisory_approval_email import deliver_approval_notice, approval_notice_message
 from page_owner_advisory_requests import _client_waiting, _overdue
 from page_advisory_client_journey import STATUS
 
@@ -115,16 +115,16 @@ def _notice_panel(token: str, rid: str, service: str, prefix: str) -> None:
         return
     state = str(notice.get("state") or "pending")
     labels = {
-        "sent": "Submitted to email provider",
-        "pending": "Awaiting email delivery",
-        "sending": "Sending notification",
-        "failed": "Email failed — retry available",
+        "sent": "Supabase Auth accepted access email request",
+        "pending": "Access email not yet requested",
+        "sending": "Supabase Auth request in progress",
+        "failed": "Supabase access email failed — retry available",
     }
     st.caption("Client notification: " + labels.get(state, state)
                + (" · " + str(notice.get("sent_at") or "")[:16].replace("T", " ")
                   if state == "sent" else ""))
     if state in ("pending", "failed"):
-        if st.button("Retry approval email", key=prefix + "_email_retry_" + rid + "_" + service):
+        if st.button("Retry Supabase access email", key=prefix + "_email_retry_" + rid + "_" + service):
             try:
                 outcome = deliver_approval_notice(token, str(notice["id"]))
                 st.session_state["advisory_ops_notification_flash"] = approval_notice_message(outcome)
@@ -236,13 +236,11 @@ def _render_request_service_controls(
         "Owner approval grants this service directly. No discovery, proposal or "
         "engagement-stage update is required. The request journey remains unchanged."
     )
-    if not mail_transport_ready():
-        st.warning(
-            "Transactional email is not configured on the site server. "
-            "Service approval will still work, but client emails will remain unsent "
-            "until RESEND_API_KEY or RESEND_SMTP_PASSWORD is added to "
-            "the private Streamlit application secrets. Unsent notices can be retried."
-        )
+    st.caption(
+        "Emails use the same Supabase Auth email system as Library and Advisory "
+        "registration. The email contains an account-access link, while the "
+        "approved service is identified in the member portal."
+    )
     if not eligible:
         st.warning("This request is closed. Reopen it before granting a new service.")
     for service, label, _, _ in SERVICES:
@@ -263,7 +261,7 @@ def _render_request_service_controls(
                         st.error("Access revocation could not be confirmed.")
             else:
                 if st.button(
-                    "Approve access & email client",
+                    "Approve access & send Supabase email",
                     key=prefix + "_approve_" + rid + "_" + service,
                     type="primary", disabled=not eligible,
                     help="Grants this individual service and sends an access email. "
@@ -293,8 +291,9 @@ def render_service_access(token: str, people: list[dict], requests: list[dict],
                           access: dict[str, list[dict]]) -> None:
     st.subheader("Service access & approval")
     st.caption(
-        "Select the user and service, then approve. A confirmation email is sent "
-        "to their verified address and its outcome recorded. Approval does not "
+        "Select a client and service, then approve. Supabase Auth requests an "
+        "account-access email to their verified address; the request status is recorded. "
+        "Approval does not "
         "change the Advisory relationship pipeline or create a paid engagement."
     )
     if not requests:

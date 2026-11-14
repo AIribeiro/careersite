@@ -127,44 +127,56 @@ def _summary(selected: list[dict], settings: dict) -> dict:
 
 
 def _explanation(record: dict, status: str, *, constrained: bool = False) -> tuple[str, str]:
+    """Explain the decision using entered criterion scores, never inferred facts."""
     score = record["score"]
     evidence = record["evidence"]
     gate = record["gate"]
     proof = str(record.get("next_proof") or "").strip()
+    scores = record.get("scores") or []
+    if len(scores) == 7 and all(type(v) is int for v in scores):
+        fit, value, feasibility, capacity, data, adoption, controls = scores
+        strengths = (f"Strategic fit {fit}/5; business value {value}/5; "
+                     f"delivery feasibility {feasibility}/5")
+        readiness = (f"Capacity readiness {capacity}/5; data readiness {data}/5; "
+                     f"adoption readiness {adoption}/5")
+    else:
+        strengths = f"Portfolio score {score}/100"
+        readiness = "Readiness evidence needs review"
     if status == "Advance to business case":
-        reason = (f"Score {score}/100, {evidence.lower()} evidence and passed control gate; "
-                  "included within both planning limits.")
+        reason = (f"{strengths}. Evidence confidence: {evidence} (client assessed); "
+                  f"control gate: Pass. Eligible within the portfolio's resource limits.")
         action = proof or "Confirm accountable sponsor, quantified baseline and approval conditions."
     elif status == "Time-boxed test":
-        reason = (f"Score {score}/100 supports a limited evidence-building test, "
-                  "not immediate scale or full investment approval.")
+        reason = (f"{strengths}. {readiness}. A bounded test is more appropriate "
+                  f"than immediate scale; the control gate currently passes.")
         action = proof or "Define test scope, success criteria and a new go/no-go decision."
     elif status == "Hold - control review":
-        reason = (f"Control gate is {gate.lower()}; a score of {score}/100 cannot "
-                  "override outstanding review.")
+        reason = (f"Control gate: {gate}; score {score}/100. "
+                  "Open controls prevent progression even when commercial potential is attractive.")
         action = proof or "Complete mandatory risk, legal and operating control review."
     elif status == "Stop / redesign":
-        reason = "Blocked control gate takes precedence over value and priority scores."
+        reason = ("Blocked control gate takes precedence over value and priority scores; "
+                  "the use case must not proceed in its current form.")
         action = proof or "Do not proceed until an authorized review changes the gate."
     elif status == "Validate evidence":
-        reason = "Low or missing evidence confidence prevents a defensible commitment."
+        reason = ("Low or missing evidence confidence prevents a defensible commitment. "
+                  + readiness + ".")
         action = proof or "Build the business baseline and verify key assumptions."
     elif status == "Defer - constrained":
-        reason = ("Eligible on current evidence, but the constrained portfolio "
-                  "favors other candidates under limited money and delivery capacity.")
+        reason = (f"{strengths}. Eligible on current evidence but other candidates "
+                  "offer a stronger cumulative priority within the limited capacity and budget.")
         action = "Reconsider when resource capacity changes or a higher priority is removed."
     elif status == "Queue for a test":
-        reason = ("Eligible for a scoped test but was not chosen within the remaining "
-                  "planning envelope and test allocation.")
+        reason = (f"{readiness}. A scoped test is eligible but was not selected "
+                  "within the remaining planning envelope and test limit.")
         action = proof or "Revisit after higher-priority evidence and capacity decisions."
     elif status == "Complete assessment":
         reason = "A named business owner, seven complete scores and credible resource estimates are required."
         action = "Complete missing input and confirm evidence and estimated demand."
     else:
-        reason = f"Score {score}/100 is below the configured test threshold."
+        reason = f"Score {score}/100 is below the configured test threshold. {readiness}."
         action = proof or "Defer until the business need or supporting evidence changes."
     return reason, action
-
 
 def recommend(payload: dict, *, revision: int | None = None,
               generated_at: str | None = None) -> dict:
@@ -199,6 +211,7 @@ def recommend(payload: dict, *, revision: int | None = None,
             "stage": str(item.get("stage") or ""),
             "evidence": str(item.get("evidence") or ""),
             "gate": str(item.get("gate") or "Not checked"),
+            "scores": list(item.get("scores") or []),
             "fte_months": fte,
             "investment_sek": investment,
             "annual_net_sek": _number(item.get("gross_benefit_sek")) - _number(item.get("run_cost_sek")),

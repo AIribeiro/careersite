@@ -214,6 +214,14 @@ def _request_owner_detail(token: str,req: dict,people: dict) -> None:
 
     from page_owner_advisory_scorecard import render_scorecard_owner_access
     render_scorecard_owner_access(token, req)
+    from page_advisory_rollout import REQUEST_MARKER, REQUEST_TITLE
+    rollout_requested = (
+        str(req.get("title") or "").casefold() == REQUEST_TITLE.casefold()
+        or any(m.get("sender") == "client" and REQUEST_MARKER in str(m.get("body") or "")
+               for m in messages)
+    )
+    from page_owner_advisory_rollout import render_owner_rollout_access
+    render_owner_rollout_access(token, req, rollout_requested)
 
     st.caption(
         "This is an in-portal response. The client can see the update after opening "

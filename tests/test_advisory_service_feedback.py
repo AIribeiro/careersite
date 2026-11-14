@@ -83,14 +83,17 @@ class AdvisoryServiceFeedbackTests(unittest.TestCase):
         self.assertIn("You can skip this",code)
 
     def test_recommendation_and_download_are_never_gated_by_feedback(self):
+        ui=self.source("src/page_advisory_scorecard_decision_ui.py")
         code=self.source("src/page_advisory_scorecard_workspace.py")
-        self.assertLess(code.index('st.dataframe(_summary_table(rows, settings)'),
-                        code.index('"executive_recommendation"'))
-        self.assertLess(code.index('st.download_button("Export summary (CSV)"'),
-                        code.index('"report_download"'))
-        self.assertIn('on_click',code)
-        self.assertIn('if st.session_state.get(click_key):',code)
+        # The new PDF decision memo replaces the CSV as the primary deliverable.
+        self.assertLess(ui.index('st.markdown("#### Recommended decision")'),
+                        ui.index('"executive_recommendation"'))
+        self.assertLess(ui.index('st.download_button('),
+                        ui.index('"report_download"'))
+        self.assertIn("build_executive_pdf(report)",ui)
+        self.assertIn("if st.session_state.get(pdf_key):",ui)
         self.assertIn('"assessment_completion"',code)
+        self.assertIn('st.download_button("Export summary (CSV)"',code)
 
     def test_owner_feedback_dashboard_and_decision_usefulness(self):
         from page_owner_advisory_feedback import summarize_feedback,review_feedback

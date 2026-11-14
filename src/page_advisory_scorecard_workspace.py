@@ -195,7 +195,11 @@ def _export_csv(payload: dict) -> bytes:
                "Evidence", "Suggested action", "Proposed?", "Executive decision"]
     writer = DictWriter(out, fieldnames=columns)
     writer.writeheader()
-    writer.writerows(_summary_table(payload["initiatives"], payload["settings"]))
+    for row in _summary_table(payload["initiatives"], payload["settings"]):
+        # A workbook opened from CSV must not evaluate untrusted text as a formula.
+        safe = {k: ("'" + v if isinstance(v, str) and v.lstrip()[:1] in
+                     ("=", "+", "-", "@") else v) for k, v in row.items()}
+        writer.writerow(safe)
     return out.getvalue().encode("utf-8-sig")
 
 

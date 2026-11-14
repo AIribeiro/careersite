@@ -176,7 +176,7 @@ class ApprovedAssetContractTests(unittest.TestCase):
                 self.assertTrue(has_briefing_pdf(self.article.slug))
                 rendered = render_approved_bundle(self.article, self.approved)
                 self.assertEqual(rendered.count("data:image/webp;base64,"), 2)
-                self.assertEqual(rendered.count("canonical-infographic-download"), 1)
+                self.assertEqual(rendered.count('class="canonical-infographic-download"'), 1)
                 self.assertIn("Download A4 PDF", rendered)
                 pdf = verified_pdf_for_article(self.article)
                 self.assertTrue(pdf.startswith(b"%PDF-"))

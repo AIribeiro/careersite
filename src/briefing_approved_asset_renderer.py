@@ -18,6 +18,9 @@ import json
 from functools import lru_cache
 from pathlib import Path
 import re
+import time
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from PIL import Image
 
@@ -27,6 +30,67 @@ NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,95}\.(?:webp|pdf)$")
 HASH = re.compile(r"^[a-f0-9]{64}$")
 MAX_INLINE_BYTES = 1_500_000
 MAX_PDF_BYTES = 12_000_000
+
+# Fallback for a running Streamlit instance whose local Git checkout has not
+# yet received a source-controlled premium artwork bundle. No third-party image
+# hosting or unverified user-supplied URL is involved: the same repository is
+# read over HTTPS, and every downloaded asset must pass its published SHA-256.
+REMOTE_ARTWORK_ROOT = (
+    "https://raw.githubusercontent.com/AIribeiro/careersite/main/"
+    "static/briefing-artwork"
+)
+_REMOTE_MANIFESTS: dict[str, tuple[float, dict | None]] = {}
+_REMOTE_MANIFEST_TTL = 180
+
+
+def _remote_read(slug: str, name: str, max_bytes: int) -> bytes:
+    _slug(slug)
+    if name != "manifest.json" and not NAME.fullmatch(name):
+        raise ArtworkError("Invalid remote artwork filename")
+    url = f"{REMOTE_ARTWORK_ROOT}/{slug}/{name}"
+    try:
+        with urlopen(Request(url, headers={"Accept": "application/octet-stream"}),
+                     timeout=5) as response:
+            if response.status != 200:
+                raise ArtworkError("Remote artwork endpoint returned an error")
+            payload = response.read(max_bytes + 1)
+    except (HTTPError, URLError, OSError, TimeoutError) as exc:
+        raise ArtworkError("Source-controlled artwork is temporarily unavailable") from exc
+    if len(payload) > max_bytes:
+        raise ArtworkError("Remote artwork exceeds size limit")
+    return payload
+
+
+def _remote_manifest(slug: str) -> dict | None:
+    now = time.monotonic()
+    cached = _REMOTE_MANIFESTS.get(slug)
+    if cached and now - cached[0] < _REMOTE_MANIFEST_TTL:
+        return dict(cached[1]) if cached[1] is not None else None
+    try:
+        raw = _remote_read(slug, "manifest.json", 12_000)
+        data = json.loads(raw.decode("utf-8"))
+        if not isinstance(data, dict):
+            raise ArtworkError("Invalid remote artwork manifest")
+    except (ArtworkError, UnicodeError, ValueError):
+        _REMOTE_MANIFESTS[slug] = (now, None)
+        return None
+    if len(_REMOTE_MANIFESTS) >= 80:
+        _REMOTE_MANIFESTS.clear()
+    _REMOTE_MANIFESTS[slug] = (now, data)
+    return dict(data)
+
+
+@lru_cache(maxsize=48)
+def _remote_verified_asset(slug: str, name: str, expected_sha: str,
+                           max_size: int) -> bytes:
+    if not isinstance(expected_sha, str) or not HASH.fullmatch(expected_sha):
+        raise ArtworkError("Missing immutable remote artwork checksum")
+    payload = _remote_read(slug, name, max_size)
+    if hashlib.sha256(payload).hexdigest() != expected_sha:
+        raise ArtworkError("Remote artwork SHA-256 mismatch")
+    if len(payload) <= 1000:
+        raise ArtworkError("Remote artwork is empty")
+    return payload
 
 CSS = """<style>
 .site .canonical-infographic{max-width:980px;margin:26px auto 38px;background:#fffdf9;
@@ -97,12 +161,19 @@ def _file_bytes(path: Path, expected_sha: str, max_size: int) -> bytes:
     return data
 
 
-def _image_bytes(root: Path, spec: dict) -> bytes:
+def _image_bytes(root: Path | None, spec: dict, *, remote_slug: str = "") -> bytes:
     try:
-        path = _file(root, spec["file"])
-        if path.suffix.lower() != ".webp":
-            raise ArtworkError("Inline artwork must be WebP")
-        data = _file_bytes(path, spec["sha256"], MAX_INLINE_BYTES)
+        if remote_slug:
+            if not str(spec["file"]).lower().endswith(".webp"):
+                raise ArtworkError("Inline artwork must be WebP")
+            data = _remote_verified_asset(
+                remote_slug, spec["file"], spec["sha256"], MAX_INLINE_BYTES
+            )
+        else:
+            path = _file(root, spec["file"])
+            if path.suffix.lower() != ".webp":
+                raise ArtworkError("Inline artwork must be WebP")
+            data = _file_bytes(path, spec["sha256"], MAX_INLINE_BYTES)
         if data[:4] != b"RIFF" or data[8:12] != b"WEBP":
             raise ArtworkError("Invalid WebP byte signature")
         with Image.open(BytesIO(data)) as im:
@@ -121,12 +192,20 @@ def load_bundle(slug: str, *, asset_root: Path | None = None) -> dict | None:
     base = (asset_root or ROOT).resolve()
     directory = base / slug
     manifest = directory / "manifest.json"
+    remote = False
     if not manifest.is_file():
-        return None
-    try:
-        data = json.loads(manifest.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
-        raise ArtworkError("Artwork manifest is corrupt") from exc
+        # Suppress remote fallback for explicit test/preview asset directories.
+        if asset_root is not None:
+            return None
+        data = _remote_manifest(slug)
+        if data is None:
+            return None
+        remote = True
+    else:
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise ArtworkError("Artwork manifest is corrupt") from exc
     if not isinstance(data, dict) or data.get("schema_version") != 1:
         raise ArtworkError("Unsupported artwork manifest")
     if data.get("slug") != slug or not HASH.fullmatch(str(data.get("article_fingerprint", ""))):
@@ -138,19 +217,30 @@ def load_bundle(slug: str, *, asset_root: Path | None = None) -> dict | None:
     for variant in ("desktop", "mobile", "pdf"):
         if not isinstance(data.get(variant), dict):
             raise ArtworkError("Incomplete approved artwork bundle")
-    data["_root"] = directory
+    if remote:
+        data["_remote_slug"] = slug
+    else:
+        data["_root"] = directory
     return data
 
 
 def validate_bundle(bundle: dict) -> tuple[bytes, bytes, bytes]:
-    root = bundle["_root"]
-    desktop = _image_bytes(root, bundle["desktop"])
-    mobile = _image_bytes(root, bundle["mobile"])
+    remote_slug = bundle.get("_remote_slug", "")
+    root = bundle.get("_root")
+    desktop = _image_bytes(root, bundle["desktop"], remote_slug=remote_slug)
+    mobile = _image_bytes(root, bundle["mobile"], remote_slug=remote_slug)
     pdf_spec = bundle["pdf"]
-    pdf_path = _file(root, pdf_spec["file"])
-    if pdf_path.suffix.lower() != ".pdf":
-        raise ArtworkError("Printable asset must be a PDF")
-    pdf = _file_bytes(pdf_path, pdf_spec["sha256"], MAX_PDF_BYTES)
+    if remote_slug:
+        if not str(pdf_spec["file"]).lower().endswith(".pdf"):
+            raise ArtworkError("Printable asset must be a PDF")
+        pdf = _remote_verified_asset(
+            remote_slug, pdf_spec["file"], pdf_spec["sha256"], MAX_PDF_BYTES
+        )
+    else:
+        pdf_path = _file(root, pdf_spec["file"])
+        if pdf_path.suffix.lower() != ".pdf":
+            raise ArtworkError("Printable asset must be a PDF")
+        pdf = _file_bytes(pdf_path, pdf_spec["sha256"], MAX_PDF_BYTES)
     if not pdf.startswith(b"%PDF-") or b"%%EOF" not in pdf[-2048:]:
         raise ArtworkError("Approved PDF is corrupt or incomplete")
     return desktop, mobile, pdf

@@ -6,7 +6,9 @@ from datetime import datetime, timezone
 import streamlit as st
 
 from page_advisory_scorecard_decision import recommend
-from page_advisory_scorecard_report import build_executive_pdf
+from page_advisory_scorecard_report import (
+    REPORT_VERSION, REPORT_EDITION, build_executive_pdf,
+)
 
 
 def _money(amount: float) -> str:
@@ -229,6 +231,7 @@ def render_executive_recommendation(data: dict, workspace: dict, *,
             st.write("- "+caveat)
 
     st.markdown("#### Executive decision report")
+    st.caption(f"Document format: {REPORT_EDITION}. The redesigned four-page report.")
     st.write(
         "Download a confidential A4 decision memo with the recommended portfolio, "
         "initiative-level rationale, alternatives, constraints, next evidence and "
@@ -247,7 +250,9 @@ def render_executive_recommendation(data: dict, workspace: dict, *,
         st.download_button(
             "Download executive decision report (PDF)",
             data=pdf,
-            file_name="AI_Portfolio_Executive_Decision_Rev_"+str(workspace.get("revision") or 0)+".pdf",
+            file_name=("AI_Portfolio_Executive_Decision_Brief_"
+                       + REPORT_VERSION + "_Revision_"
+                       + str(workspace.get("revision") or 0) + ".pdf"),
             mime="application/pdf",
             type="primary",
             on_click=lambda key=pdf_key: st.session_state.__setitem__(key,True),

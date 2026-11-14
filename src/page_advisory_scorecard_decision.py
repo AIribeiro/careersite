@@ -209,6 +209,12 @@ def recommend(payload: dict, *, revision: int | None = None,
             "capacity_signed": bool(item.get("capacity_signed")),
             "next_proof": str(item.get("next_proof") or "")[:1100],
             "evidence_ref": str(item.get("evidence_ref") or "")[:400],
+            "recorded_decision": str(item.get("decision") or "Unreviewed")[:80],
+            "recorded_rationale": str(item.get("decision_rationale") or "")[:2200],
+            "recorded_owner": str(item.get("decision_owner") or "")[:180],
+            "next_review": str(item.get("next_review") or "")[:30],
+            "control_conditions": str(item.get("control_conditions") or "")[:1600],
+            "alternatives_considered": str(item.get("alternatives") or "")[:1600],
         })
     advances = [r for r in records if r["ready"] and r["action"] == "ADVANCE TO CASE"]
     tests = [r for r in records if r["ready"] and r["action"] == "TEST / PROVE"]

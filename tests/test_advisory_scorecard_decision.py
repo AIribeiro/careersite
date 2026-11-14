@@ -190,7 +190,7 @@ class ExecutivePortfolioDecisionTests(unittest.TestCase):
         self.assertNotIn("DEMONSTRATION REPORT",text)
         self.assertIn("BOARD / EXECUTIVE DECISION BRIEF",text)
         self.assertIn("EXECUTIVE SUMMARY",text)
-        self.assertIn("Decision requested",text)
+        self.assertIn("DECISION REQUESTED",text)
         self.assertIn("What leadership does next",text)
         self.assertIn("What to advance and test",text)
         self.assertIn("Service Knowledge Copilot",text)

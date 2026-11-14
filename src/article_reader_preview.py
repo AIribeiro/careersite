@@ -6,6 +6,7 @@ readers. No article body HTML or private editorial assets enter the DOM.
 from __future__ import annotations
 
 from html import escape
+import re
 from urllib.parse import quote
 
 from briefing_reader_preview import PREVIEW_CSS, opening_paragraphs, next_edition_sections
@@ -19,6 +20,14 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
     title = escape(str(article.title or "Article"))
     subtitle = escape(str(article.subtitle or article.excerpt or "").strip())
     published_summary = str(article.excerpt or "").strip()
+    # A question-led CMS summary earns a provocative heading; statement-led
+    # summaries retain a neutral, executive-relevant heading.
+    opening_sentence = re.search(r"[.!?](?:\\s|$)", published_summary)
+    summary_heading = (
+        "The uncomfortable question"
+        if opening_sentence and opening_sentence.group(0).startswith("?")
+        else "What's really at stake"
+    )
     # For new-style Articles use only the substantive introductory paragraphs
     # that precede the first H2/H3. The generic legacy fallback preserves old
     # published records that begin immediately with a section heading.
@@ -62,7 +71,7 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         '<div class="container"><div class="briefing-preview-grid">'
         '<article class="briefing-preview-copy"><div class="briefing-preview-decision">'
         '<span class="briefing-preview-small-head">Public executive summary</span>'
-        '<h2>The argument in brief</h2>'
+        f'<h2>{escape(summary_heading)}</h2>'
         + body + '</div></article>'
         '<aside class="briefing-preview-aside">'
         '<strong>Inside the complete article</strong>' + inside

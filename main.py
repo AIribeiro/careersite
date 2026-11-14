@@ -19,7 +19,28 @@ if str(SRC) not in sys.path:
 from site_styles import CSS
 from site_embedded_mobile import mount_masked_mobile_fix, support_masked_mobile_media
 from site_image_styles import IMAGE_CSS
-from site_meta import HOME_TITLE, inject_article_metadata, inject_metadata
+# Social/SEO metadata must not prevent the public portfolio from rendering.
+# Streamlit Cloud has occasionally reported a KeyError during this import chain.
+# Preserve the full traceback in Cloud logs, retry a potentially transient
+# import failure once, and degrade only metadata injection if both attempts fail.
+try:
+    from site_meta import HOME_TITLE, inject_article_metadata, inject_metadata
+except KeyError:
+    logging.exception("Portfolio metadata import raised KeyError; retrying")
+    try:
+        import importlib
+
+        importlib.invalidate_caches()
+        from site_meta import HOME_TITLE, inject_article_metadata, inject_metadata
+    except KeyError:
+        logging.exception("Portfolio metadata retry failed; continuing without optional SEO injection")
+        HOME_TITLE = "Jair Ribeiro | Enterprise AI & Data Leadership"
+
+        def inject_metadata(page: str, title: str) -> None:
+            return None
+
+        def inject_article_metadata(article: object) -> None:
+            return None
 from site_analytics import inject_analytics
 from site_article_analytics import inject_article_analytics
 from site_behavior_telemetry_v2 import mount_behavior_telemetry

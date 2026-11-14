@@ -35,7 +35,8 @@ MAX_INITIATIVES = 30
 
 def default_settings() -> dict:
     return {"weights": list(WEIGHTS), "advance": 78, "test": 62,
-            "capacity_fte_months": 12.0, "budget_sek": 1200000.0}
+            "capacity_fte_months": 12.0, "budget_sek": 1200000.0,
+            "max_tests": 1}
 
 
 def new_initiative() -> dict:
@@ -70,6 +71,10 @@ def normalize(payload: object) -> dict:
             defaults[key] = max(0.0, min(val, 10**10))
         except (ValueError, TypeError):
             pass
+    try:
+        defaults["max_tests"] = max(0, min(int(opts.get("max_tests", 1)), 5))
+    except (ValueError, TypeError, OverflowError):
+        defaults["max_tests"] = 1
     source = raw.get("initiatives")
     valid = []
     for item in (source if isinstance(source, list) else [])[:MAX_INITIATIVES]:
@@ -90,28 +95,10 @@ def normalize(payload: object) -> dict:
 
 
 def evaluation(row: dict, settings: dict) -> tuple[int | None, str]:
-    scores = row.get("scores") or []
-    if not str(row.get("name") or "").strip():
-        return None, "NAME REQUIRED"
-    if not str(row.get("owner") or "").strip():
-        return None, "OWNER REQUIRED"
-    if len(scores) != 7 or any(not isinstance(s, int) or s < 1 or s > 5 for s in scores):
-        return None, "NOT SCORED"
-    value = sum(a * b for a, b in zip(scores, settings["weights"])) / 5.0
-    score = int(value + 0.5)
-    if row.get("evidence") in ("Not assessed", None, ""):
-        return score, "EVIDENCE NEEDED"
-    if row.get("gate") == "Block":
-        return score, "STOP / REDESIGN"
-    if row.get("gate") != "Pass":
-        return score, "CONTROL REVIEW"
-    if row.get("evidence") == "Low":
-        return score, "VALIDATE EVIDENCE"
-    if score >= float(settings["advance"]):
-        return score, "ADVANCE TO CASE"
-    if score >= float(settings["test"]):
-        return score, "TEST / PROVE"
-    return score, "DEFER / STOP"
+    # One authoritative scoring rule for both the editable Scorecard and the
+    # executive decision service. Do not let the two recommendations drift.
+    from page_advisory_scorecard_decision import assess
+    return assess(row, settings)
 
 
 def capacity_summary(rows: list[dict], settings: dict) -> dict:
@@ -233,41 +220,11 @@ def _overview(data: dict, *, token: str = "", uid: str = "",
     if rows:
         st.dataframe(_summary_table(rows, settings), hide_index=True,
                      use_container_width=True)
-        export_kwargs = {}
-        if workspace and token and uid:
-            click_key = "scorecard_report_download_clicked_" + str(workspace["id"])
-            export_kwargs["on_click"] = (
-                lambda key=click_key: st.session_state.__setitem__(key, True)
-            )
+        # Data-only export remains available. The PDF report, recommendation
+        # and contextual satisfaction prompts live on the dedicated first tab.
         st.download_button("Export summary (CSV)", data=_export_csv(data),
                            file_name="ai-portfolio-scorecard-summary.csv",
-                           mime="text/csv", use_container_width=False,
-                           **export_kwargs)
-        if workspace and token and uid:
-            from page_advisory_service_feedback import (
-                SCORECARD_SERVICE, render_optional_feedback,
-            )
-            if any(
-                evaluation(row, settings)[0] is not None
-                and row.get("gate") in ("Pass", "Review", "Block")
-                for row in rows
-            ):
-                # Recommendations and evidence are fully visible ABOVE this
-                # optional prompt. Decision Usefulness is the primary measure.
-                render_optional_feedback(
-                    token, uid, SCORECARD_SERVICE, "executive_recommendation",
-                    request_id=str(workspace["request_id"]),
-                    scorecard_id=str(workspace["id"]),
-                    feedback_rows=feedback_rows,
-                )
-            if st.session_state.get(click_key):
-                # The CSV click is never conditional on a rating.
-                render_optional_feedback(
-                    token, uid, SCORECARD_SERVICE, "report_download",
-                    request_id=str(workspace["request_id"]),
-                    scorecard_id=str(workspace["id"]),
-                    feedback_rows=feedback_rows,
-                )
+                           mime="text/csv", use_container_width=False)
     else:
         st.info("Your private scorecard is empty. Add an initiative to begin.")
     with st.expander("Worked comparison — five fictional initiatives (read-only)"):
@@ -497,6 +454,12 @@ def _policy(token: str,workspace: dict,data: dict) -> None:
             test=st.number_input("Test/prove at score",0,100,int(s["test"]))
             budget=st.number_input("Planning budget SEK",0.0,1e10,
                                    float(s["budget_sek"]),10000.0)
+        max_tests=st.number_input(
+            "Maximum scoped tests in the recommendation (0–5)", 0, 5,
+            int(s.get("max_tests",1)), 1,
+            help="After selecting business-case candidates, allow up to this many "
+                 "evidence-building tests within the remaining resource envelope.",
+        )
         saved=st.form_submit_button("Save decision policy",type="primary")
     if saved:
         if sum(weights)!=100 or test>=advance:
@@ -506,7 +469,8 @@ def _policy(token: str,workspace: dict,data: dict) -> None:
         next_data["settings"].update({
             "weights":[int(x) for x in weights],
             "advance":int(advance),"test":int(test),
-            "capacity_fte_months":float(available),"budget_sek":float(budget)
+            "capacity_fte_months":float(available),"budget_sek":float(budget),
+            "max_tests":int(max_tests),
         })
         _commit(token,workspace,next_data,"Decision policy saved.")
     st.markdown("#### Scoring anchors")
@@ -613,9 +577,15 @@ def render_private_scorecard(session: dict,user: dict) -> None:
                " · Revision "+str(workspace.get("revision") or 0))
     st.warning("Use high-level, non-confidential business information only. "
                "A score never authorizes funding, regulated processing or deployment.")
-    overview, initiatives, capacity, record, policy=st.tabs([
-        "Portfolio overview","Initiatives","Capacity & value","Decision record","Policy & criteria"
+    decision_tab, overview, initiatives, capacity, record, policy=st.tabs([
+        "Executive recommendation","Portfolio overview","Initiatives",
+        "Capacity & value","Decision record","Policy & criteria"
     ])
+    with decision_tab:
+        from page_advisory_scorecard_decision_ui import render_executive_recommendation
+        render_executive_recommendation(
+            data,workspace,token=token,uid=uid,feedback_rows=feedback_rows,
+        )
     with overview:
         _overview(
             data,

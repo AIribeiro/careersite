@@ -143,6 +143,63 @@ class ApprovedAssetContractTests(unittest.TestCase):
             self.assertTrue(premium_artwork_ready(future))
         self.assertTrue(premium_artwork_ready(legacy))
 
+    def test_missing_runtime_bundle_recovers_approved_assets_from_git_repository(self):
+        """Lagging Streamlit checkouts must still show the source-locked art and PDF."""
+        from unittest.mock import patch
+        import briefing_approved_asset_renderer as renderer
+        from reader_membership import has_briefing_pdf
+        from site_cms import CmsArticle
+
+        self.create()
+        published_root = self.root / "published"
+        missing_runtime_root = self.root / "checkout-lagging"
+        file_reads = []
+
+        def remote_read(slug, filename, max_bytes):
+            self.assertEqual(slug, self.article.slug)
+            content = (published_root / slug / filename).read_bytes()
+            self.assertLessEqual(len(content), max_bytes)
+            file_reads.append(filename)
+            return content
+
+        published_article = CmsArticle(
+            id=self.article.id, slug=self.article.slug, title=self.article.title,
+            subtitle=self.article.subtitle, content_html=self.article.content_html,
+            status="published", kind="Executive Briefing",
+        )
+        renderer._REMOTE_MANIFESTS.clear()
+        renderer._remote_verified_asset.cache_clear()
+        try:
+            with patch.object(renderer, "ROOT", missing_runtime_root), patch.object(
+                renderer, "_remote_read", side_effect=remote_read
+            ), patch("site_cms.fetch_public_article", return_value=published_article):
+                self.assertTrue(has_briefing_pdf(self.article.slug))
+                rendered = render_approved_bundle(self.article, self.approved)
+                self.assertEqual(rendered.count("data:image/webp;base64,"), 2)
+                self.assertEqual(rendered.count("canonical-infographic-download"), 1)
+                self.assertIn("Download A4 PDF", rendered)
+                pdf = verified_pdf_for_article(self.article)
+                self.assertTrue(pdf.startswith(b"%PDF-"))
+                self.assertIn("manifest.json", file_reads)
+                self.assertIn("desktop.webp", file_reads)
+                self.assertIn("mobile.webp", file_reads)
+                self.assertIn("infographic.pdf", file_reads)
+
+                changed = SimpleNamespace(**vars(self.article))
+                changed.content_html += "<p>Changed authorization decision.</p>"
+                self.assertIsNone(verified_pdf_for_article(changed))
+                self.assertEqual(render_approved_bundle(changed, self.approved), "")
+                stale_published = CmsArticle(
+                    id=self.article.id, slug=self.article.slug, title=self.article.title,
+                    subtitle=self.article.subtitle, content_html=changed.content_html,
+                    status="published", kind="Executive Briefing",
+                )
+                with patch("site_cms.fetch_public_article", return_value=stale_published):
+                    self.assertFalse(has_briefing_pdf(self.article.slug))
+        finally:
+            renderer._REMOTE_MANIFESTS.clear()
+            renderer._remote_verified_asset.cache_clear()
+
     def test_stale_or_unapproved_row_never_displays_old_image(self):
         self.create()
         root = self.root / "published"

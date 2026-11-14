@@ -202,7 +202,8 @@ def native_header(page: str, *, navigation_locked: bool = False) -> str:
         included = (
             '<a href="?page=readers" target="_self">Complete Premium Reader library included</a>'
         )
-        compact = ""
+        # Authenticated workspace content starts below a restrained account header.
+        compact = " native-hero--compact"
     elif page == "analytics":
         active = "analytics"
         title = "Portfolio intelligence."

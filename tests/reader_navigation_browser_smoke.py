@@ -23,6 +23,10 @@ def run():
                 ("smoke-catalog", "briefings"),
                 ("smoke-briefing-b", "briefing"),
                 ("smoke-library", "readers"),
+                ("smoke-advisory-account", "advisory-access"),
+                ("smoke-branded-advisory", "advisory-access"),
+                ("smoke-rollout-public", "advisory-rollout"),
+                ("smoke-branded-home", "home"),
             ]:
                 page.locator("#" + target_id).click()
                 expect(page.get_by_text("READER PAGE: " + route)).to_be_visible(

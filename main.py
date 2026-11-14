@@ -279,7 +279,10 @@ else:
         pathway_css = HOME_PATHWAYS_CSS
     else:
         pathway_css = ""
-    st.html(support_masked_mobile_media(CSS + IMAGE_CSS + pathway_css) + '<div class="site">' + page_document + '</div>')
+    # Page-specific styles (including Advisory) need the same physical-device
+    # breakpoints as the shared CSS when Spaceship serves a 980px masked frame.
+    responsive_document = support_masked_mobile_media(page_document)
+    st.html(support_masked_mobile_media(CSS + IMAGE_CSS + pathway_css) + '<div class="site">' + responsive_document + '</div>')
     # Compensate for mobile devices whose masking-provider frame is ~980px wide.
     # The adapter is inert for normal Streamlit visits and desktop iframes.
     mount_masked_mobile_fix()

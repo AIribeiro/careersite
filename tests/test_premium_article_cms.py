@@ -125,6 +125,22 @@ class PremiumArticleCmsTests(unittest.TestCase):
         self.assertNotIn(PRIVATE_DETAIL, public)
         self.assertIn("Business ownership and authority", public)
 
+    def test_public_heading_names_the_uncomfortable_question_when_summary_leads_with_one(self):
+        summary = (
+            "Have we built an AI economy so dependent on a few giants that "
+            "their internal crises become everyone else's problem? "
+            "I admire NVIDIA's achievements, but supplier choice matters."
+        )
+        rendered = render_public_article_preview(article(excerpt=summary))
+        self.assertIn("<h2>The uncomfortable question</h2>", rendered)
+        self.assertIn(summary.replace("'", "&#x27;"), rendered)
+        self.assertNotIn("The argument in brief", rendered)
+
+    def test_statement_summary_uses_clear_nonprovocative_label(self):
+        rendered = render_public_article_preview(article())
+        self.assertIn("What&#x27;s really at stake", rendered)
+        self.assertNotIn("The argument in brief", rendered)
+
     def test_owner_preview_public_and_full_are_independent_of_auth(self):
         from page_admin import _preview_document
         with patch("site_cms._public_reads_or_none", return_value={}):

@@ -124,6 +124,17 @@ def render_owner_feedback(token: str, people: list[dict]) -> None:
          and r.get("owner_status")!="resolved"],
         key=lambda r:(int(r.get("rating") or 5),str(r.get("created_at") or "")),
     )
+    st.markdown("#### Recent feedback (including positive comments)")
+    st.dataframe([
+        {
+            "Stage":STAGE_QUESTIONS.get(str(r.get("stage")),("Other",))[0],
+            "Service":str(r.get("service_key") or "").replace("_"," ").title(),
+            "Rating":r.get("rating"),
+            "Comment":str(r.get("comment") or "")[:180],
+            "Follow-up requested":"Yes" if r.get("contact_ok") else "No",
+            "Submitted":str(r.get("created_at") or "")[:10],
+        } for r in rows[:100]
+    ],hide_index=True,use_container_width=True)
     st.markdown("#### Friction and follow-up")
     if not attention:
         st.caption("No unresolved ratings of 3 or below.")
@@ -161,9 +172,12 @@ def render_owner_feedback(token: str, people: list[dict]) -> None:
         )
     )
     with st.form("owner_feedback_review_"+selected):
+        allowed_statuses = (
+            ["reviewed","follow_up","resolved"] if record.get("contact_ok")
+            else ["reviewed","resolved"]
+        )
         status=st.selectbox(
-            "Review status",["reviewed","follow_up","resolved"],
-            index=0,
+            "Review status",allowed_statuses,index=0,
         )
         note=st.text_area(
             "Private follow-up note (optional)",

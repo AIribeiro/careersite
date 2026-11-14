@@ -13,8 +13,10 @@ No schema change or migration is required for this reader journey.
 1. **Title and subtitle.** A clear executive question and its business stakes.
 2. **Public executive summary.** In the explicitly named Content Studio field,
    write a standalone, factual summary (about 35–65 words). It appears as
-   "The argument in brief" before sign-in. Metadata regeneration preserves
-   an already written summary.
+   **"The uncomfortable question"** when the summary opens with a question,
+   or **"What's really at stake"** when it opens with a statement. The reader
+   chooses the heading from the authored CMS summary; metadata regeneration
+   preserves an already written summary.
 3. **Complete article body.** Start with at least two substantive paragraphs
    that give the real leadership problem and a defensible answer. After the
    introduction, add a meaningful H2/H3 heading; subsequent sections develop

@@ -21,12 +21,12 @@ from site_cms import _request_json, _rest_url
 from page_advisory_client_journey import (
     _client_requests, _request_messages, _create_request, _reply, CLOSED,
 )
-from page_advisory_feedback import render_feedback
+from page_advisory_service_feedback import ROLLOUT_SERVICE, render_optional_feedback
 
 SERVICE_TITLE = "Enterprise AI Rollout Readiness Advisor"
 REQUEST_TITLE = "Enterprise AI Rollout Readiness Advisor — access request"
 REQUEST_MARKER = "ENTERPRISE AI ROLLOUT ADVISOR ACCESS REQUEST"
-SERVICE_KEY = "rollout"
+SERVICE_KEY = ROLLOUT_SERVICE
 
 # key, assessment area, question, recommended response, critical scale gate
 QUESTIONS = (
@@ -367,8 +367,10 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
                "These are self-reported ratings, not verified evidence.")
     st.caption("The output supports executive judgment; it cannot authorize deployment "
                "or replace legal, risk, security or operational reviews.")
-    render_feedback(session,user,SERVICE_KEY,"assessment",rid,request_id)
-    render_feedback(session,user,SERVICE_KEY,"recommendation",rid,request_id)
+    render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
+                             "assessment_completion",request_id=request_id)
+    render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
+                             "executive_recommendation",request_id=request_id)
     try:
         pdf=_pdf_report(result,data)
     except (RuntimeError,ValueError,UnicodeError):
@@ -382,7 +384,8 @@ def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
     if clicked:
         st.session_state["rollout_downloaded_"+rid]=True
     if st.session_state.get("rollout_downloaded_"+rid):
-        render_feedback(session,user,SERVICE_KEY,"download",rid,request_id)
+        render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
+                                 "report_download",request_id=request_id)
 
 def render_private_rollout(session: dict,user: dict) -> None:
     token=str(session.get("access_token") or "")

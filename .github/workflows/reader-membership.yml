@@ -49,6 +49,12 @@ jobs:
           python -m unittest discover -s tests -p test_reader_membership.py -v
           python -m unittest discover -s tests -p test_briefing_public_preview.py -v
           python -m unittest discover -s tests -p test_reader_library_membership.py -v
+          python -m unittest discover -s tests -p test_reader_password_profile.py -v
+          python -m unittest discover -s tests -p test_article_early_access.py -v
+          python -m unittest discover -s tests -p test_thinking_premium_reader.py -v
+          python -m unittest discover -s tests -p test_advisory_registration.py -v
+          python -m unittest discover -s tests -p test_advisory_engagement_journey.py -v
+          python -m unittest discover -s tests -p test_reader_campaign_and_management.py -v
 
   authenticated_navigation_browser:
     runs-on: ubuntu-latest

@@ -526,6 +526,9 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
     from page_advisory_scorecard_workspace import render_private_scorecard
     st.divider()
     render_private_scorecard(session, user)
+    from page_advisory_rollout import render_private_rollout
+    st.divider()
+    render_private_rollout(session, user)
 
     with st.expander("Your professional profile and account details"):
         st.markdown("#### Your professional context")

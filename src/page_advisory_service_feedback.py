@@ -15,6 +15,7 @@ from site_cms import _request_json, _rest_url
 
 SCORECARD_SERVICE = "ai_portfolio_prioritization_scorecard"
 ADVISORY_SERVICE = "executive_advisory"
+ROLLOUT_SERVICE = "enterprise_ai_rollout_readiness"
 
 STAGE_QUESTIONS = {
     "registration_access": (
@@ -78,17 +79,27 @@ def submit_feedback(token: str, service_key: str, stage: str, rating: int,
                     scorecard_id: str | None = None) -> str:
     if stage not in STAGE_QUESTIONS:
         raise ValueError("Unrecognized feedback stage")
-    if service_key not in (ADVISORY_SERVICE, SCORECARD_SERVICE):
+    if service_key not in (ADVISORY_SERVICE, SCORECARD_SERVICE, ROLLOUT_SERVICE):
         raise ValueError("Unrecognized advisory service")
     if type(rating) is not int or not 1 <= rating <= 5:
         raise ValueError("Please select a rating between 1 and 5")
     if len(comment) > 800 or len(followup_answer) > 800:
         raise ValueError("Please shorten your optional comment")
-    result = _request_json(
-        "POST",
-        _rest_url("rpc/portfolio_advisory_feedback_submit_v1"),
-        token=token, timeout=12,
-        payload={
+    if service_key == ROLLOUT_SERVICE:
+        if stage not in ("assessment_completion","executive_recommendation","report_download") or not request_id or scorecard_id:
+            raise ValueError("Feedback is not available for this rollout interaction")
+        endpoint = "rpc/portfolio_advisory_rollout_feedback_submit_v1"
+        payload = {
+            "p_request_id": request_id,
+            "p_stage": stage,
+            "p_rating": rating,
+            "p_comment": comment.strip(),
+            "p_followup_answer": followup_answer.strip(),
+            "p_contact_ok": bool(contact_ok),
+        }
+    else:
+        endpoint = "rpc/portfolio_advisory_feedback_submit_v1"
+        payload = {
             "p_service_key": service_key,
             "p_stage": stage,
             "p_request_id": request_id,
@@ -97,7 +108,9 @@ def submit_feedback(token: str, service_key: str, stage: str, rating: int,
             "p_comment": comment.strip(),
             "p_followup_answer": followup_answer.strip(),
             "p_contact_ok": bool(contact_ok),
-        },
+        }
+    result = _request_json(
+        "POST",_rest_url(endpoint),token=token,timeout=12,payload=payload,
     )
     if not isinstance(result, dict) or result.get("status") not in (
         "recorded", "already_recorded"
@@ -127,6 +140,12 @@ def render_optional_feedback(
         return
 
     title, question = STAGE_QUESTIONS[stage]
+    if service_key == ROLLOUT_SERVICE:
+        question = {
+            "assessment_completion": "Were the rollout readiness questions relevant and clear?",
+            "executive_recommendation": "Did the rollout recommendation make your next decision clearer?",
+            "report_download": "Could you use this decision brief in a leadership discussion?",
+        }.get(stage, question)
     with st.expander(title + " · Optional feedback", expanded=False):
         st.caption(
             "One brief rating helps improve the service. You can skip this. "

@@ -92,7 +92,7 @@ def render_owner_feedback(token: str, people: list[dict]) -> None:
         return
     decision = [
         int(r["rating"]) for r in rows
-        if r.get("service_key")=="ai_portfolio_prioritization_scorecard"
+        if r.get("service_key") in ("ai_portfolio_prioritization_scorecard","enterprise_ai_rollout_readiness")
         and r.get("stage")=="executive_recommendation"
         and isinstance(r.get("rating"), int)
     ]
@@ -105,6 +105,27 @@ def render_owner_feedback(token: str, people: list[dict]) -> None:
     b.metric("Decision Usefulness",f"{mean(decision):.2f} / 5" if decision else "No ratings")
     c.metric("Decision usefulness ratings",len(decision))
     d.metric("Low ratings to review",len(unhappy))
+    st.markdown("#### Satisfaction by service")
+    service_names = {
+        "executive_advisory": "Personal Advisory",
+        "ai_portfolio_prioritization_scorecard": "AI Portfolio Scorecard",
+        "enterprise_ai_rollout_readiness": "Enterprise AI Rollout",
+    }
+    service_rows = []
+    for service in service_names:
+        vals = [int(r["rating"]) for r in rows
+                if r.get("service_key")==service and isinstance(r.get("rating"),int)]
+        decision_vals = [int(r["rating"]) for r in rows
+                         if r.get("service_key")==service
+                         and r.get("stage")=="executive_recommendation"
+                         and isinstance(r.get("rating"),int)]
+        service_rows.append({
+            "Service":service_names[service],"Responses":len(vals),
+            "Average / 5":round(mean(vals),2) if vals else None,
+            "Decision Usefulness / 5":round(mean(decision_vals),2) if decision_vals else None,
+            "CSAT (4–5)": f"{100*sum(v>=4 for v in vals)/len(vals):.0f}%" if vals else "No ratings",
+        })
+    st.dataframe(service_rows,hide_index=True,use_container_width=True)
     st.markdown("#### Satisfaction by interaction stage")
     stage_rows,monthly = summarize_feedback(rows)
     st.dataframe(stage_rows,hide_index=True,use_container_width=True)

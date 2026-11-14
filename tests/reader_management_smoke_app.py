@@ -29,6 +29,8 @@ sample = {
     "portfolio_reader_consent_events": [],
     "portfolio_reader_admin_controls": [],
     "portfolio_reader_admin_audit": [],
+    "portfolio_advisory_profiles": [],
+    "portfolio_advisory_intents": [],
 }
 manager._verify_owner = lambda session: "smoke-test-only"
 manager._read_table = lambda token, table: sample[table]

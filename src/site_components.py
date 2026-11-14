@@ -73,7 +73,7 @@ def footer() -> str:
 
 
 def opportunity() -> str:
-    return '''<section class="cta"><div class="container ctain"><div><h2>Working on a similar enterprise AI or data problem?</h2><p>If the context involves strategy, governance, adoption, portfolio choices or operating ownership, the experience on this site may be relevant.</p></div><a class="btn ghost" href="?page=advisory" target="_self" data-hq-event="advisory_opportunity">Discuss an advisory question →</a></div></section>'''
+    return '''<section class="cta"><div class="container ctain"><div><h2>Working on a similar enterprise AI or data problem?</h2><p>If you face a decision on AI investment, governance or adoption, I consider a limited number of focused pro-bono discussions. Requests are reviewed individually.</p></div><a class="btn ghost" href="?page=advisory" target="_self" data-hq-event="advisory_opportunity">Explore pro-bono advisory →</a></div></section>'''
 
 
 def journey_next(page: str) -> str:

@@ -187,8 +187,11 @@ def _image_bytes(root: Path | None, spec: dict, *, remote_slug: str = "") -> byt
         raise ArtworkError("Invalid image manifest") from exc
 
 
-def load_bundle(slug: str, *, asset_root: Path | None = None) -> dict | None:
+def load_bundle(slug: str, *, asset_root: Path | None = None,
+                expected_fingerprint: str | None = None) -> dict | None:
     slug = _slug(slug)
+    if expected_fingerprint is not None and not HASH.fullmatch(expected_fingerprint):
+        raise ArtworkError("Invalid expected article fingerprint")
     base = (asset_root or ROOT).resolve()
     directory = base / slug
     manifest = directory / "manifest.json"
@@ -206,10 +209,22 @@ def load_bundle(slug: str, *, asset_root: Path | None = None) -> dict | None:
             data = json.loads(manifest.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
             raise ArtworkError("Artwork manifest is corrupt") from exc
+        # A running checkout can have an older approved manifest after the CMS
+        # article has been edited. Recover the newer version by exact article
+        # fingerprint rather than silently losing the visual and member PDF.
+        if (asset_root is None and expected_fingerprint
+                and isinstance(data, dict)
+                and data.get("article_fingerprint") != expected_fingerprint):
+            current = _remote_manifest(slug)
+            if current is not None and current.get("article_fingerprint") == expected_fingerprint:
+                data = current
+                remote = True
     if not isinstance(data, dict) or data.get("schema_version") != 1:
         raise ArtworkError("Unsupported artwork manifest")
     if data.get("slug") != slug or not HASH.fullmatch(str(data.get("article_fingerprint", ""))):
         raise ArtworkError("Artwork manifest identity is invalid")
+    if expected_fingerprint and data["article_fingerprint"] != expected_fingerprint:
+        raise ArtworkError("Artwork is not approved for the current article")
     if not isinstance(data.get("revision"), str) or not re.fullmatch(
         r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}", data["revision"]
     ):
@@ -255,15 +270,16 @@ def _encoded(data: bytes) -> str:
 
 def render_approved_bundle(article, row: dict, *, asset_root: Path | None = None) -> str | None:
     """None means no manifest (legacy path); empty string means fail closed."""
+    from briefing_infographic_engine import source_fingerprint
+    fingerprint = source_fingerprint(article)
     try:
-        bundle = load_bundle(article.slug, asset_root=asset_root)
+        bundle = load_bundle(
+            article.slug, asset_root=asset_root, expected_fingerprint=fingerprint
+        )
     except ArtworkError:
         return ""
     if bundle is None:
         return None
-    from briefing_infographic_engine import source_fingerprint
-
-    fingerprint = source_fingerprint(article)
     if (getattr(article, "status", "") != "published"
         or row.get("status") != "approved"
         or row.get("source_fingerprint") != fingerprint
@@ -311,7 +327,10 @@ def verified_pdf_for_article(article, *, asset_root: Path | None = None) -> byte
     if getattr(article, "status", "") != "published":
         return None
     try:
-        bundle = load_bundle(article.slug, asset_root=asset_root)
+        bundle = load_bundle(
+            article.slug, asset_root=asset_root,
+            expected_fingerprint=source_fingerprint(article)
+        )
         if not bundle or bundle["article_fingerprint"] != source_fingerprint(article):
             return None
         _, _, pdf = validate_bundle(bundle)

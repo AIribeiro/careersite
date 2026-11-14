@@ -99,7 +99,7 @@ def _display_conversation(token: str, uid: str, req: dict) -> None:
         st.markdown("**Your next step**")
         st.write(str(req["next_step"]))
     elif state=="submitted":
-        st.write("Your request is with Jair for initial review. No meeting or paid engagement has been agreed yet.")
+        st.write("Your request is under review. No advisory discussion has been confirmed yet.")
 
     with st.expander("The request you submitted"):
         st.write("**Decision or business outcome:**")

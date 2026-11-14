@@ -471,8 +471,10 @@ def render_private_rollout(session: dict,user: dict) -> None:
     if not access:
         st.markdown("Assess whether an AI pilot is ready for wider deployment, identify critical "
                     "adoption and governance constraints, and receive an executive recommendation.")
-        st.page_link("https://jairribeiro.com/?page=advisory-rollout",
-                     label="Explore the readiness methodology")
+        if st.button("Explore the readiness methodology",
+                     key="rollout_open_methodology"):
+            st.query_params.from_dict({"page": "advisory-rollout"})
+            st.rerun()
         _access_request_ui(token,uid)
         return
     selected=access[0]

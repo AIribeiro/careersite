@@ -27,13 +27,14 @@ class ReaderLibraryMembershipTests(unittest.TestCase):
         self.assertEqual(route["pdf"], "1")
         self.assertEqual(_parse_portfolio_route("?page=briefings"), {"page": "briefings"})
         self.assertEqual(_parse_portfolio_route("?page=readers"), {"page": "readers"})
+        # The analytics route is a public page; owner workspaces are separately authenticated.
+        self.assertEqual(_parse_portfolio_route("?page=analytics"), {"page": "analytics"})
 
     def test_navigation_rejects_secrets_unregistered_urls_and_duplicates(self):
         bad = (
             "https://outside.example/?page=briefing",
             "?page=briefing&token_hash=should-never-move",
             "?page=briefing&access_token=should-never-move",
-            "?page=analytics",
             "?page=briefing&article=../../login",
             "?page=briefing&page=readers",
             "?page=readers&article=a%0Ab",

@@ -516,7 +516,7 @@ def has_briefing_pdf(slug: str) -> bool:
             return False
         if str(article.kind).strip().casefold() != "executive briefing":
             return False
-        bundle = load_bundle(slug)
+        bundle = load_bundle(slug, expected_fingerprint=source_fingerprint(article))
         if not bundle or bundle["article_fingerprint"] != source_fingerprint(article):
             return False
         _, _, pdf = validate_bundle(bundle)

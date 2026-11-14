@@ -61,7 +61,7 @@ class ThinkingPremiumReaderTests(unittest.TestCase):
     def test_unified_reader_hero_recognizes_both_formats(self):
         rendered = reader_header()
         self.assertIn("The analysis behind consequential AI decisions.", rendered)
-        self.assertIn("Premium Articles", rendered)
+        self.assertIn("complete current articles", rendered)
         self.assertIn("Executive AI Briefings", rendered)
         self.assertIn("A4 briefing infographics", rendered)
         self.assertNotIn("until another Article is published", rendered)

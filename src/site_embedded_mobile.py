@@ -101,7 +101,7 @@ NATIVE_EMBEDDED_MOBILE_SCRIPT = r"""
   // children of .site; zooming .site alone cannot fix the password inputs.
   function adjustNativeLayout() {
     var app = document.querySelector('[data-testid="stAppViewContainer"]');
-    if (!app || !document.querySelector('.native-shell-header')) return;
+    if (!app || !(document.querySelector('.native-shell-header') || document.querySelector('.reader-shell'))) return;
 
     var framed = false;
     try { framed = window.self !== window.top; }

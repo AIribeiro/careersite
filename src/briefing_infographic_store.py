@@ -289,6 +289,12 @@ def approved_infographic_for(article, *, row: dict | None=None) -> str:
     shared_visual = render_approved_bundle(article, row)
     if shared_visual is not None:
         return shared_visual
+    # Premium published editions must never substitute the CMS specification's
+    # generic six-card SVG for the artwork the owner actually approved.
+    # The source-locked desktop/mobile WebP and A4 PDF are one release.
+    from site_cms import premium_artwork_required
+    if premium_artwork_required(article):
+        return ""
     if article.slug == "ai-was-approved-who-can-stop-it":
         from briefing_authority_artwork import approved_authority_studio
         return approved_authority_studio(article, row)

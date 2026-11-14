@@ -249,6 +249,9 @@ else:
     elif PAGE == "advisory-scorecard":
         from page_advisory_scorecard import advisory_scorecard
         render_page = advisory_scorecard
+    elif PAGE == "advisory-rollout":
+        from page_advisory_rollout import advisory_rollout
+        render_page = advisory_rollout
     elif PAGE == "privacy":
         from page_public_services import privacy
         render_page = privacy

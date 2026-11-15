@@ -320,6 +320,9 @@ def _input_ui(token: str, uid: str) -> None:
         except (RuntimeError, TimeoutError, KeyError):
             st.error("Your assessment could not be saved. Check your connection and try again.")
             return
+        # Only a genuinely persisted assessment counts as a first outcome.
+        from site_onboarding_measurement import record_first_value
+        record_first_value(token, uid, "advisory", "first_assessment")
         st.session_state["investment_selected_record"] = record_id
         st.session_state["investment_current_report"] = record_id
         st.session_state["investment_next_section"] = "decision"

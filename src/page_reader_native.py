@@ -758,10 +758,36 @@ def _update_saved(session: dict, user: dict, slug: str, *, saved: bool) -> None:
         )
 
 
-def _open_reader_briefing(slug: str) -> None:
-    """Navigate inside the active Streamlit session; do not reload the tab."""
-    st.query_params.from_dict({"page": "briefing", "article": _clean_slug(slug)})
+def _record_first_complete_read() -> None:
+    """Count a real complete-edition opening, never a preview or browse click."""
+    session = st.session_state.get("reader_native_session")
+    user = st.session_state.get("reader_native_user")
+    if not isinstance(session, dict) or not isinstance(user, dict):
+        return
+    uid = str(user.get("id") or "")
+    if not uid or st.session_state.get("reader_onboarding_first_read_logged") == uid:
+        return
+    from site_onboarding_measurement import record_first_value
+    if record_first_value(
+        str(session.get("access_token") or ""), uid, "reader", "first_full_read"
+    ):
+        st.session_state["reader_onboarding_first_read_logged"] = uid
+
+
+def _open_reader_content(slug: str, kind: str = "executive briefing") -> None:
+    """Open genuine full published content without another authentication step."""
+    clean = _clean_slug(slug)
+    if not clean:
+        return
+    _record_first_complete_read()
+    page = "briefing" if kind.casefold() == "executive briefing" else "thinking"
+    st.query_params.from_dict({"page": page, "article": clean})
     st.rerun()
+
+
+def _open_reader_briefing(slug: str) -> None:
+    """Preserve existing briefing links and record their first actual opening."""
+    _open_reader_content(slug, "executive briefing")
 
 
 def _reader_pdf_controls(
@@ -889,16 +915,17 @@ def _library(session: dict, user: dict) -> None:
     )
 
     try:
+        published = list(fetch_published_articles())
+        published.sort(key=lambda a: str(a.published_at or a.created_at or ""),
+                       reverse=True)
         articles = [
-            item for item in fetch_published_articles()
+            item for item in published
             if str(item.kind).strip().casefold() == "executive briefing"
             and _clean_slug(str(item.slug))
         ]
-        articles.sort(key=lambda a: str(a.published_at or a.created_at or ""),
-                      reverse=True)
     except (RuntimeError, ValueError, TimeoutError):
-        st.error("The complete briefing catalog is temporarily unavailable.")
-        articles = []
+        st.error("The published library catalog is temporarily unavailable.")
+        published, articles = [], []
 
     collection_error = False
     try:
@@ -923,6 +950,64 @@ def _library(session: dict, user: dict) -> None:
         slug = str(row.get("article_slug") or "")
         if slug and slug not in unique_downloads:
             unique_downloads[slug] = row
+
+    # User-chosen topics outrank profile interests; only real published
+    # editions are offered. The selector requires no new account fields.
+    from site_onboarding_guidance import (
+        select_reader_first_read, value_path_html,
+    )
+    selected_topic = st.selectbox(
+        "What would help you most today? (optional)",
+        ("Recommended for me",) + _READER_TOPICS,
+        key="reader_onboarding_selected_topic",
+        help="This selection updates the recommended edition and is not saved "
+             "to your professional profile.",
+    )
+    requested_slug = (
+        _clean_slug(st.query_params.get("article", ""))
+        if st.query_params.get("page") == "readers" else ""
+    )
+    recommended, reason = select_reader_first_read(
+        published, profile, requested_slug=requested_slug,
+        selected_topic=(
+            selected_topic if selected_topic != "Recommended for me" else ""
+        ),
+    )
+    first_visit = not saved_slugs and not unique_downloads
+    with st.container(border=True, key="reader_first_value_panel"):
+        st.caption(
+            "START WITH A COMPLETE EDITION" if first_visit
+            else "YOUR NEXT RECOMMENDED PERSPECTIVE"
+        )
+        if recommended is not None:
+            st.markdown(
+                "### A useful decision starts with the full reasoning."
+                if first_visit else "### Continue with a relevant perspective."
+            )
+            st.write(str(recommended.title))
+            st.caption(reason)
+            st.html(value_path_html(
+                "A topic or preview, without the full reasoning.",
+                "The complete published perspective, supporting evidence "
+                "and questions to use in an executive discussion.",
+            ))
+            st.caption(
+                "Full editorial access is included with your account. "
+                "Reading does not subscribe you to emails or commit you to a service."
+            )
+            if st.button(
+                "Open this complete edition", type="primary",
+                key="reader_onboarding_open_first", width="stretch",
+            ):
+                _open_reader_content(
+                    str(recommended.slug), str(recommended.kind),
+                )
+        else:
+            st.markdown("### Browse a different topic.")
+            st.write(
+                reason or "The catalog is temporarily unavailable. "
+                "Your saved library and account remain accessible."
+            )
 
     st.html(
         '<section class="reader-member-stats" aria-label="Your library at a glance">'
@@ -1000,8 +1085,7 @@ def _library(session: dict, user: dict) -> None:
                         "Read this Weekly AI edition", type="primary",
                         use_container_width=True, key="reader_weekly_open_" + slug,
                     ):
-                        st.query_params.from_dict({"page": "thinking", "article": slug})
-                        st.rerun()
+                        _open_reader_content(slug, str(item.kind))
             if not matching_weekly:
                 st.info("No edition matches your search. Try a broader topic.")
         else:
@@ -1065,8 +1149,7 @@ def _library(session: dict, user: dict) -> None:
                         "Read complete article", type="primary",
                         use_container_width=True, key="reader_article_open_" + slug,
                     ):
-                        st.query_params.from_dict({"page": "thinking", "article": slug})
-                        st.rerun()
+                        _open_reader_content(slug, str(item.kind))
             if not matching_editorial:
                 st.info("No articles match your search. Try another phrase.")
         else:

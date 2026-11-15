@@ -31,6 +31,7 @@ sample = {
     "portfolio_reader_admin_audit": [],
     "portfolio_advisory_profiles": [],
     "portfolio_advisory_intents": [],
+    "portfolio_onboarding_milestones": [],
 }
 manager._verify_owner = lambda session: "smoke-test-only"
 manager._read_table = lambda token, table: sample[table]

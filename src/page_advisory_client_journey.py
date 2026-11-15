@@ -249,6 +249,9 @@ are pro-bono and focused on a defined decision.</p>
                     "business_context":context,"decision_timing":horizon,
                     "contact_preference":contact,
                 })
+                # A submitted request is not an accepted engagement.
+                from site_onboarding_measurement import record_first_value
+                record_first_value(token, uid, "advisory", "first_personal_request")
                 st.success("Request received. Your private advisory conversation is now open.")
                 st.rerun()
             except ValueError as e:

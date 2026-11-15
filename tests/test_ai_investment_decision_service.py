@@ -140,10 +140,13 @@ class ExecutiveDecisionAdvisorTests(unittest.TestCase):
         self.assertEqual(sum(len(rows) for _, rows in categories), len(FIELDS))
         page = (ROOT / "src/page_advisory_investment.py").read_text(encoding="utf-8")
         for heading in (
-            "My assessments", "Executive decision", "Action plan",
-            "Evidence & inputs", "New assessment",
+            "About this service", "New assessment", "Decision brief", "My history",
+            "Verdict & evidence", "Executive actions", "Evidence & report",
         ):
             self.assertIn(heading, page)
+        self.assertIn("service_overview(", page)
+        self.assertIn("WORKSPACE_CSS", page)
+        self.assertIn("case_header(", page)
         self.assertIn('st.pills(', page)
         self.assertIn('investment_selected_record', page)
         self.assertNotIn('st.selectbox("Previous executive assessments"', page)
@@ -158,13 +161,20 @@ class ExecutiveDecisionAdvisorTests(unittest.TestCase):
             default_timeout=30,
         ).run()
         self.assertFalse(app.exception, [str(x.message) for x in app.exception])
+        self.assertTrue(any("Browse decision history" in button.label
+                            for button in app.button))
+        app.button(key="investment_home_history").click().run()
+        self.assertFalse(app.exception, [str(x.message) for x in app.exception])
         self.assertTrue(any("Open decision" in button.label for button in app.button))
         app.button(key="inv_open_11111111-1111-4111-8111-111111111111").click().run()
         self.assertFalse(app.exception, [str(x.message) for x in app.exception])
-        self.assertTrue(any("Review the three actions" in button.label
+        self.assertTrue(any("Review my three executive actions" in button.label
                             for button in app.button))
-        next(button for button in app.button if button.label == "Review the three actions").click().run()
+        next(button for button in app.button
+             if button.label == "Review my three executive actions").click().run()
         self.assertFalse(app.exception, [str(x.message) for x in app.exception])
+        self.assertTrue(any("Review supporting evidence" in button.label
+                            for button in app.button))
 
     def test_saved_record_meta_is_traceable_without_invented_approval(self):
         from page_advisory_investment_experience import present_assessment

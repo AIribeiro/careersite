@@ -177,10 +177,10 @@ def _group(pdf: FPDF, y: float, heading: str,
     _txt(pdf, 22, y + 5.7, heading.upper(), 8.3, WHITE, "B")
     y += 8
     for i, (label, value) in enumerate(rows):
-        _band(pdf, 18, y, 174, 8.7, PALE if i % 2 == 0 else WHITE)
-        _txt(pdf, 22, y + 5.9, label, 8.5, INK, "B")
-        _lines(pdf, 89, y + 5.9, value, 98, 8.15, MUTED, max_lines=1)
-        y += 8.7
+        _band(pdf, 18, y, 174, 7.3, PALE if i % 2 == 0 else WHITE)
+        _txt(pdf, 22, y + 5.0, label, 8.0, INK, "B")
+        _lines(pdf, 89, y + 5.0, value, 98, 7.8, MUTED, max_lines=1)
+        y += 7.3
     return y + 3
 
 
@@ -245,7 +245,7 @@ def generate_decision_pdf(data: dict, result: dict, created_at: str) -> bytes:
     pdf.add_page()
     _heading(pdf, "AI Investment Decision", 1)
     _txt(pdf, 18, 61, "DECISION BRIEF", 8, GOLD, "B")
-    _lines(pdf, 18, 70, data["name"], 174, 12, INK, "B", max_lines=2, leading=6)
+    _lines(pdf, 18, 70, data["name"], 174, 12, INK, "B", max_lines=1, leading=6)
 
     # Decision verdict is the focal element, followed by its limits.
     _band(pdf, 18, 78, 174, 46, NAVY_2, 2)

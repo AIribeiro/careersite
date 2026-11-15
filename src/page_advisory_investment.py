@@ -134,88 +134,9 @@ def _submit(token: str, uid: str, raw: dict) -> str:
 
 
 def _pdf_report(data: dict, result: dict, created_at: str) -> bytes:
-    from io import BytesIO
-    from fpdf import FPDF
-
-    def clean(value: object) -> str:
-        s = " ".join(str(value if value is not None else "").split())
-        for a, b in {"\u2014":" - ", "\u2013":"-", "\u2019":"'", "\u201c":'"',
-                     "\u201d":'"', "\u2022":" - "}.items():
-            s = s.replace(a, b)
-        return s.encode("latin-1", "replace").decode("latin-1")
-
-    p = FPDF("P", "mm", "A4")
-    p.set_auto_page_break(auto=True, margin=18)
-    p.set_margins(19, 18, 19)
-    p.add_page()
-    p.set_fill_color(16, 37, 56)
-    p.rect(0, 0, 210, 64, "F")
-    p.set_xy(19, 14)
-    p.set_text_color(229, 185, 145)
-    p.set_font("Helvetica", "B", 9)
-    p.cell(0, 7, "JAIR RIBEIRO  /  EXECUTIVE AI ADVISORY")
-    p.ln(12)
-    p.set_x(19)
-    p.set_text_color(255, 255, 255)
-    p.set_font("Helvetica", "B", 21)
-    p.multi_cell(172, 10, "AI Investment Decision")
-    p.set_x(19)
-    p.set_font("Helvetica", "", 10)
-    p.cell(0, 7, "INDEPENDENT EXECUTIVE DECISION BRIEF")
-    p.set_xy(19, 76)
-
-    def section(head: str, text: str, height: int = 6) -> None:
-        if p.get_y() > 252:
-            p.add_page()
-        p.set_text_color(149, 99, 70)
-        p.set_font("Helvetica", "B", 9)
-        p.cell(0, 7, clean(head.upper()))
-        p.ln(8)
-        p.set_text_color(31, 53, 73)
-        p.set_font("Helvetica", "", 10)
-        p.multi_cell(172, height, clean(text)[:850])
-        p.ln(4)
-
-    p.set_text_color(75, 92, 105)
-    p.set_font("Helvetica", "", 10)
-    p.multi_cell(172, 5, clean(data["name"])[:120] + "  |  Assessment " + clean(created_at[:10]))
-    p.ln(6)
-    p.set_text_color(21, 47, 65)
-    p.set_font("Helvetica", "B", 28)
-    p.cell(0, 12, clean(result["verdict"]))
-    p.ln(15)
-    p.set_font("Helvetica", "B", 13)
-    p.multi_cell(172, 7, clean(result["headline"]))
-    p.ln(4)
-    section("The recommendation", result["reason"])
-    section("Business outcomes to validate", result["decision_lens"])
-    section("Critical consideration", result["primary_constraint"])
-    section("Evidence confidence", result["confidence"] + ". Self-reported, not independently verified.")
-    if result["constraints"]:
-        section("Open decision conditions", "; ".join(result["constraints"][:3]))
-    if p.get_y() > 213:
-        p.add_page()
-    p.set_text_color(149, 99, 70)
-    p.set_font("Helvetica", "B", 9)
-    p.cell(0, 7, "THREE PRIORITY ACTIONS")
-    p.ln(9)
-    for i, item in enumerate(result["actions"], 1):
-        if p.get_y() > 252:
-            p.add_page()
-        p.set_text_color(25, 52, 71)
-        p.set_font("Helvetica", "B", 10)
-        p.multi_cell(172, 6, str(i) + ".  " + clean(item["text"])[:220])
-        p.set_text_color(91, 108, 124)
-        p.set_font("Helvetica", "", 9)
-        p.multi_cell(172, 5, "Suggested owner: " + clean(item["owner"]) +
-                     "  |  Evidence gate: " + clean(item["trigger"]))
-        p.ln(4)
-    section("Next review trigger", result["review_trigger"])
-    p.set_text_color(101, 111, 120)
-    p.set_font("Helvetica", "I", 8)
-    p.multi_cell(172, 5, "Decision aid based on self-reported information. No funding, legal, "
-                 "risk or production authorization is implied. Rule set: " + MODEL_VERSION + ".")
-    return bytes(p.output())
+    """Public service's premium executive document, centrally formatted."""
+    from page_advisory_investment_report import generate_decision_pdf
+    return generate_decision_pdf(data, result, created_at)
 
 
 QUESTIONS = (

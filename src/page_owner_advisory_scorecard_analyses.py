@@ -187,7 +187,8 @@ def render_scorecard_analysis_approvals(token: str, people: list[dict]) -> None:
     st.subheader("Scorecard service management")
     st.caption(
         "Review new client decisions individually, inspect approved workspaces "
-        "and see the approval history. Each new workspace remains independent."
+        "and see the approval history. Each new workspace remains independent. "
+        "Original service grants are managed separately under Access & invitations."
     )
     try:
         requests=read_owner_analysis_requests(token)

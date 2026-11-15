@@ -15,6 +15,8 @@ from page_advisory_client_journey import (
 )
 from site_assets import ADVISORY_EMAIL
 
+MEMBER_EXPERIENCE_VERSION = "premium_conversations_20261115"
+
 VIEWS = (
     "overview", "requests", "messages", "scorecard", "rollout", "decision", "account",
 )

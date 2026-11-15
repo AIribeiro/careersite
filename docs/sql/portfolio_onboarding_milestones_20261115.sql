@@ -42,6 +42,12 @@ begin
   if registered_at is null then
     raise exception 'Membership required before an onboarding milestone';
   end if;
+  -- Historic members may have opened complete editions or produced reports
+  -- before measurement began. Never falsely classify a later repeat action
+  -- as their first or distort registration-to-first-value medians.
+  if registered_at < timestamptz '2026-11-15 11:49:00+00' then
+    return null;
+  end if;
   new.occurred_at := now();
   new.elapsed_seconds := least(
     315360000,

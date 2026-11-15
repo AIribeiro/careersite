@@ -322,10 +322,16 @@ else:
     # Separate Python build, footer selection and Streamlit HTML emission.
     # This helps distinguish cold imports from content or DOM work in Cloud logs.
     build_started = perf_counter()
-    raw_document = render_page()
     if PAGE in {"advisory-decision", "advisory-rollout", "advisory-scorecard", "advisory-leadership"}:
-        from advisory_service_visibility import suppress_paused_detail_ctas
-        raw_document = suppress_paused_detail_ctas(raw_document, PAGE)
+        from advisory_service_visibility import (
+            PAGE_SERVICES, service_enabled, viewer_is_admin,
+        )
+        # Private role is verified against Supabase, not inferred from the URL.
+        # For regular users a disabled service has no discoverable detail page.
+        if not service_enabled(PAGE_SERVICES[PAGE], admin=viewer_is_admin()):
+            st.query_params["page"] = "advisory"
+            st.rerun()
+    raw_document = render_page()
     raw_document = inject_portfolio_continuation(
         raw_document,
         PAGE,

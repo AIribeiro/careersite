@@ -322,55 +322,179 @@ def _input_ui(token: str, uid: str) -> None:
             return
         st.session_state["investment_selected_record"] = record_id
         st.session_state["investment_current_report"] = record_id
-        st.session_state["investment_next_section"] = "Executive decision"
+        st.session_state["investment_next_section"] = "decision"
+        st.session_state["investment_next_detail"] = "verdict"
+        st.query_params["investment_section"] = "decision"
+        st.query_params["investment_detail"] = "verdict"
+        st.query_params["investment_record"] = record_id
         st.rerun()
 
 
-# Deliberately show one work area at a time. A history selection is not
-# another section of a continuously scrolling report.
-WORKSPACE_SECTIONS = (
-    "My assessments", "Executive decision", "Action plan",
-    "Evidence & inputs", "New assessment",
-)
+# Use the four main stages and three report subviews established by the
+# Rollout Readiness Advisor. Existing calls are mapped to these same routes.
+WORKSPACE_SECTIONS = ("overview", "assess", "decision", "history")
+WORKSPACE_LABELS = {
+    "overview": "About this service",
+    "assess": "New assessment",
+    "decision": "Decision brief",
+    "history": "My history",
+}
+REPORT_SECTIONS = ("verdict", "actions", "evidence")
+REPORT_LABELS = {
+    "verdict": "Verdict & evidence",
+    "actions": "Executive actions",
+    "evidence": "Evidence & report",
+}
+LEGACY_DESTINATIONS = {
+    "My assessments": ("history", ""),
+    "Executive decision": ("decision", "verdict"),
+    "Action plan": ("decision", "actions"),
+    "Evidence & inputs": ("decision", "evidence"),
+    "New assessment": ("assess", ""),
+}
 
 
 def _go_to(section: str, record_id: str = "") -> None:
-    """Set the destination before the next widget-render pass."""
-    if section in WORKSPACE_SECTIONS:
-        st.session_state["investment_next_section"] = section
+    """Route internal navigation using the same hierarchy as Rollout."""
+    section, detail = LEGACY_DESTINATIONS.get(section, (section, ""))
+    if section not in WORKSPACE_SECTIONS:
+        return
+    st.session_state["investment_next_section"] = section
+    st.query_params["investment_section"] = section
+    if detail:
+        st.session_state["investment_next_detail"] = detail
+        st.query_params["investment_detail"] = detail
     if record_id:
         st.session_state["investment_selected_record"] = record_id
         st.session_state["investment_current_report"] = record_id
+        st.query_params["investment_record"] = record_id
+
+
+def _investment_nav_changed() -> None:
+    section = st.session_state.get("investment_workspace_nav")
+    if section in WORKSPACE_SECTIONS:
+        st.query_params["investment_section"] = section
+
+
+def _investment_report_nav_changed() -> None:
+    detail = st.session_state.get("investment_report_nav")
+    if detail in REPORT_SECTIONS:
+        st.query_params["investment_detail"] = detail
 
 
 def _workspace_nav(history: list[dict]) -> str:
-    target = st.session_state.pop("investment_next_section", "")
-    current = st.session_state.get("investment_workspace_nav")
+    target = st.session_state.pop("investment_next_section", None)
+    requested = str(st.query_params.get("investment_section") or "overview")
     if target in WORKSPACE_SECTIONS:
-        st.session_state["investment_workspace_nav"] = target
-    elif current not in WORKSPACE_SECTIONS:
-        st.session_state["investment_workspace_nav"] = (
-            "My assessments" if history else "New assessment"
-        )
+        requested = target
+    if requested not in WORKSPACE_SECTIONS:
+        requested = "overview"
+    if st.session_state.get("investment_workspace_nav") != requested:
+        st.session_state["investment_workspace_nav"] = requested
     st.pills(
-        "Investment Advisor workspace",
-        WORKSPACE_SECTIONS,
-        selection_mode="single", required=True,
-        key="investment_workspace_nav",
+        "Investment service sections", WORKSPACE_SECTIONS,
+        format_func=lambda key: WORKSPACE_LABELS[key],
+        selection_mode="single", required=True, on_change=_investment_nav_changed,
+        key="investment_workspace_nav", label_visibility="collapsed",
+        wrap=False, width="stretch",
+    )
+    return requested
+
+
+def _report_nav() -> str:
+    target = st.session_state.pop("investment_next_detail", None)
+    requested = str(st.query_params.get("investment_detail") or "verdict")
+    if target in REPORT_SECTIONS:
+        requested = target
+    if requested not in REPORT_SECTIONS:
+        requested = "verdict"
+    if st.session_state.get("investment_report_nav") != requested:
+        st.session_state["investment_report_nav"] = requested
+    st.pills(
+        "Decision brief sections", REPORT_SECTIONS,
+        format_func=lambda key: REPORT_LABELS[key],
+        key="investment_report_nav", selection_mode="single",
+        required=True, on_change=_investment_report_nav_changed,
         label_visibility="collapsed", wrap=False, width="stretch",
     )
-    return str(st.session_state["investment_workspace_nav"])
+    return requested
 
 
 def _case_heading(record: dict, view: dict) -> None:
-    stamp = str(record.get("created_at") or "")[:10]
-    st.html(
-        '<div class="inv-context">'
-        '<span class="inv-eyebrow">SELECTED ASSESSMENT · ' + escape(stamp) + '</span>'
-        '<strong>' + escape(view["name"]) + '</strong>'
-        '<p>' + escape(view["scope"]) + ' · ' + escape(view["verdict"]) +
-        ' · ' + escape(view["confidence"]) + ' evidence confidence (self-reported)</p>'
-        '</div>'
+    from page_advisory_shared_ui import case_header
+    case_header(
+        title=view["name"],
+        date=str(record.get("created_at") or "")[:10],
+        context=view["scope"],
+        status=view["verdict"] + " · " + view["confidence"] +
+               " evidence confidence (self-reported)",
+        synthetic=bool((record.get("answers") or {}).get("demo")),
+    )
+
+
+def _service_guide(history: list[dict]) -> None:
+    from page_advisory_shared_ui import service_overview
+    service_overview(
+        hero="Should you invest, experiment, hold or stop?",
+        description=(
+            "Evaluate one AI opportunity against its business case, "
+            "non-AI alternatives, organizational readiness and risk. "
+            "Receive a reasoned decision and explicit conditions for the next commitment."
+        ),
+        access="Included with verified Advisory registration",
+        assessment_format="One focused self-service assessment",
+        saved_count=len(history),
+        outputs=(
+            ("The verdict", "A defensible investment position",
+             "Invest, Experiment, Hold or Stop, with the decision's limits and principal uncertainty."),
+            ("The priorities", "Three executive actions",
+             "A specific action, suggested accountable function and evidence required for closure."),
+            ("The report", "A private executive decision brief",
+             "The supporting 14 selections, explanation and downloadable two-page PDF."),
+        ),
+        steps=(
+            ("Describe the opportunity",
+             "Give the AI use a non-confidential name and choose its business purpose."),
+            ("Answer 14 conditions",
+             "Three short sections on value, operational readiness, and governance."),
+            ("Review your recommendation",
+             "Inspect the verdict and actions, check inputs and save the executive report."),
+        ),
+        boundary=(
+            "This is a free self-service decision aid. It does not approve spending, "
+            "certify compliance, verify submitted evidence or authorize live AI deployment. "
+            "No separate approval is required for registered Advisory members."
+        ),
+    )
+    if history:
+        latest=history[0]
+        try:
+            current=present_assessment(latest.get("answers") or {})
+        except (ValueError, TypeError, KeyError):
+            current=None
+        if current:
+            st.markdown("### Your latest decision")
+            with st.container(border=True):
+                st.caption(str(latest.get("created_at") or "")[:10]+" · "+current["name"])
+                st.markdown("#### "+current["verdict"])
+                st.write(current["next_step"])
+                a,b=st.columns(2)
+                with a:
+                    st.button(
+                        "Open executive decision brief", type="primary",
+                        key="investment_home_latest", use_container_width=True,
+                        on_click=_go_to,
+                        args=("Executive decision", str(latest["id"])),
+                    )
+                with b:
+                    st.button(
+                        "Browse decision history", key="investment_home_history",
+                        use_container_width=True, on_click=_go_to,
+                        args=("My assessments",),
+                    )
+    st.button(
+        "Start a new investment assessment", key="investment_home_new",
+        on_click=_go_to, args=("New assessment",),
     )
 
 

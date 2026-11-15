@@ -347,6 +347,10 @@ Future visits use your email and password, not an email access link.</p>
 
 def _advisory_login() -> None:
     requested_service = str(st.query_params.get("view") or "")
+    from advisory_service_visibility import service_enabled
+    # Anonymous and regular visitors cannot discover a hidden service via a URL.
+    if requested_service in ("requests", "decision", "scorecard", "rollout", "workshop") and not service_enabled(requested_service):
+        requested_service = ""
     self_service = requested_service == "decision"
     if requested_service == "workshop":
         st.html("""<section class="advisory-portal-intro advisory-workshop-intro">

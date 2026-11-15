@@ -204,7 +204,7 @@ elif PAGE == "advisory-access":
     if getattr(_scorecard_workspace, "SCORECARD_UX_RELEASE", None) != "executive_hub_20261115":
         importlib.invalidate_caches()
         importlib.reload(_scorecard_workspace)
-    if getattr(_scorecard_experience, "SCORECARD_EXPERIENCE_VERSION", None) != "executive_workspace_v2_20261115":
+    if getattr(_scorecard_experience, "SCORECARD_EXPERIENCE_VERSION", None) != "executive_workspace_v3_20261115":
         importlib.invalidate_caches()
         importlib.reload(_scorecard_experience)
 

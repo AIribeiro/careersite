@@ -64,6 +64,8 @@ def _create_request(token: str, uid: str, fields: dict) -> None:
         "decision_timing":fields["decision_timing"],
         "contact_preference":fields["contact_preference"],
     }
+    if fields.get("service_key") in ("rollout", "scorecard"):
+        payload["source_service"] = fields["service_key"]
     returned = _request_json(
         "POST", _rest_url("portfolio_advisory_requests"),
         token=token,payload=payload,prefer="return=representation",timeout=15,

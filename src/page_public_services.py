@@ -10,6 +10,8 @@ from site_media import IMAGE_DIR
 from site_components import footer, nav
 import streamlit as st
 
+from advisory_service_visibility import public_service_cta, service_enabled
+
 
 SERVICES_CSS = """
 <style>
@@ -205,6 +207,8 @@ SERVICES_CSS = """
 .site .advisory-ready-link:hover{background:#294d6b;color:#fff!important}
 .site .advisory-ready-link:focus-visible{outline:3px solid #b86e46;outline-offset:4px}
 .site .advisory-ready-link span{font-size:18px;font-weight:500;line-height:1}
+.site .advisory-ready-link--unavailable{background:#e7e6e3!important;color:#546172!important;border:1px solid #cbd0d1;cursor:not-allowed;justify-content:center}
+.site .advisory-ready-link--unavailable:hover{background:#e7e6e3!important;color:#546172!important}
 .site .advisory-ready-tail{font-size:12px;line-height:1.65;color:#637081;margin:22px 0 0}
 .site .advisory-ready-tail a{color:#244c6d!important;font-weight:800;text-underline-offset:3px}
 @media(max-width:1050px){
@@ -235,6 +239,22 @@ SERVICES_CSS = """
 def advisory() -> str:
     """Executive-grade advisory value, method, fit and distinct access."""
     member_signed_in = st.session_state.get("advisory_member") is True
+    personal_available = service_enabled("requests")
+    ready_count = sum(service_enabled(key) for key in ("decision", "rollout", "scorecard", "workshop"))
+    ready_lede = (
+        f"{ready_count} executive decision tools currently accepting new starts. "
+        "Compare their outputs and access conditions before you begin."
+        if ready_count else
+        "The decision tools are temporarily unavailable for new starts. "
+        "Their scope and methods remain visible for reference."
+    )
+    hero_discussion_cta = (
+        '<a class="advisory-button advisory-button--outline" href="#advisory-contact" '
+        'data-hq-event="advisory_email_primary">Discuss a decision →</a>'
+        if personal_available else
+        '<span class="advisory-button advisory-button--outline" aria-disabled="true" '
+        'style="opacity:.55;cursor:not-allowed">Personal advisory paused</span>'
+    )
     invitation = ("Continue your advisory conversation." if member_signed_in
                   else "Submit a decision for pro-bono review.")
     cta = ("Open my advisory space →" if member_signed_in
@@ -248,6 +268,15 @@ def advisory() -> str:
         "where a senior external perspective could help. There is no charge, "
         "but availability is limited and registration does not guarantee a session."
     )
+
+    if not personal_available:
+        invitation = "Explore the available Advisory tools."
+        cta = "Open my Advisory account →"
+        invitation_text = (
+            "New personal pro-bono discussions are currently paused. "
+            "Your Advisory account and existing conversations remain available; "
+            "you can still use any enabled self-service tools."
+        )
 
     hero_account_access = (
         '<span class="advisory-hero-access-status">Signed in</span>'
@@ -288,7 +317,7 @@ def advisory() -> str:
    <p class="service-lede">For leaders facing decisions on AI investment, governance, adoption or operating ownership. I consider a limited number of focused pro-bono discussions to examine options, trade-offs and a practical next step.</p>
    <div class="advisory-actions">
     <a class="advisory-button" href="#advisory-services" data-hq-event="advisory_explore_value">Explore the services →</a>
-    <a class="advisory-button advisory-button--outline" href="#advisory-contact" data-hq-event="advisory_email_primary">Discuss a decision →</a>
+    {hero_discussion_cta}
    </div>
    <div class="advisory-proofline" aria-label="Advisory disciplines"><span>Portfolio judgement</span><span>AI &amp; data governance</span><span>Operating model</span><span>Adoption &amp; value</span></div>
   </div>
@@ -306,9 +335,9 @@ def advisory() -> str:
    <div>
     <p class="service-eyebrow">Available advisory services</p>
     <h2 id="advisory-services-title">Choose the decision you need to make.</h2>
-    <p class="advisory-ready-lede">Four focused executive tools, each with a defined assessment and a decision-ready outcome. Explore what you receive and the access conditions before you begin.</p>
+    <p class="advisory-ready-lede">{ready_lede}</p>
    </div>
-   <span class="advisory-ready-count">04 / Available now</span>
+   <span class="advisory-ready-count">{ready_count:02d} / Available now</span>
   </div>
   <div class="advisory-ready-grid">
    <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-decision">
@@ -319,7 +348,7 @@ def advisory() -> str:
     <div class="advisory-ready-card-bottom">
      <p class="advisory-ready-detail"><span>What you receive</span><strong>Executive verdict · Downloadable decision brief</strong></p>
      <p class="advisory-ready-detail"><span>Access</span><strong>Free with an Advisory account. No individual approval needed.</strong></p>
-     <a class="advisory-ready-link" href="?page=advisory-decision" target="_self" data-hq-event="advisory_investment_service">Explore investment advisor <span aria-hidden="true">→</span></a>
+     {public_service_cta("decision", "?page=advisory-decision", "Explore investment advisor", "advisory_investment_service")}
     </div>
    </article>
    <article class="advisory-ready-card" data-analytics-section="advisory-rollout">
@@ -330,7 +359,7 @@ def advisory() -> str:
     <div class="advisory-ready-card-bottom">
      <p class="advisory-ready-detail"><span>What you receive</span><strong>Executive readiness verdict · Three priority actions</strong></p>
      <p class="advisory-ready-detail"><span>Access</span><strong>Free pro-bono service. Individual approval required.</strong></p>
-     <a class="advisory-ready-link" href="?page=advisory-rollout" target="_self" data-hq-event="advisory_rollout_service">Explore rollout advisor <span aria-hidden="true">→</span></a>
+     {public_service_cta("rollout", "?page=advisory-rollout", "Explore rollout advisor", "advisory_rollout_service")}
     </div>
    </article>
    <article class="advisory-ready-card" data-analytics-section="advisory-scorecard">
@@ -341,7 +370,7 @@ def advisory() -> str:
     <div class="advisory-ready-card-bottom">
      <p class="advisory-ready-detail"><span>What you receive</span><strong>Portfolio recommendation · Scenarios · Decision memo</strong></p>
      <p class="advisory-ready-detail"><span>Access</span><strong>Free pro-bono service. Individual approval required.</strong></p>
-     <a class="advisory-ready-link" href="?page=advisory-scorecard" target="_self" data-hq-event="advisory_scorecard_service">Explore portfolio scorecard <span aria-hidden="true">→</span></a>
+     {public_service_cta("scorecard", "?page=advisory-scorecard", "Explore portfolio scorecard", "advisory_scorecard_service")}
     </div>
    </article>
    <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-leadership-workshop">
@@ -352,7 +381,7 @@ def advisory() -> str:
     <div class="advisory-ready-card-bottom">
      <p class="advisory-ready-detail"><span>What you receive</span><strong>Leadership profile · Discussion exercises · Executive decision PDF</strong></p>
      <p class="advisory-ready-detail"><span>Access</span><strong>Free with a verified Advisory account. No individual approval required.</strong></p>
-     <a class="advisory-ready-link" href="?page=advisory-leadership" target="_self" data-hq-event="advisory_workshop_service">Explore leadership workshop <span aria-hidden="true">→</span></a>
+     {public_service_cta("workshop", "?page=advisory-leadership", "Explore leadership workshop", "advisory_workshop_service")}
     </div>
    </article>
   </div>
@@ -452,7 +481,7 @@ def advisory() -> str:
    <div class="advisory-access-direct" id="advisory-contact" data-analytics-section="advisory-inquiry">
     <span>Prefer a direct introduction?</span>
     <p>Tell me what decision you are facing, who owns it and when it matters. No confidential details are needed.</p>
-    <a href="mailto:{ADVISORY_EMAIL}?subject=Executive%20advisory%20discussion" data-hq-event="advisory_email_final">Email {ADVISORY_EMAIL} →</a>
+    {f'<a href="mailto:{ADVISORY_EMAIL}?subject=Executive%20advisory%20discussion" data-hq-event="advisory_email_final">Email {ADVISORY_EMAIL} →</a>' if personal_available else '<span aria-disabled="true">New discussion requests are paused</span>'}
    </div>
   </aside>
  </div>

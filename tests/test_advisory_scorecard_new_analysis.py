@@ -84,6 +84,42 @@ class ScorecardNewAnalysisTests(unittest.TestCase):
             self.assertIn("analysis_request_id=eq.analysis-2",
                           api.call_args_list[1].args[1])
 
+    def test_owner_approval_uses_separate_supabase_access_email_event(self):
+        from page_owner_advisory_scorecard_analyses import owner_analysis_action
+        responses=[
+            {"id":"analysis-2","status":"approved","workspace_id":"new-workspace",
+             "notification_id":"new-email-event"},
+            [{"id":"new-workspace","user_id":"user-a","status":"active",
+              "analysis_request_id":"analysis-2","revision":0,
+              "payload":{"initiatives":[]}}],
+        ]
+        with (
+            patch("page_owner_advisory_scorecard_analyses._request_json",
+                  side_effect=responses),
+            patch("page_owner_advisory_scorecard_analyses.deliver_approval_notice",
+                  return_value={"id":"new-email-event","state":"sent"}) as deliver,
+        ):
+            result=owner_analysis_action("jwt","analysis-2","approve")
+        deliver.assert_called_once_with("jwt","new-email-event")
+        self.assertIn("Supabase Auth accepted",result["notification_message"])
+
+    def test_original_entitlement_controls_ignore_additional_analyses(self):
+        owner=self.source("src/page_owner_advisory_scorecard.py")
+        operations=self.source("src/page_owner_advisory_operations.py")
+        self.assertIn('analysis_request_id=is.null&limit=1',owner)
+        self.assertIn('legacy = "&analysis_request_id=is.null"',operations)
+
+    def test_revoking_service_cascades_to_all_analyses(self):
+        migration=self.source(
+            "supabase/migrations/20261115_scorecard_original_revoke_all_analyses.sql"
+        )
+        self.assertIn("where request_id=p_request_id and status='active'",migration)
+        self.assertIn("portfolio_advisory_scorecard_analysis_requests",migration)
+        self.assertIn("set status='revoked',decided_by=v_owner",migration)
+        self.assertIn("values(v_req.request_id",self.source(
+            "supabase/migrations/20261115_scorecard_separate_approved_analysis_workspaces.sql"
+        ))
+
     def test_owner_does_not_claim_success_if_workspace_not_empty(self):
         from page_owner_advisory_scorecard_analyses import owner_analysis_action
         with patch("page_owner_advisory_scorecard_analyses._request_json",

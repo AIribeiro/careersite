@@ -289,14 +289,6 @@ def advisory() -> str:
    </div>
    <a href="?page=advisory-scorecard" target="_self" data-hq-event="advisory_scorecard_service">Explore the service →</a>
   </div>
-  <div class="advisory-tool-reference" data-analytics-section="advisory-decision">
-   <div>
-    <small>Free self-service executive decision review · No separate service approval</small>
-    <strong>AI Investment Decision Advisor</strong>
-    <p>Assess one AI opportunity and receive an evidence-based decision: invest, experiment, hold or stop. Includes the reasoning, evidence confidence, three priority actions and a private downloadable executive brief.</p>
-   </div>
-   <a href="?page=advisory-decision" target="_self" data-hq-event="advisory_investment_service">Explore the service →</a>
-  </div>
   <div class="advisory-tool-reference" data-analytics-section="advisory-rollout">
    <div>
     <small>Executive AI Decision Advisor · Individual approval</small>
@@ -304,6 +296,14 @@ def advisory() -> str:
     <p>A focused, one-session assessment of business value, operational readiness, governance, adoption and scaling capability. Receive a clear executive verdict, its reasoning and three priority actions. Free for individually approved Advisory clients.</p>
    </div>
    <a href="?page=advisory-rollout" target="_self" data-hq-event="advisory_rollout_service">Explore the service →</a>
+  </div>
+  <div class="advisory-tool-reference" data-analytics-section="advisory-decision">
+   <div>
+    <small>03 / Free executive self-service · Included with Advisory registration</small>
+    <strong>AI Investment Decision Advisor</strong>
+    <p>Should you invest, experiment, hold or stop a specific AI opportunity? Complete a short, guided assessment and receive a reasoned executive verdict, the evidence that matters, three priority actions and a downloadable decision brief. Free access for registered Advisory members; no individual service approval required.</p>
+   </div>
+   <a href="?page=advisory-decision" target="_self" data-hq-event="advisory_investment_service">Explore the service →</a>
   </div>
  </div>
 </section>

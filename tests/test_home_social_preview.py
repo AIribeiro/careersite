@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from html import escape
 from tempfile import TemporaryDirectory
 import unittest
 
@@ -18,7 +19,7 @@ class HomeSocialPreviewTests(unittest.TestCase):
             output = Path(tmp)
             write_home_share(output, "https://airibeiro.github.io/careersite")
             document = (output / "index.html").read_text(encoding="utf-8")
-            self.assertIn(TITLE, document)
+            self.assertIn(escape(TITLE), document)
             self.assertIn(DESCRIPTION, document)
             self.assertIn('property="og:image" content="https://airibeiro.github.io/careersite/social/jair-ribeiro-home.png"', document)
             self.assertIn('property="og:image:width" content="1200"', document)

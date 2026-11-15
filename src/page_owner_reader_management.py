@@ -442,6 +442,159 @@ def _onboarding_outcomes(
     )
 
 
+def _reader_privacy_export(
+    profile: dict, downloads: list[dict], saved: list[dict],
+    consents: list[dict], control: dict,
+) -> None:
+    user_id = str(profile.get("user_id") or "")
+    with st.expander("Private data export · access requests", expanded=False):
+        st.caption(
+            "Owner-only export for reviewing a reader's records. Check private "
+            "notes and applicable disclosure rules before sharing the file."
+        )
+        snapshot = {
+            "profile": profile,
+            "administrative_controls": control,
+            "downloads": [
+                row for row in downloads if str(row.get("user_id")) == user_id
+            ],
+            "saved_briefings": [
+                row for row in saved if str(row.get("user_id")) == user_id
+            ],
+            "consent_history": [
+                row for row in consents if str(row.get("user_id")) == user_id
+            ],
+        }
+        st.download_button(
+            "Export reader records (JSON)",
+            data=json.dumps(snapshot, ensure_ascii=False, indent=2).encode("utf-8"),
+            file_name="reader-" + user_id + "-private-data.json",
+            mime="application/json",
+            key="admin_reader_personal_export_" + user_id,
+        )
+        st.caption(
+            "This export does not erase personal data. Identity deletion "
+            "requires a separate authorized Supabase Auth workflow."
+        )
+
+
+def _reader_administration(
+    token: str, profile: dict, control: dict, membership: str,
+) -> None:
+    user_id = str(profile.get("user_id") or "")
+    st.subheader("Reader administration")
+    st.caption(
+        "Private notes and internal tags are not visible to readers and "
+        "do not constitute permission to send marketing emails."
+    )
+    if membership == "Reader only":
+        with st.container(border=True):
+            st.markdown("#### Advisory relationship")
+            st.write(
+                "Reader membership does not grant Advisory access. "
+                "Use Advisory Operations to invite this person without "
+                "creating a second account."
+            )
+            st.link_button(
+                "Open Advisory invitations",
+                "https://jairribeiro.com/?page=analytics&workspace=advisory",
+            )
+    elif membership == "Advisory pending":
+        st.info("Advisory invitation or onboarding is pending.")
+
+    with st.container(border=True):
+        st.markdown("#### Private relationship notes")
+        with st.form("admin_reader_note_form_" + user_id):
+            note = st.text_area(
+                "Administrative note",
+                value=str(control.get("internal_notes") or ""),
+                max_chars=10000,
+                key="admin_reader_note_" + user_id,
+                help="Owner-only. Never store passwords or access tokens.",
+            )
+            note_save = st.form_submit_button("Save private note")
+        if note_save:
+            try:
+                _admin_action(token, user_id, "note_update", note=note)
+                st.success("Private note saved and audited.")
+                st.rerun()
+            except (RuntimeError, ValueError, TimeoutError):
+                st.error("The note could not be saved.")
+
+    with st.container(border=True):
+        st.markdown("#### Audience segmentation")
+        with st.form("admin_reader_tags_form_" + user_id):
+            tags = st.text_input(
+                "Internal tags · comma-separated",
+                value=", ".join(control.get("tags") or []),
+                max_chars=900,
+                key="admin_reader_tags_" + user_id,
+                help="Internal tags support filtering; tags do not grant email consent.",
+            )
+            tag_save = st.form_submit_button("Save segment tags")
+        if tag_save:
+            cleaned = list(dict.fromkeys(
+                tag.strip() for tag in tags.split(",") if tag.strip()
+            ))
+            try:
+                _admin_action(token, user_id, "tag_update", tags=cleaned)
+                st.success("Segmentation tags saved and audited.")
+                st.rerun()
+            except (RuntimeError, ValueError, TimeoutError):
+                st.error("Tags could not be saved. Use up to 20 short alphanumeric tags.")
+
+    with st.expander("Sensitive controls · access and mailing", expanded=False):
+        st.caption(
+            "Mailing suppression removes the address from exports without "
+            "changing recorded consent. Suspending access blocks verified "
+            "Reader access but does not delete identity or profile data."
+        )
+        confirm = st.text_input(
+            "Enter the reader's exact email to enable these actions",
+            value="",
+            key="admin_reader_action_confirmation_" + user_id,
+            placeholder=str(profile.get("email") or ""),
+        )
+        confirmed = confirm.strip().casefold() == \
+            str(profile.get("email") or "").strip().casefold()
+        a, b = st.columns(2)
+        with a:
+            suppressed = bool(control.get("mailing_suppressed"))
+            label = "Restore to mailing exports" if suppressed else "Suppress from mailing exports"
+            if st.button(
+                label, disabled=not confirmed,
+                key="admin_reader_mailing_action_" + user_id,
+            ):
+                try:
+                    _admin_action(
+                        token, user_id,
+                        "mailing_restore" if suppressed else "mailing_suppress",
+                    )
+                    st.success("Mailing status updated and audited.")
+                    st.rerun()
+                except (RuntimeError, ValueError, TimeoutError):
+                    st.error("Mailing status could not be changed.")
+        with b:
+            suspended = control.get("account_status") == "suspended"
+            label = "Reinstate reader access" if suspended else "Suspend reader access"
+            if st.button(
+                label, disabled=not confirmed,
+                key="admin_reader_account_action_" + user_id,
+            ):
+                try:
+                    _admin_action(
+                        token, user_id, "reinstate" if suspended else "suspend",
+                    )
+                    st.success("Account status updated and audited.")
+                    st.rerun()
+                except (RuntimeError, ValueError, TimeoutError):
+                    st.error("Account status could not be changed.")
+        st.caption(
+            "Permanent deletion and GDPR erasure are not available in this "
+            "workspace; use the authorized identity process and retention checks."
+        )
+
+
 def _reader_management(
     token: str, profiles: list[dict], downloads: list[dict],
     saved: list[dict], consents: list[dict], controls: dict[str, dict],
@@ -450,34 +603,40 @@ def _reader_management(
     advisory_membership = advisory_membership or {}
     st.subheader("Reader directory")
     st.caption(
-        "Reader entitlement is independent of the Advisory relationship. "
-        "An Advisory account includes Reader access, but registration here "
-        "does not grant Advisory access."
+        "Find a member, open their record, then choose the information you need. "
+        "Reader and Advisory entitlements are managed separately."
     )
-    search = st.text_input(
-        "Find a registered reader",
-        placeholder="Search name, email or tag",
-        key="admin_readers_search",
-    ).strip().casefold()
-    status_filter = st.selectbox(
-        "Audience filter",
-        ["All readers", "Registered via Articles", "Registered via Briefings",
-         "Registered via Weekly AI", "Editorial opt-in", "Not subscribed",
-         "Mailing suppressed", "Suspended",
-         "Advisory included", "Advisory pending"],
-        key="admin_readers_filter",
-    )
+    search_col, filter_col = st.columns([2, 1])
+    with search_col:
+        search = st.text_input(
+            "Find a reader",
+            placeholder="Name, email, organization, country or tag",
+            key="admin_readers_search",
+        ).strip().casefold()
+    with filter_col:
+        status_filter = st.selectbox(
+            "Audience",
+            [
+                "All readers", "Registered via Articles", "Registered via Briefings",
+                "Registered via Weekly AI", "Editorial opt-in", "Not subscribed",
+                "Mailing suppressed", "Suspended", "Advisory included",
+                "Advisory pending",
+            ],
+            key="admin_readers_filter",
+        )
 
     def included(p: dict) -> bool:
         user_id = str(p.get("user_id") or "")
         control = controls.get(user_id, {})
+        raw_interests = p.get("interests") or []
+        interests = " ".join(str(t) for t in raw_interests) \
+            if isinstance(raw_interests, list) else str(raw_interests)
         matched = search in " ".join([
             str(p.get("first_name") or ""), str(p.get("last_name") or ""),
             str(p.get("email") or ""), str(p.get("job_title") or ""),
             str(p.get("organization") or ""), str(p.get("industry") or ""),
             str(p.get("country") or ""), str(p.get("city") or ""),
-            " ".join(p.get("interests") or []),
-            " ".join(control.get("tags") or []),
+            interests, " ".join(control.get("tags") or []),
             _reader_origin_tag(p),
         ]).casefold()
         if not matched:
@@ -503,162 +662,56 @@ def _reader_management(
         return True
 
     matching = [p for p in profiles if included(p)]
-    st.caption(f"{len(matching):,} matching readers")
+    st.caption(f"{len(matching):,} readers in this view")
+    if not matching:
+        st.info("No readers match the current search and audience filter.")
+        return
+
+    reader_ids = [str(p.get("user_id") or "") for p in matching]
+    selected_id = st.selectbox(
+        "Open reader record",
+        reader_ids,
+        format_func=lambda user_id: next(
+            (_reader_name(p) + " · " + str(p.get("email") or "")
+             for p in matching if str(p.get("user_id") or "") == user_id),
+            "Reader",
+        ),
+        key="admin_selected_reader_record",
+    )
     st.dataframe([
         {
-            "Name": " ".join(
-                part for part in (
-                    str(p.get("first_name") or ""),
-                    str(p.get("last_name") or "")
-                ) if part
-            ),
+            "Reader": _reader_name(p),
             "Email": str(p.get("email") or ""),
-            "Role": str(p.get("job_title") or ""),
-            "Organization": str(p.get("organization") or ""),
-            "Sector": str(p.get("industry") or ""),
-            "Country": str(p.get("country") or ""),
-            "Registered": str(p.get("created_at") or "")[:10],
-            "Registration origin": _reader_origin_tag(p),
+            "Organization": str(p.get("organization") or "—"),
             "Membership": advisory_membership.get(str(p.get("user_id")), "Reader only"),
-            "Editorial opt-in": bool(p.get("newsletter_opt_in")),
-            "Status": str(controls.get(str(p.get("user_id")), {}).get("account_status", "active")),
-            "Suppressed": bool(controls.get(str(p.get("user_id")), {}).get("mailing_suppressed")),
-            "Tags": ", ".join(controls.get(str(p.get("user_id")), {}).get("tags") or []),
+            "Registered": str(p.get("created_at") or "")[:10],
+            "Source": _reader_origin_tag(p).split(":")[-1].replace("_", " ").title(),
+            "Editorial": "Opt-in" if p.get("newsletter_opt_in") is True else "No opt-in",
+            "Access": str(controls.get(str(p.get("user_id")), {}).get(
+                "account_status", "active")).title(),
         } for p in matching[:500]
-    ], hide_index=True, use_container_width=True)
+    ], hide_index=True, use_container_width=True, height=min(320, 38 + 35 * len(matching[:500])))
     if len(matching) > 500:
-        st.caption("First 500 matches displayed; narrow the filter to inspect a reader.")
-    if not matching:
-        return
-    selection = st.selectbox(
-        "Reader details",
-        range(len(matching)),
-        format_func=lambda i: (
-            str(matching[i].get("first_name") or "Reader")
-            + " — " + str(matching[i].get("email") or "")
-        ),
-        key="admin_selected_reader",
-    )
-    p = matching[selection]
-    user_id = str(p["user_id"])
-    control = controls.get(user_id, {})
-    st.divider()
-    if advisory_membership.get(user_id, "Reader only") == "Reader only":
-        st.info("This member has Reader access only. Use Advisory Operations to "
-                "invite them to complete Advisory onboarding; do not create a duplicate account.")
-        st.link_button(
-            "Open Advisory invitations",
-            "https://jairribeiro.com/?page=analytics&workspace=advisory",
-        )
-    elif advisory_membership.get(user_id) == "Advisory pending":
-        st.caption("Advisory invitation or account onboarding is pending.")
-    _profile_snapshot(p, downloads, saved, consents, control)
+        st.caption("First 500 rows shown. Search or filter to find other records.")
 
-    with st.expander("Export reader data · privacy requests", expanded=False):
-        snapshot = {
-            "profile": p,
-            "administrative_controls": control,
-            "downloads": [
-                row for row in downloads if str(row.get("user_id")) == user_id
-            ],
-            "saved_briefings": [
-                row for row in saved if str(row.get("user_id")) == user_id
-            ],
-            "consent_history": [
-                row for row in consents if str(row.get("user_id")) == user_id
-            ],
-        }
-        st.download_button(
-            "Export this reader's records (JSON)",
-            data=json.dumps(snapshot, ensure_ascii=False, indent=2).encode("utf-8"),
-            file_name="reader-" + user_id + "-private-data.json",
-            mime="application/json",
-            key="admin_reader_personal_export_" + user_id,
-        )
-        st.caption(
-            "Private export for owner review and access requests. "
-            "Assess internal notes before disclosing records to a reader. "
-            "Deletion is not performed here; use the authorized identity "
-            "administration workflow and verify related records."
-        )
+    p = next(p for p in matching if str(p.get("user_id") or "") == selected_id)
+    control = controls.get(selected_id, {})
+    membership = advisory_membership.get(selected_id, "Reader only")
+    _profile_snapshot(p, downloads, saved, consents, control, membership)
 
-    st.markdown("#### Internal reader management")
-    with st.form("admin_reader_note_form_" + user_id):
-        note = st.text_area(
-            "Private administrative note",
-            value=str(control.get("internal_notes") or ""),
-            max_chars=10000, key="admin_reader_note_" + user_id,
-            help="Owner-only CRM notes. Never include passwords or authentication tokens.",
-        )
-        note_save = st.form_submit_button("Save private note")
-    if note_save:
-        try:
-            _admin_action(token, user_id, "note_update", note=note)
-            st.success("Private note saved and audited.")
-            st.rerun()
-        except (RuntimeError, ValueError, TimeoutError):
-            st.error("The note could not be saved.")
-
-    with st.form("admin_reader_tags_form_" + user_id):
-        tags = st.text_input(
-            "Internal tags (comma-separated)",
-            value=", ".join(control.get("tags") or []),
-            max_chars=900, key="admin_reader_tags_" + user_id,
-            help="Use tags to prepare editorial segments. Tags do not constitute consent.",
-        )
-        tag_save = st.form_submit_button("Save segment tags")
-    if tag_save:
-        cleaned = list(dict.fromkeys(tag.strip() for tag in tags.split(",") if tag.strip()))
-        try:
-            _admin_action(token, user_id, "tag_update", tags=cleaned)
-            st.success("Segmentation tags saved and audited.")
-            st.rerun()
-        except (RuntimeError, ValueError, TimeoutError):
-            st.error("Tags could not be saved. Use up to 20 short alphanumeric tags.")
-
-    with st.expander("Mailing suppression and account access", expanded=False):
-        st.caption(
-            "Mailing suppression excludes an address from the internal export, "
-            "without changing its historical consent. Suspending an account "
-            "blocks the verified-reader access check; it does not delete data."
-        )
-        confirm = st.text_input(
-            "Type the reader's email to confirm an access change",
-            value="", key="admin_reader_action_confirmation_" + user_id,
-            placeholder=str(p.get("email") or ""),
-        )
-        confirmed = confirm.strip().casefold() == str(p.get("email") or "").strip().casefold()
-        a, b = st.columns(2)
-        with a:
-            suppressed = bool(control.get("mailing_suppressed"))
-            label = "Restore to eligible mailing list" if suppressed else "Suppress from mailing list"
-            if st.button(label, disabled=not confirmed,
-                         key="admin_reader_mailing_action_" + user_id):
-                action = "mailing_restore" if suppressed else "mailing_suppress"
-                try:
-                    _admin_action(token, user_id, action)
-                    st.success("Mailing status updated and audited.")
-                    st.rerun()
-                except (RuntimeError, ValueError, TimeoutError):
-                    st.error("Mailing status could not be changed.")
-        with b:
-            suspended = control.get("account_status") == "suspended"
-            label = "Reinstate reader access" if suspended else "Suspend reader access"
-            if st.button(label, disabled=not confirmed,
-                         key="admin_reader_account_action_" + user_id):
-                action = "reinstate" if suspended else "suspend"
-                try:
-                    _admin_action(token, user_id, action)
-                    st.success("Account access updated and audited.")
-                    st.rerun()
-                except (RuntimeError, ValueError, TimeoutError):
-                    st.error("Account status could not be changed.")
-        st.caption(
-            "Permanent identity deletion and GDPR data erasure are not "
-            "performed by this interface. Use an authorized Supabase Auth "
-            "administrative process after checking applicable retention rules."
-        )
-
+    profile_tab, activity_tab, consent_tab, admin_tab = st.tabs([
+        "Professional context", "Reading activity", "Consent & privacy",
+        "Administration",
+    ])
+    with profile_tab:
+        _professional_profile(p)
+    with activity_tab:
+        _reader_activity(p, downloads, saved)
+    with consent_tab:
+        _reader_consent(p, consents, control)
+        _reader_privacy_export(p, downloads, saved, consents, control)
+    with admin_tab:
+        _reader_administration(token, p, control, membership)
 
 def _mailing_workspace(
     profiles: list[dict], controls: dict[str, dict],

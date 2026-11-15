@@ -625,6 +625,10 @@ def render_private_rollout(session:dict,user:dict)->None:
         history=[]
     if section=="overview":
         render_service_overview(bool(access),history)
+        if st.button("View public service methodology",
+                     key="rollout_open_methodology"):
+            st.query_params.from_dict({"page": "advisory-rollout"})
+            st.rerun()
         if history:
             latest=history[0]
             try:

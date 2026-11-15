@@ -59,14 +59,16 @@ class MaskedForwardingMobileTests(unittest.TestCase):
         from unittest.mock import patch
         with patch("site_embedded_mobile.st.html") as rendered:
             mount_masked_mobile_fix()
-            html = rendered.call_args.args[0]
-            self.assertIn(MASKED_FRAME_FALLBACK_CSS, html)
-            self.assertIn(EMBEDDED_MOBILE_SCRIPT, html)
-            self.assertTrue(rendered.call_args.kwargs["unsafe_allow_javascript"])
+            self.assertEqual(rendered.call_count, 2)
+            self.assertEqual(rendered.call_args_list[0].args[0], MASKED_FRAME_FALLBACK_CSS)
+            self.assertEqual(rendered.call_args_list[1].args[0], EMBEDDED_MOBILE_SCRIPT)
+            self.assertTrue(rendered.call_args_list[1].kwargs["unsafe_allow_javascript"])
+            rendered.reset_mock()
             mount_native_masked_mobile_fix()
-            native_html = rendered.call_args.args[0]
-            self.assertIn(MASKED_FRAME_FALLBACK_CSS, native_html)
-            self.assertIn(".native-shell-header", native_html)
+            self.assertEqual(rendered.call_count, 2)
+            self.assertEqual(rendered.call_args_list[0].args[0], MASKED_FRAME_FALLBACK_CSS)
+            self.assertIn(".native-shell-header", rendered.call_args_list[1].args[0])
+            self.assertTrue(rendered.call_args_list[1].kwargs["unsafe_allow_javascript"])
 
     def test_fix_is_restricted_to_oversized_embedded_phone_viewports(self):
         self.assertIn("window.self !== window.top", EMBEDDED_MOBILE_SCRIPT)

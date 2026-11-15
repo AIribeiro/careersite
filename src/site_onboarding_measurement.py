@@ -8,9 +8,12 @@ The write is best effort and must never block access to the actual service.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from statistics import median
 
 from site_cms import _request_json, _rest_url
+
+MEASUREMENT_START = datetime(2026, 11, 15, 11, 49, tzinfo=timezone.utc)
 
 MILESTONES = frozenset({
     ("reader", "first_full_read"),
@@ -58,6 +61,30 @@ def owner_first_value_summary(
         for r in advisory_profiles
         if r.get("user_id") and r.get("account_status") == "active"
     }
+
+    def since_launch(row: dict) -> bool:
+        value = str(row.get("created_at") or "").strip()
+        try:
+            timestamp = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except (ValueError, TypeError):
+            return False
+        return (
+            timestamp.tzinfo is not None
+            and timestamp.astimezone(timezone.utc) >= MEASUREMENT_START
+        )
+
+    # Older members' first actions before measurement started cannot be
+    # reconstructed. Conversion and median time therefore use only a
+    # comparable post-launch registration cohort, never all-time denominators.
+    reader_cohort = {
+        str(r["user_id"]) for r in reader_profiles
+        if r.get("user_id") and since_launch(r)
+    }
+    advisory_cohort = {
+        str(r["user_id"]) for r in advisory_profiles
+        if r.get("user_id") and r.get("account_status") == "active"
+        and since_launch(r)
+    }
     good: dict[tuple[str, str], dict[str, dict]] = {}
     for item in milestones:
         if not isinstance(item, dict):
@@ -66,7 +93,7 @@ def owner_first_value_summary(
         if (journey, event) not in MILESTONES:
             continue
         uid = str(item.get("user_id") or "")
-        allowed = reader_ids if journey == "reader" else advisory_ids
+        allowed = reader_cohort if journey == "reader" else advisory_cohort
         if uid not in allowed:
             continue
         good.setdefault((journey, event), {})[uid] = item
@@ -87,6 +114,8 @@ def owner_first_value_summary(
     return {
         "reader_registrations": len(reader_ids),
         "advisory_registrations": len(advisory_ids),
+        "reader_cohort_registrations": len(reader_cohort),
+        "advisory_cohort_registrations": len(advisory_cohort),
         "reader_first_reads": len(good.get(("reader", "first_full_read"), {})),
         "advisory_first_assessments": len(good.get(("advisory", "first_assessment"), {})),
         "advisory_personal_requests": len(good.get(("advisory", "first_personal_request"), {})),

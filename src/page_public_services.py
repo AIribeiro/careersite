@@ -154,36 +154,56 @@ SERVICES_CSS = """
 @media(max-width:620px){
 .site .advisory-hero h1{font-size:clamp(42px,11vw,60px)}
 }
-/* A quiet editorial reference beneath the three established engagement formats. */
-.site .advisory-tool-reference{
- display:flex;align-items:center;justify-content:space-between;
- flex-wrap:wrap;gap:17px 28px;margin-top:23px;padding:22px 25px;
- background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.17)
+
+
+/* Featured on-demand advisory services: distinct from working formats. */
+.site .advisory-ready{padding:78px 0 84px;background:#f1eee8;border-top:1px solid #dfd9d0;border-bottom:1px solid #dfd9d0;scroll-margin-top:90px}
+.site .advisory-ready-header{display:flex;align-items:end;justify-content:space-between;gap:32px;margin-bottom:29px}
+.site .advisory-ready-header>div{max-width:800px;min-width:0}
+.site .advisory-ready .service-eyebrow{margin:0 0 14px}
+.site .advisory-ready h2{font:500 clamp(37px,4.5vw,57px)/1.08 Georgia,serif;letter-spacing:-.027em;color:#13263d;margin:0 0 16px}
+.site .advisory-ready-lede{font-size:15px;line-height:1.73;color:#536276;margin:0;max-width:760px}
+.site .advisory-ready-count{flex:0 0 auto;border-top:2px solid #bd7953;padding-top:14px;color:#6c5e52;font-size:11px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.site .advisory-ready-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
+.site .advisory-ready-card{display:flex;min-width:0;flex-direction:column;padding:28px 26px 26px;background:#fffefa;border:1px solid #ddd6cd;border-top:3px solid #bd7953;box-shadow:0 13px 32px rgba(17,33,53,.045);transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.site .advisory-ready-card:hover{border-color:#b5a38e;box-shadow:0 19px 42px rgba(17,33,53,.095);transform:translateY(-2px)}
+.site .advisory-ready-card--self{border-top-color:#1c3852}
+.site .advisory-ready-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.site .advisory-ready-category{font-size:10px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:#a05e3b;line-height:1.6}
+.site .advisory-ready-card--self .advisory-ready-category{color:#254a68}
+.site .advisory-ready-number{font-size:11px;font-weight:750;color:#92908b;white-space:nowrap}
+.site .advisory-ready-card h3{font:500 clamp(25px,2.35vw,31px)/1.16 Georgia,serif;letter-spacing:-.017em;color:#13263d;margin:23px 0 17px;min-height:73px}
+.site .advisory-ready-question{font-size:15px;line-height:1.48;font-weight:800;color:#203952;margin:0 0 13px}
+.site .advisory-ready-description{font-size:13px;line-height:1.77;color:#536174;margin:0 0 23px}
+.site .advisory-ready-card-bottom{margin-top:auto;padding-top:17px;border-top:1px solid #e4ddd4}
+.site .advisory-ready-detail{margin:0 0 14px;font-size:12px;line-height:1.55;color:#5c6879}
+.site .advisory-ready-detail span{display:block;font-size:10px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:#8a654f;margin-bottom:4px}
+.site .advisory-ready-detail strong{font-weight:750;color:#263c52}
+.site .advisory-ready-link{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;margin-top:23px;padding:12px 15px;background:#17324b;color:#fffaf5!important;text-decoration:none!important;font-size:12px;font-weight:850;line-height:1.35;transition:background .15s ease}
+.site .advisory-ready-link:hover{background:#294d6b;color:#fff!important}
+.site .advisory-ready-link:focus-visible{outline:3px solid #b86e46;outline-offset:4px}
+.site .advisory-ready-link span{font-size:18px;font-weight:500;line-height:1}
+.site .advisory-ready-tail{font-size:12px;line-height:1.65;color:#637081;margin:22px 0 0}
+.site .advisory-ready-tail a{color:#244c6d!important;font-weight:800;text-underline-offset:3px}
+@media(max-width:1050px){
+.site .advisory-ready-grid{grid-template-columns:1fr;gap:13px}
+.site .advisory-ready-card{padding:26px 28px}
+.site .advisory-ready-card h3{min-height:0;margin:16px 0;font-size:29px}
+.site .advisory-ready-description{margin-bottom:19px}
 }
-.site .advisory-tool-reference>div{flex:1 1 360px;min-width:0}
-.site .advisory-tool-reference small{
- display:block;color:#e0ab86;font:800 10px/1.4 Arial,sans-serif;
- text-transform:uppercase;letter-spacing:.13em
-}
-.site .advisory-tool-reference strong{
- display:block;margin-top:9px;color:#f8f5ef;
- font:500 22px/1.2 Georgia,serif
-}
-.site .advisory-tool-reference p{
- max-width:780px;margin:9px 0 0;color:#c2ceda;
- font:13px/1.65 Arial,sans-serif
-}
-.site .advisory-tool-reference>a{
- flex:0 0 auto;color:#f0b994!important;
- font:800 12px/1.4 Arial,sans-serif;
- text-decoration:none!important;border-bottom:1px solid #bb8662;
- padding:9px 0
-}
-.site .advisory-tool-reference>a:focus-visible{outline:2px solid #e9b48b;outline-offset:4px}
 @media(max-width:620px){
-.site .advisory-tool-reference{padding:19px 20px;margin-top:17px;gap:9px}
-.site .advisory-tool-reference strong{font-size:20px}
-.site .advisory-tool-reference>a{min-height:40px;display:inline-flex;align-items:center}
+.site .advisory-ready{padding:57px 0 60px}
+.site .advisory-ready-header{display:block;margin-bottom:24px}
+.site .advisory-ready h2{font-size:clamp(37px,10vw,46px)}
+.site .advisory-ready-lede{font-size:14px}
+.site .advisory-ready-count{display:inline-block;margin-top:20px;padding-top:10px}
+.site .advisory-ready-card{padding:24px 21px}
+.site .advisory-ready-card h3{font-size:28px}
+.site .advisory-ready-link{min-height:50px}
+}
+@media(prefers-reduced-motion:reduce){
+.site .advisory-ready-card,.site .advisory-ready-link{transition:none}
+.site .advisory-ready-card:hover{transform:none}
 }
 
 </style>
@@ -228,7 +248,7 @@ def advisory() -> str:
    <h1 id="advisory-title">Better AI decisions. Clearer ownership. Measurable business value.</h1>
    <p class="service-lede">For leaders facing decisions on AI investment, governance, adoption or operating ownership. I consider a limited number of focused pro-bono discussions to examine options, trade-offs and a practical next step.</p>
    <div class="advisory-actions">
-    <a class="advisory-button" href="#advisory-focus" data-hq-event="advisory_explore_value">See where I can help →</a>
+    <a class="advisory-button" href="#advisory-services" data-hq-event="advisory_explore_value">Explore the services →</a>
     <a class="advisory-button advisory-button--outline" href="#advisory-contact" data-hq-event="advisory_email_primary">Discuss a decision →</a>
    </div>
    <div class="advisory-proofline" aria-label="Advisory disciplines"><span>Portfolio judgement</span><span>AI &amp; data governance</span><span>Operating model</span><span>Adoption &amp; value</span></div>
@@ -238,6 +258,55 @@ def advisory() -> str:
    <blockquote>What should the business decide, own and measure differently?</blockquote>
    <p>The technology matters. The business case, decision rights and evidence for change determine whether it earns a place in operations.</p>
   </aside>
+ </div>
+</section>
+
+<section class="advisory-ready" id="advisory-services" aria-labelledby="advisory-services-title" data-analytics-section="advisory-services">
+ <div class="container">
+  <div class="advisory-ready-header">
+   <div>
+    <p class="service-eyebrow">Available advisory services</p>
+    <h2 id="advisory-services-title">Choose the decision you need to make.</h2>
+    <p class="advisory-ready-lede">Three focused executive tools, each with a defined assessment and a decision-ready outcome. Explore what you receive and the access conditions before you begin.</p>
+   </div>
+   <span class="advisory-ready-count">03 / Available now</span>
+  </div>
+  <div class="advisory-ready-grid">
+   <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-decision">
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Self-service · Included with registration</span><span class="advisory-ready-number">01 / 03</span></div>
+    <h3>AI Investment Decision Advisor</h3>
+    <p class="advisory-ready-question">Should this AI opportunity move forward?</p>
+    <p class="advisory-ready-description">Assess one AI opportunity and receive an invest, experiment, hold or stop recommendation, with the reasoning and three priority actions.</p>
+    <div class="advisory-ready-card-bottom">
+     <p class="advisory-ready-detail"><span>What you receive</span><strong>Executive verdict · Downloadable decision brief</strong></p>
+     <p class="advisory-ready-detail"><span>Access</span><strong>Free with an Advisory account. No individual approval needed.</strong></p>
+     <a class="advisory-ready-link" href="?page=advisory-decision" target="_self" data-hq-event="advisory_investment_service">Explore investment advisor <span aria-hidden="true">→</span></a>
+    </div>
+   </article>
+   <article class="advisory-ready-card" data-analytics-section="advisory-rollout">
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">On-demand assessment · Individual approval</span><span class="advisory-ready-number">02 / 03</span></div>
+    <h3>Enterprise AI Rollout Readiness Advisor</h3>
+    <p class="advisory-ready-question">Is this AI use case ready for enterprise rollout?</p>
+    <p class="advisory-ready-description">Assess business value, operations, governance, adoption and ability to scale, then see the readiness verdict and the evidence gaps to resolve.</p>
+    <div class="advisory-ready-card-bottom">
+     <p class="advisory-ready-detail"><span>What you receive</span><strong>Executive readiness verdict · Three priority actions</strong></p>
+     <p class="advisory-ready-detail"><span>Access</span><strong>Free pro-bono service. Individual approval required.</strong></p>
+     <a class="advisory-ready-link" href="?page=advisory-rollout" target="_self" data-hq-event="advisory_rollout_service">Explore rollout advisor <span aria-hidden="true">→</span></a>
+    </div>
+   </article>
+   <article class="advisory-ready-card" data-analytics-section="advisory-scorecard">
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Portfolio assessment · Individual approval</span><span class="advisory-ready-number">03 / 03</span></div>
+    <h3>AI Portfolio Prioritization Scorecard</h3>
+    <p class="advisory-ready-question">Which AI opportunities deserve scarce resources?</p>
+    <p class="advisory-ready-description">Compare initiatives and decide what to advance, test, hold or stop using a constrained portfolio view and alternative scenarios.</p>
+    <div class="advisory-ready-card-bottom">
+     <p class="advisory-ready-detail"><span>What you receive</span><strong>Portfolio recommendation · Scenarios · Decision memo</strong></p>
+     <p class="advisory-ready-detail"><span>Access</span><strong>Free pro-bono service. Individual approval required.</strong></p>
+     <a class="advisory-ready-link" href="?page=advisory-scorecard" target="_self" data-hq-event="advisory_scorecard_service">Explore portfolio scorecard <span aria-hidden="true">→</span></a>
+    </div>
+   </article>
+  </div>
+  <p class="advisory-ready-tail">Not sure which service fits? <a href="#advisory-contact" data-hq-event="advisory_services_ask">Describe the decision you are facing →</a></p>
  </div>
 </section>
 
@@ -281,30 +350,7 @@ def advisory() -> str:
    <article class="service-format"><small>02 / Leadership working engagement</small><h3>Executive working sessions</h3><p>Work with sponsors and accountable leaders to define priorities, decision rights, operating measures and a practical route forward. Typical result: a decision record and agreed actions.</p></article>
    <article class="service-format"><small>03 / Selective follow-up</small><h3>Next-step review</h3><p>Where useful, revisit the decision record, remaining evidence gaps and named owners after an initial discussion. Follow-up is limited to the agreed question, not ongoing consulting support.</p></article>
   </div>
-  <div class="advisory-tool-reference" data-analytics-section="advisory-scorecard">
-   <div>
-    <small>First on-demand advisory resource · Individual approval</small>
-    <strong>AI Portfolio Prioritization Scorecard</strong>
-    <p>Compare AI opportunities and receive a constrained executive portfolio recommendation: what to advance, test, hold or stop, why, and what to prove next. Includes alternative scenarios and a downloadable decision memo. Individual approval is required; pro-bono access is free.</p>
-   </div>
-   <a href="?page=advisory-scorecard" target="_self" data-hq-event="advisory_scorecard_service">Explore the service →</a>
-  </div>
-  <div class="advisory-tool-reference" data-analytics-section="advisory-rollout">
-   <div>
-    <small>Executive AI Decision Advisor · Individual approval</small>
-    <strong>Enterprise AI Rollout Readiness Advisor</strong>
-    <p>A focused, one-session assessment of business value, operational readiness, governance, adoption and scaling capability. Receive a clear executive verdict, its reasoning and three priority actions. Free for individually approved Advisory clients.</p>
-   </div>
-   <a href="?page=advisory-rollout" target="_self" data-hq-event="advisory_rollout_service">Explore the service →</a>
-  </div>
-  <div class="advisory-tool-reference" data-analytics-section="advisory-decision">
-   <div>
-    <small>03 / Free executive self-service · Included with Advisory registration</small>
-    <strong>AI Investment Decision Advisor</strong>
-    <p>Should you invest, experiment, hold or stop a specific AI opportunity? Complete a short, guided assessment and receive a reasoned executive verdict, the evidence that matters, three priority actions and a downloadable decision brief. Free access for registered Advisory members; no individual service approval required.</p>
-   </div>
-   <a href="?page=advisory-decision" target="_self" data-hq-event="advisory_investment_service">Explore the service →</a>
-  </div>
+
  </div>
 </section>
 

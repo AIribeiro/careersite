@@ -36,12 +36,12 @@ class ScorecardAccessRequestTests(TestCase):
         self.assertIn("from page_advisory_scorecard_experience import _service_guide",workspace)
         self.assertLess(workspace.index("_service_guide()"),
                         workspace.index("render_scorecard_access_request(token,uid)"))
-        self.assertIn("From competing AI ideas to a defensible decision",guide)
-        self.assertIn("01 · Portfolio decision",guide)
-        self.assertIn("02 · Required next actions",guide)
-        self.assertIn("03 · Executive decision brief",guide)
+        self.assertIn("From competing AI opportunities to a defensible portfolio choice.",guide)
+        self.assertIn("The verdict",guide)
+        self.assertIn("The priorities",guide)
+        self.assertIn("The report",guide)
         self.assertIn("https://jairribeiro.com/?page=advisory-scorecard",guide)
-        self.assertIn("Read the full Scorecard service description",guide)
+        self.assertIn("Read the complete Scorecard service description",guide)
 
     def test_existing_engagement_receives_a_message_not_duplicate_request(self):
         from page_advisory_scorecard_requests import submit_scorecard_access

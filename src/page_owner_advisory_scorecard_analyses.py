@@ -8,6 +8,7 @@ from __future__ import annotations
 from urllib.parse import quote
 import streamlit as st
 from site_cms import _request_json, _rest_url
+from advisory_approval_email import deliver_approval_notice, approval_notice_message
 
 
 def read_owner_analysis_requests(token: str) -> list[dict]:
@@ -16,7 +17,7 @@ def read_owner_analysis_requests(token: str) -> list[dict]:
             "portfolio_advisory_scorecard_analysis_requests?"
             "select=id,user_id,anchor_scorecard_id,request_id,title,"
             "decision_context,expected_outcome,decision_timing,status,"
-            "decision_note,created_at,decided_at,decided_by"
+            "decision_note,created_at,decided_at,decided_by,approval_notification_id"
             "&order=created_at.desc&limit=500"
         ),token=token,timeout=14,
     )
@@ -60,6 +61,20 @@ def owner_analysis_action(token: str, analysis_id: str,
             raise RuntimeError(
                 "Approval was recorded, but the new empty workspace "
                 "could not be independently verified. Refresh the queue."
+            )
+        notification_id=str(result.get("notification_id") or "")
+        if notification_id and not result.get("unchanged"):
+            try:
+                delivery=deliver_approval_notice(token,notification_id)
+                result["notification_message"]=approval_notice_message(delivery)
+            except (RuntimeError,TimeoutError,ValueError,KeyError):
+                result["notification_message"]=(
+                    "Access was approved, but email delivery was not confirmed. "
+                    "The notification can be retried in the approval history."
+                )
+        elif not notification_id:
+            result["notification_message"]=(
+                "Workspace created; no access email event was returned."
             )
     return result
 
@@ -120,7 +135,8 @@ def render_scorecard_analysis_approvals(
                             )
                             st.session_state["scorecard_owner_analysis_flash"]=(
                                 "Approved: a new empty workspace was created and verified. "
-                                "The client can select it in their Advisory account."
+                                "The client can select it in their Advisory account. "
+                                +str(result.get("notification_message") or "")
                                 if approve else "New analysis request declined."
                             )
                             st.rerun()
@@ -147,6 +163,40 @@ def render_scorecard_analysis_approvals(
                 if req.get("decision_note"):
                     st.caption("Decision note: "+str(req["decision_note"]))
                 if req.get("status")=="approved":
+                    notice_id=str(req.get("approval_notification_id") or "")
+                    if notice_id:
+                        try:
+                            notices=_request_json(
+                                "GET",_rest_url(
+                                    "portfolio_advisory_approval_notifications?"
+                                    "select=id,state,sent_at,error_category,attempts"
+                                    "&id=eq."+quote(notice_id,safe="")+"&limit=1"
+                                ),token=token,timeout=12,
+                            )
+                            notice=notices[0] if isinstance(notices,list) and notices else None
+                        except (RuntimeError,TimeoutError,ValueError,KeyError):
+                            notice=None
+                        if notice:
+                            state=str(notice.get("state") or "pending")
+                            st.caption(
+                                "Access email: "+(
+                                    "Supabase Auth accepted the request"
+                                    if state=="sent" else state.capitalize()
+                                )
+                            )
+                            if state in ("pending","failed"):
+                                if st.button(
+                                    "Retry access email",
+                                    key="scorecard_analysis_email_retry_"+rid,
+                                ):
+                                    try:
+                                        result=deliver_approval_notice(token,notice_id)
+                                        st.session_state["scorecard_owner_analysis_flash"]=(
+                                            approval_notice_message(result)
+                                        )
+                                        st.rerun()
+                                    except (RuntimeError,TimeoutError,ValueError,KeyError):
+                                        st.error("Email delivery could not be confirmed.")
                     with st.form("scorecard_analysis_revoke_"+rid):
                         confirm=st.checkbox(
                             "Revoke only this analysis (retain saved work).",

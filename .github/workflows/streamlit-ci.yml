@@ -211,6 +211,42 @@ jobs:
 
           grep -i '^Content-Type:.*image/png' /tmp/social-headers.txt
 
+      - name: Verify native Streamlit root sends Open Graph metadata to LinkedIn
+        run: |
+          python -m unittest discover -s tests -p 'test_native_streamlit_social_preview.py' -v
+          python - <<'PY'
+          from urllib.request import Request, urlopen
+
+          host = 'http://127.0.0.1:8501'
+          headers = {'User-Agent': 'LinkedInBot/1.0 (compatible; Apache-HttpClient)'}
+          for route, expected in (
+              ('/?source=outreach', 'Jair Ribeiro | Enterprise AI &amp; Data Leadership'),
+              ('/?page=advisory&source=linkedin', 'Executive AI &amp; Data Advisory'),
+              ('/?page=thinking', 'Thinking | Jair Ribeiro'),
+          ):
+              with urlopen(Request(host + route, headers=headers), timeout=20) as response:
+                  body = response.read().decode('utf-8')
+                  assert response.status == 200, route
+                  assert response.headers.get_content_type() == 'text/html'
+              for tag in ('property="og:image"', 'property="og:image:width" content="1200"',
+                          'property="og:image:height" content="630"',
+                          'name="twitter:card" content="summary_large_image"',
+                          expected):
+                  assert tag in body, (route, tag)
+              assert '<iframe' not in body.lower()
+              print('LinkedIn root metadata PASS:', route)
+          # A normal visitor must receive Streamlit's interactive page,
+          # including when the URL contains member verification parameters.
+          with urlopen(Request(host + '/?source=outreach', headers={'User-Agent':'Mozilla/5.0'}), timeout=20) as response:
+              body = response.read().decode('utf-8')
+              assert response.status == 200
+              assert 'streamlit' in body.lower(), body[:300]
+          with urlopen(Request(host + '/?page=readers&token_hash=demo', headers=headers), timeout=20) as response:
+              body = response.read().decode('utf-8')
+              assert 'streamlit' in body.lower(), body[:300]
+          print('Human and member routes still use normal Streamlit UI')
+          PY
+
       - name: Verify governance social share route
         run: |
           curl --fail --silent --show-error \

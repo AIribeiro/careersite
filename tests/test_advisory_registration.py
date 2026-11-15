@@ -51,14 +51,11 @@ class AdvisoryRegistrationTests(unittest.TestCase):
         self.assertFalse(app.exception, [str(x.message) for x in app.exception])
         self.assertTrue(any("Advisory account" == x.label for x in app.radio))
         labels = [x.label for x in app.text_input]
-        for expected in (
-            "First name *", "Last name *", "Job title / role *",
-            "Organization *", "Professional email *",
-        ):
-            self.assertIn(expected, labels)
-        self.assertTrue(any("business outcome" in x.label for x in app.text_area))
-        self.assertEqual(len(app.selectbox), 2)
+        self.assertEqual(labels, ["First name *", "Professional email *"])
+        self.assertFalse(app.text_area)
+        self.assertFalse(app.selectbox)
         self.assertTrue(any("Privacy & Data" in x.label for x in app.checkbox))
+        self.assertTrue(any("Email my verification link" in x.label for x in app.button))
 
     def test_returning_advisory_sign_in_does_not_demand_registration(self):
         from streamlit.testing.v1 import AppTest

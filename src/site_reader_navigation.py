@@ -25,6 +25,7 @@ _ALLOWED_PAGES = frozenset({
     "advisory",
     "advisory-scorecard",
     "advisory-rollout",
+    "advisory-decision",
     "advisory-access",
     "privacy",
     "enterprise",
@@ -60,9 +61,9 @@ _ALLOWED_QUERY = frozenset({
 _JS = r"""
 export default function(component) {
   const { setTriggerValue } = component;
-  const allowedPages = new Set(["home","impact","thinking","briefings","briefing","about","certifications","contact","advisory","advisory-scorecard","advisory-rollout","advisory-access","privacy","enterprise","transformation","governance","consulting","ai-data-governance","readers","analytics"]);
+  const allowedPages = new Set(["home","impact","thinking","briefings","briefing","about","certifications","contact","advisory","advisory-scorecard","advisory-rollout","advisory-decision","advisory-access","privacy","enterprise","transformation","governance","consulting","ai-data-governance","readers","analytics"]);
   const allowedParams = new Set(["page","article","briefings_page","weekly_ai","access","pdf","signin","download","utm_source","utm_medium","utm_campaign","utm_content","utm_term","source","role","go","view","request","workspace"]);
-  const advisoryViews = new Set(["overview","requests","messages","scorecard","rollout","account"]);
+  const advisoryViews = new Set(["overview","requests","messages","scorecard","rollout","decision","account"]);
   const brandedHosts = new Set(['jairribeiro.com', 'advisory.jairribeiro.com']);
   const onPortfolioClick = (event) => {
     if (event.defaultPrevented || event.button !== 0 ||
@@ -129,7 +130,7 @@ def _parse_portfolio_route(query: object) -> dict[str, str] | None:
         return None
     if "view" in params and (
         params["page"] != "advisory-access" or
-        params["view"] not in {"overview", "requests", "messages", "scorecard", "rollout", "account"}
+        params["view"] not in {"overview", "requests", "messages", "scorecard", "rollout", "decision", "account"}
     ):
         return None
     if "request" in params and (

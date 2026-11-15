@@ -36,7 +36,7 @@ class ExecutiveScorecardExperienceTests(unittest.TestCase):
         for value in (
             "Executive decision","Priority actions","Portfolio options",
             "Initiatives & evidence","Decision record","Executive report",
-            "Assessment criteria",
+            "Assessment criteria","Activity & history",
         ):
             with self.subTest(value=value):
                 self.assertIn(value,ui)
@@ -101,6 +101,22 @@ class ExecutiveScorecardExperienceTests(unittest.TestCase):
         self.assertIn('if feedback_rows is not None and token and uid:',ui)
         self.assertIn("the current saved revision",ui)
         self.assertIn("a browsable archive",ui)
+
+    def test_activity_history_is_individual_and_a_real_audit_log(self):
+        ui=self.source("src/page_advisory_scorecard_experience.py")
+        self.assertIn('elif section=="Activity & history":',ui)
+        self.assertIn("portfolio_advisory_scorecard_audit?",ui)
+        self.assertIn('"&scorecard_id=eq."+quote(wid,safe="")',ui)
+        self.assertIn('**Purpose of this assessment**',ui)
+        self.assertIn('**Expected deliverable**',ui)
+        self.assertIn("#### Recorded management decisions",ui)
+        self.assertIn("Previous versions cannot be restored",ui)
+        policy=self.source(
+            "supabase/migrations/20261115_scorecard_member_read_own_activity_history.sql"
+        )
+        self.assertIn("s.user_id=(select auth.uid())",policy)
+        self.assertIn("s.status='active'",policy)
+        self.assertIn("public.portfolio_advisory_password_session_v1()",policy)
 
     def test_owner_manager_has_one_request_and_clear_history_sections(self):
         s=self.source("src/page_owner_advisory_scorecard_analyses.py")

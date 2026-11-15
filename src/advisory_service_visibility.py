@@ -49,19 +49,21 @@ def service_visibility() -> dict[str, bool]:
     return status
 
 
-def service_enabled(service_key: str) -> bool:
-    """Do not advertise a new service start when availability cannot be verified."""
+def service_enabled(service_key: str, *, admin: bool = False) -> bool:
+    """Disabled means hidden for regular users; admins retain normal access."""
     if service_key not in SERVICE_LABELS:
         return False
+    if admin:
+        return True
     try:
         return service_visibility()[service_key]
     except (RuntimeError, ValueError, TimeoutError, KeyError, OSError):
         return False
 
 
-def public_service_cta(service_key: str, url: str, label: str, event: str) -> str:
+def public_service_cta(service_key: str, url: str, label: str, event: str, *, admin: bool = False) -> str:
     """Render an active service link or a non-clickable, accessible pause state."""
-    if service_enabled(service_key):
+    if service_enabled(service_key, admin=admin):
         return (
             '<a class="advisory-ready-link" href="' + url +
             '" target="_self" data-hq-event="' + event + '">' + label +
@@ -73,10 +75,10 @@ def public_service_cta(service_key: str, url: str, label: str, event: str) -> st
     )
 
 
-def suppress_paused_detail_ctas(document: str, page: str) -> str:
+def suppress_paused_detail_ctas(document: str, page: str, *, admin: bool = False) -> str:
     """Keep public methodology visible, but prevent links starting paused services."""
     service_key = PAGE_SERVICES.get(page)
-    if not service_key or service_enabled(service_key):
+    if not service_key or service_enabled(service_key, admin=admin):
         return document
     # All entry CTAs from these pages point to Advisory Access with a service view.
     # Do not touch methodology, footer, privacy, or generic Advisory account links.
@@ -91,3 +93,33 @@ def suppress_paused_detail_ctas(document: str, page: str) -> str:
         'border-color:#697787;color:#fff">Temporarily unavailable</span>'
     )
     return re.sub(expression, replacement, document, flags=re.IGNORECASE | re.DOTALL)
+
+
+def advisory_role(token: str) -> str:
+    """Read the caller's role from Supabase, never from user-editable metadata."""
+    if not token:
+        return "regular"
+    role = _request_json(
+        "POST", _rest_url("rpc/portfolio_advisory_my_role_v1"),
+        token=token, payload={}, timeout=10,
+    )
+    if role not in ("admin", "regular"):
+        raise RuntimeError("Unable to verify Advisory role.")
+    return role
+
+
+def viewer_is_admin() -> bool:
+    """Public-page privilege needs a currently verified, password-authenticated session."""
+    if not isinstance(st.session_state.get("reader_native_session"), dict):
+        return False
+    try:
+        from page_reader_native import _session
+        from page_advisory_portal import _password_authenticated
+        session, user = _session()
+        if not session or not user or not user.get("email_confirmed_at"):
+            return False
+        if not _password_authenticated(session):
+            return False
+        return advisory_role(str(session["access_token"])) == "admin"
+    except (RuntimeError, ValueError, TimeoutError, KeyError, OSError):
+        return False

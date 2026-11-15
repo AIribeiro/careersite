@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 import streamlit as st
 
 from page_advisory_investment_logic import FIELDS, MODEL_VERSION, assess, validate
+from page_advisory_investment_experience import present_assessment, categorize_evidence
 from page_public_services import SERVICES_CSS
 from page_advisory_scorecard import SCORECARD_CSS
 from site_components import nav, footer
@@ -37,17 +38,121 @@ SERVICE_CSS = """
 """
 PRIVATE_CSS = """
 <style>
-.st-key-investment_decision_area .inv-panel{background:#fffdfa;border:1px solid #e2dcd2;padding:23px 26px;margin:14px 0 22px;color:#20394d}
-.st-key-investment_decision_area .inv-panel h3{font:500 27px/1.25 Georgia,serif;margin:8px 0;color:#173047}
-.st-key-investment_decision_area .inv-panel p{color:#52667a;font-size:14px;line-height:1.7;margin:7px 0}
-.st-key-investment_decision_area .inv-eyebrow{font:700 10px/1.5 Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#a16b4b}
-.st-key-investment_decision_area .inv-report{border:1px solid #d9d6d0;background:#fff;color:#213a4f;padding:27px;margin:14px 0}
-.st-key-investment_decision_area .inv-report .inv-verdict{font:500 36px/1.1 Georgia,serif;color:#122e45;margin:12px 0 8px}
-.st-key-investment_decision_area .inv-report .inv-head{font:500 23px/1.3 Georgia,serif;margin:0 0 15px}
-.st-key-investment_decision_area .inv-report p{line-height:1.65;font-size:14px;color:#4a6072}
-.st-key-investment_decision_area .inv-report .inv-meta{font:700 11px Arial,sans-serif;color:#99714e;letter-spacing:.08em}
-.st-key-investment_decision_area [data-testid="stForm"]{border:1px solid #ded7cc;background:#fffefa;padding:12px}
-@media(max-width:700px){.st-key-investment_decision_area .inv-panel,.st-key-investment_decision_area .inv-report{padding:18px}}
+.st-key-investment_decision_area{
+ --inv-navy:#10273c;--inv-ink:#223a4e;--inv-mute:#586b78;
+ --inv-copper:#ad7754;--inv-paper:#fbfaf7;--inv-rule:#e1e5e6;
+}
+.st-key-investment_decision_area .inv-hero{
+ padding:29px 31px;background:linear-gradient(115deg,#10273c 0%,#203b52 100%);
+ border:1px solid #283f51;color:#fff;margin:3px 0 18px
+}
+.st-key-investment_decision_area .inv-eyebrow{
+ font:750 10px/1.5 Arial,sans-serif;letter-spacing:.17em;color:var(--inv-copper);
+ text-transform:uppercase
+}
+.st-key-investment_decision_area .inv-hero .inv-eyebrow{color:#e5b38e}
+.st-key-investment_decision_area .inv-hero h2{
+ color:#fff;font:500 clamp(26px,3vw,38px)/1.15 Georgia,serif;margin:10px 0 9px;
+}
+.st-key-investment_decision_area .inv-hero p{
+ color:#d5e1e9;max-width:780px;font-size:14px;line-height:1.7;margin:0
+}
+.st-key-investment_decision_area .inv-context{
+ background:#f5f2ec;border-left:3px solid #ad7754;padding:15px 19px;
+ margin:15px 0 21px
+}
+.st-key-investment_decision_area .inv-context strong{
+ color:#142f45;font:500 clamp(18px,2vw,24px)/1.25 Georgia,serif;
+ display:block;margin:5px 0
+}
+.st-key-investment_decision_area .inv-context p{font-size:12px;color:#586b78;margin:0}
+.st-key-investment_decision_area [data-testid="stPills"]{
+ padding:7px;background:#f1f0ec;border:1px solid #e5ded4;
+ margin:0 0 17px
+}
+.st-key-investment_decision_area [data-testid="stPills"] button{
+ min-height:42px;font-weight:700
+}
+.st-key-investment_decision_area .inv-decision{
+ background:#fff;border:1px solid #dddfe0;border-top:4px solid #ad7754;
+ padding:28px 30px;margin-bottom:17px;color:#263f52
+}
+.st-key-investment_decision_area .inv-decision h3{
+ font:500 clamp(24px,3vw,33px)/1.22 Georgia,serif;color:#163047;margin:8px 0 15px
+}
+.st-key-investment_decision_area .inv-decision .inv-verdict{
+ font:750 clamp(29px,4vw,44px)/1.1 Arial,sans-serif;color:#12314b;
+ letter-spacing:.035em;margin:14px 0 10px
+}
+.st-key-investment_decision_area .inv-decision p{
+ font-size:14px;line-height:1.76;color:#42596a;margin:8px 0
+}
+.st-key-investment_decision_area .inv-rail{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0 21px
+}
+.st-key-investment_decision_area .inv-rail article{
+ padding:16px;background:#f6f4ef;border:1px solid #e4dfd7;min-width:0
+}
+.st-key-investment_decision_area .inv-rail small{
+ color:#966c52;font:750 9px/1.5 Arial,sans-serif;letter-spacing:.09em;
+ text-transform:uppercase;display:block
+}
+.st-key-investment_decision_area .inv-rail strong{
+ display:block;font:700 13px/1.5 Arial,sans-serif;color:#223c50;margin-top:6px
+}
+.st-key-investment_decision_area .inv-section-title{
+ margin:20px 0 12px;color:#173047;font:500 clamp(21px,2.5vw,28px)/1.25 Georgia,serif
+}
+.st-key-investment_decision_area .inv-action{
+ border:1px solid #deddd7;background:#fff;margin:13px 0;padding:22px 24px;
+ border-left:3px solid #ad7754
+}
+.st-key-investment_decision_area .inv-action h4{
+ margin:9px 0 11px;font:650 16px/1.5 Arial,sans-serif;color:#203c52
+}
+.st-key-investment_decision_area .inv-action .inv-proof{
+ background:#f5f7f8;padding:12px 14px;color:#243d50;font-size:13px;
+ line-height:1.6;margin-top:13px
+}
+.st-key-investment_decision_area .inv-action p{
+ color:#5b6a78;font-size:13px;margin:7px 0
+}
+.st-key-investment_decision_area .inv-evidence{
+ display:grid;grid-template-columns:minmax(160px,.42fr) minmax(0,1fr);
+ padding:12px 0;border-bottom:1px solid #e2e4e6;gap:18px
+}
+.st-key-investment_decision_area .inv-evidence b{font-size:12px;color:#273d4f}
+.st-key-investment_decision_area .inv-evidence span{font-size:13px;color:#536878}
+.st-key-investment_decision_area .inv-note{
+ padding:16px 20px;background:#f5f2ec;border-left:3px solid #b78965;
+ font-size:13px;line-height:1.7;color:#3d5061;margin:12px 0
+}
+.st-key-investment_decision_area .inv-history-intro{
+ background:#fff;border:1px solid #e0ded7;padding:20px 23px;margin-bottom:16px
+}
+.st-key-investment_decision_area .inv-history-intro p{
+ font-size:14px;color:#5a6977;line-height:1.7;margin:7px 0 0
+}
+.st-key-investment_decision_area .inv-case-item{
+ border-bottom:1px solid #dedbd5;padding:4px 0 10px;margin:3px 0 5px
+}
+.st-key-investment_decision_area .inv-case-item strong{
+ color:#173047;font:500 21px/1.3 Georgia,serif;display:block;margin:4px 0 6px
+}
+.st-key-investment_decision_area .inv-case-item p{
+ font-size:13px;color:#596d7a;margin:5px 0
+}
+.st-key-investment_decision_area [data-testid="stForm"]{
+ background:#fffdfa;border:1px solid #e0dbd2;padding:15px
+}
+@media(max-width:700px){
+ .st-key-investment_decision_area .inv-hero{padding:23px 20px}
+ .st-key-investment_decision_area .inv-decision{padding:21px 19px}
+ .st-key-investment_decision_area .inv-rail{grid-template-columns:1fr}
+ .st-key-investment_decision_area .inv-action{padding:18px 16px}
+ .st-key-investment_decision_area .inv-evidence{grid-template-columns:1fr;gap:4px}
+ .st-key-investment_decision_area .inv-history-intro{padding:16px 17px}
+}
 </style>
 """
 

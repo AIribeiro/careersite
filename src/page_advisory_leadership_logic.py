@@ -203,7 +203,7 @@ def assess(raw: dict | None) -> dict:
                 gaps.append((answers[q[0]], -weight, key, q))
     answered = sum(counts.values())
     coverage = round(100 * answered / len(QUESTION_INDEX))
-    gates = [QUESTION_INDEX[key][2] for key in CRITICAL if answers.get(key) in (0, 1)]
+    gates = [QUESTION_INDEX[key][3] for key in CRITICAL if answers.get(key) in (0, 1)]
     complete = answered == len(QUESTION_INDEX)
     enough = answered >= 18 and all(counts[k] >= 2 for k, _, _, _ in DIMENSIONS)
     overall = None

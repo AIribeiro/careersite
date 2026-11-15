@@ -440,24 +440,32 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
             except (RuntimeError, ValueError, TimeoutError):
                 st.error("We couldn't send the verification email. Try again or contact reader support.")
     if st.session_state.get("reader_native_sent_email"):
-        st.info("Open the verification link in your email, or enter its one-time code below.")
-        with st.form("reader_native_code_form"):
-            code = st.text_input("Email verification code", max_chars=10, placeholder="6-digit code")
-            verified = st.form_submit_button("Verify code")
-        if verified:
-            code = str(code or "").strip()
-            if not re.fullmatch(r"\d{6,10}", code):
-                st.error("Enter the numeric code shown in the email.")
-            else:
-                try:
-                    _verify({
-                        "email": st.session_state["reader_native_sent_email"],
-                        "token": code,
-                        "type": "email",
-                    })
-                    st.rerun()
-                except (RuntimeError, ValueError, TimeoutError):
-                    st.error("The code was invalid or expired. Request a new email.")
+        st.success("Open the secure link in your email. No code to type.")
+        with st.expander("Having trouble with the link? Enter the email code."):
+            st.caption(
+                "The email code must contain at least six digits, as required "
+                "by the authentication provider. The email link is the easiest option."
+            )
+            with st.form("reader_native_code_form"):
+                code = st.text_input(
+                    "Email verification code", max_chars=10,
+                    placeholder="Code shown in your email",
+                )
+                verified = st.form_submit_button("Verify code")
+            if verified:
+                code = str(code or "").strip()
+                if not re.fullmatch(r"\d{6,10}", code):
+                    st.error("Enter the numeric code shown in the email (six or more digits).")
+                else:
+                    try:
+                        _verify({
+                            "email": st.session_state["reader_native_sent_email"],
+                            "token": code,
+                            "type": "email",
+                        })
+                        st.rerun()
+                    except (RuntimeError, ValueError, TimeoutError):
+                        st.error("The code was invalid or expired. Request a new email.")
     st.caption(
         "Your verified email keeps your saved reading and infographic history with your "
         "free account. Editorial emails require a separate, optional choice."

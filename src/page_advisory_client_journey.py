@@ -149,6 +149,30 @@ def _display_conversation(token: str, uid: str, req: dict) -> None:
         )
 
 
+def _complete_request_profile(
+    token: str, uid: str, profile: dict, role: str, organization: str,
+) -> None:
+    """Collect professional context only for individually reviewed requests."""
+    role = str(role or "").strip()
+    organization = str(organization or "").strip()
+    if not role or not organization:
+        raise ValueError("Enter your professional role and organization to request a personal review.")
+    if len(role) > 160 or len(organization) > 180:
+        raise ValueError("Please shorten the professional details.")
+    if (role == str(profile.get("role_title") or "").strip()
+            and organization == str(profile.get("organization") or "").strip()):
+        return
+    updated = _request_json(
+        "PATCH", _rest_url("portfolio_advisory_profiles?user_id=eq."
+                           + quote(uid, safe="")),
+        token=token,
+        payload={"role_title": role, "organization": organization},
+        prefer="return=representation", timeout=12,
+    )
+    if not isinstance(updated, list) or not updated:
+        raise RuntimeError("Professional context could not be saved.")
+
+
 def _request_form(token: str,uid: str,profile: dict) -> None:
     st.html("""<section class="advisory-portal-intro">
 <p style="color:#a5643f;font-size:11px;letter-spacing:.14em;font-weight:800">YOUR FIRST STEP</p>
@@ -165,7 +189,27 @@ are pro-bono and focused on a defined decision.</p>
 <div><strong>03 · If selected</strong><span>Agree the question and scope of a free discussion.</span></div>
 <div><strong>04 · Delivery &amp; close</strong><span>If engaged, we track the agreed work and its conclusion.</span></div>
 </div></div>""")
+    needs_context = (
+        not str(profile.get("role_title") or "").strip()
+        or not str(profile.get("organization") or "").strip()
+    )
     with st.form("advisory_client_new_request",clear_on_submit=False):
+        if needs_context:
+            st.caption("PROFESSIONAL CONTEXT · Required for personal advisory review only")
+            a, b = st.columns(2)
+            with a:
+                role = st.text_input(
+                    "Professional role *", value=str(profile.get("role_title") or ""),
+                    max_chars=160, placeholder="e.g. Operations Director",
+                )
+            with b:
+                organization = st.text_input(
+                    "Organization *", value=str(profile.get("organization") or ""),
+                    max_chars=180, placeholder="Company or organization",
+                )
+        else:
+            role = str(profile.get("role_title") or "")
+            organization = str(profile.get("organization") or "")
         title=st.text_input(
             "The decision or challenge *",max_chars=160,
             placeholder="e.g. Which AI initiatives should we invest in next?",
@@ -197,6 +241,9 @@ are pro-bono and focused on a defined decision.</p>
             st.error("Please acknowledge the nature of the initial request.")
         else:
             try:
+                _complete_request_profile(
+                    token, uid, profile, role, organization,
+                )
                 _create_request(token,uid,{
                     "title":title,"desired_outcome":outcome,
                     "business_context":context,"decision_timing":horizon,

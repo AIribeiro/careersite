@@ -115,7 +115,8 @@ class NativePortfolioIntegrationTests(unittest.TestCase):
         self.assertFalse(app.exception, [str(x.message) for x in app.exception])
         labels = [x.label for x in app.text_input]
         self.assertIn("First name *", labels)
-        self.assertIn("Last name *", labels)
+        self.assertNotIn("Last name *", labels)
+        self.assertNotIn("Organization *", labels)
         self.assertIn("Professional email *", labels)
         self.assertTrue(any("Advisory account" == x.label for x in app.radio))
 

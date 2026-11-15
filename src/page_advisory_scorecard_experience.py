@@ -8,7 +8,9 @@ from __future__ import annotations
 
 
 import streamlit as st
+from urllib.parse import quote
 
+from site_cms import _request_json, _rest_url
 from page_advisory_scorecard_decision import recommend
 from page_advisory_scorecard_report import (
     REPORT_VERSION, REPORT_EDITION, build_executive_pdf,
@@ -23,7 +25,8 @@ from page_advisory_scorecard_workspace import (
 NAV = ("My analyses", "How the service works", "Request new analysis", "Open analysis")
 SECTIONS = (
     "Executive decision", "Priority actions", "Portfolio options",
-    "Initiatives & evidence", "Decision record", "Executive report", "Assessment criteria",
+    "Initiatives & evidence", "Decision record", "Executive report",
+    "Activity & history", "Assessment criteria",
 )
 
 CSS = """
@@ -465,6 +468,92 @@ def _report(a: dict, token: str, uid: str,
             )
 
 
+def _activity_history(a: dict, token: str) -> None:
+    """Actual approval/save events and formal decisions, never invented versions."""
+    _title(
+        "07 · ANALYSIS HISTORY",
+        "Activity and recorded decisions",
+        "See when this assessment was approved and saved, and which "
+        "formal business decisions have been recorded."
+    )
+    wid=str(a["ws"]["id"])
+    left,right,third=st.columns(3)
+    left.metric("Approved on",a["approved_at"] or "Not recorded")
+    right.metric("Current revision",a["revision"])
+    third.metric("Initiatives",a["count"])
+    st.markdown("**Purpose of this assessment**")
+    st.write(a["context"])
+    st.markdown("**Expected deliverable**")
+    st.write(a["outcome"])
+
+    st.markdown("#### Workspace activity")
+    try:
+        logs=_request_json(
+            "GET",_rest_url(
+                "portfolio_advisory_scorecard_audit?"
+                "select=action,revision,created_at"
+                "&scorecard_id=eq."+quote(wid,safe="")
+                +"&order=created_at.desc&limit=100"
+            ),
+            token=token,timeout=12,
+        )
+        if not isinstance(logs,list):
+            raise RuntimeError("Activity history response unavailable")
+    except (RuntimeError,TimeoutError,ValueError,KeyError):
+        logs=None
+    if logs is None:
+        st.caption(
+            "Saved activity could not be retrieved. Your assessment and "
+            "current report remain available."
+        )
+    elif logs:
+        for event in logs[:25]:
+            action=str(event.get("action") or "").lower()
+            label={
+                "approve":"Access approved","save":"Assessment saved",
+                "revoke":"Access revoked",
+            }.get(action,"Workspace event")
+            revision=event.get("revision")
+            timestamp=str(event.get("created_at") or "")[:16].replace("T"," ")
+            st.caption(
+                f"{timestamp} · {label}"
+                +(f" · Revision {revision}" if revision is not None else "")
+            )
+        if len(logs)>25:
+            st.caption(f"Showing 25 of {len(logs)} recent activity events.")
+    else:
+        st.caption("No activity events are recorded for this workspace.")
+
+    st.divider()
+    st.markdown("#### Recorded management decisions")
+    decided=[
+        row for row in a["data"]["initiatives"]
+        if str(row.get("decision") or "Unreviewed")!="Unreviewed"
+    ]
+    if not decided:
+        st.info(
+            "No final management decisions have been recorded. "
+            "Review the proposed actions, then use Decision record to document "
+            "the outcome, conditions and next review."
+        )
+    else:
+        for item in decided:
+            with st.container(border=True):
+                st.markdown(
+                    "**"+str(item.get("name") or "Unnamed initiative")+"**"
+                    " · "+str(item.get("decision") or "Not recorded")
+                )
+                st.write(str(item.get("decision_rationale") or "No rationale entered."))
+                st.caption(
+                    "Decision owner: "+str(item.get("decision_owner") or "Not assigned")
+                    +" · Next review: "+str(item.get("next_review") or "Not set")
+                )
+    st.caption(
+        "This is an activity log and current decision register, not a snapshot "
+        "archive. Previous versions cannot be restored from this page."
+    )
+
+
 def _analysis(uid: str, a: dict, token: str,
               feedback_rows: list[dict] | None) -> None:
     wid=str(a["ws"]["id"])
@@ -519,6 +608,8 @@ def _analysis(uid: str, a: dict, token: str,
         _decision_record(token,a["ws"],a["data"])
     elif section=="Executive report":
         _report(a,token,uid,feedback_rows)
+    elif section=="Activity & history":
+        _activity_history(a,token)
     else:
         _title("ASSESSMENT POLICY","Criteria and planning boundaries",
                "Review the seven evaluation criteria and set the capacity, "

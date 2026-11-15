@@ -199,7 +199,33 @@ def _analyses_home(uid: str, analyses: list[dict]) -> None:
     c3.metric("Requiring inputs",sum(
         a["status"] in ("Not started","Assessment incomplete") for a in analyses))
     st.markdown("#### Select an analysis")
-    for a in analyses:
+    query=st.text_input(
+        "Find an analysis",placeholder="Search decision title or business context",
+        key="scx_history_search_"+uid,
+    )
+    statuses=tuple(sorted({a["status"] for a in analyses}))
+    status_filter=st.selectbox(
+        "Assessment status",("All statuses",)+statuses,
+        key="scx_history_status_"+uid,
+    )
+    visible=[
+        a for a in analyses
+        if query.strip().casefold() in (
+            a["title"]+" "+a["context"]+" "+a["outcome"]
+        ).casefold()
+        and (status_filter=="All statuses" or a["status"]==status_filter)
+    ]
+    st.caption(f"{len(visible)} of {len(analyses)} approved analyses match.")
+    if not visible:
+        st.info("No analyses match the current filters.")
+    page_size=5
+    page_count=(len(visible)+page_size-1)//page_size
+    page=(st.selectbox(
+        "History page",list(range(1,page_count+1)),
+        format_func=lambda n:f"Page {n} of {page_count}",
+        key="scx_history_page_"+uid,
+    ) if page_count>1 else 1)
+    for a in visible[(page-1)*page_size:page*page_size]:
         wid=str(a["ws"]["id"])
         with st.container(border=True):
             st.markdown(f"**{a['title']}**")

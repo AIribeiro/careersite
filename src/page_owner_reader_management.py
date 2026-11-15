@@ -340,7 +340,7 @@ def _reader_consent(profile: dict, consents: list[dict], controls: dict) -> None
         with a:
             st.caption("Reader's selection")
             st.write("Opted in" if profile.get("newsletter_opt_in") is True else "Not opted in")
-            st.caption("Consent recorded")
+            st.caption("Consent timestamp")
             st.write(_reader_date(profile.get("newsletter_consent_at")))
         with b:
             st.caption("Current mailing eligibility")

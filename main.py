@@ -323,6 +323,9 @@ else:
     # This helps distinguish cold imports from content or DOM work in Cloud logs.
     build_started = perf_counter()
     raw_document = render_page()
+    if PAGE in {"advisory-decision", "advisory-rollout", "advisory-scorecard", "advisory-leadership"}:
+        from advisory_service_visibility import suppress_paused_detail_ctas
+        raw_document = suppress_paused_detail_ctas(raw_document, PAGE)
     raw_document = inject_portfolio_continuation(
         raw_document,
         PAGE,

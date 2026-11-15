@@ -552,11 +552,8 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
         from page_advisory_investment import render_private_investment
         render_private_investment(session, user)
     elif view == "rollout":
-        section_heading(
-            "EXECUTIVE DECISION SERVICE", "Rollout readiness",
-            "Evaluate the conditions for responsible expansion and receive "
-            "a focused decision brief."
-        )
+        # The Rollout service owns its own overview and nested navigation.
+        # Avoid the duplicate heading and continuous-scroll page.
         from page_advisory_rollout import render_private_rollout
         render_private_rollout(session, user)
     elif view == "account":

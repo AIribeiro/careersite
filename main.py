@@ -229,6 +229,11 @@ elif PAGE == "advisory-access":
     from page_advisory_portal import render_advisory_portal
     render_advisory_portal()
 elif PAGE == "analytics":
+    import importlib
+    import page_analytics_v2 as _analytics_v2
+    if getattr(_analytics_v2, "ADVISORY_OWNER_DIALOGUE_RELEASE", None) != "owner_dialogue_20261115":
+        importlib.invalidate_caches()
+        importlib.reload(_analytics_v2)
     # Keep public analytics, owner reporting and the CMS native forms inside
     # the same real portfolio navigation/footer as editorial and reader pages.
     from page_analytics_v2 import render_analytics_dashboard

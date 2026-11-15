@@ -215,6 +215,13 @@ elif PAGE == "advisory-access":
         importlib.invalidate_caches()
         importlib.reload(_scorecard_report)
         importlib.reload(_scorecard_decision_ui)
+    # Existing authenticated browser sessions may keep an imported account
+    # module across a deployment. Ensure the redesigned Conversations UI is
+    # loaded instead of displaying the retired full-page message feed.
+    import page_advisory_member_experience as _member_experience
+    if getattr(_member_experience, "MEMBER_EXPERIENCE_VERSION", None) != "premium_conversations_20261115":
+        importlib.invalidate_caches()
+        importlib.reload(_member_experience)
     from page_advisory_portal import render_advisory_portal
     render_advisory_portal()
 elif PAGE == "analytics":

@@ -199,10 +199,14 @@ elif PAGE == "advisory-access":
     import page_advisory_scorecard_report as _scorecard_report
     import page_advisory_scorecard_decision_ui as _scorecard_decision_ui
     import page_advisory_scorecard_workspace as _scorecard_workspace
+    import page_advisory_scorecard_experience as _scorecard_experience
 
     if getattr(_scorecard_workspace, "SCORECARD_UX_RELEASE", None) != "executive_hub_20261115":
         importlib.invalidate_caches()
         importlib.reload(_scorecard_workspace)
+    if getattr(_scorecard_experience, "SCORECARD_EXPERIENCE_VERSION", None) != "executive_workspace_v2_20261115":
+        importlib.invalidate_caches()
+        importlib.reload(_scorecard_experience)
 
     if (
         getattr(_scorecard_report, "REPORT_VERSION", None) != "v2_20261115"

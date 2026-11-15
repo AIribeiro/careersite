@@ -379,6 +379,12 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
             "Free registration · No payment details · "
             "Editorial updates only with your consent."
         )
+        st.markdown(
+            "**Before you register:** [Browse a public briefing preview](?page=briefings) "
+            "to see the editorial quality and decision questions. After verifying your "
+            "email, you can open a complete edition immediately—no profile survey "
+            "or newsletter subscription is required."
+        )
 
     returning = st.radio(
         "Reader status", ["Register free", "I already have an account"],
@@ -888,6 +894,27 @@ def _library(session: dict, user: dict) -> None:
         slug = str(row.get("article_slug") or "")
         if slug and slug not in unique_downloads:
             unique_downloads[slug] = row
+
+    # Offer a real published briefing before asking new members to browse
+    # six collections or fill any optional professional profile fields.
+    if articles and not saved_slugs and not unique_downloads:
+        featured = articles[0]
+        featured_slug = _clean_slug(str(featured.slug))
+        if featured_slug:
+            with st.container(border=True, key="reader_first_win"):
+                st.caption("YOUR FIRST READ · READY NOW")
+                st.markdown("#### Start with one useful decision")
+                st.write(str(featured.title))
+                st.caption(
+                    "Open a complete published briefing now. Examine the decision "
+                    "criteria, evidence and practical next step before choosing "
+                    "what to save or download. No further profile setup is needed."
+                )
+                if st.button(
+                    "Read my first complete briefing", type="primary",
+                    key="reader_first_win_open", use_container_width=True,
+                ):
+                    _open_reader_briefing(featured_slug)
 
     st.html(
         '<section class="reader-member-stats" aria-label="Your library at a glance">'

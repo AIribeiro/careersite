@@ -240,7 +240,8 @@ def _action_item(item: dict, n: int, uid: str, wid: str) -> None:
         )
 
 
-def _decision(a: dict, uid: str) -> None:
+def _decision(a: dict, uid: str, token: str,
+              feedback_rows: list[dict] | None) -> None:
     report=a["report"]
     summary=report["recommended"]
     _title(
@@ -311,6 +312,14 @@ def _decision(a: dict, uid: str) -> None:
             "Open executive report",key="scx_dec_report_"+str(a["ws"]["id"]),
             on_click=_go,args=(uid,"Open analysis",str(a["ws"]["id"]),"Executive report"),
             use_container_width=True,
+        )
+    if feedback_rows is not None and token and uid:
+        from page_advisory_service_feedback import SCORECARD_SERVICE,render_optional_feedback
+        render_optional_feedback(
+            token,uid,SCORECARD_SERVICE,"executive_recommendation",
+            request_id=str(a["ws"]["request_id"]),
+            scorecard_id=str(a["ws"]["id"]),
+            feedback_rows=feedback_rows,
         )
 
 
@@ -456,19 +465,13 @@ def _report(a: dict, token: str, uid: str,
         "Revision identifies the current saved snapshot, not a browsable archive "
         "of prior versions. Formal outcomes are recorded in Decision record."
     )
-    if feedback_rows is not None and token and uid:
+    if feedback_rows is not None and token and uid and st.session_state.get(download_key):
         from page_advisory_service_feedback import SCORECARD_SERVICE,render_optional_feedback
         render_optional_feedback(
-            token,uid,SCORECARD_SERVICE,"executive_recommendation",
+            token,uid,SCORECARD_SERVICE,"report_download",
             request_id=str(a["ws"]["request_id"]),scorecard_id=wid,
             feedback_rows=feedback_rows,
         )
-        if st.session_state.get(download_key):
-            render_optional_feedback(
-                token,uid,SCORECARD_SERVICE,"report_download",
-                request_id=str(a["ws"]["request_id"]),scorecard_id=wid,
-                feedback_rows=feedback_rows,
-            )
 
 
 def _activity_history(a: dict, token: str) -> None:
@@ -590,7 +593,7 @@ def _analysis(uid: str, a: dict, token: str,
     )
     st.divider()
     if section=="Executive decision":
-        _decision(a,uid)
+        _decision(a,uid,token,feedback_rows)
     elif section=="Priority actions":
         _actions(a,uid)
     elif section=="Portfolio options":

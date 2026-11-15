@@ -663,7 +663,23 @@ def render_private_rollout(session:dict,user:dict)->None:
             if st.button("Start a new readiness assessment",key="rollout_home_new"):
                 _navigate_rollout("assess")
         else:
-            _access_request_ui(token,uid)
+            from advisory_service_visibility import advisory_role
+            if advisory_role(token) == "admin":
+                st.info("Admin access · You can activate your own Rollout assessment workspace.")
+                if st.button("Activate my admin Rollout workspace",
+                             key="admin_rollout_activate_overview", type="primary"):
+                    try:
+                        result = _request_json(
+                            "POST", _rest_url("rpc/portfolio_advisory_admin_ensure_workspace_v1"),
+                            token=token, payload={"p_service_key": "rollout"}, timeout=15,
+                        )
+                        if not isinstance(result, dict) or result.get("service_key") != "rollout":
+                            raise RuntimeError("Admin access not confirmed")
+                        st.rerun()
+                    except (RuntimeError, ValueError, TimeoutError, KeyError):
+                        st.error("Admin workspace could not be activated.")
+            else:
+                _access_request_ui(token,uid)
         return
     if not access:
         from advisory_service_visibility import advisory_role

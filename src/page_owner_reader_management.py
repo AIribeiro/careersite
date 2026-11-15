@@ -36,7 +36,7 @@ _TABLES = {
     "portfolio_reader_admin_audit": (
         "user_id,actor_id,action,detail,created_at", "created_at.desc",
     ),
-    "portfolio_advisory_profiles": ("user_id,account_status", "created_at.desc"),
+    "portfolio_advisory_profiles": ("user_id,account_status,created_at", "created_at.desc"),
     "portfolio_advisory_intents": ("user_id,email", "created_at.desc"),
     "portfolio_onboarding_milestones": (
         "user_id,journey,milestone,elapsed_seconds,occurred_at",
@@ -264,33 +264,36 @@ def _onboarding_outcomes(
     result = owner_first_value_summary(profiles, advisory, milestones)
     st.subheader("Onboarding outcomes")
     st.caption(
-        "What verified members achieved, not how long they hovered or scrolled. "
-        "Milestones are recorded once per member and are available only from "
-        "the launch of this measurement. Older activity cannot be reconstructed."
+        "A comparable cohort of members registered since 15 November 2026. "
+        "Older first-use behavior cannot be reconstructed and is excluded "
+        "from conversion and time-to-value calculations."
     )
     with st.container(border=True):
         st.markdown("#### Premium Reader Library")
         a, b, c = st.columns(3)
-        a.metric("Verified reader registrations", result["reader_registrations"])
+        a.metric("New Reader registrations", result["reader_cohort_registrations"])
         b.metric("First complete editions opened", result["reader_first_reads"])
         c.metric("Median registration → first open",
                  duration_label(result["reader_median_seconds"]))
         st.caption(
-            "A first open means a verified member chose a published complete "
+            "All-time registered Readers: " + str(result["reader_registrations"])
+            + ". A first open means a verified member chose a published complete "
             "edition. It is not evidence they read the entire piece or "
             "applied its recommendations."
         )
     with st.container(border=True):
         st.markdown("#### Executive Advisory")
         a, b, c = st.columns(3)
-        a.metric("Active Advisory memberships", result["advisory_registrations"])
+        a.metric("New Advisory registrations", result["advisory_cohort_registrations"])
         b.metric("First saved decision assessments",
                  result["advisory_first_assessments"])
         c.metric("Median registration → first decision",
                  duration_label(result["advisory_median_seconds"]))
         st.caption(
-            str(result["advisory_personal_requests"])
-            + " members have submitted a first personal Advisory request. "
+            "All-time active Advisory memberships: "
+            + str(result["advisory_registrations"]) + ". "
+            + str(result["advisory_personal_requests"])
+            + " new-cohort members have submitted a first personal Advisory request. "
             "This is separate from assessment completion or engagement approval."
         )
     st.caption(

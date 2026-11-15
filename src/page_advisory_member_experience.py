@@ -291,37 +291,8 @@ def _conversation_changed() -> None:
         st.query_params["request"] = str(selected)
 
 
+
 def render_messages(session: dict, user: dict) -> None:
-    section_heading(
-        "PRIVATE CORRESPONDENCE", "Your conversations",
-        "Messages, proposals and responses for your submitted advisory requests. "
-        "This is not a public chat.",
-    )
-    token = str(session["access_token"])
-    uid = str(user["id"])
-    requests = _load_requests(token, uid)
-    if requests is None:
-        return
-    if not requests:
-        st.info("No conversations yet. Submit an advisory request to begin.")
-        if st.button("Submit an advisory request", key="messages_new"):
-            navigate("requests")
-        return
-    ids = [str(r["id"]) for r in requests]
-    request_id = str(st.query_params.get("request") or "")
-    selected_index = ids.index(request_id) if request_id in ids else 0
-    if st.session_state.get("advisory_member_conversation") != ids[selected_index]:
-        st.session_state["advisory_member_conversation"] = ids[selected_index]
-    selected = st.selectbox(
-        "Conversation", ids,
-        index=selected_index,
-        format_func=lambda rid: next(
-            (str(r.get("title") or "Advisory request") + " · " + _status(r)[0]
-             for r in requests if str(r["id"]) == rid), "Advisory request"
-        ),
-        key="advisory_member_conversation", on_change=_conversation_changed,
-    )
-    target = next((r for r in requests if str(r["id"]) == selected), None)
-    if target:
-        _display_conversation(token, uid, target)
-    st.caption("For account support: " + ADVISORY_EMAIL)
+    """Focused conversation workspace using the Rollout Advisor design language."""
+    from page_advisory_conversation_workspace import render_conversation_workspace
+    render_conversation_workspace(session, user)

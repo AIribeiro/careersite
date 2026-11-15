@@ -512,9 +512,12 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
         # Avoid the duplicate heading and continuous-scroll page.
         from page_advisory_rollout import render_private_rollout
         render_private_rollout(session, user)
+    elif view == "workshop":
+        from page_advisory_leadership_workshop import render_private_leadership_workshop
+        render_private_leadership_workshop(session, user)
     elif view == "account":
         _advisory_account_settings(session, user, profile)
-    if view in ("scorecard", "rollout", "decision"):
+    if view in ("scorecard", "rollout", "decision", "workshop"):
         st.divider()
         if st.button("Return to Advisory overview",
                      key="advisory_return_" + view):

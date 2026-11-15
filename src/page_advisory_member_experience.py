@@ -16,7 +16,7 @@ from page_advisory_client_journey import (
 from site_assets import ADVISORY_EMAIL
 
 VIEWS = (
-    "overview", "requests", "messages", "scorecard", "rollout", "account",
+    "overview", "requests", "messages", "scorecard", "rollout", "decision", "account",
 )
 VIEW_LABELS = {
     "overview": "Overview",
@@ -24,6 +24,7 @@ VIEW_LABELS = {
     "messages": "Conversations",
     "scorecard": "AI Scorecard",
     "rollout": "Rollout Advisor",
+    "decision": "Investment Advisor",
     "account": "Account",
 }
 MEMBER_CSS = """
@@ -218,6 +219,16 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             if st.button("Open Rollout Advisor", key="overview_rollout",
                          use_container_width=True):
                 navigate("rollout")
+
+    st.divider()
+    with st.container(border=True):
+        st.caption("04 · SINGLE AI OPPORTUNITY")
+        st.markdown("#### AI Investment Decision Advisor")
+        st.write("Should you invest, experiment, hold or stop? Assess one opportunity and receive a concise executive decision brief.")
+        st.caption("Free self-service · Available to verified Advisory accounts · No separate approval")
+        if st.button("Open Investment Decision Advisor", key="overview_investment",
+                     use_container_width=True):
+            navigate("decision")
 
     st.divider()
     left, right = st.columns([2, 1])

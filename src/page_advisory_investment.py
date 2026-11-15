@@ -305,95 +305,315 @@ def _input_ui(token: str, uid: str) -> None:
         except (RuntimeError, TimeoutError, KeyError):
             st.error("Your assessment could not be saved. Check your connection and try again.")
             return
+        st.session_state["investment_selected_record"] = record_id
         st.session_state["investment_current_report"] = record_id
-        st.session_state["investment_new_assessment"] = False
+        st.session_state["investment_next_section"] = "Executive decision"
         st.rerun()
 
 
-def _report_ui(token: str, uid: str, record: dict) -> None:
-    raw = record.get("answers")
-    try:
-        data = validate(raw)
-        result = assess(data)
-    except (ValueError, TypeError):
-        st.error("This record is invalid. Please start a new assessment.")
-        return
-    rid = str(record["id"])
+# Deliberately show one work area at a time. A history selection is not
+# another section of a continuously scrolling report.
+WORKSPACE_SECTIONS = (
+    "My assessments", "Executive decision", "Action plan",
+    "Evidence & inputs", "New assessment",
+)
+
+
+def _go_to(section: str, record_id: str = "") -> None:
+    """Set the destination before the next widget-render pass."""
+    if section in WORKSPACE_SECTIONS:
+        st.session_state["investment_next_section"] = section
+    if record_id:
+        st.session_state["investment_selected_record"] = record_id
+        st.session_state["investment_current_report"] = record_id
+
+
+def _workspace_nav(history: list[dict]) -> str:
+    target = st.session_state.pop("investment_next_section", "")
+    current = st.session_state.get("investment_workspace_nav")
+    if target in WORKSPACE_SECTIONS:
+        st.session_state["investment_workspace_nav"] = target
+    elif current not in WORKSPACE_SECTIONS:
+        st.session_state["investment_workspace_nav"] = (
+            "My assessments" if history else "New assessment"
+        )
+    st.pills(
+        "Investment Advisor workspace",
+        WORKSPACE_SECTIONS,
+        selection_mode="single", required=True,
+        key="investment_workspace_nav",
+        label_visibility="collapsed", wrap=False, width="stretch",
+    )
+    return str(st.session_state["investment_workspace_nav"])
+
+
+def _case_heading(record: dict, view: dict) -> None:
     stamp = str(record.get("created_at") or "")[:10]
     st.html(
-        '<section class="inv-report">'
-        '<span class="inv-eyebrow">EXECUTIVE DECISION BRIEF / ' + escape(stamp) + '</span>'
-        '<h3>' + escape(data["name"]) + '</h3>'
-        '<div class="inv-verdict">' + escape(result["verdict"]) + '</div>'
-        '<div class="inv-head">' + escape(result["headline"]) + '</div>'
-        '<p>' + escape(result["reason"]) + '</p>'
-        '<p><strong>Critical consideration.</strong> ' + escape(result["primary_constraint"]) + '</p>'
-        '<p><strong>Relevant outcome measures.</strong> ' + escape(result["decision_lens"]) + '</p>'
-        '<p class="inv-meta">EVIDENCE CONFIDENCE · ' + escape(result["confidence"]) + '</p>'
-        '</section>'
+        '<div class="inv-context">'
+        '<span class="inv-eyebrow">SELECTED ASSESSMENT · ' + escape(stamp) + '</span>'
+        '<strong>' + escape(view["name"]) + '</strong>'
+        '<p>' + escape(view["scope"]) + ' · ' + escape(view["verdict"]) +
+        ' · ' + escape(view["confidence"]) + ' evidence confidence (self-reported)</p>'
+        '</div>'
     )
-    st.markdown("#### Three actions that should happen next")
-    for i, item in enumerate(result["actions"], 1):
-        with st.container(border=True):
-            st.markdown(f"**{i:02d} · {item['text']}**")
-            st.caption("Suggested owner: " + item["owner"] + " · Evidence gate: " + item["trigger"])
-    st.markdown("#### Condition for reconsideration")
-    st.write(result["release_condition"])
-    with st.expander("Review the evidence and decision rules", expanded=False):
-        st.caption("Selections are self-reported, not independently verified. "
-                   "An INVEST verdict means advance to formal approval, not permission to spend.")
-        st.write("**Observed limitations**")
-        for entry in result["constraints"]:
-            st.write("• " + entry)
-        if data["context"]:
-            st.write("**Your context note (not used to calculate the verdict)**")
-            st.write(data["context"])
-        st.caption("Rule set " + MODEL_VERSION + " · Original selections are retained privately.")
-    st.caption("This service does not replace legal, privacy, risk, security or investment approval.")
-    try:
-        report = _pdf_report(data, result, str(record.get("created_at") or ""))
-        st.download_button("Download executive decision report (PDF)",
-                           report, file_name="ai-investment-executive-decision.pdf",
-                           mime="application/pdf", key="investment_pdf_" + rid,
-                           use_container_width=True)
-    except (RuntimeError, ValueError, TypeError, UnicodeError):
-        st.error("The PDF could not be generated. The decision remains available above.")
-    if record.get("feedback_rating") is not None:
-        st.caption("Your optional report feedback has been recorded.")
+
+
+def _assessment_library(history: list[dict]) -> None:
+    st.html(
+        '<div class="inv-history-intro">'
+        '<span class="inv-eyebrow">PRIVATE DECISION LIBRARY</span>'
+        '<h3 class="inv-section-title">Your AI investment assessments</h3>'
+        '<p>Each record concerns one AI opportunity. Compare its purpose, current stage, '
+        'recommended position and critical evidence gap before opening it. '
+        'Past assessments are retained as submitted; a new assessment creates a new record.</p>'
+        '</div>'
+    )
+    valid = []
+    for item in history:
+        try:
+            valid.append((item, present_assessment(item.get("answers") or {})))
+        except (TypeError, ValueError, KeyError):
+            continue
+    st.caption(f"{len(valid)} saved assessments · Newest first · Private to your account")
+    if not valid:
+        st.info("No valid saved assessments yet. Start with a single AI opportunity.")
+        st.button("Create my first assessment", type="primary",
+                  on_click=_go_to, args=("New assessment",))
         return
-    with st.expander("Optional feedback on this recommendation", expanded=False):
+
+    a, b = st.columns([1.7, 1])
+    with a:
+        keyword = st.text_input("Find an opportunity", key="inv_library_search",
+                                placeholder="Search a use-case name")
+    with b:
+        filter_verdict = st.selectbox(
+            "Decision", ("All decisions", "INVEST", "EXPERIMENT", "HOLD", "STOP"),
+            key="inv_library_filter",
+        )
+    selected = [
+        (record, meta) for record, meta in valid
+        if keyword.casefold() in meta["name"].casefold()
+        and (filter_verdict == "All decisions" or meta["verdict"] == filter_verdict)
+    ]
+    if not selected:
+        st.info("No assessments match these filters. Adjust the search or decision filter.")
+        return
+
+    per_page = 5
+    total_pages = (len(selected) + per_page - 1) // per_page
+    page = st.selectbox("Records page", list(range(1, total_pages + 1)),
+                        format_func=lambda n: f"Page {n} of {total_pages}",
+                        key="inv_library_page") if total_pages > 1 else 1
+    st.caption(f"Showing {len(selected)} matching assessment(s)")
+    for record, meta in selected[(page - 1) * per_page:page * per_page]:
+        rid = str(record.get("id") or "")
+        stamp = str(record.get("created_at") or "")[:10]
+        with st.container(border=True):
+            left, right = st.columns([3.3, 1], vertical_alignment="center")
+            with left:
+                st.html(
+                    '<div class="inv-case-item">'
+                    '<span class="inv-eyebrow">RECORD · ' + escape(stamp) + '</span>'
+                    '<strong>' + escape(meta["name"]) + '</strong>'
+                    '<p>' + escape(meta["scope"]) + '</p>'
+                    '</div>'
+                )
+                st.write(f"**Decision:** {meta['verdict']} · **Evidence:** "
+                         f"{meta['confidence']} (self-reported)")
+                st.caption("Main issue: " + meta["why"])
+            with right:
+                st.button("Open decision", key="inv_open_" + rid, type="primary",
+                          use_container_width=True, on_click=_go_to,
+                          args=("Executive decision", rid))
+                st.button("View actions", key="inv_actions_" + rid,
+                          use_container_width=True, on_click=_go_to,
+                          args=("Action plan", rid))
+    st.divider()
+    st.button("Assess a different opportunity", type="secondary",
+              on_click=_go_to, args=("New assessment",))
+
+
+def _report_download(record: dict, view: dict) -> None:
+    rid = str(record.get("id") or "")
+    try:
+        report = _pdf_report(view["data"], view["result"],
+                             str(record.get("created_at") or ""))
+        st.download_button(
+            "Download the executive decision brief (PDF)",
+            report, file_name="ai-investment-decision-" + rid[:8] + ".pdf",
+            mime="application/pdf", key="investment_pdf_" + rid,
+            use_container_width=True,
+        )
+    except (RuntimeError, ValueError, TypeError, UnicodeError, OSError):
+        st.error("The PDF could not be produced. Your saved assessment is still available.")
+
+
+def _feedback_panel(token: str, uid: str, record: dict) -> None:
+    rid = str(record["id"])
+    if record.get("feedback_rating") is not None:
+        st.caption("Report feedback received. Thank you for assessing its usefulness.")
+        return
+    with st.expander("Optional feedback · Was this decision useful?", expanded=False):
         with st.form("investment_feedback_" + rid):
             rating = st.select_slider(
-                "Was the recommendation clear and credible?", options=[1, 2, 3, 4, 5], value=3)
-            useful = st.radio("Did it help identify your next decision or action?",
-                              ("Yes", "Partly", "No"), horizontal=True, index=None)
-            sent = st.form_submit_button("Submit feedback")
-        if sent:
+                "Was the recommendation clear and credible?",
+                options=[1, 2, 3, 4, 5], value=3)
+            useful = st.radio(
+                "Did it help identify your next decision or action?",
+                ("Yes", "Partly", "No"), horizontal=True, index=None)
+            submitted = st.form_submit_button("Submit feedback")
+        if submitted:
             if useful is None:
-                st.warning("Select an answer about usefulness, or close this optional form.")
-            else:
-                try:
-                    result_update = _request_json(
-                        "PATCH",
-                        _rest_url("portfolio_advisory_investment_decisions?id=eq."
-                                  + quote(rid, safe="") + "&user_id=eq."
-                                  + quote(uid, safe="") + "&select=id"),
-                        token=token,
-                        payload={"feedback_rating": int(rating),
-                                 "feedback_usefulness": useful,
-                                 "feedback_at": datetime.now(timezone.utc).isoformat()},
-                        prefer="return=representation", timeout=12,
-                    )
-                    if not isinstance(result_update, list) or len(result_update) != 1:
-                        raise RuntimeError("Feedback was not saved.")
-                    st.success("Feedback recorded.")
-                    st.rerun()
-                except (RuntimeError, TimeoutError, KeyError):
-                    st.error("Feedback could not be saved. You can retry.")
+                st.warning("Select an answer about usefulness or close the optional form.")
+                return
+            try:
+                updated = _request_json(
+                    "PATCH",
+                    _rest_url("portfolio_advisory_investment_decisions?id=eq."
+                              + quote(rid, safe="") + "&user_id=eq."
+                              + quote(uid, safe="") + "&select=id"),
+                    token=token,
+                    payload={"feedback_rating": int(rating),
+                             "feedback_usefulness": useful,
+                             "feedback_at": datetime.now(timezone.utc).isoformat()},
+                    prefer="return=representation", timeout=12,
+                )
+                if not isinstance(updated, list) or len(updated) != 1:
+                    raise RuntimeError("Feedback confirmation failed.")
+                st.success("Feedback recorded.")
+                st.rerun()
+            except (RuntimeError, TimeoutError, KeyError, ValueError):
+                st.error("Feedback could not be saved. You can retry.")
+
+
+def _decision_page(token: str, uid: str, record: dict, view: dict) -> None:
+    from page_advisory_investment_report import _executive_summary
+    st.html(
+        '<section class="inv-decision">'
+        '<span class="inv-eyebrow">EXECUTIVE POSITION · SELF-REPORTED EVIDENCE</span>'
+        '<div class="inv-verdict">' + escape(view["verdict"]) + '</div>'
+        '<h3>' + escape(view["next_step"]) + '</h3>'
+        '<p>' + escape(_executive_summary(view["data"], view["result"])) + '</p>'
+        '</section>'
+    )
+    st.html(
+        '<div class="inv-rail">'
+        '<article><small>Business case</small><strong>' +
+        escape(view["value_statement"]) + '</strong></article>'
+        '<article><small>Control position</small><strong>' +
+        escape(view["risk_statement"]) + '</strong></article>'
+        '<article><small>Evidence confidence</small><strong>' +
+        escape(view["confidence"]) + ' · Not independently verified</strong></article>'
+        '</div>'
+    )
+    st.html('<h3 class="inv-section-title">What this decision means</h3>')
+    st.html(
+        '<div class="inv-note">'
+        '<strong>Decision boundary.</strong> ' + escape(view["boundary"]) +
+        '<p><strong>Most significant limitation.</strong> ' + escape(view["why"]) + '</p>'
+        '</div>'
+    )
+    st.caption("Recommendation based on the 14 answers recorded for this opportunity. "
+               "The optional context note does not affect the verdict.")
+    a, b = st.columns([1, 1])
+    with a:
+        st.button("Review the three actions", type="primary",
+                  use_container_width=True, on_click=_go_to,
+                  args=("Action plan",))
+    with b:
+        st.button("Inspect the assessment evidence",
+                  use_container_width=True, on_click=_go_to,
+                  args=("Evidence & inputs",))
+    st.divider()
+    _report_download(record, view)
+    _feedback_panel(token, uid, record)
+
+
+def _actions_page(view: dict) -> None:
+    st.html(
+        '<span class="inv-eyebrow">EXECUTIVE ACTION PLAN</span>'
+        '<h3 class="inv-section-title">Three requirements before the next decision</h3>'
+        '<div class="inv-note"><strong>Current position:</strong> ' +
+        escape(view["next_step"]) + '<br><strong>Boundary:</strong> ' +
+        escape(view["boundary"]) + '</div>'
+    )
+    st.caption("The roles below are suggested accountability functions, not named "
+               "people or recorded task assignments. The report does not invent deadlines.")
+    for i, action in enumerate(view["actions"], 1):
+        st.html(
+            '<article class="inv-action">'
+            '<span class="inv-eyebrow">PRIORITY ' + f"{i:02d}" + ' / REQUIRED ACTION</span>'
+            '<h4>' + escape(action["text"]) + '</h4>'
+            '<p><strong>Suggested accountable function:</strong> ' +
+            escape(action["owner"]) + '</p>'
+            '<div class="inv-proof"><strong>Evidence required to close this action</strong><br>' +
+            escape(action["trigger"]) + '</div>'
+            '</article>'
+        )
+    st.html(
+        '<div class="inv-note"><strong>Reassessment gate:</strong> ' +
+        escape(view["result"]["release_condition"]) +
+        '<p>When these conditions change, create a new assessment so the earlier '
+        'decision remains available for comparison.</p></div>'
+    )
+    a, b = st.columns(2)
+    with a:
+        st.button("Review supporting evidence", on_click=_go_to,
+                  args=("Evidence & inputs",), use_container_width=True)
+    with b:
+        st.button("Create a new assessment", on_click=_go_to,
+                  args=("New assessment",), use_container_width=True)
+
+
+def _evidence_page(view: dict) -> None:
+    st.html(
+        '<span class="inv-eyebrow">TRANSPARENT DECISION RECORD</span>'
+        '<h3 class="inv-section-title">What this assessment actually contains</h3>'
+        '<div class="inv-note">Fourteen recorded selections grouped below. '
+        'This is a structured, self-reported decision assessment—not an independent '
+        'audit or a verification of the business case.</div>'
+    )
+    tabs = st.tabs(["01 · Business case", "02 · Delivery readiness",
+                    "03 · Governance & authority"])
+    for tab, (name, rows) in zip(tabs, categorize_evidence(view["data"])):
+        with tab:
+            st.caption(name + " · Submitted answers")
+            st.html(
+                '<div>' + "".join(
+                    '<div class="inv-evidence"><b>' + escape(label) +
+                    '</b><span>' + escape(str(value)) + '</span></div>'
+                    for label, value in rows
+                ) + '</div>'
+            )
+    st.html('<h3 class="inv-section-title">Why the recommendation is limited</h3>')
+    if view["result"]["constraints"]:
+        for item in view["result"]["constraints"]:
+            st.write("• " + item)
+    else:
+        st.write("No material gaps were reported in the structured selections.")
+    with st.expander("Optional context supplied with this case", expanded=False):
+        context = view["data"].get("context", "")
+        st.write(context if context else "No context note was supplied.")
+        st.caption("The context note is kept for reference but is not evaluated "
+                   "by the decision rules.")
+    with st.expander("How the verdict is determined", expanded=False):
+        st.write("**1. Mandatory constraints first.** Known prohibitions, a better "
+                 "non-AI alternative, or unlawful/unreliable data may lead to STOP.")
+        st.write("**2. Readiness gates.** Missing ownership, capacity, data assessments "
+                 "or essential controls can result in HOLD.")
+        st.write("**3. Business evidence.** Demonstrated value, readiness, accountability, "
+                 "controls and maturity determine whether a case advances to formal "
+                 "investment review or remains an EXPERIMENT.")
+        st.caption("Evidence confidence uses a count of positive self-reported "
+                   "indicators; it does not confirm their accuracy. Rule set: " +
+                   str(view["result"]["model_version"]))
+    st.caption("To update the decision, create a new assessment with revised evidence. "
+               "Earlier records remain intact.")
 
 
 def render_private_investment(session: dict, user: dict) -> None:
-    """Called exclusively from the verified, active Advisory member shell."""
+    """Dedicated self-service pages within the existing authenticated Advisory shell."""
     token = str(session.get("access_token") or "")
     uid = str(user.get("id") or "")
     if not token or not uid or not user.get("email_confirmed_at"):
@@ -401,30 +621,59 @@ def render_private_investment(session: dict, user: dict) -> None:
         return
     st.html(PRIVATE_CSS)
     with st.container(key="investment_decision_area"):
-        st.html('<div class="inv-panel"><span class="inv-eyebrow">EXECUTIVE DECISION SERVICE / FREE</span>'
-                '<h3>AI Investment Decision Advisor</h3>'
-                '<p>Assess a single AI opportunity. Your report gives one verdict, its reasoning, '
-                'evidence confidence and three actions. Every assessment is private to your account.</p></div>')
+        st.html(
+            '<header class="inv-hero">'
+            '<span class="inv-eyebrow">EXECUTIVE AI ADVISORY / PRIVATE WORKSPACE</span>'
+            '<h2>AI Investment Decision Advisor</h2>'
+            '<p>One AI opportunity. One defensible recommendation. The evidence '
+            'and actions required for your next leadership decision.</p>'
+            '</header>'
+        )
         try:
             history = _history(token, uid)
         except (RuntimeError, ValueError, TimeoutError, KeyError):
-            st.error("Could not load your private decisions. Try again later.")
+            st.error("Your private assessments could not be loaded. Please try again.")
             return
-        if history:
-            options = {str(item["id"]): item for item in history}
-            current = st.session_state.get("investment_current_report")
-            if current not in options:
-                current = next(iter(options))
-            selected = st.selectbox("Previous executive assessments", list(options),
-                                    index=list(options).index(current),
-                                    format_func=lambda x: (
-                                        str(options[x].get("created_at") or "")[:10] + " · " +
-                                        str((options[x].get("answers") or {}).get("name") or "Assessment")
-                                    ), key="investment_history_selector")
-            _report_ui(token, uid, options[selected])
-            if st.button("Assess another AI opportunity", key="investment_new_button"):
-                st.session_state["investment_new_assessment"] = True
-                st.rerun()
-        if not history or st.session_state.get("investment_new_assessment"):
-            st.divider()
+        records = {str(item.get("id")): item for item in history if item.get("id")}
+        selection = (st.session_state.get("investment_selected_record") or
+                     st.session_state.get("investment_current_report"))
+        if selection not in records:
+            selection = next(iter(records), "")
+        st.session_state["investment_selected_record"] = selection
+        section = _workspace_nav(history)
+        if section == "My assessments":
+            _assessment_library(history)
+            return
+        if section == "New assessment":
+            st.html(
+                '<div class="inv-history-intro">'
+                '<span class="inv-eyebrow">NEW EXECUTIVE ASSESSMENT</span>'
+                '<h3 class="inv-section-title">Assess one AI opportunity</h3>'
+                '<p>Complete three short sections and receive a reasoned position: '
+                'Invest, Experiment, Hold or Stop. Your answers and report are '
+                'saved privately; this does not authorize funding or production.</p>'
+                '</div>'
+            )
             _input_ui(token, uid)
+            return
+        if not selection:
+            st.info("Select a saved assessment or create a new one.")
+            st.button("Create an assessment", on_click=_go_to,
+                      args=("New assessment",), type="primary")
+            return
+        record = records[selection]
+        try:
+            view = present_assessment(record.get("answers") or {})
+        except (TypeError, ValueError, KeyError):
+            st.error("The selected assessment cannot be interpreted. "
+                     "Choose another record from My assessments.")
+            st.button("View assessment library", on_click=_go_to,
+                      args=("My assessments",))
+            return
+        _case_heading(record, view)
+        if section == "Executive decision":
+            _decision_page(token, uid, record, view)
+        elif section == "Action plan":
+            _actions_page(view)
+        elif section == "Evidence & inputs":
+            _evidence_page(view)

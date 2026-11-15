@@ -108,7 +108,10 @@ class ScorecardAccessRequestTests(TestCase):
             reply.assert_not_called()
 
     def test_owner_sees_a_specific_scorecard_signal(self):
-        owner=(ROOT/"src/page_owner_advisory_requests.py").read_text()
-        self.assertIn("AI PORTFOLIO SCORECARD ACCESS REQUEST",owner)
-        self.assertIn("Scorecard access requested",owner)
-        self.assertIn("enable the workspace below",owner)
+        # Owner conversations now render in the dedicated premium dialogue panel.
+        conversation=(ROOT/"src/page_owner_advisory_conversation_ui.py").read_text()
+        controls=(ROOT/"src/page_owner_advisory_operations.py").read_text()
+        self.assertIn("AI PORTFOLIO SCORECARD ACCESS REQUEST",conversation)
+        self.assertIn("Scorecard access was requested",conversation)
+        self.assertIn("enable the relevant service separately",conversation)
+        self.assertIn('"scorecard", "AI Portfolio Prioritization Scorecard"',controls)

@@ -532,6 +532,13 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
         )
         from page_advisory_scorecard_workspace import render_private_scorecard
         render_private_scorecard(session, user)
+    elif view == "decision":
+        section_heading(
+            "SELF-SERVICE EXECUTIVE ADVISORY", "AI Investment Decision Advisor",
+            "Assess one AI opportunity and receive a reasoned investment recommendation."
+        )
+        from page_advisory_investment import render_private_investment
+        render_private_investment(session, user)
     elif view == "rollout":
         section_heading(
             "EXECUTIVE DECISION SERVICE", "Rollout readiness",
@@ -542,7 +549,7 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
         render_private_rollout(session, user)
     elif view == "account":
         _advisory_account_settings(session, user, profile)
-    if view in ("scorecard", "rollout"):
+    if view in ("scorecard", "rollout", "decision"):
         st.divider()
         if st.button("Return to Advisory overview",
                      key="advisory_return_" + view):

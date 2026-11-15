@@ -20,7 +20,7 @@ class ScorecardAccessRequestTests(TestCase):
         ):
             ast.parse((ROOT/path).read_text(encoding="utf-8"),filename=str(path))
         workspace=(ROOT/"src/page_advisory_scorecard_workspace.py").read_text()
-        self.assertIn("render_scorecard_access_request(token, uid)",workspace)
+        self.assertIn("render_scorecard_access_request(token,uid)",workspace)
         client=(ROOT/"src/page_advisory_scorecard_requests.py").read_text()
         self.assertIn('"Request Access"',client)
         self.assertIn('"Submit access request"',client)

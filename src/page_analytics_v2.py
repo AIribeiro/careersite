@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import streamlit as st
 
+ADVISORY_OWNER_DIALOGUE_RELEASE = "owner_dialogue_20261115"
+
 from page_analytics import (
     _noindex, _dashboard_css, REPORTING_WINDOWS, REPORTING_WINDOW_LABELS, _fetch_dashboard,
 )

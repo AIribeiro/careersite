@@ -503,42 +503,19 @@ def render_private_scorecard(session: dict,user: dict) -> None:
         st.error("Could not verify Scorecard access. Retry from your Advisory account.")
         return
     if not workspaces:
-        st.markdown("## AI Portfolio Prioritization Scorecard")
-        st.caption("On-demand pro-bono Advisory · Individual approval required")
-        st.markdown(
-            "When several AI opportunities compete for the same investment, "
-            "specialist capacity and management attention, the Scorecard helps "
-            "leadership teams decide **which initiatives to advance, test, hold "
-            "or stop**—and document the reasoning behind each decision."
-        )
-        st.markdown(
-            "**What approved clients can do**\n\n"
-            "- **Compare opportunities:** Assess up to 30 initiatives against "
-            "seven weighted criteria covering strategic fit, business value, "
-            "feasibility, capacity, data readiness, adoption and controls.\n"
-            "- **Test portfolio constraints:** Compare proposed initiatives "
-            "against available people, investment, ongoing costs and "
-            "indicative benefits.\n"
-            "- **Receive a decision recommendation:** Compare feasible portfolio options, get initiative-level actions and download an executive PDF memo.\n- **Record executive decisions:** Keep the evidence, control "
-            "conditions, accountable owners and next review together in a "
-            "private, editable workspace."
-        )
-        st.caption(
-            "The Scorecard supports executive judgment; a score does not "
-            "authorize funding or deployment."
-        )
-        st.page_link(
-            "https://jairribeiro.com/?page=advisory-scorecard",
-            label="Explore the full Scorecard service",
-        )
+        # Unapproved members see the same clear service proposition as
+        # approved clients, followed by the individual access request.
+        from page_advisory_scorecard_experience import _service_guide
+        _service_guide()
         st.info(
-            "This on-demand service is free for individually selected pro-bono "
-            "Advisory clients. A request is reviewed before any access is "
-            "enabled; registering alone does not grant access."
+            "This is a free, individually selected pro-bono Advisory service. "
+            "Registration does not automatically grant an assessment. "
+            "Describe the executive decision you need to make to request access."
         )
         from page_advisory_scorecard_requests import render_scorecard_access_request
-        render_scorecard_access_request(token, uid)
+        render_scorecard_access_request(token,uid)
         return
+
     from page_advisory_service_feedback import read_member_feedback
     try:
         feedback_rows = read_member_feedback(token,uid)

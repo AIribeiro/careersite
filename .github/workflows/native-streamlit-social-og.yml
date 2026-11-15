@@ -1,0 +1,91 @@
+name: Native Streamlit Open Graph preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app.py"
+      - "src/site_social_http.py"
+      - "src/site_meta.py"
+      - "static/jair-ribeiro-social-preview.png"
+      - "tests/test_native_streamlit_social_preview.py"
+      - ".github/workflows/native-streamlit-social-og.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install runtime dependencies
+        run: pip install -r requirements.txt
+      - name: Check Python syntax and isolated social metadata tests
+        run: |
+          python -m py_compile app.py src/site_social_http.py
+          python -m unittest discover -s tests -p 'test_native_streamlit_social_preview.py' -v
+      - name: Start Streamlit
+        run: |
+          streamlit run app.py --server.headless true --server.port 8501 > /tmp/social-og-streamlit.log 2>&1 &
+          echo $! > /tmp/social-og-streamlit.pid
+          for i in {1..35}; do
+            if curl -fsS http://127.0.0.1:8501/_stcore/health >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/social-og-streamlit.log
+          exit 1
+      - name: Verify actual LinkedIn HTTP response, image and privacy guard
+        run: |
+          python - <<'PY'
+          from io import BytesIO
+          from urllib.request import Request, urlopen
+          from PIL import Image
+
+          base = 'http://127.0.0.1:8501'
+          linkedin = {'User-Agent':'LinkedInBot/1.0'}
+          for uri, title in (
+              ('/?source=outreach','Jair Ribeiro | Enterprise AI &amp; Data Leadership'),
+              ('/?page=advisory&source=linkedin','Executive AI &amp; Data Advisory'),
+              ('/?page=thinking','Thinking | Jair Ribeiro'),
+          ):
+              with urlopen(Request(base + uri, headers=linkedin), timeout=25) as response:
+                  content = response.read().decode('utf-8')
+                  assert response.status == 200 and response.headers.get_content_type() == 'text/html'
+              for expected in (title, 'property="og:image"', 'property="og:image:width" content="1200"',
+                               'property="og:image:height" content="630"',
+                               'name="twitter:card" content="summary_large_image"'):
+                  assert expected in content, (uri, expected)
+              print('LinkedIn OG HTML PASS', uri)
+
+          image_uri = base + '/app/static/jair-ribeiro-social-preview.png'
+          with urlopen(image_uri, timeout=25) as response:
+              data = response.read()
+              assert response.headers.get_content_type() == 'image/png'
+          with Image.open(BytesIO(data)) as img:
+              assert img.size == (1200, 630)
+          print('Image PNG PASS', len(data))
+
+          for uri, agent in (
+              ('/?source=outreach', 'Mozilla/5.0'),
+              ('/?page=readers&token_hash=demo', 'LinkedInBot/1.0'),
+          ):
+              with urlopen(Request(base + uri, headers={'User-Agent':agent}), timeout=25) as response:
+                  html = response.read().decode('utf-8')
+                  assert response.status == 200
+              assert 'streamlit' in html.lower(), uri
+              print('Native Streamlit UI PASS', uri)
+          PY
+      - name: Show server log on failure
+        if: failure()
+        run: cat /tmp/social-og-streamlit.log || true

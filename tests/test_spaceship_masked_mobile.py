@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from site_embedded_mobile import (
     EMBEDDED_MOBILE_SCRIPT,
+    MASKED_FRAME_FALLBACK_CSS,
     support_masked_mobile_media,
 )
 
@@ -39,6 +40,33 @@ class MaskedForwardingMobileTests(unittest.TestCase):
             "@media(prefers-reduced-motion:reduce){",
             result,
         )
+
+    def test_masked_frame_has_css_fallback_even_if_javascript_does_not_run(self):
+        # A 980px inner layout + physical phone width is the specific failure.
+        css = MASKED_FRAME_FALLBACK_CSS
+        self.assertIn("(min-width:760px) and (max-device-width:700px)", css)
+        self.assertIn(".site:not(.native-shell):not(.reader-shell) {zoom:2.5}", css)
+        self.assertIn(
+            '[data-testid="stAppViewContainer"]:has(.native-shell-header, .reader-shell)',
+            css,
+        )
+        self.assertIn("(max-device-width:359px)", css)
+        self.assertIn("(min-device-width:401px) and (max-device-width:430px)", css)
+        self.assertIn("(min-device-width:601px) and (max-device-width:700px)", css)
+
+    def test_css_fallback_mounts_in_public_and_native_experiences(self):
+        from site_embedded_mobile import mount_masked_mobile_fix, mount_native_masked_mobile_fix
+        from unittest.mock import patch
+        with patch("site_embedded_mobile.st.html") as rendered:
+            mount_masked_mobile_fix()
+            html = rendered.call_args.args[0]
+            self.assertIn(MASKED_FRAME_FALLBACK_CSS, html)
+            self.assertIn(EMBEDDED_MOBILE_SCRIPT, html)
+            self.assertTrue(rendered.call_args.kwargs["unsafe_allow_javascript"])
+            mount_native_masked_mobile_fix()
+            native_html = rendered.call_args.args[0]
+            self.assertIn(MASKED_FRAME_FALLBACK_CSS, native_html)
+            self.assertIn(".native-shell-header", native_html)
 
     def test_fix_is_restricted_to_oversized_embedded_phone_viewports(self):
         self.assertIn("window.self !== window.top", EMBEDDED_MOBILE_SCRIPT)

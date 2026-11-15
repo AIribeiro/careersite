@@ -1,8 +1,8 @@
 """Best-effort persistent Reader/Advisory session on the existing ASGI host.
 
 Both member experiences already use the same Supabase Auth identity in Streamlit.
-A short-lived access JWT can be restored from a same-origin POST to the HTTP
-auth endpoint; the rotating refresh token is never sent to browser JS. This
+A one-use restore ticket can be redeemed server-side from a same-origin POST;
+neither the access JWT nor rotating refresh token is sent to browser JS. This
 does not use localStorage, sessionStorage, passwords in cookies, or auth URLs.
 
 When registrar masking, mobile browser cookie policies, or a proxy block this
@@ -18,7 +18,9 @@ import streamlit as st
 
 from reader_membership import _register_profile
 from site_member_http_auth import _verified_member
-from site_member_tickets import issue_member_cookie_ticket
+from site_member_tickets import (
+    issue_member_cookie_ticket, redeem_member_restore_ticket,
+)
 
 LOG = logging.getLogger("careersite.member.persistence")
 REFRESH_HEADROOM = 90
@@ -53,12 +55,12 @@ export default function({data, setStateValue}) {
   }).then(async response => {
     if (!response.ok) throw new Error('no_saved_session');
     const result = await response.json();
-    if (!result.authenticated || !result.access_token)
+    if (!result.authenticated || !result.restore_ticket)
       throw new Error('no_saved_session');
+    // The ticket is single use and expires after 45 seconds. Access and
+    // refresh credentials remain strictly on the server and in HttpOnly cookies.
     setStateValue('session', {
-      access_token: result.access_token,
-      expires_at: Number(result.expires_at || 0),
-      nonce
+      restore_ticket: result.restore_ticket, nonce
     });
   }).catch(() => setStateValue('status', 'unavailable'));
 }
@@ -143,8 +145,13 @@ def _restore_from_cookie() -> None:
     if candidate.get("nonce") != nonce:
         return
     try:
-        expiry = int(candidate.get("expires_at") or 0)
-        token = str(candidate.get("access_token") or "")
+        restored = redeem_member_restore_ticket(
+            str(candidate.get("restore_ticket") or "")
+        )
+        if not isinstance(restored, dict):
+            raise ValueError("Restoration ticket was used or expired.")
+        expiry = int(restored.get("expires_at") or 0)
+        token = str(restored.get("access_token") or "")
         if not token or expiry <= time.time() + REFRESH_HEADROOM:
             raise ValueError("Access token is not current.")
         # The HTTP endpoint has already checked Reader status, but always

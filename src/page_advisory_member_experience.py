@@ -14,6 +14,7 @@ from page_advisory_client_journey import (
     CLOSED, STATUS, _client_requests, _display_conversation, _request_form,
 )
 from site_assets import ADVISORY_EMAIL
+from page_rollout_workspace_ui import WORKSPACE_CSS
 
 MEMBER_EXPERIENCE_VERSION = "premium_conversations_20261115"
 

@@ -514,16 +514,21 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
         st.error("This advisory account is not currently active. Contact advisory support.")
         return
     st.session_state["advisory_member"] = True
+    from advisory_service_visibility import advisory_role
+    try:
+        is_service_admin = advisory_role(str(session["access_token"])) == "admin"
+    except (RuntimeError, ValueError, TimeoutError, KeyError):
+        is_service_admin = False  # Unverified roles never bypass visibility.
     from page_advisory_member_experience import (
         MEMBER_CSS, member_navigation, render_overview, render_requests,
         render_messages, section_heading,
     )
     st.html(MEMBER_CSS)
-    view = member_navigation()
+    view = member_navigation(admin=is_service_admin)
     if view == "overview":
-        render_overview(session, user, profile)
+        render_overview(session, user, profile, admin=is_service_admin)
     elif view == "requests":
-        render_requests(session, user, profile)
+        render_requests(session, user, profile, admin=is_service_admin)
     elif view == "messages":
         render_messages(session, user)
     elif view == "scorecard":

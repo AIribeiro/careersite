@@ -137,8 +137,9 @@ EMBEDDED_MOBILE_SCRIPT = r"""
 
 def mount_masked_mobile_fix() -> None:
     """Mount only for public pages, after the portfolio HTML has been emitted."""
-    st.html(MASKED_FRAME_FALLBACK_CSS + EMBEDDED_MOBILE_SCRIPT,
-            unsafe_allow_javascript=True)
+    # Render styling independently so the fallback survives blocked scripts.
+    st.html(MASKED_FRAME_FALLBACK_CSS)
+    st.html(EMBEDDED_MOBILE_SCRIPT, unsafe_allow_javascript=True)
 
 
 NATIVE_EMBEDDED_MOBILE_SCRIPT = r"""
@@ -207,5 +208,6 @@ NATIVE_EMBEDDED_MOBILE_SCRIPT = r"""
 
 def mount_native_masked_mobile_fix() -> None:
     """Correct device-scale when native Streamlit forms load in a masked frame."""
-    st.html(MASKED_FRAME_FALLBACK_CSS + NATIVE_EMBEDDED_MOBILE_SCRIPT,
-            unsafe_allow_javascript=True)
+    # Native forms need the same scaling even when scripts cannot execute.
+    st.html(MASKED_FRAME_FALLBACK_CSS)
+    st.html(NATIVE_EMBEDDED_MOBILE_SCRIPT, unsafe_allow_javascript=True)

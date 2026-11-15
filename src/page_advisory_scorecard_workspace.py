@@ -503,6 +503,26 @@ def render_private_scorecard(session: dict,user: dict) -> None:
         st.error("Could not verify Scorecard access. Retry from your Advisory account.")
         return
     if not workspaces:
+        from advisory_service_visibility import advisory_role
+        if advisory_role(token) == "admin":
+            st.info(
+                "Admin access · You can activate a private Scorecard workspace "
+                "without changing the public service setting."
+            )
+            if st.button("Activate my admin Scorecard workspace",
+                         type="primary", key="admin_scorecard_activate"):
+                try:
+                    result = _request_json(
+                        "POST",
+                        _rest_url("rpc/portfolio_advisory_admin_ensure_workspace_v1"),
+                        token=token, payload={"p_service_key": "scorecard"}, timeout=15,
+                    )
+                    if not isinstance(result, dict) or result.get("service_key") != "scorecard":
+                        raise RuntimeError("Admin Scorecard access was not confirmed")
+                    st.rerun()
+                except (RuntimeError, ValueError, TimeoutError, KeyError):
+                    st.error("Admin workspace could not be activated. Please review your service access.")
+            return
         # Unapproved members see the same clear service proposition as
         # approved clients, followed by the individual access request.
         from page_advisory_scorecard_experience import _service_guide

@@ -94,6 +94,17 @@ class LeadershipWorkshopTests(unittest.TestCase):
         self.assertGreater(len(pdf), 1300)
         self.assertTrue(pdf.startswith(b"%PDF"))
 
+    def test_synthetic_streamlit_assessment_renders(self):
+        from streamlit.testing.v1 import AppTest
+        app = AppTest.from_file(
+            str(ROOT / "tests" / "leadership_workshop_smoke_app.py"),
+            default_timeout=25,
+        ).run()
+        self.assertFalse(app.exception, [str(x.message) for x in app.exception])
+        labels = [x.label for x in app.selectbox]
+        self.assertIn("Are major AI initiatives explicitly tied to business priorities?", labels)
+        self.assertGreaterEqual(len(labels), 21)
+
     def test_site_service_is_separate_from_existing_access_controls(self):
         files = (
             "src/page_advisory_leadership_logic.py",

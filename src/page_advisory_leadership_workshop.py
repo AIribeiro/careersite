@@ -439,7 +439,8 @@ def _team_ui(token: str, uid: str, email: str, workshop: dict,
                         st.rerun()
                     except (RuntimeError, TimeoutError, ValueError, KeyError):
                         st.error("The invitation could not be recorded.")
-            st.code("https://jairribeiro.com/?page=advisory-access&view=workshop&workshop_section=invitations")
+            st.code("https://jairribeiro.com/?page=advisory-access&view=workshop")
+            st.caption("Ask your invitee to open the Invitations tab after signing in.")
         for p in participants:
             with st.container(border=True):
                 st.markdown("**" + escape(str(p["invited_email"])) + "**")

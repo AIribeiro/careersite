@@ -494,14 +494,16 @@ def render_private_scorecard(session: dict,user: dict) -> None:
     uid=str(user.get("id") or "")
     if not token or not uid or not user.get("email_confirmed_at"):
         return
-    st.markdown("## AI Portfolio Prioritization Scorecard")
-    st.caption("On-demand Advisory service · Individual pro-bono approval · Private workspace")
+    # Approved members see the dedicated executive hub. Public service
+    # explanation remains visible to members who have no entitlement yet.
     try:
         workspaces=_read_workspaces(token,uid)
     except (ValueError,RuntimeError,TimeoutError,KeyError):
         st.error("Could not verify Scorecard access. Retry from your Advisory account.")
         return
     if not workspaces:
+        st.markdown("## AI Portfolio Prioritization Scorecard")
+        st.caption("On-demand pro-bono Advisory · Individual approval required")
         st.markdown(
             "When several AI opportunities compete for the same investment, "
             "specialist capacity and management attention, the Scorecard helps "
@@ -536,111 +538,11 @@ def render_private_scorecard(session: dict,user: dict) -> None:
         from page_advisory_scorecard_requests import render_scorecard_access_request
         render_scorecard_access_request(token, uid)
         return
-    from page_advisory_scorecard_new_analysis import (
-        render_new_analysis_request,read_analysis_requests,
-    )
-    # Make a newly approved analysis the selected workspace automatically,
-    # without resetting an established selection on normal page reruns.
-    workspaces=sorted(
-        workspaces,key=lambda x:(str(x.get("approved_at") or ""),str(x["id"])),
-        reverse=True,
-    )
-    workspace_ids=[str(x["id"]) for x in workspaces]
-    seen_key="scorecard_seen_workspace_ids_"+uid
-    selected_key="scorecard_workspace_choice"
-    seen=set(st.session_state.get(seen_key) or [])
-    new_ids=[wid for wid in workspace_ids if wid not in seen]
-    if new_ids or st.session_state.get(selected_key) not in workspace_ids:
-        st.session_state[selected_key]=new_ids[0] if new_ids else workspace_ids[0]
-    st.session_state[seen_key]=workspace_ids
-
-    # Titles are derived from access-request records; no client sees another
-    # member's title, data, workspace or approval state.
-    try:
-        analysis_requests=read_analysis_requests(token,uid)
-    except (RuntimeError,TimeoutError,ValueError,KeyError):
-        analysis_requests=[]
-    request_titles={str(r["id"]):str(r.get("title") or "")
-                    for r in analysis_requests}
-    ordinal={
-        str(item["id"]):number
-        for number,item in enumerate(reversed(workspaces),start=1)
-    }
-    labels={}
-    for item in workspaces:
-        wid=str(item["id"])
-        title=request_titles.get(str(item.get("analysis_request_id") or ""),"")
-        count=len((item.get("payload") or {}).get("initiatives") or [])
-        labels[wid]=(
-            f"Analysis {ordinal[wid]}"
-            + (f" · {title}" if title else " · Original Scorecard")
-            + f" · {count} initiative(s)"
-        )
-    st.markdown("### Your approved analyses")
-    selected_id=st.selectbox(
-        "Select analysis",workspace_ids,
-        format_func=lambda val:labels.get(val,val),
-        key=selected_key,
-    )
-    workspace=next((x for x in workspaces if str(x["id"])==selected_id),None)
-    if not workspace:
-        return
-    st.caption(
-        "Every approved analysis is independent. Requesting another will not "
-        "erase earlier initiatives, recommendations or reports."
-    )
-    render_new_analysis_request(token,uid,str(workspace["id"]))
-    data=normalize(workspace.get("payload"))
     from page_advisory_service_feedback import read_member_feedback
     try:
-        feedback_rows = read_member_feedback(token, uid)
-    except (RuntimeError, ValueError, TimeoutError, KeyError):
-        feedback_rows = None  # Service access and outputs remain available.
-    st.caption("Last saved: "+str(workspace.get("updated_at") or "")[:16].replace("T"," ") +
-               " · Revision "+str(workspace.get("revision") or 0))
-    st.warning("Use high-level, non-confidential business information only. "
-               "A score never authorizes funding, regulated processing or deployment.")
-    if not data["initiatives"] or (
-        len(data["initiatives"])==1 and
-        not str(data["initiatives"][0].get("name") or "").strip()
-    ):
-        st.markdown("### Start this Scorecard")
-        st.info(
-            "This approved analysis starts empty. Add your first AI initiative "
-            "and complete its business owner, assessment criteria, evidence and "
-            "resource estimates. Your earlier Scorecards remain available above."
-        )
-        _form_initiative(
-            token,workspace,data,uid=uid if feedback_rows is not None else "",
-            feedback_rows=feedback_rows,
-        )
-        with st.expander("Set portfolio scoring and planning limits"):
-            _policy(token,workspace,data)
-        return
-    decision_tab, overview, initiatives, capacity, record, policy=st.tabs([
-        "Executive recommendation","Portfolio overview","Initiatives",
-        "Capacity & value","Decision record","Policy & criteria"
-    ])
-    with decision_tab:
-        from page_advisory_scorecard_decision_ui import render_executive_recommendation
-        render_executive_recommendation(
-            data,workspace,token=token,uid=uid,feedback_rows=feedback_rows,
-        )
-    with overview:
-        _overview(
-            data,
-            token=token if feedback_rows is not None else "",
-            uid=uid, workspace=workspace, feedback_rows=feedback_rows,
-        )
-    with initiatives:
-        _form_initiative(
-            token, workspace, data,
-            uid=uid if feedback_rows is not None else "",
-            feedback_rows=feedback_rows,
-        )
-    with capacity:
-        _capacity(data)
-    with record:
-        _decision_record(token,workspace,data)
-    with policy:
-        _policy(token,workspace,data)
+        feedback_rows = read_member_feedback(token,uid)
+    except (RuntimeError,ValueError,TimeoutError,KeyError):
+        feedback_rows = None  # Recommendations are never blocked by feedback.
+
+    from page_advisory_scorecard_experience import render_scorecard_experience
+    render_scorecard_experience(token,uid,workspaces,feedback_rows=feedback_rows)

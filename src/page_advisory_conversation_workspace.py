@@ -15,11 +15,12 @@ from page_advisory_client_journey import (
 )
 from site_assets import ADVISORY_EMAIL
 
-SECTIONS = ("overview", "correspondence", "request")
+SECTIONS = ("overview", "correspondence", "request", "history")
 SECTION_LABELS = {
     "overview": "Conversation overview",
     "correspondence": "Messages & reply",
     "request": "Original request",
+    "history": "All conversations",
 }
 
 # Action labels describe the *stored* request state. They do not claim that a
@@ -142,11 +143,11 @@ def _tab_changed() -> None:
         st.query_params["conversation_section"] = current
 
 
-def _select_changed() -> None:
-    rid = st.session_state.get("advisory_member_conversation")
-    if rid:
-        st.query_params["request"] = str(rid)
-        st.query_params["conversation_section"] = "overview"
+def _open_request(rid: str) -> None:
+    """Switch selected request without losing the authenticated Streamlit session."""
+    st.query_params["request"] = rid
+    st.query_params["conversation_section"] = "overview"
+    st.rerun()
 
 
 def _navigation() -> str:
@@ -336,6 +337,34 @@ def _request_details(req: dict) -> None:
         _go("correspondence")
 
 
+def _history(requests: list[dict], selected_id: str) -> None:
+    _section("Conversation history", "All your advisory requests",
+             "Reopen any past discussion, including completed and closed requests. "
+             "Each conversation retains its own status, original request and messages.")
+    for index, req in enumerate(requests):
+        rid = str(req["id"])
+        title, _ = STATUS.get(str(req.get("status") or "submitted"), STATUS["submitted"])
+        selected_label = " · Currently selected" if rid == selected_id else ""
+        st.html(
+            '<div class="cv-workspace"><div class="detail">'
+            '<span class="eyebrow">Request ' + str(index + 1) + selected_label + '</span>'
+            '<h3 style="font:500 23px/1.3 Georgia,serif;color:#193047;margin:10px 0">'
+            + _s(req.get("title") or "Advisory request", 180) + '</h3>'
+            '<p><strong style="display:inline;font-size:12px;color:#9f6a46;'
+            'letter-spacing:0;text-transform:none;margin:0">' + _s(title) +
+            '</strong> · Submitted ' + _s(_day(req.get("created_at"))) +
+            ' · ' + _s(req.get("decision_timing") or "Timing not specified") +
+            '</p>'
+            '<p style="margin-top:10px">' + _s(
+                req.get("desired_outcome") or "Decision details in the original request", 260
+            ) + '</p></div></div>'
+        )
+        if st.button("Open this conversation", key="cv_history_" + rid,
+                     type="primary" if rid == selected_id else "secondary"):
+            _open_request(rid)
+    st.caption("Only requests connected to your verified Advisory account are shown.")
+
+
 def render_conversation_workspace(session: dict, user: dict) -> None:
     """Render one selected case and one focused section, never a long all-in-one feed."""
     token, uid = str(session["access_token"]), str(user["id"])
@@ -357,27 +386,9 @@ def render_conversation_workspace(session: dict, user: dict) -> None:
     ids = [str(r["id"]) for r in requests]
     query_id = str(st.query_params.get("request") or "")
     selected_id = query_id if query_id in ids else ids[0]
-    if st.session_state.get("advisory_member_conversation") != selected_id:
-        st.session_state["advisory_member_conversation"] = selected_id
-
-    def _option(rid: str) -> str:
-        req = next((r for r in requests if str(r["id"]) == rid), None)
-        if req is None:
-            return "Advisory request"
-        status, _ = STATUS.get(str(req.get("status") or "submitted"), STATUS["submitted"])
-        name = str(req.get("title") or "Advisory request")
-        return name[:66] + ("…" if len(name) > 66 else "") + " · " + status
-
-    st.caption("SELECTED ADVISORY REQUEST")
-    chosen = st.selectbox(
-        "Choose a conversation", ids,
-        format_func=_option, key="advisory_member_conversation",
-        on_change=_select_changed, label_visibility="collapsed",
-        help="Your earlier advisory requests and closed discussions remain available.",
-    )
-    target = next(r for r in requests if str(r["id"]) == chosen)
+    target = next(r for r in requests if str(r["id"]) == selected_id)
     try:
-        messages = _request_messages(token, uid, str(target["id"]))
+        messages = _request_messages(token, uid, selected_id)
     except (RuntimeError, ValueError, TimeoutError, KeyError):
         st.error("The selected conversation could not be loaded. Please retry.")
         return
@@ -387,6 +398,8 @@ def render_conversation_workspace(session: dict, user: dict) -> None:
         _overview(target, messages)
     elif section == "correspondence":
         _correspondence(token, uid, target, messages)
-    else:
+    elif section == "request":
         _request_details(target)
+    else:
+        _history(requests, selected_id)
     st.caption("Private advisory correspondence · Support: " + ADVISORY_EMAIL)

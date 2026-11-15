@@ -450,8 +450,8 @@ def _evidence_screen(record:dict,result:dict)->None:
     evidence=data.get("evidence") if isinstance(data.get("evidence"),dict) else {}
     demo=data.get("demo") if isinstance(data.get("demo"),dict) else {}
     st.markdown("### Readiness evidence and decision basis")
-    st.caption("All 18 assessment ratings are listed here. Evidence notes, where supplied, "
-               "are self-reported. The assessment does not independently certify any claim.")
+    st.caption("Inspect all 18 ratings and supporting evidence. Notes, where supplied, "
+               "are self-reported; this service does not independently verify them.")
     area=st.selectbox(
         "Filter decision dimension", ("All dimensions",)+AREAS,
         key="rollout_evidence_dimension",
@@ -498,6 +498,7 @@ def _report_ui(session: dict, user: dict, request_id: str, record: dict) -> None
     rid=str(record["id"])
     demo=isinstance(data.get("demo"),dict) and data["demo"].get("is_demo") is True
     render_case_heading(record)
+    st.caption("Decision rules · rollout-v1  |  Executive report · premium-v2")
     detail=_report_navigation()
     if detail=="verdict":
         render_verdict(result,data)
@@ -604,7 +605,8 @@ def render_private_rollout(session:dict,user:dict)->None:
     if not token or not uid or not user.get("email_confirmed_at"):
         return
     st.html(WORKSPACE_CSS)
-    st.caption("INDIVIDUALLY APPROVED · EXECUTIVE AI DECISION SERVICE")
+    st.markdown("### Enterprise AI Rollout Readiness Advisor")
+    st.caption("Private executive decision service · A focused assessment, not a tracking tool")
     section=_navigation()
     try:
         access=_entitlements(token,uid)

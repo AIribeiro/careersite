@@ -163,7 +163,7 @@ class ExecutiveDecisionAdvisorTests(unittest.TestCase):
         self.assertFalse(app.exception, [str(x.message) for x in app.exception])
         self.assertTrue(any("Review the three actions" in button.label
                             for button in app.button))
-        app.button(label="Review the three actions").click().run()
+        next(button for button in app.button if button.label == "Review the three actions").click().run()
         self.assertFalse(app.exception, [str(x.message) for x in app.exception])
 
     def test_saved_record_meta_is_traceable_without_invented_approval(self):

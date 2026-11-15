@@ -350,6 +350,19 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             st.rerun()
         return
 
+    # Existing conversation obligations come before optional new-service
+    # discovery; an awaiting-client request must never be buried below cards.
+    if current is not None and str(current.get("status") or "") == "awaiting_client":
+        st.info(
+            "Your current Advisory conversation needs your response. "
+            "Continue that discussion before starting another assessment."
+        )
+        if st.button(
+            "Respond to my current Advisory request", type="primary",
+            key="advisory_overview_pending_reply", width="stretch",
+        ):
+            navigate("messages", str(current["id"]))
+
     # A single editable decision question makes the first useful route visible
     # before four service cards. Stored context guides only the initial choice;
     # no confidential answers or decision text are sent to analytics.

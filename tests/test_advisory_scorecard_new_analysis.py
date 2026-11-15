@@ -149,18 +149,19 @@ class ScorecardNewAnalysisTests(unittest.TestCase):
                         api.call_args.kwargs["payload"]["p_analysis_id"],"analysis-3"
                     )
 
-    def test_workspace_selector_keeps_old_analyses_and_promotes_new_one(self):
-        source=self.source("src/page_advisory_scorecard_workspace.py")
+    def test_workspace_selector_keeps_history_and_auto_promotes_approved_analysis(self):
+        source=self.source("src/page_advisory_scorecard_experience.py")
+        workspace=self.source("src/page_advisory_scorecard_workspace.py")
+        self.assertIn('st.session_state[seen_key]=ids',source)
+        self.assertIn('fresh[0] if fresh else ids[0]',source)
         self.assertIn('"analysis_request_id"',source)
-        self.assertIn("scorecard_seen_workspace_ids_",source)
-        self.assertIn("new_ids[0] if new_ids else workspace_ids[0]",source)
-        self.assertIn("Original Scorecard",source)
+        self.assertIn('render_new_analysis_request(token,uid,anchor)',source)
+        self.assertIn('if not a["count"] else "Executive decision"',source)
+        self.assertIn('render_scorecard_experience(token,uid,workspaces',workspace)
         self.assertIn("Request a new Scorecard analysis",self.source(
             "src/page_advisory_scorecard_new_analysis.py"
         ))
-        self.assertIn("Your earlier Scorecards remain available",source)
-        self.assertIn('if not data["initiatives"] or (',source)
-        self.assertIn('render_new_analysis_request(token,uid,str(workspace["id"]))',source)
+        self.assertIn("Previous assessment records remain private",source)
 
     def test_admin_has_explicit_approval_tab_not_existing_request_reuse(self):
         page=self.source("src/page_owner_advisory_management.py")

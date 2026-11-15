@@ -545,6 +545,14 @@ def render_scorecard_experience(
     fresh=[wid for wid in ids if wid not in previous]
     if fresh or st.session_state.get(selected_key) not in ids:
         st.session_state[selected_key]=fresh[0] if fresh else ids[0]
+    if any(
+        str(w.get("id")) == st.session_state.get(selected_key)
+        and w.get("analysis_request_id")
+        and not (w.get("payload") or {}).get("initiatives")
+        for w in workspaces
+    ) and (fresh or "scx_nav_"+uid not in st.session_state):
+        # On returning after approval, open the new, empty Scorecard directly.
+        st.session_state["scx_nav_"+uid]="Open analysis"
     st.session_state[seen_key]=ids
 
     try:

@@ -170,6 +170,10 @@ def _service_guide() -> None:
         "Each additional analysis is requested separately and approved individually. "
         "Previous assessment records remain private and available to their owners."
     )
+    st.page_link(
+        "https://jairribeiro.com/?page=advisory-scorecard",
+        label="Read the full Scorecard service description",
+    )
 
 
 def _analyses_home(uid: str, analyses: list[dict]) -> None:

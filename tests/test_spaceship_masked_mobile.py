@@ -74,7 +74,12 @@ class MaskedForwardingMobileTests(unittest.TestCase):
         markup = nav("advisory")
         self.assertIn('<details class="mobile-menu">', markup)
         self.assertIn('class="mobile-menu-links"', markup)
-        self.assertIn('Menu</summary>', markup)
+        self.assertIn('class="mobile-menu-label">Menu</span></summary>', markup)
+        self.assertIn('flex-direction:row!important', MOBILE_NAV_CSS)
+        self.assertIn('justify-content:space-between!important', MOBILE_NAV_CSS)
+        self.assertIn('.site .nav .mobile-menu{display:block;position:relative;flex:0 0 44px', MOBILE_NAV_CSS)
+        self.assertIn('margin-left:auto', MOBILE_NAV_CSS)
+        self.assertIn('width:44px;min-width:44px;min-height:44px', MOBILE_NAV_CSS)
         self.assertEqual(markup.count('href="?page=thinking"'), 2)
 
     def test_main_mounts_after_public_site_html_only(self):

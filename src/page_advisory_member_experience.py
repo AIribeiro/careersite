@@ -553,7 +553,7 @@ def render_overview(session: dict, user: dict, profile: dict, *, admin: bool = F
                 if st.button("Open Rollout Advisor", key="overview_rollout", disabled=not service_enabled("rollout", admin=admin),
                              use_container_width=True):
                     navigate("rollout")
-    if service_enabled("investment", admin=admin):
+    if service_enabled("decision", admin=admin):
         with right2:
             with st.container(border=True, key="overview_card_investment"):
                 _overview_service_copy(

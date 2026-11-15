@@ -139,108 +139,231 @@ def _admin_action(token: str, user_id: str, action: str, *,
     return result
 
 
+_READER_RECORD_CSS = """
+<style>
+.rdr-record{max-width:1120px;margin:12px 0 16px;color:#193047}
+.rdr-record *{box-sizing:border-box}
+.rdr-record .identity{background:linear-gradient(125deg,#10263b,#294054);
+ color:#fffdfa;padding:clamp(22px,3.5vw,36px);border-bottom:3px solid #b68060}
+.rdr-record .eyebrow{font:750 10px/1.45 Arial,sans-serif;letter-spacing:.15em;
+ text-transform:uppercase;color:#e3b493}
+.rdr-record h3{font:500 clamp(25px,3.2vw,35px)/1.14 Georgia,serif;
+ letter-spacing:-.025em;color:#fffdfa;margin:10px 0 7px}
+.rdr-record .identity p{font:400 14px/1.55 Arial,sans-serif;color:#dce5ed;
+ margin:0;overflow-wrap:anywhere}
+.rdr-record .identity .joined{font-size:12px;margin-top:14px;color:#d5dfe8}
+.rdr-record .states{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ background:#f8f4ee;border:1px solid #e3d9ce;border-top:0}
+.rdr-record .states>div{padding:15px 18px;min-width:0}
+.rdr-record .states>div+div{border-left:1px solid #e3d9ce}
+.rdr-record .states span{display:block;font:750 10px/1.5 Arial,sans-serif;
+ letter-spacing:.09em;text-transform:uppercase;color:#647587;margin-bottom:5px}
+.rdr-record .states strong{font:600 13px/1.4 Arial,sans-serif;color:#1b344b;
+ overflow-wrap:anywhere}
+@media(max-width:700px),(max-device-width:700px){
+ .rdr-record .states{grid-template-columns:1fr}
+ .rdr-record .states>div{padding:11px 16px}
+ .rdr-record .states>div+div{border-left:0;border-top:1px solid #e3d9ce}
+}
+</style>
+"""
+
+
+def _reader_name(profile: dict) -> str:
+    return " ".join(
+        str(profile.get(field) or "").strip()
+        for field in ("first_name", "last_name")
+        if str(profile.get(field) or "").strip()
+    ) or "Reader"
+
+
+def _reader_date(value: object) -> str:
+    """Keep displayed timestamps neutral when the source provides no timezone."""
+    return str(value or "").replace("T", " ")[:16] or "Not recorded"
+
+
+def _professional_sections(profile: dict) -> list[tuple[str, list[tuple[str, str]]]]:
+    """Only voluntary, populated fields are displayed; absence is not an error."""
+    location = ", ".join(
+        str(profile.get(key) or "").strip() for key in ("city", "country")
+        if str(profile.get(key) or "").strip()
+    )
+    raw_interests = profile.get("interests") or []
+    interests = ", ".join(str(v).strip() for v in raw_interests if str(v).strip()) \
+        if isinstance(raw_interests, list) else str(raw_interests).strip()
+    definitions = [
+        ("Professional background", [
+            ("Role", "job_title"), ("Seniority", "role_level"),
+            ("Organization", "organization"), ("Organization size", "organization_size"),
+            ("Sector", "industry"),
+        ]),
+        ("Location & professional links", [
+            ("Location", "location"), ("Preferred language", "preferred_language"),
+            ("LinkedIn", "linkedin_url"), ("Website", "professional_website"),
+        ]),
+        ("Interests & leadership priorities", [
+            ("Topics of interest", "interests"), ("Reading objective", "reading_goal"),
+            ("AI adoption stage", "ai_adoption_stage"),
+            ("Leadership question", "primary_challenge"),
+        ]),
+    ]
+    overrides = {"location": location, "interests": interests}
+    return [
+        (heading, [(label, str(overrides.get(key) if key in overrides
+                                  else profile.get(key) or "").strip())
+                   for label, key in fields
+                   if str(overrides.get(key) if key in overrides
+                          else profile.get(key) or "").strip()])
+        for heading, fields in definitions
+    ]
+
+
+def _editorial_state(profile: dict, controls: dict) -> str:
+    if profile.get("newsletter_opt_in") is not True:
+        return "No editorial opt-in"
+    if not profile.get("newsletter_consent_at") or not profile.get("consent_notice_version"):
+        return "Opt-in record incomplete"
+    if controls.get("mailing_suppressed"):
+        return "Mailing suppressed"
+    if controls.get("account_status", "active") != "active":
+        return "Excluded · account suspended"
+    return "Eligible for editorial updates"
+
+
 def _profile_snapshot(profile: dict, downloads: list[dict], saved: list[dict],
-                      consents: list[dict], controls: dict) -> None:
+                      consents: list[dict], controls: dict,
+                      membership: str = "Reader only") -> None:
+    """Compact, escaped identity card; all detail belongs in the tabs below."""
+    from html import escape
+
     user_id = str(profile.get("user_id") or "")
-    st.markdown("#### " + str(profile.get("first_name") or "Reader"))
-    st.write("**Verified email:** " + str(profile.get("email") or ""))
-    st.write("**Registered:** " + str(profile.get("created_at") or "")[:19])
-    st.write("**Source:** " + str(profile.get("acquisition_source") or "Unknown"))
-    st.markdown("**Reader-provided professional context**")
-    st.write("**Full name:** " + " ".join(
-        part for part in (
-            str(profile.get("first_name") or "").strip(),
-            str(profile.get("last_name") or "").strip()
-        ) if part
-    ))
-    st.write("**Professional role:** " + str(profile.get("job_title") or "Not provided"))
-    st.write("**Level:** " + str(profile.get("role_level") or "Not provided"))
-    st.write("**Organization:** " + str(profile.get("organization") or "Not provided"))
-    st.write("**Organization size:** " + str(profile.get("organization_size") or "Not provided"))
-    st.write("**Sector:** " + str(profile.get("industry") or "Not provided"))
-    st.write(
-        "**Location:** " + ", ".join(
-            part for part in (
-                str(profile.get("city") or "").strip(),
-                str(profile.get("country") or "").strip(),
-            ) if part
-        ) if (profile.get("city") or profile.get("country")) else
-        "**Location:** Not provided"
+    fields = sum(len(items) for _, items in _professional_sections(profile))
+    reader_downloads = sum(str(row.get("user_id") or "") == user_id for row in downloads)
+    reader_saved = sum(str(row.get("user_id") or "") == user_id for row in saved)
+    reader_consents = sum(str(row.get("user_id") or "") == user_id for row in consents)
+    def safe(value: object) -> str:
+        return escape(str(value or "")[:500], quote=True)
+
+    status = str(controls.get("account_status") or "active").title()
+    source = str(profile.get("acquisition_source") or "Unspecified").replace("_", " ").title()
+    st.html(
+        _READER_RECORD_CSS +
+        '<div class="rdr-record"><section class="identity">'
+        '<span class="eyebrow">Verified reader record</span>'
+        '<h3>' + safe(_reader_name(profile)) + '</h3>'
+        '<p>' + safe(profile.get("email") or "Email unavailable") + '</p>'
+        '<p class="joined">Registered ' + safe(_reader_date(profile.get("created_at"))) +
+        ' · Origin: ' + safe(source) + '</p>'
+        '</section><div class="states">'
+        '<div><span>Account access</span><strong>' + safe(status) + '</strong></div>'
+        '<div><span>Membership</span><strong>' + safe(membership) + '</strong></div>'
+        '<div><span>Editorial email</span><strong>' +
+        safe(_editorial_state(profile, controls)) + '</strong></div>'
+        '</div></div>'
     )
-    st.write("**Preferred language:** " + str(profile.get("preferred_language") or "Not provided"))
-    st.write("**LinkedIn:** " + str(profile.get("linkedin_url") or "Not provided"))
-    st.write("**Professional website:** " + str(profile.get("professional_website") or "Not provided"))
-    st.write("**Interests:** " + ", ".join(profile.get("interests") or []))
-    st.write("**Reading goal:** " + str(profile.get("reading_goal") or "Not provided"))
-    st.write("**AI adoption stage:** " + str(profile.get("ai_adoption_stage") or "Not provided"))
-    if profile.get("primary_challenge"):
-        st.write("**Leadership question shared by reader:**")
-        st.text(str(profile.get("primary_challenge") or ""))
-    st.caption(
-        "Professional details are voluntarily supplied by readers. "
-        "Passwords are managed only by Supabase Auth and are never visible here."
-    )
-    st.write(
-        "**Editorial email consent:** "
-        + ("Yes" if profile.get("newsletter_opt_in") is True else "No")
-    )
-    status = str(controls.get("account_status", "active"))
-    st.write("**Account status:** " + status.title())
-    st.write(
-        "**Internal mailing suppression:** "
-        + ("On" if controls.get("mailing_suppressed") else "Off")
-    )
+    a, b, c, d = st.columns(4)
+    a.metric("Downloads", reader_downloads)
+    b.metric("Saved editions", reader_saved)
+    c.metric("Consent events", reader_consents)
+    d.metric("Profile details shared", fields)
+
+
+def _professional_profile(profile: dict) -> None:
+    sections = [(name, fields) for name, fields in _professional_sections(profile) if fields]
+    st.subheader("Professional context")
+    st.caption("Voluntary information provided by the reader. Empty fields are omitted.")
+    if not sections:
+        with st.container(border=True):
+            st.markdown("#### No professional details shared")
+            st.write(
+                "The reader has verified their account but has not provided a "
+                "professional profile. This does not restrict Reader access."
+            )
+        return
+    for heading, fields in sections:
+        with st.container(border=True):
+            st.markdown("#### " + heading)
+            pairs = st.columns(2)
+            for i, (label, value) in enumerate(fields):
+                with pairs[i % 2]:
+                    st.caption(label)
+                    st.write(value)
+
+
+def _reader_activity(profile: dict, downloads: list[dict], saved: list[dict]) -> None:
+    user_id = str(profile.get("user_id") or "")
     reader_downloads = [
         row for row in downloads if str(row.get("user_id") or "") == user_id
     ]
     reader_saved = [
         row for row in saved if str(row.get("user_id") or "") == user_id
     ]
-    reader_consents = [
-        row for row in consents if str(row.get("user_id") or "") == user_id
-    ]
-    cols = st.columns(3)
-    cols[0].metric("Recorded downloads", len(reader_downloads))
-    cols[1].metric("Saved briefings", len(reader_saved))
-    cols[2].metric("Consent events", len(reader_consents))
-    with st.expander("Download activity", expanded=False):
+    st.subheader("Reading activity")
+    st.caption("Recorded PDF downloads and saved editions; neither measures reading completion.")
+    a, b = st.columns(2)
+    a.metric("PDF downloads", len(reader_downloads))
+    b.metric("Saved editions", len(reader_saved))
+    with st.container(border=True):
+        st.markdown("#### Download history")
         if reader_downloads:
             st.dataframe([
                 {
-                    "Briefing": str(row.get("article_slug") or ""),
-                    "Downloaded": str(row.get("downloaded_at") or "")[:19],
-                    "Source": str(row.get("source") or ""),
+                    "Edition": str(row.get("article_slug") or ""),
+                    "Recorded": _reader_date(row.get("downloaded_at")),
+                    "Source": str(row.get("source") or "Unknown"),
                 } for row in reader_downloads
             ], hide_index=True, use_container_width=True)
         else:
-            st.caption("No PDF download events.")
-    with st.expander("Saved editions", expanded=False):
+            st.caption("No recorded PDF downloads.")
+    with st.container(border=True):
+        st.markdown("#### Saved library")
         if reader_saved:
             st.dataframe([
                 {
-                    "Briefing": str(row.get("article_slug") or ""),
-                    "Saved": str(row.get("saved_at") or "")[:19],
+                    "Edition": str(row.get("article_slug") or ""),
+                    "Saved": _reader_date(row.get("saved_at")),
                 } for row in reader_saved
             ], hide_index=True, use_container_width=True)
         else:
-            st.caption("No saved editions.")
-    with st.expander("Consent audit history", expanded=False):
-        if reader_consents:
+            st.caption("No editions saved.")
+
+
+def _reader_consent(profile: dict, consents: list[dict], controls: dict) -> None:
+    user_id = str(profile.get("user_id") or "")
+    consent_events = [
+        row for row in consents if str(row.get("user_id") or "") == user_id
+    ]
+    st.subheader("Consent & communication")
+    with st.container(border=True):
+        st.markdown("#### Editorial permission")
+        a, b = st.columns(2)
+        with a:
+            st.caption("Reader's selection")
+            st.write("Opted in" if profile.get("newsletter_opt_in") is True else "Not opted in")
+            st.caption("Consent recorded")
+            st.write(_reader_date(profile.get("newsletter_consent_at")))
+        with b:
+            st.caption("Current mailing eligibility")
+            st.write(_editorial_state(profile, controls))
+            st.caption("Consent notice")
+            st.write(str(profile.get("consent_notice_version") or "Not recorded"))
+        st.caption(
+            "The account owner can suppress mailing exports, but cannot "
+            "subscribe a reader or alter the reader's own consent."
+        )
+    with st.container(border=True):
+        st.markdown("#### Consent audit history")
+        if consent_events:
             st.dataframe([
                 {
-                    "Subscribed": bool(row.get("subscribed")),
-                    "When": str(row.get("recorded_at") or "")[:19],
+                    "Selection": "Opted in" if row.get("subscribed") else "Opted out",
+                    "Recorded": _reader_date(row.get("recorded_at")),
                     "Source": str(row.get("source") or ""),
                     "Notice": str(row.get("notice_version") or ""),
-                } for row in reader_consents
+                } for row in consent_events
             ], hide_index=True, use_container_width=True)
         else:
-            st.caption("No recorded consent events.")
-    st.caption(
-        "An administrator cannot subscribe a reader on their behalf. "
-        "Editorial consent remains under the reader's control."
-    )
-
+            st.caption("No separate consent events recorded.")
 
 def _reader_origin_tag(profile: dict) -> str:
     """Stable segmentation tag from immutable registration source."""

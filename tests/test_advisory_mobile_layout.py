@@ -33,6 +33,17 @@ class AdvisoryMobileTests(unittest.TestCase):
         self.assertIn("min-height:47px",result)
         self.assertIn("overflow-x:auto",result)
 
+    def test_advisory_header_overrides_column_mode_for_phone_navigation(self):
+        from site_native_shell import native_header
+        result = native_header("advisory-access")
+        # Native shell stacks navigation below 800px. The shared phone menu
+        # must explicitly restore a horizontal header below 700px.
+        self.assertIn("flex-direction:column;padding:12px 0", result)
+        self.assertIn("flex-direction:row!important", result)
+        self.assertIn('class="mobile-menu-label">Menu</span></summary>', result)
+        self.assertIn("margin-left:auto", result)
+        self.assertIn("width:44px;min-width:44px;min-height:44px", result)
+
     def test_mobile_fix_is_mounted_in_advisory_password_and_analytics_views(self):
         for file in ("src/page_advisory_portal.py","main.py"):
             body=(ROOT/file).read_text(encoding="utf-8")

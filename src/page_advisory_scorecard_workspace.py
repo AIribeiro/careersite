@@ -131,8 +131,8 @@ def _read_workspaces(token: str, uid: str) -> list[dict]:
     rows = _request_json(
         "GET",
         _rest_url("portfolio_advisory_scorecards?select=id,request_id,user_id,status,"
-                  "payload,revision,approved_at,updated_at"
-                  "&user_id=eq." + quote(uid, safe="") + "&order=approved_at.desc&limit=20"),
+                  "payload,revision,approved_at,updated_at,analysis_request_id"
+                  "&user_id=eq." + quote(uid, safe="") + "&order=approved_at.desc&limit=100"),
         token=token, timeout=14,
     )
     if not isinstance(rows, list):
@@ -536,15 +536,60 @@ def render_private_scorecard(session: dict,user: dict) -> None:
         from page_advisory_scorecard_requests import render_scorecard_access_request
         render_scorecard_access_request(token, uid)
         return
-    selected_id=st.selectbox("Approved workspace",
-                              [str(x["id"]) for x in workspaces],
-                              format_func=lambda val:"Approved engagement · "+
-                                next((str(x.get("approved_at") or "")[:10]
-                                      for x in workspaces if str(x["id"])==val),""),
-                              key="scorecard_workspace_choice")
+    from page_advisory_scorecard_new_analysis import (
+        render_new_analysis_request,read_analysis_requests,
+    )
+    # Make a newly approved analysis the selected workspace automatically,
+    # without resetting an established selection on normal page reruns.
+    workspaces=sorted(
+        workspaces,key=lambda x:(str(x.get("approved_at") or ""),str(x["id"])),
+        reverse=True,
+    )
+    workspace_ids=[str(x["id"]) for x in workspaces]
+    seen_key="scorecard_seen_workspace_ids_"+uid
+    selected_key="scorecard_workspace_choice"
+    seen=set(st.session_state.get(seen_key) or [])
+    new_ids=[wid for wid in workspace_ids if wid not in seen]
+    if new_ids or st.session_state.get(selected_key) not in workspace_ids:
+        st.session_state[selected_key]=new_ids[0] if new_ids else workspace_ids[0]
+    st.session_state[seen_key]=workspace_ids
+
+    # Titles are derived from access-request records; no client sees another
+    # member's title, data, workspace or approval state.
+    try:
+        analysis_requests=read_analysis_requests(token,uid)
+    except (RuntimeError,TimeoutError,ValueError,KeyError):
+        analysis_requests=[]
+    request_titles={str(r["id"]):str(r.get("title") or "")
+                    for r in analysis_requests}
+    ordinal={
+        str(item["id"]):number
+        for number,item in enumerate(reversed(workspaces),start=1)
+    }
+    labels={}
+    for item in workspaces:
+        wid=str(item["id"])
+        title=request_titles.get(str(item.get("analysis_request_id") or ""),"")
+        count=len((item.get("payload") or {}).get("initiatives") or [])
+        labels[wid]=(
+            f"Analysis {ordinal[wid]}"
+            + (f" · {title}" if title else " · Original Scorecard")
+            + f" · {count} initiative(s)"
+        )
+    st.markdown("### Your approved analyses")
+    selected_id=st.selectbox(
+        "Select analysis",workspace_ids,
+        format_func=lambda val:labels.get(val,val),
+        key=selected_key,
+    )
     workspace=next((x for x in workspaces if str(x["id"])==selected_id),None)
     if not workspace:
         return
+    st.caption(
+        "Every approved analysis is independent. Requesting another will not "
+        "erase earlier initiatives, recommendations or reports."
+    )
+    render_new_analysis_request(token,uid,str(workspace["id"]))
     data=normalize(workspace.get("payload"))
     from page_advisory_service_feedback import read_member_feedback
     try:
@@ -555,6 +600,23 @@ def render_private_scorecard(session: dict,user: dict) -> None:
                " · Revision "+str(workspace.get("revision") or 0))
     st.warning("Use high-level, non-confidential business information only. "
                "A score never authorizes funding, regulated processing or deployment.")
+    if not data["initiatives"] or (
+        len(data["initiatives"])==1 and
+        not str(data["initiatives"][0].get("name") or "").strip()
+    ):
+        st.markdown("### Start this Scorecard")
+        st.info(
+            "This approved analysis starts empty. Add your first AI initiative "
+            "and complete its business owner, assessment criteria, evidence and "
+            "resource estimates. Your earlier Scorecards remain available above."
+        )
+        _form_initiative(
+            token,workspace,data,uid=uid if feedback_rows is not None else "",
+            feedback_rows=feedback_rows,
+        )
+        with st.expander("Set portfolio scoring and planning limits"):
+            _policy(token,workspace,data)
+        return
     decision_tab, overview, initiatives, capacity, record, policy=st.tabs([
         "Executive recommendation","Portfolio overview","Initiatives",
         "Capacity & value","Decision record","Policy & criteria"

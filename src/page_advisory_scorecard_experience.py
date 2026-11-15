@@ -123,58 +123,53 @@ def _analysis_info(ws: dict, requests: dict[str,dict], rank: int) -> dict:
     }
 
 
-def _service_guide() -> None:
-    _title(
-        "SERVICE GUIDE · AI PORTFOLIO PRIORITIZATION",
-        "From competing AI ideas to a defensible decision",
-        "For leaders choosing where to commit scarce funding, delivery capacity "
-        "and management attention."
+def _service_guide(approved: bool = False, saved_count: int = 0) -> None:
+    """Same service introduction and three-output visual hierarchy as Rollout."""
+    from page_advisory_shared_ui import service_overview
+    service_overview(
+        hero="From competing AI opportunities to a defensible portfolio choice.",
+        description=(
+            "Assess competing AI initiatives against value, delivery capacity, "
+            "evidence and governance. Make the trade-offs visible before "
+            "leadership commits scarce people or investment."
+        ),
+        access="Individually approved" if approved else "Approval required · Pro bono",
+        assessment_format="One portfolio per approved analysis",
+        saved_count=saved_count,
+        outputs=(
+            ("The verdict", "What should advance, test or stop",
+             "An executive portfolio recommendation that respects resource and risk limits."),
+            ("The priorities", "Actions for each decision",
+             "Named accountability functions, evidence gaps, resource trade-offs and release conditions."),
+            ("The report", "A private portfolio decision brief",
+             "The reasoning, alternatives and a downloadable executive PDF for leadership review."),
+        ),
+        steps=(
+            ("Request your assessment",
+             "Describe the portfolio decision you need. Individual approval creates a new workspace."),
+            ("Compare the opportunities",
+             "Record initiative owners, evidence, seven criteria, risk gates and capacity needs."),
+            ("Review the recommendation",
+             "Evaluate alternatives, document the formal decision and download the executive brief."),
+        ),
+        boundary=(
+            "Free pro-bono access is individually approved. A Scorecard "
+            "recommends investment priorities but does not authorize funding, "
+            "legal compliance or production deployment. Previous analyses remain private."
+        ),
     )
-    st.markdown("#### What you receive")
-    c1,c2,c3=st.columns(3)
-    with c1:
-        with st.container(border=True):
-            st.markdown("**01 · Portfolio decision**")
-            st.write("A ranked recommendation identifying what to advance, test, hold, redesign or defer.")
-    with c2:
-        with st.container(border=True):
-            st.markdown("**02 · Required next actions**")
-            st.write("Evidence to obtain, accountable owners and conditions to resolve before authorization.")
-    with c3:
-        with st.container(border=True):
-            st.markdown("**03 · Executive decision brief**")
-            st.write("A downloadable PDF explaining the portfolio choice, trade-offs and go/no-go conditions.")
-    st.markdown("#### What the assessment examines")
-    st.write(
-        "Up to 30 AI initiatives are compared across strategic fit, business value, "
-        "feasibility, delivery capacity, data readiness, adoption and risk controls. "
-        "The selection considers the stated capacity and investment limits."
-    )
-    with st.expander("Inputs and outputs — exactly what is required"):
+    with st.expander("Exactly what inputs and outputs are included"):
         st.markdown(
-            "**You provide:** initiative name, accountable owner and sponsor, "
-            "seven criterion ratings, evidence confidence, control status, "
-            "capacity requirement, investment and benefit estimates. "
-            "You can also record your current proposed selection.\n\n"
-            "**The service returns:** initiative-level recommendations, "
-            "a constrained shortlist, a lower-commitment alternative, "
-            "resource trade-offs, next-proof requirements and an executive PDF.\n\n"
-            "**Decision boundary:** the report is an advisory recommendation. "
-            "It never grants funding, legal clearance or deployment authority."
+            "**You provide:** each initiative, business sponsor and owner, "
+            "seven scored decision criteria, supporting evidence, control readiness "
+            "and capacity/investment estimates.\n\n"
+            "**You receive:** a constrained executive shortlist, initiative-level "
+            "actions and justifications, comparison scenarios and a downloadable brief.\n\n"
+            "**Important:** decisions remain with your accountable leadership."
         )
-    st.markdown("#### How it works")
-    st.write(
-        "**1. Open an approved analysis** → **2. Enter and review initiatives** "
-        "→ **3. Read the executive recommendation** → **4. Record the formal decision** "
-        "→ **5. Export the executive report**."
-    )
-    st.caption(
-        "Each additional analysis is requested separately and approved individually. "
-        "Previous assessment records remain private and available to their owners."
-    )
     st.page_link(
         "https://jairribeiro.com/?page=advisory-scorecard",
-        label="Read the full Scorecard service description",
+        label="Read the complete Scorecard service description",
     )
 
 
@@ -643,7 +638,10 @@ def render_scorecard_experience(
     feedback_rows: list[dict] | None = None,
 ) -> None:
     """A single focused view, never a dashboard and six tabs stacked together."""
-    st.html(CSS)
+    from page_rollout_workspace_ui import WORKSPACE_CSS
+    st.html(WORKSPACE_CSS + CSS)
+    st.markdown("### AI Portfolio Prioritization Scorecard")
+    st.caption("Private executive decision service · A constrained portfolio review")
     workspaces=sorted(workspaces,key=lambda row:(
         str(row.get("approved_at") or ""),str(row.get("id") or "")
     ),reverse=True)
@@ -676,12 +674,25 @@ def render_scorecard_experience(
     ]
     analyses.reverse()
     nav_key="scx_nav_"+uid
-    nav=st.segmented_control(
-        "Scorecard service",options=NAV,
-        default="My analyses",key=nav_key
+    NAV_LABELS = {
+        "How the service works": "About this service",
+        "Request new analysis": "Request assessment",
+        "Open analysis": "Decision brief",
+        "My analyses": "My history",
+    }
+    visible_order = (
+        "How the service works", "Request new analysis",
+        "Open analysis", "My analyses",
+    )
+    nav=st.pills(
+        "Scorecard service sections", options=visible_order,
+        format_func=lambda option: NAV_LABELS[option],
+        default="How the service works", key=nav_key,
+        selection_mode="single", required=True,
+        label_visibility="collapsed", wrap=False, width="stretch",
     )
     if nav=="How the service works":
-        _service_guide()
+        _service_guide(approved=True,saved_count=len(analyses))
         st.button(
             "View my approved analyses",key="scx_guide_back_"+uid,
             type="primary",on_click=_go,args=(uid,"My analyses"),

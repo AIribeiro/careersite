@@ -508,6 +508,13 @@ def _report(a: dict, token: str, uid: str,
         content=None
     download_key="scorecard_report_download_clicked_"+wid
     if content is not None:
+        # A saved, nonempty portfolio with a generated executive report
+        # qualifies as a first completed assessment. Viewing an empty
+        # workspace or requesting approval never counts as completion.
+        if st.session_state.get("scorecard_onboarding_first_report_logged") != uid:
+            from site_onboarding_measurement import record_first_value
+            if record_first_value(token, uid, "advisory", "first_assessment"):
+                st.session_state["scorecard_onboarding_first_report_logged"] = uid
         st.download_button(
             "Download executive decision brief · PDF",
             data=content,

@@ -30,6 +30,7 @@ STAGES = ("Idea", "Discovery", "Pilot", "Scale review", "Operational")
 GATES = ("Not checked", "Pass", "Review", "Block")
 EVIDENCE = ("Not assessed", "Low", "Medium", "High")
 DECISIONS = ("Unreviewed", "Proceed", "Test", "Hold", "Stop")
+SCORECARD_UX_RELEASE = "executive_hub_20261115"
 MAX_INITIATIVES = 30
 
 

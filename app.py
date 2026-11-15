@@ -24,6 +24,7 @@ from thinking_social import ensure_article_share_page, ensure_article_social_ima
 from site_cms import bundled_header_bytes, cms_share_document, cms_sitemap_entries, fetch_public_article, fetch_published_articles, render_cms_social_image
 from site_social_preview import PUBLIC_URL as SITE_SOCIAL_IMAGE
 from site_owner_http_auth import owner_auth_route
+from site_member_http_auth import member_auth_route
 from reader_membership import (reader_route, reader_download, ROI_SLUG, AUTHORITY_SLUG)
 from reader_catalog_admin import reader_admin_route
 from weekly_ai_audio import mp3_path
@@ -565,6 +566,7 @@ app = App(
     "main.py",
     routes=[
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
+        Route("/member-auth/{action}", member_auth_route, methods=["POST"]),
         Route("/readers/download/{slug}.pdf", reader_download, methods=["GET"]),
         Route("/readers/{action}", reader_route, methods=["GET", "POST"]),
         Route("/readers-admin", reader_admin_route, methods=["GET"]),

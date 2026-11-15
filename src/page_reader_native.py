@@ -185,6 +185,13 @@ def _session() -> tuple[dict | None, dict | None]:
         LOG.warning("Reader session refresh failed: %s", type(exc).__name__)
         st.session_state.pop("reader_native_session", None)
         st.session_state.pop("reader_native_user", None)
+        # Another tab may have rotated the HTTP-only refresh cookie already.
+        # Recheck the browser cookie once instead of forcing an email login.
+        if session.get("refresh_token") or session.get("_cookie_backed"):
+            st.session_state.pop("member_restore_checked", None)
+            st.session_state["member_restore_nonce"] = (
+                int(st.session_state.get("member_restore_nonce", 0)) + 1
+            )
         return None, None
 
 

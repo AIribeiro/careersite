@@ -150,6 +150,22 @@ class ExecutiveDecisionAdvisorTests(unittest.TestCase):
         self.assertIn('feedback_rating', page)
         self.assertIn('st.download_button(', page)
 
+    def test_workspace_renders_library_and_opens_named_decision(self):
+        from streamlit.testing.v1 import AppTest
+
+        app = AppTest.from_file(
+            str(ROOT / "tests" / "advisory_investment_workspace_smoke_app.py"),
+            default_timeout=30,
+        ).run()
+        self.assertFalse(app.exception, [str(x.message) for x in app.exception])
+        self.assertTrue(any("Open decision" in button.label for button in app.button))
+        app.button(key="inv_open_11111111-1111-4111-8111-111111111111").click().run()
+        self.assertFalse(app.exception, [str(x.message) for x in app.exception])
+        self.assertTrue(any("Review the three actions" in button.label
+                            for button in app.button))
+        app.button(label="Review the three actions").click().run()
+        self.assertFalse(app.exception, [str(x.message) for x in app.exception])
+
     def test_saved_record_meta_is_traceable_without_invented_approval(self):
         from page_advisory_investment_experience import present_assessment
         raw = case(data=FIELDS["data"][1], control=FIELDS["control"][1])

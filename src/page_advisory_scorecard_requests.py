@@ -64,6 +64,7 @@ def submit_scorecard_access(
         return "added_to_engagement"
     _create_request(token, uid, {
         "title": SCORECARD_REQUEST_TITLE,
+        "service_key": "scorecard",
         "desired_outcome": outcome,
         "business_context": "AI portfolio decision: " + challenge,
         "decision_timing": timing,

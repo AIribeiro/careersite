@@ -189,14 +189,15 @@ def _entitlements(token: str, uid: str) -> list[dict]:
         raise RuntimeError("Rollout entitlements could not be verified")
     return rows
 
-def _assessments(token: str, uid: str, request_id: str) -> list[dict]:
-    rows = _request_json(
-        "GET", _rest_url("portfolio_advisory_rollout_assessments?"
-                         "select=id,answers,created_at,model_version"
-                         "&user_id=eq." + quote(uid,safe="") +
-                         "&request_id=eq." + quote(request_id,safe="") +
-                         "&order=created_at.desc&limit=30"),
-        token=token, timeout=12)
+def _assessments(token: str, uid: str, request_id: str | None = None) -> list[dict]:
+    """Member RLS enforces record ownership. Read all approved historic sessions."""
+    endpoint = ("portfolio_advisory_rollout_assessments?"
+                "select=id,request_id,answers,created_at,model_version"
+                "&user_id=eq." + quote(uid,safe=""))
+    if request_id:
+        endpoint += "&request_id=eq." + quote(request_id,safe="")
+    endpoint += "&order=created_at.desc&limit=100"
+    rows=_request_json("GET",_rest_url(endpoint),token=token,timeout=12)
     if not isinstance(rows,list):
         raise RuntimeError("Assessment history unavailable")
     return rows
@@ -281,8 +282,11 @@ def _access_request_ui(token: str, uid: str) -> None:
 
 def _input_form(token: str, request_id: str) -> None:
     st.markdown("### Begin a readiness assessment")
-    st.caption("18 short questions across five decision dimensions. Use non-confidential information. "
-               "Only select 'Demonstrated' when credible evidence exists.")
+    st.caption("A focused, one-session assessment across five decision dimensions. "
+               "Select 'Demonstrated' only when credible supporting evidence exists.")
+    st.info("**What you will receive:** an executive verdict, three ranked actions, "
+            "named release conditions, and a downloadable decision brief. "
+            "This is not a compliance approval.")
     with st.form("rollout_decision_assessment",clear_on_submit=False):
         a,b = st.columns([2,1])
         with a:
@@ -323,8 +327,9 @@ def _input_form(token: str, request_id: str) -> None:
                 "use_case":use_case,"stage":stage,"criticality":criticality,"scope":scope}}
             new_id=_submit_assessment(token,request_id,raw)
             st.session_state["rollout_latest_report_id"]=new_id
-            st.session_state["rollout_new_assessment"]=False
-            st.success("Your decision brief has been generated and saved privately.")
+            st.query_params["rollout_record"]=new_id
+            st.query_params["rollout_section"]="decision"
+            st.query_params["rollout_detail"]="verdict"
             st.rerun()
         except ValueError as ex:
             st.warning(str(ex))
@@ -336,134 +341,342 @@ def _pdf_report(result: dict, data: dict) -> bytes:
     from page_rollout_premium_pdf import render_premium_rollout_pdf
     return render_premium_rollout_pdf(result, data)
 
-def _report_ui(session: dict,user: dict,request_id: str,record: dict) -> None:
-    data=record.get("answers")
-    try:
-        result=assess(data)
-    except (ValueError,TypeError):
-        st.error("This assessment could not be interpreted. Start a new assessment.")
+ROLLOUT_SECTIONS = ("overview", "assess", "decision", "history")
+ROLLOUT_LABELS = {
+    "overview": "About this service",
+    "assess": "New assessment",
+    "decision": "Decision brief",
+    "history": "My history",
+}
+REPORT_SECTIONS = ("verdict", "actions", "evidence")
+REPORT_LABELS = {
+    "verdict": "Verdict & readiness",
+    "actions": "Executive actions",
+    "evidence": "Evidence & report",
+}
+
+
+def _navigate_rollout(section: str, detail: str | None = None,
+                      record_id: str | None = None) -> None:
+    """Private nested route. Preserve auth and selected member section."""
+    if section not in ROLLOUT_SECTIONS:
         return
-    rid=str(record["id"])
-    demo = data.get("demo") if isinstance(data.get("demo"), dict) else {}
-    if demo.get("is_demo") is True:
-        st.warning(
-            "**Owner QA scenario · Synthetic data.** All pilot statistics, "
-            "assessment ratings and evidence references are illustrative. "
-            "This is not a real enterprise assessment."
-        )
-    st.markdown("### Your executive decision brief")
-    st.caption("Assessment "+str(record.get("created_at") or "")[:10]+" · Rule set: rollout-v1 · Report edition: premium-v2")
-    if result["label"] in ("PAUSE SCALING","EVIDENCE INCOMPLETE"):
-        st.warning("**"+result["label"]+"** · "+result["verdict"])
-    else:
-        st.info("**"+result["label"]+"** · "+result["verdict"])
-    st.write("**Why this decision:** "+result["reason"])
-    st.markdown("#### Readiness by decision dimension")
-    for area,value in result["dimensions"].items():
-        st.progress(value/100,text=area+" · "+str(value)+"%")
-    st.markdown("#### The critical insight")
-    if result["critical_gates"]:
-        st.write(
-            "The immediate constraint is the organization's authority to manage "
-            "critical risk at scale, not simply pilot performance. "
-            "Resolve the release blockers before considering wider deployment."
-        )
-    else:
-        st.write(result["insight"])
-    from page_rollout_action_ui import render_action_plan
-    render_action_plan(data, result)
-    st.caption("Evidence confidence: "+result["confidence"]+" · "+
-               str(result["unassessed"])+" of 18 conditions unassessed. "
-               "These are self-reported ratings, not verified evidence.")
-    st.caption("The output supports executive judgment; it cannot authorize deployment "
-               "or replace legal, risk, security or operational reviews.")
-    evidence = data.get("evidence") if isinstance(data.get("evidence"), dict) else {}
-    if evidence:
-        with st.expander("Inspect all 18 ratings and supporting evidence", expanded=False):
-            st.caption(
-                "Audit trail for this assessment. Each row explains why a specific "
-                "rating was chosen. For this owner QA case, these are fictional examples, "
-                "not actual signed or independently verified evidence."
-                if demo.get("is_demo") else
-                "Evidence notes submitted with this assessment are self-reported, not independently verified."
-            )
-            evidence_rows = []
-            for key, area, question, action, critical in QUESTIONS:
-                source = evidence.get(key)
-                item = source if isinstance(source, dict) else {}
-                value = data["responses"].get(key, 0)
-                evidence_rows.append({
-                    "Dimension": area,
-                    "Readiness question": question,
-                    "Rating": OPTIONS[value] if type(value) is int and 0 <= value < len(OPTIONS) else "Unknown",
-                    "Evidence reference": str(item.get("ref") or ""),
-                    "Evidence basis": str(item.get("detail") or ""),
-                    "Critical gate": "Yes" if critical else "No",
-                })
-            st.dataframe(evidence_rows, hide_index=True, use_container_width=True)
-    if demo.get("is_demo") is True:
-        st.caption("Satisfaction surveys are disabled for synthetic owner tests, "
-                   "so QA responses do not distort customer feedback metrics.")
-    else:
-        render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
-                                 "assessment_completion",request_id=request_id)
-        render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
-                                 "executive_recommendation",request_id=request_id)
+    st.query_params["rollout_section"] = section
+    if detail in REPORT_SECTIONS:
+        st.query_params["rollout_detail"] = detail
+    if record_id:
+        st.query_params["rollout_record"] = record_id
+    st.rerun()
+
+
+def _rollout_nav_changed() -> None:
+    selected = st.session_state.get("rollout_workspace_nav")
+    if selected in ROLLOUT_SECTIONS:
+        st.query_params["rollout_section"] = selected
+
+
+def _report_nav_changed() -> None:
+    selected = st.session_state.get("rollout_report_nav")
+    if selected in REPORT_SECTIONS:
+        st.query_params["rollout_detail"] = selected
+
+
+def _navigation() -> str:
+    requested = str(st.query_params.get("rollout_section") or "overview")
+    if requested not in ROLLOUT_SECTIONS:
+        requested = "overview"
+    if st.session_state.get("rollout_workspace_nav") != requested:
+        st.session_state["rollout_workspace_nav"] = requested
+    st.pills(
+        "Rollout service sections", ROLLOUT_SECTIONS,
+        format_func=lambda v: ROLLOUT_LABELS[v],
+        key="rollout_workspace_nav", selection_mode="single",
+        required=True, on_change=_rollout_nav_changed,
+        label_visibility="collapsed", wrap=False, width="stretch",
+    )
+    return requested
+
+
+def _report_navigation() -> str:
+    requested = str(st.query_params.get("rollout_detail") or "verdict")
+    if requested not in REPORT_SECTIONS:
+        requested = "verdict"
+    if st.session_state.get("rollout_report_nav") != requested:
+        st.session_state["rollout_report_nav"] = requested
+    st.pills(
+        "Decision brief sections", REPORT_SECTIONS,
+        format_func=lambda v: REPORT_LABELS[v], key="rollout_report_nav",
+        selection_mode="single", required=True,
+        on_change=_report_nav_changed, label_visibility="collapsed",
+        wrap=False, width="stretch",
+    )
+    return requested
+
+
+def _feedback_for_result(session: dict, user: dict,
+                         request_id: str, stage: str, is_demo: bool) -> None:
+    # Owner QA scenario responses never distort customer satisfaction statistics.
+    if is_demo:
+        st.caption("Synthetic owner test · Customer satisfaction surveys are disabled for this example.")
+        return
+    render_optional_feedback(
+        str(session["access_token"]), str(user["id"]), SERVICE_KEY,
+        stage, request_id=request_id,
+    )
+
+
+def _report_download(session: dict, user: dict, request_id: str,
+                     rid: str, result: dict, data: dict, is_demo: bool,
+                     slot: str) -> None:
     try:
         pdf=_pdf_report(result,data)
-    except (RuntimeError,ValueError,UnicodeError):
-        st.error("The report could not be generated; your decision brief remains visible.")
+    except (RuntimeError,ValueError,UnicodeError,TypeError):
+        st.error("The PDF could not be generated. Your private decision is still available.")
         return
     clicked=st.download_button(
-        "Download executive decision brief · premium v2 (PDF)",data=pdf,
-        file_name="enterprise-ai-rollout-executive-decision-brief-v2.pdf",
-        mime="application/pdf",key="rollout_pdf_"+rid,use_container_width=True,
+        "Download executive decision brief (PDF · premium v2)",
+        data=pdf, file_name="enterprise-ai-rollout-executive-decision-brief-v2.pdf",
+        mime="application/pdf", key="rollout_pdf_"+slot+"_"+rid,
+        use_container_width=True, type="primary",
     )
     if clicked:
         st.session_state["rollout_downloaded_"+rid]=True
-    if st.session_state.get("rollout_downloaded_"+rid) and demo.get("is_demo") is not True:
-        render_optional_feedback(str(session["access_token"]),str(user["id"]),SERVICE_KEY,
-                                 "report_download",request_id=request_id)
+    if st.session_state.get("rollout_downloaded_"+rid):
+        _feedback_for_result(session,user,request_id,"report_download",is_demo)
 
-def render_private_rollout(session: dict,user: dict) -> None:
+
+def _evidence_screen(record:dict,result:dict)->None:
+    data=record["answers"]
+    evidence=data.get("evidence") if isinstance(data.get("evidence"),dict) else {}
+    demo=data.get("demo") if isinstance(data.get("demo"),dict) else {}
+    st.markdown("### Readiness evidence and decision basis")
+    st.caption("All 18 assessment ratings are listed here. Evidence notes, where supplied, "
+               "are self-reported. The assessment does not independently certify any claim.")
+    area=st.selectbox(
+        "Filter decision dimension", ("All dimensions",)+AREAS,
+        key="rollout_evidence_dimension",
+    )
+    evidence_rows=[]
+    for key,dimension,question,_,critical in QUESTIONS:
+        if area!="All dimensions" and area!=dimension:
+            continue
+        item=evidence.get(key) if isinstance(evidence.get(key),dict) else {}
+        score=data["responses"].get(key,0)
+        evidence_rows.append({
+            "Dimension":dimension,
+            "Readiness question":question,
+            "Rating":OPTIONS[score] if type(score) is int and 0<=score<len(OPTIONS) else "Not available",
+            "Critical scale condition":"Yes" if critical else "No",
+            "Evidence reference":str(item.get("ref") or "Not provided"),
+            "Evidence basis":str(item.get("detail") or "No evidence note submitted"),
+        })
+    st.dataframe(evidence_rows,use_container_width=True,hide_index=True,height=360)
+    if demo.get("is_demo"):
+        st.warning("Owner QA scenario: all supporting evidence references and pilot figures "
+                   "are synthetic and are not documents from a real organization.")
+    if result["critical_gates"]:
+        st.markdown("#### Release conditions still requiring evidence")
+        from page_rollout_premium_pdf import _gate_keys, CATALOG
+        for key in _gate_keys(data):
+            action=CATALOG.get(key)
+            if action:
+                st.markdown("**"+action[0]+"** — "+action[5])
+    st.caption("Evidence reviews and regulatory, legal, operational or deployment "
+               "authorizations must be completed by the responsible organization.")
+
+
+def _report_ui(session: dict, user: dict, request_id: str, record: dict) -> None:
+    """Render exactly one decision subview; never a continuous report/dashboard."""
+    from page_rollout_workspace_ui import render_case_heading, render_verdict
+    from page_rollout_action_ui import render_action_plan
+    data=record.get("answers")
+    try:
+        result=assess(data)
+    except (ValueError,TypeError,KeyError):
+        st.error("This saved assessment cannot be interpreted using the current rules.")
+        return
+    rid=str(record["id"])
+    demo=isinstance(data.get("demo"),dict) and data["demo"].get("is_demo") is True
+    render_case_heading(record)
+    detail=_report_navigation()
+    if detail=="verdict":
+        render_verdict(result,data)
+        a,b=st.columns(2)
+        with a:
+            if st.button("Review my three executive actions",type="primary",
+                         key="rollout_to_actions_"+rid,use_container_width=True):
+                _navigate_rollout("decision","actions",rid)
+        with b:
+            if st.button("Review evidence and download report",
+                         key="rollout_to_evidence_"+rid,use_container_width=True):
+                _navigate_rollout("decision","evidence",rid)
+        _feedback_for_result(session,user,request_id,"assessment_completion",demo)
+    elif detail=="actions":
+        render_action_plan(data,result)
+        if st.button("Read the verdict and readiness rationale",
+                     key="rollout_to_verdict_"+rid):
+            _navigate_rollout("decision","verdict",rid)
+        _feedback_for_result(session,user,request_id,"executive_recommendation",demo)
+    else:
+        _evidence_screen(record,result)
+        st.markdown("### Your executive decision brief")
+        st.write("Download the signed-off-format report for a leadership discussion. "
+                 "The document gives a recommendation based on your submitted evidence; "
+                 "it does not confer deployment approval.")
+        _report_download(session,user,request_id,rid,result,data,demo,"evidence")
+
+
+def _history_ui(history:list[dict]) -> None:
+    st.markdown("### Your rollout decisions")
+    st.caption("A read-only archive of completed assessments. Every new analysis "
+               "creates a separate record; earlier decisions are not overwritten.")
+    if not history:
+        st.info("No completed rollout assessments yet.")
+        if st.button("Start your first readiness assessment",type="primary",
+                     key="rollout_history_start"):
+            _navigate_rollout("assess")
+        return
+    search=st.text_input("Find an assessment",placeholder="Use case or rollout context",
+                         key="rollout_history_search")
+    filter_status=st.selectbox(
+        "Decision",("All decisions","PAUSE SCALING","EVIDENCE INCOMPLETE",
+                    "CONTROLLED EXPANSION","CONDITIONAL GO","PHASED GO"),
+        key="rollout_history_filter",
+    )
+    rows=[]
+    for record in history:
+        try:
+            result=assess(record["answers"])
+            ctx=record["answers"]["context"]
+        except (KeyError,ValueError,TypeError):
+            continue
+        if search.strip().casefold() not in str(ctx.get("use_case") or "").casefold():
+            continue
+        if filter_status!="All decisions" and result["label"]!=filter_status:
+            continue
+        demo=record["answers"].get("demo")
+        rows.append((record,ctx,result,bool(isinstance(demo,dict) and demo.get("is_demo"))))
+    st.caption(f"{len(rows)} of {len(history)} saved assessments match.")
+    if not rows:
+        st.info("No assessments match the current filters.")
+        return
+    st.dataframe([
+        {
+            "Date":str(r.get("created_at") or "")[:10],
+            "Initiative":str(ctx.get("use_case") or "Unnamed"),
+            "Executive verdict":result["label"].replace("_"," ").title(),
+            "Readiness":str(result["overall"])+"/100",
+            "Release gates":len(result["critical_gates"]),
+            "Type":"Owner test" if demo else "Client assessment",
+        } for r,ctx,result,demo in rows
+    ],hide_index=True,use_container_width=True,height=min(360,85+len(rows)*35))
+    refs={str(r["id"]):(r,ctx,result,demo) for r,ctx,result,demo in rows}
+    ids=list(refs)
+    selected=st.selectbox(
+        "Select a decision to review",ids,
+        format_func=lambda rid:
+            str(refs[rid][0].get("created_at") or "")[:10]+" · "+
+            str(refs[rid][1].get("use_case") or "AI rollout")+
+            " · "+refs[rid][2]["label"].replace("_"," ").title(),
+        key="rollout_history_selected",
+    )
+    record,ctx,result,demo=refs[selected]
+    with st.container(border=True):
+        st.caption("SELECTED DECISION"+(" · SYNTHETIC TEST" if demo else ""))
+        st.markdown("#### "+str(ctx.get("use_case") or "AI rollout"))
+        a,b,c=st.columns(3)
+        a.metric("Readiness",str(result["overall"])+"/100")
+        b.metric("Critical gates",len(result["critical_gates"]))
+        c.metric("Evidence confidence",result["confidence"])
+        st.write("**"+result["label"].replace("_"," ").title()+"** — "+result["verdict"])
+        if st.button("Open selected decision",type="primary",
+                     key="rollout_history_open",use_container_width=True):
+            _navigate_rollout("decision","verdict",selected)
+    if st.button("Start another assessment",key="rollout_history_new"):
+        _navigate_rollout("assess")
+
+
+def render_private_rollout(session:dict,user:dict)->None:
+    """Premium focused subpages within the authorized Advisory member space."""
+    from page_rollout_workspace_ui import WORKSPACE_CSS,render_service_overview
     token=str(session.get("access_token") or "")
     uid=str(user.get("id") or "")
     if not token or not uid or not user.get("email_confirmed_at"):
         return
-    st.markdown("## Enterprise AI Rollout Readiness Advisor")
-    st.caption("Single-session executive decision service · Individually approved complimentary access")
+    st.html(WORKSPACE_CSS)
+    st.caption("INDIVIDUALLY APPROVED · EXECUTIVE AI DECISION SERVICE")
+    section=_navigation()
     try:
         access=_entitlements(token,uid)
     except (ValueError,RuntimeError,TimeoutError,KeyError):
-        st.error("We could not verify access to this service.")
+        st.error("The service authorization could not be verified. Try again.")
+        return
+    # Read the entire private assessment archive for this member, including
+    # earlier approvals. Supabase RLS still controls every returned record.
+    if access:
+        try:
+            history=_assessments(token,uid)
+        except (RuntimeError,ValueError,TimeoutError,KeyError):
+            st.error("Saved assessment history is temporarily unavailable.")
+            return
+    else:
+        history=[]
+    if section=="overview":
+        render_service_overview(bool(access),history)
+        if history:
+            latest=history[0]
+            try:
+                result=assess(latest["answers"])
+            except (ValueError,TypeError,KeyError):
+                result=None
+            if result:
+                st.markdown("### Your latest decision")
+                with st.container(border=True):
+                    st.caption(str(latest.get("created_at") or "")[:10] +
+                               " · "+str(latest["answers"]["context"].get("use_case") or "AI initiative"))
+                    st.markdown("#### "+result["label"].replace("_"," ").title())
+                    st.write(result["verdict"])
+                    col1,col2=st.columns(2)
+                    with col1:
+                        if st.button("Open executive decision brief",
+                                     type="primary",key="rollout_home_latest",
+                                     use_container_width=True):
+                            _navigate_rollout("decision","verdict",str(latest["id"]))
+                    with col2:
+                        if st.button("Browse decision history",
+                                     key="rollout_home_history",use_container_width=True):
+                            _navigate_rollout("history")
+        if access:
+            if st.button("Start a new readiness assessment",key="rollout_home_new"):
+                _navigate_rollout("assess")
+        else:
+            _access_request_ui(token,uid)
         return
     if not access:
-        st.markdown("Assess whether an AI pilot is ready for wider deployment, identify critical "
-                    "adoption and governance constraints, and receive an executive recommendation.")
-        if st.button("Explore the readiness methodology",
-                     key="rollout_open_methodology"):
-            st.query_params.from_dict({"page": "advisory-rollout"})
-            st.rerun()
-        _access_request_ui(token,uid)
+        st.warning("Access to this decision service requires individual approval. "
+                   "Your Advisory account alone does not grant permission.")
+        if st.button("Return to service and access request",
+                     key="rollout_noaccess_overview"):
+            _navigate_rollout("overview")
         return
-    selected=access[0]
-    request_id=str(selected["request_id"])
-    try:
-        history=_assessments(token,uid,request_id)
-    except (RuntimeError,ValueError,TimeoutError,KeyError):
-        st.error("Your assessment records could not be loaded.")
+    if section=="assess":
+        st.markdown("### New executive readiness assessment")
+        st.caption("A new assessment creates a new decision record. Past reports remain preserved.")
+        _input_form(token,str(access[0]["request_id"]))
         return
-    if history:
-        selected_id=st.session_state.get("rollout_latest_report_id")
-        if selected_id not in [str(x["id"]) for x in history]:
-            selected_id=str(history[0]["id"])
-        record=next((x for x in history if str(x["id"])==selected_id),history[0])
-        _report_ui(session,user,request_id,record)
-        if st.button("Run a new one-session assessment",key="rollout_new_button"):
-            st.session_state["rollout_new_assessment"]=True
-    if not history or st.session_state.get("rollout_new_assessment"):
-        st.divider()
-        _input_form(token,request_id)
+    if section=="history":
+        _history_ui(history)
+        return
+    if not history:
+        st.info("No decision brief exists yet. Complete a readiness assessment first.")
+        if st.button("Start assessment",type="primary",key="rollout_empty_decision"):
+            _navigate_rollout("assess")
+        return
+    selected_id=str(st.query_params.get("rollout_record") or "")
+    if selected_id not in {str(r["id"]) for r in history}:
+        selected_id=str(history[0]["id"])
+    selected=next(r for r in history if str(r["id"])==selected_id)
+    _report_ui(session,user,str(selected.get("request_id") or access[0]["request_id"]),selected)
 
 def advisory_rollout() -> str:
     """Public explanatory page; it never includes client records."""

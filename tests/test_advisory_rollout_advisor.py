@@ -16,6 +16,8 @@ class RolloutAdvisorTests(unittest.TestCase):
 
     def test_modules_and_routes_parse(self):
         for path in ("main.py","src/page_advisory_rollout.py",
+                     "src/page_rollout_workspace_ui.py",
+                     "src/page_owner_advisory_rollout_decisions.py",
                      "src/page_advisory_service_feedback.py",
                      "src/page_owner_advisory_rollout.py",
                      "src/page_advisory_portal.py",
@@ -205,6 +207,57 @@ class RolloutAdvisorTests(unittest.TestCase):
                       self.source("src/page_advisory_rollout.py"))
         self.assertNotIn('st.warning("**Critical conditions:**',
                          self.source("src/page_advisory_rollout.py"))
+
+    def test_rollout_decision_service_is_navigation_based(self):
+        from page_advisory_rollout import (
+            ROLLOUT_SECTIONS,REPORT_SECTIONS,ROLLOUT_LABELS,REPORT_LABELS,
+        )
+        self.assertEqual(ROLLOUT_SECTIONS,("overview","assess","decision","history"))
+        self.assertEqual(REPORT_SECTIONS,("verdict","actions","evidence"))
+        self.assertEqual(len(ROLLOUT_LABELS),4)
+        self.assertEqual(len(REPORT_LABELS),3)
+        source=self.source("src/page_advisory_rollout.py")
+        self.assertIn('st.query_params["rollout_section"]',source)
+        self.assertIn('st.query_params["rollout_record"]',source)
+        self.assertIn('st.pills(',source)
+        self.assertIn("render_service_overview",source)
+        self.assertIn("_history_ui(history)",source)
+        self.assertIn("_evidence_screen(record,result)",source)
+        self.assertIn('render_action_plan(data, result)',source)
+        self.assertNotIn('st.session_state["rollout_new_assessment"]',source)
+        self.assertNotIn('    if history:\n        selected_id=',source)
+        self.assertNotIn('"Rollout readiness",',self.source("src/page_advisory_portal.py"))
+
+    def test_history_reads_all_member_approved_access_records(self):
+        from page_advisory_rollout import _assessments
+        with patch("page_advisory_rollout._request_json",return_value=[]) as call:
+            self.assertEqual(_assessments("token","owner_uid"),[])
+            url=call.call_args.args[1]
+            self.assertIn("user_id=eq.owner_uid",url)
+            self.assertIn("limit=100",url)
+            self.assertNotIn("request_id=eq.",url)
+        with patch("page_advisory_rollout._request_json",return_value=[]) as call:
+            _assessments("token","owner_uid","request-1")
+            self.assertIn("request_id=eq.request-1",call.call_args.args[1])
+
+    def test_client_preview_and_owner_history_are_safe(self):
+        from page_rollout_workspace_ui import _s
+        from page_owner_advisory_rollout_decisions import _owner_rollout_history
+        self.assertEqual(_s('<img src=x onerror="bad">'),
+                         '&lt;img src=x onerror=&quot;bad&quot;&gt;')
+        ui=self.source("src/page_rollout_workspace_ui.py")
+        self.assertIn("What you receive",ui)
+        self.assertIn("One business decision. Three concrete outputs.",ui)
+        self.assertIn("What the service does not do",ui)
+        self.assertIn("Your readiness profile",ui)
+        with patch("page_owner_advisory_rollout_decisions._request_json",return_value=[]) as query:
+            self.assertEqual(_owner_rollout_history("owner-token"),[])
+            self.assertIn("portfolio_advisory_rollout_assessments",query.call_args.args[1])
+        admin=self.source("src/page_owner_advisory_management.py")
+        self.assertIn('"Rollout decisions"',admin)
+        self.assertIn("render_owner_rollout_decisions(token, people, access)",admin)
+        self.assertIn("The client metrics exclude synthetic QA assessments.",
+                      self.source("src/page_owner_advisory_rollout_decisions.py"))
 
     def test_schema_enforces_rls_and_reuses_feedback_store(self):
         schema=self.source("supabase/migrations/20261114_rollout_readiness_advisor_shared_feedback.sql")

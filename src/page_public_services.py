@@ -313,7 +313,7 @@ def advisory() -> str:
     <div class="advisory-ready-card-bottom">
      <p class="advisory-ready-detail"><span>What you receive</span><strong>Leadership profile · Discussion exercises · Executive decision PDF</strong></p>
      <p class="advisory-ready-detail"><span>Access</span><strong>Free with a verified Advisory account. No individual approval required.</strong></p>
-     <a class="advisory-ready-link" href="?page=advisory-access&amp;view=workshop" target="_self" data-hq-event="advisory_workshop_service">Open leadership workshop <span aria-hidden="true">→</span></a>
+     <a class="advisory-ready-link" href="?page=advisory-leadership" target="_self" data-hq-event="advisory_workshop_service">Explore leadership workshop <span aria-hidden="true">→</span></a>
     </div>
    </article>
   </div>

@@ -27,6 +27,18 @@ class LeadershipWorkshopTests(unittest.TestCase):
         self.assertEqual(result["coverage"], 100)
         self.assertFalse(result["critical_gates"])
 
+    def test_report_always_contains_three_executive_actions(self):
+        from page_advisory_leadership_logic import QUESTION_INDEX, assess
+        complete = {key: 3 for key in QUESTION_INDEX}
+        result = assess(complete)
+        self.assertEqual(len(result["actions"]), 3)
+        self.assertTrue(all(a["evidence"] and a["owner"] for a in result["actions"]))
+        incomplete = dict(complete)
+        del incomplete["strategy_priorities"]
+        case = assess(incomplete)
+        self.assertNotEqual(case["label"], "FOUNDATIONS ESTABLISHED")
+        self.assertEqual(len(case["actions"]), 3)
+
     def test_gates_override_high_average(self):
         from page_advisory_leadership_logic import QUESTION_INDEX, assess
         sample = {key: 3 for key in QUESTION_INDEX}

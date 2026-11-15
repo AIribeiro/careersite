@@ -42,12 +42,12 @@ def _request_messages(token: str, uid: str, rid: str) -> list[dict]:
         "GET", _rest_url("portfolio_advisory_messages?select=sender,body,created_at,id"
                          "&user_id=eq." + quote(uid,safe="") +
                          "&request_id=eq." + quote(rid,safe="") +
-                         "&order=created_at.asc,id.asc&limit=100"),
+                         "&order=created_at.desc,id.desc&limit=150"),
         token=token, timeout=12,
     )
     if not isinstance(result, list):
         raise RuntimeError("Unexpected Advisory conversation response")
-    return result
+    return list(reversed(result))
 
 
 def _create_request(token: str, uid: str, fields: dict) -> None:

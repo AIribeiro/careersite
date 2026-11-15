@@ -355,6 +355,7 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
     # no confidential answers or decision text are sent to analytics.
     from site_onboarding_guidance import (
         ADVISORY_NEEDS, advisor_for_need, suggested_decision_need,
+        value_path_html,
     )
     suggested_need, origin_explanation = suggested_decision_need(profile)
     first_need = st.selectbox(
@@ -381,7 +382,10 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             else "Recommended from the decision type you selected above."
         )
         st.write(str(recommendation["why"]))
-        st.markdown("**What you get:** " + str(recommendation["outcome"]))
+        st.html(value_path_html(
+            "An AI decision without an agreed evidence base or next step.",
+            str(recommendation["outcome"]),
+        ))
         if recommendation["approval"] and not access_confirmed:
             st.info(
                 "This service needs individual approval. You can open its "

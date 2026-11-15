@@ -976,7 +976,7 @@ def _library(session: dict, user: dict) -> None:
     first_visit = not saved_slugs and not unique_downloads
     with st.container(border=True, key="reader_first_value_panel"):
         st.caption(
-            "YOUR FIRST COMPLETE READ" if first_visit
+            "START WITH A COMPLETE EDITION" if first_visit
             else "YOUR NEXT RECOMMENDED PERSPECTIVE"
         )
         if recommended is not None:

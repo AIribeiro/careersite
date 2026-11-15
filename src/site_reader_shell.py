@@ -11,6 +11,7 @@ from site_assets import READERS_EMAIL
 from site_components import footer, nav
 from site_image_styles import IMAGE_CSS
 from site_styles import CSS
+from site_embedded_mobile import support_masked_mobile_media
 BASE_URL = "https://jairribeiro.com"  # Branded public address for staging back-links.
 
 
@@ -474,7 +475,10 @@ def reader_header(*, staging: bool = False) -> str:
         for number, title, detail in benefits
     )
     return (
-        CSS + IMAGE_CSS + READER_SHELL_CSS
+        # The branded URL can be an iframe reporting ~980 CSS pixels on a phone.
+        # Convert every Reader (including native form) mobile breakpoint to
+        # accept the physical device width, as the public portfolio already does.
+        support_masked_mobile_media(CSS + IMAGE_CSS + READER_SHELL_CSS)
         + '<div class="site reader-shell">' + top
         + '<main><section class="pagehero reader-hero" data-analytics-section="reader-premium-hero"><div class="container">'
         + '<div class="reader-crumb" aria-label="Breadcrumb">'

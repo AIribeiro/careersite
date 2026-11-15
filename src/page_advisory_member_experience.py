@@ -87,16 +87,19 @@ def _nav_changed() -> None:
         st.query_params.pop("request", None)
 
 
-def member_navigation() -> str:
+def member_navigation(*, admin: bool = False) -> str:
     """A single-row, touch-scrollable menu; URL preserves the active section."""
     requested = str(st.query_params.get("view") or "overview").lower()
-    if requested not in VIEWS:
+    displayed = tuple(v for v in VIEWS if v not in
+                      ("requests", "scorecard", "rollout", "decision", "workshop")
+                      or service_enabled(v, admin=admin))
+    if requested not in displayed:
         requested = "overview"
     # Browser back/forward and links from public service pages win over old UI state.
     if st.session_state.get("advisory_member_navigation") != requested:
         st.session_state["advisory_member_navigation"] = requested
     st.pills(
-        "Advisory sections", VIEWS,
+        "Advisory sections", displayed,
         format_func=lambda v: VIEW_LABELS[v],
         selection_mode="single", required=True, key="advisory_member_navigation",
         on_change=_nav_changed, label_visibility="collapsed", wrap=False,
@@ -238,7 +241,7 @@ def _overview_service_copy(number: str, category: str, title: str,
     )
 
 
-def render_overview(session: dict, user: dict, profile: dict) -> None:
+def render_overview(session: dict, user: dict, profile: dict, *, admin: bool = False) -> None:
     """Executive dashboard: one current decision, four distinct service routes."""
     from page_rollout_workspace_ui import WORKSPACE_CSS
 
@@ -291,7 +294,7 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
         'Each service has its own private workspace.</p>'
         '</section><div class="summarybar">'
         '<span>ACCOUNT · Verified Advisory member</span>'
-        '<span>SERVICES · Four distinct options</span>'
+        '<span>SERVICES · Your available options</span>'
         '<span>CURRENT REQUEST · ' + escape(request_indicator) + '</span>'
         '</div></div>'
     )
@@ -372,67 +375,72 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
         ADVISORY_NEEDS, advisor_for_need, suggested_decision_need,
         value_path_html,
     )
-    suggested_need, origin_explanation = suggested_decision_need(profile)
-    first_need = st.selectbox(
-        "Which executive decision are you working on?",
-        ADVISORY_NEEDS,
-        index=ADVISORY_NEEDS.index(suggested_need),
-        key="advisory_onboarding_decision_need",
-        help="This choice is used only to recommend a service in your "
-             "private workspace. It does not change your membership or access.",
-    )
-    recommendation = advisor_for_need(first_need)
-    service_view = str(recommendation["view"])
-    access_confirmed = (
-        scorecard_approved if service_view == "scorecard"
-        else rollout_approved if service_view == "rollout"
-        else True
-    )
-    with st.container(border=True, key="advisory_guided_first_decision"):
-        st.caption("RECOMMENDED START · NOT A SERVICE APPROVAL")
-        st.markdown("### " + str(recommendation["title"]))
-        st.caption(
-            origin_explanation
-            if first_need == suggested_need
-            else "Recommended from the decision type you selected above."
+    available_needs = [need for need in ADVISORY_NEEDS
+                       if service_enabled(str(advisor_for_need(need)["view"]), admin=admin)]
+    if available_needs:
+        suggested_need, origin_explanation = suggested_decision_need(profile)
+        if suggested_need not in available_needs:
+            suggested_need = available_needs[0]
+        first_need = st.selectbox(
+            "Which executive decision are you working on?",
+            available_needs,
+            index=available_needs.index(suggested_need),
+            key="advisory_onboarding_decision_need",
+            help="This choice is used only to recommend a service in your "
+                 "private workspace. It does not change your membership or access.",
         )
-        st.write(str(recommendation["why"]))
-        st.html(value_path_html(
-            "An AI decision without an agreed evidence base or next step.",
-            str(recommendation["outcome"]),
-        ))
-        if recommendation["approval"] and not access_confirmed:
-            st.info(
-                "This service needs individual approval. You can open its "
-                "workspace and request access; no assessment is authorized "
-                "until approval is recorded."
-            )
-        elif service_view == "decision":
-            st.caption(
-                "A self-service assessment is included with your verified "
-                "Advisory account. The recommendation is based on your inputs, "
-                "not an independent audit or investment authorization."
-            )
-        else:
-            st.caption(
-                "You control what you share. The next step is a structured "
-                "assessment or privately reviewed request, not a promise of results."
-            )
-        cta = (
-            "Review access and request approval"
-            if recommendation["approval"] and not access_confirmed
-            else "Continue my current conversation"
-            if service_view == "requests" and current is not None
-            else "Open my recommended service"
+        recommendation = advisor_for_need(first_need)
+        service_view = str(recommendation["view"])
+        access_confirmed = (
+            scorecard_approved if service_view == "scorecard"
+            else rollout_approved if service_view == "rollout"
+            else True
         )
-        if st.button(
-            cta, type="primary", key="advisory_open_recommended", disabled=not service_enabled(service_view),
-            width="stretch",
-        ):
-            if service_view == "requests" and current is not None:
-                navigate("messages", str(current["id"]))
+        with st.container(border=True, key="advisory_guided_first_decision"):
+            st.caption("RECOMMENDED START · NOT A SERVICE APPROVAL")
+            st.markdown("### " + str(recommendation["title"]))
+            st.caption(
+                origin_explanation
+                if first_need == suggested_need
+                else "Recommended from the decision type you selected above."
+            )
+            st.write(str(recommendation["why"]))
+            st.html(value_path_html(
+                "An AI decision without an agreed evidence base or next step.",
+                str(recommendation["outcome"]),
+            ))
+            if recommendation["approval"] and not access_confirmed:
+                st.info(
+                    "This service needs individual approval. You can open its "
+                    "workspace and request access; no assessment is authorized "
+                    "until approval is recorded."
+                )
+            elif service_view == "decision":
+                st.caption(
+                    "A self-service assessment is included with your verified "
+                    "Advisory account. The recommendation is based on your inputs, "
+                    "not an independent audit or investment authorization."
+                )
             else:
-                navigate(service_view)
+                st.caption(
+                    "You control what you share. The next step is a structured "
+                    "assessment or privately reviewed request, not a promise of results."
+                )
+            cta = (
+                "Review access and request approval"
+                if recommendation["approval"] and not access_confirmed
+                else "Continue my current conversation"
+                if service_view == "requests" and current is not None
+                else "Open my recommended service"
+            )
+            if st.button(
+                cta, type="primary", key="advisory_open_recommended", disabled=not service_enabled(service_view, admin=admin),
+                width="stretch",
+            ):
+                if service_view == "requests" and current is not None:
+                    navigate("messages", str(current["id"]))
+                else:
+                    navigate(service_view)
 
     st.html(
         '<div class="rl-workspace advisory-overview">'
@@ -487,85 +495,90 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             '<p>Explore a decision advisor below, or submit a specific question '
             'for individual advisory review.</p></div></div>'
         )
-        if st.button("Submit an advisory request", type="primary",
-                     key="overview_new_request", disabled=not service_enabled("requests")):
+        if service_enabled("requests", admin=admin) and st.button("Submit an advisory request", type="primary",
+                     key="overview_new_request"):
             navigate("requests")
 
     st.html(
         '<div class="rl-workspace advisory-overview">'
         '<div class="section-head"><span class="eyebrow">Your advisory services</span>'
-        '<h3>Five services. Five distinct decision needs.</h3>'
+        '<h3>Choose a service for your next decision.</h3>'
         '<p>See what each service delivers, check your access and open '
         'the relevant workspace. No need to navigate a single long assessment page.</p>'
         '</div></div>'
     )
     left, right = st.columns(2, gap="medium")
-    with left:
-        with st.container(border=True, key="overview_card_discussion"):
-            _overview_service_copy(
-                "01", "Personal advisory", "Executive discussion",
-                "Bring a business decision for private review, questions and "
-                "an individually agreed next step.",
-                "Private correspondence and recorded next actions",
-                "Request-based advisory" +
-                (" · Open request" if current is not None else ""),
-            )
-            if st.button("Manage requests", key="overview_requests",
-                         use_container_width=True):
-                navigate("requests")
-            if st.button("Open conversations", key="overview_messages",
-                         use_container_width=True):
-                navigate("messages")
-    with right:
-        with st.container(border=True, key="overview_card_scorecard"):
-            _overview_service_copy(
-                "02", "Portfolio investment", "AI Portfolio Scorecard",
-                "Assess competing AI initiatives on common criteria to "
-                "support investment and prioritization choices.",
-                "Portfolio comparison and executive decision record",
-                scorecard_status,
-            )
-            if st.button("Open Scorecard workspace", key="overview_scorecard", disabled=not service_enabled("scorecard"),
-                         use_container_width=True):
-                navigate("scorecard")
+    if service_enabled("requests", admin=admin):
+        with left:
+            with st.container(border=True, key="overview_card_discussion"):
+                _overview_service_copy(
+                    "01", "Personal advisory", "Executive discussion",
+                    "Bring a business decision for private review, questions and "
+                    "an individually agreed next step.",
+                    "Private correspondence and recorded next actions",
+                    "Request-based advisory" +
+                    (" · Open request" if current is not None else ""),
+                )
+                if st.button("Manage requests", key="overview_requests",
+                             use_container_width=True):
+                    navigate("requests")
+                if st.button("Open conversations", key="overview_messages",
+                             use_container_width=True):
+                    navigate("messages")
+    if service_enabled("scorecard", admin=admin):
+        with right:
+            with st.container(border=True, key="overview_card_scorecard"):
+                _overview_service_copy(
+                    "02", "Portfolio investment", "AI Portfolio Scorecard",
+                    "Assess competing AI initiatives on common criteria to "
+                    "support investment and prioritization choices.",
+                    "Portfolio comparison and executive decision record",
+                    scorecard_status,
+                )
+                if st.button("Open Scorecard workspace", key="overview_scorecard", disabled=not service_enabled("scorecard", admin=admin),
+                             use_container_width=True):
+                    navigate("scorecard")
 
     left2, right2 = st.columns(2, gap="medium")
-    with left2:
-        with st.container(border=True, key="overview_card_rollout"):
-            _overview_service_copy(
-                "03", "Adoption and scale", "Enterprise AI Rollout Readiness Advisor",
-                "Test whether a pilot is ready to scale, needs more "
-                "evidence or should pause.",
-                "Readiness verdict, executive actions and private decision brief",
-                rollout_status,
-            )
-            if st.button("Open Rollout Advisor", key="overview_rollout", disabled=not service_enabled("rollout"),
-                         use_container_width=True):
-                navigate("rollout")
-    with right2:
-        with st.container(border=True, key="overview_card_investment"):
-            _overview_service_copy(
-                "04", "Single opportunity", "AI Investment Decision Advisor",
-                "Evaluate one proposed AI opportunity and decide whether "
-                "to invest, experiment, hold or stop.",
-                "Focused recommendation and executive decision brief",
-                "Included with verified Advisory membership",
-            )
-            if st.button("Open Investment Decision Advisor", key="overview_investment", disabled=not service_enabled("decision"),
-                         use_container_width=True):
-                navigate("decision")
+    if service_enabled("rollout", admin=admin):
+        with left2:
+            with st.container(border=True, key="overview_card_rollout"):
+                _overview_service_copy(
+                    "03", "Adoption and scale", "Enterprise AI Rollout Readiness Advisor",
+                    "Test whether a pilot is ready to scale, needs more "
+                    "evidence or should pause.",
+                    "Readiness verdict, executive actions and private decision brief",
+                    rollout_status,
+                )
+                if st.button("Open Rollout Advisor", key="overview_rollout", disabled=not service_enabled("rollout", admin=admin),
+                             use_container_width=True):
+                    navigate("rollout")
+    if service_enabled("investment", admin=admin):
+        with right2:
+            with st.container(border=True, key="overview_card_investment"):
+                _overview_service_copy(
+                    "04", "Single opportunity", "AI Investment Decision Advisor",
+                    "Evaluate one proposed AI opportunity and decide whether "
+                    "to invest, experiment, hold or stop.",
+                    "Focused recommendation and executive decision brief",
+                    "Included with verified Advisory membership",
+                )
+                if st.button("Open Investment Decision Advisor", key="overview_investment", disabled=not service_enabled("decision", admin=admin),
+                             use_container_width=True):
+                    navigate("decision")
 
-    with st.container(border=True, key="overview_card_workshop"):
-        _overview_service_copy(
-            "05", "Executive leadership", "AI Leadership Workshop",
-            "Assess leadership readiness for AI adoption, work through executive dilemmas "
-            "and record accountable decisions. Individual or invited team formats.",
-            "Seven-dimension leadership profile, decision agenda and executive PDF",
-            "Free self-service with verified Advisory membership",
-        )
-        if st.button("Open Leadership Workshop", key="overview_leadership_workshop", disabled=not service_enabled("workshop"),
-                     use_container_width=True):
-            navigate("workshop")
+    if service_enabled("workshop", admin=admin):
+        with st.container(border=True, key="overview_card_workshop"):
+            _overview_service_copy(
+                "05", "Executive leadership", "AI Leadership Workshop",
+                "Assess leadership readiness for AI adoption, work through executive dilemmas "
+                "and record accountable decisions. Individual or invited team formats.",
+                "Seven-dimension leadership profile, decision agenda and executive PDF",
+                "Free self-service with verified Advisory membership",
+            )
+            if st.button("Open Leadership Workshop", key="overview_leadership_workshop", disabled=not service_enabled("workshop", admin=admin),
+                         use_container_width=True):
+                navigate("workshop")
 
     st.html(
         '<div class="rl-workspace advisory-overview"><div class="membership-note">'
@@ -781,14 +794,14 @@ def _request_overview(requests: list[dict], current: dict | None) -> None:
                 navigate("messages", str(current["id"]))
     else:
         if st.button("Start a new advisory request", type="primary",
-                     key="rq_overview_new", disabled=not service_enabled("requests")):
+                     key="rq_overview_new", disabled=not service_enabled("requests", admin=admin)):
             _go_request_section("new")
     if requests:
         if st.button("Browse request history", key="rq_overview_history"):
             _go_request_section("history")
 
 
-def render_requests(session: dict, user: dict, profile: dict) -> None:
+def render_requests(session: dict, user: dict, profile: dict, *, admin: bool = False) -> None:
     """Private request workspace following the Rollout Advisor's visual hierarchy."""
     st.markdown("### Executive Advisory Requests")
     st.caption("A focused request, individual review and a recorded next step.")
@@ -815,7 +828,7 @@ def render_requests(session: dict, user: dict, profile: dict) -> None:
                 '<p>Completed and declined requests remain available in My history.</p>'
                 '</div></div>'
             )
-            if st.button("Create a new request", type="primary", key="rq_current_new", disabled=not service_enabled("requests")):
+            if st.button("Create a new request", type="primary", key="rq_current_new", disabled=not service_enabled("requests", admin=admin)):
                 _go_request_section("new")
             return
         st.html(WORKSPACE_CSS + REQUEST_CSS)
@@ -868,7 +881,7 @@ def render_requests(session: dict, user: dict, profile: dict) -> None:
             navigate("messages", str(selected["id"]))
         return
     # Previously submitted requests remain visible when new submissions are paused.
-    if not service_enabled("requests"):
+    if not service_enabled("requests", admin=admin):
         st.info("New personal advisory requests are temporarily unavailable. Existing conversations and history remain accessible.")
         return
     # New requests retain the existing RLS-protected, single-active-request form.

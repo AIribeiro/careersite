@@ -275,8 +275,15 @@ def _onboarding_outcomes(
         b.metric("First complete editions opened", result["reader_first_reads"])
         c.metric("Median registration → first open",
                  duration_label(result["reader_median_seconds"]))
+        reader_cohort = int(result["reader_cohort_registrations"])
+        reader_opened = int(result["reader_first_reads"])
+        reader_rate = (
+            f"{100 * reader_opened / reader_cohort:.1f}%"
+            if reader_cohort else "Not yet measurable"
+        )
         st.caption(
-            "All-time registered Readers: " + str(result["reader_registrations"])
+            "First-open conversion among new Readers: " + reader_rate
+            + ". All-time registered Readers: " + str(result["reader_registrations"])
             + ". A first open means a verified member chose a published complete "
             "edition. It is not evidence they read the entire piece or "
             "applied its recommendations."
@@ -289,8 +296,16 @@ def _onboarding_outcomes(
                  result["advisory_first_assessments"])
         c.metric("Median registration → first decision",
                  duration_label(result["advisory_median_seconds"]))
+        advisory_cohort = int(result["advisory_cohort_registrations"])
+        completed = int(result["advisory_first_assessments"])
+        advisory_rate = (
+            f"{100 * completed / advisory_cohort:.1f}%"
+            if advisory_cohort else "Not yet measurable"
+        )
         st.caption(
-            "All-time active Advisory memberships: "
+            "First assessment conversion among new Advisory members: "
+            + advisory_rate
+            + ". All-time active Advisory memberships: "
             + str(result["advisory_registrations"]) + ". "
             + str(result["advisory_personal_requests"])
             + " new-cohort members have submitted a first personal Advisory request. "

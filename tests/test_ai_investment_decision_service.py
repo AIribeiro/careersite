@@ -123,6 +123,43 @@ class ExecutiveDecisionAdvisorTests(unittest.TestCase):
         self.assertIn('href="?page=advisory-decision"', page)
         self.assertIn("no individual service approval required", page.lower())
 
+    def test_premium_workspace_has_distinct_pages_and_private_history(self):
+        from page_advisory_investment_experience import (
+            present_assessment, categorize_evidence,
+        )
+        raw = case(value=FIELDS["value"][1],
+                   baseline=FIELDS["baseline"][1],
+                   data=FIELDS["data"][1],
+                   control=FIELDS["control"][1])
+        meta = present_assessment(raw)
+        self.assertEqual(meta["verdict"], "EXPERIMENT")
+        self.assertEqual(meta["confidence"], "Moderate")
+        self.assertEqual(len(meta["actions"]), 3)
+        categories = categorize_evidence(raw)
+        self.assertEqual(len(categories), 3)
+        self.assertEqual(sum(len(rows) for _, rows in categories), len(FIELDS))
+        page = (ROOT / "src/page_advisory_investment.py").read_text(encoding="utf-8")
+        for heading in (
+            "My assessments", "Executive decision", "Action plan",
+            "Evidence & inputs", "New assessment",
+        ):
+            self.assertIn(heading, page)
+        self.assertIn('st.pills(', page)
+        self.assertIn('investment_selected_record', page)
+        self.assertNotIn('st.selectbox("Previous executive assessments"', page)
+        self.assertIn('feedback_rating', page)
+        self.assertIn('st.download_button(', page)
+
+    def test_saved_record_meta_is_traceable_without_invented_approval(self):
+        from page_advisory_investment_experience import present_assessment
+        raw = case(data=FIELDS["data"][1], control=FIELDS["control"][1])
+        assessment = present_assessment(raw)
+        self.assertEqual(assessment["verdict"], "EXPERIMENT")
+        self.assertIn("formal", assessment["risk_statement"].lower())
+        self.assertIn("not", assessment["boundary"].lower())
+        self.assertIn("self-reported", (
+            assessment["result"]["confidence"]).lower())
+
     def test_pdf_is_premium_two_page_executive_brief(self):
         from io import BytesIO
         from pypdf import PdfReader

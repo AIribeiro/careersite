@@ -280,7 +280,7 @@ def _access_request_ui(token: str, uid: str) -> None:
         except (RuntimeError,TimeoutError,KeyError):
             st.error("Unable to confirm the access request.")
 
-def _input_form(token: str, request_id: str) -> None:
+def _input_form(token: str, request_id: str, uid: str = "") -> None:
     st.markdown("### Begin a readiness assessment")
     st.caption("A focused, one-session assessment across five decision dimensions. "
                "Select 'Demonstrated' only when credible supporting evidence exists.")
@@ -326,6 +326,9 @@ def _input_form(token: str, request_id: str) -> None:
             raw={"responses":responses,"context":{
                 "use_case":use_case,"stage":stage,"criticality":criticality,"scope":scope}}
             new_id=_submit_assessment(token,request_id,raw)
+            if uid:
+                from site_onboarding_measurement import record_first_value
+                record_first_value(token, uid, "advisory", "first_assessment")
             st.session_state["rollout_latest_report_id"]=new_id
             st.query_params["rollout_record"]=new_id
             st.query_params["rollout_section"]="decision"
@@ -668,7 +671,7 @@ def render_private_rollout(session:dict,user:dict)->None:
     if section=="assess":
         st.markdown("### New executive readiness assessment")
         st.caption("A new assessment creates a new decision record. Past reports remain preserved.")
-        _input_form(token,str(access[0]["request_id"]))
+        _input_form(token,str(access[0]["request_id"]),uid)
         return
     if section=="history":
         _history_ui(history)

@@ -323,7 +323,11 @@ Future visits use your email and password, not an email access link.</p>
 
 
 def _advisory_login() -> None:
-    st.html("""<section class="advisory-portal-intro">
+    self_service = str(st.query_params.get("view") or "") == "decision"
+    if self_service:
+        st.html("""<section class="advisory-portal-intro"><h2>Free AI Investment Decision Advisor</h2><p>Create or sign into your Executive Advisory account to assess one AI opportunity, review your recommendation and download a private executive decision brief. This self-service tool does not require separate advisory approval.</p></section>""")
+    else:
+        st.html("""<section class="advisory-portal-intro">
 <h2>Bring a specific AI or data leadership decision.</h2>
 <p>Register free to submit a decision or challenge for individual review.
 I consider a limited number of focused pro-bono discussions where an external
@@ -378,12 +382,16 @@ Your account also provides free access to the Executive AI Reader Library.</p>
             with b:
                 company = st.text_input("Organization *", max_chars=180, placeholder="Company or organization")
             email = st.text_input("Professional email *", max_chars=254, placeholder="you@organization.com")
-            decision = st.text_area(
-                "What decision, challenge or business outcome brings you here? *",
-                max_chars=1200, height=110,
-                placeholder="A couple of sentences are enough. What needs a clearer decision?",
-                help="Please do not include confidential business data, contracts or personal information.",
-            )
+            if self_service:
+                decision = "Registration for the free self-service AI Investment Decision Advisor."
+                st.caption("You can describe the AI opportunity inside the assessment. No separate advisory request is required.")
+            else:
+                decision = st.text_area(
+                    "What decision, challenge or business outcome brings you here? *",
+                    max_chars=1200, height=110,
+                    placeholder="A couple of sentences are enough. What needs a clearer decision?",
+                    help="Please do not include confidential business data, contracts or personal information.",
+                )
             a, b = st.columns(2)
             with a:
                 focus = st.selectbox(
@@ -467,11 +475,15 @@ would like to discuss. Registration is free and does not guarantee a pro-bono di
             role = st.text_input("Job title / role *", value=pref["role_title"], max_chars=160)
         with b:
             company = st.text_input("Organization *", value=pref["organization"], max_chars=180)
-        decision = st.text_area(
-            "Decision, challenge or business outcome *",
-            value=pref["decision_context"], max_chars=1200, height=120,
-            help="Please share only non-confidential, high-level context.",
-        )
+        if str(st.query_params.get("view") or "") == "decision":
+            decision = pref["decision_context"] or "Registration for the free self-service AI Investment Decision Advisor."
+            st.caption("Complete your professional account to use the self-service decision tool.")
+        else:
+            decision = st.text_area(
+                "Decision, challenge or business outcome *",
+                value=pref["decision_context"], max_chars=1200, height=120,
+                help="Please share only non-confidential, high-level context.",
+            )
         a, b = st.columns(2)
         with a:
             focus = st.selectbox(

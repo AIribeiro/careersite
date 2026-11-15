@@ -2,6 +2,7 @@
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -12,7 +13,8 @@ from site_components import footer, nav
 
 
 class PublicServicePagesTests(unittest.TestCase):
-    def test_pages_are_renderable_and_distinct(self):
+    @patch("page_public_services.service_enabled", return_value=True)
+    def test_pages_are_renderable_and_distinct(self, _availability):
         advisory_html = advisory()
         privacy_html = privacy()
         self.assertIn('id="advisory-title"', advisory_html)
@@ -26,7 +28,7 @@ class PublicServicePagesTests(unittest.TestCase):
         self.assertIn("readers@jairribeiro.com", privacy_html)
         self.assertIn("Supabase", privacy_html)
         self.assertIn("Streamlit", privacy_html)
-        self.assertIn("14 November 2026", privacy_html)
+        self.assertIn("15 November 2026", privacy_html)
         self.assertNotIn("jair.ribeiro@outlook", advisory_html + privacy_html)
 
     def test_all_public_routes_and_discovery_entries(self):

@@ -22,6 +22,7 @@ from page_advisory_client_journey import (
     _client_requests, _request_messages, _create_request, _reply, CLOSED,
 )
 from page_advisory_service_feedback import ROLLOUT_SERVICE, render_optional_feedback
+from advisory_service_visibility import service_enabled
 
 SERVICE_TITLE = "Enterprise AI Rollout Readiness Advisor"
 REQUEST_TITLE = "Enterprise AI Rollout Readiness Advisor — access request"
@@ -225,6 +226,8 @@ def _find_request(token: str, uid: str) -> tuple[dict | None,bool]:
     return active,already
 
 def request_access(token: str, uid: str, challenge: str, outcome: str) -> str:
+    if not service_enabled("rollout"):
+        raise ValueError("The Rollout Advisor is temporarily unavailable for new access requests.")
     challenge = str(challenge or "").strip()
     outcome = str(outcome or "").strip()
     if not (25<=len(challenge)<=1200 and 20<=len(outcome)<=800):

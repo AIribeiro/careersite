@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from html import escape
 from urllib.parse import quote
+from datetime import datetime, timezone
 
 import streamlit as st
 
@@ -348,7 +349,7 @@ def _report_ui(token: str, uid: str, record: dict) -> None:
                         token=token,
                         payload={"feedback_rating": int(rating),
                                  "feedback_usefulness": useful,
-                                 "feedback_at": "now()"},
+                                 "feedback_at": datetime.now(timezone.utc).isoformat()},
                         prefer="return=representation", timeout=12,
                     )
                     if not isinstance(result_update, list) or len(result_update) != 1:

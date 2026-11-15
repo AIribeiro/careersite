@@ -74,6 +74,19 @@ def _context(req: dict, person: dict) -> None:
     )
 
 
+@st.fragment(run_every="45s")
+def _live_owner_thread(token: str, rid: str, client_name: str) -> None:
+    """Only the thread refreshes, not management controls or unsent drafts."""
+    from page_owner_advisory_requests import _read_thread
+    try:
+        current = _read_thread(token, rid)
+    except (RuntimeError, ValueError, TimeoutError, KeyError):
+        st.caption("The message feed is temporarily unavailable. Refresh the request to retry.")
+        return
+    with st.container(height=470, border=True, key="owner_advisory_thread"):
+        render_thread(current, viewer="advisor", client_name=client_name, limit=200)
+
+
 def _conversation(token: str, req: dict, person: dict, messages: list[dict]) -> None:
     from page_owner_advisory_requests import (
         _send_owner_action, _client_waiting, _overdue,
@@ -98,8 +111,8 @@ def _conversation(token: str, req: dict, person: dict, messages: list[dict]) -> 
     with right:
         if st.button("Refresh thread", key="owner_thread_refresh_" + rid, use_container_width=True):
             st.rerun()
-    with st.container(height=470, border=True, key="owner_advisory_thread"):
-        render_thread(messages, viewer="advisor", client_name=client_name, limit=200)
+    _live_owner_thread(token, rid, client_name)
+    st.caption("New messages are checked automatically while the owner workspace is open.")
 
     with st.expander("View the client's original request"):
         _context(req, person)

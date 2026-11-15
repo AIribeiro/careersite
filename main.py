@@ -162,6 +162,14 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# Establish or restore a verified member session before building the shared
+# menu. The one-time email token must first be consumed by its own private
+# callback, so never mount networked components while token_hash is in the URL.
+if not st.query_params.get("token_hash"):
+    from site_member_persistence import mount_member_persistence
+    if mount_member_persistence():
+        st.stop()
+
 # Verified readers must keep the same Streamlit WebSocket when navigating
 # through the portfolio's HTML cards, header and footer. Ordinary HTML links
 # create new sessions and would otherwise require email authentication again.

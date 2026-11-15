@@ -428,7 +428,7 @@ def privacy() -> str:
  <p class="service-eyebrow">Transparency / Reader trust</p>
  <h1>Privacy &amp; data.</h1>
  <p>What information this portfolio handles, why it is used, and how to make a request. Access to the Premium Reader library does not require agreeing to marketing messages.</p>
- <p class="privacy-effective">Last updated: 14 November 2026</p>
+ <p class="privacy-effective">Last updated: 15 November 2026</p>
 </div></section>
 <div class="container privacy-body">
  <nav class="privacy-toc" aria-label="Privacy notice sections">

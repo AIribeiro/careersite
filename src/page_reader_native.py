@@ -983,10 +983,17 @@ def _library(session: dict, user: dict) -> None:
             selected_topic if selected_topic != "Recommended for me" else ""
         ),
     )
+    first_visit = not saved_slugs and not unique_downloads
     with st.container(border=True, key="reader_first_value_panel"):
-        st.caption("YOUR RECOMMENDED FIRST READ · COMPLETE CONTENT")
+        st.caption(
+            "YOUR FIRST COMPLETE READ" if first_visit
+            else "YOUR NEXT RECOMMENDED PERSPECTIVE"
+        )
         if recommended is not None:
-            st.markdown("### A useful decision starts with the full reasoning.")
+            st.markdown(
+                "### A useful decision starts with the full reasoning."
+                if first_visit else "### Continue with a relevant perspective."
+            )
             st.write(str(recommended.title))
             st.caption(reason)
             st.html(value_path_html(

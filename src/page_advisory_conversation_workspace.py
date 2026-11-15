@@ -255,6 +255,18 @@ def _overview(req: dict, messages: list[dict]) -> None:
                "engagement agreements are handled separately.")
 
 
+@st.fragment(run_every="45s")
+def _live_client_thread(token: str, uid: str, rid: str) -> None:
+    """Refresh only the message stream; keep reply drafts and navigation intact."""
+    try:
+        current = _request_messages(token, uid, rid)
+    except (RuntimeError, ValueError, TimeoutError, KeyError):
+        st.caption("Could not check for new messages. Use Refresh messages to retry.")
+        return
+    with st.container(height=460, border=True, key="advisory_client_thread"):
+        render_thread(current, viewer="client", client_name="You")
+
+
 def _correspondence(token: str, uid: str, req: dict, messages: list[dict]) -> None:
     rid = str(req["id"])
     state = str(req.get("status") or "submitted")
@@ -274,8 +286,8 @@ def _correspondence(token: str, uid: str, req: dict, messages: list[dict]) -> No
         if st.button("Refresh messages", key="cv_refresh_" + rid,
                      use_container_width=True):
             st.rerun()
-    with st.container(height=460, border=True, key="advisory_client_thread"):
-        render_thread(messages, viewer="client", client_name="You")
+    _live_client_thread(token, uid, rid)
+    st.caption("New messages are checked automatically while this conversation is open.")
     if state not in CLOSED:
         draft_key = "advisory_message_draft_" + rid
         if st.session_state.pop("advisory_message_clear_" + rid, False):

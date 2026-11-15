@@ -215,7 +215,7 @@ def assess(raw: dict | None) -> dict:
     elif gates:
         label = "LEADERSHIP RESET REQUIRED"
         reason = "A critical leadership ownership or control condition overrides the overall readiness score."
-    elif overall is not None and overall >= 75 and all((scores[k] or 0) >= 60 for k, _, _, _ in DIMENSIONS):
+    elif complete and overall is not None and overall >= 75 and all((scores[k] or 0) >= 60 for k, _, _, _ in DIMENSIONS):
         label = "FOUNDATIONS ESTABLISHED"
         reason = "Reported conditions indicate a generally functioning leadership approach, subject to verification and formal decisions."
     elif overall is not None and overall < 50:
@@ -234,11 +234,33 @@ def assess(raw: dict | None) -> dict:
         actions.append({"dimension": key, "question": q[1], "action": q[3],
                         "owner": q[4], "evidence": q[2],
                         "review": "At the next accountable leadership review"})
-    if not actions:
-        actions = [{"dimension": "leadership", "question": "Evidence review",
-                    "action": "Verify the reported evidence and confirm the next leadership review.",
-                    "owner": "Executive sponsor", "evidence": "Accepted decision record",
-                    "review": "Next executive review"}]
+    requirements = {
+        "strategy": "Approved strategic priorities and documented portfolio choices",
+        "governance": "Risk/control reviews, named stop authority and escalation record",
+        "accountability": "Accepted business mandate, decision rights and review minutes",
+        "data": "Data ownership, permitted access and fitness-for-purpose test",
+        "adoption": "Revised workflow, user trials and outcome baseline",
+        "operations": "Capacity plan, support owner and failure/fallback test",
+        "value": "Verified baseline, non-AI comparator and attributable benefit case",
+    }
+    for entry in actions:
+        entry["evidence"] = requirements.get(entry["dimension"], entry["evidence"])
+    fallbacks = (
+        ("Confirm executive responsibility for the proposed next decision.",
+         "Executive sponsor", "Accepted mandate and decision authority"),
+        ("Validate the reported operational and value evidence before wider commitment.",
+         "Business / finance owner", "Baseline and representative operational test"),
+        ("Agree an explicit review date, stop criteria and any necessary specialist approvals.",
+         "Governance / business owner", "Decision record and required approval evidence"),
+    )
+    for statement, owner, evidence in fallbacks:
+        if len(actions) >= 3:
+            break
+        if not any(a["action"] == statement for a in actions):
+            actions.append({"dimension": "leadership", "question": "Management review",
+                            "action": statement, "owner": owner,
+                            "evidence": evidence,
+                            "review": "At the next accountable leadership review"})
     weakest = sorted(((scores[k] if scores[k] is not None else -1, k)
                       for k, _, _, _ in DIMENSIONS), key=lambda x: x[0])
     scenarios = []
@@ -253,7 +275,11 @@ def assess(raw: dict | None) -> dict:
         "complete": complete, "enough_evidence": enough, "overall": overall,
         "label": label, "reason": reason, "scores": scores, "counts": counts,
         "critical_gates": gates, "actions": actions[:3], "scenarios": scenarios,
-        "confidence": "Self-reported; supporting evidence has not been independently reviewed",
+        "confidence": ("Limited coverage; all evidence is self-reported"
+                       if not enough else
+                       "Partial coverage; all evidence remains self-reported"
+                       if not complete else
+                       "Complete response coverage; supporting evidence remains unverified"),
     }
 
 

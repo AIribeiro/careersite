@@ -473,6 +473,7 @@ def _reader_privacy_export(
             key="admin_reader_personal_export_" + user_id,
         )
         st.caption(
+            "Passwords are managed only by Supabase Auth and never displayed here. "
             "This export does not erase personal data. Identity deletion "
             "requires a separate authorized Supabase Auth workflow."
         )

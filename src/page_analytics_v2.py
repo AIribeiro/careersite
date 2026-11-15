@@ -269,6 +269,12 @@ def render_analytics_dashboard() -> None:
         render_owner_reader_management(owner)
         return
     if workspace == "advisory":
+        # Refresh the owner inbox in long-lived authenticated browser sessions.
+        import importlib
+        import page_owner_advisory_requests as _owner_requests
+        if getattr(_owner_requests, "OWNER_REQUESTS_VERSION", None) != "premium_dialogue_20261115":
+            importlib.invalidate_caches()
+            importlib.reload(_owner_requests)
         from page_owner_advisory_management import render_owner_advisory_management
         render_owner_advisory_management(owner)
         return

@@ -188,7 +188,8 @@ def _entitlements(token: str, uid: str) -> list[dict]:
         token=token, timeout=12)
     if not isinstance(rows,list):
         raise RuntimeError("Rollout entitlements could not be verified")
-    return rows
+    # A revoked entitlement must not be mistaken for active service access.
+    return [row for row in rows if row.get("status") == "active"]
 
 def _assessments(token: str, uid: str, request_id: str | None = None) -> list[dict]:
     """Member RLS enforces record ownership. Read all approved historic sessions."""

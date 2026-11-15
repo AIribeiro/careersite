@@ -156,6 +156,28 @@ SERVICES_CSS = """
 }
 
 
+/* Discreet access links above the hero's primary message. */
+.site .advisory-hero-access{
+ display:inline-flex;max-width:100%;align-items:center;flex-wrap:wrap;gap:9px 14px;
+ padding:10px 14px;margin:0 0 28px;
+ border:1px solid rgba(196,213,231,.3);background:rgba(255,255,255,.035);
+ font-size:12px;line-height:1.45
+}
+.site .advisory-hero-access-label{
+ font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:850;color:#b5c3d2
+}
+.site .advisory-hero-access a{
+ color:#f0ba94!important;text-decoration:none!important;font-weight:850;
+ padding:3px 0;border-bottom:1px solid rgba(240,186,148,.52)
+}
+.site .advisory-hero-access a:hover{color:#ffe0c8!important;border-bottom-color:#ffe0c8}
+.site .advisory-hero-access a:focus-visible{outline:2px solid #e9b48b;outline-offset:4px}
+.site .advisory-hero-access-divider{width:1px;height:14px;background:rgba(255,255,255,.27)}
+.site .advisory-hero-access-status{color:#c7d2df;font-weight:700;font-size:11px}
+@media(max-width:620px){
+ .site .advisory-hero-access{margin-bottom:23px;gap:8px 12px;padding:10px 12px}
+}
+
 /* Featured on-demand advisory services: distinct from working formats. */
 .site .advisory-ready{padding:78px 0 84px;background:#f1eee8;border-top:1px solid #dfd9d0;border-bottom:1px solid #dfd9d0;scroll-margin-top:90px}
 .site .advisory-ready-header{display:flex;align-items:end;justify-content:space-between;gap:32px;margin-bottom:29px}
@@ -227,6 +249,19 @@ def advisory() -> str:
         "but availability is limited and registration does not guarantee a session."
     )
 
+    hero_account_access = (
+        '<span class="advisory-hero-access-status">Signed in</span>'
+        '<a href="?page=advisory-access" target="_self" '
+        'data-hq-event="advisory_hero_open_account">Open my advisory space →</a>'
+        if member_signed_in
+        else
+        '<a href="?page=advisory-access" target="_self" '
+        'data-hq-event="advisory_hero_register">Register free</a>'
+        '<span class="advisory-hero-access-divider" aria-hidden="true"></span>'
+        '<a href="?page=advisory-access&amp;signin=1" target="_self" '
+        'data-hq-event="advisory_hero_signin">Sign in</a>'
+    )
+
     # A repository-backed, optimized WebP; committed as plain base64 text so
     # it can be delivered reliably through the managed code connection.
     try:
@@ -244,6 +279,10 @@ def advisory() -> str:
 <section class="advisory-hero" aria-labelledby="advisory-title">
  <div class="container advisory-hero-grid">
   <div>
+   <nav class="advisory-hero-access" aria-label="Advisory account access">
+    <span class="advisory-hero-access-label">Advisory account</span>
+    {hero_account_access}
+   </nav>
    <p class="service-eyebrow">Selective pro-bono executive advisory / AI &amp; Data</p>
    <h1 id="advisory-title">Better AI decisions. Clearer ownership. Measurable business value.</h1>
    <p class="service-lede">For leaders facing decisions on AI investment, governance, adoption or operating ownership. I consider a limited number of focused pro-bono discussions to examine options, trade-offs and a practical next step.</p>

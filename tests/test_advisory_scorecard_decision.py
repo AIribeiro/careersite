@@ -207,20 +207,25 @@ class ExecutivePortfolioDecisionTests(unittest.TestCase):
         self.assertLess(text.index("EXECUTIVE SUMMARY"),text.index("What to advance and test"))
 
 
-    def test_recommendation_is_first_tab_and_pdf_precedes_feedback(self):
+    def test_executive_flow_is_separated_into_independent_views(self):
         workspace=(ROOT/"src/page_advisory_scorecard_workspace.py").read_text()
+        experience=(ROOT/"src/page_advisory_scorecard_experience.py").read_text()
         ui=(ROOT/"src/page_advisory_scorecard_decision_ui.py").read_text()
-        self.assertIn('"Executive recommendation","Portfolio overview"',workspace)
-        self.assertIn("render_executive_recommendation(",workspace)
+        self.assertIn("render_scorecard_experience(token,uid,workspaces",workspace)
+        self.assertNotIn('st.tabs(["Executive recommendation"',workspace)
+        self.assertIn('"Executive decision", "Priority actions", "Portfolio options"',experience)
+        self.assertIn('"Initiatives & evidence", "Decision record", "Executive report"',experience)
+        self.assertIn('section=st.selectbox(',experience)
+        self.assertIn('if section=="Executive decision":',experience)
+        self.assertIn('elif section=="Executive report":',experience)
+        self.assertIn('build_executive_pdf(report)',experience)
+        self.assertLess(experience.index('st.download_button('),
+                        experience.index('"report_download"'))
+        # The original helper is retained for compatibility and existing feedback contracts.
         self.assertLess(ui.index('st.download_button('),ui.index('"report_download"'))
-        self.assertLess(ui.index('st.markdown("#### Recommended decision")'),ui.index('"executive_recommendation"'))
-        self.assertIn('build_executive_pdf(report)',ui)
-        self.assertIn("AI_Portfolio_Executive_Decision_Brief_",ui)
-        self.assertIn("Document format:",ui)
         main=(ROOT/"main.py").read_text(encoding="utf-8")
         self.assertIn('getattr(_scorecard_report, "REPORT_VERSION", None)',main)
-        self.assertIn("importlib.reload(_scorecard_decision_ui)",main)
-        self.assertIn('Current client selection',ui) if False else None
+
 
 
 if __name__=="__main__":

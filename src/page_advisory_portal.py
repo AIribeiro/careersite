@@ -662,8 +662,13 @@ def render_advisory_portal() -> None:
     _consume_query_verification()
     from site_native_shell import native_header, native_footer
 
+    from advisory_service_visibility import service_enabled, viewer_is_admin
+    wants_workshop = str(st.query_params.get("view") or "") == "workshop"
+    show_workshop = wants_workshop and (
+        service_enabled("workshop") or viewer_is_admin()
+    )
     st.html(native_header("advisory-access",
-                          service="workshop" if str(st.query_params.get("view") or "") == "workshop" else ""))
+                          service="workshop" if show_workshop else ""))
     st.html(ADVISORY_CSS)
 
     with st.container(key="native_advisory_content"):

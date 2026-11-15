@@ -538,10 +538,8 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
     elif view == "messages":
         render_messages(session, user)
     elif view == "scorecard":
-        section_heading(
-            "APPROVED ADVISORY WORKSPACE", "AI Portfolio Prioritization",
-            "Compare AI opportunities, examine capacity and record executive decisions."
-        )
+        # The Scorecard now renders its own service home and analysis title.
+        # Do not duplicate the hero and force the executive decision below the fold.
         from page_advisory_scorecard_workspace import render_private_scorecard
         render_private_scorecard(session, user)
     elif view == "decision":

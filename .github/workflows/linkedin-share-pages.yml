@@ -253,6 +253,43 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Verify deployed homepage social metadata and image
+        run: |
+          python - <<'PY'
+          import time
+          from urllib.request import Request, urlopen
+
+          base = 'https://airibeiro.github.io/careersite'
+          for attempt in range(5):
+              try:
+                  request = Request(base + '/', headers={'User-Agent': 'LinkedInBot/1.0'})
+                  with urlopen(request, timeout=25) as response:
+                      document = response.read().decode('utf-8')
+                      assert response.status == 200
+                  for expected in (
+                      'Jair Ribeiro | Executive AI &amp; Data Leadership',
+                      'property="og:image"',
+                      'property="og:image:width" content="1200"',
+                      'property="og:image:height" content="630"',
+                      'social/jair-ribeiro-home.png',
+                      'name="twitter:card" content="summary_large_image"',
+                      'rel="icon"',
+                  ):
+                      assert expected in document, expected
+                  with urlopen(base + '/social/jair-ribeiro-home.png', timeout=25) as image:
+                      png = image.read(32)
+                      assert image.status == 200
+                      assert image.headers.get('Content-Type', '').startswith('image/png')
+                  assert png[:8] == b'\x89PNG\r\n\x1a\n'
+                  assert int.from_bytes(png[16:20], 'big') == 1200
+                  assert int.from_bytes(png[20:24], 'big') == 630
+                  print('LIVE PASS: homepage OG metadata, favicon declaration and 1200x630 PNG')
+                  break
+              except Exception:
+                  if attempt == 4:
+                      raise
+                  time.sleep(7)
+          PY
       - name: Verify live Friday redirects, attribution, and branded OG images
         env:
           PYTHONPATH: src

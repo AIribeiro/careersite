@@ -65,6 +65,14 @@ def assess(raw: dict) -> dict:
     uncertainties = []
     strengths = []
     actions = []
+    outcome_metric = {
+        "Reduce operating cost": "cost per case, hours saved and rework",
+        "Improve quality or service": "error rate, first-time resolution and service quality",
+        "Increase revenue": "incremental conversion, revenue and attributable margin",
+        "Manage business risk": "risk exposure, incidents and control exceptions",
+        "Improve employee work": "time on task, workload and employee experience",
+    }[a["objective"]]
+    early_stage = a["stage"] in ("Concept", "Discovery")
 
     def task(text: str, owner: str, trigger: str) -> None:
         if text not in [x["text"] for x in actions]:
@@ -129,10 +137,15 @@ def assess(raw: dict) -> dict:
              "Finance / business owner", "A credible positive value case.")
     elif a["value"] != FIELDS["value"][0] or a["baseline"] != FIELDS["baseline"][0]:
         uncertainties.append("Value has not been demonstrated against a verified baseline.")
-        task("Measure current cost, quality and throughput; test incremental benefit against that baseline.",
+        task("Define and test the relevant outcome measures (" + outcome_metric + ") against an agreed baseline.",
              "Finance / process owner", "Observed outcome and documented benefit assumptions.")
     else:
         strengths.append("The value claim is supported by a measured baseline.")
+
+    if early_stage:
+        uncertainties.append("The opportunity is still at concept or discovery stage; operational performance has not been established at scale.")
+        task("Conduct a limited evidence-gathering test before proposing a full investment commitment.",
+             "Business / delivery owner", "Results from a bounded, controlled test.")
 
     if a["feasibility"] != FIELDS["feasibility"][0]:
         uncertainties.append("Delivery or operational dependencies remain unproven.")
@@ -180,7 +193,7 @@ def assess(raw: dict) -> dict:
     elif hold:
         label,headline = "HOLD", "Resolve the critical prerequisites before committing."
         reason = "A material ownership, capacity, data, evidence or control condition prevents a defensible commitment."
-    elif demonstrated:
+    elif demonstrated and not early_stage:
         label,headline = "INVEST", "Advance to formal investment approval."
         reason = "Self-reported evidence supports the case across value, feasibility, ownership, capacity and controls."
     else:
@@ -213,6 +226,7 @@ def assess(raw: dict) -> dict:
                   else "Limited (self-reported)")
     return {
         "model_version": MODEL_VERSION, "verdict": label, "headline": headline,
+        "decision_lens": outcome_metric, "stage": a["stage"],
         "reason": reason, "confidence": confidence,
         "primary_constraint": (blocks + uncertainties + ["No major weakness reported."])[0],
         "strengths": strengths[:3], "constraints": (blocks + uncertainties)[:6],

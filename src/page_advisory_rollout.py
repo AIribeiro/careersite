@@ -513,7 +513,7 @@ def _report_ui(session: dict, user: dict, request_id: str, record: dict) -> None
                 _navigate_rollout("decision","evidence",rid)
         _feedback_for_result(session,user,request_id,"assessment_completion",demo)
     elif detail=="actions":
-        render_action_plan(data,result)
+        render_action_plan(data, result)
         if st.button("Read the verdict and readiness rationale",
                      key="rollout_to_verdict_"+rid):
             _navigate_rollout("decision","verdict",rid)

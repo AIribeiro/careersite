@@ -140,106 +140,264 @@ def _request_summary(request: dict, *, show_details: bool = True) -> None:
                 st.write(str(request["business_context"]))
 
 
+OVERVIEW_CSS = """
+<style>
+/* Advisory Overview uses the Rollout Advisor's editorial hierarchy and palette. */
+.ao-home .hero{margin-top:4px}
+.ao-home .summarybar{gap:9px 22px}
+.ao-home .section-head{margin:28px 0 14px}
+.ao-focus{background:#fffdfa;border:1px solid #ded7cc;
+ border-left:5px solid #b07751;padding:clamp(18px,2.7vw,27px);margin:12px 0 17px}
+.ao-focus .eyebrow,.ao-service-content .eyebrow,.ao-library .eyebrow{
+ font:800 10px/1.45 Arial,sans-serif;text-transform:uppercase;
+ letter-spacing:.17em;color:#a36c46}
+.ao-focus h3{font:500 clamp(23px,2.7vw,30px)/1.2 Georgia,serif;
+ margin:8px 0;color:#193047;overflow-wrap:anywhere}
+.ao-focus p{font:14px/1.67 Arial,sans-serif;color:#40576a;
+ max-width:850px;margin:7px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.ao-focus .ao-status{display:inline-block;margin:9px 0 3px;
+ font:700 11px/1.5 Arial,sans-serif;color:#87573e;
+ background:#f6eee6;padding:5px 10px}
+.ao-focus--quiet{border-left-color:#93a4ab;background:#f7f8f7}
+.ao-service-content{min-height:180px}
+.ao-service-content .eyebrow{display:block;margin-bottom:13px}
+.ao-service-content h3{font:500 clamp(21px,2.3vw,28px)/1.2 Georgia,serif;
+ margin:0 0 11px;color:#193047;overflow-wrap:anywhere}
+.ao-service-content p{font:14px/1.62 Arial,sans-serif;
+ color:#4c6275;margin:0 0 12px}
+.ao-service-content .ao-output{font:700 12px/1.55 Arial,sans-serif;
+ color:#29445b;margin:0 0 13px}
+.ao-service-access{border-top:1px solid #e9e2d8;padding:10px 0 2px;
+ font:700 11px/1.6 Arial,sans-serif;color:#586d7b}
+.ao-service-access--approved{color:#37645b}
+.ao-service-access--pending{color:#925f45}
+.ao-service-access--unknown{color:#6e727b}
+.ao-library{background:#f8f5ef;border:1px solid #e0d9ce;
+ padding:20px 23px;margin:16px 0}
+.ao-library strong{display:block;font:500 22px/1.25 Georgia,serif;
+ color:#1e364b;margin:8px 0}
+.ao-library p{font:13px/1.65 Arial,sans-serif;color:#526777;margin:0}
+.st-key-overview_card_advisory,.st-key-overview_card_scorecard,
+.st-key-overview_card_rollout,.st-key-overview_card_investment{
+ background:#fffdfa!important;border-color:#ded7cc!important;
+ border-radius:0!important
+}
+.st-key-overview_card_advisory button,.st-key-overview_card_scorecard button,
+.st-key-overview_card_rollout button,.st-key-overview_card_investment button{
+ min-height:43px!important;font-weight:700!important
+}
+@media(max-width:760px),(max-device-width:760px){
+ .ao-home .summarybar{gap:7px 14px}
+ .ao-service-content{min-height:0}
+ .ao-focus{padding:18px}
+ .ao-library{padding:17px}
+}
+</style>
+"""
+
+
+def _overview_service_content(
+    number: str, category: str, title: str, description: str,
+    output: str, access: str, access_kind: str = "",
+) -> None:
+    """Render a service's promise and actual access state, never a fake control."""
+    kind = (" ao-service-access--" + access_kind
+            if access_kind in {"approved", "pending", "unknown"} else "")
+    st.html(
+        '<div class="ao-service-content">'
+        '<span class="eyebrow">' + escape(number + " · " + category) + '</span>'
+        '<h3>' + escape(title) + '</h3>'
+        '<p>' + escape(description) + '</p>'
+        '<div class="ao-output">You receive · ' + escape(output) + '</div>'
+        '<div class="ao-service-access' + kind + '">'
+        + escape(access) + '</div></div>'
+    )
+
+
 def render_overview(session: dict, user: dict, profile: dict) -> None:
+    """A decision-oriented home, not a second page listing every service's tools."""
+    from page_rollout_workspace_ui import WORKSPACE_CSS
+
     token = str(session["access_token"])
     uid = str(user["id"])
     first = str(profile.get("first_name") or "").strip()
-    section_heading(
-        "PRIVATE CLIENT DASHBOARD",
-        "Welcome" + (", " + first if first else "") + ".",
-        "Your decisions, approved services and advisory correspondence—"
-        "each in its own private workspace.",
-    )
     requests = _load_requests(token, uid)
-    # Retrieve actual entitlements, not inferred approvals from account status.
+
+    # Show only verified entitlements. Account membership does not grant service access.
     try:
         from page_advisory_scorecard_workspace import _read_workspaces
-        scorecard_status = ("Approved workspace" if _read_workspaces(token, uid)
+        scorecard_approved = bool(_read_workspaces(token, uid))
+        scorecard_status = ("Workspace approved" if scorecard_approved
                             else "Individual approval required")
     except (RuntimeError, ValueError, TimeoutError, KeyError):
-        scorecard_status = "Access status unavailable"
+        scorecard_approved = None
+        scorecard_status = "Access status temporarily unavailable"
+
     try:
         from page_advisory_rollout import _entitlements
-        rollout_status = ("Access approved" if _entitlements(token, uid)
+        rollout_approved = bool(_entitlements(token, uid))
+        rollout_status = ("Access approved" if rollout_approved
                           else "Individual approval required")
     except (RuntimeError, ValueError, TimeoutError, KeyError):
-        rollout_status = "Access status unavailable"
-    current = next(
-        (r for r in requests if str(r.get("status")) not in CLOSED), None
-    ) if requests is not None else None
-    if current is not None:
-        status, explanation = _status(current)
-        st.html(
-            '<div class="advisory-member-status"><strong>'
-            + escape(status) + "</strong> · "
-            + escape(str(current.get("title") or "Your advisory request"))
-            + "<div>" + escape(explanation) + "</div></div>"
-        )
-        if str(current.get("status")) == "awaiting_client":
-            if st.button("Respond to the advisory request", type="primary",
-                         key="dashboard_respond"):
-                navigate("messages", str(current["id"]))
-    else:
-        st.html(
-            '<div class="advisory-member-status">'
-            '<strong>Advisory account active.</strong> '
-            'Choose a service below or submit a specific executive decision '
-            'for individual review.</div>'
-        )
+        rollout_approved = None
+        rollout_status = "Access status temporarily unavailable"
 
-    a, b, c = st.columns(3, gap="medium")
-    with a:
-        with st.container(border=True):
-            st.caption("01 · PERSONAL ADVISORY")
-            st.markdown("#### Executive discussion")
-            st.write("Submit a decision, track its review and agree any next step.")
-            st.caption(
-                "Open request: " + ("Yes" if current else "No")
-                if requests is not None else "Request status temporarily unavailable"
-            )
-            if st.button("Manage requests", key="overview_requests",
+    open_requests = ([r for r in requests
+                      if str(r.get("status") or "submitted") not in CLOSED]
+                     if requests is not None else [])
+    current = open_requests[0] if open_requests else None
+    request_summary = (str(len(open_requests)) + " open advisory request" +
+                       ("" if len(open_requests) == 1 else "s")
+                       if requests is not None else "Status unavailable")
+    known = [flag for flag in (scorecard_approved, rollout_approved)
+             if flag is not None]
+    access_summary = (str(sum(known)) + " of 2 approved services"
+                      if len(known) == 2 else "Some access statuses unavailable")
+
+    st.html(
+        WORKSPACE_CSS + OVERVIEW_CSS +
+        '<div class="rl-workspace ao-home">'
+        '<section class="hero"><span class="eyebrow">Private executive advisory</span>'
+        '<h2>Your AI decisions. One private starting point.</h2>'
+        '<p>See what needs your attention, choose the right decision service, '
+        'and return to your existing work without losing its context.</p></section>'
+        '<div class="summarybar">'
+        '<span>ACCOUNT · Verified advisory member</span>'
+        '<span>REQUESTS · ' + escape(request_summary) + '</span>'
+        '<span>APPROVAL-BASED ACCESS · ' + escape(access_summary) + '</span>'
+        '</div>'
+        '<div class="section-head"><span class="eyebrow">Your current position</span>'
+        '<h3>' + ("Continue your advisory discussion." if current else
+                  "Your next decision starts here.") + '</h3>'
+        '<p>One clear next step, with your requests and decision records '
+        'kept in their respective workspaces.</p></div></div>'
+    )
+    if current:
+        status, explanation = _status(current)
+        next_step = str(current.get("next_step") or "").strip()
+        st.html(
+            '<div class="rl-workspace ao-home"><section class="ao-focus">'
+            '<span class="eyebrow">Open executive advisory request</span>'
+            '<h3>' + escape(str(current.get("title") or "Your advisory request"))
+            + '</h3><span class="ao-status">' + escape(status) + '</span>'
+            '<p>' + escape(next_step if next_step else explanation)
+            + '</p></section></div>'
+        )
+        left, right = st.columns(2, gap="small")
+        with left:
+            label = ("Read and respond" if str(current.get("status")) == "awaiting_client"
+                     else "Open this conversation")
+            if st.button(label, type="primary", key="dashboard_open_conversation",
+                         use_container_width=True):
+                navigate("messages", str(current["id"]))
+        with right:
+            if st.button("Review all requests", key="dashboard_all_requests",
                          use_container_width=True):
                 navigate("requests")
-            if st.button("Open conversations", key="overview_messages",
+    elif requests is None:
+        st.html(
+            '<div class="rl-workspace ao-home"><div class="ao-focus ao-focus--quiet">'
+            '<span class="eyebrow">Request status unavailable</span>'
+            '<h3>Your request history could not be loaded.</h3>'
+            '<p>Other services remain available according to their own '
+            'permissions. You can retry from the Requests tab.</p></div></div>'
+        )
+    else:
+        st.html(
+            '<div class="rl-workspace ao-home"><div class="ao-focus ao-focus--quiet">'
+            '<span class="eyebrow">No open personal advisory request</span>'
+            '<h3>Have a decision you want to discuss?</h3>'
+            '<p>Submit a focused business decision for individual review, '
+            'or open one of the self-service advisors below.</p></div></div>'
+        )
+        if st.button("Start an executive advisory request", type="primary",
+                     key="dashboard_new_request", use_container_width=True):
+            navigate("requests")
+
+    st.html(
+        '<div class="rl-workspace ao-home"><div class="section-head">'
+        '<span class="eyebrow">Your decision services</span>'
+        '<h3>Four pathways. A distinct outcome for each.</h3>'
+        '<p>Open the service that matches your decision. Existing assessments, '
+        'conversations and their records remain in separate private workspaces.</p>'
+        '</div></div>'
+    )
+
+    first_row = st.columns(2, gap="medium")
+    with first_row[0]:
+        with st.container(border=True, key="overview_card_advisory"):
+            _overview_service_content(
+                "01", "PERSONAL ADVISORY", "Executive discussion",
+                "Submit a leadership decision for individual review and continue "
+                "the conversation as its scope develops.",
+                "Private discussion and agreed next steps",
+                (str(len(open_requests)) + " open request" +
+                 ("" if len(open_requests) == 1 else "s"))
+                if requests is not None else "Request status unavailable",
+                "approved" if current else "unknown",
+            )
+            if st.button("Manage advisory requests", key="overview_requests",
                          use_container_width=True):
-                navigate("messages")
-    with b:
-        with st.container(border=True):
-            st.caption("02 · AI INVESTMENT DECISIONS")
-            st.markdown("#### Portfolio Scorecard")
-            st.write("Compare competing initiatives and record investment decisions.")
-            st.caption(scorecard_status)
-            if st.button("Open Scorecard workspace", key="overview_scorecard",
+                navigate("requests")
+    with first_row[1]:
+        with st.container(border=True, key="overview_card_scorecard"):
+            _overview_service_content(
+                "02", "PORTFOLIO INVESTMENT", "AI Portfolio Scorecard",
+                "Compare competing AI initiatives, determine investment priorities, "
+                "and document the rationale behind your portfolio decisions.",
+                "Prioritized initiatives and decision record",
+                scorecard_status,
+                "approved" if scorecard_approved else
+                "pending" if scorecard_approved is False else "unknown",
+            )
+            if st.button("Open Scorecard", key="overview_scorecard",
                          use_container_width=True):
                 navigate("scorecard")
-    with c:
-        with st.container(border=True):
-            st.caption("03 · AI ADOPTION & SCALE")
-            st.markdown("#### Rollout Readiness Advisor")
-            st.write("Assess rollout conditions and receive an executive decision brief.")
-            st.caption(rollout_status + " · Single-session service")
+
+    second_row = st.columns(2, gap="medium")
+    with second_row[0]:
+        with st.container(border=True, key="overview_card_rollout"):
+            _overview_service_content(
+                "03", "ADOPTION AND SCALE", "AI Rollout Readiness Advisor",
+                "Assess whether a pilot is ready to scale, identify critical "
+                "release conditions, and determine the responsible next step.",
+                "Readiness verdict, executive actions and PDF brief",
+                rollout_status,
+                "approved" if rollout_approved else
+                "pending" if rollout_approved is False else "unknown",
+            )
             if st.button("Open Rollout Advisor", key="overview_rollout",
                          use_container_width=True):
                 navigate("rollout")
+    with second_row[1]:
+        with st.container(border=True, key="overview_card_investment"):
+            _overview_service_content(
+                "04", "SINGLE AI OPPORTUNITY", "AI Investment Decision Advisor",
+                "Assess one business opportunity and decide whether to invest, "
+                "run a focused experiment, hold, or stop.",
+                "Investment recommendation and executive decision brief",
+                "Included · No separate approval",
+                "approved",
+            )
+            if st.button("Open Investment Advisor", key="overview_investment",
+                         use_container_width=True):
+                navigate("decision")
 
-    st.divider()
-    with st.container(border=True):
-        st.caption("04 · SINGLE AI OPPORTUNITY")
-        st.markdown("#### AI Investment Decision Advisor")
-        st.write("Should you invest, experiment, hold or stop? Assess one opportunity and receive a concise executive decision brief.")
-        st.caption("Free self-service · Available to verified Advisory accounts · No separate approval")
-        if st.button("Open Investment Decision Advisor", key="overview_investment",
-                     use_container_width=True):
-            navigate("decision")
-
-    st.divider()
-    left, right = st.columns([2, 1])
-    with left:
-        st.markdown("#### Included with your advisory account")
-        st.write("Full Premium Reader Library access is included. Your editorial "
-                 "library and your advisory workspaces remain separate.")
-    with right:
-        if st.button("Open Premium Reader Library", key="overview_library",
+    st.html(
+        '<div class="rl-workspace ao-home"><div class="section-head">'
+        '<span class="eyebrow">Included with your account</span>'
+        '<h3>Your executive reading library.</h3></div></div>'
+    )
+    a, b = st.columns([3, 1], gap="medium", vertical_alignment="center")
+    with a:
+        st.html(
+            '<div class="ao-library"><span class="eyebrow">Premium Reader Library</span>'
+            '<strong>Research and briefings, alongside your decisions.</strong>'
+            '<p>Full reader access is included with your Advisory account. '
+            'Reading and decision workspaces remain separate.</p></div>'
+        )
+    with b:
+        if st.button("Open Reader Library", key="overview_library",
                      use_container_width=True):
             st.query_params.clear()
             st.query_params["page"] = "readers"

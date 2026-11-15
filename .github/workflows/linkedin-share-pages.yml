@@ -12,6 +12,9 @@ on:
       - "src/weekly_ai_brand_cover.py"
       - "scripts/generate_weekly_ai_covers.py"
       - "scripts/build_linkedin_share_site.py"
+      - "scripts/build_home_social_preview.py"
+      - "static/jair-ribeiro-social-preview.png"
+      - "tests/test_home_social_preview.py"
       - "scripts/build_agent_discovery_static.py"
       - "scripts/discovery_search_surface.py"
       - "scripts/indexnow_discovery.py"
@@ -64,6 +67,9 @@ jobs:
       - name: Capture previously published discovery state
         run: python scripts/indexnow_discovery.py snapshot --output _previous_agent_state.json
 
+      - name: Test homepage social preview metadata and image
+        run: python -m unittest discover -s tests -p 'test_home_social_preview.py' -v
+
       - name: Build static social share site
         run: python scripts/build_linkedin_share_site.py --output _share_site --share-base https://airibeiro.github.io/careersite
 
@@ -94,6 +100,19 @@ jobs:
           from pathlib import Path
           from PIL import Image
           from thinking_articles import ARTICLES
+
+          home = Path('_share_site/index.html').read_text(encoding='utf-8')
+          assert 'Jair Ribeiro | Executive AI &amp; Data Leadership' in home
+          assert 'property="og:image"' in home
+          assert 'social/jair-ribeiro-home.png' in home
+          assert 'name="twitter:card" content="summary_large_image"' in home
+          assert 'rel="icon"' in home
+          assert 'source' in home and 'utm_campaign' in home
+          with Image.open('_share_site/social/jair-ribeiro-home.png') as home_image:
+              assert home_image.format == 'PNG'
+              assert home_image.size == (1200, 630)
+
+          
 
           slug = 'when-an-ai-use-case-should-be-stopped'
           html = Path(f'_share_site/thinking/{slug}/index.html').read_text(encoding='utf-8')

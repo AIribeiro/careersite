@@ -15,7 +15,7 @@ from page_advisory_client_journey import (
 )
 from site_assets import ADVISORY_EMAIL
 
-MEMBER_EXPERIENCE_VERSION = "premium_conversations_20261115"
+MEMBER_EXPERIENCE_VERSION = "rollout_consistent_overview_20261115"
 
 VIEWS = (
     "overview", "requests", "messages", "scorecard", "rollout", "decision", "account",
@@ -138,80 +138,6 @@ def _request_summary(request: dict, *, show_details: bool = True) -> None:
             if request.get("business_context"):
                 st.caption("Business context")
                 st.write(str(request["business_context"]))
-
-
-OVERVIEW_CSS = """
-<style>
-/* Advisory Overview uses the Rollout Advisor's editorial hierarchy and palette. */
-.ao-home .hero{margin-top:4px}
-.ao-home .summarybar{gap:9px 22px}
-.ao-home .section-head{margin:28px 0 14px}
-.ao-focus{background:#fffdfa;border:1px solid #ded7cc;
- border-left:5px solid #b07751;padding:clamp(18px,2.7vw,27px);margin:12px 0 17px}
-.ao-focus .eyebrow,.ao-service-content .eyebrow,.ao-library .eyebrow{
- font:800 10px/1.45 Arial,sans-serif;text-transform:uppercase;
- letter-spacing:.17em;color:#a36c46}
-.ao-focus h3{font:500 clamp(23px,2.7vw,30px)/1.2 Georgia,serif;
- margin:8px 0;color:#193047;overflow-wrap:anywhere}
-.ao-focus p{font:14px/1.67 Arial,sans-serif;color:#40576a;
- max-width:850px;margin:7px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
-.ao-focus .ao-status{display:inline-block;margin:9px 0 3px;
- font:700 11px/1.5 Arial,sans-serif;color:#87573e;
- background:#f6eee6;padding:5px 10px}
-.ao-focus--quiet{border-left-color:#93a4ab;background:#f7f8f7}
-.ao-service-content{min-height:180px}
-.ao-service-content .eyebrow{display:block;margin-bottom:13px}
-.ao-service-content h3{font:500 clamp(21px,2.3vw,28px)/1.2 Georgia,serif;
- margin:0 0 11px;color:#193047;overflow-wrap:anywhere}
-.ao-service-content p{font:14px/1.62 Arial,sans-serif;
- color:#4c6275;margin:0 0 12px}
-.ao-service-content .ao-output{font:700 12px/1.55 Arial,sans-serif;
- color:#29445b;margin:0 0 13px}
-.ao-service-access{border-top:1px solid #e9e2d8;padding:10px 0 2px;
- font:700 11px/1.6 Arial,sans-serif;color:#586d7b}
-.ao-service-access--approved{color:#37645b}
-.ao-service-access--pending{color:#925f45}
-.ao-service-access--unknown{color:#6e727b}
-.ao-library{background:#f8f5ef;border:1px solid #e0d9ce;
- padding:20px 23px;margin:16px 0}
-.ao-library strong{display:block;font:500 22px/1.25 Georgia,serif;
- color:#1e364b;margin:8px 0}
-.ao-library p{font:13px/1.65 Arial,sans-serif;color:#526777;margin:0}
-.st-key-overview_card_advisory,.st-key-overview_card_scorecard,
-.st-key-overview_card_rollout,.st-key-overview_card_investment{
- background:#fffdfa!important;border-color:#ded7cc!important;
- border-radius:0!important
-}
-.st-key-overview_card_advisory button,.st-key-overview_card_scorecard button,
-.st-key-overview_card_rollout button,.st-key-overview_card_investment button{
- min-height:43px!important;font-weight:700!important
-}
-@media(max-width:760px),(max-device-width:760px){
- .ao-home .summarybar{gap:7px 14px}
- .ao-service-content{min-height:0}
- .ao-focus{padding:18px}
- .ao-library{padding:17px}
-}
-</style>
-"""
-
-
-def _overview_service_content(
-    number: str, category: str, title: str, description: str,
-    output: str, access: str, access_kind: str = "",
-) -> None:
-    """Render a service's promise and actual access state, never a fake control."""
-    kind = (" ao-service-access--" + access_kind
-            if access_kind in {"approved", "pending", "unknown"} else "")
-    st.html(
-        '<div class="ao-service-content">'
-        '<span class="eyebrow">' + escape(number + " · " + category) + '</span>'
-        '<h3>' + escape(title) + '</h3>'
-        '<p>' + escape(description) + '</p>'
-        '<div class="ao-output">You receive · ' + escape(output) + '</div>'
-        '<div class="ao-service-access' + kind + '">'
-        + escape(access) + '</div></div>'
-    )
 
 
 OVERVIEW_CSS = """

@@ -134,10 +134,15 @@ class ContextualOnboardingTests(unittest.TestCase):
             ))
 
     def test_owner_summary_is_aggregate_only(self):
-        readers = [{"user_id": "r1"}, {"user_id": "r2"}]
+        created = "2026-11-15T12:00:00+00:00"
+        readers = [
+            {"user_id": "r1", "created_at": created},
+            {"user_id": "r2", "created_at": created},
+            {"user_id": "legacy-reader", "created_at": "2026-11-01T00:00:00Z"},
+        ]
         advisory = [
-            {"user_id": "a1", "account_status": "active"},
-            {"user_id": "a2", "account_status": "suspended"},
+            {"user_id": "a1", "account_status": "active", "created_at": created},
+            {"user_id": "a2", "account_status": "suspended", "created_at": created},
         ]
         rows = [
             {"user_id": "r1", "journey": "reader", "milestone": "first_full_read",
@@ -150,9 +155,11 @@ class ContextualOnboardingTests(unittest.TestCase):
              "elapsed_seconds": 2},
         ]
         summary = owner_first_value_summary(readers, advisory, rows)
-        self.assertEqual(summary["reader_registrations"], 2)
+        self.assertEqual(summary["reader_registrations"], 3)
+        self.assertEqual(summary["reader_cohort_registrations"], 2)
         self.assertEqual(summary["reader_first_reads"], 1)
         self.assertEqual(summary["advisory_registrations"], 1)
+        self.assertEqual(summary["advisory_cohort_registrations"], 1)
         self.assertEqual(summary["advisory_first_assessments"], 1)
         self.assertEqual(summary["advisory_personal_requests"], 1)
         self.assertEqual(summary["reader_median_seconds"], 180)

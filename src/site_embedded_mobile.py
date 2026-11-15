@@ -44,6 +44,43 @@ def support_masked_mobile_media(css: str) -> str:
     )
 
 
+# A URL-masking outer frame without a viewport meta tag can give an
+# iPhone iframe a 980px CSS layout while scaling it down to the screen.
+# Keep a scoped no-JavaScript fallback for this combination. Normal mobile
+# viewports and desktop displays do not match.
+MASKED_FRAME_FALLBACK_CSS = r"""
+<style>
+@media screen and (min-width:760px) and (max-device-width:700px) {
+  .site:not(.native-shell):not(.reader-shell) {zoom:2.5}
+  [data-testid="stAppViewContainer"]:has(.native-shell-header, .reader-shell) {zoom:2.5}
+}
+@media screen and (min-width:760px) and (max-device-width:359px) {
+  .site:not(.native-shell):not(.reader-shell),
+  [data-testid="stAppViewContainer"]:has(.native-shell-header, .reader-shell) {zoom:2.9}
+}
+@media screen and (min-width:760px) and (min-device-width:360px) and (max-device-width:375px) {
+  .site:not(.native-shell):not(.reader-shell),
+  [data-testid="stAppViewContainer"]:has(.native-shell-header, .reader-shell) {zoom:2.65}
+}
+@media screen and (min-width:760px) and (min-device-width:401px) and (max-device-width:430px) {
+  .site:not(.native-shell):not(.reader-shell),
+  [data-testid="stAppViewContainer"]:has(.native-shell-header, .reader-shell) {zoom:2.36}
+}
+@media screen and (min-width:760px) and (min-device-width:431px) and (max-device-width:480px) {
+  .site:not(.native-shell):not(.reader-shell),
+  [data-testid="stAppViewContainer"]:has(.native-shell-header, .reader-shell) {zoom:2.14}
+}
+@media screen and (min-width:760px) and (min-device-width:481px) and (max-device-width:600px) {
+  .site:not(.native-shell):not(.reader-shell),
+  [data-testid="stAppViewContainer"]:has(.native-shell-header, .reader-shell) {zoom:1.8}
+}
+@media screen and (min-width:760px) and (min-device-width:601px) and (max-device-width:700px) {
+  .site:not(.native-shell):not(.reader-shell),
+  [data-testid="stAppViewContainer"]:has(.native-shell-header, .reader-shell) {zoom:1.48}
+}
+</style>
+"""
+
 EMBEDDED_MOBILE_SCRIPT = r"""
 <script>
 (function () {
@@ -100,7 +137,8 @@ EMBEDDED_MOBILE_SCRIPT = r"""
 
 def mount_masked_mobile_fix() -> None:
     """Mount only for public pages, after the portfolio HTML has been emitted."""
-    st.html(EMBEDDED_MOBILE_SCRIPT, unsafe_allow_javascript=True)
+    st.html(MASKED_FRAME_FALLBACK_CSS + EMBEDDED_MOBILE_SCRIPT,
+            unsafe_allow_javascript=True)
 
 
 NATIVE_EMBEDDED_MOBILE_SCRIPT = r"""
@@ -169,4 +207,5 @@ NATIVE_EMBEDDED_MOBILE_SCRIPT = r"""
 
 def mount_native_masked_mobile_fix() -> None:
     """Correct device-scale when native Streamlit forms load in a masked frame."""
-    st.html(NATIVE_EMBEDDED_MOBILE_SCRIPT, unsafe_allow_javascript=True)
+    st.html(MASKED_FRAME_FALLBACK_CSS + NATIVE_EMBEDDED_MOBILE_SCRIPT,
+            unsafe_allow_javascript=True)

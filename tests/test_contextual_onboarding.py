@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from site_onboarding_guidance import (
     ADVISORY_NEEDS, advisor_for_need, select_reader_first_read,
-    suggested_decision_need,
+    suggested_decision_need, value_path_html,
 )
 from site_onboarding_measurement import (
     duration_label, owner_first_value_summary, record_first_value,
@@ -100,6 +100,14 @@ class ContextualOnboardingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             advisor_for_need("Premium assessment access granted")
 
+    def test_before_after_copy_is_responsive_and_escaped(self):
+        rendered = value_path_html("<img src=x>", "Clear, evidenced next steps")
+        self.assertIn("&lt;img src=x&gt;", rendered)
+        self.assertNotIn("<img src=x>", rendered)
+        self.assertIn("@media(max-width:630px)", rendered)
+        self.assertIn("Starting point", rendered)
+        self.assertIn("What you can work with", rendered)
+
     def test_milestones_send_no_titles_context_or_client_timestamps(self):
         with patch("site_onboarding_measurement._request_json", return_value=None) as request:
             self.assertTrue(record_first_value(
@@ -156,6 +164,9 @@ class ContextualOnboardingTests(unittest.TestCase):
         files = {
             "src/page_advisory_investment.py": ("record_id = _submit", "record_first_value"),
             "src/page_advisory_rollout.py": ("new_id=_submit_assessment", "record_first_value"),
+            "src/page_advisory_scorecard_experience.py": (
+                "if not report[\"rows\"]:", "scorecard_onboarding_first_report_logged",
+            ),
             "src/page_advisory_client_journey.py": ("_create_request(token,uid,{", "record_first_value"),
             "src/page_reader_native.py": ("def _open_reader_content", "_record_first_complete_read"),
         }

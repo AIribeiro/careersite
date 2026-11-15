@@ -85,7 +85,7 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
+PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-decision", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -133,6 +133,7 @@ TITLES = {
     "advisory-access": "Executive Advisory Account | Jair Ribeiro",
     "advisory-scorecard": "AI Portfolio Prioritization Scorecard | Jair Ribeiro",
     "advisory-rollout": "Enterprise AI Rollout Readiness Advisor | Jair Ribeiro",
+    "advisory-decision": "AI Investment Decision Advisor | Jair Ribeiro",
     "privacy": "Privacy & Data | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
     "analytics": "Portfolio & Career Intelligence | Jair Ribeiro",
@@ -268,6 +269,9 @@ else:
     elif PAGE == "advisory-rollout":
         from page_advisory_rollout import advisory_rollout
         render_page = advisory_rollout
+    elif PAGE == "advisory-decision":
+        from page_advisory_investment import advisory_investment
+        render_page = advisory_investment
     elif PAGE == "privacy":
         from page_public_services import privacy
         render_page = privacy

@@ -102,6 +102,10 @@ def _accept_reader_session(session: dict) -> dict:
     st.session_state["reader_native_session"] = session
     st.session_state["reader_native_user"] = user
     st.session_state.pop("reader_native_sent_email", None)
+    # Issue one short-lived server-held ticket for a same-origin HttpOnly
+    # cookie. Never move Supabase refresh tokens into browser JavaScript.
+    from site_member_persistence import queue_member_session_cookie
+    queue_member_session_cookie(session, user)
     return user
 
 
@@ -145,8 +149,20 @@ def _session() -> tuple[dict | None, dict | None]:
     try:
         expiration = int(session.get("expires_at") or 0)
         if expiration <= time.time() + 90:
+            if session.get("_cookie_backed") and not session.get("refresh_token"):
+                # The fresh rotating refresh token is kept strictly in the
+                # HttpOnly cookie. The HTTP bridge will renew on the next run.
+                st.session_state.pop("reader_native_session", None)
+                st.session_state.pop("reader_native_user", None)
+                st.session_state.pop("member_restore_checked", None)
+                st.session_state["member_restore_nonce"] = (
+                    int(st.session_state.get("member_restore_nonce", 0)) + 1
+                )
+                st.rerun()
             session = _refresh(str(session.get("refresh_token") or ""))
             st.session_state["reader_native_session"] = session
+            from site_member_persistence import queue_member_session_cookie
+            queue_member_session_cookie(session, _verified_user(str(session["access_token"])))
         user = _verified_user(str(session.get("access_token") or ""))
         # Administrative access suspensions are enforced server-side on every
         # verified reader check. The RPC exposes only the caller's own status,
@@ -199,6 +215,10 @@ def _logout_member_session(session: dict) -> bool:
             st.session_state.pop(key, None)
     for key in ("view", "request", "pdf", "access", "signin"):
         st.query_params.pop(key, None)
+    # The server can revoke this token, but a browser may also hold a
+    # separate HttpOnly session cookie. Clear it before private pages render.
+    from site_member_persistence import begin_member_browser_signout
+    begin_member_browser_signout()
     st.session_state["reader_native_flash"] = (
         ("success", "Signed out of your Reader and Advisory account.")
         if revoked else

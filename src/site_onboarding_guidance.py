@@ -7,6 +7,7 @@ an existing service; a suggestion never alters access or approval entitlements.
 from __future__ import annotations
 
 import re
+from html import escape
 from typing import Any
 
 ADVISORY_NEEDS = (
@@ -157,3 +158,37 @@ def select_reader_first_read(
         if str(getattr(item, "kind", "") or "").casefold() == "executive briefing":
             return item, "A recently published executive briefing to begin with."
     return items[0], "A recently published perspective to begin with."
+
+
+_VALUE_PATH_CSS = """
+<style>
+.onboarding-value-path{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:stretch;gap:12px;margin:16px 0 18px}
+.onboarding-value-path .value-step{padding:16px 17px;border:1px solid #d8dfdf;
+  background:#f7f7f4;min-width:0}
+.onboarding-value-path .value-step:last-child{background:#f0f5f5;border-color:#bacdd1}
+.onboarding-value-path .value-step span{display:block;text-transform:uppercase;
+  font:bold 10px/1.6 Arial,sans-serif;letter-spacing:.12em;color:#556e79}
+.onboarding-value-path .value-step p{margin:7px 0 0;font:14px/1.55 Arial,sans-serif;
+  color:#21394e}
+.onboarding-value-path .value-direction{align-self:center;font:24px/1 Georgia,serif;
+  color:#a77351}
+@media(max-width:630px){
+ .onboarding-value-path{grid-template-columns:minmax(0,1fr);gap:6px}
+ .onboarding-value-path .value-direction{text-align:center;transform:rotate(90deg);font-size:20px}
+}
+</style>
+"""
+
+
+def value_path_html(before: str, after: str) -> str:
+    """Small evidence-first before/after frame, with fully escaped prose."""
+    return (
+        _VALUE_PATH_CSS
+        + '<div class="onboarding-value-path" aria-label="From starting question to useful output">'
+        + '<div class="value-step"><span>Starting point</span><p>'
+        + escape(str(before)) + '</p></div>'
+        + '<span class="value-direction" aria-hidden="true">→</span>'
+        + '<div class="value-step"><span>What you can work with</span><p>'
+        + escape(str(after)) + '</p></div></div>'
+    )

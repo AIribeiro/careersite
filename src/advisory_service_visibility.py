@@ -109,17 +109,25 @@ def advisory_role(token: str) -> str:
 
 
 def viewer_is_admin() -> bool:
-    """Public-page privilege needs a currently verified, password-authenticated session."""
-    if not isinstance(st.session_state.get("reader_native_session"), dict):
-        return False
-    try:
-        from page_reader_native import _session
-        from page_advisory_portal import _password_authenticated
-        session, user = _session()
-        if not session or not user or not user.get("email_confirmed_at"):
-            return False
-        if not _password_authenticated(session):
-            return False
-        return advisory_role(str(session["access_token"])) == "admin"
-    except (RuntimeError, ValueError, TimeoutError, KeyError, OSError):
-        return False
+    """Trust only verified password sessions; never a claimed email or URL state."""
+    if isinstance(st.session_state.get("reader_native_session"), dict):
+        try:
+            from page_reader_native import _session
+            from page_advisory_portal import _password_authenticated
+            session, user = _session()
+            if (session and user and user.get("email_confirmed_at")
+                    and _password_authenticated(session)
+                    and advisory_role(str(session["access_token"])) == "admin"):
+                return True
+        except (RuntimeError, ValueError, TimeoutError, KeyError, OSError):
+            pass
+    # The portfolio owner's CMS session is separate from Reader/Advisory.
+    # Recheck it against Supabase; a stale Streamlit flag is never enough.
+    if isinstance(st.session_state.get("cms_auth"), dict):
+        try:
+            from page_owner_reader_management import _verify_owner
+            token = _verify_owner(st.session_state["cms_auth"])
+            return advisory_role(token) == "admin"
+        except (PermissionError, RuntimeError, ValueError, TimeoutError, KeyError, OSError):
+            pass
+    return False

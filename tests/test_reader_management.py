@@ -116,6 +116,43 @@ class ReaderManagementTests(unittest.TestCase):
         self.assertNotIn("service_role", backoffice)
         self.assertNotIn("smtp", backoffice.lower())
 
+    def test_unprovided_professional_fields_do_not_render_as_noise(self):
+        from page_owner_reader_management import _professional_sections, _reader_name
+        blank = {"first_name": "Marco", "last_name": "Paulo", "interests": []}
+        self.assertEqual(_reader_name(blank), "Marco Paulo")
+        self.assertEqual(sum(len(v) for _, v in _professional_sections(blank)), 0)
+        filled = {
+            "organization": "Example Group", "job_title": "AI Director",
+            "city": "Gothenburg", "country": "Sweden",
+            "interests": ["AI leadership", "Governance"],
+        }
+        groups = _professional_sections(filled)
+        self.assertEqual(sum(len(v) for _, v in groups), 4)
+        self.assertIn(("Location", "Gothenburg, Sweden"), groups[1][1])
+        self.assertIn(("Topics of interest", "AI leadership, Governance"), groups[2][1])
+
+    def test_editorial_eligibility_distinguishes_consent_and_suppression(self):
+        from page_owner_reader_management import _editorial_state
+        profile = {"newsletter_opt_in": False}
+        self.assertEqual(_editorial_state(profile, {}), "No editorial opt-in")
+        profile["newsletter_opt_in"] = True
+        self.assertEqual(_editorial_state(profile, {}), "Opt-in record incomplete")
+        profile["newsletter_consent_at"] = "2026-11-15T15:00:00Z"
+        profile["consent_notice_version"] = "reader-v1"
+        self.assertEqual(_editorial_state(profile, {}), "Eligible for editorial updates")
+        self.assertEqual(_editorial_state(profile, {"mailing_suppressed": True}),
+                         "Mailing suppressed")
+        self.assertEqual(_editorial_state(profile, {"account_status": "suspended"}),
+                         "Excluded · account suspended")
+
+    def test_reader_detail_uses_concise_tabs_and_safe_escape(self):
+        src = self.source("src/page_owner_reader_management.py")
+        self.assertIn('"Professional context", "Reading activity", "Consent & privacy"', src)
+        self.assertIn('from html import escape', src)
+        self.assertIn('escape(str(value or "")[:500], quote=True)', src)
+        self.assertIn('if not sections:', src)
+        self.assertNotIn('"**Professional role:** "', src)
+
     def test_suspended_reader_cannot_reach_complete_briefing(self):
         src = self.source("src/page_reader_native.py")
         self.assertIn("rpc/portfolio_reader_member_status_v1", src)

@@ -362,8 +362,8 @@ def render_owner_advisory_management(owner_session: dict) -> None:
         f"{len(profiles)} completed Advisory profiles · {len(intents)} invitations / signup intents · "
         f"{len(readers)} library members · {len(requests)} client requests"
     )
-    overview, service_tab, inbox, scorecard_approvals, rollout_decisions, permission_tab, directory, pipeline, feedback_tab, audit_tab = st.tabs([
-        "Overview", "Service management", "Requests & replies", "Scorecard approvals", "Rollout decisions",
+    overview, service_tab, roles_tab, inbox, scorecard_approvals, rollout_decisions, permission_tab, directory, pipeline, feedback_tab, audit_tab = st.tabs([
+        "Overview", "Service management", "User roles", "Requests & replies", "Scorecard approvals", "Rollout decisions",
         "Access & invitations", "Relationships", "Pipeline", "Service feedback", "Audit",
     ])
 
@@ -373,6 +373,10 @@ def render_owner_advisory_management(owner_session: dict) -> None:
     with service_tab:
         from page_owner_advisory_services import render_service_management
         render_service_management(token)
+
+    with roles_tab:
+        from page_owner_advisory_roles import render_user_roles
+        render_user_roles(token, people)
 
     with inbox:
         render_advisory_action_inbox(token, people, requests)

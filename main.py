@@ -198,6 +198,11 @@ elif PAGE == "advisory-access":
     import importlib
     import page_advisory_scorecard_report as _scorecard_report
     import page_advisory_scorecard_decision_ui as _scorecard_decision_ui
+    import page_advisory_scorecard_workspace as _scorecard_workspace
+
+    if getattr(_scorecard_workspace, "SCORECARD_UX_RELEASE", None) != "executive_hub_20261115":
+        importlib.invalidate_caches()
+        importlib.reload(_scorecard_workspace)
 
     if (
         getattr(_scorecard_report, "REPORT_VERSION", None) != "v2_20261115"

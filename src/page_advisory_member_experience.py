@@ -249,18 +249,25 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
     )
     current = open_requests[0] if open_requests else None
 
-    # Read actual entitlements: an active account does not mean these services
-    # have been individually approved.
+    # Read actual entitlements: the recommendation never grants permission.
+    scorecard_approved = False
+    rollout_approved = False
     try:
         from page_advisory_scorecard_workspace import _read_workspaces
-        scorecard_status = ("Approved workspace" if _read_workspaces(token, uid)
-                            else "Individual approval required")
+        scorecard_approved = bool(_read_workspaces(token, uid))
+        scorecard_status = (
+            "Approved workspace" if scorecard_approved
+            else "Individual approval required"
+        )
     except (RuntimeError, ValueError, TimeoutError, KeyError):
         scorecard_status = "Access status unavailable"
     try:
         from page_advisory_rollout import _entitlements
-        rollout_status = ("Access approved" if _entitlements(token, uid)
-                          else "Individual approval required")
+        rollout_approved = bool(_entitlements(token, uid))
+        rollout_status = (
+            "Access approved" if rollout_approved
+            else "Individual approval required"
+        )
     except (RuntimeError, ValueError, TimeoutError, KeyError):
         rollout_status = "Access status unavailable"
 
@@ -342,6 +349,71 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             st.query_params["page"] = "readers"
             st.rerun()
         return
+
+    # A single editable decision question makes the first useful route visible
+    # before four service cards. Stored context guides only the initial choice;
+    # no confidential answers or decision text are sent to analytics.
+    from site_onboarding_guidance import (
+        ADVISORY_NEEDS, advisor_for_need, suggested_decision_need,
+    )
+    suggested_need, origin_explanation = suggested_decision_need(profile)
+    first_need = st.selectbox(
+        "Which executive decision are you working on?",
+        ADVISORY_NEEDS,
+        index=ADVISORY_NEEDS.index(suggested_need),
+        key="advisory_onboarding_decision_need",
+        help="This choice is used only to recommend a service in your "
+             "private workspace. It does not change your membership or access.",
+    )
+    recommendation = advisor_for_need(first_need)
+    service_view = str(recommendation["view"])
+    access_confirmed = (
+        scorecard_approved if service_view == "scorecard"
+        else rollout_approved if service_view == "rollout"
+        else True
+    )
+    with st.container(border=True, key="advisory_guided_first_decision"):
+        st.caption("RECOMMENDED START · NOT A SERVICE APPROVAL")
+        st.markdown("### " + str(recommendation["title"]))
+        st.caption(
+            origin_explanation
+            if first_need == suggested_need
+            else "Recommended from the decision type you selected above."
+        )
+        st.write(str(recommendation["why"]))
+        st.markdown("**What you get:** " + str(recommendation["outcome"]))
+        if recommendation["approval"] and not access_confirmed:
+            st.info(
+                "This service needs individual approval. You can open its "
+                "workspace and request access; no assessment is authorized "
+                "until approval is recorded."
+            )
+        elif service_view == "decision":
+            st.caption(
+                "A self-service assessment is included with your verified "
+                "Advisory account. The recommendation is based on your inputs, "
+                "not an independent audit or investment authorization."
+            )
+        else:
+            st.caption(
+                "You control what you share. The next step is a structured "
+                "assessment or privately reviewed request, not a promise of results."
+            )
+        cta = (
+            "Review access and request approval"
+            if recommendation["approval"] and not access_confirmed
+            else "Continue my current conversation"
+            if service_view == "requests" and current is not None
+            else "Open my recommended service"
+        )
+        if st.button(
+            cta, type="primary", key="advisory_open_recommended",
+            width="stretch",
+        ):
+            if service_view == "requests" and current is not None:
+                navigate("messages", str(current["id"]))
+            else:
+                navigate(service_view)
 
     st.html(
         '<div class="rl-workspace advisory-overview">'

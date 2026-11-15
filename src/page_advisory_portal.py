@@ -325,7 +325,7 @@ Future visits use your email and password, not an email access link.</p>
 def _advisory_login() -> None:
     self_service = str(st.query_params.get("view") or "") == "decision"
     if self_service:
-        st.html("""<section class="advisory-portal-intro"><h2>Free AI Investment Decision Advisor</h2><p>Create or sign into your Executive Advisory account to assess one AI opportunity, review your recommendation and download a private executive decision brief. This self-service tool does not require separate advisory approval.</p></section>""")
+        st.html("""<section class="advisory-portal-intro"><h2>Free AI Investment Decision Advisor</h2><p>Move from an AI opportunity to a structured invest, experiment, hold or stop recommendation, with the reasoning and three priority actions. Create or sign into your Executive Advisory account to save the assessment and download a private executive decision brief. No separate service approval is required.</p><p>First verify your email and set a password. Then begin the assessment without a separate advisory request.</p></section>""")
     else:
         st.html("""<section class="advisory-portal-intro">
 <h2>Bring a specific AI or data leadership decision.</h2>
@@ -333,6 +333,9 @@ def _advisory_login() -> None:
 I consider a limited number of focused pro-bono discussions where an external
 perspective may help. Registration does not guarantee a meeting.
 Your account also provides free access to the Executive AI Reader Library.</p>
+<p>What happens next: verify your email, set a password, then submit a
+specific decision for private review. If selected, the scope and next step
+are agreed together. No confidential information is required here.</p>
 </section>""")
     returning = st.radio(
         "Advisory account", ["Register free", "Sign in to advisory"],

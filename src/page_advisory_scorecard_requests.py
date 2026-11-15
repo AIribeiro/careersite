@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from advisory_service_visibility import service_enabled
+from advisory_service_visibility import service_enabled, advisory_role
 
 from page_advisory_client_journey import (
     _client_requests, _request_messages, _create_request, _reply, CLOSED,
@@ -41,7 +41,7 @@ def submit_scorecard_access(
 ) -> str:
     """Submit once into the real Advisory inbox; never grant entitlement here."""
     challenge = str(challenge or "").strip()
-    if not service_enabled("scorecard"):
+    if not service_enabled("scorecard") and advisory_role(token) != "admin":
         raise ValueError("The AI Portfolio Scorecard is temporarily unavailable for new access requests.")
     outcome = str(outcome or "").strip()
     if len(challenge) < 25 or len(challenge) > 1400:

@@ -18,11 +18,11 @@ class LeadershipPublicExperienceTests(unittest.TestCase):
         self.assertIn("SERVICE_CSS as INVESTMENT_SERVICE_CSS", page)
         self.assertIn("SCORECARD_CSS", page)
         self.assertIn("SERVICES_CSS", page)
-        self.assertIn("class=\\"scorecard-page investment-product leadership-product\\"", page)
-        self.assertIn("class=\\"sc-hero\\"", page)
-        self.assertIn("class=\\"sc-grid-2\\"", page)
-        self.assertIn("class=\\"sc-boundary\\"", page)
-        self.assertIn("class=\\"sc-actions\\"", page)
+        self.assertIn('class="scorecard-page investment-product leadership-product"', page)
+        self.assertIn('class="sc-hero"', page)
+        self.assertIn('class="sc-grid-2"', page)
+        self.assertIn('class="sc-boundary"', page)
+        self.assertIn('class="sc-actions"', page)
 
     def test_visitors_learn_value_method_outputs_and_trust_before_signup(self):
         from page_advisory_leadership_public import advisory_leadership

@@ -45,9 +45,6 @@ class ExecutiveScorecardExperienceTests(unittest.TestCase):
         self.assertIn('elif section=="Priority actions":',ui)
         self.assertIn('elif section=="Executive report":',ui)
         self.assertNotIn("st.tabs(",ui)
-        self.assertNotIn("st.dataframe(",ui.replace(
-            'st.dataframe(\n                [{','',1
-        )) if False else None
 
     def test_context_and_outcome_are_explained_before_decision(self):
         ui=self.source("src/page_advisory_scorecard_experience.py")
@@ -109,8 +106,8 @@ class ExecutiveScorecardExperienceTests(unittest.TestCase):
         s=self.source("src/page_owner_advisory_scorecard_analyses.py")
         self.assertIn('"Approval queue","Approved analyses","Decision history"',s)
         self.assertIn('"Select approved analysis"',s)
-        self.assertIn('"Decision to be supported"',s)
-        self.assertIn('"Expected outcome"',s)
+        self.assertIn('**Decision to be supported**',s)
+        self.assertIn('**Expected outcome**',s)
         self.assertIn('render_scorecard_analysis_approvals(',s)
         self.assertIn('"Initiative register · "',s)
         self.assertIn('"Approve and create new Scorecard"',s)

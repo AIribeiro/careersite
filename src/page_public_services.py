@@ -10,7 +10,7 @@ from site_media import IMAGE_DIR
 from site_components import footer, nav
 import streamlit as st
 
-from advisory_service_visibility import public_service_cta, service_enabled
+from advisory_service_visibility import public_service_cta, service_enabled, viewer_is_admin
 
 
 SERVICES_CSS = """
@@ -239,8 +239,9 @@ SERVICES_CSS = """
 def advisory() -> str:
     """Executive-grade advisory value, method, fit and distinct access."""
     member_signed_in = st.session_state.get("advisory_member") is True
-    personal_available = service_enabled("requests")
-    ready_count = sum(service_enabled(key) for key in ("decision", "rollout", "scorecard", "workshop"))
+    is_admin = viewer_is_admin()
+    personal_available = service_enabled("requests", admin=is_admin)
+    ready_count = sum(service_enabled(key, admin=is_admin) for key in ("decision", "rollout", "scorecard", "workshop"))
     ready_lede = (
         f"{ready_count} executive decision tools currently accepting new starts. "
         "Compare their outputs and access conditions before you begin."
@@ -251,9 +252,7 @@ def advisory() -> str:
     hero_discussion_cta = (
         '<a class="advisory-button advisory-button--outline" href="#advisory-contact" '
         'data-hq-event="advisory_email_primary">Discuss a decision →</a>'
-        if personal_available else
-        '<span class="advisory-button advisory-button--outline" aria-disabled="true" '
-        'style="opacity:.55;cursor:not-allowed">Personal advisory paused</span>'
+        if personal_available else ""
     )
     invitation = ("Continue your advisory conversation." if member_signed_in
                   else "Submit a decision for pro-bono review.")
@@ -303,6 +302,51 @@ def advisory() -> str:
         'loading="lazy" decoding="async" width="540" height="540">'
         if photo else ""
     )
+    decision_card = f'''\n   <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-decision">
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Self-service · Included with registration</span><span class="advisory-ready-number">01 / 04</span></div>
+    <h3>AI Investment Decision Advisor</h3>
+    <p class="advisory-ready-question">Should this AI opportunity move forward?</p>
+    <p class="advisory-ready-description">Assess one AI opportunity and receive an invest, experiment, hold or stop recommendation, with the reasoning and three priority actions.</p>
+    <div class="advisory-ready-card-bottom">
+     <p class="advisory-ready-detail"><span>What you receive</span><strong>Executive verdict · Downloadable decision brief</strong></p>
+     <p class="advisory-ready-detail"><span>Access</span><strong>Free with an Advisory account. No individual approval needed.</strong></p>
+     {public_service_cta("decision", "?page=advisory-decision", "Explore investment advisor", "advisory_investment_service", admin=is_admin)}
+    </div>
+   </article>\n''' if service_enabled("decision", admin=is_admin) else ""
+    rollout_card = f'''\n   <article class="advisory-ready-card" data-analytics-section="advisory-rollout">
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">On-demand assessment · Individual approval</span><span class="advisory-ready-number">02 / 04</span></div>
+    <h3>Enterprise AI Rollout Readiness Advisor</h3>
+    <p class="advisory-ready-question">Is this AI use case ready for enterprise rollout?</p>
+    <p class="advisory-ready-description">Assess business value, operations, governance, adoption and ability to scale, then see the readiness verdict and the evidence gaps to resolve.</p>
+    <div class="advisory-ready-card-bottom">
+     <p class="advisory-ready-detail"><span>What you receive</span><strong>Executive readiness verdict · Three priority actions</strong></p>
+     <p class="advisory-ready-detail"><span>Access</span><strong>Free pro-bono service. Individual approval required.</strong></p>
+     {public_service_cta("rollout", "?page=advisory-rollout", "Explore rollout advisor", "advisory_rollout_service", admin=is_admin)}
+    </div>
+   </article>\n''' if service_enabled("rollout", admin=is_admin) else ""
+    scorecard_card = f'''\n   <article class="advisory-ready-card" data-analytics-section="advisory-scorecard">
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Portfolio assessment · Individual approval</span><span class="advisory-ready-number">03 / 04</span></div>
+    <h3>AI Portfolio Prioritization Scorecard</h3>
+    <p class="advisory-ready-question">Which AI opportunities deserve scarce resources?</p>
+    <p class="advisory-ready-description">Compare initiatives and decide what to advance, test, hold or stop using a constrained portfolio view and alternative scenarios.</p>
+    <div class="advisory-ready-card-bottom">
+     <p class="advisory-ready-detail"><span>What you receive</span><strong>Portfolio recommendation · Scenarios · Decision memo</strong></p>
+     <p class="advisory-ready-detail"><span>Access</span><strong>Free pro-bono service. Individual approval required.</strong></p>
+     {public_service_cta("scorecard", "?page=advisory-scorecard", "Explore portfolio scorecard", "advisory_scorecard_service", admin=is_admin)}
+    </div>
+   </article>\n''' if service_enabled("scorecard", admin=is_admin) else ""
+    workshop_card = f'''\n   <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-leadership-workshop">
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Executive leadership · Free self-service</span><span class="advisory-ready-number">04 / 04</span></div>
+    <h3>Executive AI Leadership Workshop</h3>
+    <p class="advisory-ready-question">Are your leaders prepared to own and sustain AI adoption?</p>
+    <p class="advisory-ready-description">Assess seven leadership conditions, discuss realistic AI adoption dilemmas and document the decisions, responsibilities and evidence needed next. Individual and invited team formats.</p>
+    <div class="advisory-ready-card-bottom">
+     <p class="advisory-ready-detail"><span>What you receive</span><strong>Leadership profile · Discussion exercises · Executive decision PDF</strong></p>
+     <p class="advisory-ready-detail"><span>Access</span><strong>Free with a verified Advisory account. No individual approval required.</strong></p>
+     {public_service_cta("workshop", "?page=advisory-leadership", "Explore leadership workshop", "advisory_workshop_service", admin=is_admin)}
+    </div>
+   </article>\n''' if service_enabled("workshop", admin=is_admin) else ""
+    ready_cards = "".join((decision_card, rollout_card, scorecard_card, workshop_card))
     return f'''{SERVICES_CSS}{nav("advisory")}
 <main class="advisory-page">
 <section class="advisory-hero" aria-labelledby="advisory-title">
@@ -314,7 +358,7 @@ def advisory() -> str:
    </nav>
    <p class="service-eyebrow">Selective pro-bono executive advisory / AI &amp; Data</p>
    <h1 id="advisory-title">Better AI decisions. Clearer ownership. Measurable business value.</h1>
-   <p class="service-lede">For leaders facing decisions on AI investment, governance, adoption or operating ownership. I consider a limited number of focused pro-bono discussions to examine options, trade-offs and a practical next step.</p>
+   <p class="service-lede">{'For leaders facing decisions on AI investment, governance, adoption or operating ownership. I consider a limited number of focused pro-bono discussions to examine options, trade-offs and a practical next step.' if personal_available else 'For leaders considering AI investment, governance, adoption or operating ownership. Explore the executive tools currently available to support a practical decision.'}</p>
    <div class="advisory-actions">
     <a class="advisory-button" href="#advisory-services" data-hq-event="advisory_explore_value">Explore the services →</a>
     {hero_discussion_cta}
@@ -339,53 +383,8 @@ def advisory() -> str:
    </div>
    <span class="advisory-ready-count">{ready_count:02d} / Available now</span>
   </div>
-  <div class="advisory-ready-grid">
-   <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-decision">
-    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Self-service · Included with registration</span><span class="advisory-ready-number">01 / 04</span></div>
-    <h3>AI Investment Decision Advisor</h3>
-    <p class="advisory-ready-question">Should this AI opportunity move forward?</p>
-    <p class="advisory-ready-description">Assess one AI opportunity and receive an invest, experiment, hold or stop recommendation, with the reasoning and three priority actions.</p>
-    <div class="advisory-ready-card-bottom">
-     <p class="advisory-ready-detail"><span>What you receive</span><strong>Executive verdict · Downloadable decision brief</strong></p>
-     <p class="advisory-ready-detail"><span>Access</span><strong>Free with an Advisory account. No individual approval needed.</strong></p>
-     {public_service_cta("decision", "?page=advisory-decision", "Explore investment advisor", "advisory_investment_service")}
-    </div>
-   </article>
-   <article class="advisory-ready-card" data-analytics-section="advisory-rollout">
-    <div class="advisory-ready-card-head"><span class="advisory-ready-category">On-demand assessment · Individual approval</span><span class="advisory-ready-number">02 / 04</span></div>
-    <h3>Enterprise AI Rollout Readiness Advisor</h3>
-    <p class="advisory-ready-question">Is this AI use case ready for enterprise rollout?</p>
-    <p class="advisory-ready-description">Assess business value, operations, governance, adoption and ability to scale, then see the readiness verdict and the evidence gaps to resolve.</p>
-    <div class="advisory-ready-card-bottom">
-     <p class="advisory-ready-detail"><span>What you receive</span><strong>Executive readiness verdict · Three priority actions</strong></p>
-     <p class="advisory-ready-detail"><span>Access</span><strong>Free pro-bono service. Individual approval required.</strong></p>
-     {public_service_cta("rollout", "?page=advisory-rollout", "Explore rollout advisor", "advisory_rollout_service")}
-    </div>
-   </article>
-   <article class="advisory-ready-card" data-analytics-section="advisory-scorecard">
-    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Portfolio assessment · Individual approval</span><span class="advisory-ready-number">03 / 04</span></div>
-    <h3>AI Portfolio Prioritization Scorecard</h3>
-    <p class="advisory-ready-question">Which AI opportunities deserve scarce resources?</p>
-    <p class="advisory-ready-description">Compare initiatives and decide what to advance, test, hold or stop using a constrained portfolio view and alternative scenarios.</p>
-    <div class="advisory-ready-card-bottom">
-     <p class="advisory-ready-detail"><span>What you receive</span><strong>Portfolio recommendation · Scenarios · Decision memo</strong></p>
-     <p class="advisory-ready-detail"><span>Access</span><strong>Free pro-bono service. Individual approval required.</strong></p>
-     {public_service_cta("scorecard", "?page=advisory-scorecard", "Explore portfolio scorecard", "advisory_scorecard_service")}
-    </div>
-   </article>
-   <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-leadership-workshop">
-    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Executive leadership · Free self-service</span><span class="advisory-ready-number">04 / 04</span></div>
-    <h3>Executive AI Leadership Workshop</h3>
-    <p class="advisory-ready-question">Are your leaders prepared to own and sustain AI adoption?</p>
-    <p class="advisory-ready-description">Assess seven leadership conditions, discuss realistic AI adoption dilemmas and document the decisions, responsibilities and evidence needed next. Individual and invited team formats.</p>
-    <div class="advisory-ready-card-bottom">
-     <p class="advisory-ready-detail"><span>What you receive</span><strong>Leadership profile · Discussion exercises · Executive decision PDF</strong></p>
-     <p class="advisory-ready-detail"><span>Access</span><strong>Free with a verified Advisory account. No individual approval required.</strong></p>
-     {public_service_cta("workshop", "?page=advisory-leadership", "Explore leadership workshop", "advisory_workshop_service")}
-    </div>
-   </article>
-  </div>
-  <p class="advisory-ready-tail">Not sure which service fits? <a href="#advisory-contact" data-hq-event="advisory_services_ask">Describe the decision you are facing →</a></p>
+  <div class="advisory-ready-grid">{ready_cards}</div>
+  {('<p class="advisory-ready-tail">Not sure which service fits? <a href="#advisory-contact" data-hq-event="advisory_services_ask">Describe the decision you are facing →</a></p>' if personal_available else '')}
  </div>
 </section>
 

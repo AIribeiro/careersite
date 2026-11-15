@@ -758,10 +758,31 @@ def render_scorecard_experience(
     )
     if nav=="How the service works":
         _service_guide(approved=True,saved_count=len(analyses))
-        st.button(
-            "View my approved analyses",key="scx_guide_back_"+uid,
-            type="primary",on_click=_go,args=(uid,"My analyses"),
-        )
+        if analyses:
+            latest=analyses[0]
+            latest_id=str(latest["ws"]["id"])
+            st.markdown("### Your latest portfolio decision")
+            with st.container(border=True):
+                st.caption((latest["updated_at"] or "Recent assessment") +
+                           " · " + latest["status"])
+                st.markdown("#### " + latest["title"])
+                st.write(latest["context"])
+                st.caption("**Next action:** " + latest["next_step"])
+                left,right=st.columns(2)
+                with left:
+                    st.button(
+                        "Open executive decision brief",type="primary",
+                        key="scx_guide_latest_"+uid,use_container_width=True,
+                        on_click=_go,args=(
+                            uid,"Open analysis",latest_id,
+                            "Executive decision" if latest["count"] else "Initiatives & evidence",
+                        ),
+                    )
+                with right:
+                    st.button(
+                        "Browse decision history",key="scx_guide_history_"+uid,
+                        use_container_width=True,on_click=_go,args=(uid,"My analyses"),
+                    )
     elif nav=="Request new analysis":
         _title(
             "INDIVIDUAL REVIEW · PRO BONO",

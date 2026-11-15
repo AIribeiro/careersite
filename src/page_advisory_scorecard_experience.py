@@ -44,7 +44,32 @@ CSS = """
 .scx-brief strong {color:#1b3449}
 .scx-subtitle {font-size:.72rem;font-weight:740;letter-spacing:.1em;text-transform:uppercase;color:#886a59;margin-bottom:.2rem}
 .scx-dim {color:#627386;font-size:.89rem}
+.scx-portfolio-board {margin:.8rem 0 .75rem}
+.scx-portfolio-top {display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem}
+.scx-portfolio-top h3 {font-size:1.12rem;color:#193147;margin:0;font-weight:700}
+.scx-portfolio-total {font-size:.81rem;color:#536c7b;font-weight:600}
+.scx-portfolio-counts {display:flex;gap:.4rem 1rem;flex-wrap:wrap;color:#556978;font-size:.82rem;margin-bottom:.7rem}
+.scx-portfolio-counts strong {color:#193147}
+.scx-portfolio-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.52rem}
+.scx-portfolio-item {border:1px solid #dce3e7;border-left:3px solid #a4b5c0;border-radius:7px;padding:.62rem .75rem;background:#fff;min-width:0;display:flex;justify-content:space-between;gap:.6rem;align-items:center}
+.scx-portfolio-item--advance {border-left-color:#28777b}
+.scx-portfolio-item--test {border-left-color:#b48150}
+.scx-portfolio-item--hold {border-left-color:#9a7e58}
+.scx-portfolio-item--stop {border-left-color:#a66062}
+.scx-portfolio-copy {min-width:0;flex:1}
+.scx-portfolio-name {font-size:.86rem;line-height:1.35;color:#182f41;font-weight:650;overflow-wrap:anywhere}
+.scx-portfolio-owner {font-size:.72rem;line-height:1.3;color:#697984;margin-top:.16rem;overflow-wrap:anywhere}
+.scx-portfolio-result {text-align:right;min-width:98px;max-width:38%}
+.scx-portfolio-score {font-size:.87rem;line-height:1.25;font-weight:700;color:#1b3448}
+.scx-portfolio-route {font-size:.72rem;line-height:1.3;color:#576d7b;margin-top:.2rem;overflow-wrap:anywhere}
+.scx-portfolio-foot {font-size:.75rem;line-height:1.4;color:#637485;margin-top:.6rem}
+.scx-compact-kpis {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;border:1px solid #dae2e6;border-radius:8px;overflow:hidden;margin:.55rem 0 .45rem;background:#dae2e6}
+.scx-compact-kpi {padding:.48rem .65rem;background:#f8fafb;min-width:0}
+.scx-compact-kpi-label {font-size:.72rem;color:#617282;line-height:1.3}
+.scx-compact-kpi-value {font-size:1.13rem;color:#17344b;font-weight:720;line-height:1.35;margin-top:.1rem;font-variant-numeric:tabular-nums}
 @media(max-width:700px) {
+ .scx-portfolio-grid {grid-template-columns:1fr}
+ .scx-compact-kpis {grid-template-columns:repeat(2,minmax(0,1fr))}
  .scx-title {font-size:1.7rem}
  .scx-brief {padding:.8rem}
 }
@@ -599,6 +624,132 @@ def _activity_history(a: dict, token: str) -> None:
     )
 
 
+def _portfolio_snapshot(a: dict, uid: str) -> None:
+    """Always-visible initiative register before the decision navigation.
+
+    Uses only current approved workspace data; recommendations are advisory
+    and each item can be opened through the native selection control below.
+    """
+    import html
+
+    wid=str(a["ws"]["id"])
+    rows=list(a["report"].get("rows") or [])
+    counts={
+        "business_cases":sum(r.get("recommendation")=="Advance to business case" for r in rows),
+        "tests":sum(r.get("recommendation")=="Time-boxed test" for r in rows),
+        "other":sum(r.get("recommendation") not in (
+            "Advance to business case","Time-boxed test") for r in rows),
+    }
+    kpis=[
+        ("Initiatives",a["count"]),("Assessed",a["reviewed"]),
+        ("For review",a["report"]["recommended"]["count"]),
+        ("Revision",a["revision"]),
+    ]
+    st.html(
+        '<div class="scx-compact-kpis" aria-label="Portfolio assessment overview">'
+        +''.join(
+            '<div class="scx-compact-kpi"><div class="scx-compact-kpi-label">'
+            +html.escape(str(label))+'</div><div class="scx-compact-kpi-value">'
+            +html.escape(str(value))+'</div></div>'
+            for label,value in kpis
+        )+'</div>'
+    )
+    st.html(
+        '<div class="scx-portfolio-board">'
+        '<div class="scx-portfolio-top"><h3>Initiatives in this portfolio</h3>'
+        '<span class="scx-portfolio-total">'+str(len(rows))+' registered</span></div>'
+        '<div class="scx-portfolio-counts">'
+        '<span><strong>'+str(counts["business_cases"])+'</strong> business-case candidates</span>'
+        '<span><strong>'+str(counts["tests"])+'</strong> scoped tests</span>'
+        '<span><strong>'+str(counts["other"])+'</strong> held, deferred or requiring review</span>'
+        '</div></div>'
+    )
+    if not rows:
+        st.info(
+            "This analysis has no initiatives yet. Add the first one to begin "
+            "the assessment and build your executive recommendation."
+        )
+        st.button(
+            "Add first initiative",key="scx_port_first_"+wid,type="primary",
+            on_click=_go,args=(uid,"Open analysis",wid,"Initiatives & evidence"),
+        )
+        return
+    priority={
+        "Advance to business case":0,"Time-boxed test":1,
+        "Hold - control review":2,"Stop / redesign":3,
+        "Validate evidence":4,"Complete assessment":5,
+        "Defer - constrained":6,"Queue for a test":7,
+        "Defer / stop":8,
+    }
+    ranked=sorted(
+        rows,key=lambda row:(
+            priority.get(str(row.get("recommendation") or ""),9),
+            -(row.get("score") or 0),
+            str(row.get("name") or "").casefold(),
+        )
+    )
+    selected_key="scx_portfolio_selected_"+wid
+    valid_ids={str(r["id"]) for r in ranked}
+    if st.session_state.get(selected_key) not in valid_ids:
+        st.session_state[selected_key]=str(ranked[0]["id"])
+    page_limit=10
+    full_key="scx_portfolio_full_"+wid
+    show_all=bool(st.session_state.get(full_key,False))
+    visible=ranked if show_all else ranked[:page_limit]
+    def status_class(status: str) -> str:
+        if status=="Advance to business case":return "advance"
+        if status=="Time-boxed test":return "test"
+        if status=="Hold - control review":return "hold"
+        if status=="Stop / redesign":return "stop"
+        return "other"
+    cards=[]
+    for row in visible:
+        status=str(row.get("recommendation") or "Assessment needed")
+        name=html.escape(str(row.get("name") or "Unnamed initiative"))
+        owner=html.escape(str(row.get("owner") or "Owner not assigned"))
+        score=row.get("score")
+        score_label=(str(score)+"/100") if score is not None else "Not scored"
+        cards.append(
+            '<div class="scx-portfolio-item scx-portfolio-item--'
+            +status_class(status)+'">'
+            '<div class="scx-portfolio-copy"><div class="scx-portfolio-name">'
+            +name+'</div><div class="scx-portfolio-owner">'
+            +owner+'</div></div><div class="scx-portfolio-result">'
+            '<div class="scx-portfolio-score">'+html.escape(score_label)+'</div>'
+            '<div class="scx-portfolio-route">'+html.escape(status)+'</div></div></div>'
+        )
+    st.html(
+        '<div class="scx-portfolio-grid" role="list" aria-label="Current initiatives and recommendations">'
+        +''.join(cards)+'</div>'
+        '<div class="scx-portfolio-foot">These are preliminary portfolio recommendations, '
+        'not funding or deployment approvals. Select an initiative to review its full evidence.</div>'
+    )
+    if len(ranked)>page_limit:
+        st.toggle(
+            f"Show all {len(ranked)} initiatives",
+            key=full_key,
+        )
+    choice,button=st.columns([3,1],vertical_alignment="bottom")
+    with choice:
+        st.selectbox(
+            "Review a specific initiative",
+            [str(r["id"]) for r in ranked],
+            format_func=lambda value:next(
+                (str(r.get("name") or "Unnamed initiative")
+                 for r in ranked if str(r["id"])==value),value
+            ),
+            key=selected_key,
+        )
+    def open_selected() -> None:
+        st.session_state["scorecard_selected_"+wid]=st.session_state[selected_key]
+        _go(uid,"Open analysis",wid,"Initiatives & evidence")
+    with button:
+        st.button(
+            "Open initiative",key="scx_portfolio_open_"+wid,
+            type="primary",use_container_width=True,on_click=open_selected,
+        )
+
+
 def _analysis(uid: str, a: dict, token: str,
               feedback_rows: list[dict] | None) -> None:
     wid=str(a["ws"]["id"])
@@ -614,18 +765,15 @@ def _analysis(uid: str, a: dict, token: str,
         status=a["status"]+" · "+str(a["count"])+
                " initiatives · revision "+str(a["revision"]),
     )
+    _portfolio_snapshot(a,uid)
     with st.expander("Purpose of this assessment and intended deliverable"):
         st.markdown("**What this analysis is intended to deliver**")
         st.write(a["outcome"])
-        st.caption("The analysis compares initiatives within stated resource limits; "
-                   "recommendations are not approvals to spend or deploy.")
-    with st.container(border=True):
-        m1,m2,m3,m4=st.columns(4)
-        m1.metric("Initiatives",a["count"])
-        m2.metric("Assessed",a["reviewed"])
-        m3.metric("For leadership review",a["report"]["recommended"]["count"])
-        m4.metric("Revision",a["revision"])
-        st.caption("**Next action:** "+a["next_step"])
+        st.caption(
+            "This analysis compares initiatives within stated resource limits. "
+            "Recommendations are not approvals to spend or deploy."
+        )
+    st.caption("**Next action:** "+a["next_step"])
     # Rollout-standard three-way decision navigation. Portfolio-only controls
     # live under Evidence & report, rather than creating eight top-level tabs.
     section_key="scx_section_"+wid

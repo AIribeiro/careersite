@@ -113,6 +113,16 @@ class ExecutiveDecisionAdvisorTests(unittest.TestCase):
         self.assertTrue(any("Generate my executive decision brief" in x.label
                             for x in app.button))
 
+    def test_advisory_cards_are_present_in_expected_order(self):
+        page = (ROOT / "src/page_public_services.py").read_text(encoding="utf-8")
+        a = page.index('data-analytics-section="advisory-scorecard"')
+        b = page.index('data-analytics-section="advisory-rollout"')
+        c = page.index('data-analytics-section="advisory-decision"')
+        self.assertLess(a, b)
+        self.assertLess(b, c)
+        self.assertIn('href="?page=advisory-decision"', page)
+        self.assertIn('No separate service approval required', page.replace("no separate service approval required", "No separate service approval required"))
+
     def test_pdf_is_real_pdf(self):
         from page_advisory_investment import _pdf_report
         raw = case()

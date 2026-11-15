@@ -19,7 +19,7 @@ from page_rollout_workspace_ui import WORKSPACE_CSS
 MEMBER_EXPERIENCE_VERSION = "rollout_consistent_overview_20261115"
 
 VIEWS = (
-    "overview", "requests", "messages", "scorecard", "rollout", "decision", "account",
+    "overview", "requests", "messages", "scorecard", "rollout", "decision", "workshop", "account",
 )
 VIEW_LABELS = {
     "overview": "Overview",
@@ -28,6 +28,7 @@ VIEW_LABELS = {
     "scorecard": "AI Scorecard",
     "rollout": "Rollout Advisor",
     "decision": "Investment Advisor",
+    "workshop": "Leadership Workshop",
     "account": "Account",
 }
 MEMBER_CSS = """
@@ -492,7 +493,7 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
     st.html(
         '<div class="rl-workspace advisory-overview">'
         '<div class="section-head"><span class="eyebrow">Your advisory services</span>'
-        '<h3>Four services. Four distinct decision needs.</h3>'
+        '<h3>Five services. Five distinct decision needs.</h3>'
         '<p>See what each service delivers, check your access and open '
         'the relevant workspace. No need to navigate a single long assessment page.</p>'
         '</div></div>'
@@ -552,6 +553,18 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             if st.button("Open Investment Decision Advisor", key="overview_investment",
                          use_container_width=True):
                 navigate("decision")
+
+    with st.container(border=True, key="overview_card_workshop"):
+        _overview_service_copy(
+            "05", "Executive leadership", "AI Leadership Workshop",
+            "Assess leadership readiness for AI adoption, work through executive dilemmas "
+            "and record accountable decisions. Individual or invited team formats.",
+            "Seven-dimension leadership profile, decision agenda and executive PDF",
+            "Free self-service with verified Advisory membership",
+        )
+        if st.button("Open Leadership Workshop", key="overview_leadership_workshop",
+                     use_container_width=True):
+            navigate("workshop")
 
     st.html(
         '<div class="rl-workspace advisory-overview"><div class="membership-note">'

@@ -47,6 +47,7 @@ class ScorecardAccessRequestTests(TestCase):
         from page_advisory_scorecard_requests import submit_scorecard_access
         current={"id":"engagement-one","status":"active","title":"Existing advisory discussion"}
         with (
+            patch("page_advisory_scorecard_requests.service_enabled", return_value=True),
             patch("page_advisory_scorecard_requests._find_request_context",return_value=(current,False)),
             patch("page_advisory_scorecard_requests._reply") as reply,
             patch("page_advisory_scorecard_requests._create_request") as create,
@@ -63,6 +64,7 @@ class ScorecardAccessRequestTests(TestCase):
     def test_no_existing_engagement_opens_formal_advisory_request(self):
         from page_advisory_scorecard_requests import submit_scorecard_access,SCORECARD_REQUEST_TITLE
         with (
+            patch("page_advisory_scorecard_requests.service_enabled", return_value=True),
             patch("page_advisory_scorecard_requests._find_request_context",return_value=(None,False)),
             patch("page_advisory_scorecard_requests._create_request") as create,
             patch("page_advisory_scorecard_requests._reply") as reply,
@@ -78,6 +80,7 @@ class ScorecardAccessRequestTests(TestCase):
     def test_duplicate_request_is_idempotent(self):
         from page_advisory_scorecard_requests import submit_scorecard_access
         with (
+            patch("page_advisory_scorecard_requests.service_enabled", return_value=True),
             patch("page_advisory_scorecard_requests._find_request_context",return_value=({"id":"already"},True)),
             patch("page_advisory_scorecard_requests._reply") as reply,
             patch("page_advisory_scorecard_requests._create_request") as create,

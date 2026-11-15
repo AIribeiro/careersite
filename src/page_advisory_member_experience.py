@@ -405,11 +405,11 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             "Start my first investment assessment · No approval needed"
             if not requests else "Open Investment Decision Advisor · No approval needed",
             type="primary", key="overview_first_win_investment",
-            use_container_width=True,
+            width="stretch",
         ):
             navigate("decision")
         if st.button("Submit an advisory request",
-                     key="overview_new_request", use_container_width=True):
+                     key="overview_new_request", width="stretch"):
             navigate("requests")
 
     st.html(

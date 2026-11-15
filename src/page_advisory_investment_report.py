@@ -260,6 +260,8 @@ def generate_decision_pdf(data: dict, result: dict, created_at: str) -> bytes:
            max_lines=1)
     value, control, stage = _compact_state(data["choices"])
     _txt(pdf, 18, 133, "EXECUTIVE SUMMARY", 9.0, GOLD, "B")
+    _txt(pdf, 116, 133, "CONFIDENCE: " + result["confidence"].upper(),
+         7.1, MUTED, "B")
     _lines(pdf, 18, 142, _executive_summary(data, result), 174, 9.3,
            INK, leading=5.4, max_lines=4)
     _band(pdf, 18, 162, 174, 11.5, LIGHT_GOLD, 1)

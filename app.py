@@ -11,6 +11,8 @@ from xml.sax.saxutils import escape
 
 from starlette.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from starlette.routing import Route
+from starlette.requests import Request
+from starlette.middleware import Middleware
 from streamlit.starlette import App
 
 ROOT = Path(__file__).resolve().parent
@@ -23,6 +25,7 @@ from briefings_visual import briefing_image_svg
 from thinking_social import ensure_article_share_page, ensure_article_social_image
 from site_cms import bundled_header_bytes, cms_share_document, cms_sitemap_entries, fetch_public_article, fetch_published_articles, render_cms_social_image
 from site_social_preview import PUBLIC_URL as SITE_SOCIAL_IMAGE
+from site_social_http import homepage_social_html, is_social_crawler
 from site_owner_http_auth import owner_auth_route
 from site_member_http_auth import member_auth_route
 from reader_membership import (reader_route, reader_download, ROI_SLUG, AUTHORITY_SLUG)
@@ -556,6 +559,52 @@ async def _weekly_ai_evergreen_image(_request):
     )
 
 
+
+class _SocialMetadataMiddleware:
+    """Serve LinkedIn and other preview crawlers real OG HTML at the root.
+
+    Ordinary HTTP requests and all Streamlit websocket traffic pass through
+    unchanged. This supplements (rather than replaces) browser-side metadata.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if (
+            scope["type"] == "http"
+            and scope.get("path") == "/"
+            and scope.get("method") in ("GET", "HEAD")
+        ):
+            request = Request(scope)
+            if is_social_crawler(request.headers.get("user-agent", "")):
+                page = str(request.query_params.get("page") or "home").strip().lower()
+                slug = str(request.query_params.get("article") or "").strip().lower()
+                if page in ("thinking", "briefing") and slug:
+                    if re.fullmatch(r"[a-z0-9][a-z0-9-]{0,149}", slug):
+                        # Reuse the established published-article OG renderer,
+                        # so article links do not silently receive a generic card.
+                        article_scope = dict(scope, path_params={"slug": slug})
+                        article_response = await _thinking_article(
+                            Request(article_scope), page_override=page
+                        )
+                        await article_response(scope, receive, send)
+                        return
+                else:
+                    document = homepage_social_html(page)
+                    if document is not None:
+                        response = HTMLResponse(
+                            document,
+                            headers={
+                                "Cache-Control": "public, max-age=900, stale-while-revalidate=3600",
+                                "X-Robots-Tag": "index, follow, max-image-preview:large",
+                            },
+                        )
+                        await response(scope, receive, send)
+                        return
+        await self.app(scope, receive, send)
+
+
 # Current Streamlit exposes the Starlette ASGI application directly. Keeping
 # the interactive UI in main.py lets this launcher provide crawler-visible
 # article, social-image, robots and sitemap routes on the same public domain.
@@ -564,6 +613,7 @@ async def _weekly_ai_evergreen_image(_request):
 # reader_test.py remains an isolated local/CI smoke-test launcher only.
 app = App(
     "main.py",
+    middleware=[Middleware(_SocialMetadataMiddleware)],
     routes=[
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
         Route("/member-auth/{action}", member_auth_route, methods=["POST"]),

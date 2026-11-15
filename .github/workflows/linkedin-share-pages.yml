@@ -31,7 +31,7 @@ on:
   # Audio and the branded cover are committed by the Weekly AI workflow's bot;
   # those bot pushes do not trigger ordinary push workflows.
   workflow_run:
-    workflows: ["Weekly AI audio"]
+    workflows: ["Weekly AI audio", "Build optimized portfolio photography"]
     types: [completed]
 
 permissions:

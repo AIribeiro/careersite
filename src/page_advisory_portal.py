@@ -43,6 +43,16 @@ ADVISORY_CSS = """
 .advisory-portal-badge{border-left:3px solid #bd774b;padding:16px 24px;
  background:#fffaf3;margin:16px 0 29px;color:#34475b;line-height:1.65}
 .advisory-portal-badge strong{color:#162c43}
+.advisory-workshop-intro{max-width:1020px}
+.advisory-workshop-intro p{max-width:840px}
+.advisory-workshop-reasons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 24px}
+.advisory-workshop-reasons div{background:#fffdfa;border:1px solid #dfd7ce;border-top:3px solid #b57a55;padding:19px 18px;min-width:0}
+.advisory-workshop-reasons strong{display:block;font-size:14px;color:#18344b}
+.advisory-workshop-reasons span{display:block;font-size:12px;color:#596b7a;line-height:1.65;margin-top:7px}
+.advisory-workshop-trust{padding:15px 19px;border-left:3px solid #b57a55;background:#f9f5ee;color:#42566b;font-size:13px!important}
+.advisory-workshop-trust a{color:#174a71;font-weight:750;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:760px),(max-device-width:760px){.advisory-workshop-reasons{grid-template-columns:1fr}}
+
 [data-testid="stForm"]{border:1px solid #d5cabf!important;
  background:#fffdfa!important;padding:clamp(20px,3vw,34px)!important;
  box-shadow:0 12px 30px rgba(16,31,48,.045)}
@@ -336,8 +346,27 @@ Future visits use your email and password, not an email access link.</p>
 
 
 def _advisory_login() -> None:
-    self_service = str(st.query_params.get("view") or "") == "decision"
-    if self_service:
+    requested_service = str(st.query_params.get("view") or "")
+    self_service = requested_service == "decision"
+    if requested_service == "workshop":
+        st.html("""<section class="advisory-portal-intro advisory-workshop-intro">
+<h2>Your private AI Leadership Workshop starts here.</h2>
+<p>Use one verified account to examine seven leadership dimensions, challenge
+two realistic executive dilemmas and save a decision brief with three proposed
+actions and accountable roles. There is no payment or individual approval.</p>
+<div class="advisory-workshop-reasons">
+ <div><strong>21 guided questions</strong><span>Evidence of current leadership practice, not ambition alone.</span></div>
+ <div><strong>Executive decision record</strong><span>Clear priorities, evidence gaps, owners and a downloadable PDF.</span></div>
+ <div><strong>Private by default</strong><span>Team participants choose whether to share their answers.</span></div>
+</div>
+<p class="advisory-workshop-trust">Developed from practical enterprise AI,
+data governance and organizational adoption experience.
+Answers are self-reported, not independently audited.
+<a href="?page=advisory-leadership" target="_self">
+Explore the complete workshop, method and privacy boundaries</a>
+before registering.</p>
+</section>""")
+    elif self_service:
         st.html("""<section class="advisory-portal-intro"><h2>Free AI Investment Decision Advisor</h2><p>Create or sign into your Executive Advisory account to assess one AI opportunity, review your recommendation and download a private executive decision brief. This self-service tool does not require separate advisory approval.</p></section>""")
     else:
         st.html("""<section class="advisory-portal-intro">
@@ -624,7 +653,8 @@ def render_advisory_portal() -> None:
     _consume_query_verification()
     from site_native_shell import native_header, native_footer
 
-    st.html(native_header("advisory-access"))
+    st.html(native_header("advisory-access",
+                          service="workshop" if str(st.query_params.get("view") or "") == "workshop" else ""))
     st.html(ADVISORY_CSS)
 
     with st.container(key="native_advisory_content"):

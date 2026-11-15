@@ -70,7 +70,7 @@ def ensure_social_preview() -> Path:
     draw.line((70, 385, 585, 385), fill=DIVIDER, width=2)
     draw.text((70, 420), "Strategy · Operating capability", font=_font(23), fill=MUTED)
     draw.text((70, 458), "Adoption · Governance · Value", font=_font(23), fill=MUTED)
-    draw.text((70, 560), "jairribeiro-ai.streamlit.app", font=_font(20, bold=True), fill=MUTED_DARK)
+    draw.text((70, 560), "jairribeiro.com", font=_font(20, bold=True), fill=MUTED_DARK)
 
     canvas.save(TARGET, format="PNG", optimize=True)
     return TARGET

@@ -142,6 +142,13 @@ PRIVATE_CSS = """
 .st-key-investment_decision_area .inv-case-item p{
  font-size:13px;color:#596d7a;margin:5px 0
 }
+.st-key-investment_decision_area .inv-case-tags{
+ display:flex;flex-wrap:wrap;gap:8px;margin:11px 0 8px
+}
+.st-key-investment_decision_area .inv-case-tags span{
+ padding:6px 10px;border:1px solid #dcd9d2;background:#f5f2eb;
+ font:700 11px/1.3 Arial,sans-serif;color:#243e53
+}
 .st-key-investment_decision_area [data-testid="stForm"]{
  background:#fffdfa;border:1px solid #e0dbd2;padding:15px
 }
@@ -263,18 +270,26 @@ QUESTIONS = (
 
 
 def _input_ui(token: str, uid: str) -> None:
-    st.html('<div class="inv-panel"><span class="inv-eyebrow">NEW DECISION / 4–6 MINUTES</span>'
-            '<h3>What should happen with this AI opportunity?</h3>'
-            '<p>Choose the closest answer for each condition. Use the evidence available '
-            'today, not the target state. The result will state what has not been verified.</p></div>')
+    st.html('<div class="inv-note"><strong>How to complete the assessment.</strong> '
+            'Give the opportunity a clear non-confidential name. Make the guided selections '
+            'in all three sections, using current evidence rather than intended future '
+            'capabilities. You will receive one verdict and three priority actions.</div>')
     with st.form("investment_single_decision_form", clear_on_submit=False):
         name = st.text_input("AI opportunity", max_chars=120,
                              placeholder="e.g. AI-assisted service case routing")
         tabs = st.tabs(["01 · Business case", "02 · Delivery readiness",
                         "03 · Governance & authority"])
         choices = {}
-        for tab, keys in zip(tabs, (QUESTIONS[:6], QUESTIONS[6:11], QUESTIONS[11:])):
+        descriptions = (
+            "Define the problem, alternative approaches and current evidence of value.",
+            "State what is operationally proven: people, data, ownership and adoption.",
+            "State AI authority, consequences and the status of specialist controls.",
+        )
+        for tab, keys, description in zip(
+            tabs, (QUESTIONS[:6], QUESTIONS[6:11], QUESTIONS[11:]), descriptions
+        ):
             with tab:
+                st.caption(description)
                 for key, label in keys:
                     choices[key] = st.selectbox(
                         label, FIELDS[key], index=None,
@@ -419,8 +434,12 @@ def _assessment_library(history: list[dict]) -> None:
                     '<p>' + escape(meta["scope"]) + '</p>'
                     '</div>'
                 )
-                st.write(f"**Decision:** {meta['verdict']} · **Evidence:** "
-                         f"{meta['confidence']} (self-reported)")
+                st.html(
+                    '<div class="inv-case-tags">'
+                    '<span>VERDICT · ' + escape(meta["verdict"]) + '</span>'
+                    '<span>EVIDENCE · ' + escape(meta["confidence"]) +
+                    ' (self-reported)</span></div>'
+                )
                 note = meta["data"].get("context", "").strip()
                 if note:
                     st.caption("Case context supplied: " + note[:170] + ("…" if len(note) > 170 else ""))

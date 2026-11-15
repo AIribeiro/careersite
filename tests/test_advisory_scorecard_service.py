@@ -19,6 +19,7 @@ class ScorecardTests(unittest.TestCase):
         for path in (
             "src/page_advisory_scorecard.py",
             "src/page_advisory_scorecard_workspace.py",
+            "src/page_advisory_scorecard_experience.py",
             "src/page_owner_advisory_scorecard.py",
         ):
             with self.subTest(path=path):

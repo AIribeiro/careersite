@@ -26,20 +26,22 @@ class ScorecardAccessRequestTests(TestCase):
         self.assertIn('"Submit access request"',client)
         self.assertNotIn("portfolio_advisory_scorecard_owner_action_v1",client)
 
-    def test_member_sees_service_details_and_page_link_before_request(self):
-        source=(ROOT/"src/page_advisory_scorecard_workspace.py").read_text(
+    def test_member_sees_executive_guide_and_service_link_before_request(self):
+        workspace=(ROOT/"src/page_advisory_scorecard_workspace.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn("which initiatives to advance, test, hold ",source)
-        self.assertIn("Compare opportunities:",source)
-        self.assertIn("Test portfolio constraints:",source)
-        self.assertIn("Record executive decisions:",source)
-        self.assertIn("https://jairribeiro.com/?page=advisory-scorecard",source)
-        self.assertIn("Explore the full Scorecard service",source)
-        self.assertLess(
-            source.index("Explore the full Scorecard service"),
-            source.index("render_scorecard_access_request(token, uid)")
+        guide=(ROOT/"src/page_advisory_scorecard_experience.py").read_text(
+            encoding="utf-8"
         )
+        self.assertIn("from page_advisory_scorecard_experience import _service_guide",workspace)
+        self.assertLess(workspace.index("_service_guide()"),
+                        workspace.index("render_scorecard_access_request(token,uid)"))
+        self.assertIn("From competing AI ideas to a defensible decision",guide)
+        self.assertIn("01 · Portfolio decision",guide)
+        self.assertIn("02 · Required next actions",guide)
+        self.assertIn("03 · Executive decision brief",guide)
+        self.assertIn("https://jairribeiro.com/?page=advisory-scorecard",guide)
+        self.assertIn("Read the full Scorecard service description",guide)
 
     def test_existing_engagement_receives_a_message_not_duplicate_request(self):
         from page_advisory_scorecard_requests import submit_scorecard_access

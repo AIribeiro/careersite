@@ -133,7 +133,7 @@ def _read_workspaces(token: str, uid: str) -> list[dict]:
         "GET",
         _rest_url("portfolio_advisory_scorecards?select=id,request_id,user_id,status,"
                   "payload,revision,approved_at,updated_at,analysis_request_id"
-                  "&user_id=eq." + quote(uid, safe="") + "&order=approved_at.desc&limit=100"),
+                  "&user_id=eq." + quote(uid, safe="") + "&status=eq.active&order=approved_at.desc&limit=100"),
         token=token, timeout=14,
     )
     if not isinstance(rows, list):

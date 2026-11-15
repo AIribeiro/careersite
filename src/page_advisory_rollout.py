@@ -240,6 +240,7 @@ def request_access(token: str, uid: str, challenge: str, outcome: str) -> str:
         return "added_to_engagement"
     _create_request(token,uid,{
         "title":REQUEST_TITLE,
+        "service_key":"rollout",
         "desired_outcome":outcome,
         "business_context":"Enterprise AI rollout decision: "+challenge,
         "decision_timing":"1–3 months",

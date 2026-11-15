@@ -15,7 +15,9 @@ from starlette.responses import JSONResponse, Response
 from reader_membership import _refresh, _verified_user
 from site_analytics import ANALYTICS_URL
 from site_cms import _request_json, _rest_url
-from site_member_tickets import redeem_member_cookie_ticket
+from site_member_tickets import (
+    redeem_member_cookie_ticket, issue_member_restore_ticket,
+)
 
 ACCESS_COOKIE = "__Secure-jair_member_access"
 REFRESH_COOKIE = "__Secure-jair_member_refresh"
@@ -160,20 +162,23 @@ async def member_auth_route(request) -> Response:
                 # Supabase refresh tokens rotate. Only the HTTP response writes
                 # the replacement; no refresh token crosses browser JavaScript.
                 session = await run_in_threadpool(_refresh, refresh)
-                await run_in_threadpool(_verified_member, str(session["access_token"]))
+                user = await run_in_threadpool(
+                    _verified_member, str(session["access_token"])
+                )
                 expires = int(session.get("expires_at") or (
                     time.time() + int(session.get("expires_in") or 0)
                 ))
+                ticket = issue_member_restore_ticket(
+                    str(session["access_token"]), expires, user,
+                )
                 result = JSONResponse({
-                    "authenticated": True,
-                    "access_token": str(session["access_token"]),
-                    "expires_at": expires,
+                    "authenticated": True, "restore_ticket": ticket,
                 })
                 return _set_session(result, request, session)
-            await run_in_threadpool(_verified_member, access)
+            user = await run_in_threadpool(_verified_member, access)
+            ticket = issue_member_restore_ticket(access, expiry, user)
             return _no_store(JSONResponse({
-                "authenticated": True, "access_token": access,
-                "expires_at": expiry,
+                "authenticated": True, "restore_ticket": ticket,
             }))
         except (RuntimeError, ValueError, TimeoutError, KeyError, TypeError):
             # Do not clear cookies on a failed refresh: another browser tab

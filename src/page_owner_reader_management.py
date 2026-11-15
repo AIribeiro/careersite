@@ -38,6 +38,10 @@ _TABLES = {
     ),
     "portfolio_advisory_profiles": ("user_id,account_status", "created_at.desc"),
     "portfolio_advisory_intents": ("user_id,email", "created_at.desc"),
+    "portfolio_onboarding_milestones": (
+        "user_id,journey,milestone,elapsed_seconds,occurred_at",
+        "occurred_at.desc",
+    ),
 }
 
 
@@ -248,6 +252,53 @@ def _reader_origin_tag(profile: dict) -> str:
     if source == "advisory":
         return "origin:advisory"
     return "origin:briefings"
+
+
+def _onboarding_outcomes(
+    profiles: list[dict], advisory: list[dict], milestones: list[dict],
+) -> None:
+    """Owner-only aggregate outcomes; never expose member event histories."""
+    from site_onboarding_measurement import (
+        duration_label, owner_first_value_summary,
+    )
+    result = owner_first_value_summary(profiles, advisory, milestones)
+    st.subheader("Onboarding outcomes")
+    st.caption(
+        "What verified members achieved, not how long they hovered or scrolled. "
+        "Milestones are recorded once per member and are available only from "
+        "the launch of this measurement. Older activity cannot be reconstructed."
+    )
+    with st.container(border=True):
+        st.markdown("#### Premium Reader Library")
+        a, b, c = st.columns(3)
+        a.metric("Verified reader registrations", result["reader_registrations"])
+        b.metric("First complete editions opened", result["reader_first_reads"])
+        c.metric("Median registration → first open",
+                 duration_label(result["reader_median_seconds"]))
+        st.caption(
+            "A first open means a verified member chose a published complete "
+            "edition. It is not evidence they read the entire piece or "
+            "applied its recommendations."
+        )
+    with st.container(border=True):
+        st.markdown("#### Executive Advisory")
+        a, b, c = st.columns(3)
+        a.metric("Active Advisory memberships", result["advisory_registrations"])
+        b.metric("First saved decision assessments",
+                 result["advisory_first_assessments"])
+        c.metric("Median registration → first decision",
+                 duration_label(result["advisory_median_seconds"]))
+        st.caption(
+            str(result["advisory_personal_requests"])
+            + " members have submitted a first personal Advisory request. "
+            "This is separate from assessment completion or engagement approval."
+        )
+    st.caption(
+        "Only fixed first-action markers and registration-to-action duration "
+        "are recorded. No editorial title, assessment answers, professional "
+        "description, IP address or browsing trail is stored in these milestones. "
+        "Existing portfolio analytics remains separate."
+    )
 
 
 def _reader_management(
@@ -578,6 +629,9 @@ def render_owner_reader_management(session: dict) -> None:
         audit = _read_table(token, "portfolio_reader_admin_audit")
         advisory = _read_table(token, "portfolio_advisory_profiles")
         pending_advisory = _read_table(token, "portfolio_advisory_intents")
+        onboarding_milestones = _read_table(
+            token, "portfolio_onboarding_milestones"
+        )
     except (RuntimeError, ValueError, TimeoutError, PermissionError):
         st.error("Reader management data is temporarily unavailable.")
         return
@@ -600,9 +654,12 @@ def render_owner_reader_management(session: dict) -> None:
         "Suspended accounts",
         sum(row.get("account_status") == "suspended" for row in flags),
     )
-    directory, mailing, drafts, changes = st.tabs([
-        "Registered readers", "Mailing list", "Campaign drafts", "Admin activity",
+    outcomes, directory, mailing, drafts, changes = st.tabs([
+        "Onboarding outcomes", "Registered readers", "Mailing list",
+        "Campaign drafts", "Admin activity",
     ])
+    with outcomes:
+        _onboarding_outcomes(profiles, advisory, onboarding_milestones)
     with directory:
         _reader_management(token, profiles, downloads, saved, consents, controls,
                            advisory_membership)

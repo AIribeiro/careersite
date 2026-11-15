@@ -488,16 +488,25 @@ def render_overview(session: dict, user: dict, profile: dict, *, admin: bool = F
         if st.button("Review requests", key="overview_requests_retry"):
             navigate("requests")
     else:
-        st.html(
-            '<div class="rl-workspace advisory-overview"><div class="status-panel">'
-            '<span class="eyebrow">No open personal advisory requests</span>'
-            '<h3>Start with the decision you need to make.</h3>'
-            '<p>Explore a decision advisor below, or submit a specific question '
-            'for individual advisory review.</p></div></div>'
-        )
-        if service_enabled("requests", admin=admin) and st.button("Submit an advisory request", type="primary",
-                     key="overview_new_request"):
-            navigate("requests")
+        if service_enabled("requests", admin=admin):
+            st.html(
+                '<div class="rl-workspace advisory-overview"><div class="status-panel">'
+                '<span class="eyebrow">No open personal advisory requests</span>'
+                '<h3>Start with the decision you need to make.</h3>'
+                '<p>Explore a decision advisor below, or submit a specific question '
+                'for individual advisory review.</p></div></div>'
+            )
+            if st.button("Submit an advisory request", type="primary",
+                         key="overview_new_request"):
+                navigate("requests")
+        else:
+            st.html(
+                '<div class="rl-workspace advisory-overview"><div class="status-panel">'
+                '<span class="eyebrow">Your next decision</span>'
+                '<h3>Choose from the available executive tools.</h3>'
+                '<p>Explore an available service below to see its scope and outcome.</p>'
+                '</div></div>'
+            )
 
     st.html(
         '<div class="rl-workspace advisory-overview">'

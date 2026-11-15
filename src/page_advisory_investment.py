@@ -635,53 +635,58 @@ def _feedback_panel(token: str, uid: str, record: dict) -> None:
 
 def _decision_page(token: str, uid: str, record: dict, view: dict) -> None:
     from page_advisory_investment_report import _executive_summary
+
+    # Exactly the same verdict, metric-rail and callout hierarchy as Rollout.
     st.html(
-        '<section class="inv-decision">'
-        '<span class="inv-eyebrow">EXECUTIVE POSITION · SELF-REPORTED EVIDENCE</span>'
-        '<div class="inv-verdict">' + escape(view["verdict"]) + '</div>'
-        '<h3>' + escape(view["next_step"]) + '</h3>'
+        '<div class="rl-workspace">'
+        '<div class="verdict">'
+        '<span class="decision">Executive recommendation · ' +
+        escape(view["verdict"]) + '</span>'
+        '<h2>' + escape(view["next_step"]) + '</h2>'
         '<p>' + escape(_executive_summary(view["data"], view["result"])) + '</p>'
-        '</section>'
+        '</div>'
+        '<div class="small-metrics">'
+        '<div><strong>' + escape(view["verdict"].title()) +
+        '</strong><span>Executive position</span></div>'
+        '<div><strong>' + escape(view["confidence"]) +
+        '</strong><span>Self-reported evidence confidence</span></div>'
+        '<div><strong>3 priorities</strong><span>Required actions</span></div>'
+        '</div>'
+        '<div class="section-head"><span class="eyebrow">The evidence behind the call</span>'
+        '<h3>Business value, controls and ownership.</h3>'
+        '<p>These conclusions summarize the choices submitted with this case. '
+        'They do not represent independently verified operating results.</p></div>'
+        '<div class="three-col">'
+        '<article><span class="eyebrow">Business value</span><strong>Value case</strong>'
+        '<p>' + escape(view["value_statement"]) + '</p></article>'
+        '<article><span class="eyebrow">Governance</span><strong>Control position</strong>'
+        '<p>' + escape(view["risk_statement"]) + '</p></article>'
+        '<article><span class="eyebrow">Decision boundary</span><strong>What is permitted</strong>'
+        '<p>' + escape(view["boundary"]) + '</p></article>'
+        '</div>'
+        '<div class="callout"><strong>What could change the decision</strong>' +
+        escape(view["why"]) + '</div></div>'
     )
     case_note = view["data"].get("context", "").strip()
     if case_note:
         st.html(
-            '<div class="inv-note"><strong>What is being assessed.</strong><br>' +
-            escape(case_note[:340]) +
-            ('…' if len(case_note) > 340 else '') +
-            '<p><small>Context supplied by the assessor; not independently verified ' 
-            'or interpreted by the decision rules. Full note in Evidence &amp; inputs.</small></p></div>'
+            '<div class="rl-workspace"><div class="provenance">'
+            '<strong>What is being assessed.</strong> ' +
+            escape(case_note[:360]) + ('…' if len(case_note) > 360 else '') +
+            '<br><small>Respondent-supplied context; not independently checked '
+            'or used to calculate this verdict.</small></div></div>'
         )
-    st.html(
-        '<div class="inv-rail">'
-        '<article><small>Business case</small><strong>' +
-        escape(view["value_statement"]) + '</strong></article>'
-        '<article><small>Control position</small><strong>' +
-        escape(view["risk_statement"]) + '</strong></article>'
-        '<article><small>Evidence confidence</small><strong>' +
-        escape(view["confidence"]) + ' · Not independently verified</strong></article>'
-        '</div>'
-    )
-    st.html('<h3 class="inv-section-title">What this decision means</h3>')
-    st.html(
-        '<div class="inv-note">'
-        '<strong>Decision boundary.</strong> ' + escape(view["boundary"]) +
-        '<p><strong>Most significant limitation.</strong> ' + escape(view["why"]) + '</p>'
-        '</div>'
-    )
-    st.caption("Recommendation based on the 14 answers recorded for this opportunity. "
-               "The optional context note does not affect the verdict.")
-    a, b = st.columns([1, 1])
+    st.caption("The recommendation uses the 14 recorded selections. "
+               "Any contextual notes are retained for reference only.")
+    a, b = st.columns(2)
     with a:
-        st.button("Review the three actions", type="primary",
+        st.button("Review my three executive actions", type="primary",
                   use_container_width=True, on_click=_go_to,
                   args=("Action plan",))
     with b:
-        st.button("Inspect the assessment evidence",
+        st.button("Review evidence and download report",
                   use_container_width=True, on_click=_go_to,
                   args=("Evidence & inputs",))
-    st.divider()
-    _report_download(record, view)
     _feedback_panel(token, uid, record)
 
 

@@ -13,6 +13,8 @@ import streamlit as st
 from site_cms import _request_json, _rest_url
 from page_advisory_client_journey import STATUS, CLOSED
 
+OWNER_REQUESTS_VERSION = "premium_dialogue_20261115"
+
 ACTIONS = {
     "review": "Mark under review",
     "ask_client": "Ask the client a question",

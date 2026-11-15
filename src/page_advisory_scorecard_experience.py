@@ -161,7 +161,7 @@ def _service_guide(approved: bool = False, saved_count: int = 0) -> None:
         boundary=(
             "Free pro-bono access is individually approved. A Scorecard "
             "recommends investment priorities but does not authorize funding, "
-            "legal compliance or production deployment. Previous analyses remain private."
+            "legal compliance or production deployment. Previous assessment records remain private."
         ),
     )
     with st.expander("Exactly what inputs and outputs are included"):

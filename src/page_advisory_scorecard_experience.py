@@ -179,6 +179,12 @@ def _analyses_home(uid: str, analyses: list[dict]) -> None:
         "Each analysis represents a separate investment decision. Open one to see its "
         "scope, evidence, recommendation, next action and executive report."
     )
+    st.html(
+        '<div class="scx-brief"><div class="scx-subtitle">What this service gives you</div>'
+        '<strong>A defendable portfolio choice</strong> - what to advance, test, hold or stop; '
+        'initiative-level next actions and owners; resource trade-offs; and an '
+        'executive decision brief you can bring to a management review.</div>'
+    )
     c1,c2,c3=st.columns(3)
     c1.metric("Approved analyses",len(analyses))
     c2.metric("With recommendations",sum(

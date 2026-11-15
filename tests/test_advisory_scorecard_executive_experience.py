@@ -123,6 +123,59 @@ class ExecutiveScorecardExperienceTests(unittest.TestCase):
         self.assertIn("s.status='active'",policy)
         self.assertIn("public.portfolio_advisory_password_session_v1()",policy)
 
+    def test_portfolio_initiatives_are_visible_before_navigation(self):
+        ui=self.source("src/page_advisory_scorecard_experience.py")
+        start=ui.index("def _analysis(uid:")
+        active=ui[start:ui.index("def render_scorecard_experience(",start)]
+        self.assertLess(active.index("_portfolio_snapshot(a,uid)"),
+                        active.index('with st.expander("Purpose of this assessment'))
+        self.assertLess(active.index("_portfolio_snapshot(a,uid)"),
+                        active.index('st.pills(\n        "Decision brief sections"'))
+        self.assertNotIn("st.columns(4)",active)
+        self.assertIn("scx-compact-kpis",ui)
+        self.assertIn("grid-template-columns:repeat(2,minmax(0,1fr))",ui)
+        self.assertIn(".scx-portfolio-grid {grid-template-columns:1fr}",ui)
+        self.assertIn("Initiatives in this portfolio",ui)
+        self.assertIn("Open initiative",ui)
+        self.assertIn('"scorecard_selected_"+wid',ui)
+        self.assertIn("html.escape(str(row.get",ui)
+        self.assertIn("ranked[:page_limit]",ui)
+        self.assertIn('page_limit=10',ui)
+
+    def test_compact_portfolio_snapshot_renders_real_initiatives_safely(self):
+        from unittest.mock import MagicMock, patch
+        from types import SimpleNamespace
+        from page_advisory_scorecard_experience import _portfolio_snapshot
+        from page_advisory_scorecard_workspace import default_settings
+        rows=[
+            {"id":"x1","name":"Copilot <unsafe>","owner":"Head of Service",
+             "score":85,"recommendation":"Advance to business case"},
+            {"id":"x2","name":"Forecasting & Planning","owner":"Supply Chain",
+             "score":73,"recommendation":"Time-boxed test"},
+        ]
+        a={
+            "ws":{"id":"workspace-1"},"count":2,"reviewed":2,"revision":5,
+            "report":{"rows":rows,"recommended":{"count":2}},
+        }
+        fake=MagicMock()
+        fake.session_state={}
+        fake.columns.return_value=(MagicMock(),MagicMock())
+        fake.selectbox.return_value="x1"
+        with patch("page_advisory_scorecard_experience.st",fake):
+            _portfolio_snapshot(a,"member-1")
+        html_content="\n".join(
+            call.args[0] for call in fake.html.call_args_list
+        )
+        self.assertIn("Copilot &lt;unsafe&gt;",html_content)
+        self.assertIn("Forecasting &amp; Planning",html_content)
+        self.assertNotIn("Copilot <unsafe>",html_content)
+        self.assertIn("85/100",html_content)
+        self.assertIn("Time-boxed test",html_content)
+        self.assertEqual(fake.session_state["scx_portfolio_selected_workspace-1"],"x1")
+        button=fake.button.call_args
+        self.assertEqual(button.args[0],"Open initiative")
+        self.assertTrue(callable(button.kwargs["on_click"]))
+
     def test_owner_manager_has_one_request_and_clear_history_sections(self):
         s=self.source("src/page_owner_advisory_scorecard_analyses.py")
         self.assertIn('"Approval queue","Approved analyses","Decision history"',s)

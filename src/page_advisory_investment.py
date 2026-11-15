@@ -421,6 +421,9 @@ def _assessment_library(history: list[dict]) -> None:
                 )
                 st.write(f"**Decision:** {meta['verdict']} · **Evidence:** "
                          f"{meta['confidence']} (self-reported)")
+                note = meta["data"].get("context", "").strip()
+                if note:
+                    st.caption("Case context supplied: " + note[:170] + ("…" if len(note) > 170 else ""))
                 st.caption("Main issue: " + meta["why"])
             with right:
                 st.button("Open decision", key="inv_open_" + rid, type="primary",
@@ -497,6 +500,15 @@ def _decision_page(token: str, uid: str, record: dict, view: dict) -> None:
         '<p>' + escape(_executive_summary(view["data"], view["result"])) + '</p>'
         '</section>'
     )
+    case_note = view["data"].get("context", "").strip()
+    if case_note:
+        st.html(
+            '<div class="inv-note"><strong>What is being assessed.</strong><br>' +
+            escape(case_note[:340]) +
+            ('…' if len(case_note) > 340 else '') +
+            '<p><small>Context supplied by the assessor; not independently verified ' 
+            'or interpreted by the decision rules. Full note in Evidence &amp; inputs.</small></p></div>'
+        )
     st.html(
         '<div class="inv-rail">'
         '<article><small>Business case</small><strong>' +

@@ -205,7 +205,10 @@ def _analyses_home(uid: str, analyses: list[dict]) -> None:
             st.button(
                 "Open this analysis",type="primary",
                 key="scx_open_"+wid,
-                on_click=_go,args=(uid,"Open analysis",wid,"Executive decision"),
+                on_click=_go,args=(
+                    uid,"Open analysis",wid,
+                    "Initiatives & evidence" if not a["count"] else "Executive decision",
+                ),
             )
     st.button(
         "Request another analysis",key="scx_home_request_"+uid,

@@ -545,10 +545,8 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
         from page_advisory_scorecard_workspace import render_private_scorecard
         render_private_scorecard(session, user)
     elif view == "decision":
-        section_heading(
-            "SELF-SERVICE EXECUTIVE ADVISORY", "AI Investment Decision Advisor",
-            "Assess one AI opportunity and receive a reasoned investment recommendation."
-        )
+        # This service provides its own full-width hero and internal workspace navigation.
+        # Avoid duplicating the title and introduction above the decision library.
         from page_advisory_investment import render_private_investment
         render_private_investment(session, user)
     elif view == "rollout":

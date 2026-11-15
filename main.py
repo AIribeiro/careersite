@@ -219,9 +219,13 @@ elif PAGE == "advisory-access":
     # module across a deployment. Ensure the redesigned Conversations UI is
     # loaded instead of displaying the retired full-page message feed.
     import page_advisory_member_experience as _member_experience
-    if getattr(_member_experience, "MEMBER_EXPERIENCE_VERSION", None) != "premium_conversations_20261115":
+    if getattr(_member_experience, "MEMBER_EXPERIENCE_VERSION", None) != "rollout_consistent_overview_20261115":
         importlib.invalidate_caches()
         importlib.reload(_member_experience)
+    import page_advisory_conversation_workspace as _conversation_workspace
+    if getattr(_conversation_workspace, "CONVERSATION_EXPERIENCE_VERSION", None) != "shared_dialogue_20261115":
+        importlib.invalidate_caches()
+        importlib.reload(_conversation_workspace)
     from page_advisory_portal import render_advisory_portal
     render_advisory_portal()
 elif PAGE == "analytics":

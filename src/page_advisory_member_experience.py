@@ -14,6 +14,7 @@ from page_advisory_client_journey import (
     CLOSED, STATUS, _client_requests, _display_conversation, _request_form,
 )
 from site_assets import ADVISORY_EMAIL
+from page_rollout_workspace_ui import WORKSPACE_CSS
 
 MEMBER_EXPERIENCE_VERSION = "rollout_consistent_overview_20261115"
 
@@ -477,12 +478,218 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
         st.rerun()
 
 
-def render_requests(session: dict, user: dict, profile: dict) -> None:
-    section_heading(
-        "YOUR ADVISORY REQUESTS", "Decisions and requests",
-        "Review your requests and their current status. Discussions "
-        "and replies have a separate conversation workspace.",
+REQUEST_SECTIONS = ("overview", "current", "history", "new")
+REQUEST_LABELS = {
+    "overview": "About requests",
+    "current": "Current request",
+    "history": "My history",
+    "new": "New request",
+}
+REQUEST_CSS = """
+<style>
+.rq-workspace .case{background:#fffdfa;border:1px solid #d9d5cd;
+ border-left:5px solid #b07751;padding:clamp(20px,3vw,30px);margin:13px 0}
+.rq-workspace .case h3{font:500 clamp(23px,3vw,33px)/1.2 Georgia,serif;
+ color:#19314a;margin:8px 0 11px;overflow-wrap:anywhere}
+.rq-workspace .case p{font-size:14px;line-height:1.72;color:#3b5367;
+ margin:0 0 9px;white-space:pre-wrap;overflow-wrap:anywhere}
+.rq-workspace .case .status{font-size:16px;font-weight:700;color:#1c3a51}
+.rq-workspace .detail{background:#fffdfa;border:1px solid #ddd7cc;
+ padding:20px 23px;margin:12px 0}
+.rq-workspace .detail strong{display:block;font-size:11px;letter-spacing:.11em;
+ text-transform:uppercase;color:#a36c46;margin-bottom:9px}
+.rq-workspace .detail p{font-size:14px;line-height:1.75;color:#344d62;
+ white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
+.rq-workspace .note{padding:17px 20px;background:#f8f4ec;border:1px solid #e0d7ca;
+ color:#3a5267;font-size:13px;line-height:1.7;margin:15px 0}
+.rq-workspace .note strong{display:block;color:#213d53;margin-bottom:5px}
+.rq-workspace .three-col article p,.rq-workspace .steps span{overflow-wrap:anywhere}
+.st-key-native_advisory_content [data-testid="stPills"] button{white-space:nowrap}
+@media(max-width:760px),(max-device-width:760px){
+ .rq-workspace .case,.rq-workspace .detail{padding:18px}
+ .rq-workspace .note{padding:15px}
+ .rq-workspace .summarybar{gap:7px 15px}
+}
+</style>
+"""
+
+
+def _request_safe(value: object, limit: int = 2000) -> str:
+    return escape(str(value if value is not None else "")[:limit], quote=True)
+
+
+def _request_nav_changed() -> None:
+    selected = st.session_state.get("advisory_request_navigation")
+    if selected in REQUEST_SECTIONS:
+        st.query_params["requests_section"] = selected
+
+
+def _go_request_section(section: str) -> None:
+    if section in REQUEST_SECTIONS:
+        st.query_params["requests_section"] = section
+        st.rerun()
+
+
+def _request_navigation() -> str:
+    requested = str(st.query_params.get("requests_section") or "overview").lower()
+    if requested not in REQUEST_SECTIONS:
+        requested = "overview"
+    if st.session_state.get("advisory_request_navigation") != requested:
+        st.session_state["advisory_request_navigation"] = requested
+    st.pills(
+        "Request sections", REQUEST_SECTIONS,
+        format_func=lambda v: REQUEST_LABELS[v],
+        selection_mode="single", required=True,
+        key="advisory_request_navigation", on_change=_request_nav_changed,
+        label_visibility="collapsed", wrap=False, width="stretch",
     )
+    return requested
+
+
+def _request_guidance(request: dict) -> str:
+    # One shared source for client next-action language in Requests and Conversations.
+    from page_advisory_conversation_workspace import STATE_GUIDANCE
+    state = str(request.get("status") or "submitted")
+    return STATE_GUIDANCE.get(state, STATE_GUIDANCE["submitted"])
+
+
+def _request_case(request: dict, *, title: str = "Selected request") -> None:
+    status, description = _status(request)
+    st.html(
+        '<div class="rl-workspace rq-workspace"><div class="case">'
+        '<span class="eyebrow">' + _request_safe(title, 90) + ' · ' +
+        _request_safe(str(request.get("created_at") or "")[:10]) + '</span>'
+        '<h3>' + _request_safe(request.get("title") or "Executive advisory request", 160) + '</h3>'
+        '<p class="status">' + _request_safe(status) + '</p>'
+        '<p>' + _request_safe(description) + '</p>'
+        '</div></div>'
+    )
+
+
+def _request_next_step(request: dict) -> None:
+    st.html(
+        '<div class="rl-workspace rq-workspace"><div class="section-head">'
+        '<span class="eyebrow">Your current position</span>'
+        '<h3>What happens next</h3>'
+        '<p>Guidance based on the recorded request status, not a promised date or approval.</p>'
+        '</div><div class="note"><strong>What you should do now</strong>' +
+        _request_safe(_request_guidance(request)) + '</div></div>'
+    )
+    next_step = str(request.get("next_step") or "").strip()
+    if next_step:
+        st.html(
+            '<div class="rl-workspace rq-workspace"><div class="detail">'
+            '<strong>Next step recorded in your advisory request</strong>'
+            '<p>' + _request_safe(next_step, 1800) + '</p>'
+            '</div></div>'
+        )
+
+
+def _request_context(request: dict) -> None:
+    st.html(
+        '<div class="rl-workspace rq-workspace"><div class="section-head">'
+        '<span class="eyebrow">Decision and context</span>'
+        '<h3>What this request contains</h3>'
+        '<p>Review the question, outcome and timing as originally submitted.</p>'
+        '</div><div class="detail"><strong>Decision or outcome sought</strong><p>' +
+        _request_safe(request.get("desired_outcome") or "Not provided", 3000) +
+        '</p></div>'
+        + (
+            '<div class="detail"><strong>Business context</strong><p>' +
+            _request_safe(request.get("business_context"), 3000) + '</p></div>'
+            if request.get("business_context") else ""
+        ) +
+        '<div class="three-col">'
+        '<article><span class="eyebrow">01 · Submitted</span><strong>' +
+        _request_safe(str(request.get("created_at") or "")[:10] or "Not available") +
+        '</strong><p>When this request was recorded.</p></article>'
+        '<article><span class="eyebrow">02 · Decision horizon</span><strong>' +
+        _request_safe(request.get("decision_timing") or "Not specified", 80) +
+        '</strong><p>Your stated business timing, not a response commitment.</p></article>'
+        '<article><span class="eyebrow">03 · Contact preference</span><strong>' +
+        _request_safe(request.get("contact_preference") or "Not specified", 80) +
+        '</strong><p>A preference, not a confirmed appointment.</p></article>'
+        '</div></div>'
+    )
+
+
+def _request_overview(requests: list[dict], current: dict | None) -> None:
+    status = _status(current)[0] if current else "No open request"
+    count = len(requests)
+    st.html(
+        WORKSPACE_CSS + REQUEST_CSS +
+        '<div class="rl-workspace rq-workspace"><section class="hero">'
+        '<span class="eyebrow">Private executive advisory</span>'
+        '<h2>One business question. A clear path to the next decision.</h2>'
+        '<p>Submit a defined leadership challenge, follow its individual review '
+        'and keep your decision context and correspondence in one private record.</p>'
+        '</section><div class="summarybar">'
+        '<span>ACCESS · Verified Advisory account</span>'
+        '<span>FORMAT · Individual request and conversation</span>'
+        '<span>RECORDS · ' + str(count) + ' request' + ("" if count == 1 else "s") +
+        '</span></div>'
+        '<div class="section-head"><span class="eyebrow">What you receive</span>'
+        '<h3>One request. Three clear stages.</h3>'
+        '<p>An individual advisory review, not an automatic consulting engagement '
+        'or a substitute for the self-service decision advisors.</p></div>'
+        '<div class="three-col">'
+        '<article><span class="eyebrow">01 · Your question</span>'
+        '<strong>A defined decision</strong><p>The challenge, desired outcome '
+        'and relevant business context are saved together.</p></article>'
+        '<article><span class="eyebrow">02 · The review</span>'
+        '<strong>A visible status</strong><p>See whether your request is being '
+        'reviewed, needs your input or has moved into a discussion.</p></article>'
+        '<article><span class="eyebrow">03 · The next step</span>'
+        '<strong>A private response</strong><p>Use Conversations for questions, '
+        'scope discussions and any agreed next actions.</p></article>'
+        '</div>'
+        '<div class="section-head"><span class="eyebrow">How it works</span>'
+        '<h3>Focused request. Considered response.</h3></div>'
+        '<div class="steps">'
+        '<div><b>01</b><strong>Describe the decision</strong>'
+        '<span>Explain the outcome you need, your context and timing.</span></div>'
+        '<div><b>02</b><strong>Individual review</strong>'
+        '<span>Your request is assessed for relevance, scope and availability.</span></div>'
+        '<div><b>03</b><strong>Discuss what comes next</strong>'
+        '<span>If selected, clarify scope and next steps in Conversations.</span></div>'
+        '</div><div class="callout">'
+        '<strong>What this request does not approve</strong>'
+        'Submitting a request does not grant access to the AI Scorecard or Rollout Advisor, '
+        'confirm a meeting or guarantee a pro-bono engagement. Service access is '
+        'reviewed separately from the relevant advisor page.</div>'
+        '<div class="section-head"><span class="eyebrow">Your advisory record</span>'
+        '<h3>' + _request_safe(status) + '</h3>'
+        '<p>' + (
+            'Open your current request to see what it covers and what happens next.'
+            if current else
+            'No active request is awaiting a decision or response. You can begin a new one.'
+        ) + '</p></div></div>'
+    )
+    if current:
+        _request_case(current, title="Current request")
+        a, b = st.columns(2, gap="medium")
+        with a:
+            if st.button("Review current request", type="primary",
+                         key="rq_overview_current", use_container_width=True):
+                _go_request_section("current")
+        with b:
+            if st.button("Open conversation and reply", key="rq_overview_conversation",
+                         use_container_width=True):
+                navigate("messages", str(current["id"]))
+    else:
+        if st.button("Start a new advisory request", type="primary",
+                     key="rq_overview_new"):
+            _go_request_section("new")
+    if requests:
+        if st.button("Browse request history", key="rq_overview_history"):
+            _go_request_section("history")
+
+
+def render_requests(session: dict, user: dict, profile: dict) -> None:
+    """Private request workspace following the Rollout Advisor's visual hierarchy."""
+    st.markdown("### Executive Advisory Requests")
+    st.caption("A focused request, individual review and a recorded next step.")
+    section = _request_navigation()
     token = str(session["access_token"])
     uid = str(user["id"])
     requests = _load_requests(token, uid)
@@ -491,31 +698,102 @@ def render_requests(session: dict, user: dict, profile: dict) -> None:
     current = next(
         (r for r in requests if str(r.get("status")) not in CLOSED), None
     )
-    if current:
-        with st.container(border=True):
-            st.caption("CURRENT REQUEST")
-            _request_summary(current)
-            if st.button("View conversation and reply", type="primary",
-                         key="requests_open_current"):
+    previous = [r for r in requests if current is None or r["id"] != current["id"]]
+    if section == "overview":
+        _request_overview(requests, current)
+        return
+    if section == "current":
+        if current is None:
+            st.html(
+                WORKSPACE_CSS + REQUEST_CSS +
+                '<div class="rl-workspace rq-workspace"><div class="section-head">'
+                '<span class="eyebrow">Current advisory request</span>'
+                '<h3>No open request</h3>'
+                '<p>Completed and declined requests remain available in My history.</p>'
+                '</div></div>'
+            )
+            if st.button("Create a new request", type="primary", key="rq_current_new"):
+                _go_request_section("new")
+            return
+        st.html(WORKSPACE_CSS + REQUEST_CSS)
+        _request_case(current, title="Current advisory request")
+        _request_next_step(current)
+        _request_context(current)
+        a, b = st.columns(2, gap="medium")
+        with a:
+            label = ("Read and respond" if str(current.get("status")) == "awaiting_client"
+                     else "Open conversation")
+            if st.button(label, type="primary", key="rq_current_conversation",
+                         use_container_width=True):
                 navigate("messages", str(current["id"]))
-        st.info("You have an open request. New service access requests can "
-                "be added to that engagement from the relevant service page.")
+        with b:
+            if st.button("Back to requests overview", key="rq_current_overview",
+                         use_container_width=True):
+                _go_request_section("overview")
+        st.caption("Conversations contain the actual messages. This page records "
+                   "the request and its status; it does not grant service access.")
+        return
+    if section == "history":
+        st.html(
+            WORKSPACE_CSS + REQUEST_CSS +
+            '<div class="rl-workspace rq-workspace"><div class="section-head">'
+            '<span class="eyebrow">Saved advisory record</span>'
+            '<h3>Your previous requests</h3>'
+            '<p>Select a request to see its original decision context, status '
+            'and correspondence. Nothing is lost when a discussion is closed.</p>'
+            '</div></div>'
+        )
+        if not previous:
+            st.info("There are no previous requests yet. Your current request has its own tab.")
+            if current and st.button("Open current request", key="rq_history_current"):
+                _go_request_section("current")
+            return
+        by_id = {str(r["id"]): r for r in previous}
+        chosen = st.selectbox(
+            "Select a previous request", list(by_id),
+            format_func=lambda rid: (
+                str(by_id[rid].get("title") or "Advisory request") + " · " +
+                _status(by_id[rid])[0] + " · " +
+                str(by_id[rid].get("created_at") or "")[:10]
+            ),
+            key="advisory_request_history_selected",
+        )
+        selected = by_id[chosen]
+        _request_case(selected, title="Selected previous request")
+        _request_context(selected)
+        if st.button("Open this conversation", type="primary", key="rq_history_conversation"):
+            navigate("messages", str(selected["id"]))
+        return
+    # New requests retain the existing RLS-protected, single-active-request form.
+    st.html(
+        WORKSPACE_CSS + REQUEST_CSS +
+        '<div class="rl-workspace rq-workspace"><div class="section-head">'
+        '<span class="eyebrow">New executive request</span>'
+        '<h3>Define the decision you want to make.</h3>'
+        '<p>Start with one specific business challenge. You will see its '
+        'progress and correspondence in your private Advisory account.</p>'
+        '</div></div>'
+    )
+    if current:
+        st.html(
+            '<div class="rl-workspace rq-workspace"><div class="note">'
+            '<strong>One open advisory request at a time</strong>'
+            'Your existing request remains active. Continue the discussion there. '
+            'Requests for access to individual self-service advisors can be '
+            'submitted on their own service pages.</div></div>'
+        )
+        _request_case(current, title="Existing open request")
+        a, b = st.columns(2, gap="medium")
+        with a:
+            if st.button("Review my open request", type="primary",
+                         key="rq_new_current", use_container_width=True):
+                _go_request_section("current")
+        with b:
+            if st.button("Continue the conversation", key="rq_new_messages",
+                         use_container_width=True):
+                navigate("messages", str(current["id"]))
     else:
-        # Existing form retains its single-open-request server-side checks.
         _request_form(token, uid, profile)
-    past = [r for r in requests if current is None or r["id"] != current["id"]]
-    if past:
-        st.markdown("### Request history")
-        for idx, request in enumerate(past):
-            with st.expander(str(request.get("title") or "Request") +
-                             " · " + _status(request)[0]):
-                _request_summary(request, show_details=False)
-                st.write(str(request.get("desired_outcome") or ""))
-                if request.get("business_context"):
-                    st.caption("Business context")
-                    st.write(str(request["business_context"]))
-                if st.button("Open this conversation", key="requests_old_" + str(idx)):
-                    navigate("messages", str(request["id"]))
 
 
 def _conversation_changed() -> None:

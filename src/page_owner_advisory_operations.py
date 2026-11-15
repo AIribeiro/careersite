@@ -41,9 +41,12 @@ def _today() -> date:
 def _read_access(token: str, table: str) -> list[dict]:
     if table not in {"portfolio_advisory_scorecards", "portfolio_advisory_rollout_access"}:
         raise ValueError("Unsupported service entitlement")
+    # Separate new-analysis workspaces are managed in Scorecard approvals.
+    # The existing service entitlement controls target the original grant only.
+    legacy = "&analysis_request_id=is.null" if table == "portfolio_advisory_scorecards" else ""
     data = _request_json(
         "GET", _rest_url(table + "?select=id,request_id,user_id,status,approved_at,revoked_at"
-                         "&order=approved_at.desc&limit=1000"),
+                         + legacy + "&order=approved_at.desc&limit=1000"),
         token=token, timeout=15,
     )
     if not isinstance(data, list):

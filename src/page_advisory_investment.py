@@ -188,6 +188,7 @@ def _pdf_report(data: dict, result: dict, created_at: str) -> bytes:
     p.multi_cell(172, 7, clean(result["headline"]))
     p.ln(4)
     section("The recommendation", result["reason"])
+    section("Business outcomes to validate", result["decision_lens"])
     section("Critical consideration", result["primary_constraint"])
     section("Evidence confidence", result["confidence"] + ". Self-reported, not independently verified.")
     if result["constraints"]:
@@ -255,6 +256,7 @@ def _input_ui(token: str, uid: str) -> None:
                         key="investment_choice_" + key,
                     )
         with st.expander("Optional context (not required)", expanded=False):
+            st.caption("This note is retained for your reference. The verdict uses the structured selections, not free-text interpretation.")
             context = st.text_area("Brief non-confidential context", max_chars=500,
                                    placeholder="Only a detail that materially affects the decision.")
         acknowledgement = st.checkbox(
@@ -300,6 +302,7 @@ def _report_ui(token: str, uid: str, record: dict) -> None:
         '<div class="inv-head">' + escape(result["headline"]) + '</div>'
         '<p>' + escape(result["reason"]) + '</p>'
         '<p><strong>Critical consideration.</strong> ' + escape(result["primary_constraint"]) + '</p>'
+        '<p><strong>Relevant outcome measures.</strong> ' + escape(result["decision_lens"]) + '</p>'
         '<p class="inv-meta">EVIDENCE CONFIDENCE · ' + escape(result["confidence"]) + '</p>'
         '</section>'
     )
@@ -316,6 +319,9 @@ def _report_ui(token: str, uid: str, record: dict) -> None:
         st.write("**Observed limitations**")
         for entry in result["constraints"]:
             st.write("• " + entry)
+        if data["context"]:
+            st.write("**Your context note (not used to calculate the verdict)**")
+            st.write(data["context"])
         st.caption("Rule set " + MODEL_VERSION + " · Original selections are retained privately.")
     st.caption("This service does not replace legal, privacy, risk, security or investment approval.")
     try:

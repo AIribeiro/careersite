@@ -29,7 +29,7 @@ class RolloutAdvisorTests(unittest.TestCase):
         self.assertIn('PAGE == "advisory-rollout"',self.source("main.py"))
         self.assertIn("render_private_rollout(session, user)",
                       self.source("src/page_advisory_portal.py"))
-        self.assertIn('href="?page=advisory-rollout"',
+        self.assertIn('public_service_cta("rollout", "?page=advisory-rollout"',
                       self.source("src/page_public_services.py"))
 
     def _answers(self,value=3):

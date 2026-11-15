@@ -963,7 +963,9 @@ def _library(session: dict, user: dict) -> None:
 
     # User-chosen topics outrank profile interests; only real published
     # editions are offered. The selector requires no new account fields.
-    from site_onboarding_guidance import select_reader_first_read
+    from site_onboarding_guidance import (
+        select_reader_first_read, value_path_html,
+    )
     selected_topic = st.selectbox(
         "What would help you most today? (optional)",
         ("Recommended for me",) + _READER_TOPICS,
@@ -987,10 +989,14 @@ def _library(session: dict, user: dict) -> None:
             st.markdown("### A useful decision starts with the full reasoning.")
             st.write(str(recommended.title))
             st.caption(reason)
-            st.write(
-                "Move from a short preview or broad topic to the complete "
-                "published argument, its evidence and leadership questions. "
-                "Reading does not subscribe you to emails."
+            st.html(value_path_html(
+                "A topic or preview, without the full reasoning.",
+                "The complete published perspective, supporting evidence "
+                "and questions to use in an executive discussion.",
+            ))
+            st.caption(
+                "Full editorial access is included with your account. "
+                "Reading does not subscribe you to emails or commit you to a service."
             )
             if st.button(
                 "Open this complete edition", type="primary",

@@ -223,7 +223,7 @@ class RolloutAdvisorTests(unittest.TestCase):
         self.assertIn("render_service_overview",source)
         self.assertIn("_history_ui(history)",source)
         self.assertIn("_evidence_screen(record,result)",source)
-        self.assertIn('render_action_plan(data,result)',source)
+        self.assertIn('render_action_plan(data, result)',source)
         self.assertNotIn('st.session_state["rollout_new_assessment"]',source)
         self.assertNotIn('    if history:\n        selected_id=',source)
         self.assertNotIn('"Rollout readiness",',self.source("src/page_advisory_portal.py"))

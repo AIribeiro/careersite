@@ -105,41 +105,45 @@ def _footer(pdf: FPDF, page: int) -> None:
 
 
 def _executive_summary(data: dict, result: dict) -> str:
+    """One accountable position, supporting evidence and reasons not to scale."""
     a = data["choices"]
-    verdict = result["verdict"]
-    boundaries = {
-        "INVEST": "Advance the proposal to formal investment review, not direct deployment.",
-        "EXPERIMENT": "Continue only as a bounded, monitored test; do not authorize wider rollout.",
-        "HOLD": "Defer further commitment until material prerequisites are verified.",
-        "STOP": "Reject the current approach; reconsider only if the underlying case changes.",
-    }
-    evidence = {
-        "Measured against a baseline": "The value case is reported as measured",
-        "Quantified estimate only": "The value case remains an estimate",
-        "Unquantified expectation": "Benefits are not yet quantified",
-        "No credible benefit": "No credible incremental benefit is established",
-    }[a["value"]]
-    baseline = {
-        "Verified baseline": "with a verified operating baseline",
-        "Partial baseline": "with only a partial operating baseline",
-        "No baseline": "without an operating baseline",
-    }[a["baseline"]]
-    qualifiers: list[str] = []
+    direction = {
+        "INVEST": "Advance to formal investment review, not automatic deployment.",
+        "EXPERIMENT": "Continue a bounded, monitored experiment; withhold wider rollout.",
+        "HOLD": "Defer new commitment until the missing prerequisites are resolved.",
+        "STOP": "Reject this design; reconsider only if the underlying case changes.",
+    }[result["verdict"]]
+
+    proof: list[str] = []
+    if a["non_ai"] == "Compared; AI has a documented advantage":
+        proof.append("a reported advantage against the non-AI alternative")
+    if a["feasibility"] == "Demonstrated in relevant setting":
+        proof.append("demonstrated feasibility in a relevant setting")
+    if a["owner"] == "Named accountable business owner":
+        proof.append("identified business accountability")
+    if proof:
+        positive = "The submitted case cites " + " and ".join(proof[:2]) + ". "
+    else:
+        positive = "The current evidence does not yet establish a defensible investment case. "
+
+    gaps: list[str] = []
+    if a["value"] != "Measured against a baseline" or a["baseline"] != "Verified baseline":
+        gaps.append("verified financial or operational benefit")
     if a["data"] != "Access, ownership and quality verified":
-        qualifiers.append("data readiness remains unresolved")
+        gaps.append("data readiness")
     if a["control"] != "Controls tested and recorded":
-        qualifiers.append("control acceptance remains outstanding")
-    if a["owner"] != "Named accountable business owner":
-        qualifiers.append("business accountability is incomplete")
+        gaps.append("control sign-off")
     if a["capacity"] != "People and budget explicitly available":
-        qualifiers.append("resource commitments are uncertain")
+        gaps.append("committed capacity")
     if a["legal"] != "Applicable obligations reviewed":
-        qualifiers.append("specialist legal review remains open")
-    if not qualifiers:
-        qualifiers.append("reported governance and operating conditions are in place")
-    caution = "; ".join(qualifiers[:3]) + "."
-    return (boundaries[verdict] + " " + evidence + " " + baseline + "; "
-            + caution[0].lower() + caution[1:])
+        gaps.append("specialist legal review")
+    if a["owner"] != "Named accountable business owner":
+        gaps.append("decision ownership")
+    if gaps:
+        constraints = "Outstanding: " + ", ".join(gaps[:3]) + ". "
+    else:
+        constraints = "No unresolved condition was reported in these selections. "
+    return direction + " " + positive + constraints + "Complete the action gates below."
 
 
 def _compact_state(choices: dict) -> tuple[str, str, str]:

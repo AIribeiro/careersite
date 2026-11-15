@@ -14,11 +14,14 @@ from page_advisory_client_journey import (
     CLOSED, STATUS, _client_requests, _request_messages, _reply,
 )
 from site_assets import ADVISORY_EMAIL
+from page_advisory_thread_ui import render_thread, render_casebar, render_notice, pretty_date, pretty_time
 
-SECTIONS = ("overview", "correspondence", "request", "history")
+CONVERSATION_EXPERIENCE_VERSION = "shared_dialogue_20261115"
+
+SECTIONS = ("correspondence", "overview", "request", "history")
 SECTION_LABELS = {
     "overview": "Conversation overview",
-    "correspondence": "Messages & reply",
+    "correspondence": "Conversation",
     "request": "Original request",
     "history": "All conversations",
 }
@@ -127,8 +130,7 @@ def _day(value: object) -> str:
 
 
 def _moment(value: object) -> str:
-    raw = str(value or "")
-    return (_day(raw) + (" · " + raw[11:16] if len(raw) >= 16 else ""))
+    return pretty_date(value) + " · " + pretty_time(value)
 
 
 def _go(section: str) -> None:
@@ -146,12 +148,12 @@ def _tab_changed() -> None:
 def _open_request(rid: str) -> None:
     """Switch selected request without losing the authenticated Streamlit session."""
     st.query_params["request"] = rid
-    st.query_params["conversation_section"] = "overview"
+    st.query_params["conversation_section"] = "correspondence"
     st.rerun()
 
 
 def _navigation() -> str:
-    current = str(st.query_params.get("conversation_section") or "overview").lower()
+    current = str(st.query_params.get("conversation_section") or "correspondence").lower()
     if current not in SECTIONS:
         current = "overview"
     if st.session_state.get("advisory_conversation_section") != current:
@@ -173,16 +175,13 @@ def _header(req: dict, message_count: int) -> None:
     st.html(
         WORKSPACE_CSS +
         '<div class="cv-workspace"><div class="hero">'
-        '<span class="eyebrow">Private executive advisory · Selected conversation</span>'
+        '<span class="eyebrow">Private executive advisory · Client correspondence</span>'
         '<h2>' + _s(req.get("title") or "Advisory request", 160) + '</h2>'
-        '<p>One place to follow your request, review the correspondence '
-        'and see what happens next.</p></div>'
-        '<div class="summarybar">'
-        '<span>STATUS · ' + _s(status) + '</span>'
-        '<span>SUBMITTED · ' + _s(_day(req.get("created_at"))) + '</span>'
-        '<span>MESSAGES · ' + str(message_count) + '</span>'
-        '</div></div>'
+        '<p>Follow the discussion, respond to your advisor and keep the next '
+        'decision in view—all within your private Advisory account.</p></div></div>'
     )
+    render_casebar(status, req.get("created_at"), message_count,
+                   needs_response=state == "awaiting_client")
 
 
 def _section(title: str, headline: str, description: str) -> None:
@@ -257,60 +256,64 @@ def _overview(req: dict, messages: list[dict]) -> None:
 
 
 def _correspondence(token: str, uid: str, req: dict, messages: list[dict]) -> None:
-    _section("Private correspondence", "Messages and responses",
-             "A chronological record of your advisory discussion. Your reply is stored with this request.")
-    if not messages:
-        st.html('<div class="cv-workspace"><div class="empty">'
-                'No messages yet. When the discussion begins, messages will appear here.'
-                '</div></div>')
-    else:
-        cards = []
-        for msg in messages:
-            advisor = msg.get("sender") == "advisor"
-            label = "Jair Ribeiro · Advisory" if advisor else "You"
-            klass = "message" if advisor else "message message--client"
-            cards.append(
-                '<article class="' + klass + '">'
-                '<div class="meta"><strong>' + _s(label) + '</strong>'
-                '<time>' + _s(_moment(msg.get("created_at"))) + '</time></div>'
-                '<div class="body">' + _s(msg.get("body")) + '</div>'
-                '</article>'
-            )
-        st.html('<div class="cv-workspace">' + "".join(cards) + '</div>')
     rid = str(req["id"])
     state = str(req.get("status") or "submitted")
+    title, _ = STATUS.get(state, STATUS["submitted"])
+    guidance = STATE_GUIDANCE.get(state, STATE_GUIDANCE["submitted"])
+    if st.session_state.pop("advisory_message_sent_" + rid, False):
+        st.success("Your response has been added to this conversation.")
+    render_notice("Current status · " + title, guidance)
+    if req.get("next_step"):
+        render_notice("Next agreed step", req["next_step"])
+
+    head, refresh = st.columns([3, 1], vertical_alignment="bottom")
+    with head:
+        _section("Private correspondence", "The conversation",
+                 "Messages are presented in order, with your latest exchanges at the bottom.")
+    with refresh:
+        if st.button("Refresh messages", key="cv_refresh_" + rid,
+                     use_container_width=True):
+            st.rerun()
+    with st.container(height=460, border=True, key="advisory_client_thread"):
+        render_thread(messages, viewer="client", client_name="You")
     if state not in CLOSED:
-        _section("Your response", "Reply to this request",
-                 "Add a question, answer or relevant update. Avoid personal or confidential client data.")
-        with st.form("advisory_client_reply_" + rid, clear_on_submit=True):
+        draft_key = "advisory_message_draft_" + rid
+        if st.session_state.pop("advisory_message_clear_" + rid, False):
+            st.session_state[draft_key] = ""
+        st.markdown("#### Write a response")
+        with st.form("advisory_client_reply_" + rid, clear_on_submit=False):
             response = st.text_area(
-                "Your message", max_chars=4000, height=145,
-                placeholder="Write your reply or the additional context needed to move the discussion forward.",
-                help="Do not submit credentials, confidential documents or sensitive personal information.",
+                "Message to your advisor", key=draft_key,
+                max_chars=4000, height=118,
+                placeholder="Write your question, answer or update…",
+                help="Keep sensitive client data and confidential material out of this form.",
             )
             sent = st.form_submit_button(
-                "Send private response", type="primary", use_container_width=True,
+                "Send response", type="primary", use_container_width=True,
             )
+        st.caption("Private correspondence. Your message is saved only after you send it.")
         if sent:
             try:
                 _reply(token, uid, rid, response)
-                st.success("Your response was saved to this advisory conversation.")
+                st.session_state["advisory_message_clear_" + rid] = True
+                st.session_state["advisory_message_sent_" + rid] = True
                 st.rerun()
             except ValueError as exc:
                 st.error(str(exc))
             except (RuntimeError, TimeoutError, KeyError):
-                st.error("Your response could not be saved. Please retry.")
+                st.error("Your response could not be saved. Your draft is still here; please retry.")
     else:
-        st.info("This conversation is closed. Its messages remain available to read.")
+        st.info("This conversation is closed and remains available to read.")
     if state in ("active", "completed") and any(
         msg.get("sender") == "advisor" for msg in messages
     ):
         from page_advisory_service_feedback import (
             ADVISORY_SERVICE, render_optional_feedback,
         )
-        render_optional_feedback(
-            token, uid, ADVISORY_SERVICE, "personal_advisory", request_id=rid,
-        )
+        with st.expander("Share feedback on your advisory experience"):
+            render_optional_feedback(
+                token, uid, ADVISORY_SERVICE, "personal_advisory", request_id=rid,
+            )
 
 
 def _request_details(req: dict) -> None:
@@ -386,7 +389,30 @@ def render_conversation_workspace(session: dict, user: dict) -> None:
     ids = [str(r["id"]) for r in requests]
     query_id = str(st.query_params.get("request") or "")
     selected_id = query_id if query_id in ids else ids[0]
-    target = next(r for r in requests if str(r["id"]) == selected_id)
+    selection_key = "advisory_member_conversation"
+    if st.session_state.get(selection_key) not in ids or (
+        query_id in ids and st.session_state.get(selection_key) != query_id
+    ):
+        st.session_state[selection_key] = selected_id
+
+    by_id = {str(r["id"]): r for r in requests}
+    def _conversation_changed() -> None:
+        chosen = st.session_state.get(selection_key)
+        if chosen in by_id:
+            st.query_params["request"] = chosen
+            st.query_params["conversation_section"] = "correspondence"
+
+    def _option(rid: str) -> str:
+        item = by_id[rid]
+        label, _ = STATUS.get(str(item.get("status") or "submitted"), STATUS["submitted"])
+        title = str(item.get("title") or "Advisory request")
+        return (title[:65] + ("…" if len(title) > 65 else "") + " · " + label)
+
+    st.selectbox("Select conversation", ids, key=selection_key,
+                 format_func=_option, on_change=_conversation_changed,
+                 help="Switch conversations without signing out or losing your place.")
+    selected_id = str(st.session_state[selection_key])
+    target = by_id[selected_id]
     try:
         messages = _request_messages(token, uid, selected_id)
     except (RuntimeError, ValueError, TimeoutError, KeyError):

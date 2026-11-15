@@ -6,8 +6,6 @@ entitlements and the existing Save RPC remain the authority for all data.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any
 
 import streamlit as st
 
@@ -20,7 +18,6 @@ from page_advisory_scorecard_new_analysis import (
 )
 from page_advisory_scorecard_workspace import (
     normalize, CRITERIA, _form_initiative, _policy, _decision_record,
-    _overview, _capacity,
 )
 
 NAV = ("My analyses", "How the service works", "Request new analysis", "Open analysis")
@@ -95,10 +92,17 @@ def _analysis_info(ws: dict, requests: dict[str,dict], rank: int) -> dict:
     else:
         status="Recommendation available"
         next_step="Review the proposed actions and decision conditions."
-    title=str(req.get("title") or "AI portfolio investment review")
+    examples=", ".join(str(x.get("name") or "") for x in items[:3] if x.get("name"))
+    title=str(req.get("title") or (
+        f"AI portfolio investment review · {len(items)} initiatives"
+    ))
     context=str(req.get("decision_context") or (
-        "Assess competing AI initiatives to determine what merits "
-        "business-case review, a limited test, a hold or a stop decision."
+        (f"Assess {len(items)} registered AI opportunities"
+         + (f", including {examples}" if examples else "")
+         + ". Decide what merits business-case review, a test, a hold or a stop.")
+        if items else
+        "Build a new AI portfolio assessment and determine what merits "
+        "investment review, evidence testing, a hold or a stop."
     ))
     desired=str(req.get("expected_outcome") or (
         "A resource-constrained portfolio recommendation with accountable "
@@ -531,7 +535,6 @@ def render_scorecard_experience(
 ) -> None:
     """A single focused view, never a dashboard and six tabs stacked together."""
     st.html(CSS)
-    from page_advisory_scorecard_workspace import _read_workspaces
     workspaces=sorted(workspaces,key=lambda row:(
         str(row.get("approved_at") or ""),str(row.get("id") or "")
     ),reverse=True)

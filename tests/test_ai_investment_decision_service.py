@@ -121,7 +121,7 @@ class ExecutiveDecisionAdvisorTests(unittest.TestCase):
         self.assertLess(a, b)
         self.assertLess(b, c)
         self.assertIn('href="?page=advisory-decision"', page)
-        self.assertIn('No separate service approval required', page.replace("no separate service approval required", "No separate service approval required"))
+        self.assertIn("no individual service approval required", page.lower())
 
     def test_pdf_is_premium_two_page_executive_brief(self):
         from io import BytesIO

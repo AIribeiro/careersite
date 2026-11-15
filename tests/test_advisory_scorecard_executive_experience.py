@@ -40,7 +40,12 @@ class ExecutiveScorecardExperienceTests(unittest.TestCase):
         ):
             with self.subTest(value=value):
                 self.assertIn(value,ui)
-        self.assertIn('section=st.selectbox(',ui)
+        self.assertIn('st.pills(',ui)
+        self.assertIn('"Verdict & portfolio"',ui)
+        self.assertIn('"Executive actions"',ui)
+        self.assertIn('"Evidence & report"',ui)
+        self.assertIn('service_overview(',ui)
+        self.assertIn('case_header(',ui)
         self.assertIn('if section=="Executive decision":',ui)
         self.assertIn('elif section=="Priority actions":',ui)
         self.assertIn('elif section=="Executive report":',ui)
@@ -50,8 +55,8 @@ class ExecutiveScorecardExperienceTests(unittest.TestCase):
         ui=self.source("src/page_advisory_scorecard_experience.py")
         self.assertIn('"**What this analysis is intended to deliver**"',ui)
         self.assertIn('st.write(a["outcome"])',ui)
-        self.assertIn('st.write(a["context"])',ui)
-        self.assertIn('st.caption("**Next:** "+a["next_step"])',ui)
+        self.assertIn('context=a["context"]',ui)
+        self.assertIn('st.caption("**Next action:** "+a["next_step"])',ui)
         self.assertIn('a["title"]',ui)
         self.assertIn('f"AI portfolio investment review · {len(items)} initiatives"',ui)
 

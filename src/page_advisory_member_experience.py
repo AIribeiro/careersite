@@ -15,6 +15,7 @@ from page_advisory_client_journey import (
 )
 from site_assets import ADVISORY_EMAIL
 from page_rollout_workspace_ui import WORKSPACE_CSS
+from advisory_service_visibility import service_enabled
 
 MEMBER_EXPERIENCE_VERSION = "rollout_consistent_overview_20261115"
 
@@ -425,7 +426,7 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             else "Open my recommended service"
         )
         if st.button(
-            cta, type="primary", key="advisory_open_recommended",
+            cta, type="primary", key="advisory_open_recommended", disabled=not service_enabled(service_view),
             width="stretch",
         ):
             if service_view == "requests" and current is not None:
@@ -487,7 +488,7 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             'for individual advisory review.</p></div></div>'
         )
         if st.button("Submit an advisory request", type="primary",
-                     key="overview_new_request"):
+                     key="overview_new_request", disabled=not service_enabled("requests")):
             navigate("requests")
 
     st.html(
@@ -524,7 +525,7 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
                 "Portfolio comparison and executive decision record",
                 scorecard_status,
             )
-            if st.button("Open Scorecard workspace", key="overview_scorecard",
+            if st.button("Open Scorecard workspace", key="overview_scorecard", disabled=not service_enabled("scorecard"),
                          use_container_width=True):
                 navigate("scorecard")
 
@@ -538,7 +539,7 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
                 "Readiness verdict, executive actions and private decision brief",
                 rollout_status,
             )
-            if st.button("Open Rollout Advisor", key="overview_rollout",
+            if st.button("Open Rollout Advisor", key="overview_rollout", disabled=not service_enabled("rollout"),
                          use_container_width=True):
                 navigate("rollout")
     with right2:
@@ -550,7 +551,7 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
                 "Focused recommendation and executive decision brief",
                 "Included with verified Advisory membership",
             )
-            if st.button("Open Investment Decision Advisor", key="overview_investment",
+            if st.button("Open Investment Decision Advisor", key="overview_investment", disabled=not service_enabled("decision"),
                          use_container_width=True):
                 navigate("decision")
 
@@ -562,7 +563,7 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
             "Seven-dimension leadership profile, decision agenda and executive PDF",
             "Free self-service with verified Advisory membership",
         )
-        if st.button("Open Leadership Workshop", key="overview_leadership_workshop",
+        if st.button("Open Leadership Workshop", key="overview_leadership_workshop", disabled=not service_enabled("workshop"),
                      use_container_width=True):
             navigate("workshop")
 
@@ -780,7 +781,7 @@ def _request_overview(requests: list[dict], current: dict | None) -> None:
                 navigate("messages", str(current["id"]))
     else:
         if st.button("Start a new advisory request", type="primary",
-                     key="rq_overview_new"):
+                     key="rq_overview_new", disabled=not service_enabled("requests")):
             _go_request_section("new")
     if requests:
         if st.button("Browse request history", key="rq_overview_history"):
@@ -814,7 +815,7 @@ def render_requests(session: dict, user: dict, profile: dict) -> None:
                 '<p>Completed and declined requests remain available in My history.</p>'
                 '</div></div>'
             )
-            if st.button("Create a new request", type="primary", key="rq_current_new"):
+            if st.button("Create a new request", type="primary", key="rq_current_new", disabled=not service_enabled("requests")):
                 _go_request_section("new")
             return
         st.html(WORKSPACE_CSS + REQUEST_CSS)
@@ -865,6 +866,10 @@ def render_requests(session: dict, user: dict, profile: dict) -> None:
         _request_context(selected)
         if st.button("Open this conversation", type="primary", key="rq_history_conversation"):
             navigate("messages", str(selected["id"]))
+        return
+    # Previously submitted requests remain visible when new submissions are paused.
+    if not service_enabled("requests"):
+        st.info("New personal advisory requests are temporarily unavailable. Existing conversations and history remain accessible.")
         return
     # New requests retain the existing RLS-protected, single-active-request form.
     st.html(

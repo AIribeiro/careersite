@@ -10,7 +10,8 @@ def _current(token: str,request_id: str) -> dict | None:
     rows = _request_json(
         "GET", _rest_url("portfolio_advisory_scorecards?select=id,status,revision,"
                         "approved_at,updated_at,request_id,payload"
-                        "&request_id=eq." + request_id + "&limit=1"),
+                        "&request_id=eq." + request_id
+                        + "&analysis_request_id=is.null&limit=1"),
         token=token, timeout=12,
     )
     if not isinstance(rows,list):

@@ -51,3 +51,44 @@ def redeem_member_cookie_ticket(ticket: str) -> dict | None:
         return None
     deadline, session = payload
     return session if deadline > time.monotonic() else None
+
+
+
+# Access-only restoration uses a separate escrow: the verified browser's
+# HttpOnly cookie remains the sole holder of the rotating refresh token.
+_restores: dict[str, tuple[float, dict]] = {}
+
+
+def issue_member_restore_ticket(access: str, expires_at: int, user: dict) -> str:
+    """Return a one-use ticket after an HTTP cookie was independently checked."""
+    if (
+        not isinstance(access, str) or len(access) < 12
+        or not isinstance(expires_at, int) or expires_at <= time.time()
+        or not isinstance(user, dict) or not user.get("id")
+        or not user.get("email_confirmed_at")
+    ):
+        raise ValueError("A verified, unexpired member access token is required.")
+    ticket = secrets.token_urlsafe(32)
+    now = time.monotonic()
+    with _lock:
+        for key, (deadline, _) in tuple(_restores.items()):
+            if deadline <= now:
+                _restores.pop(key, None)
+        if len(_restores) >= MAX_PENDING:
+            oldest = min(_restores, key=lambda key: _restores[key][0])
+            _restores.pop(oldest, None)
+        _restores[ticket] = (now + TTL_SECONDS, {
+            "access_token": access, "expires_at": expires_at,
+        })
+    return ticket
+
+
+def redeem_member_restore_ticket(ticket: str) -> dict | None:
+    if not isinstance(ticket, str) or not 32 <= len(ticket) <= 128:
+        return None
+    with _lock:
+        payload = _restores.pop(ticket, None)
+    if not payload:
+        return None
+    deadline, session = payload
+    return session if deadline > time.monotonic() else None

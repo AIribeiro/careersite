@@ -22,6 +22,8 @@ from page_advisory_scorecard_workspace import (
     normalize, CRITERIA, _form_initiative, _policy, _decision_record,
 )
 
+SCORECARD_EXPERIENCE_VERSION = "executive_workspace_v2_20261115"
+
 NAV = ("My analyses", "How the service works", "Request new analysis", "Open analysis")
 SECTIONS = (
     "Executive decision", "Priority actions", "Portfolio options",

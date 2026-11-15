@@ -447,6 +447,23 @@ def _team_ui(token: str, uid: str, email: str, workshop: dict,
                 st.caption(str(p["status"]).title() +
                     (" · Assessment completed" if p.get("completed") else " · Not complete") +
                     (" · Shared with organizer" if p.get("share_answers") else " · Responses private"))
+                if str(p.get("user_id") or "") != uid:
+                    with st.expander("Remove participant", expanded=False):
+                        st.warning("Removing this participant revokes access and permanently "
+                                   "deletes their answers from this workshop.")
+                        confirm = st.checkbox("I understand the removal is permanent",
+                                               key="leadership_remove_confirm_" + str(p["id"]))
+                        if st.button("Remove this participant", disabled=not confirm,
+                                     key="leadership_remove_" + str(p["id"])):
+                            deleted = _api(
+                                "DELETE", "portfolio_leadership_participants?id=eq." +
+                                quote(str(p["id"]), safe="") + "&select=id",
+                                token, returning=True)
+                            if isinstance(deleted, list) and len(deleted) == 1:
+                                st.success("Participant access and responses removed.")
+                                st.rerun()
+                            else:
+                                st.error("Could not confirm participant removal.")
         # Organizer can access only responses whose owners explicitly consented.
         consented = [r["answers"] for r in responses
                      if any(p["id"] == r["participant_id"] and p.get("share_answers")
@@ -595,6 +612,49 @@ def _findings(token: str, uid: str, workshop: dict, me: dict | None,
         navigate("requests")
 
 
+def _workshop_settings(token: str, uid: str, workshop: dict,
+                       member: dict, owner: bool) -> None:
+    wid = str(workshop["id"])
+    st.markdown("### Workshop settings")
+    if owner:
+        st.caption("As organizer, you can permanently erase this workshop, all "
+                   "participant invitations, saved answers and decision records.")
+        with st.expander("Delete workshop permanently", expanded=False):
+            st.warning("This cannot be undone. All participant responses will be deleted.")
+            verification = st.text_input("Type the workshop title to confirm",
+                                         key="leadership_delete_confirm_" + wid)
+            if st.button("Delete this workshop and all records",
+                         disabled=verification != workshop["title"],
+                         key="leadership_delete_" + wid):
+                removed = _api("DELETE",
+                               "portfolio_leadership_workshops?id=eq." +
+                               quote(wid, safe="") + "&select=id",
+                               token, returning=True)
+                if isinstance(removed, list) and len(removed) == 1:
+                    _go("history")
+                else:
+                    st.error("Deletion could not be verified; no success is claimed.")
+    elif workshop.get("mode") == "team":
+        st.caption("You may withdraw your participation and delete your own assessment. "
+                   "This does not affect the other participants.")
+        with st.expander("Leave workshop and delete my responses", expanded=False):
+            agree = st.checkbox("I understand my answers will be permanently removed",
+                                key="leadership_leave_agree_" + wid)
+            if st.button("Leave and delete my answers", disabled=not agree,
+                         key="leadership_leave_" + wid):
+                removed = _api("DELETE",
+                               "portfolio_leadership_participants?id=eq." +
+                               quote(str(member["id"]), safe="") + "&select=id",
+                               token, returning=True)
+                if isinstance(removed, list) and len(removed) == 1:
+                    _go("history")
+                else:
+                    st.error("The request could not be confirmed.")
+    else:
+        st.caption("This is your private individual workshop. The organizer may "
+                   "delete it permanently using the owner controls.")
+
+
 def _workspace(token: str, uid: str, email: str, items: list[dict]) -> None:
     wid = str(st.query_params.get("workshop_id") or "")
     item = next((w for w in items if str(w["id"]) == wid), None)
@@ -616,10 +676,10 @@ def _workspace(token: str, uid: str, email: str, items: list[dict]) -> None:
     context = item.get("context") or {}
     st.caption(" · ".join(str(context.get(k) or "") for k in ("stage", "scope", "priority")))
     details = ("assessment", "exercises", "findings", "decisions") + (
-        ("team",) if item.get("mode") == "team" else ())
+        ("team",) if item.get("mode") == "team" else ()) + ("settings",)
     labels = {"assessment": "Assessment", "exercises": "Discussion exercises",
               "findings": "Findings & report", "decisions": "Decision record",
-              "team": "Team & invitations"}
+              "team": "Team & invitations", "settings": "Settings"}
     requested = str(st.query_params.get("workshop_detail") or "assessment")
     if requested not in details:
         requested = "assessment"
@@ -641,6 +701,8 @@ def _workspace(token: str, uid: str, email: str, items: list[dict]) -> None:
         _findings(token, uid, item, me, old, people, data, owner)
     elif requested == "decisions":
         _decision_ui(token, item, owner, old)
+    elif requested == "settings":
+        _workshop_settings(token, uid, item, me, owner)
     else:
         _team_ui(token, uid, email, item, people, data, owner)
 

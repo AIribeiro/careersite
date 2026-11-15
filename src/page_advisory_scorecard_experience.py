@@ -59,6 +59,12 @@ def _go(uid: str, view: str, analysis_id: str | None = None,
         st.session_state["scx_selected_"+uid]=analysis_id
     if section and analysis_id:
         st.session_state["scx_section_"+analysis_id]=section
+        st.session_state["scx_primary_"+analysis_id]=(
+            "verdict" if section=="Executive decision" else
+            "actions" if section=="Priority actions" else "evidence"
+        )
+        if section not in ("Executive decision","Priority actions"):
+            st.session_state["scx_detail_"+analysis_id]=section
 
 
 def _title(kicker: str, title: str, summary: str = "") -> None:
@@ -574,13 +580,19 @@ def _analysis(uid: str, a: dict, token: str,
         "← All analyses",key="scx_back_"+wid,
         on_click=_go,args=(uid,"My analyses"),
     )
-    _title(
-        f"ANALYSIS {a['rank']} · {a['status']}",
-        a["title"],
-        a["context"],
+    from page_advisory_shared_ui import case_header
+    case_header(
+        title=a["title"],
+        date=a["updated_at"][:10],
+        context=a["context"],
+        status=a["status"]+" · "+str(a["count"])+
+               " initiatives · revision "+str(a["revision"]),
     )
-    st.markdown("**What this analysis is intended to deliver**")
-    st.write(a["outcome"])
+    with st.expander("Purpose of this assessment and intended deliverable"):
+        st.markdown("**What this analysis is intended to deliver**")
+        st.write(a["outcome"])
+        st.caption("The analysis compares initiatives within stated resource limits; "
+                   "recommendations are not approvals to spend or deploy.")
     with st.container(border=True):
         m1,m2,m3,m4=st.columns(4)
         m1.metric("Initiatives",a["count"])
@@ -588,16 +600,69 @@ def _analysis(uid: str, a: dict, token: str,
         m3.metric("For leadership review",a["report"]["recommended"]["count"])
         m4.metric("Revision",a["revision"])
         st.caption("**Next action:** "+a["next_step"])
+    # Rollout-standard three-way decision navigation. Portfolio-only controls
+    # live under Evidence & report, rather than creating eight top-level tabs.
     section_key="scx_section_"+wid
     if st.session_state.get(section_key) not in SECTIONS:
         st.session_state[section_key]=(
             "Initiatives & evidence" if not a["count"] else "Executive decision"
         )
-    section=st.selectbox(
-        "Open analysis section",options=SECTIONS,
-        key=section_key,
-        help="Only the selected section is shown. Your inputs are saved separately."
+    primary_key="scx_primary_"+wid
+    detail_key="scx_detail_"+wid
+    detail_sections=(
+        "Portfolio options","Initiatives & evidence","Decision record",
+        "Executive report","Activity & history","Assessment criteria",
     )
+    def select_main() -> None:
+        current=st.session_state.get(primary_key)
+        if current=="verdict":
+            st.session_state[section_key]="Executive decision"
+        elif current=="actions":
+            st.session_state[section_key]="Priority actions"
+        elif current=="evidence":
+            detail=st.session_state.get(detail_key)
+            st.session_state[section_key]=(
+                detail if detail in detail_sections else "Initiatives & evidence"
+            )
+    def select_detail() -> None:
+        detail=st.session_state.get(detail_key)
+        if detail in detail_sections:
+            st.session_state[section_key]=detail
+    if st.session_state.get(primary_key) not in ("verdict","actions","evidence"):
+        selected=st.session_state[section_key]
+        st.session_state[primary_key]=(
+            "verdict" if selected=="Executive decision" else
+            "actions" if selected=="Priority actions" else "evidence"
+        )
+    st.pills(
+        "Decision brief sections", ("verdict","actions","evidence"),
+        format_func=lambda x: {
+            "verdict":"Verdict & portfolio",
+            "actions":"Executive actions",
+            "evidence":"Evidence & report",
+        }[x],
+        key=primary_key, selection_mode="single", required=True,
+        on_change=select_main, label_visibility="collapsed",
+        wrap=False, width="stretch",
+    )
+    if st.session_state.get(primary_key)=="evidence":
+        if st.session_state.get(detail_key) not in detail_sections:
+            previous=st.session_state.get(section_key)
+            st.session_state[detail_key]=(
+                previous if previous in detail_sections else "Initiatives & evidence"
+            )
+        st.pills(
+            "Portfolio review tools",detail_sections,
+            key=detail_key, selection_mode="single",required=True,
+            on_change=select_detail,label_visibility="collapsed",
+            wrap=False,width="stretch",
+        )
+        section=st.session_state[detail_key]
+    else:
+        section=(
+            "Executive decision" if st.session_state[primary_key]=="verdict"
+            else "Priority actions"
+        )
     st.divider()
     if section=="Executive decision":
         _decision(a,uid,token,feedback_rows)

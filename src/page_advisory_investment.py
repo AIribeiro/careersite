@@ -768,67 +768,71 @@ def _evidence_page(view: dict) -> None:
 
 
 def render_private_investment(session: dict, user: dict) -> None:
-    """Dedicated self-service pages within the existing authenticated Advisory shell."""
+    """Shared four-stage Advisory journey, with three distinct decision subviews."""
     token = str(session.get("access_token") or "")
     uid = str(user.get("id") or "")
     if not token or not uid or not user.get("email_confirmed_at"):
         st.error("A verified Advisory account is required to use this service.")
         return
-    st.html(PRIVATE_CSS)
+    from page_rollout_workspace_ui import WORKSPACE_CSS
+    st.html(WORKSPACE_CSS + PRIVATE_CSS)
     with st.container(key="investment_decision_area"):
-        st.html(
-            '<header class="inv-hero">'
-            '<span class="inv-eyebrow">EXECUTIVE AI ADVISORY / PRIVATE WORKSPACE</span>'
-            '<h2>AI Investment Decision Advisor</h2>'
-            '<p>One AI opportunity. One defensible recommendation. The evidence '
-            'and actions required for your next leadership decision.</p>'
-            '</header>'
-        )
+        st.markdown("### AI Investment Decision Advisor")
+        st.caption("Private executive decision service · A focused investment decision, "
+                   "not a project tracker")
+        section = _workspace_nav([])
         try:
             history = _history(token, uid)
         except (RuntimeError, ValueError, TimeoutError, KeyError):
-            st.error("Your private assessments could not be loaded. Please try again.")
+            st.error("Your saved assessments could not be loaded. Try again later.")
             return
-        records = {str(item.get("id")): item for item in history if item.get("id")}
-        selection = (st.session_state.get("investment_selected_record") or
-                     st.session_state.get("investment_current_report"))
-        if selection not in records:
-            selection = next(iter(records), "")
-        st.session_state["investment_selected_record"] = selection
-        section = _workspace_nav(history)
-        if section == "My assessments":
-            _assessment_library(history)
+        if section == "overview":
+            _service_guide(history)
             return
-        if section == "New assessment":
-            st.html(
-                '<div class="inv-history-intro">'
-                '<span class="inv-eyebrow">NEW EXECUTIVE ASSESSMENT</span>'
-                '<h3 class="inv-section-title">Assess one AI opportunity</h3>'
-                '<p>Complete three short sections and receive a reasoned position: '
-                'Invest, Experiment, Hold or Stop. Your answers and report are '
-                'saved privately; this does not authorize funding or production.</p>'
-                '</div>'
-            )
+        if section == "assess":
+            st.markdown("### New executive investment assessment")
+            st.caption("A new assessment creates a separate decision record. "
+                       "Existing reports and historical verdicts are preserved.")
             _input_ui(token, uid)
             return
+        if section == "history":
+            _assessment_library(history)
+            return
+        records = {str(item["id"]): item for item in history if item.get("id")}
+        selection = (
+            str(st.query_params.get("investment_record") or "")
+            or str(st.session_state.get("investment_selected_record") or "")
+            or str(st.session_state.get("investment_current_report") or "")
+        )
+        if selection not in records:
+            selection = next(iter(records), "")
         if not selection:
-            st.info("Select a saved assessment or create a new one.")
-            st.button("Create an assessment", on_click=_go_to,
-                      args=("New assessment",), type="primary")
+            st.info("No decision brief exists yet. Complete an assessment first.")
+            st.button("Start an assessment", type="primary",
+                      on_click=_go_to, args=("New assessment",))
             return
         record = records[selection]
+        st.session_state["investment_selected_record"] = selection
         try:
             view = present_assessment(record.get("answers") or {})
         except (TypeError, ValueError, KeyError):
-            st.error("The selected assessment cannot be interpreted. "
-                     "Choose another record from My assessments.")
-            st.button("View assessment library", on_click=_go_to,
+            st.error("This saved assessment cannot be interpreted. "
+                     "Open My history and select another record.")
+            st.button("Browse assessment history", on_click=_go_to,
                       args=("My assessments",))
             return
         _case_heading(record, view)
-        if section == "Executive decision":
+        st.caption("Decision rules · investment-decision-v1  |  "
+                   "Executive report · premium two-page PDF")
+        detail = _report_nav()
+        if detail == "verdict":
             _decision_page(token, uid, record, view)
-        elif section == "Action plan":
+        elif detail == "actions":
             _actions_page(view)
-        elif section == "Evidence & inputs":
+        else:
             _evidence_page(view)
+            st.markdown("### Your executive decision brief")
+            st.write("Download the decision and evidence record for a leadership "
+                     "discussion. Recommendations are based on submitted answers "
+                     "and do not confer investment or deployment approval.")
+            _report_download(record, view)

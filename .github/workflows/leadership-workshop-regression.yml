@@ -4,11 +4,13 @@ on:
   push:
     paths:
       - "src/page_advisory_leadership_*.py"
+      - "src/site_native_shell.py"
       - "src/page_advisory_portal.py"
       - "src/page_advisory_member_experience.py"
       - "src/page_public_services.py"
       - "src/site_reader_navigation.py"
       - "tests/test_leadership_workshop.py"
+      - "tests/test_leadership_public_service.py"
       - ".github/workflows/leadership-workshop-regression.yml"
   workflow_dispatch:
 
@@ -26,4 +28,4 @@ jobs:
       - name: Test leadership assessment, report and navigation
         env:
           PYTHONPATH: src
-        run: python -m unittest discover -s tests -p test_leadership_workshop.py -v
+        run: python -m unittest discover -s tests -p "test_leadership*.py" -v

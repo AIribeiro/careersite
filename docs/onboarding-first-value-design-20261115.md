@@ -59,11 +59,14 @@ assessment answers, financial assumptions, private business descriptions
 and free-text metadata are not stored in this table.
 
 The owner-only **Reader Management → Onboarding outcomes** tab presents
-aggregates: verified registrations, number of first complete opens, first
-saved assessments, first requests, and median registration-to-first-outcome
-duration. These are not global assessment totals or evidence of adoption.
-Measurement only begins from this deployment; historical first-use activity
-cannot be reconstructed. Account deletion cascades to its milestones.
+aggregates: post-launch verified registrations, first complete opens, first
+saved assessments, first requests, conversion rates and median
+registration-to-first-outcome duration. All-time membership totals appear
+separately. These are not global assessment totals or evidence of adoption.
+The comparable cohort starts on 15 November 2026 at 11:49 UTC; earlier
+memberships cannot have their historical first-use activity reconstructed, so
+the database intentionally does not record first-value milestones for them.
+Account deletion cascades to its milestones.
 Privacy notice describes this use, and writing a milestone is not required
 to access a publication or assessment.
 

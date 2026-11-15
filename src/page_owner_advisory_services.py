@@ -46,10 +46,10 @@ def _set_service_visibility(token: str, service_key: str, enabled: bool) -> bool
 def render_service_management(token: str) -> None:
     st.subheader("Service availability")
     st.caption(
-        "Choose which Advisory services can receive new clients. "
-        "Disabling a service removes its active call-to-action on the public Advisory page "
-        "and pauses new starts; it does not erase client records or revoke existing approvals. "
-        "Your Advisory account, member history and current conversations remain available."
+        "Enabled means visible and available to regular members. Disabled hides the "
+        "service, its calls-to-action and new starts from regular visitors and members. "
+        "Admins still see and can use the service normally. Existing records, approvals "
+        "and private conversations are preserved."
     )
     try:
         rows = _read_owner_catalogue(token)
@@ -61,7 +61,7 @@ def render_service_management(token: str) -> None:
     active = sum(states.values())
     a, b, c = st.columns(3)
     a.metric("Enabled services", active)
-    b.metric("Paused services", len(states) - active)
+    b.metric("Hidden from regular users", len(states) - active)
     c.metric("Total services", len(states))
     st.divider()
 
@@ -73,7 +73,7 @@ def render_service_management(token: str) -> None:
                 st.markdown("**" + label + "**")
                 st.caption(
                     ("Enabled · Public entry is available" if enabled
-                     else "Disabled · New requests and start CTAs are paused")
+                     else "Disabled · Hidden from regular users · Admins retain access")
                 )
             with control:
                 if st.button(

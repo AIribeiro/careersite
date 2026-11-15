@@ -12,12 +12,15 @@ from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from thinking_articles import ARTICLES, ArticleMeta, BASE_URL
 from thinking_social import ensure_article_social_image
 from site_shortlinks import registered_short_links
+from scripts.build_home_social_preview import write_home_share
 
 DEFAULT_SHARE_BASE = "https://airibeiro.github.io/careersite"
 X_HANDLE = "@Liberoliber"
@@ -342,8 +345,9 @@ def build(output: Path, share_base: str) -> None:
             encoding="utf-8",
         )
 
-    index = "<!doctype html><html><head><meta charset='utf-8'><meta name='robots' content='noindex'></head><body><h1>Jair Ribeiro — Thinking</h1><ul>" + "".join(links) + "</ul></body></html>"
-    (output / "index.html").write_text(index, encoding="utf-8")
+    # Serve an actual crawler-visible homepage preview, not Streamlit's
+    # client-injected metadata or the masked-domain outer iframe.
+    write_home_share(output, share_base)
 
     sitemap_items = "".join(
         f"<url><loc>{html.escape(_share_url(article, share_base))}</loc><lastmod>{article.published_iso}</lastmod></url>"

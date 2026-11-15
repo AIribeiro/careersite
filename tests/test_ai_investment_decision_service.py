@@ -123,13 +123,59 @@ class ExecutiveDecisionAdvisorTests(unittest.TestCase):
         self.assertIn('href="?page=advisory-decision"', page)
         self.assertIn('No separate service approval required', page.replace("no separate service approval required", "No separate service approval required"))
 
-    def test_pdf_is_real_pdf(self):
+    def test_pdf_is_premium_two_page_executive_brief(self):
+        from io import BytesIO
+        from pypdf import PdfReader
         from page_advisory_investment import _pdf_report
-        raw = case()
+
+        raw = case(
+            value=FIELDS["value"][1], baseline=FIELDS["baseline"][1],
+            data=FIELDS["data"][1], control=FIELDS["control"][1],
+            capacity=FIELDS["capacity"][1],
+        )
+        raw["name"] = "AI-assisted warranty case routing - European aftersales"
+        raw["context"] = (
+            "Two-market shadow pilot against historical service routing cases. "
+            "Measured live benefit has not yet been established and controls are pending."
+        )
         result = assess(raw)
         result_pdf = _pdf_report(raw, result, "2026-11-15")
         self.assertTrue(result_pdf.startswith(b"%PDF"))
-        self.assertGreater(len(result_pdf), 1500)
+        self.assertGreater(len(result_pdf), 3500)
+
+        reader = PdfReader(BytesIO(result_pdf))
+        self.assertEqual(len(reader.pages), 2)
+        page_one = reader.pages[0].extract_text()
+        page_two = reader.pages[1].extract_text()
+        self.assertIn("EXECUTIVE SUMMARY", page_one)
+        self.assertIn("THREE PRIORITY ACTIONS", page_one)
+        self.assertIn("EXPERIMENT", page_one)
+        self.assertIn("OWNER", page_one)
+        self.assertIn("PROOF", page_one)
+        self.assertIn("EVIDENCE", page_two.upper())
+        self.assertIn("DATA READINESS", page_two.upper())
+        self.assertIn("CONTEXT SUPPLIED BY THE RESPONDENT", page_two.upper())
+        self.assertNotIn("Self-reported. Self-reported", page_one + page_two)
+
+    def test_pdf_renders_for_all_verdicts_and_long_notes(self):
+        from io import BytesIO
+        from pypdf import PdfReader
+        from page_advisory_investment import _pdf_report
+
+        raw_cases = [
+            case(), case(value=FIELDS["value"][1]), 
+            case(owner=FIELDS["owner"][2]),
+            case(legal=FIELDS["legal"][2]),
+        ]
+        for raw in raw_cases:
+            raw["context"] = "Non-confidential working context. " * 15
+            raw["context"] = raw["context"][:500]
+            with self.subTest(verdict=assess(raw)["verdict"]):
+                pdf_bytes = _pdf_report(raw, assess(raw), "2026-11-15")
+                pages = PdfReader(BytesIO(pdf_bytes)).pages
+                self.assertEqual(len(pages), 2)
+                self.assertIn(assess(raw)["verdict"], pages[0].extract_text())
+                self.assertIn("PRIORITY", pages[0].extract_text())
 
 
 if __name__ == "__main__":

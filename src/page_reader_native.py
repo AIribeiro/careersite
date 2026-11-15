@@ -912,7 +912,7 @@ def _library(session: dict, user: dict) -> None:
                 )
                 if st.button(
                     "Read my first complete briefing", type="primary",
-                    key="reader_first_win_open", use_container_width=True,
+                    key="reader_first_win_open", width="stretch",
                 ):
                     _open_reader_briefing(featured_slug)
 

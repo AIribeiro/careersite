@@ -85,7 +85,7 @@ INTAKE_LIMITS = {
 
 
 def _validate_intake(raw: dict) -> dict:
-    """Validate professional context before OTP and again after email verification."""
+    """Validate full professional context for an individually reviewed decision."""
     value = {key: str(raw.get(key) or "").strip() for key in INTAKE_LIMITS}
     for key, limit in INTAKE_LIMITS.items():
         if len(value[key]) > limit:
@@ -100,13 +100,26 @@ def _validate_intake(raw: dict) -> dict:
     return value
 
 
+def _validate_registration_intake(raw: dict) -> dict:
+    """Allow verified members to open Advisory without a general business survey."""
+    value = {key: str(raw.get(key) or "").strip() for key in INTAKE_LIMITS}
+    for key, limit in INTAKE_LIMITS.items():
+        if len(value[key]) > limit:
+            raise ValueError("One or more profile fields are too long.")
+    if not value["first_name"]:
+        raise ValueError("Enter your first name to create your Advisory account.")
+    if value["advisory_focus"] not in FOCUS_OPTIONS or value["decision_horizon"] not in HORIZON_OPTIONS:
+        raise ValueError("Select one of the available advisory options.")
+    return value
+
+
 def _signup_context(user: dict) -> dict | None:
     """Return a user's staged intake, never an authorization claim."""
     email = str(user.get("email") or "").strip().lower()
     staged = st.session_state.get("advisory_signup_intake")
     if isinstance(staged, dict) and staged.get("_email") == email and staged.get("privacy_notice_ack") is True:
         try:
-            return _validate_intake(staged)
+            return _validate_registration_intake(staged)
         except ValueError:
             pass
     metadata = user.get("user_metadata") if isinstance(user.get("user_metadata"), dict) else {}
@@ -114,7 +127,7 @@ def _signup_context(user: dict) -> dict | None:
         return None
     raw = {key: metadata.get("advisory_" + key) for key in INTAKE_LIMITS}
     try:
-        return _validate_intake(raw)
+        return _validate_registration_intake(raw)
     except ValueError:
         return None
 
@@ -131,7 +144,7 @@ def _get_advisory_profile(session: dict, user: dict) -> dict | None:
 
 
 def _register_advisory(session: dict, user: dict, intake: dict) -> None:
-    details = _validate_intake(intake)
+    details = _validate_registration_intake(intake)
     if not user.get("email_confirmed_at"):
         raise ValueError("Verify your email first.")
     _request_json(
@@ -146,7 +159,7 @@ def _register_advisory(session: dict, user: dict, intake: dict) -> None:
 
 
 def _update_context(session: dict, user: dict, intake: dict) -> None:
-    details = _validate_intake(intake)
+    details = _validate_registration_intake(intake)
     _request_json(
         "PATCH", _rest_url("portfolio_advisory_profiles?user_id=eq."
                            + quote(str(user["id"]), safe="")),
@@ -369,44 +382,24 @@ Your account also provides free access to the Executive AI Reader Library.</p>
                         st.error("Password recovery email could not be sent.")
         return
     else:
-        st.caption("Professional details · Required fields are marked *")
+        st.caption("STEP 1 OF 2 · EMAIL VERIFICATION")
+        st.write(
+            "Start with your name and email. Professional details and your business "
+            "decision are requested only when relevant to the service you choose."
+        )
         with st.form("advisory_initial_registration"):
-            a, b = st.columns(2)
-            with a:
-                first = st.text_input("First name *", max_chars=80, placeholder="First name")
-            with b:
-                last = st.text_input("Last name *", max_chars=80, placeholder="Last name")
-            a, b = st.columns(2)
-            with a:
-                role = st.text_input("Job title / role *", max_chars=160, placeholder="e.g. Chief Operating Officer")
-            with b:
-                company = st.text_input("Organization *", max_chars=180, placeholder="Company or organization")
-            email = st.text_input("Professional email *", max_chars=254, placeholder="you@organization.com")
-            if self_service:
-                decision = "Registration for the free self-service AI Investment Decision Advisor."
-                st.caption("You can describe the AI opportunity inside the assessment. No separate advisory request is required.")
-            else:
-                decision = st.text_area(
-                    "What decision, challenge or business outcome brings you here? *",
-                    max_chars=1200, height=110,
-                    placeholder="A couple of sentences are enough. What needs a clearer decision?",
-                    help="Please do not include confidential business data, contracts or personal information.",
-                )
-            a, b = st.columns(2)
-            with a:
-                focus = st.selectbox(
-                    "Advisory focus (optional)", FOCUS_OPTIONS,
-                    format_func=lambda v: v or "Select if relevant",
-                )
-            with b:
-                horizon = st.selectbox(
-                    "Decision timeframe (optional)", HORIZON_OPTIONS,
-                    format_func=lambda v: v or "Not decided",
-                )
-            st.caption("Keep the description high-level. No budget, confidential documents or phone number are required.")
+            first = st.text_input("First name *", max_chars=80, placeholder="First name")
+            email = st.text_input(
+                "Professional email *", max_chars=254,
+                placeholder="you@organization.com",
+            )
             accepted = st.checkbox("I have read the Privacy & Data notice.")
             submit = st.form_submit_button("Email my verification link", type="primary")
-        st.caption("Review the [Privacy & Data notice](?page=privacy). Registration is free. Pro-bono requests are reviewed individually; a meeting is not guaranteed.")
+        st.caption(
+            "Free registration · No payment details · No newsletter sign-up · "
+            "Personal advisory requests are reviewed individually."
+        )
+        st.caption("Review the [Privacy & Data notice](?page=privacy).")
         if submit:
             address = str(email).strip().lower()
             try:
@@ -414,20 +407,20 @@ Your account also provides free access to the Executive AI Reader Library.</p>
                     raise ValueError("Enter a valid professional email address.")
                 if not accepted:
                     raise ValueError("Please read and acknowledge the privacy notice.")
-                details = _validate_intake({
-                    "first_name": first, "last_name": last,
-                    "role_title": role, "organization": company,
-                    "decision_context": decision, "advisory_focus": focus,
-                    "decision_horizon": horizon,
-                })
-                _request_email(first.strip(), address, False, False,
-                               destination="advisory-access",
-                               advisory_intake={**details, "privacy_notice_ack": True})
+                details = _validate_registration_intake({"first_name": first})
+                _request_email(
+                    first.strip(), address, False, False,
+                    destination="advisory-access",
+                    advisory_intake={**details, "privacy_notice_ack": True},
+                )
                 st.session_state["advisory_signup_intake"] = {
                     **details, "privacy_notice_ack": True, "_email": address,
                 }
                 st.session_state["advisory_pending_email"] = address
-                st.success("Open the verification link sent to your email. It will take you to the password setup page; your Advisory account activates only after you set a password.")
+                st.success(
+                    "Verification email sent. Open its secure link, then set "
+                    "a password to activate your Advisory account."
+                )
             except ValueError as exc:
                 st.error(str(exc))
             except (RuntimeError, TimeoutError):
@@ -441,9 +434,11 @@ Your account also provides free access to the Executive AI Reader Library.</p>
 
 
 def _advisory_enroll(session: dict, user: dict) -> None:
-    # First-time sign-ups normally completed the professional intake before
-    # email verification. Carry it into the protected profile automatically.
-    # Existing Reader identities and missing/stale metadata get a short form.
+    """Progressive registration: verified email and password, then name only.
+
+    Advisory membership must still be intentionally requested; signing up
+    for the Reader Library never automatically creates an Advisory profile.
+    """
     staged = _signup_context(user)
     if staged:
         try:
@@ -452,70 +447,35 @@ def _advisory_enroll(session: dict, user: dict) -> None:
             st.rerun()
             return
         except (RuntimeError, ValueError, TimeoutError, KeyError):
-            st.warning("Your email is verified. Please confirm your professional details below.")
+            st.warning("Email verified. Confirm your name below to finish.")
 
     st.html("""<section class="advisory-portal-intro">
-<h2>Complete your advisory account.</h2>
-<p>Your email is verified. Confirm your professional details and the decision you
-would like to discuss. Registration is free and does not guarantee a pro-bono discussion.</p>
+<h2>Activate your Advisory account.</h2>
+<p>Confirm your name and acknowledge the privacy notice. Your role, organization
+and business decision can be added when you choose a service. Personal advisory
+requests are assessed individually.</p>
 </section>""")
-    meta = user.get("user_metadata") if isinstance(user.get("user_metadata"), dict) else {}
-    pref = {}
-    for field in INTAKE_LIMITS:
-        pref[field] = str(meta.get("advisory_" + field) or "").strip()
-    pref["first_name"] = pref["first_name"] or str(meta.get("reader_first_name") or "")
+    metadata = user.get("user_metadata") if isinstance(user.get("user_metadata"), dict) else {}
+    suggested = str(
+        metadata.get("advisory_first_name") or metadata.get("reader_first_name") or ""
+    ).strip()[:80]
     with st.form("advisory_complete_registration"):
-        a, b = st.columns(2)
-        with a:
-            first = st.text_input("First name *", value=pref["first_name"], max_chars=80)
-        with b:
-            last = st.text_input("Last name *", value=pref["last_name"], max_chars=80)
-        a, b = st.columns(2)
-        with a:
-            role = st.text_input("Job title / role *", value=pref["role_title"], max_chars=160)
-        with b:
-            company = st.text_input("Organization *", value=pref["organization"], max_chars=180)
-        if str(st.query_params.get("view") or "") == "decision":
-            decision = pref["decision_context"] or "Registration for the free self-service AI Investment Decision Advisor."
-            st.caption("Complete your professional account to use the self-service decision tool.")
-        else:
-            decision = st.text_area(
-                "Decision, challenge or business outcome *",
-                value=pref["decision_context"], max_chars=1200, height=120,
-                help="Please share only non-confidential, high-level context.",
-            )
-        a, b = st.columns(2)
-        with a:
-            focus = st.selectbox(
-                "Advisory focus (optional)", FOCUS_OPTIONS,
-                index=FOCUS_OPTIONS.index(pref["advisory_focus"]) if pref["advisory_focus"] in FOCUS_OPTIONS else 0,
-                format_func=lambda v: v or "Select if relevant",
-            )
-        with b:
-            horizon = st.selectbox(
-                "Decision timeframe (optional)", HORIZON_OPTIONS,
-                index=HORIZON_OPTIONS.index(pref["decision_horizon"]) if pref["decision_horizon"] in HORIZON_OPTIONS else 0,
-                format_func=lambda v: v or "Not decided",
-            )
+        first = st.text_input("First name *", value=suggested, max_chars=80)
         accepted = st.checkbox("I have read the Privacy & Data notice.")
-        submit = st.form_submit_button("Create my advisory account", type="primary")
+        submit = st.form_submit_button("Open my Advisory account", type="primary")
     if submit:
         try:
             if not accepted:
                 raise ValueError("Please read and acknowledge the privacy notice.")
-            details = _validate_intake({
-                "first_name": first, "last_name": last, "organization": company,
-                "role_title": role, "decision_context": decision,
-                "advisory_focus": focus, "decision_horizon": horizon,
-            })
+            details = _validate_registration_intake({"first_name": first})
             _register_advisory(session, user, details)
             st.session_state.pop("advisory_signup_intake", None)
-            st.success("Your account is ready. You can submit a pro-bono request or use the free reader library.")
+            st.success("Your Advisory account is ready.")
             st.rerun()
         except ValueError as exc:
             st.error(str(exc))
         except (RuntimeError, TimeoutError, KeyError):
-            st.error("The account could not be created. Please retry or contact advisory support.")
+            st.error("Account creation failed. Please retry or contact advisory support.")
     st.caption(f"Questions: {ADVISORY_EMAIL} · [Privacy & Data notice](?page=privacy)")
 
 

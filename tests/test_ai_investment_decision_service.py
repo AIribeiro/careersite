@@ -92,6 +92,18 @@ class ExecutiveDecisionAdvisorTests(unittest.TestCase):
         self.assertIn("feedback_rating", page)
         self.assertIn("st.download_button", page)
 
+    def test_short_guided_form_renders_without_database_access(self):
+        from streamlit.testing.v1 import AppTest
+        app = AppTest.from_file(
+            str(ROOT / "tests" / "advisory_investment_smoke_app.py"),
+            default_timeout=30,
+        ).run()
+        self.assertFalse(app.exception, [str(x.message) for x in app.exception])
+        self.assertEqual(len(app.selectbox), len(FIELDS))
+        self.assertTrue(any("AI opportunity" in x.label for x in app.text_input))
+        self.assertTrue(any("Generate my executive decision brief" in x.label
+                            for x in app.button))
+
     def test_pdf_is_real_pdf(self):
         from page_advisory_investment import _pdf_report
         raw = case()

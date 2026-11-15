@@ -164,7 +164,7 @@ SERVICES_CSS = """
 .site .advisory-ready h2{font:500 clamp(37px,4.5vw,57px)/1.08 Georgia,serif;letter-spacing:-.027em;color:#13263d;margin:0 0 16px}
 .site .advisory-ready-lede{font-size:15px;line-height:1.73;color:#536276;margin:0;max-width:760px}
 .site .advisory-ready-count{flex:0 0 auto;border-top:2px solid #bd7953;padding-top:14px;color:#6c5e52;font-size:11px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
-.site .advisory-ready-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
+.site .advisory-ready-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:stretch}
 .site .advisory-ready-card{display:flex;min-width:0;flex-direction:column;padding:28px 26px 26px;background:#fffefa;border:1px solid #ddd6cd;border-top:3px solid #bd7953;box-shadow:0 13px 32px rgba(17,33,53,.045);transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
 .site .advisory-ready-card:hover{border-color:#b5a38e;box-shadow:0 19px 42px rgba(17,33,53,.095);transform:translateY(-2px)}
 .site .advisory-ready-card--self{border-top-color:#1c3852}
@@ -267,13 +267,13 @@ def advisory() -> str:
    <div>
     <p class="service-eyebrow">Available advisory services</p>
     <h2 id="advisory-services-title">Choose the decision you need to make.</h2>
-    <p class="advisory-ready-lede">Three focused executive tools, each with a defined assessment and a decision-ready outcome. Explore what you receive and the access conditions before you begin.</p>
+    <p class="advisory-ready-lede">Four focused executive tools, each with a defined assessment and a decision-ready outcome. Explore what you receive and the access conditions before you begin.</p>
    </div>
-   <span class="advisory-ready-count">03 / Available now</span>
+   <span class="advisory-ready-count">04 / Available now</span>
   </div>
   <div class="advisory-ready-grid">
    <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-decision">
-    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Self-service · Included with registration</span><span class="advisory-ready-number">01 / 03</span></div>
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Self-service · Included with registration</span><span class="advisory-ready-number">01 / 04</span></div>
     <h3>AI Investment Decision Advisor</h3>
     <p class="advisory-ready-question">Should this AI opportunity move forward?</p>
     <p class="advisory-ready-description">Assess one AI opportunity and receive an invest, experiment, hold or stop recommendation, with the reasoning and three priority actions.</p>
@@ -284,7 +284,7 @@ def advisory() -> str:
     </div>
    </article>
    <article class="advisory-ready-card" data-analytics-section="advisory-rollout">
-    <div class="advisory-ready-card-head"><span class="advisory-ready-category">On-demand assessment · Individual approval</span><span class="advisory-ready-number">02 / 03</span></div>
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">On-demand assessment · Individual approval</span><span class="advisory-ready-number">02 / 04</span></div>
     <h3>Enterprise AI Rollout Readiness Advisor</h3>
     <p class="advisory-ready-question">Is this AI use case ready for enterprise rollout?</p>
     <p class="advisory-ready-description">Assess business value, operations, governance, adoption and ability to scale, then see the readiness verdict and the evidence gaps to resolve.</p>
@@ -295,7 +295,7 @@ def advisory() -> str:
     </div>
    </article>
    <article class="advisory-ready-card" data-analytics-section="advisory-scorecard">
-    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Portfolio assessment · Individual approval</span><span class="advisory-ready-number">03 / 03</span></div>
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Portfolio assessment · Individual approval</span><span class="advisory-ready-number">03 / 04</span></div>
     <h3>AI Portfolio Prioritization Scorecard</h3>
     <p class="advisory-ready-question">Which AI opportunities deserve scarce resources?</p>
     <p class="advisory-ready-description">Compare initiatives and decide what to advance, test, hold or stop using a constrained portfolio view and alternative scenarios.</p>
@@ -303,6 +303,17 @@ def advisory() -> str:
      <p class="advisory-ready-detail"><span>What you receive</span><strong>Portfolio recommendation · Scenarios · Decision memo</strong></p>
      <p class="advisory-ready-detail"><span>Access</span><strong>Free pro-bono service. Individual approval required.</strong></p>
      <a class="advisory-ready-link" href="?page=advisory-scorecard" target="_self" data-hq-event="advisory_scorecard_service">Explore portfolio scorecard <span aria-hidden="true">→</span></a>
+    </div>
+   </article>
+   <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-leadership-workshop">
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Executive leadership · Free self-service</span><span class="advisory-ready-number">04 / 04</span></div>
+    <h3>Executive AI Leadership Workshop</h3>
+    <p class="advisory-ready-question">Are your leaders prepared to own and sustain AI adoption?</p>
+    <p class="advisory-ready-description">Assess seven leadership conditions, discuss realistic AI adoption dilemmas and document the decisions, responsibilities and evidence needed next. Individual and invited team formats.</p>
+    <div class="advisory-ready-card-bottom">
+     <p class="advisory-ready-detail"><span>What you receive</span><strong>Leadership profile · Discussion exercises · Executive decision PDF</strong></p>
+     <p class="advisory-ready-detail"><span>Access</span><strong>Free with a verified Advisory account. No individual approval required.</strong></p>
+     <a class="advisory-ready-link" href="?page=advisory-access&amp;view=workshop" target="_self" data-hq-event="advisory_workshop_service">Open leadership workshop <span aria-hidden="true">→</span></a>
     </div>
    </article>
   </div>

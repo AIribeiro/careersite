@@ -97,6 +97,51 @@ class MaskedForwardingMobileTests(unittest.TestCase):
         self.assertIn("responsive_document = support_masked_mobile_media(page_document)", main)
         self.assertIn("responsive_document + '</div>'", main)
 
+    def test_reader_email_verification_has_phone_rules_inside_masked_frame(self):
+        # The email callback opens ?page=readers, which renders reader_header
+        # before native Streamlit forms. Its original CSS had only viewport
+        # breakpoints, leaving the library desktop-sized in a 980px iframe.
+        from unittest.mock import patch
+        from site_reader_shell import reader_header
+
+        with patch("streamlit.session_state", {"reader_native_session": None}):
+            rendered = reader_header()
+        self.assertIn(
+            "@media(max-width:900px), (max-device-width:900px){", rendered,
+        )
+        self.assertIn(
+            "@media(max-width:650px), (max-device-width:650px){", rendered,
+        )
+        self.assertIn(
+            "@media(max-width:700px), (max-device-width:700px){", rendered,
+        )
+        self.assertIn(
+            ".reader-shell .reader-hero-grid {grid-template-columns:minmax(0,1fr);gap:29px}",
+            rendered,
+        )
+        self.assertIn(
+            ".st-key-reader_flow [data-testid=\"stForm\"]{padding:7px 0 0!important}",
+            rendered,
+        )
+        self.assertIn('class="mobile-menu-label">Menu</span></summary>', rendered)
+
+    def test_reader_verification_removes_one_time_secret_before_rendering(self):
+        from pathlib import Path
+        source = (Path(__file__).resolve().parents[1] / "src" / "page_reader_native.py").read_text(
+            encoding="utf-8"
+        )
+        start = source.index("def render_reader_native() -> None:")
+        body = source[start:]
+        self.assertLess(
+            body.index("_consume_query_verification()"),
+            body.index("st.html(reader_header(staging=staging))"),
+        )
+        callback = source[source.index("def _consume_query_verification() -> None:"):]
+        self.assertLess(
+            callback.index('st.query_params.pop("token_hash", None)'),
+            callback.index('user = _verify({"token_hash": token, "type": auth_type})'),
+        )
+
     def test_phone_menu_replaces_wrapping_desktop_navigation(self):
         from site_components import MOBILE_NAV_CSS, nav
         self.assertIn("@media(max-width:700px), (max-device-width:700px)", MOBILE_NAV_CSS)

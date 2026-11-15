@@ -52,4 +52,6 @@ Focused regression: python -m unittest discover -s tests -p test_leadership_work
 
 Check Python parsing, deterministic rules, PDF bytes, synthetic Streamlit rendering, database permissions, separate-account invitation and sharing, history, mobile layout and masked-domain navigation.
 
-Future hardening: organizer participant revocation and retention, optional transactional email with rate limits, finer-grained autosave, and retention/deletion review before wider distribution. Any unrelated failing site workflows must be reported independently.
+An organizer can remove invited or accepted non-owner participants, deleting associated responses. An invited participant can leave and delete their own answers. The organizer can permanently delete an entire workshop and its records after confirming its exact title.
+
+Future hardening: optional transactional email with rate limits, finer-grained autosave, and a formal retention/deletion schedule before wider distribution. Any unrelated failing site workflows must be reported independently.

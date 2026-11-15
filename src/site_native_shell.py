@@ -183,7 +183,8 @@ def _inert_links(markup: str) -> str:
     return re.sub(r'<a\b([^>]*)>', replace_tag, markup).replace('</a>', '</span>')
 
 
-def native_header(page: str, *, navigation_locked: bool = False) -> str:
+def native_header(page: str, *, navigation_locked: bool = False,
+                  service: str = "") -> str:
     """Render the real site menu and a contextual editorial header."""
     if page == "advisory-access":
         active = "advisory-access"
@@ -202,6 +203,24 @@ def native_header(page: str, *, navigation_locked: bool = False) -> str:
         included = (
             '<a href="?page=readers" target="_self">Complete Premium Reader library included</a>'
         )
+        if service == "workshop":
+            title = "Start your Leadership Workshop."
+            kicker = "JAIR RIBEIRO / EXECUTIVE AI LEADERSHIP"
+            introduction = (
+                "You have reviewed the service. Register or sign in to assess "
+                "leadership readiness, examine real operating dilemmas and "
+                "prepare a private executive decision record."
+            )
+            trail = (
+                ('?page=home', 'Home'),
+                ('?page=advisory', 'Executive Advisory'),
+                ('?page=advisory-leadership', 'Leadership Workshop'),
+                ('', 'Account access'),
+            )
+            included = (
+                '<a href="?page=advisory-leadership" target="_self">'
+                'Review the full workshop, methodology and privacy terms</a>'
+            )
         # Authenticated workspace content starts below a restrained account header.
         compact = " native-hero--compact"
     elif page == "analytics":

@@ -40,13 +40,9 @@ def ensure_social_preview() -> Path:
     if not SOURCE.exists():
         return TARGET
 
-    try:
-        if TARGET.exists() and TARGET.stat().st_mtime >= SOURCE.stat().st_mtime:
-            with Image.open(TARGET) as existing:
-                if existing.size == SIZE and existing.format == "PNG":
-                    return TARGET
-    except OSError:
-        pass
+    # Always render on an explicit build. A source-code-only design change
+    # (such as a new branded footer) must not be skipped because the source
+    # photograph and committed PNG have unchanged timestamps.
 
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     canvas = Image.new("RGB", SIZE, NAVY)

@@ -117,7 +117,7 @@ class MemberContinuityTests(unittest.TestCase):
             action="logout", fetch_site="cross-site",
         )).status_code, 403)
 
-    def test_bootstrap_returns_only_short_lived_access_token(self):
+    def test_bootstrap_returns_only_one_use_server_ticket(self):
         cookie = {
             auth.ACCESS_COOKIE: self.session["access_token"],
             auth.REFRESH_COOKIE: self.session["refresh_token"],
@@ -127,9 +127,15 @@ class MemberContinuityTests(unittest.TestCase):
             response = run(FakeRequest(cookies=cookie))
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'"authenticated":true', response.body)
-        self.assertIn(self.session["access_token"].encode(), response.body)
+        self.assertNotIn(self.session["access_token"].encode(), response.body)
         self.assertNotIn(self.session["refresh_token"].encode(), response.body)
         self.assertEqual(response.headers.getlist("set-cookie"), [])
+        import json
+        ticket = json.loads(response.body)["restore_ticket"]
+        restored = tickets.redeem_member_restore_ticket(ticket)
+        self.assertEqual(restored["access_token"], self.session["access_token"])
+        self.assertEqual(restored["expires_at"], self.session["expires_at"])
+        self.assertIsNone(tickets.redeem_member_restore_ticket(ticket))
 
     def test_bootstrap_rotates_refresh_in_http_only_cookie(self):
         cookie = {
@@ -145,6 +151,7 @@ class MemberContinuityTests(unittest.TestCase):
         rotate.assert_called_once_with("old-refresh")
         self.assertEqual(response.status_code, 200)
         self.assertNotIn(self.session["refresh_token"].encode(), response.body)
+        self.assertNotIn(self.session["access_token"].encode(), response.body)
         self.assertTrue(any(self.session["refresh_token"] in cookie
                             for cookie in response.headers.getlist("set-cookie")))
 
@@ -177,6 +184,8 @@ class MemberContinuityTests(unittest.TestCase):
         self.assertNotIn("localStorage.setItem", source)
         self.assertNotIn("sessionStorage.setItem", source)
         self.assertNotIn("refresh_token: result.", source)
+        self.assertNotIn("access_token: result.", source)
+        self.assertIn("redeem_member_restore_ticket", source)
         native = (ROOT / "src/page_reader_native.py").read_text(encoding="utf-8")
         self.assertIn("queue_member_session_cookie(session, user)", native)
         self.assertIn("begin_member_browser_signout()", native)

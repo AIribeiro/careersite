@@ -271,13 +271,15 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
     else:
         request_indicator = "None open"
 
+    first_name = str(profile.get("first_name") or "").strip()
+    greeting = ("Welcome, " + escape(first_name) + ". " if first_name else "")
     st.html(
         WORKSPACE_CSS + OVERVIEW_CSS +
         '<div class="rl-workspace advisory-overview">'
         '<section class="hero">'
         '<span class="eyebrow">Private executive decision advisory</span>'
         '<h2>A clear view of your next AI decision.</h2>'
-        '<p>Follow your advisory discussions, access your approved services '
+        '<p>' + greeting + 'Follow your advisory discussions, access your approved services '
         'and choose the right assessment for the decision in front of you. '
         'Each service has its own private workspace.</p>'
         '</section><div class="summarybar">'
@@ -392,12 +394,22 @@ def render_overview(session: dict, user: dict, profile: dict) -> None:
         st.html(
             '<div class="rl-workspace advisory-overview"><div class="status-panel">'
             '<span class="eyebrow">No open personal advisory requests</span>'
-            '<h3>Start with the decision you need to make.</h3>'
-            '<p>Explore a decision advisor below, or submit a specific question '
-            'for individual advisory review.</p></div></div>'
+            '<h3>Start with a decision. Leave with a useful next step.</h3>'
+            '<p>Use the free Investment Decision Advisor to assess one AI opportunity '
+            'and receive an invest, experiment, hold or stop recommendation '
+            'with the reasoning and three priority actions. This service does not '
+            'need individual approval. You can also submit a question for personal review.</p>'
+            '</div></div>'
         )
-        if st.button("Submit an advisory request", type="primary",
-                     key="overview_new_request"):
+        if st.button(
+            "Start my first investment assessment · No approval needed"
+            if not requests else "Open Investment Decision Advisor · No approval needed",
+            type="primary", key="overview_first_win_investment",
+            use_container_width=True,
+        ):
+            navigate("decision")
+        if st.button("Submit an advisory request",
+                     key="overview_new_request", use_container_width=True):
             navigate("requests")
 
     st.html(

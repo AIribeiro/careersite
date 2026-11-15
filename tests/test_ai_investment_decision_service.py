@@ -48,6 +48,15 @@ class ExecutiveDecisionAdvisorTests(unittest.TestCase):
         self.assertEqual(assess(case(owner=FIELDS["owner"][2]))["verdict"], "HOLD")
         self.assertEqual(assess(case(legal=FIELDS["legal"][2]))["verdict"], "STOP")
 
+    def test_business_objective_and_maturity_affect_advice(self):
+        early = assess(case(stage=FIELDS["stage"][0]))
+        self.assertEqual(early["verdict"], "EXPERIMENT")
+        self.assertTrue(any("limited evidence-gathering test" in a["text"]
+                            for a in early["actions"]))
+        outcome = assess(case(objective=FIELDS["objective"][2],
+                              value=FIELDS["value"][1]))
+        self.assertIn("revenue", outcome["decision_lens"])
+
     def test_gates_override_business_case(self):
         self.assertEqual(assess(case(exposure=FIELDS["exposure"][2],
                                      legal=FIELDS["legal"][1]))["verdict"], "HOLD")

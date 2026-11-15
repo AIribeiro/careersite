@@ -275,16 +275,6 @@ def _request_email(first_name: str, email: str, subscribe: bool, returning: bool
     if not requested and st.query_params.get("page") == "thinking" and st.query_params.get("access") == "1":
         requested = _clean_slug(st.query_params.get("article", ""))
         page, purpose = "thinking", "access"
-    if (
-        not requested and destination == "readers"
-        and st.query_params.get("page") == "readers"
-    ):
-        # A named publication can survive email verification in a fresh tab.
-        from_library = _clean_slug(st.query_params.get("article", ""))
-        if from_library:
-            target = _callback_origin("readers") + "/?" + urlencode({
-                "page": "readers", "article": from_library,
-            })
     if requested:
         # Preserve the specific publication after email verification even
         # if the reader opens the secure link in a fresh browser tab.

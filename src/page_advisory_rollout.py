@@ -666,6 +666,26 @@ def render_private_rollout(session:dict,user:dict)->None:
             _access_request_ui(token,uid)
         return
     if not access:
+        from advisory_service_visibility import advisory_role
+        if advisory_role(token) == "admin":
+            st.info(
+                "Admin access · Activate a private Rollout Advisor workspace. "
+                "This does not change what regular users can see."
+            )
+            if st.button("Activate my admin Rollout workspace",
+                         type="primary", key="admin_rollout_activate"):
+                try:
+                    result = _request_json(
+                        "POST",
+                        _rest_url("rpc/portfolio_advisory_admin_ensure_workspace_v1"),
+                        token=token, payload={"p_service_key": "rollout"}, timeout=15,
+                    )
+                    if not isinstance(result, dict) or result.get("service_key") != "rollout":
+                        raise RuntimeError("Admin Rollout access was not confirmed")
+                    st.rerun()
+                except (RuntimeError, ValueError, TimeoutError, KeyError):
+                    st.error("Admin workspace could not be activated. Please review your service access.")
+            return
         st.warning("Access to this decision service requires individual approval. "
                    "Your Advisory account alone does not grant permission.")
         if st.button("Return to service and access request",

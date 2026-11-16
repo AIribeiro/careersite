@@ -138,7 +138,7 @@ def _fast_portfolio_overview(window: str) -> dict:
     timeout. Headline metrics and editorial period selection must never depend
     on that expensive service. The detailed analytics pages retain their RPCs.
     """
-    if window not in REPORTING_WINDOW_LABELS:
+    if window not in REPORTING_WINDOW_LABELS and window not in ("7d", "previous_7d"):
         raise ValueError("Unsupported portfolio reporting window.")
     return _fetch_rpc(
         "careersite_portfolio_overview_fast_v2",
@@ -201,8 +201,23 @@ def initialize_editorial_reporting_period(state) -> None:
 
 @st.cache_data(ttl=300, show_spinner=False)
 def _recent_content_report() -> dict:
-    """Recent aggregate comparison, independent of expensive telemetry."""
-    return _fast_portfolio_overview("this_week")
+    """Trailing seven days versus the preceding seven, without telemetry scans."""
+    current = _fast_portfolio_overview("7d")
+    previous = _fast_portfolio_overview("previous_7d")
+    def index(report):
+        return {
+            (str(row.get("kind")), str(row.get("content"))): int(row.get("views") or 0)
+            for row in report.get("performance", []) if isinstance(row, dict)
+        }
+    now = index(current)
+    before = index(previous)
+    comparisons = [
+        {"kind": kind, "content": slug,
+         "current_views": now.get((kind, slug), 0),
+         "previous_views": before.get((kind, slug), 0)}
+        for kind, slug in sorted(now.keys() | before.keys())
+    ]
+    return {**current, "period_comparison": comparisons}
 
 
 def render_public_portfolio_overview() -> None:

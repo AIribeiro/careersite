@@ -102,6 +102,50 @@ class MarketSignalsTests(unittest.TestCase):
             _parse_portfolio_route("?page=advisory-market-signals&access_token=secret")
         )
 
+    def test_full_market_review_has_a_chart_decision_agenda_and_traceable_sources(self):
+        from page_advisory_market_review import market_review_pdf
+        base = point("scb_2026_ai_10plus")
+        base["metric_label"] = "AI use among enterprises (10+ employees)"
+        large = point("scb_2026_ai_250plus", val=85)
+        large["metric_label"] = "AI use among large enterprises (250+ employees)"
+        ads = []
+        for id, value, start, end in [
+            ("jun", 12, "2026-06-01", "2026-06-30"),
+            ("jul", 15, "2026-07-01", "2026-07-31"),
+            ("aug", 10, "2026-08-01", "2026-08-31"),
+            ("sep", 20, "2026-09-01", "2026-09-30"),
+            ("oct", 29, "2026-10-01", "2026-10-31"),
+        ]:
+            item = point("jobtech_v1_" + id + "_se",
+                         "af_jobtech_target_demand", value)
+            item.update({
+                "series_code": "jobtech_ai_data_leadership_v1",
+                "geography": "Sweden", "period_complete": True,
+                "period_start": start, "period_end": end,
+                "lens": "leadership",
+                "metric_label": "AI & Data leadership title-basket advertisements",
+                "period_label": id.title() + " 2026",
+            })
+            ads.append(item)
+        regional = dict(ads[-1], code="jobtech_v1_oct_vgr",
+                        geography="Västra Götaland", value=5)
+        review = market_review_pdf(
+            [base, large, *ads, regional], [
+                {
+                    **brief(),
+                    "evidence_codes": ["scb_2026_ai_10plus", "jobtech_v1_oct_se"],
+                }
+            ],
+        )
+        from pypdf import PdfReader
+        reader = PdfReader(BytesIO(review))
+        self.assertGreaterEqual(len(reader.pages), 6)
+        text = "\n".join(p.extract_text() or "" for p in reader.pages)
+        self.assertIn("Decision agenda", text)
+        self.assertIn("Source and observation register", text)
+        self.assertIn("Leadership demand", text)
+        self.assertIn("29", text)
+
     def test_csv_escapes_spreadsheet_formula(self):
         p=point()
         p["source_title"]="=IMPORTXML('secret')"

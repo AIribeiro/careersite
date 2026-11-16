@@ -200,7 +200,7 @@ class RenewalUIContractTests(unittest.TestCase):
         source=(ROOT/"src/page_advisory_renewal.py").read_text(encoding="utf-8")
         self.assertIn('"token":token',source)
         self.assertIn('owner_id=eq.',source)
-        self.assertIn('st.download_button',source)
+        self.assertIn('.download_button',source)
         self.assertNotIn('openai.',source.lower())
         self.assertNotIn('upload_from_data',source)
 

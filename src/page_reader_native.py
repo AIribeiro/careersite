@@ -40,6 +40,7 @@ from reader_membership import (
 from site_assets import READERS_EMAIL, PRIVACY_EMAIL
 from site_analytics import ANALYTICS_URL
 from site_reader_shell import reader_footer, reader_header
+from site_embedded_mobile import mount_reader_dialog_mobile_fix
 from site_cms import _request_json, _rest_url, fetch_published_articles
 from thinking_articles import BASE_URL
 
@@ -1315,6 +1316,7 @@ def _dismiss_briefing_dialog() -> None:
            on_dismiss=_dismiss_briefing_dialog)
 def _briefing_access_dialog(slug: str, title: str, purpose: str) -> None:
     """Passwordless full-edition access and the selected PDF in one dialog."""
+    mount_reader_dialog_mobile_fix()
     st.html("""<style>
     [data-testid="stDialog"] [data-testid="stDialogContent"] {
       background:#fffdf8!important;color:#11151b;border-radius:3px;
@@ -1379,6 +1381,7 @@ def _dismiss_article_dialog() -> None:
 @st.dialog("Article · Free early access", width="large",
            on_dismiss=_dismiss_article_dialog)
 def _article_access_dialog(slug: str, title: str) -> None:
+    mount_reader_dialog_mobile_fix()
     session, user = _session()
     if not session or not user:
         _login(title or "this article", resource_kind="article")
@@ -1402,6 +1405,7 @@ def render_article_access_dialog(slug: str, title: str = "") -> None:
            on_dismiss=_dismiss_article_dialog)
 def _weekly_ai_access_dialog(slug: str, title: str) -> None:
     """Same free reader account, password and email verification as Briefings."""
+    mount_reader_dialog_mobile_fix()
     session, user = _session()
     if not session or not user:
         _login(title or "this week's Weekly AI", resource_kind="weekly_ai")

@@ -82,22 +82,33 @@ jobs:
           ))
           print("Rendered approved 30-observation synthetic QA manuscript:",path.stat().st_size,"bytes")
           PY
-          pdfinfo /tmp/market-review-qa.pdf | grep -E 'Pages:|Page size:|File size:'
+          python -m pip install --quiet pymupdf==1.26.7
           mkdir -p /tmp/market-review-renders
-          pdftoppm -f 1 -l 4 -r 100 -png /tmp/market-review-qa.pdf /tmp/market-review-renders/opening >/dev/null
-          pdftoppm -f 7 -l 9 -r 100 -png /tmp/market-review-qa.pdf /tmp/market-review-renders/analysis >/dev/null
-          pdftoppm -f 14 -l 15 -r 100 -png /tmp/market-review-qa.pdf /tmp/market-review-renders/appendix >/dev/null
           python - <<'PY'
+          import pymupdf
           from PIL import Image,ImageStat
           from pathlib import Path
-          images=list(Path("/tmp/market-review-renders").glob("*.png"))
-          assert len(images)>=8,("Rendered pages missing",len(images))
-          for path in images:
+          doc=pymupdf.open("/tmp/market-review-qa.pdf")
+          assert doc.page_count>=13,("Unexpected page count",doc.page_count)
+          pages=[0,1,2,3,6,7,8,13,14]
+          print(f"Research QA: {doc.page_count} A4 pages")
+          for n in pages:
+              page=doc[n]
+              assert abs(page.rect.width-595.28)<.5
+              assert abs(page.rect.height-841.89)<.5
+              assert len(page.get_text().strip())>100
+              for item in page.get_text("dict")["blocks"]:
+                  for line in item.get("lines",[]):
+                      for span in line["spans"]:
+                          if span["text"].strip():
+                              assert page.rect.contains(pymupdf.Rect(span["bbox"])),(n,span["text"][:50],span["bbox"])
+              path=Path(f"/tmp/market-review-renders/page-{n+1:02d}.png")
+              page.get_pixmap(matrix=pymupdf.Matrix(1.4,1.4),alpha=False).save(path)
               im=Image.open(path).convert("RGB")
-              assert im.width>700 and im.height>1000,(path,im.size)
+              assert im.width>800 and im.height>1100,(path,im.size)
               stat=ImageStat.Stat(im)
               assert min(stat.stddev)>8,(path,stat.stddev)
-              print(f"{path.name}: {im.width}x{im.height}, colour variance {[round(v,1) for v in stat.stddev]}")
+              print(f"{path.name}: {im.width}x{im.height}, variance={[round(v,1) for v in stat.stddev]}")
           PY
       - name: Upload synthetic QA PDF and page renders
         uses: actions/upload-artifact@v4

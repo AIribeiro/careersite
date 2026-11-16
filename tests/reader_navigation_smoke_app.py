@@ -22,10 +22,12 @@ mount_reader_navigation()
 page = str(st.query_params.get("page", "briefings"))
 st.write("MEMBER SESSION: " + st.session_state["reader_marker"])
 st.write("READER PAGE: " + page)
+st.write("WORKSHEET ROUTE: " + str(st.query_params.get("worksheet", "")))
 
 st.html("""<section class="site">
   <a id="smoke-briefing-a" href="?page=briefing&article=too-many-ai-opportunities-too-little-capacity" target="_self">Briefing A</a>
   <a id="smoke-briefing-b" href="?page=briefing&article=ai-governance-explained-to-executives" target="_self">Briefing B</a>
+  <a id="smoke-renewal-record" href="?page=briefing&amp;article=would-you-fund-the-same-ai-initiatives-today&amp;worksheet=1" target="_self">Decision record</a>
   <a id="smoke-catalog" href="?page=briefings" target="_self">All Briefings</a>
   <a id="smoke-library" href="?page=readers" target="_self">My Library</a>
   <a id="smoke-advisory-account" href="?page=advisory-access&amp;view=scorecard" target="_self">Advisory account</a>

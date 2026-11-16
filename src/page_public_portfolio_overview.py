@@ -4,7 +4,7 @@ from __future__ import annotations
 import altair as alt
 import streamlit as st
 
-from analytics_reporting_period import initialize_reporting_period, remember_reporting_period
+from analytics_reporting_period import DEFAULT_WINDOWS, initialize_reporting_period, remember_reporting_period
 from page_analytics import (
     REPORTING_WINDOWS, REPORTING_WINDOW_LABELS, _fetch_dashboard,
     _dashboard_payload,
@@ -152,6 +152,63 @@ def _selected_portfolio_report(window: str) -> dict:
     return fetch_intelligence(window)
 
 
+# Only editorial reading can determine the automatic Analytics reporting window.
+# Broader site/page traffic never qualifies; All remains a manual selection.
+EDITORIAL_AUTO_WINDOWS = DEFAULT_WINDOWS[:DEFAULT_WINDOWS.index("this_year") + 1]
+
+
+def editorial_read_count(report: dict) -> int | None:
+    """Exact reads in the three editorial cards, or unknown on broken data.
+
+    Articles, Weekly AI and Briefings partition canonical article-view rows.
+    An unavailable/mismatched report must not be mistaken for zero activity.
+    """
+    if not isinstance(report, dict):
+        return None
+    quality = report.get("quality")
+    performance = report.get("performance")
+    if not isinstance(quality, dict) or not isinstance(performance, list):
+        return None
+    raw = quality.get("article_views")
+    if isinstance(raw, bool) or raw is None:
+        return None
+    try:
+        expected = int(raw)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if expected < 0:
+        return None
+    try:
+        recorded = sum(row["Views"] for row in portfolio_visit_rows(report, "article"))
+    except (TypeError, ValueError, OverflowError, AttributeError):
+        return None
+    return recorded if recorded == expected else None
+
+
+@st.cache_data(ttl=120, max_entries=12, show_spinner=False)
+def _editorial_reporting_activity(window: str) -> dict:
+    """Read just canonical content aggregates while selecting an auto period.
+
+    Skip the heavier behavior-intelligence RPC used by the detailed dashboard.
+    The calendar-year boundary uses the existing fast aggregate endpoint.
+    """
+    if window == "this_year":
+        report = _fast_portfolio_overview(window)
+    else:
+        payload = _dashboard_payload(window)
+        payload["p_article_metadata"] = _article_metadata()
+        report = _fetch_rpc("careersite_content_intelligence_v2", payload)
+    count = editorial_read_count(report)
+    return {"totals": {"recorded_views": count}}
+
+
+def initialize_editorial_reporting_period(state) -> None:
+    """Auto-pick the first period with editorial views, through This year."""
+    initialize_reporting_period(
+        state, _editorial_reporting_activity, windows=EDITORIAL_AUTO_WINDOWS,
+    )
+
+
 @st.cache_data(ttl=300, show_spinner=False)
 def _recent_content_report() -> dict:
     """Lightweight recent comparison, rechecked within five minutes.
@@ -172,7 +229,7 @@ def render_public_portfolio_overview() -> None:
         "attention. Site sessions are deduplicated browser sessions, not unique "
         "people; repeat content views count."
     )
-    initialize_reporting_period(st.session_state, _fetch_dashboard)
+    initialize_editorial_reporting_period(st.session_state)
     window = st.selectbox(
         "Reporting period",
         [name for name, _ in REPORTING_WINDOWS],
@@ -180,9 +237,7 @@ def render_public_portfolio_overview() -> None:
         key="careersite_analytics_reporting_window",
         on_change=remember_reporting_period,
         args=(st.session_state,),
-        help="Defaults to the first period with visits, from Last hour through All. "
-             "Calendar periods use Stockholm time; weeks start Monday. "
-             "Last Week and Last Month are completed periods. You can select any period manually.",
+        help="Automatically selects the first period with an Article, Weekly AI or Executive Briefing read, from Last hour through This year. Portfolio visits do not count. Stockholm calendar time; weeks start Monday. Manual selections, including All, remain available.",
     )
     # Keep the manual refresh immediately beside the reporting controls,
     # before any potentially expensive report or visual is rendered.
@@ -190,6 +245,7 @@ def render_public_portfolio_overview() -> None:
         _lifetime_content_report.clear()
         _recent_content_report.clear()
         _fast_portfolio_overview.clear()
+        _editorial_reporting_activity.clear()
         fetch_intelligence.clear()
         from portfolio_reader_kpi import reader_registration_totals
         reader_registration_totals.clear()

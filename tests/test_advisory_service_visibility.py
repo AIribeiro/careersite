@@ -25,13 +25,13 @@ class AdvisoryServiceVisibilityTests(unittest.TestCase):
             with self.subTest(path=path):
                 ast.parse((ROOT / path).read_text(encoding="utf-8"))
 
-    def test_all_six_services_are_managed(self):
+    def test_all_seven_services_are_managed(self):
         from advisory_service_visibility import SERVICE_LABELS, PAGE_SERVICES
         self.assertEqual(set(SERVICE_LABELS),
-                         {"requests", "decision", "rollout", "scorecard", "workshop", "renewal"})
+                         {"requests", "decision", "rollout", "scorecard", "workshop", "renewal", "market-signals"})
         self.assertEqual(set(PAGE_SERVICES),
                          {"advisory-decision", "advisory-rollout",
-                          "advisory-scorecard", "advisory-leadership", "advisory-renewal"})
+                          "advisory-scorecard", "advisory-leadership", "advisory-renewal", "advisory-market-signals"})
 
     @patch("advisory_service_visibility.service_enabled", return_value=True)
     def test_enabled_cta_is_an_actual_link(self, _enabled):

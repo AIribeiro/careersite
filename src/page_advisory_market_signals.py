@@ -122,65 +122,321 @@ MARKET_STYLE = """
 """
 
 
-def advisory_market_signals() -> str:
-    """Public trust-first value proposition; never exposes the member data endpoint."""
-    return f'''{SERVICES_CSS}
+MARKET_SIGNALS_LANDING_CSS = """
 <style>
-.site .ms-hero{{background:linear-gradient(125deg,#0D2033,#22425A);color:#fff;padding:92px 0 80px}}
-.site .ms-hero h1{{font:500 clamp(43px,6vw,76px)/1.07 Georgia,serif;letter-spacing:-.03em;max-width:800px}}
-.site .ms-hero p{{color:#D5DEE7;max-width:780px;font-size:17px;line-height:1.75}}
-.site .ms-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}}
-.site .ms-card{{background:#fffefa;border:1px solid #ded8d0;border-top:3px solid #b47d55;padding:30px}}
-.site .ms-card h3{{font:500 28px/1.2 Georgia,serif;color:#193149;margin:12px 0}}
-.site .ms-card p{{color:#506276;line-height:1.75;font-size:14px}}
-.site .ms-trust{{background:#eae6dd;padding:26px;border-left:4px solid #b47d55;color:#284055}}
-.site .ms-actions{{display:flex;gap:11px;flex-wrap:wrap;margin-top:24px}}
-.site .ms-actions a{{display:inline-flex;align-items:center;min-height:49px;padding:13px 20px;
- background:#DBA783;color:#10253A!important;font-size:13px;font-weight:850;text-decoration:none!important}}
-.site .ms-actions a.ms-secondary{{background:transparent;border:1px solid #95A3B0;color:#fff!important}}
-@media(max-width:750px){{.site .ms-grid{{grid-template-columns:1fr}}.site .ms-hero{{padding:57px 0}}}}
+/* Scoped, accessible editorial landing page. No scripts, external assets or fixed widths. */
+.site.ms-landing {width:100%;max-width:100%;overflow-x:clip;overflow-wrap:break-word}
+.site.ms-landing *, .site.ms-landing *::before,.site.ms-landing *::after {box-sizing:border-box}
+.site.ms-landing .container {min-width:0;max-width:100%}
+.site.ms-landing .ms-hero {background:#101f32;color:#f8f7f2;padding:clamp(52px,7vw,99px) 0 66px;position:relative}
+.site.ms-landing .ms-hero:before {content:"";position:absolute;inset:0 0 auto; height:4px;background:linear-gradient(90deg,#B67D59 0%,#B67D59 21%,transparent 21%,transparent 100%)}
+.site.ms-landing .ms-hero-grid {display:grid;grid-template-columns:minmax(0,1.42fr) minmax(0,.7fr);gap:clamp(28px,5vw,88px);align-items:end}
+.site.ms-landing .ms-hero-grid > *,.site.ms-landing .ms-grid > *,.site.ms-landing .ms-proofs > * {min-width:0}
+.site.ms-landing .ms-overline {font-size:11px;line-height:1.5;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:#AD6844;margin:0 0 17px}
+.site.ms-landing .ms-hero .ms-overline {color:#E8B995}
+.site.ms-landing .ms-hero h1 {font:500 clamp(39px,4.9vw,69px)/1.07 Georgia,serif;letter-spacing:-.037em;max-width:950px;margin:0 0 24px;color:#fff;white-space:normal!important;overflow-wrap:break-word;text-wrap:balance}
+.site.ms-landing .ms-hero-lead {color:#D6DFE9;font-size:clamp(17px,1.5vw,20px);line-height:1.65;max-width:690px;margin:0}
+.site.ms-landing .ms-hero-context {font-size:14px;color:#BFCBD7;line-height:1.72;max-width:670px;margin:18px 0 0}
+.site.ms-landing .ms-actions {display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:30px 0 0}
+.site.ms-landing .ms-button {display:inline-flex;min-height:50px;align-items:center;justify-content:center;text-align:center;padding:14px 20px;background:#DCA987;border:1px solid #DCA987;color:#10273A!important;font-size:13px;font-weight:850;letter-spacing:.01em;text-decoration:none!important;line-height:1.35;max-width:100%}
+.site.ms-landing .ms-button:hover,.site.ms-landing .ms-button:focus-visible {background:#F4C8A9}
+.site.ms-landing .ms-button--outline {background:transparent;border-color:#8EA4B6;color:#F2F6F9!important}
+.site.ms-landing .ms-button--outline:hover {background:#24394F}
+.site.ms-landing a:focus-visible {outline:3px solid #E5A675;outline-offset:3px}
+.site.ms-landing .ms-hero-meta {color:#BCC9D6;font-size:12px;line-height:1.6;margin:19px 0 0}
+.site.ms-landing .ms-edition {background:#1B3349;border:1px solid #53677B;border-top:3px solid #D3A07C;padding:clamp(21px,3vw,33px);max-width:100%}
+.site.ms-landing .ms-edition small {font-weight:800;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#E8BB98}
+.site.ms-landing .ms-edition h2 {font:500 clamp(24px,2.5vw,32px)/1.17 Georgia,serif;color:#fff;margin:15px 0 12px;letter-spacing:-.015em;overflow-wrap:anywhere}
+.site.ms-landing .ms-edition p {font-size:13px;line-height:1.73;color:#CCD6DF;margin:0}
+.site.ms-landing .ms-edition-counts {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:25px 0;border-top:1px solid #5B6F80;border-bottom:1px solid #5B6F80;padding:18px 0}
+.site.ms-landing .ms-edition-counts strong {display:block;color:#FFF9F3;font:500 clamp(24px,2.3vw,33px)/1.1 Georgia,serif}
+.site.ms-landing .ms-edition-counts span {display:block;color:#C0CDD9;font-size:10px;line-height:1.5;margin-top:6px}
+.site.ms-landing .ms-edition .ms-edition-note {font-size:11px;color:#BFCBD7}
+.site.ms-landing .ms-section {padding:clamp(55px,7vw,94px) 0}
+.site.ms-landing .ms-section--white {background:#FFFDF9}
+.site.ms-landing .ms-section--paper {background:#F4F0E9}
+.site.ms-landing .ms-section--ink {background:#11283C;color:#F5F4F1}
+.site.ms-landing .ms-section-head {display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.8fr);gap:clamp(20px,5vw,90px);align-items:end;margin:0 0 34px}
+.site.ms-landing .ms-section h2 {font:500 clamp(31px,4.1vw,54px)/1.12 Georgia,serif;color:#1A3045;letter-spacing:-.025em;white-space:normal!important;overflow-wrap:break-word;text-wrap:balance;margin:0}
+.site.ms-landing .ms-section--ink h2 {color:#F9F8F4}
+.site.ms-landing .ms-section-intro {font-size:15px;color:#56687A;line-height:1.77;max-width:530px;margin:0}
+.site.ms-landing .ms-section--ink .ms-section-intro {color:#CAD5DF}
+.site.ms-landing .ms-proofs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.site.ms-landing .ms-proof {background:#FFFEFC;border:1px solid #DDD6CD;padding:clamp(19px,2.5vw,30px);display:flex;flex-direction:column;min-height:330px}
+.site.ms-landing .ms-proof .ms-label,.site.ms-landing .ms-usecase .ms-label {font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#996843;font-weight:850}
+.site.ms-landing .ms-proof h3 {color:#1D344A;font:500 clamp(22px,2vw,28px)/1.18 Georgia,serif;margin:18px 0 17px}
+.site.ms-landing .ms-proof .ms-number {color:#153249;font:500 clamp(37px,3.8vw,54px)/1 Georgia,serif;margin:0 0 11px}
+.site.ms-landing .ms-proof .ms-number span {font-size:19px;font-family:Arial,sans-serif;font-weight:500}
+.site.ms-landing .ms-proof .ms-number-pair {display:flex;gap:18px;flex-wrap:wrap}
+.site.ms-landing .ms-proof .ms-number-pair small {display:block;font-family:Arial,sans-serif;font-size:10px;color:#697985;margin-top:7px}
+.site.ms-landing .ms-proof p {font-size:14px;line-height:1.73;color:#526579;margin:0 0 14px}
+.site.ms-landing .ms-proof .ms-proof-question {border-top:1px solid #E4DED6;margin-top:auto;padding-top:19px;color:#223A50;font-size:14px;line-height:1.6}
+.site.ms-landing .ms-proof .ms-proof-question strong {display:block;color:#A36C4B;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.site.ms-landing .ms-proof-source {font-size:11px!important;line-height:1.55!important;color:#6B7780!important;margin-top:11px!important}
+.site.ms-landing .ms-proof-source a {color:#295778!important;text-underline-offset:3px}
+.site.ms-landing .ms-note {font-size:12px;line-height:1.65;color:#667789;margin:17px 0 0}
+.site.ms-landing .ms-decision-list {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.site.ms-landing .ms-usecase {border-top:2px solid #AD7B59;padding:23px 26px 25px;background:#FFFEFC;min-height:190px}
+.site.ms-landing .ms-usecase h3 {color:#1E3449;font:500 clamp(21px,2.1vw,29px)/1.2 Georgia,serif;margin:14px 0 10px}
+.site.ms-landing .ms-usecase p {font-size:13px;line-height:1.7;color:#57697C;margin:0}
+.site.ms-landing .ms-workspace {display:grid;grid-template-columns:minmax(0,1.26fr) minmax(0,.75fr);gap:clamp(20px,4vw,70px);align-items:start}
+.site.ms-landing .ms-dashboard-list {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border-top:1px solid #53687A}
+.site.ms-landing .ms-dashboard-list article {border-bottom:1px solid #53687A;padding:16px 16px 18px 0;min-width:0}
+.site.ms-landing .ms-dashboard-list span {color:#E4B48E;font-size:10px;font-weight:800;letter-spacing:.14em}
+.site.ms-landing .ms-dashboard-list h3 {font-size:15px;font-weight:800;color:#F7F8F8;line-height:1.45;margin:8px 0}
+.site.ms-landing .ms-dashboard-list p {font-size:12px;color:#BDCAD7;line-height:1.65;margin:0}
+.site.ms-landing .ms-path {background:#203A51;border:1px solid #526A7E;padding:clamp(21px,2.7vw,34px)}
+.site.ms-landing .ms-path h3 {color:#F8F5F0;font:500 28px/1.2 Georgia,serif;margin:12px 0 20px}
+.site.ms-landing .ms-path ol {list-style:none;margin:0;padding:0;counter-reset:market-step}
+.site.ms-landing .ms-path li {counter-increment:market-step;border-top:1px solid #4C6375;padding:16px 0 16px 38px;position:relative;color:#D8E1E8;font-size:13px;line-height:1.62}
+.site.ms-landing .ms-path li:before {content:"0" counter(market-step);position:absolute;top:17px;left:0;color:#F3C5A4;font-weight:800;font-size:11px;letter-spacing:.06em}
+.site.ms-landing .ms-path li strong {display:block;color:#fff;font-size:13px;margin-bottom:3px}
+.site.ms-landing .ms-path .ms-path-caption {margin:16px 0 0;color:#C4D1DC;font-size:11px;line-height:1.65}
+.site.ms-landing .ms-formats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.site.ms-landing .ms-format {background:#fffefa;border:1px solid #DBD6CD;padding:27px;min-width:0;display:flex;flex-direction:column}
+.site.ms-landing .ms-format small {font-weight:800;color:#9F6A49;font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.site.ms-landing .ms-format h3 {font:500 27px/1.2 Georgia,serif;color:#20384C;margin:16px 0}
+.site.ms-landing .ms-format p {font-size:14px;line-height:1.74;color:#536579;margin:0 0 13px}
+.site.ms-landing .ms-format .ms-format-bottom {margin-top:auto;border-top:1px solid #E6E0D7;padding-top:14px;font-size:12px;color:#233D55;font-weight:800;line-height:1.55}
+.site.ms-landing .ms-standard {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.75fr);gap:clamp(20px,6vw,100px)}
+.site.ms-landing .ms-source-list {margin:0;padding:0;list-style:none}
+.site.ms-landing .ms-source-list li {border-bottom:1px solid #D9D2C9;padding:17px 0;color:#465A6B;font-size:14px;line-height:1.72}
+.site.ms-landing .ms-source-list strong {display:block;color:#1D3449;font-size:14px}
+.site.ms-landing .ms-source-list a {color:#265D82!important;text-decoration:underline!important;text-underline-offset:3px}
+.site.ms-landing .ms-quality {background:#E9E3D9;border-left:3px solid #A57250;padding:clamp(20px,2.7vw,33px)}
+.site.ms-landing .ms-quality h3 {font:500 27px/1.22 Georgia,serif;color:#1C364D;margin:0 0 18px}
+.site.ms-landing .ms-quality p {font-size:13px;line-height:1.8;color:#46586A;margin:0 0 15px}
+.site.ms-landing .ms-quality .ms-small {font-size:11px;color:#667484}
+.site.ms-landing .ms-lastcta {background:#122A3D;color:#FAF8F3;padding:clamp(55px,7vw,86px) 0}
+.site.ms-landing .ms-cta-grid {display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:clamp(25px,6vw,90px);align-items:center}
+.site.ms-landing .ms-lastcta h2 {font:500 clamp(32px,4.4vw,56px)/1.13 Georgia,serif;color:#fff;letter-spacing:-.025em;overflow-wrap:break-word;margin:0}
+.site.ms-landing .ms-lastcta p {color:#D2DEE9;font-size:15px;line-height:1.75;margin:17px 0}
+.site.ms-landing .ms-cta-aside {padding:24px;border-left:2px solid #C9916E;background:#203A50}
+.site.ms-landing .ms-cta-aside strong {color:#FCE4D1}
+.site.ms-landing .ms-cta-aside p {margin:10px 0 0;font-size:13px}
+@media(max-width:1100px) {
+ .site.ms-landing .ms-hero-grid {grid-template-columns:minmax(0,1fr)}
+ .site.ms-landing .ms-edition {max-width:710px}
+ .site.ms-landing .ms-proofs {grid-template-columns:repeat(2,minmax(0,1fr))}
+ .site.ms-landing .ms-section-head {grid-template-columns:minmax(0,1fr);gap:13px}
+ .site.ms-landing .ms-workspace,.site.ms-landing .ms-standard,.site.ms-landing .ms-cta-grid {grid-template-columns:minmax(0,1fr);gap:25px}
+}
+@media(max-width:760px),(max-device-width:760px) {
+ .site.ms-landing .ms-hero {padding:50px 0}
+ .site.ms-landing .ms-hero h1 {font-size:clamp(36px,8.5vw,52px);line-height:1.11}
+ .site.ms-landing .ms-proofs,.site.ms-landing .ms-decision-list,.site.ms-landing .ms-formats {grid-template-columns:minmax(0,1fr)}
+ .site.ms-landing .ms-proof {min-height:0}
+ .site.ms-landing .ms-dashboard-list {grid-template-columns:minmax(0,1fr)}
+ .site.ms-landing .ms-edition-counts {gap:5px}
+ .site.ms-landing .ms-section {padding:54px 0}
+ .site.ms-landing .ms-actions {align-items:stretch}
+ .site.ms-landing .ms-actions .ms-button {width:100%}
+ .site.ms-landing .ms-usecase {min-height:0}
+}
+@media(prefers-reduced-motion:reduce) {
+ .site.ms-landing .ms-button {transition:none}
+}
 </style>
-{nav("advisory")}
-<main class="site advisory-page">
-<section class="ms-hero"><div class="container">
-<span class="service-eyebrow">JAIR RIBEIRO ADVISORY / VERIFIED MARKET INTELLIGENCE</span>
-<h1>AI &amp; Data Market Signals</h1>
-<p>Understand where AI adoption, leadership demand and Data capabilities are moving.
-Go beyond headlines with source-linked evidence, an interactive dashboard and
-decision materials designed for leadership discussions.</p>
-<div class="ms-actions">
-<a href="?page=advisory-access&amp;view=market-signals" target="_self"
-data-hq-event="market_signals_register">Register free · Explore the intelligence</a>
-<a href="?page=advisory-access&amp;view=market-signals&amp;signin=1" target="_self"
-class="ms-secondary" data-hq-event="market_signals_signin">Sign in</a></div>
-<p style="font-size:12px;margin-top:20px">Sweden first · Source periods and verification dates shown · No personal career data · No paywall</p>
-</div></section>
-<section class="service-section service-section--white"><div class="container">
-<p class="service-eyebrow">Four evidence lenses</p><h2>Market signals connected to leadership decisions.</h2>
-<div class="ms-grid">
-<article class="ms-card"><span class="service-eyebrow">01 / ADOPTION</span><h3>Where is AI entering business?</h3>
-<p>Official enterprise adoption figures, population definitions, survey limitations and year-on-year context.</p></article>
-<article class="ms-card"><span class="service-eyebrow">02 / LEADERSHIP</span><h3>What demand is visible?</h3>
-<p>Curated AI and Data leadership advertisement trends, by region and complete publication month; not a general job board.</p></article>
-<article class="ms-card"><span class="service-eyebrow">03 / CAPABILITY</span><h3>What could prevent scale?</h3>
-<p>In-house analytics, expertise, data quality, privacy and operating ownership, with clear survey denominators.</p></article>
-<article class="ms-card"><span class="service-eyebrow">04 / CONDITIONS</span><h3>What is the wider hiring context?</h3>
-<p>Consulting and sector signals, explicitly labelled as context rather than AI-specific labour-market statistics.</p></article>
-</div></div></section>
-<section class="service-section"><div class="container">
-<p class="service-eyebrow">What readers receive</p><h2>Evidence you can take into the next decision.</h2>
-<div class="ms-grid">
-<div class="ms-card"><h3>Explore &amp; challenge</h3><p>Interactive filters, accessible charts, source health,
-a transparent evidence ledger and an explicit distinction between observed facts and interpretation.</p></div>
-<div class="ms-card"><h3>Download &amp; decide</h3><p>Executive-grade market reviews, fully cited source appendices and printable
-leadership decision records, generated from the same verified evidence seen on screen.</p></div>
-</div>
-<div class="ms-trust" style="margin-top:26px">
-<strong>Evidence standard</strong><p>Official statistics and first-party market research are kept separate from
-our derived title-basket analysis. Independent sources strengthen contextual interpretation but cannot establish causation.
-Missing, incomplete or stale evidence is explicitly marked—never filled with a guess.</p></div>
-</div></section></main>{footer()}'''
+"""
 
+MARKET_SIGNALS_LANDING_HTML = """
+<main class="site advisory-page ms-landing">
+<section class="ms-hero" aria-labelledby="ms-title"><div class="container">
+  <div class="ms-hero-grid">
+    <div>
+      <p class="ms-overline">Jair Ribeiro Advisory / Executive market intelligence</p>
+      <h1 id="ms-title">The AI &amp; Data market, beyond the headlines.</h1>
+      <p class="ms-hero-lead">An evidence-led research service for leaders deciding where to invest, which capabilities to build, and what the market actually supports.</p>
+      <p class="ms-hero-context">Explore Swedish enterprise AI adoption, senior AI &amp; Data leadership demand, organisational capabilities and consulting conditions—through interactive dashboards, executive interpretations and decision-ready reports.</p>
+      <div class="ms-actions">
+        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_register">Explore Market Signals · Free access</a>
+        <a class="ms-button ms-button--outline" href="#ms-findings">See the research findings</a>
+      </div>
+      <p class="ms-hero-meta">Verified Advisory account required · Complimentary access · Sweden-focused · No individual approval</p>
+    </div>
+    <aside class="ms-edition" aria-label="Current research edition">
+      <small>Current research publication / 01</small>
+      <h2>AI &amp; Data Market Review<br>November 2026</h2>
+      <p>Published 16 November 2026. A dated reading of enterprise adoption, AI/Data leadership advertisements and consulting context, with the evidence and limitations visible.</p>
+      <div class="ms-edition-counts">
+        <div><strong>30</strong><span>source-linked observations</span></div>
+        <div><strong>4</strong><span>executive analyses</span></div>
+        <div><strong>3</strong><span>publisher families</span></div>
+      </div>
+      <p class="ms-edition-note">Edition 01 is a published research snapshot—not a claim that every market indicator updates in real time.</p>
+    </aside>
+  </div>
+</div></section>
+
+<section class="ms-section ms-section--white" id="ms-findings" aria-labelledby="ms-findings-title"><div class="container">
+  <div class="ms-section-head">
+    <div><p class="ms-overline">From the published evidence / November 2026</p>
+      <h2 id="ms-findings-title">Three signals worth challenging in your next leadership meeting.</h2></div>
+    <p class="ms-section-intro">A good market briefing should change the questions leaders ask. These figures are from Edition 01—not illustrative market estimates—and each supports a different management discussion.</p>
+  </div>
+  <div class="ms-proofs">
+    <article class="ms-proof">
+      <span class="ms-label">01 / Enterprise AI adoption</span>
+      <h3>AI use is widespread. Is your organisation equipped to benefit?</h3>
+      <div class="ms-number">49<span>%</span></div>
+      <p>of Swedish enterprises with at least 10 employees reported AI use in the SCB 2026 survey. The figure reaches <strong>85%</strong> among enterprises with 250+ employees.</p>
+      <div class="ms-proof-question"><strong>Leadership question</strong>What evidence would show that AI use is improving how your business operates?</div>
+      <p class="ms-proof-source"><a href="https://www.scb.se/hitta-statistik/statistik-efter-amne/forskning-och-det-digitala-samhallet/det-digitala-samhallet/it-anvandning-i-foretag/pong/statistiknyhet/it-anvandning-i-foretag-2026/" target="_blank" rel="noopener noreferrer">SCB · IT-användning i företag 2026</a> · Different company-size groups</p>
+    </article>
+    <article class="ms-proof">
+      <span class="ms-label">02 / Senior AI &amp; Data leadership</span>
+      <h3>A visible recruitment signal is not a hiring boom.</h3>
+      <div class="ms-number">29</div>
+      <p>qualifying AI &amp; Data leadership advertisements in Sweden in October 2026, using a documented, narrow JobTech title-basket classifier—not a count of every AI vacancy.</p>
+      <div class="ms-proof-question"><strong>Leadership question</strong>Which leadership capabilities are genuinely scarce for your strategy—and which should you build internally?</div>
+      <p class="ms-proof-source"><a href="https://historical.api.jobtechdev.se/search" target="_blank" rel="noopener noreferrer">Arbetsförmedlingen JobTech · Derived title basket v1</a> · Complete October 2026</p>
+    </article>
+    <article class="ms-proof">
+      <span class="ms-label">03 / Consulting market conditions</span>
+      <h3>More assignments do not automatically mean less available capacity.</h3>
+      <div class="ms-number ms-number-pair">
+        <div>+10.7<span>%</span><small>Assignments · YoY</small></div>
+        <div>+18.5<span>%</span><small>Available consultants · YoY</small></div>
+      </div>
+      <p>Brainville reported both increases for its Swedish consulting marketplace in October 2026. The figures cover all consulting professions, not AI specialists alone.</p>
+      <div class="ms-proof-question"><strong>Leadership question</strong>Before contracting, are you buying scarce expertise or a capability you could develop and retain?</div>
+      <p class="ms-proof-source"><a href="https://www.brainville.com/sv/Blog/Post/1923" target="_blank" rel="noopener noreferrer">Brainville · October 2026 market commentary</a> · Two different populations</p>
+    </article>
+  </div>
+  <p class="ms-note">These are separate measures, not a combined AI market index. SCB adoption, curated JobTech advertisements and Brainville consulting conditions measure different populations. Interpretation is presented as interpretation, not statistical causation.</p>
+</div></section>
+
+<section class="ms-section ms-section--paper" aria-labelledby="ms-decisions-title"><div class="container">
+  <div class="ms-section-head">
+    <div><p class="ms-overline">Made for executive decisions</p>
+      <h2 id="ms-decisions-title">What you can decide with better market evidence.</h2></div>
+    <p class="ms-section-intro">For Heads of AI, Data &amp; Analytics leaders, CIOs, CDOs, executive sponsors and transformation teams who need a defensible view—not another AI news feed.</p>
+  </div>
+  <div class="ms-decision-list">
+    <article class="ms-usecase"><span class="ms-label">Capability strategy</span>
+      <h3>Build, recruit or contract?</h3>
+      <p>Compare the capabilities needed for your business with observable leadership demand, internal analytics capacity and broader consulting conditions.</p></article>
+    <article class="ms-usecase"><span class="ms-label">AI operating model</span>
+      <h3>Is adoption outpacing organisational readiness?</h3>
+      <p>Separate reported tool use from the people, governance and data needed to turn AI into reliable business outcomes.</p></article>
+    <article class="ms-usecase"><span class="ms-label">Investment governance</span>
+      <h3>Which market assumptions deserve a challenge?</h3>
+      <p>Test narratives about AI talent shortages, demand and maturity against their original populations, dates and limitations.</p></article>
+    <article class="ms-usecase"><span class="ms-label">Executive communication</span>
+      <h3>What can you defend in the management meeting?</h3>
+      <p>Take a referenced interpretation and a practical decision question into a leadership discussion, with source records available for scrutiny.</p></article>
+  </div>
+</div></section>
+
+<section class="ms-section ms-section--ink" id="ms-inside" aria-labelledby="ms-workspace-title"><div class="container">
+  <div class="ms-section-head">
+    <div><p class="ms-overline" style="color:#E6B48B">Inside the member workspace</p>
+      <h2 id="ms-workspace-title">Eight ways to interrogate the market.</h2></div>
+    <p class="ms-section-intro">The Market Observatory goes beyond a single chart. Explore the signals by question, compare like-for-like observations and open the original evidence behind the interpretation.</p>
+  </div>
+  <div class="ms-workspace">
+    <div class="ms-dashboard-list" aria-label="Available Market Signals dashboards">
+      <article><span>01 / ORIENTATION</span><h3>Executive market pulse</h3><p>The most relevant current observations, with the right scope and reporting period.</p></article>
+      <article><span>02 / RECRUITMENT</span><h3>AI &amp; Data leadership demand</h3><p>Documented title-basket trends and region comparisons across complete months.</p></article>
+      <article><span>03 / ENTERPRISE</span><h3>Enterprise adoption &amp; capabilities</h3><p>AI use, firm-size differences, analytics capacity and the limits of survey comparisons.</p></article>
+      <article><span>04 / PEOPLE</span><h3>AI skills &amp; management economics</h3><p>Skills diffusion and broad management compensation context when editorially approved.</p></article>
+      <article><span>05 / SOURCING</span><h3>Consulting &amp; sector conditions</h3><p>Marketplace supply and sector intentions, kept separate from AI-specific hiring.</p></article>
+      <article><span>06 / INTERPRETATION</span><h3>Cross-source interpretations</h3><p>Where the measurements appear to disagree, what they mean—and what they cannot prove.</p></article>
+      <article><span>07 / HISTORY</span><h3>Explore market trends</h3><p>Comparable periods, stable units and visible incomplete-month treatment.</p></article>
+      <article><span>08 / ASSURANCE</span><h3>Sources &amp; measurement</h3><p>Search every published observation with original source links and methodological cautions.</p></article>
+    </div>
+    <aside class="ms-path">
+      <p class="ms-overline" style="color:#EDB994">Example executive workflow</p>
+      <h3>From market signal to a decision you can explain.</h3>
+      <ol>
+        <li><strong>Locate the observation.</strong>See where a signal is changing and which population it covers.</li>
+        <li><strong>Verify its origin.</strong>Inspect the publisher, reporting window and measurement limitations.</li>
+        <li><strong>Challenge the reading.</strong>Review counterarguments and avoid treating correlation as cause.</li>
+        <li><strong>Document the decision.</strong>Export a cited executive review or decision brief for discussion.</li>
+      </ol>
+      <p class="ms-path-caption">Indicators enter the dashboards only through the controlled publication process. Contextual indicators are clearly separated from specialist AI/Data evidence.</p>
+      <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_dashboard_cta">Open the Observatory</a></div>
+    </aside>
+  </div>
+</div></section>
+
+<section class="ms-section ms-section--white" aria-labelledby="ms-materials-title"><div class="container">
+  <div class="ms-section-head">
+    <div><p class="ms-overline">Material for the next leadership meeting</p>
+      <h2 id="ms-materials-title">Research you can read, question and take with you.</h2></div>
+    <p class="ms-section-intro">No generic AI trend slides. The downloadable material comes from the same dated, source-linked observations used in the Market Observatory.</p>
+  </div>
+  <div class="ms-formats">
+    <article class="ms-format"><small>01 / Interactive</small>
+      <h3>Market Observatory</h3>
+      <p>Filter market signals, inspect complete reporting periods and source definitions, and explore where available data supports—or limits—a conclusion.</p>
+      <div class="ms-format-bottom">Eight dashboards · Source-aware exploration</div></article>
+    <article class="ms-format"><small>02 / Downloadable A4 PDF</small>
+      <h3>Executive Market Review</h3>
+      <p>The published November 2026 edition: an editorial position, key figures, leadership questions, a historical demand view and a source appendix.</p>
+      <div class="ms-format-bottom">Edition 01 · Dated market research</div></article>
+    <article class="ms-format"><small>03 / Executive working material</small>
+      <h3>Decision briefs &amp; evidence ledger</h3>
+      <p>Download a decision-oriented PDF for an executive analysis, or export a source-linked CSV to trace published indicators back to their original records.</p>
+      <div class="ms-format-bottom">Decision brief PDF · Source ledger CSV</div></article>
+  </div>
+</div></section>
+
+<section class="ms-section ms-section--paper" aria-labelledby="ms-standards-title"><div class="container">
+  <div class="ms-section-head">
+    <div><p class="ms-overline">The evidence standard</p>
+      <h2 id="ms-standards-title">Credibility is part of the product, not a footnote.</h2></div>
+    <p class="ms-section-intro">Every published observation has a stated publisher, reporting period, population, methodological note and limitations. The research also distinguishes publisher facts from our own analytical interpretation.</p>
+  </div>
+  <div class="ms-standard">
+    <div>
+      <ul class="ms-source-list">
+        <li><strong>Statistics Sweden (SCB)</strong>Enterprise AI adoption, company-size coverage, data and organisational capability. The 2026 classification change is disclosed in comparisons.</li>
+        <li><strong>Arbetsförmedlingen JobTech</strong>Published AI/Data leadership advertisement observations built with a documented title classifier. Small samples and retrospective changes remain visible.</li>
+        <li><strong>Brainville</strong>Swedish consulting-market conditions. Broad marketplace supply and assignments are never described as AI-specific consultancy demand.</li>
+      </ul>
+      <p class="ms-note">Source-by-source approval governs publication. Additional sector, skills and compensation indicators enter only after review; not every staged source is part of Edition 01.</p>
+    </div>
+    <aside class="ms-quality">
+      <h3>What the service will—and will not—claim.</h3>
+      <p><strong>Observed evidence:</strong> a dated measure about a defined population.</p>
+      <p><strong>Executive interpretation:</strong> a reasoned reading with practical next steps, counterarguments and stated limits.</p>
+      <p><strong>Not claimed:</strong> that an AI keyword is a filled role, that adoption proves value, or that two related signals establish causation.</p>
+      <p class="ms-small">The member experience also excludes private job-search records, recruiter activity, individual career predictions and personal portfolio analytics.</p>
+    </aside>
+  </div>
+</div></section>
+
+<section class="ms-lastcta" aria-labelledby="ms-cta-title"><div class="container">
+  <div class="ms-cta-grid">
+    <div>
+      <p class="ms-overline" style="color:#E9B88E">Complimentary executive research access</p>
+      <h2 id="ms-cta-title">Bring better evidence into the next AI &amp; Data decision.</h2>
+      <p>Get the Market Observatory, the published Executive Market Review, executive decision briefs and the traceable source ledger. Access is free with a verified Advisory account.</p>
+      <div class="ms-actions">
+        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_final_register">Register free · Access Market Signals</a>
+        <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;signin=1" target="_self" data-hq-event="market_signals_final_signin">Already registered? Sign in</a>
+      </div>
+    </div>
+    <aside class="ms-cta-aside"><strong>Who this is for</strong>
+      <p>Enterprise AI leaders · Data &amp; Analytics executives · CIO/CDO organisations · Strategy and operating-model owners · Executive sponsors deciding where to build capability and direct investment.</p>
+      <p>No individual approval required. This is a self-service research product, not an application for personal consulting.</p>
+    </aside>
+  </div>
+</div></section>
+</main>
+"""
+
+
+def advisory_market_signals() -> str:
+    """Executive-market-intelligence service landing page; no privileged API reads."""
+    return (
+        SERVICES_CSS
+        + MARKET_SIGNALS_LANDING_CSS
+        + nav("advisory")
+        + MARKET_SIGNALS_LANDING_HTML
+        + footer()
+    )
 
 def _checked_url(value: str) -> str:
     value = str(value or "")

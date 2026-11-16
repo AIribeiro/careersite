@@ -191,13 +191,28 @@ def _start(token: str,uid: str,count: int) -> None:
     st.session_state["renewal_selected"]=aid
     st.session_state["renewal_stage"]=STEPS[0]
     st.session_state["renewal_section"]="assessment"
+    st.query_params["renewal_section"]="assessment"
     st.rerun()
 
 
 def _go(section: str,aid: str="") -> None:
     st.session_state["renewal_section"]=section
+    st.query_params["renewal_section"]=section
     if aid:st.session_state["renewal_selected"]=aid
     st.rerun()
+
+
+def _nav_changed() -> None:
+    requested=st.session_state.get("rn_nav_pills")
+    if requested in SECTIONS:
+        st.query_params["renewal_section"]=requested
+        st.session_state["renewal_section"]=requested
+
+
+def _stage_changed() -> None:
+    requested=st.session_state.get("renewal_stage_select")
+    if requested in STEPS:
+        st.session_state["renewal_stage"]=requested
 
 
 def _default_case() -> dict:
@@ -247,8 +262,11 @@ def _num(label: str, value, key: str, help: str="") -> float:
 
 def _stage_ui(case: dict,token: str,uid: str) -> None:
     data=_inputs(case)
+    desired=st.session_state.get("renewal_stage",STEPS[0])
+    if st.session_state.get("renewal_stage_select") != desired:
+        st.session_state["renewal_stage_select"]=desired
     stage=st.pills("Assessment stage",STEPS,selection_mode="single",
-                   default=st.session_state.get("renewal_stage",STEPS[0]),
+                   default=desired, on_change=_stage_changed,
                    key="renewal_stage_select",required=True,width="stretch")
     st.session_state["renewal_stage"]=stage
     prefix="rn_"+str(case["id"])[:8]+"_"+str(STEPS.index(stage))
@@ -519,8 +537,12 @@ def render_private_renewal(session: dict,user: dict) -> None:
     with st.container(key="renewal_workspace"):
         st.markdown("### AI Portfolio Renewal Advisor")
         st.caption("Reassess the next commitment · Member-private decision workspace · "+MODEL_VERSION)
+        requested=str(st.query_params.get("renewal_section") or st.session_state.get("renewal_section","overview"))
+        if requested not in SECTIONS:requested="overview"
+        if st.session_state.get("rn_nav_pills") != requested:
+            st.session_state["rn_nav_pills"]=requested
         section=st.pills("Renewal workspace",SECTIONS,selection_mode="single",
-                         default=st.session_state.get("renewal_section","overview"),
+                         default=requested,on_change=_nav_changed,
                          required=True,format_func=lambda v:TABS[v],key="rn_nav_pills",
                          width="stretch")
         st.session_state["renewal_section"]=section

@@ -373,6 +373,15 @@ else:
             selected_title = str(getattr(selected_article, "title", "") or "")
             purpose = "pdf" if str(st.query_params.get("pdf", "")) == "1" else "access"
             render_briefing_access_dialog(str(ARTICLE_QUERY), selected_title, purpose)
+    # This separately authenticated download never exposes the fillable
+    # decision-record PDF through a publicly fetchable static URL.
+    if (
+        PAGE == "briefing"
+        and ARTICLE_QUERY
+        and str(st.query_params.get("worksheet", "")) == "1"
+    ):
+        from page_reader_native import render_renewal_worksheet_dialog
+        render_renewal_worksheet_dialog(str(ARTICLE_QUERY))
     if (
         PAGE == "thinking"
         and ARTICLE_QUERY

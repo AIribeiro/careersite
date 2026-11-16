@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "slug": "would-you-fund-the-same-ai-initiatives-today",
+  "revision": "v2-humanized-20261116-release",
+  "article_fingerprint": "b9e255ca0e7ac9fdf7504e98fe07dd9e8f642c96c4e492d6aac4adf511c27bd5",
+  "heading": "Would you fund it again?",
+  "deck": "Existing AI initiatives must compete for the next commitment.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "a38d638b1654f88de6a292874dbe42d05900735228e2268fdb3d3c7019a00da4",
+    "width": 1800,
+    "height": 1370
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "0807ec5a5a599ac344407ddf374ca5efee60c6ae04e7453d15f943764cd9760d",
+    "width": 900,
+    "height": 2470
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "8605770f7086cc52d5df8adf67ad298395de577469ef2097a39a456c40125abd",
+    "pages": 1
+  },
+  "alt_text": "Original AI Portfolio Renewal Challenge map. Compare Renew, Replace and Test against future business value and evidence in a clean-sheet pass, then restore switching costs, continuity, mandatory safeguards and ownership before the executive decision.",
+  "caption": "The AI Portfolio Renewal Challenge: review incumbent and alternative investments in two passes before renewing, replacing, testing or ending discretionary expenditure. Original decision illustration by Jair Ribeiro."
+}

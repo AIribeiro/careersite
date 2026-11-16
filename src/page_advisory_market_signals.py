@@ -207,6 +207,22 @@ def _load_curated(token: str) -> tuple[list[dict], list[dict]]:
     return p, b
 
 
+INITIAL_PREVIEW_CODES = frozenset({
+    "brainville_202610_assignments_yoy","brainville_202610_consultants_yoy",
+    "jobtech_v1_jun_se","jobtech_v1_jun_vgr","jobtech_v1_jun_sto",
+    "jobtech_v1_jul_se","jobtech_v1_jul_vgr","jobtech_v1_jul_sto",
+    "jobtech_v1_aug_se","jobtech_v1_aug_vgr","jobtech_v1_aug_sto",
+    "jobtech_v1_sep_se","jobtech_v1_sep_vgr","jobtech_v1_sep_sto",
+    "jobtech_v1_oct_se","jobtech_v1_oct_vgr","jobtech_v1_oct_sto",
+    "jobtech_v1_nov15_se","jobtech_v1_nov15_vgr","jobtech_v1_nov15_sto",
+    "scb_2026_ai_10plus","scb_2026_ai_250plus",
+    "scb_2026_ai_10to49","scb_2026_ai_50to249",
+    "scb_2026_ai_data_quality_barrier","scb_2026_ai_expertise_barrier",
+    "scb_2026_ai_privacy_barrier","scb_2026_analytics_internal",
+    "scb_2026_bi_use","scb_2026_data_analytics_use",
+    "scb_2026_ict_specialists",
+})
+
 def _release_snapshot(token: str, points: list[dict], briefs: list[dict]) -> tuple[list[dict], list[dict], dict]:
     """Bind published editions to the same approved evidence as the executive PDFs.
 
@@ -220,7 +236,16 @@ def _release_snapshot(token: str, points: list[dict], briefs: list[dict]) -> tup
     if not isinstance(response,dict) or type(response.get("published")) is not bool:
         raise RuntimeError("Verified editorial release state unavailable.")
     if not response["published"]:
-        return points,briefs,response
+        # The pre-release preview is a frozen, historically disclosed catalogue.
+        # Publishing a later point cannot silently add it to member dashboards;
+        # new datasets require a signed-off versioned edition manifest.
+        preview=[p for p in points if p["code"] in INITIAL_PREVIEW_CODES]
+        preview_codes={p["code"] for p in preview}
+        preview_briefs=[b for b in briefs
+                        if set(b["evidence_codes"]).issubset(preview_codes)]
+        if len(preview)!=len(INITIAL_PREVIEW_CODES) or not preview_briefs:
+            raise ValueError("Frozen pre-release catalogue cannot be verified.")
+        return preview,preview_briefs,response
     codes=response.get("evidence_codes")
     slugs=response.get("brief_slugs")
     if not isinstance(codes,list) or not isinstance(slugs,list) or len(codes)<2 or not slugs:

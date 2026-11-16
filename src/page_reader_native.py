@@ -1425,6 +1425,54 @@ def render_weekly_ai_access_dialog(slug: str, title: str = "") -> None:
         _weekly_ai_access_dialog(clean, title)
 
 
+@st.dialog("AI Portfolio Renewal · Executive decision record", width="large")
+def _renewal_worksheet_dialog(slug: str) -> None:
+    """Download bytes only after verifying the current native reader session."""
+    from briefing_renewal_worksheet import SLUG, build_decision_record_pdf
+    if slug != SLUG:
+        st.error("This resource is not available.")
+        return
+    mount_reader_dialog_mobile_fix()
+    session, user = _session()
+    if not session or not user:
+        _login("the fillable executive decision record")
+        return
+    from site_cms import fetch_public_article
+    article = fetch_public_article(slug)
+    if (not article or article.status != "published"
+            or article.kind != "Executive Briefing"):
+        st.warning("This decision record is not published yet.")
+        return
+    st.markdown("### Your decision record")
+    st.write(
+        "A fillable one-page A4 worksheet to compare your existing AI "
+        "investment with its strongest credible alternative. "
+        "Save your answers in a PDF reader that supports fillable forms."
+    )
+    try:
+        data = build_decision_record_pdf()
+        st.download_button(
+            "Download the fillable A4 decision record",
+            data=data, mime="application/pdf",
+            file_name="AI_Portfolio_Renewal_Executive_Decision_Record.pdf",
+            type="primary", key="renewal_worksheet_download",
+            on_click=_record_download,
+            args=(session["access_token"], str(user["id"]), slug),
+            width="stretch",
+        )
+    except (RuntimeError, ValueError, OSError):
+        st.error("The A4 decision record could not be prepared.")
+    st.caption("Available to authenticated readers. No payment or email subscription required.")
+
+
+def render_renewal_worksheet_dialog(slug: str) -> None:
+    """Native, session-checked CTA for the selected Executive AI Briefing."""
+    from briefing_renewal_worksheet import SLUG
+    clean = _clean_slug(slug)
+    if clean == SLUG:
+        _renewal_worksheet_dialog(clean)
+
+
 def render_briefing_access_dialog(slug: str, title: str = "",
                                   purpose: str = "access") -> None:
     """Authenticate for the specific edition, not a detached PDF library."""

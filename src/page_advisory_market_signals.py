@@ -546,5 +546,25 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 key="market_signals_pdf",type="primary",
                 use_container_width=True,
             )
+        st.markdown("#### Complete Market Review")
+        st.caption(
+            "The full executive edition includes a vector leadership-demand trend, "
+            "AI and Data capability analysis, consulting context, leadership agenda and "
+            "a source register listing observation dates and publisher links."
+        )
+        try:
+            from page_advisory_market_review import market_review_pdf
+            market_pdf=market_review_pdf(points,briefs)
+        except (ValueError, KeyError, OSError) as exc:
+            st.error("The complete market review cannot be validated for export.")
+        else:
+            st.download_button(
+                "Download complete AI & Data Market Review · PDF",
+                data=market_pdf,
+                file_name="Jair_Ribeiro_AI_Data_Market_Review_2026_11.pdf",
+                mime="application/pdf",
+                key="market_review_pdf",
+                use_container_width=True,
+            )
         st.caption("Market Signals edition 1.0 · Independent research interpretation by Jair Ribeiro. "
                    "Not investment, recruitment or legal advice. Source populations, releases and methods govern the figures.")

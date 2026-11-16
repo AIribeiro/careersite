@@ -11,6 +11,34 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v4
+      - name: Verify all public reporting windows over HTTPS
+        run: |
+          python - <<'PY'
+          import re, json
+          from urllib.request import Request, urlopen
+          from pathlib import Path
+          source=Path("src/site_analytics.py").read_text()
+          match=re.search(r"sb_publishable_[A-Za-z0-9_-]+",source)
+          assert match,"Public API key not found"
+          windows=["last_hour","today","yesterday","this_week","last_week","this_month","last_month","this_year","all"]
+          for window in windows:
+              req=Request(
+                  "https://rnqweoxtynelfirffmlr.supabase.co/rest/v1/rpc/careersite_portfolio_overview_fast_v2",
+                  headers={"apikey":match.group(0),"Content-Type":"application/json","Accept":"application/json"},
+                  data=json.dumps({"p_token":"public-readonly-v1","p_window":window}).encode("utf-8"),
+                  method="POST")
+              try:
+                  with urlopen(req,timeout=25) as response:
+                      data=json.load(response)
+                      quality=data.get("quality") or {}
+                      assert isinstance(data.get("performance"),list)
+                      assert "article_views" in quality
+                      print(f"PUBLIC API {window}: HTTP {response.status}, editorial={quality['article_views']}, site_views={quality.get('site_views')}",flush=True)
+              except Exception as exc:
+                  print(f"PUBLIC API {window}: FAIL {type(exc).__name__}: {str(exc)[:300]}",flush=True)
+                  raise
+          PY
       - name: Install browser test tools
         run: |
           python -m pip install -q playwright==1.58.0
@@ -28,8 +56,14 @@ jobs:
               page=browser.new_page(viewport={"width":1120,"height":900})
               errors=[]
               try:
-                  page.goto(os.environ["PORTFOLIO_URL"],wait_until="domcontentloaded",timeout=45000)
-                  page.get_by_text("Portfolio visits & reads",exact=False).first.wait_for(timeout=45000)
+                  response=page.goto(os.environ["PORTFOLIO_URL"],wait_until="domcontentloaded",timeout=45000)
+                  print(f"PAGE HTTP: {response.status if response else 'unknown'}, URL: {page.url}, title: {page.title()!r}",flush=True)
+                  try:
+                      page.get_by_text("Portfolio visits & reads",exact=False).first.wait_for(timeout=45000)
+                  except Exception:
+                      print("INITIAL BROWSER BODY:",repr(page.locator("body").inner_text(timeout=10000)[:2600]),flush=True)
+                      print("ST DOM COUNT:",page.locator('[data-testid="stApp"]').count(),flush=True)
+                      raise
                   print("OVERVIEW: loaded",flush=True)
                   for label in labels:
                       try:

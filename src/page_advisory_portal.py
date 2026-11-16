@@ -349,7 +349,7 @@ def _advisory_login() -> None:
     requested_service = str(st.query_params.get("view") or "")
     from advisory_service_visibility import service_enabled
     # Anonymous and regular visitors cannot discover a hidden service via a URL.
-    if requested_service in ("requests", "decision", "scorecard", "rollout", "workshop") and not service_enabled(requested_service):
+    if requested_service in ("requests", "decision", "scorecard", "rollout", "workshop", "renewal", "market-signals") and not service_enabled(requested_service):
         requested_service = ""
     self_service = requested_service == "decision"
     if requested_service == "workshop":
@@ -370,6 +370,8 @@ Answers are self-reported, not independently audited.
 Explore the complete workshop, method and privacy boundaries</a>
 before registering.</p>
 </section>""")
+    elif requested_service == "market-signals":
+        st.html("""<section class="advisory-portal-intro"><h2>AI &amp; Data Market Signals</h2><p>Register free or sign in to explore curated Sweden-focused AI, Data and Analytics intelligence. Your Advisory account unlocks source-linked dashboards, executive interpretation and downloadable decision briefs. No individual approval is required.</p><p>Figures include their observation periods and limitations; the service does not disclose personal career or interview analytics.</p></section>""")
     elif self_service:
         st.html("""<section class="advisory-portal-intro"><h2>Free AI Investment Decision Advisor</h2><p>Create or sign into your Executive Advisory account to assess one AI opportunity, review your recommendation and download a private executive decision brief. This self-service tool does not require separate advisory approval.</p></section>""")
     else:
@@ -556,9 +558,12 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
     elif view == "renewal":
         from page_advisory_renewal import render_private_renewal
         render_private_renewal(session, user)
+    elif view == "market-signals":
+        from page_advisory_market_signals import render_private_market_signals
+        render_private_market_signals(session, user)
     elif view == "account":
         _advisory_account_settings(session, user, profile)
-    if view in ("scorecard", "rollout", "decision", "workshop", "renewal"):
+    if view in ("scorecard", "rollout", "decision", "workshop", "renewal", "market-signals"):
         st.divider()
         if st.button("Return to Advisory overview",
                      key="advisory_return_" + view):

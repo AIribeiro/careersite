@@ -76,7 +76,20 @@ jobs:
                           })''')
                           if dims['actual']>dims['viewport']+5:
                               raise RuntimeError(f'Horizontal overflow on {label}: {dims}')
-                          print(f'PASS {base} {label}: {title}, {dims}',flush=True)
+                          card_layout=rendered.evaluate("""() => {
+                            const grid=document.querySelector('.renewal-public .rn-steps');
+                            const site=document.querySelector('.site');
+                            return {
+                              columns:grid?getComputedStyle(grid).gridTemplateColumns:'missing',
+                              gridWidth:grid?Math.round(grid.getBoundingClientRect().width):0,
+                              screenWidth:window.screen.width,
+                              innerWidth:window.innerWidth,
+                              zoom:site?getComputedStyle(site).zoom:'n/a'
+                            };
+                          }""")
+                          if label=='mobile' and len(card_layout['columns'].split())!=1:
+                              raise RuntimeError(f'Mobile service steps not stacked: {card_layout}')
+                          print(f'PASS {base} {label}: {title}, {dims} / {card_layout}',flush=True)
                           page.screenshot(path=f"renewal-{('brand' if 'jairribeiro.com' in base else 'streamlit')}-{label}.png",
                                           full_page=True,timeout=12000)
                       except Exception as exc:

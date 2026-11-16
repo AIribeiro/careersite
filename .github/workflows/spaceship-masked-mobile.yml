@@ -23,7 +23,8 @@ on:
 jobs:
   mobile-fallback:
     name: Mobile frame compatibility tests
-    runs-on: ubuntu-latest
+    # Playwright's Chromium dependency installer supports Ubuntu 24.04.
+    runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4

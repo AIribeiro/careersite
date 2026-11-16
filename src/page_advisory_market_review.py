@@ -151,6 +151,76 @@ def _source_rows(points:list[dict],styles):
     return out
 
 
+def _additional_market_lenses(points:list[dict], styles:dict) -> list:
+    """Publish-approved supplemental dashboards and evidence as a vector PDF appendix.
+
+    Each optional observation is included only if present in the released curated
+    manifest. Nothing is fetched from the private owner market database.
+    """
+    idx={p["code"]:p for p in points}
+    sets=[
+        ("AI skills beyond IT / structural demand",
+         ("market_context_20261116_01","market_context_20261116_02"),
+         "TechSverige counts AI-related mentions and occupation groups. "
+         "These are not unique vacancies, demonstrated skills or a proxy for hiring."),
+        ("Employment intentions in adjacent sectors",
+         ("market_context_20261116_03","market_context_20261116_04",
+          "market_context_20261116_05","market_context_20261116_06",
+          "market_context_20261116_07","market_context_20261116_08"),
+         "ManpowerGroup Q4 2026 staffing intentions, surveyed in July. "
+         "Net outlook is the difference in shares of employers expecting higher and "
+         "lower headcount, not an observed recruitment count."),
+        ("Management compensation / occupational proxies",
+         ("market_context_20261116_09","market_context_20261116_10",
+          "market_context_20261116_11","market_context_20261116_12"),
+         "SCB 2025 private-sector IT and R&D manager occupational statistics. "
+         "These do not constitute AI Director compensation benchmarks."),
+        ("ICT sector output and staffing",
+         ("market_context_20261116_13","market_context_20261116_14",
+          "market_context_20261116_15"),
+         "Almega Q2 2026 ICT industry output and employment. These measures "
+         "share sector sources and their divergence does not prove AI-driven displacement."),
+        ("Consulting work patterns",
+         ("market_context_20261116_16","market_context_20261116_17",
+          "market_context_20261116_18"),
+         "Brainville October 2026 marketplace classifications across all consulting "
+         "disciplines, not AI/Data-specific roles."),
+        ("Services-sector activity and staffing",
+         ("market_context_20261116_19","market_context_20261116_20",
+          "market_context_20261116_21","market_context_20261116_22"),
+         "Konjunkturinstitutet survey balances and Swedbank/Silf PMI are "
+         "different units and periods. They must not be numerically combined."),
+    ]
+    included=[(name,[idx[k] for k in keys if k in idx],caveat)
+              for name,keys,caveat in sets if any(k in idx for k in keys)]
+    if not included:return []
+    p=lambda content,sty="p":Paragraph(_esc(content),styles[sty])
+    story=[
+        PageBreak(),
+        p("SUPPLEMENT / FURTHER MARKET INTELLIGENCE","kicker"),
+        p("Additional approved market lenses","title"),
+        p("These measures expand context around enterprise AI and Data investment. "
+          "Each comes from the approved edition manifest, and each retains its "
+          "original unit, reporting period, population and source. "
+          "They are not combined into a single market score.","p"),
+    ]
+    for label,records,caveat in included:
+        story.append(p(label,"section"))
+        for item in records:
+            number=float(item["value"])
+            shown=f"{int(number):,}" if number.is_integer() else f"{number:,.1f}"
+            story.append(KeepTogether([
+                p(item["metric_label"],"h"),
+                p(shown+" "+item["metric_unit"]+"  |  "+item["period_label"],"p"),
+                p("Scope: "+item["population_note"],"small"),
+                p("Source: "+item["source_title"]+"  |  Released "+str(item["published_on"])+
+                  "  |  Verified "+str(item["verified_on"]),"small"),
+            ]))
+        story.append(p(caveat,"small"))
+        story.append(HRFlowable(width="100%",thickness=.55,color=LINE,spaceAfter=9))
+    return story
+
+
 def market_review_pdf(points:list[dict], briefs:list[dict]) -> bytes:
     """Publisher-traceable executive market review, with no unsupported real-time claims."""
     if not points or not briefs:
@@ -291,6 +361,7 @@ def market_review_pdf(points:list[dict], briefs:list[dict]) -> bytes:
     for label,blank in agenda:
         story.append(paragraph(label,"h"))
         story.append(paragraph(blank))
+    story.extend(_additional_market_lenses(points,s))
     story.extend([
         Spacer(1,11),
         paragraph("APPENDIX  /  FULL VERIFIABLE EVIDENCE REGISTER","kicker"),

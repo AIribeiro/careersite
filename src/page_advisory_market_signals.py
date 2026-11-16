@@ -913,13 +913,16 @@ def render_private_market_signals(session: dict, user: dict) -> None:
             )
         st.markdown("#### Complete Market Review")
         st.caption(
-            "The full executive edition includes a vector leadership-demand trend, "
-            "AI and Data capability analysis, consulting context, leadership agenda and "
-            "a source register listing observation dates and publisher links."
+            "A complete source-led executive research edition: independent reading "
+            "of enterprise AI adoption, data and analytical capability, leadership "
+            "advertisement trends, regional distinctions and consulting conditions. "
+            "Includes alternative explanations, decision tests, executive discussion "
+            "agenda and a traceable register of all approved observations. "
+            "No unsupported data or unpublished sources."
         )
         try:
             from page_advisory_market_review import market_review_pdf
-            market_pdf=market_review_pdf(points,briefs)
+            market_pdf=market_review_pdf(points,briefs,release)
         except (ValueError, KeyError, OSError) as exc:
             st.error("The complete market review cannot be validated for export.")
         else:

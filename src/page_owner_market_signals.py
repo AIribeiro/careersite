@@ -5,7 +5,7 @@ The interface never writes the evidence or analysis tables directly.
 """
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 from html import escape
 from urllib.parse import quote
@@ -17,6 +17,7 @@ from advisory_service_visibility import service_visibility
 
 SECTIONS = {
     "overview": "Executive overview",
+    "coverage": "Analytics coverage & intake",
     "sources": "Source assurance",
     "evidence": "Evidence catalogue",
     "analysis": "Executive interpretations",
@@ -276,6 +277,75 @@ def _overview(token: str, data: dict, pipeline: list[dict], indicators: dict) ->
         'An upstream refresh is not a publication approval. Publisher authenticity, methodology, '
         'population, revision history, licensing and independent interpretation must be reviewed '
         'before a new edition is released.</div>')
+
+
+def _analytics_coverage(token: str, data: dict) -> None:
+    st.subheader("Internal analytics → public intelligence coverage")
+    st.caption(
+        "The Swedish Job Market workspace contains personal outcomes and broad economic indicators. "
+        "Only curated source evidence can enter this service. Drafts are not readable by members "
+        "until verified and approved in the dedicated editorial workflow."
+    )
+    points=data["points"]
+    rows=[]
+    lens_names={
+        "leadership":"AI/Data leadership demand",
+        "adoption":"AI skills and enterprise adoption",
+        "capability":"Analytics capabilities and compensation proxies",
+        "consulting":"Consulting market context",
+        "context":"IT/Tech and service-sector conditions",
+    }
+    for lens,label in lens_names.items():
+        selected=[p for p in points if p["lens"]==lens]
+        reviewed=[p for p in selected if p["is_published"]]
+        pending=[p for p in selected if not p["is_published"]]
+        rows.append({
+            "Service dashboard":label,"Published":len(reviewed),"Awaiting review":len(pending),
+            "Publisher families":len({p["source_family"] for p in selected}),
+            "Latest observed":max((str(p["period_end"]) for p in selected),default="—"),
+        })
+    st.dataframe(rows,hide_index=True,use_container_width=True)
+    st.markdown("#### Publication pipeline by provider")
+    grouped=defaultdict(lambda:{"approved":0,"draft":0,"items":[]})
+    for p in points:
+        row=grouped[p["source_family"]]
+        row["approved" if p["is_published"] else "draft"]+=1
+        if not p["is_published"]:row["items"].append(p)
+    controls={s["source_family"]:s for s in data["sources"]}
+    st.dataframe([{
+        "Publisher":family,
+        "Editorial approval":controls.get(family,{}).get("review_status","Not registered"),
+        "Published observations":vals["approved"],
+        "Unpublished evidence drafts":vals["draft"],
+        "Next step":("Original source recheck + release review"
+                     if controls.get(family,{}).get("review_status")!="approved" else
+                     "Evidence-level source review and publication"),
+    } for family,vals in sorted(grouped.items())],
+    hide_index=True,use_container_width=True)
+    with st.expander("View all pending AI/Data/context observations",expanded=True):
+        candidates=sorted((p for p in points if not p["is_published"]),
+                          key=lambda x:(x["source_family"],x["metric_label"]))
+        st.dataframe([{
+            "Indicator":p["metric_label"],"Family":p["source_family"],
+            "Lens":p["lens"],"Period":p["period_label"],"Source":p["source_url"],
+            "Review status":"Unpublished draft",
+        } for p in candidates],hide_index=True,use_container_width=True,
+            column_config={"Source":st.column_config.LinkColumn("Original publisher")})
+        st.caption(
+            "Each draft must be rechecked against its original issuer before entering the "
+            "public dashboards. No annual figure may become a monthly chart and no overall "
+            "IT/Tech hiring intention may be relabelled as a specialist AI hiring count."
+        )
+    st.markdown("#### Explicitly excluded from public Market Signals")
+    st.write(
+        "Individual employer applications, interview pipeline, recruiter interactions, "
+        "personal market-to-search correlations, portfolio-to-interview correlations, "
+        "individual offer dates and probabilities, and generic national unemployment dashboards."
+    )
+    st.caption(
+        "The curated numbers are a reviewed subset of internal observations, not every one "
+        "of the internal 28 source families or the entire Swedish labour market."
+    )
 
 
 def _sources(token: str, data: dict, pipeline: list[dict]) -> None:
@@ -797,6 +867,7 @@ def render_owner_market_signals(token: str) -> None:
     )
     st.divider()
     if section=="overview":_overview(token,data,pipeline,kpi)
+    elif section=="coverage":_analytics_coverage(token,data)
     elif section=="sources":_sources(token,data,pipeline)
     elif section=="evidence":_evidence(token,data)
     elif section=="analysis":_analysis(token,data)

@@ -654,6 +654,16 @@ def _article_infographic(article) -> str:
 def governance_briefing_article(article, share_footer: str, cms_css: str) -> str:
     """Governance-specific editorial reader with one map and no repeated article."""
     from thinking_core import THINKING_CSS
+    if article.slug == "would-you-fund-the-same-ai-initiatives-today":
+        guide = {
+            "call": "Would we fund this AI initiative again today?",
+            "move": "Choose one existing AI initiative seeking a new commitment. Compare it with its best credible alternative on future value and scarce capacity, then restore switching costs, continuity duties and risk. Record renew, replace, test or stop, with a named owner and review date.",
+            "checks": (
+                ("Future value", "Which route earns the next investment on the evidence available today?", "target"),
+                ("Shared capacity", "Which scarce people, budgets and workflow changes must this choice displace?", "workflow"),
+                ("Responsible exit", "What do switching costs, service duties and non-negotiable risks change?", "shield"),
+            ),
+        }
     if article.slug == "beyond-ai-pilots-operating-decisions-to-scale":
         summary_text = (
             "The proof of a pilot is not the proof of an operating service. Fund scale only when the receiving business team can own the workflow, supervise decisions, measure outcomes and withdraw permission when conditions change."
@@ -1201,6 +1211,8 @@ def executive_briefing_article(
         "The AI Act does not classify products by their marketing label. Start with purpose, "
         "context, legal role and evidence; apply controls proportionate to the actual duty."
         if article.slug == AI_ACT_SLUG else
+        "Previous approval is not the business case for the next commitment. Compare the incumbent with its strongest available alternative, first by prospective outcomes and evidence, then by real switching costs, obligations and risk."
+        if article.slug == "would-you-fund-the-same-ai-initiatives-today" else
         "Make the operating permissions, business outcome and evidence for approval explicit before expanding AI use."
     )
     return (

@@ -327,12 +327,22 @@ else:
     # This helps distinguish cold imports from content or DOM work in Cloud logs.
     build_started = perf_counter()
     if PAGE in {"advisory-decision", "advisory-rollout", "advisory-scorecard", "advisory-leadership", "advisory-renewal"}:
-        from advisory_service_visibility import (
-            PAGE_SERVICES, service_enabled, viewer_is_admin,
-        )
-        # Private role is verified against Supabase, not inferred from the URL.
-        # For regular users a disabled service has no discoverable detail page.
-        if not service_enabled(PAGE_SERVICES[PAGE], admin=viewer_is_admin()):
+        import advisory_service_visibility as advisory_visibility
+
+        # Streamlit Cloud can keep the former service catalogue in sys.modules
+        # when main.py reruns after a release. Reload the catalogue once if the
+        # newly registered page has not yet appeared in that running process.
+        if PAGE == "advisory-renewal" and advisory_visibility.PAGE_SERVICES.get(PAGE) != "renewal":
+            import importlib
+            advisory_visibility = importlib.reload(advisory_visibility)
+
+        service_key = advisory_visibility.PAGE_SERVICES.get(PAGE)
+        # Never raise a KeyError for an unknown/paused public Advisory route.
+        # Trust the established database visibility check; never infer admin
+        # permission from URL fields, email text or local session flags.
+        if not service_key or not advisory_visibility.service_enabled(
+            service_key, admin=advisory_visibility.viewer_is_admin()
+        ):
             st.query_params["page"] = "advisory"
             st.rerun()
     raw_document = render_page()

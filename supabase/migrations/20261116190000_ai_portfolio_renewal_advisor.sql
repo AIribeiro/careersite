@@ -1,4 +1,9 @@
 -- Additive, member-owned renewal case workspace; no changes to legacy Advisory records.
+alter table public.portfolio_advisory_service_visibility
+ drop constraint if exists portfolio_advisory_service_visibility_service_key_check;
+alter table public.portfolio_advisory_service_visibility
+ add constraint portfolio_advisory_service_visibility_service_key_check
+ check(service_key in ('requests','decision','rollout','scorecard','workshop','renewal'));
 insert into public.portfolio_advisory_service_visibility(service_key,display_name,is_enabled)
 values ('renewal','AI Portfolio Renewal Advisor',false)
 on conflict (service_key) do nothing;

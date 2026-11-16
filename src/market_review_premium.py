@@ -986,7 +986,7 @@ def build_market_review_pdf(points:list[dict],briefs:list[dict],
         story.append(KeepTogether([p(label,"sub"),p(body)]))
     story.extend([
         Spacer(1,20),
-        HRFlowable(width="100%",thickness=1,color=ACCENT,spaceAfter=9),
+        HRFlowable(width="100%",thickness=1,color=COPPER,spaceAfter=9),
         p("EDITORIAL PRINCIPLE","eyebrow"),
         p("A useful market report should make a leader more careful with a "
           "decision - not merely more confident about a statistic.","quote"),

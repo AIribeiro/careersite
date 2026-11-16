@@ -237,8 +237,9 @@ class RenewalUIContractTests(unittest.TestCase):
         self.assertFalse(app.exception,[str(e.message) for e in app.exception])
         self.assertTrue(any("Record executive authorization" in b.label
                             for b in app.button))
-        self.assertTrue(any("Download executive PDF" in b.label
-                            for b in app.button))
+        self.assertFalse(app.error,[str(x.message) for x in app.error])
+        # AppTest does not expose st.download_button as a standard button widget.
+        self.assertTrue(any("Private executive exports" in x.value for x in app.markdown))
 
     def test_export_case_specific_financial_formulas_and_pdf(self):
         from page_advisory_renewal_reports import report_pdf,report_xlsx

@@ -66,6 +66,47 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_market_signals.py' -v
       - name: Validate complete executive research PDF, evidence register and layout
         run: python -m unittest discover -s tests -p 'test_market_review_premium.py' -v
+      - name: Render researched PDF into QA images and verify legibility
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "src")
+          sys.path.insert(0, "tests")
+          from test_market_review_premium import verified_edition_fixture
+          from page_advisory_market_review import market_review_pdf
+          points,briefs=verified_edition_fixture()
+          path=Path("/tmp/market-review-qa.pdf")
+          path.write_bytes(market_review_pdf(
+              points,briefs,{"issue_date":"2026-11-16","status":"published"}
+          ))
+          print("Rendered approved 30-observation synthetic QA manuscript:",path.stat().st_size,"bytes")
+          PY
+          pdfinfo /tmp/market-review-qa.pdf | grep -E 'Pages:|Page size:|File size:'
+          mkdir -p /tmp/market-review-renders
+          pdftoppm -f 1 -l 4 -r 100 -png /tmp/market-review-qa.pdf /tmp/market-review-renders/opening >/dev/null
+          pdftoppm -f 7 -l 9 -r 100 -png /tmp/market-review-qa.pdf /tmp/market-review-renders/analysis >/dev/null
+          pdftoppm -f 14 -l 15 -r 100 -png /tmp/market-review-qa.pdf /tmp/market-review-renders/appendix >/dev/null
+          python - <<'PY'
+          from PIL import Image,ImageStat
+          from pathlib import Path
+          images=list(Path("/tmp/market-review-renders").glob("*.png"))
+          assert len(images)>=8,("Rendered pages missing",len(images))
+          for path in images:
+              im=Image.open(path).convert("RGB")
+              assert im.width>700 and im.height>1000,(path,im.size)
+              stat=ImageStat.Stat(im)
+              assert min(stat.stddev)>8,(path,stat.stddev)
+              print(f"{path.name}: {im.width}x{im.height}, colour variance {[round(v,1) for v in stat.stddev]}")
+          PY
+      - name: Upload synthetic QA PDF and page renders
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-review-qa-renders
+          path: |
+            /tmp/market-review-qa.pdf
+            /tmp/market-review-renders/*.png
+          retention-days: 7
       - name: Verify full-length mobile chart labels and sanitisation
         run: python -m unittest discover -s tests -p 'test_market_chart_labels.py' -v
       - name: Verify premium Market Signals public landing and access links

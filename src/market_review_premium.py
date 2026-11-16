@@ -449,9 +449,15 @@ def build_market_review_pdf(points:list[dict],briefs:list[dict],
          "for October. These are small samples of published adverts, not filled positions.",
          "Specify the responsibilities and employment model before inferring that an AI leadership role is scarce."),
         ("04 / Consulting signals are broad-market context",
-         f"Brainville reports assignments up {_getval(idx,'brainville_202610_assignments_yoy')}% "
-         f"and available consultants up {_getval(idx,'brainville_202610_consultants_yoy')}% "
-         "year on year in its general Swedish marketplace.",
+         (
+             f"Brainville reports assignments up {_getval(idx,'brainville_202610_assignments_yoy')}% "
+             f"and available consultants up {_getval(idx,'brainville_202610_consultants_yoy')}% "
+             "year on year in its general Swedish marketplace."
+             if "brainville_202610_assignments_yoy" in idx
+             and "brainville_202610_consultants_yoy" in idx else
+             "No approved pair of consulting marketplace observations is present "
+             "in this selected snapshot; a consulting-market growth claim cannot be made."
+         ),
          "Compare make, hire and contract options on accountabilities and delivery outcomes, not marketplace growth alone."),
     ]
     for title,explanation,action in summaries:
@@ -629,7 +635,7 @@ def build_market_review_pdf(points:list[dict],briefs:list[dict],
     national=[(str(series[m]["Sweden"].get("period_label") or m)[:22],
                 _n(series[m]["Sweden"])) for m in periods if "Sweden" in series[m]]
     _section(story,styles,"04  /  Leadership demand",
-        "An observable title-basket - not a labour-market boom.",
+        "Leadership demand: an observable title basket, not a boom.",
         "This derived measure counts a deliberately selected set of advertised "
         "AI/Data leadership titles. It is useful for following a consistent "
         "definition, not estimating all hiring or labour scarcity.")
@@ -728,13 +734,18 @@ def build_market_review_pdf(points:list[dict],briefs:list[dict],
     if rows:
         sub("Brainville, Sweden, October 2026; all consulting disciplines")
         chart(rows,ceiling=max(1,max(v for _,v in rows)),unit="%",tone=TEAL)
-    story.extend([
-        p("What can be concluded","sub"),
-        p("In the publisher's observed marketplace, both the number of "
-          "assignments and the pool of available consultants increased "
+    story.append(p("What can be concluded","sub"))
+    if len(rows)==2:
+        story.append(p("In the publisher's observed marketplace, both the number "
+          "of assignments and the pool of available consultants increased "
           "compared with October 2025. Because the two percentages have "
           "different denominators, their difference is not a statistically "
-          "valid measure of oversupply, prices or future contract rates."),
+          "valid measure of oversupply, prices or future contract rates."))
+    else:
+        story.append(p("The selected edition does not contain a complete approved "
+          "pair of consulting marketplace indicators. The direction of these "
+          "cohorts cannot be established from this snapshot."))
+    story.extend([
         p("What cannot be concluded","sub"),
         p("We cannot identify the number of AI architects, data stewards "
           "or enterprise AI executives seeking contracts, nor their "

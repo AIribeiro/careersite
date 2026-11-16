@@ -142,7 +142,7 @@ def _fast_portfolio_overview(window: str) -> dict:
         raise ValueError("Unsupported portfolio reporting window.")
     return _fetch_rpc(
         "careersite_portfolio_overview_fast_v2",
-        {"p_token": _dashboard_payload(window)["p_token"], "p_window": window},
+        {"p_token": "public-readonly-v1", "p_window": window},
     )
 
 

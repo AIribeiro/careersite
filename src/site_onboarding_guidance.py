@@ -15,6 +15,7 @@ ADVISORY_NEEDS = (
     "Prioritize several AI initiatives",
     "Decide whether a pilot can scale",
     "Discuss a complex leadership decision",
+    "Reassess an existing AI investment",
 )
 
 ADVISORY_SERVICES = {
@@ -39,6 +40,13 @@ ADVISORY_SERVICES = {
         "outcome": "A readiness verdict, scaling conditions and prioritized executive actions.",
         "approval": True,
     },
+    ADVISORY_NEEDS[4]: {
+        "view": "renewal",
+        "title": "AI Portfolio Renewal Advisor",
+        "why": "The AI investment is already under way. You must decide whether the next commitment should continue, switch, be tested or stop.",
+        "outcome": "A forward-looking incumbent versus alternative challenge, sensitivity analysis and a separate executive signoff.",
+        "approval": False,
+    },
     ADVISORY_NEEDS[3]: {
         "view": "requests",
         "title": "Private Executive Advisory",
@@ -51,6 +59,9 @@ ADVISORY_SERVICES = {
 # Specific signals first. Ambiguous business language is not treated as a
 # definitive preference: users always see and can change the suggested need.
 _NEED_SIGNALS = (
+    (ADVISORY_NEEDS[4],
+     ("renew", "renewal", "continue funding", "continuing investment", "existing ai initiative",
+      "existing initiative", "sunk cost", "still fund", "already funded", "replace the ai")),
     (ADVISORY_NEEDS[1],
      ("portfolio", "multiple initiatives", "several initiatives", "prioritiz",
       "prioritis", "competing projects", "investment priorities")),

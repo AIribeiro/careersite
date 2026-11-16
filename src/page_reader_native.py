@@ -821,7 +821,7 @@ def _reader_pdf_controls(
             st.download_button(
                 "Download A4 infographic",
                 data=pdf,
-                file_name=f"{slug}-executive-infographic.pdf",
+                file_name=(f"{slug}-vector-a4-v4.pdf" if slug == "would-you-fund-the-same-ai-initiatives-today" else f"{slug}-executive-infographic.pdf"),
                 mime="application/pdf",
                 type="primary",
                 key="reader_download_" + view,
@@ -1426,7 +1426,7 @@ def _briefing_access_dialog(slug: str, title: str, purpose: str) -> None:
                 st.download_button(
                     "Download A4 infographic",
                     data=pdf,
-                    file_name=f"{slug}-executive-infographic.pdf",
+                    file_name=(f"{slug}-vector-a4-v4.pdf" if slug == "would-you-fund-the-same-ai-initiatives-today" else f"{slug}-executive-infographic.pdf"),
                     mime="application/pdf",
                     type="primary",
                     key="reader_dialog_download",

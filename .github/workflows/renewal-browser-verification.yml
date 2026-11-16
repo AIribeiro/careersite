@@ -1,0 +1,72 @@
+name: AI Portfolio Renewal Advisor live-browser verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install headless Chromium
+        run: |
+          python -m pip install --quiet playwright==1.58.0
+          python -m playwright install chromium
+      - name: Inspect real public Advisory, desktop and mobile, both domains
+        run: |
+          python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          from urllib.parse import urlencode
+          import time
+
+          BASES=('https://jairribeiro-ai.streamlit.app/',
+                 'https://jairribeiro.com/')
+          failures=[]
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True)
+              for base in BASES:
+                  for label,width,height in (('desktop',1440,900),('mobile',390,844)):
+                      context=browser.new_context(viewport={'width':width,'height':height},
+                                                  is_mobile=label=='mobile',
+                                                  device_scale_factor=1)
+                      page=context.new_page()
+                      url=base+'?page=advisory-renewal&source=internal_qa&role=renewal_smoke'
+                      try:
+                          response=page.goto(url,wait_until='domcontentloaded',timeout=40000)
+                          page.wait_for_selector('main.renewal-public h1',state='attached',timeout=35000)
+                          title=page.locator('main.renewal-public h1').first.inner_text()
+                          body=page.locator('main.renewal-public').first.inner_text()
+                          assert 'AI Portfolio Renewal Advisor' in title,title
+                          assert 'Would you still fund' in body
+                          assert 'ILLUSTRATIVE' in body.upper()
+                          assert 'method' in body.lower()
+                          assert page.locator('main.renewal-public a[href*="view=renewal"]').count()>=2
+                          dims=page.evaluate('''() => ({
+                             viewport: document.documentElement.clientWidth,
+                             actual: Math.max(document.documentElement.scrollWidth,
+                                              document.body.scrollWidth)
+                          })''')
+                          if dims['actual']>dims['viewport']+5:
+                              raise RuntimeError(f'Horizontal overflow on {label}: {dims}')
+                          print(f'PASS {base} {label}: {title}, {dims}',flush=True)
+                          page.screenshot(path=f"renewal-{('brand' if 'jairribeiro.com' in base else 'streamlit')}-{label}.png",
+                                          full_page=True,timeout=12000)
+                      except Exception as exc:
+                          failures.append(f'{base} {label}: {type(exc).__name__}: {str(exc)[:250]}')
+                          print('FAIL',failures[-1],flush=True)
+                      finally:context.close()
+              browser.close()
+          if failures:raise SystemExit('Live public verification incomplete: '+'; '.join(failures))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: renewal-live-browser-desktop-mobile
+          path: renewal-*.png
+          retention-days: 3

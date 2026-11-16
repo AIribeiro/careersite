@@ -511,6 +511,18 @@ def _record_download(token: str, user_id: str, slug: str) -> None:
     except (RuntimeError, ValueError, TimeoutError):
         LOG.warning("Unable to record a native reader PDF download.")
 
+def _record_worksheet_download(token: str, user_id: str, slug: str) -> None:
+    """Keep fillable decision-record history separate from infographic PDFs."""
+    try:
+        _request_json(
+            "POST", _rest_url("portfolio_reader_downloads"), token=token,
+            payload={"user_id": user_id, "article_slug": slug,
+                     "source": "decision_record_download"},
+        )
+    except (RuntimeError, ValueError, TimeoutError):
+        LOG.warning("Unable to record a decision-record download.")
+
+
 _READER_TOPICS = (
     "AI strategy", "AI governance", "Responsible AI", "AI adoption",
     "AI agents", "AI value and ROI", "Data governance",
@@ -822,6 +834,29 @@ def _reader_pdf_controls(
         st.error("The infographic could not be prepared.")
 
 
+def _renewal_worksheet_download(session: dict, user: dict, *, key: str) -> None:
+    """Reader-library download: PDF bytes are exposed only after live session verification."""
+    from briefing_renewal_worksheet import build_decision_record_pdf, SLUG
+    verified_session, verified_user = _session()
+    if not verified_session or not verified_user or str(verified_user.get("id")) != str(user.get("id")):
+        st.info("Sign in to access the fillable Executive Decision Record.")
+        return
+    try:
+        st.download_button(
+            "Download fillable Executive Decision Record · A4 PDF",
+            data=build_decision_record_pdf(),
+            file_name="AI_Portfolio_Renewal_Executive_Decision_Record.pdf",
+            mime="application/pdf",
+            type="primary",
+            key="renewal_record_" + key,
+            on_click=_record_worksheet_download,
+            args=(str(verified_session["access_token"]), str(verified_user["id"]), SLUG),
+            use_container_width=True,
+        )
+    except (RuntimeError, ValueError, OSError):
+        st.error("The fillable A4 record could not be prepared.")
+
+
 def _reader_section_header(kicker: str, title: str, description: str) -> None:
     """Consistent editorial introduction for every private library section."""
     st.html(
@@ -894,6 +929,9 @@ def _reader_selected_edition(
                         st.error("Your reading list couldn't be updated. Please try again.")
             if pdf_available:
                 _reader_pdf_controls(session, user, slug, view=view + "_" + slug)
+            if slug == "would-you-fund-the-same-ai-initiatives-today":
+                st.caption("Also included: Executive Decision Record · fillable A4 PDF")
+                _renewal_worksheet_download(session, user, key="catalog_" + view + "_" + slug)
 
 
 def _library(session: dict, user: dict) -> None:
@@ -948,6 +986,8 @@ def _library(session: dict, user: dict) -> None:
     by_slug = {str(article.slug): article for article in articles}
     unique_downloads: dict[str, dict] = {}
     for row in downloaded:
+        if str(row.get("source") or "pdf_download") == "decision_record_download":
+            continue
         slug = str(row.get("article_slug") or "")
         if slug and slug not in unique_downloads:
             unique_downloads[slug] = row
@@ -1205,6 +1245,18 @@ def _library(session: dict, user: dict) -> None:
             "downloaded. Prepare a fresh copy whenever you need one "
             "for your own review or discussion.",
         )
+        # This permanent member-only tool is available even before a first
+        # download appears in the reader's history.
+        if "would-you-fund-the-same-ai-initiatives-today" in by_slug:
+            with st.container(border=True, key="reader_featured_renewal_record"):
+                st.caption("FILLABLE A4 PDF · MEMBER DECISION TOOL")
+                st.markdown("#### AI Portfolio Renewal · Executive Decision Record")
+                st.write(
+                    "Compare an existing AI initiative with its strongest alternative. "
+                    "Record future value, constraints, decision ownership and the "
+                    "review evidence in one editable A4 worksheet."
+                )
+                _renewal_worksheet_download(session, user, key="pdf_collection")
         available_downloads = [
             (by_slug[slug], row) for slug, row in unique_downloads.items()
             if slug in by_slug
@@ -1360,7 +1412,7 @@ def _briefing_access_dialog(slug: str, title: str, purpose: str) -> None:
                 mime="application/pdf",
                 type="primary",
                 key="reader_renewal_record_download",
-                on_click=_record_download,
+                on_click=_record_worksheet_download,
                 args=(session["access_token"], str(user["id"]), slug),
                 width="stretch",
             )
@@ -1476,7 +1528,7 @@ def _renewal_worksheet_dialog(slug: str) -> None:
             data=data, mime="application/pdf",
             file_name="AI_Portfolio_Renewal_Executive_Decision_Record.pdf",
             type="primary", key="renewal_worksheet_download",
-            on_click=_record_download,
+            on_click=_record_worksheet_download,
             args=(session["access_token"], str(user["id"]), slug),
             width="stretch",
         )

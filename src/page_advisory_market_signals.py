@@ -47,6 +47,12 @@ SOURCE_CADENCE_DAYS = {
     "af_jobsearch_current": 15,
     "brainville_consulting_market": 50,
     "scb_enterprise_ai_adoption": 410,
+    "techsverige_market_analysis": 190,
+    "manpower_employment_outlook": 110,
+    "scb_private_management_salary": 410,
+    "almega_services_indicator": 110,
+    "ki_konjunkturbarometern": 48,
+    "swedbank_pmi": 48,
 }
 MARKET_STYLE = """
 <style>
@@ -171,16 +177,25 @@ def _checked_url(value: str) -> str:
 def _load_curated(token: str) -> tuple[list[dict], list[dict]]:
     if not token:
         raise PermissionError("A verified Advisory session is required.")
-    p = _request_json(
-        "GET",
-        _rest_url("portfolio_market_signal_points?select=*&is_published=eq.true&order=period_end.asc&limit=150"),
-        token=token, timeout=12,
-    )
-    b = _request_json(
-        "GET",
-        _rest_url("portfolio_market_signal_briefs?select=*&is_published=eq.true&order=published_on.desc&limit=30"),
-        token=token, timeout=12,
-    )
+    def catalogue(table: str, order: str, max_rows: int = 2000) -> list[dict]:
+        batch_size=200
+        results=[]
+        for offset in range(0,max_rows,batch_size):
+            batch=_request_json(
+                "GET",
+                _rest_url(f"{table}?select=*&is_published=eq.true&order={order}"
+                          f"&limit={batch_size}&offset={offset}"),
+                token=token,timeout=12,
+            )
+            if not isinstance(batch,list):
+                raise RuntimeError("Published market catalogue is not readable.")
+            results.extend(batch)
+            if len(batch)<batch_size:
+                return results
+        raise RuntimeError("Published catalogue exceeds the verified page limit.")
+
+    p=catalogue("portfolio_market_signal_points","period_end.asc")
+    b=catalogue("portfolio_market_signal_briefs","published_on.desc")
     if not isinstance(p, list) or not isinstance(b, list) or not p or not b:
         raise RuntimeError("Verified market evidence is unavailable.")
     seen = set()

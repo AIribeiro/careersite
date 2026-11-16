@@ -1527,14 +1527,6 @@ def render_cms_article(article: CmsArticle) -> str:
         # or invalidating article fingerprints that bind approved artwork.
         from briefing_editorial_labels import normalize_leadership_decision_label
         reader = normalize_leadership_decision_label(reader)
-        # The executive decision record belongs to this one published edition.
-        # The full reader is already gated by _session above; the PDF itself
-        # is generated only after a second session check in its native dialog.
-        if article.slug == "would-you-fund-the-same-ai-initiatives-today":
-            from briefing_renewal_worksheet import decision_record_cta_html
-            target = '<div class="briefing-reader-share">'
-            if target in reader:
-                reader = reader.replace(target, decision_record_cta_html() + target, 1)
         # This is the single insertion point for all independent reader styles.
         # Recommendations are restricted to published Executive Briefings only.
         try:

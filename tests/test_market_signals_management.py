@@ -137,6 +137,21 @@ class MarketManagementTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 _release_snapshot("member-token",points,briefs)
 
+    def test_report_edition_must_contain_required_sources_and_complete_months(self):
+        from page_owner_market_signals import _review_pdf_compatible
+        required=[
+            "scb_2026_ai_10plus","scb_2026_ai_250plus",
+            "scb_2026_analytics_internal","scb_2026_ai_expertise_barrier",
+            "jobtech_v1_sep_se","jobtech_v1_oct_se",
+            "jobtech_v1_sep_vgr","jobtech_v1_oct_vgr",
+            "brainville_202610_assignments_yoy",
+            "brainville_202610_consultants_yoy",
+            "jobtech_v1_jun_se",
+        ]
+        self.assertTrue(_review_pdf_compatible(required))
+        self.assertFalse(_review_pdf_compatible(required[:-1]))
+        self.assertFalse(_review_pdf_compatible(required[1:]))
+
     def test_pre_release_is_disclosed_without_claiming_final_signoff(self):
         from page_advisory_market_signals import _release_snapshot
         with patch("page_advisory_market_signals._request_json",return_value={

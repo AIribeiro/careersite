@@ -1,6 +1,9 @@
 name: AI Portfolio Renewal Advisor live-browser verification
 
 on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/renewal-browser-verification.yml']
   workflow_dispatch:
 
 permissions:
@@ -39,15 +42,26 @@ jobs:
                       url=base+'?page=advisory-renewal&source=internal_qa&role=renewal_smoke'
                       try:
                           response=page.goto(url,wait_until='domcontentloaded',timeout=40000)
-                          page.wait_for_selector('main.renewal-public h1',state='attached',timeout=35000)
-                          title=page.locator('main.renewal-public h1').first.inner_text()
-                          body=page.locator('main.renewal-public').first.inner_text()
+                          # The branded root can use a cross-origin forwarding frame.
+                          # Inspect each rendered frame rather than just its shell.
+                          rendered=None
+                          for attempt in range(30):
+                              for frame in page.frames:
+                                  if frame.locator('main.renewal-public h1').count():
+                                      rendered=frame
+                                      break
+                              if rendered:break
+                              page.wait_for_timeout(1000)
+                          if not rendered:
+                              raise RuntimeError('Renewal public route did not render in any frame')
+                          title=rendered.locator('main.renewal-public h1').first.inner_text()
+                          body=rendered.locator('main.renewal-public').first.inner_text()
                           assert 'AI Portfolio Renewal Advisor' in title,title
                           assert 'Would you still fund' in body
                           assert 'ILLUSTRATIVE' in body.upper()
                           assert 'method' in body.lower()
-                          assert page.locator('main.renewal-public a[href*="view=renewal"]').count()>=2
-                          dims=page.evaluate('''() => ({
+                          assert rendered.locator('main.renewal-public a[href*="view=renewal"]').count()>=2
+                          dims=rendered.evaluate('''() => ({
                              viewport: document.documentElement.clientWidth,
                              actual: Math.max(document.documentElement.scrollWidth,
                                               document.body.scrollWidth)

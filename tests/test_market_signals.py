@@ -19,7 +19,7 @@ from page_advisory_market_signals import (  # noqa: E402
 
 def point(code="scb_2026_ai_10plus",family="scb_enterprise_ai_adoption",val=49):
     return {
-        "code":code,"series_code":code,"source_family":family,
+        "code":code,"series_code":code,"source_family":family,"lens":"adoption",
         "metric_label":"Enterprises using AI","value":val,"metric_unit":"percent",
         "geography":"Sweden","period_label":"2026","population_note":
         "Enterprises with at least 10 employees in Sweden",

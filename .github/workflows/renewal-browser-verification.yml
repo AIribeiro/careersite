@@ -108,6 +108,23 @@ jobs:
                                   raise RuntimeError('Enabled Renewal service not discoverable from main Advisory page')
                               assert discovered.locator('a[href*="advisory-renewal"]').count()==1
                               print('PASS '+base+' public Advisory discovery: visible Renewal service CTA',flush=True)
+                              page.goto(base+'?page=advisory-access&view=renewal&source=internal_qa&role=renewal_smoke',
+                                        wait_until='domcontentloaded',timeout=40000)
+                              auth_text=''
+                              for attempt in range(25):
+                                  parts=[]
+                                  for frame in page.frames:
+                                      try:parts.append(frame.locator('body').inner_text(timeout=1200)[:3000])
+                                      except Exception:pass
+                                  auth_text=' '.join(parts)
+                                  if ('Advisory' in auth_text or 'Sign in' in auth_text) and len(auth_text)>60:
+                                      break
+                                  page.wait_for_timeout(900)
+                              if any(x in auth_text for x in ('KeyError:', 'Traceback:', 'AttributeError:')):
+                                  raise RuntimeError('Anonymous membership page raised an exception: '+auth_text[:200])
+                              if not any(x in auth_text for x in ('Advisory','Sign in','sign in','Log in','Register')):
+                                  raise RuntimeError('Anonymous membership entry did not render expected account access content')
+                              print('PASS '+base+' anonymous Advisory membership route: account entry rendered without exception',flush=True)
                       except Exception as exc:
                           failures.append(f'{base} {label}: {type(exc).__name__}: {str(exc)[:250]}')
                           print('FAIL',failures[-1],flush=True)

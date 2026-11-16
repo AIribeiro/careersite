@@ -66,13 +66,14 @@ class MarketChartLabelTests(unittest.TestCase):
             "source_title":"SCB", "period_label":"2026",
         }
         with patch("page_advisory_market_observatory.st.html") as render:
-            with patch("page_advisory_market_observatory.st.caption"):
+            with patch("page_advisory_market_observatory.st.caption") as caption:
                 _bars([row],{"adoption_large":"AI adoption among very large enterprises"},
                     title="Adoption by size",unit="share (%)",denominator="250+ employee group")
         output="\n".join(str(c.args[0]) for c in render.call_args_list)
         self.assertIn("AI adoption among very large enterprises",output)
         self.assertIn("85%",output)
-        self.assertIn("250+ employee group",output)
+        self.assertTrue(any("250+ employee group" in str(c.args[0])
+                            for c in caption.call_args_list))
 
     def test_existing_legacy_lenses_have_complete_labels_as_well(self):
         from page_advisory_market_signals import _plot

@@ -23,9 +23,9 @@ class MarketManagementTests(unittest.TestCase):
         self.assertIn("render_owner_market_signals(token)",owner)
         self.assertIn('from page_owner_market_signals import render_owner_market_signals',owner)
 
-    def test_all_seven_management_domains_are_present(self):
+    def test_all_eight_management_domains_are_present(self):
         self.assertEqual(set(SECTIONS),
-            {"overview","sources","evidence","analysis","editions","engagement","audit"})
+            {"overview","coverage","sources","evidence","analysis","editions","engagement","audit"})
 
     def test_sources_are_marked_overdue_only_after_their_cadence(self):
         today=date.today()

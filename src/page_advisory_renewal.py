@@ -197,7 +197,7 @@ def _duplicate(token: str,uid: str,case: dict,count: int) -> str:
     rows=_api("POST","portfolio_advisory_renewal_assessments?select=id",token,
               {"owner_id":uid,"initiative":name,"status":"draft",
                "inputs":data,"analysis":{},"model_version":MODEL_VERSION,
-               "synthetic":False},returning=True)
+               "synthetic":bool(case.get("synthetic",False))},returning=True)
     if not isinstance(rows,list) or len(rows)!=1 or not rows[0].get("id"):
         raise RuntimeError("The copied draft could not be verified.")
     return str(rows[0]["id"])
@@ -295,7 +295,7 @@ def _stage_ui(case: dict,token: str,uid: str) -> None:
     if st.session_state.get("renewal_stage_select") != desired:
         st.session_state["renewal_stage_select"]=desired
     stage=st.pills("Assessment stage",STEPS,selection_mode="single",
-                   default=desired, on_change=_stage_changed,
+                   default=None, on_change=_stage_changed,
                    key="renewal_stage_select",required=True,width="stretch")
     st.session_state["renewal_stage"]=stage
     prefix="rn_"+str(case["id"])[:8]+"_"+str(STEPS.index(stage))
@@ -586,7 +586,7 @@ def render_private_renewal(session: dict,user: dict) -> None:
         if st.session_state.get("rn_nav_pills") != requested:
             st.session_state["rn_nav_pills"]=requested
         section=st.pills("Renewal workspace",SECTIONS,selection_mode="single",
-                         default=requested,on_change=_nav_changed,
+                         default=None,on_change=_nav_changed,
                          required=True,format_func=lambda v:TABS[v],key="rn_nav_pills",
                          width="stretch")
         st.session_state["renewal_section"]=section
@@ -652,7 +652,7 @@ def render_private_renewal(session: dict,user: dict) -> None:
                         try:created=_duplicate(token,uid,row,sum(x["status"]!="archived" for x in records))
                         except (ValueError,RuntimeError,TimeoutError) as e:st.error(str(e))
                         else:
-                            _event(token,uid,created,"service_start",False)
+                            _event(token,uid,created,"service_start",row["synthetic"])
                             _go("assessment",created)
                     if c.button("Restore" if row["status"]=="archived" else "Archive",
                                 key="rn_archive_"+str(row["id"]),use_container_width=True):

@@ -659,6 +659,24 @@ def render_private_renewal(session: dict,user: dict) -> None:
                         try:_change_status(token,uid,row,"draft" if row["status"]=="archived" else "archived")
                         except (ValueError,RuntimeError,TimeoutError) as e:st.error(str(e))
             return
+        if section=="help":
+            st.markdown("#### Account, methodology and assistance")
+            st.write(
+                "Sunk costs do not justify another commitment. Document future switching cost, "
+                "remaining capacity needs, service obligations and reusable assets before choosing. "
+                "The model advises; the executive separately authorizes any investment."
+            )
+            if st.button("Open my account and security settings",type="primary",key="rn_account_settings"):
+                from page_advisory_member_experience import navigate
+                navigate("account")
+            st.markdown(
+                "[Published Renewal methodology](?page=briefing&article=would-you-fund-the-same-ai-initiatives-today)"
+                " · [Privacy and data policy](?page=privacy)"
+                " · [Contact Advisory support](mailto:info@jairribeiro.com)"
+            )
+            st.caption("Correct your case through its assessment steps. Each update is versioned. "
+                       "For full deletion of stored records, contact Advisory support.")
+            return
         if not case:
             st.info("Select an assessment in My assessments or start a new one.")
             if st.button("Browse assessments",type="primary",key="rn_browse"): _go("assessments")

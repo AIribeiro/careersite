@@ -512,7 +512,7 @@ def _record_download(token: str, user_id: str, slug: str) -> None:
         LOG.warning("Unable to record a native reader PDF download.")
 
 def _record_worksheet_download(token: str, user_id: str, slug: str) -> None:
-    """Keep fillable decision-record history separate from infographic PDFs."""
+    """Track Excel Decision Advisor downloads separately from infographic PDFs."""
     try:
         _request_json(
             "POST", _rest_url("portfolio_reader_downloads"), token=token,
@@ -520,7 +520,7 @@ def _record_worksheet_download(token: str, user_id: str, slug: str) -> None:
                      "source": "decision_record_download"},
         )
     except (RuntimeError, ValueError, TimeoutError):
-        LOG.warning("Unable to record a decision-record download.")
+        LOG.warning("Unable to record an Excel Decision Advisor download.")
 
 
 _READER_TOPICS = (
@@ -835,18 +835,19 @@ def _reader_pdf_controls(
 
 
 def _renewal_worksheet_download(session: dict, user: dict, *, key: str) -> None:
-    """Reader-library download: PDF bytes are exposed only after live session verification."""
-    from briefing_renewal_worksheet import build_decision_record_pdf, SLUG
+    """Reader library: generate Excel only for the active verified reader."""
+    from briefing_renewal_excel import build_decision_advisor_xlsx, SLUG, FILE_NAME, MIME
     verified_session, verified_user = _session()
-    if not verified_session or not verified_user or str(verified_user.get("id")) != str(user.get("id")):
-        st.info("Sign in to access the fillable Executive Decision Record.")
+    if (not verified_session or not verified_user or
+            str(verified_user.get("id")) != str(user.get("id"))):
+        st.info("Sign in to access the Excel Decision Advisor.")
         return
     try:
         st.download_button(
-            "Download fillable Executive Decision Record · A4 PDF",
-            data=build_decision_record_pdf(),
-            file_name="AI_Portfolio_Renewal_Executive_Decision_Record.pdf",
-            mime="application/pdf",
+            "Download Excel Decision Advisor (.xlsx)",
+            data=build_decision_advisor_xlsx(),
+            file_name=FILE_NAME,
+            mime=MIME,
             type="primary",
             key="renewal_record_" + key,
             on_click=_record_worksheet_download,
@@ -854,7 +855,7 @@ def _renewal_worksheet_download(session: dict, user: dict, *, key: str) -> None:
             use_container_width=True,
         )
     except (RuntimeError, ValueError, OSError):
-        st.error("The fillable A4 record could not be prepared.")
+        st.error("The Excel Decision Advisor could not be prepared.")
 
 
 def _reader_section_header(kicker: str, title: str, description: str) -> None:
@@ -930,7 +931,7 @@ def _reader_selected_edition(
             if pdf_available:
                 _reader_pdf_controls(session, user, slug, view=view + "_" + slug)
             if slug == "would-you-fund-the-same-ai-initiatives-today":
-                st.caption("Also included: Executive Decision Record · fillable A4 PDF")
+                st.caption("Also included: Excel Decision Advisor · interactive recommendation and instructions")
                 _renewal_worksheet_download(session, user, key="catalog_" + view + "_" + slug)
 
 
@@ -1398,18 +1399,18 @@ def _briefing_access_dialog(slug: str, title: str, purpose: str) -> None:
         "The full edition and executive decision framework are now available "
         "on this page."
     )
-    # PDF bytes are available only inside this verified reader-session dialog.
-    # The fillable decision record is distinct from the downloadable infographic.
+    # The Excel decision tool is separate from the PDF infographic and
+    # generated only inside this active verified-reader session.
     if slug == "would-you-fund-the-same-ai-initiatives-today":
-        from briefing_renewal_worksheet import build_decision_record_pdf
-        st.markdown("**Executive Decision Record · Fillable A4 PDF**")
-        st.caption("A practical worksheet to compare the current AI initiative with its strongest alternative.")
+        from briefing_renewal_excel import build_decision_advisor_xlsx, FILE_NAME, MIME
+        st.markdown("**Executive Decision Advisor · Interactive Excel workbook**")
+        st.caption("Guided inputs, calculated recommendation, executive decision log, worked example and instructions.")
         try:
             st.download_button(
-                "Download the fillable Executive Decision Record (A4)",
-                data=build_decision_record_pdf(),
-                file_name="AI_Portfolio_Renewal_Executive_Decision_Record.pdf",
-                mime="application/pdf",
+                "Download Excel Decision Advisor (.xlsx)",
+                data=build_decision_advisor_xlsx(),
+                file_name=FILE_NAME,
+                mime=MIME,
                 type="primary",
                 key="reader_renewal_record_download",
                 on_click=_record_worksheet_download,
@@ -1417,7 +1418,7 @@ def _briefing_access_dialog(slug: str, title: str, purpose: str) -> None:
                 width="stretch",
             )
         except (RuntimeError, ValueError, OSError):
-            st.error("The fillable decision record could not be prepared.")
+            st.error("The Excel Decision Advisor could not be prepared.")
     if has_briefing_pdf(slug):
         try:
             with st.spinner("Preparing the A4 infographic"):
@@ -1497,44 +1498,45 @@ def render_weekly_ai_access_dialog(slug: str, title: str = "") -> None:
         _weekly_ai_access_dialog(clean, title)
 
 
-@st.dialog("AI Portfolio Renewal · Executive decision record", width="large")
+@st.dialog("AI Portfolio Renewal · Excel Decision Advisor", width="large")
 def _renewal_worksheet_dialog(slug: str) -> None:
-    """Download bytes only after verifying the current native reader session."""
-    from briefing_renewal_worksheet import SLUG, build_decision_record_pdf
+    """Provide workbook bytes only after active member and publication checks."""
+    from briefing_renewal_excel import SLUG, FILE_NAME, MIME, build_decision_advisor_xlsx
     if slug != SLUG:
         st.error("This resource is not available.")
         return
     mount_reader_dialog_mobile_fix()
     session, user = _session()
     if not session or not user:
-        _login("the fillable executive decision record")
+        _login("the Excel AI Portfolio Decision Advisor")
         return
     from site_cms import fetch_public_article
     article = fetch_public_article(slug)
     if (not article or article.status != "published"
             or article.kind != "Executive Briefing"):
-        st.warning("This decision record is not published yet.")
+        st.warning("This decision tool is not available.")
         return
-    st.markdown("### Your decision record")
+    st.markdown("### AI Portfolio Renewal · Decision Advisor")
     st.write(
-        "A fillable one-page A4 worksheet to compare your existing AI "
-        "investment with its strongest credible alternative. "
-        "Save your answers in a PDF reader that supports fillable forms."
+        "Enter the incumbent and credible alternative, future benefits and costs, "
+        "scarce specialist capacity, evidence and risk. The workbook calculates "
+        "a recommendation and explains the decision rules. Start in START HERE; "
+        "the executive still owns the final recorded choice."
     )
     try:
-        data = build_decision_record_pdf()
         st.download_button(
-            "Download the fillable A4 decision record",
-            data=data, mime="application/pdf",
-            file_name="AI_Portfolio_Renewal_Executive_Decision_Record.pdf",
+            "Download Excel Decision Advisor (.xlsx)",
+            data=build_decision_advisor_xlsx(),
+            mime=MIME,
+            file_name=FILE_NAME,
             type="primary", key="renewal_worksheet_download",
             on_click=_record_worksheet_download,
             args=(session["access_token"], str(user["id"]), slug),
             width="stretch",
         )
     except (RuntimeError, ValueError, OSError):
-        st.error("The A4 decision record could not be prepared.")
-    st.caption("Available to authenticated readers. No payment or email subscription required.")
+        st.error("The Excel decision workbook could not be prepared.")
+    st.caption("Included with complimentary verified reader access. No subscription required.")
 
 
 def render_renewal_worksheet_dialog(slug: str) -> None:

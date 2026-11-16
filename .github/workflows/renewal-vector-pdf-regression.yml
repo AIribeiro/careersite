@@ -1,0 +1,29 @@
+name: Renewal vector infographic delivery regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/briefing_approved_asset_renderer.py'
+      - 'src/reader_membership.py'
+      - 'tests/test_renewal_vector_pdf_delivery.py'
+      - 'tests/test_briefing_approved_asset_renderer.py'
+      - '.github/workflows/renewal-vector-pdf-regression.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  print-delivery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Verify PDF quality, immutable release and reader delivery
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m compileall -q src/briefing_approved_asset_renderer.py src/reader_membership.py
+          python -m unittest -v tests.test_renewal_vector_pdf_delivery tests.test_briefing_approved_asset_renderer

@@ -96,6 +96,8 @@ def render_service_management(token: str) -> None:
     if notice:
         st.success(notice)
 
+    _render_renewal_metrics(token)
+
     with st.expander("Recent availability changes"):
         try:
             audit = _request_json(
@@ -120,3 +122,69 @@ def render_service_management(token: str) -> None:
                 st.caption("No availability changes recorded yet.")
         except (RuntimeError, ValueError, TimeoutError, KeyError, OSError):
             st.caption("Availability audit is temporarily unavailable.")
+
+def _render_renewal_metrics(token: str) -> None:
+    """Owner-only totals; source rows contain no customer inputs or monetary values."""
+    st.divider()
+    st.subheader("AI Portfolio Renewal Advisor · service activity")
+    st.caption(
+        "Registered-member counts and event totals exclude the five synthetic cases. "
+        "Recommendations describe model outputs, not actual realized business results."
+    )
+    try:
+        profiles = _request_json(
+            "GET", _rest_url("portfolio_advisory_profiles?select=user_id&limit=3000"),
+            token=token, timeout=12,
+        )
+        events = _request_json(
+            "GET", _rest_url(
+                "portfolio_advisory_renewal_events?select=user_id,event,recommendation,recorded_at"
+                "&synthetic=eq.false&order=recorded_at.desc&limit=3000"
+            ), token=token, timeout=15,
+        )
+        if not isinstance(profiles, list) or not isinstance(events, list):
+            raise RuntimeError("Private activity could not be verified.")
+    except (RuntimeError, ValueError, TimeoutError, OSError, KeyError):
+        st.info("Renewal activity statistics are temporarily unavailable.")
+        return
+
+    from collections import Counter
+    from datetime import datetime, timedelta, timezone
+
+    today = datetime.now(timezone.utc)
+    recent = today - timedelta(days=30)
+    users = {str(r.get("user_id")) for r in events if r.get("user_id")}
+    active_30 = {
+        str(r.get("user_id"))
+        for r in events
+        if r.get("user_id") and str(r.get("recorded_at") or "")[:10] >= recent.date().isoformat()
+    }
+    counts = Counter(str(r.get("event") or "") for r in events)
+    a, b, c = st.columns(3)
+    a.metric("Registered Advisory users", len(profiles), help="Existing account records; limit 3,000.")
+    b.metric("Renewal service users", len(users))
+    c.metric("Active in 30 days", len(active_30))
+    a, b, c = st.columns(3)
+    a.metric("Starts", counts["service_start"])
+    b.metric("Analyses completed", counts["analyzed"])
+    c.metric("Completion per start", f"{counts['analyzed']/counts['service_start']:.0%}" if counts["service_start"] else "—")
+    a, b, c = st.columns(3)
+    a.metric("Scenario saves", counts["scenario_saved"])
+    b.metric("PDF + Excel downloads", counts["pdf_download"] + counts["excel_download"])
+    c.metric("Recorded executive decisions", counts["decision_recorded"])
+    distribution = Counter(
+        str(r.get("recommendation") or "")
+        for r in events if r.get("event") == "analyzed" and r.get("recommendation")
+    )
+    with st.expander("Recommendation distribution and service diagnostics"):
+        st.dataframe([
+            {"Recommendation": key, "Analyses": distribution.get(key, 0)}
+            for key in ("RENEW", "REPLACE", "TEST", "STOP", "HOLD")
+        ], hide_index=True, use_container_width=True)
+        st.caption(
+            f"Observed operation errors: {counts['error']}. "
+            "Only anonymous error counts are stored, not business descriptions. "
+            "Repeated analyses may be counted more than once."
+        )
+    if len(events) >= 3000 or len(profiles) >= 3000:
+        st.warning("Metrics are limited to the most recent 3,000 events or member records.")

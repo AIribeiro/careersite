@@ -371,8 +371,18 @@ def render_owner_advisory_management(owner_session: dict) -> None:
         render_operations_overview(people, requests, readers, access)
 
     with service_tab:
-        from page_owner_advisory_services import render_service_management
-        render_service_management(token)
+        focus = st.segmented_control(
+            "Service administration",
+            ["Service availability", "Market Signals management"],
+            default="Service availability",
+            key="advisory_ops_service_admin_focus",
+        )
+        if focus == "Market Signals management":
+            from page_owner_market_signals import render_owner_market_signals
+            render_owner_market_signals(token)
+        else:
+            from page_owner_advisory_services import render_service_management
+            render_service_management(token)
 
     with roles_tab:
         from page_owner_advisory_roles import render_user_roles

@@ -209,14 +209,18 @@ def load_bundle(slug: str, *, asset_root: Path | None = None,
             data = json.loads(manifest.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
             raise ArtworkError("Artwork manifest is corrupt") from exc
-        # A running checkout can have an older approved manifest after the CMS
-        # article has been edited. Recover the newer version by exact article
-        # fingerprint rather than silently losing the visual and member PDF.
-        if (asset_root is None and expected_fingerprint
-                and isinstance(data, dict)
-                and data.get("article_fingerprint") != expected_fingerprint):
+        # A running checkout may retain an earlier art/PDF revision against
+        # IDENTICAL article text. Fingerprint equality alone must not pin the
+        # old PDF indefinitely (a common failure after print-quality fixes).
+        # Treat the source-controlled main manifest as the current release;
+        # retain local assets when the canonical manifest is unavailable.
+        # Explicit asset_root is a local-only, deterministic QA contract.
+        if asset_root is None and expected_fingerprint and isinstance(data, dict):
             current = _remote_manifest(slug)
-            if current is not None and current.get("article_fingerprint") == expected_fingerprint:
+            if (current is not None
+                    and current.get("article_fingerprint") == expected_fingerprint
+                    and current.get("slug") == slug
+                    and current.get("revision") != data.get("revision")):
                 data = current
                 remote = True
     if not isinstance(data, dict) or data.get("schema_version") != 1:

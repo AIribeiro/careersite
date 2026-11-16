@@ -152,6 +152,15 @@ class MarketManagementTests(unittest.TestCase):
         self.assertFalse(_review_pdf_compatible(required[:-1]))
         self.assertFalse(_review_pdf_compatible(required[1:]))
 
+    def test_reader_status_is_discreet_and_publication_aware(self):
+        code=(ROOT/"src/page_advisory_market_signals.py").read_text()
+        self.assertIn("market-editorial-status",code)
+        self.assertIn("Market Intelligence · ",code)
+        self.assertIn("Evidence-linked indicators with transparent reporting periods",code)
+        self.assertIn("The inaugural executive market review has been formally released",code)
+        self.assertNotIn("Initial editorial edition is still under source-by-source review.",code)
+        self.assertNotIn("must not be represented as a formally released market report.",code)
+
     def test_pre_release_is_frozen_to_original_catalogue(self):
         from page_advisory_market_signals import _release_snapshot,INITIAL_PREVIEW_CODES
         initial=[{"code":c,"source_family":"verified_input_family"} for c in INITIAL_PREVIEW_CODES]

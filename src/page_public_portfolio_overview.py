@@ -130,26 +130,25 @@ def _ranking_chart(rows: list[dict], *, compact: bool = False) -> None:
     st.altair_chart(chart, width="stretch")
 
 
-@st.cache_data(ttl=120, max_entries=8, show_spinner=False)
+@st.cache_data(ttl=120, max_entries=24, show_spinner=False)
 def _fast_portfolio_overview(window: str) -> dict:
-    """Year/lifetime headlines from a small canonical-view aggregate.
+    """Lightweight canonical content views for every calendar reporting period.
 
-    The detailed content RPC performs several telemetry scans. It must not
-    gate the Portfolio overview when a broad calendar window is selected.
+    The advanced content-intelligence RPC can exceed the database statement
+    timeout. Headline metrics and editorial period selection must never depend
+    on that expensive service. The detailed analytics pages retain their RPCs.
     """
-    if window not in ("this_year", "all"):
-        raise ValueError("Fast overview supports only Year and All.")
+    if window not in REPORTING_WINDOW_LABELS:
+        raise ValueError("Unsupported portfolio reporting window.")
     return _fetch_rpc(
-        "careersite_portfolio_overview_fast_v1",
+        "careersite_portfolio_overview_fast_v2",
         {"p_token": _dashboard_payload(window)["p_token"], "p_window": window},
     )
 
 
 def _selected_portfolio_report(window: str) -> dict:
-    """Use canonical lightweight headlines for long windows; detail elsewhere."""
-    if window in ("this_year", "all"):
-        return _fast_portfolio_overview(window)
-    return fetch_intelligence(window)
+    """Load the reliable canonical aggregate for all overview windows."""
+    return _fast_portfolio_overview(window)
 
 
 # Only editorial reading can determine the automatic Analytics reporting window.
@@ -187,17 +186,8 @@ def editorial_read_count(report: dict) -> int | None:
 
 @st.cache_data(ttl=120, max_entries=12, show_spinner=False)
 def _editorial_reporting_activity(window: str) -> dict:
-    """Read just canonical content aggregates while selecting an auto period.
-
-    Skip the heavier behavior-intelligence RPC used by the detailed dashboard.
-    The calendar-year boundary uses the existing fast aggregate endpoint.
-    """
-    if window == "this_year":
-        report = _fast_portfolio_overview(window)
-    else:
-        payload = _dashboard_payload(window)
-        payload["p_article_metadata"] = _article_metadata()
-        report = _fetch_rpc("careersite_content_intelligence_v2", payload)
+    """Read the fast canonical content aggregate without full telemetry scans."""
+    report = _fast_portfolio_overview(window)
     count = editorial_read_count(report)
     return {"totals": {"recorded_views": count}}
 
@@ -211,14 +201,8 @@ def initialize_editorial_reporting_period(state) -> None:
 
 @st.cache_data(ttl=300, show_spinner=False)
 def _recent_content_report() -> dict:
-    """Lightweight recent comparison, rechecked within five minutes.
-
-    Only existing anonymous content aggregates are read. Hiring data is never
-    queried in the public page. Behaviour RPC isn't needed for the brief.
-    """
-    payload = _dashboard_payload("7d")
-    payload["p_article_metadata"] = _article_metadata()
-    return _fetch_rpc("careersite_content_intelligence_v2", payload)
+    """Recent aggregate comparison, independent of expensive telemetry."""
+    return _fast_portfolio_overview("this_week")
 
 
 def render_public_portfolio_overview() -> None:

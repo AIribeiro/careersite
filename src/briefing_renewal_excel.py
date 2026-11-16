@@ -74,7 +74,7 @@ _STYLES = '''<?xml version="1.0" encoding="utf-8"?>
 
 class _Sheet:
     def __init__(self, title):
-        self.title = title
+        self.name = title
         self.cells: dict[int, list[tuple[int, str]]] = defaultdict(list)
         self.merges: list[str] = []
         self.validations: list[tuple[str, list[str]]] = []
@@ -393,7 +393,7 @@ def build_decision_advisor_xlsx() -> bytes:
     workbook = ['<?xml version="1.0" encoding="utf-8"?>',
                 f'<workbook xmlns="{_NS}" xmlns:r="{_REL}"><bookViews><workbookView activeTab="0"/></bookViews><sheets>']
     for idx,sheet in enumerate(sheets,1):
-        workbook.append(f'<sheet name="{escape(sheet.title)}" sheetId="{idx}" r:id="rId{idx}"/>')
+        workbook.append(f'<sheet name="{escape(sheet.name)}" sheetId="{idx}" r:id="rId{idx}"/>')
     workbook.append('</sheets><calcPr calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/></workbook>')
     rels=[f'<Relationship Id="rId{i}" Type="{_REL}/worksheet" Target="worksheets/sheet{i}.xml"/>' for i in range(1,6)]
     rels.append(f'<Relationship Id="rId6" Type="{_REL}/styles" Target="styles.xml"/>')

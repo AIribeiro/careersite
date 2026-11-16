@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 import altair as alt
 import streamlit as st
 
-from analytics_reporting_period import initialize_reporting_period, remember_reporting_period
+from analytics_reporting_period import remember_reporting_period
 from page_analytics import (
     REPORTING_WINDOWS, REPORTING_WINDOW_LABELS, _fetch_dashboard,
     _fetch_hiring_intelligence,
@@ -19,7 +19,7 @@ from page_analytics import (
 from page_content_intelligence import (
     _campaign_visual_rows, _render_source_quality, fetch_intelligence,
 )
-from page_public_portfolio_overview import render_public_portfolio_overview
+from page_public_portfolio_overview import render_public_portfolio_overview, initialize_editorial_reporting_period
 from page_linkedin_career_scorecard import render_linkedin_career_scorecard
 
 
@@ -80,7 +80,7 @@ def _social_url_changed() -> None:
 
 
 def _reporting_window() -> str:
-    initialize_reporting_period(st.session_state, _fetch_dashboard)
+    initialize_editorial_reporting_period(st.session_state)
     return str(st.selectbox(
         "Reporting period",
         [key for key, _ in REPORTING_WINDOWS],
@@ -88,7 +88,7 @@ def _reporting_window() -> str:
         key="careersite_analytics_reporting_window",
         on_change=remember_reporting_period,
         args=(st.session_state,),
-        help="Defaults to the shortest period with recorded visits. Counts are browser-session observations, not identified people.",
+        help="Automatically selects the shortest period with Article, Weekly AI or Executive Briefing reads, up to This year. Portfolio visits are excluded; manual choices remain available.",
     ))
 
 

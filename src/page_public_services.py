@@ -241,7 +241,7 @@ def advisory() -> str:
     member_signed_in = st.session_state.get("advisory_member") is True
     is_admin = viewer_is_admin()
     personal_available = service_enabled("requests", admin=is_admin)
-    ready_count = sum(service_enabled(key, admin=is_admin) for key in ("decision", "rollout", "scorecard", "workshop"))
+    ready_count = sum(service_enabled(key, admin=is_admin) for key in ("decision", "rollout", "scorecard", "workshop", "renewal"))
     ready_lede = (
         f"{ready_count} executive decision tools currently accepting new starts. "
         "Compare their outputs and access conditions before you begin."
@@ -303,7 +303,7 @@ def advisory() -> str:
         if photo else ""
     )
     decision_card = f'''\n   <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-decision">
-    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Self-service · Included with registration</span><span class="advisory-ready-number">01 / 04</span></div>
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Self-service · Included with registration</span><span class="advisory-ready-number">01 / 05</span></div>
     <h3>AI Investment Decision Advisor</h3>
     <p class="advisory-ready-question">Should this AI opportunity move forward?</p>
     <p class="advisory-ready-description">Assess one AI opportunity and receive an invest, experiment, hold or stop recommendation, with the reasoning and three priority actions.</p>
@@ -314,7 +314,7 @@ def advisory() -> str:
     </div>
    </article>\n''' if service_enabled("decision", admin=is_admin) else ""
     rollout_card = f'''\n   <article class="advisory-ready-card" data-analytics-section="advisory-rollout">
-    <div class="advisory-ready-card-head"><span class="advisory-ready-category">On-demand assessment · Individual approval</span><span class="advisory-ready-number">02 / 04</span></div>
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">On-demand assessment · Individual approval</span><span class="advisory-ready-number">02 / 05</span></div>
     <h3>Enterprise AI Rollout Readiness Advisor</h3>
     <p class="advisory-ready-question">Is this AI use case ready for enterprise rollout?</p>
     <p class="advisory-ready-description">Assess business value, operations, governance, adoption and ability to scale, then see the readiness verdict and the evidence gaps to resolve.</p>
@@ -325,7 +325,7 @@ def advisory() -> str:
     </div>
    </article>\n''' if service_enabled("rollout", admin=is_admin) else ""
     scorecard_card = f'''\n   <article class="advisory-ready-card" data-analytics-section="advisory-scorecard">
-    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Portfolio assessment · Individual approval</span><span class="advisory-ready-number">03 / 04</span></div>
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Portfolio assessment · Individual approval</span><span class="advisory-ready-number">03 / 05</span></div>
     <h3>AI Portfolio Prioritization Scorecard</h3>
     <p class="advisory-ready-question">Which AI opportunities deserve scarce resources?</p>
     <p class="advisory-ready-description">Compare initiatives and decide what to advance, test, hold or stop using a constrained portfolio view and alternative scenarios.</p>
@@ -336,7 +336,7 @@ def advisory() -> str:
     </div>
    </article>\n''' if service_enabled("scorecard", admin=is_admin) else ""
     workshop_card = f'''\n   <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-leadership-workshop">
-    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Executive leadership · Free self-service</span><span class="advisory-ready-number">04 / 04</span></div>
+    <div class="advisory-ready-card-head"><span class="advisory-ready-category">Executive leadership · Free self-service</span><span class="advisory-ready-number">04 / 05</span></div>
     <h3>Executive AI Leadership Workshop</h3>
     <p class="advisory-ready-question">Are your leaders prepared to own and sustain AI adoption?</p>
     <p class="advisory-ready-description">Assess seven leadership conditions, discuss realistic AI adoption dilemmas and document the decisions, responsibilities and evidence needed next. Individual and invited team formats.</p>
@@ -346,7 +346,20 @@ def advisory() -> str:
      {public_service_cta("workshop", "?page=advisory-leadership", "Explore leadership workshop", "advisory_workshop_service", admin=is_admin)}
     </div>
    </article>\n''' if service_enabled("workshop", admin=is_admin) else ""
-    ready_cards = "".join((decision_card, rollout_card, scorecard_card, workshop_card))
+    renewal_card = f'''
+   <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-renewal">
+     <div class="advisory-ready-card-head"><span class="advisory-ready-category">Existing investments · Complimentary self-service</span><span class="advisory-ready-number">05 / 05</span></div>
+     <h3>AI Portfolio Renewal Advisor</h3>
+     <p class="advisory-ready-question">Would you still fund this AI initiative today?</p>
+     <p class="advisory-ready-description">Challenge an existing commitment against a credible alternative. Compare future value, evidence, scarce capacity, switching costs and mandatory obligations. Record renew, replace, test, stop or hold.</p>
+     <div class="advisory-ready-card-bottom">
+      <p class="advisory-ready-detail"><span>What you receive</span><strong>Two-pass challenge · Saved scenarios · Executive decision report</strong></p>
+      <p class="advisory-ready-detail"><span>Access</span><strong>Complimentary with a verified Advisory account. No individual approval.</strong></p>
+      {public_service_cta("renewal", "?page=advisory-renewal", "Explore renewal advisor", "advisory_renewal_service", admin=is_admin)}
+     </div>
+   </article>
+''' if service_enabled("renewal", admin=is_admin) else ""
+    ready_cards = "".join((decision_card, rollout_card, scorecard_card, workshop_card, renewal_card))
     return f'''{SERVICES_CSS}{nav("advisory")}
 <main class="advisory-page">
 <section class="advisory-hero" aria-labelledby="advisory-title">

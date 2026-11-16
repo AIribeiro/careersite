@@ -20,7 +20,7 @@ from advisory_service_visibility import service_enabled
 MEMBER_EXPERIENCE_VERSION = "rollout_consistent_overview_20261115"
 
 VIEWS = (
-    "overview", "requests", "messages", "scorecard", "rollout", "decision", "workshop", "account",
+    "overview", "requests", "messages", "scorecard", "rollout", "decision", "renewal", "workshop", "account",
 )
 VIEW_LABELS = {
     "overview": "Overview",
@@ -30,6 +30,7 @@ VIEW_LABELS = {
     "rollout": "Rollout Advisor",
     "decision": "Investment Advisor",
     "workshop": "Leadership Workshop",
+    "renewal": "Renewal Advisor",
     "account": "Account",
 }
 MEMBER_CSS = """
@@ -91,7 +92,7 @@ def member_navigation(*, admin: bool = False) -> str:
     """A single-row, touch-scrollable menu; URL preserves the active section."""
     requested = str(st.query_params.get("view") or "overview").lower()
     displayed = tuple(v for v in VIEWS if v not in
-                      ("requests", "scorecard", "rollout", "decision", "workshop")
+                      ("requests", "scorecard", "rollout", "decision", "workshop", "renewal")
                       or service_enabled(v, admin=admin))
     if requested not in displayed:
         requested = "overview"

@@ -85,7 +85,7 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-decision", "advisory-leadership", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
+PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-decision", "advisory-leadership", "advisory-renewal", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -135,6 +135,7 @@ TITLES = {
     "advisory-rollout": "Enterprise AI Rollout Readiness Advisor | Jair Ribeiro",
     "advisory-decision": "AI Investment Decision Advisor | Jair Ribeiro",
     "advisory-leadership": "Executive AI Leadership Workshop | Jair Ribeiro",
+    "advisory-renewal": "AI Portfolio Renewal Advisor | Jair Ribeiro",
     "privacy": "Privacy & Data | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
     "analytics": "Portfolio & Career Intelligence | Jair Ribeiro",
@@ -309,6 +310,9 @@ else:
     elif PAGE == "advisory-leadership":
         from page_advisory_leadership_public import advisory_leadership
         render_page = advisory_leadership
+    elif PAGE == "advisory-renewal":
+        from page_advisory_renewal import advisory_renewal
+        render_page = advisory_renewal
     elif PAGE == "privacy":
         from page_public_services import privacy
         render_page = privacy
@@ -322,7 +326,7 @@ else:
     # Separate Python build, footer selection and Streamlit HTML emission.
     # This helps distinguish cold imports from content or DOM work in Cloud logs.
     build_started = perf_counter()
-    if PAGE in {"advisory-decision", "advisory-rollout", "advisory-scorecard", "advisory-leadership"}:
+    if PAGE in {"advisory-decision", "advisory-rollout", "advisory-scorecard", "advisory-leadership", "advisory-renewal"}:
         from advisory_service_visibility import (
             PAGE_SERVICES, service_enabled, viewer_is_admin,
         )

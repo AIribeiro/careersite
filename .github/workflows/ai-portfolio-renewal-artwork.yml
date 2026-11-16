@@ -29,7 +29,9 @@ jobs:
           import hashlib
           source = Path('scripts/build_renewal_artwork.py').read_bytes()
           expected = '6fe535f768e9dad346742b3aeb96985941849a79bde88225e1d0d766967f6dd8'
-          assert hashlib.sha256(source).hexdigest() == expected, 'Premium renderer source hash mismatch'
+          actual = hashlib.sha256(source).hexdigest()
+          print('Premium renderer observed SHA256:', actual, 'source size:',len(source), flush=True)
+          assert actual == expected, 'Premium renderer source hash mismatch'
           print('Reviewed premium renderer SHA256:', expected)
           PY
       - name: Install current PDF and image dependencies

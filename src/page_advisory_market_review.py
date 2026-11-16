@@ -221,158 +221,17 @@ def _additional_market_lenses(points:list[dict], styles:dict) -> list:
     return story
 
 
-def market_review_pdf(points:list[dict], briefs:list[dict]) -> bytes:
-    """Publisher-traceable executive market review, with no unsupported real-time claims."""
-    if not points or not briefs:
-        raise ValueError("Curated evidence and authored interpretations required.")
-    evidence={str(p["code"]):p for p in points}
-    if len(evidence)!=len(points):
-        raise ValueError("Duplicate market evidence identifiers.")
-    for b in briefs:
-        refs=b.get("evidence_codes") or []
-        if len(refs)<2 or any(c not in evidence for c in refs):
-            raise ValueError("Market report includes an unsupported interpretation.")
-        if b["support_level"]=="independent_sources" and len({evidence[x]["source_family"] for x in refs})<2:
-            raise ValueError("Claim of cross-source evidence is not supported.")
-    s=_styles()
-    out=BytesIO()
-    doc=SimpleDocTemplate(out,pagesize=A4,leftMargin=18*mm,rightMargin=18*mm,
-                          topMargin=25*mm,bottomMargin=20*mm,
-                          title="AI and Data Market Review - 16 November 2026",
-                          author="Jair Ribeiro | Enterprise AI & Data Leader")
-    def paragraph(txt,sty="p"): return Paragraph(_esc(txt),s[sty])
-    def find(code):
-        x=evidence.get(code)
-        if x is None: raise ValueError("Required published evidence not available: "+code)
-        return x
-    scb10=find("scb_2026_ai_10plus")
-    scb250=find("scb_2026_ai_250plus")
-    oct_se=find("jobtech_v1_oct_se")
-    oct_vgr=find("jobtech_v1_oct_vgr")
-    story=[
-        paragraph("THE EXECUTIVE MARKET REVIEW  /  EDITION 01","kicker"),
-        paragraph("AI & Data Market Signals","title"),
-        paragraph("Sweden's AI adoption is expanding. What do the demand, capability and consulting signals actually support?","subtitle"),
-        HRFlowable(width="100%",thickness=2,color=ACCENT,spaceAfter=20),
-        _metric_table([
-            (f'{int(scb10["value"])}%',"Enterprises using AI (10+)"),
-            (f'{int(scb250["value"])}%',"Large enterprises using AI"),
-            (f'{int(oct_se["value"])}',"Oct leadership title-basket ads"),
-            (f'{int(oct_vgr["value"])}',"Of these in Västra Götaland"),
-        ],s),
-        Spacer(1,18),
-        paragraph("The editorial position","section"),
-        paragraph(
-            "AI use is extensive in Swedish enterprises, but adoption alone does not establish "
-            "whether a company has the leadership, Data and governance capacity to sustain business value. "
-            "A small, narrowly defined JobTech leadership advertisement series is observable. "
-            "It is not a census of AI vacancies and cannot prove that AI recruitment or investment is surging."
-        ),
-        paragraph("Four decisions worth testing","section"),
-    ]
-    for i,b in enumerate(briefs,1):
-        story.append(paragraph(f"{i:02d}. "+b["decision_question"],"h"))
-        story.append(paragraph(b["recommended_action"]))
-    story.extend([
-        Spacer(1,10),
-        paragraph("Evidence standard", "h"),
-        paragraph(
-            "All observations have publisher links, dates, defined populations and limitations. "
-            "Two independent source families can support a coherent interpretation without independently "
-            "verifying the same statistic. No personal career analytics or individual offer forecasts are used.",
-            "small",
-        ),
-        PageBreak(),
-        paragraph("01 / Leadership demand", "kicker"),
-        paragraph("A narrow hiring signal, not a job-market census","section"),
-        paragraph("Full publication months, Sweden. Frozen JobTech headline-only title-basket v1; "
-                  "duplicate adverts removed using the documented stable identifiers. "
-                  "No projection is made from the incomplete November cohort."),
-        _trend(points),
-        Spacer(1,8),
-        paragraph("Interpretation","h"),
-        paragraph("The count was 20 in revised September 2026 and 29 in October. "
-                  "The small samples and retrospective API indexing prevent a defensible market-wide "
-                  "growth estimate from these two periods."),
-        paragraph("Regional distinction","h"),
-        paragraph("Västra Götaland counts four qualifying advertisements in revised September and five in October. "
-                  "Do not infer regional demand for every senior AI role or a hiring conversion rate."),
-        paragraph("A prudent next action","h"),
-        paragraph("Describe the capability first: AI governance and ownership, adoption and process redesign, "
-                  "AI portfolio leadership, or Data/Analytics management. Benchmark only like-for-like titles "
-                  "and employment settings before drawing recruitment conclusions."),
-        paragraph("Source: Arbetsförmedlingen JobTech Historical Ads and active JobSearch, original v1 classification; "
-                  "rechecked 16 November 2026. Source hyperlinks and observation records are in the appendix.","small"),
-        PageBreak(),
-        paragraph("02 / Organisational readiness","kicker"),
-        paragraph("Adoption is not a capability audit","section"),
-        paragraph("The survey denominator matters. Enterprise AI use, internal analytical capability, "
-                  "and barriers reported by non-adopters describe distinct groups."),
-    ])
-    core=[
-        ("Companies reporting AI use (10+ employees)",49),
-        ("Large enterprises reporting AI use (250+)",85),
-        ("Businesses with own data analytics personnel",33),
-        ("Non-adopters considering AI citing expertise gaps",62),
-    ]
-    for name,value in core:
-        matches=[p for p in points if p.get("metric_label")==name]  # may use authored label
-        story.append(paragraph(f"{value}%  -  {name}","h"))
-        story.append(paragraph(
-            "Source: SCB IT-användning i företag 2026. These percentages use the survey's "
-            "published populations, which are not all identical.","small"
-        ))
-    story.extend([
-        Spacer(1,9),
-        paragraph("An executive check","section"),
-        paragraph("For each material AI initiative, ask whether the operating owner is named, "
-                  "the workflow outcome is measurable, the data inputs are stewarded, and "
-                  "capability gaps have a funded resolution path. A technology rollout is not evidence of adoption."),
-        PageBreak(),
-        paragraph("03 / Commercial conditions","kicker"),
-        paragraph("A broader consulting signal—not AI hiring evidence","section"),
-        paragraph("Brainville's October 2026 Swedish marketplace overview shows consulting assignments "
-                  "up 10.7% year on year and available consultants up 18.5% year on year. "
-                  "This is the overall marketplace, not a measure of AI consultants or Director-level demand."),
-        paragraph("What leaders can do","h"),
-        paragraph("Run a small capability sourcing exercise against the same six-month business outcome: "
-                  "internal build, recruitment and selective external support. Compare delivery responsibility, "
-                  "knowledge transfer, controls and ongoing operating cost rather than extrapolating "
-                  "from economy-wide consulting statistics."),
-        paragraph("Confidence boundary","h"),
-        paragraph("There is no defensible AI-specific consulting assignment count in the curated dataset. "
-                  "Neither marketplace growth nor graduate unemployment can substitute for a verified "
-                  "skills-level or engagement-level sample."),
-        PageBreak(),
-        paragraph("04 / Decision agenda","kicker"),
-        paragraph("A practical record for your leadership team","section"),
-        paragraph("Use these fields to prepare an accountable discussion; this review does not issue "
-                  "a universal recommendation to hire, outsource, stop or expand an AI initiative."),
-    ])
-    agenda=[
-        ("Business outcome and current baseline","________________________________________________________________"),
-        ("Capability the organisation must own","________________________________________________________________"),
-        ("Strongest alternative to external hiring","________________________________________________________________"),
-        ("Evidence missing before commitment","________________________________________________________________"),
-        ("Data/governance responsibility","________________________________________________________________"),
-        ("Owner, next action and review date","________________________________________________________________"),
-        ("Threshold that would reverse this decision","________________________________________________________________"),
-    ]
-    for label,blank in agenda:
-        story.append(paragraph(label,"h"))
-        story.append(paragraph(blank))
-    story.extend(_additional_market_lenses(points,s))
-    story.extend([
-        Spacer(1,11),
-        paragraph("APPENDIX  /  FULL VERIFIABLE EVIDENCE REGISTER","kicker"),
-        PageBreak(),
-        paragraph("Source and observation register","title"),
-        paragraph("Every listed measure is part of the curated review snapshot. "
-                  "Do not apply these figures outside their declared geography, population and time window."),
-    ])
-    story.extend(_source_rows(points,s))
-    doc.build(story,onFirstPage=_frame,onLaterPages=_frame)
-    result=out.getvalue()
-    if not result.startswith(b"%PDF") or len(result)<3000:
-        raise ValueError("Failed to render a valid market review PDF.")
-    return result
+def market_review_pdf(
+    points: list[dict],
+    briefs: list[dict],
+    edition: dict | None = None,
+) -> bytes:
+    """Premium, source-led full market research document for the released edition.
+
+    The v1 supplementary-source helper above remains for older unit tests and
+    PDF template migration compatibility. The actual complete download is
+    generated by the substantially rewritten editorial report.
+    """
+    from market_review_premium import build_market_review_pdf
+
+    return build_market_review_pdf(points, briefs, edition)

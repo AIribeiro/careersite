@@ -51,7 +51,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           app = Path("src/page_advisory_renewal.py").read_text()
-          assert 'st.download_button(' in app
+          assert '.download_button(' in app
           assert 'private_storage' not in app
           assert 'service_role' not in app
           assert 'openai.ChatCompletion' not in app

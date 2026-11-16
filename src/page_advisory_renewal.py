@@ -149,10 +149,13 @@ def _children(token: str,table: str,aid: str, limit: int=50) -> list[dict]:
     return rows
 
 
-def _event(token: str,uid: str,aid: str | None,event: str,synthetic: bool) -> None:
-    # All business values and company-sensitive descriptions are excluded.
-    try:_api("POST","portfolio_advisory_renewal_events",token,
-             {"user_id":uid,"assessment_id":aid,"event":event,"synthetic":synthetic})
+def _event(token: str,uid: str,aid: str | None,event: str,synthetic: bool,
+           recommendation: str | None = None) -> None:
+    # Only coarse action categories enter owner reporting; never business values.
+    payload={"user_id":uid,"assessment_id":aid,"event":event,"synthetic":synthetic}
+    if recommendation in ("RENEW","REPLACE","TEST","STOP","HOLD"):
+        payload["recommendation"]=recommendation
+    try:_api("POST","portfolio_advisory_renewal_events",token,payload)
     except (RuntimeError,ValueError,TimeoutError,OSError):pass
 
 
@@ -171,7 +174,7 @@ def _save(token: str,uid: str,case: dict,inputs: dict,*, analyze: bool=False) ->
     result=assess(inputs) if analyze else {}
     if analyze and result["recommendation"]=="COMPLETE INPUTS":
         raise ValueError("Complete inputs: "+"; ".join(result["missing"][:4]))
-    status="analyzed" if analyze else "draft"
+    status="analyzed" if analyze else ("ready" if assess(inputs)["recommendation"]!="COMPLETE INPUTS" else "draft")
     name=str((inputs.get("context") or {}).get("name") or "Untitled renewal decision").strip()[:200]
     aid=quote(str(case["id"]),safe="")
     rows=_api("PATCH","portfolio_advisory_renewal_assessments?id=eq."+aid+
@@ -285,10 +288,10 @@ def _stage_ui(case: dict,token: str,uid: str) -> None:
             except (ValueError,RuntimeError,TimeoutError) as e:st.error(str(e))
             else:_event(token,uid,str(case["id"]),"draft_saved",case.get("synthetic",False));st.success("Draft saved.")
         if c2.button("Analyze both options",type="primary",key=prefix+"_analyze"):
-            try:_save(token,uid,case,data,analyze=True)
+            try:final=_save(token,uid,case,data,analyze=True)
             except (ValueError,RuntimeError,TimeoutError) as e:st.error(str(e))
             else:
-                _event(token,uid,str(case["id"]),"analyzed",case.get("synthetic",False))
+                _event(token,uid,str(case["id"]),"analyzed",case.get("synthetic",False),final["recommendation"])
                 _go("recommendation",str(case["id"]))
         return
     with st.form(prefix+"_form",clear_on_submit=False,border=True):

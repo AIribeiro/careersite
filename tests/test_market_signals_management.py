@@ -152,14 +152,23 @@ class MarketManagementTests(unittest.TestCase):
         self.assertFalse(_review_pdf_compatible(required[:-1]))
         self.assertFalse(_review_pdf_compatible(required[1:]))
 
-    def test_pre_release_is_disclosed_without_claiming_final_signoff(self):
-        from page_advisory_market_signals import _release_snapshot
+    def test_pre_release_is_frozen_to_original_catalogue(self):
+        from page_advisory_market_signals import _release_snapshot,INITIAL_PREVIEW_CODES
+        initial=[{"code":c,"source_family":"verified_input_family"} for c in INITIAL_PREVIEW_CODES]
+        pending={"code":"market_context_20261116_03","source_family":"manpower_employment_outlook"}
+        briefs=[{"slug":"initial","evidence_codes":[
+            "scb_2026_ai_10plus","jobtech_v1_oct_se"
+        ]}]
         with patch("page_advisory_market_signals._request_json",return_value={
             "published":False,"mode":"pre_release"
         }):
-            points,briefs,meta=_release_snapshot("owner-token",[],[])
-        self.assertEqual(meta["mode"],"pre_release")
-        self.assertFalse(meta["published"])
+            points,selected,meta=_release_snapshot("owner-token",[pending,*initial],briefs)
+            self.assertEqual(len(points),31)
+            self.assertNotIn(pending,points)
+            self.assertEqual([b["slug"] for b in selected],["initial"])
+            self.assertEqual(meta["mode"],"pre_release")
+            with self.assertRaisesRegex(ValueError,"Frozen"):
+                _release_snapshot("owner-token",[],[])
 
     def test_no_direct_owner_table_writes_in_interface(self):
         code=(ROOT/"src/page_owner_market_signals.py").read_text()

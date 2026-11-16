@@ -28,6 +28,7 @@ from reportlab.platypus import (
 )
 
 from site_cms import _request_json, _rest_url
+from market_labelled_bars import labelled_bars_html
 from site_components import nav, footer
 from page_public_services import SERVICES_CSS
 
@@ -60,8 +61,18 @@ MARKET_STYLE = """
  background:#FFFDF9;border:1px solid #DDD8CF;border-top:2px solid #AD7855;
  padding:14px 16px;border-radius:4px;
 }
-.st-key-market_signals_workspace [data-testid="stMetricLabel"] {color:#53677B}
-.st-key-market_signals_workspace [data-testid="stMetricValue"] {color:#142B42}
+.st-key-market_signals_workspace [data-testid="stMetricLabel"] {
+ color:#53677B;white-space:normal!important;overflow:visible!important;
+ max-width:100%;min-width:0;
+}
+.st-key-market_signals_workspace [data-testid="stMetricLabel"] * {
+ white-space:normal!important;text-overflow:clip!important;
+ overflow-wrap:anywhere!important;overflow:visible!important;
+}
+.st-key-market_signals_workspace [data-testid="stMetricValue"] {
+ color:#142B42;white-space:normal!important;overflow-wrap:anywhere;
+}
+.st-key-market_signals_workspace [data-testid="stMetric"] {min-width:0;}
 .st-key-market_signals_workspace [data-testid="stPills"] {
  overflow-x:auto;max-width:100%;padding:8px;background:#FFFDF9;border:1px solid #E3DDD5;
 }
@@ -350,18 +361,18 @@ def _plot(points: list[dict], lens: str, geography: str) -> None:
         if not rows:
             st.warning("No source-supported observations are available for this selection.")
             return
-        df = pd.DataFrame({
-            "Measure": [p["metric_label"] for p in rows],
-            "Value": [float(p["value"]) for p in rows],
-            "Unit": [p["metric_unit"] for p in rows],
-            "Period": [p["period_label"] for p in rows],
-        })
-        chart = alt.Chart(df).mark_bar(color=PALETTE["navy"], cornerRadiusEnd=3).encode(
-            x=alt.X("Value:Q", title="Reported value", scale=alt.Scale(zero=True)),
-            y=alt.Y("Measure:N", sort="-x", title=None),
-            tooltip=["Measure:N", alt.Tooltip("Value:Q", format=".1f"), "Unit:N", "Period:N"],
-        ).properties(height=max(250, 38*len(rows)))
-        st.altair_chart(chart, use_container_width=True)
+        # Axis ticks truncate long survey indicator names on tablets. Render
+        # every label as wrapping text above its own bar; keep units and vintage.
+        bar_rows = [{
+            "label": p["metric_label"],
+            "value": float(p["value"]),
+            "display_value": _value(p),
+            "period": p["period_label"],
+            "source": p.get("source_title") or p.get("source_family") or "",
+        } for p in sorted(rows, key=lambda item: float(item["value"]), reverse=True)]
+        st.html(labelled_bars_html(
+            bar_rows, color=PALETTE["navy"], unit_label="original source units"
+        ))
         if lens == "consulting":
             st.caption("Brainville figures cover all consulting disciplines, not AI/Data-specific consulting.")
         if lens in ("adoption","capability"):

@@ -188,6 +188,32 @@ def _save(token: str,uid: str,case: dict,inputs: dict,*, analyze: bool=False) ->
     return result
 
 
+def _duplicate(token: str,uid: str,case: dict,count: int) -> str:
+    if count >= MAX_CASES:
+        raise ValueError("Too many active assessments. Archive unused cases first.")
+    data=_inputs(case)
+    name=(str(data["context"]["name"] or case["initiative"])+" - renewed scenario")[:200]
+    data["context"]["name"]=name
+    rows=_api("POST","portfolio_advisory_renewal_assessments?select=id",token,
+              {"owner_id":uid,"initiative":name,"status":"draft",
+               "inputs":data,"analysis":{},"model_version":MODEL_VERSION,
+               "synthetic":False},returning=True)
+    if not isinstance(rows,list) or len(rows)!=1 or not rows[0].get("id"):
+        raise RuntimeError("The copied draft could not be verified.")
+    return str(rows[0]["id"])
+
+
+def _change_status(token: str,uid: str,case: dict,status: str) -> None:
+    if status not in ("archived","draft","review_due"):
+        raise ValueError("Unknown lifecycle transition.")
+    rows=_api("PATCH","portfolio_advisory_renewal_assessments?id=eq."+
+              quote(case["id"],safe="")+"&owner_id=eq."+quote(uid,safe="")+"&select=id",token,
+              {"status":status},returning=True)
+    if not isinstance(rows,list) or len(rows)!=1:
+        raise RuntimeError("Lifecycle update was not confirmed.")
+    st.rerun()
+
+
 def _start(token: str,uid: str,count: int) -> None:
     aid=_create(token,uid,count)
     _event(token,uid,aid,"service_start",False)
@@ -587,7 +613,7 @@ def render_private_renewal(session: dict,user: dict) -> None:
                        ("Authorize","Run scenario checks, record the real leadership choice and next gate.")),
                 boundary="This is a management decision aid based on your inputs. It does not authorize spending, validate a forecast or determine legal compliance.")
             if st.button("Start new assessment",type="primary",key="rn_overview_new"):
-                try:_start(token,uid,len(records))
+                try:_start(token,uid,sum(r["status"]!="archived" for r in records))
                 except (RuntimeError,ValueError,TimeoutError) as e:st.error(str(e))
             if records:
                 st.markdown("#### Recent cases")
@@ -606,18 +632,32 @@ def render_private_renewal(session: dict,user: dict) -> None:
             filtered=[r for r in records if search.casefold() in
                       (str(r["initiative"])+str((r.get("analysis") or {}).get("recommendation",""))).casefold()]
             if st.button("Start a new assessment",type="primary",key="rn_history_new"):
-                try:_start(token,uid,len(records))
+                try:_start(token,uid,sum(r["status"]!="archived" for r in records))
                 except (RuntimeError,ValueError,TimeoutError) as e:st.error(str(e))
             if not filtered:st.info("No matching assessments. Start a new renewal challenge.")
             for row in filtered:
-                a,b=st.columns([4,1],vertical_alignment="center")
-                a.markdown("**"+escape(str(row["initiative"]))+"**")
-                a.caption(("SYNTHETIC · " if row["synthetic"] else "")+
-                    str(row["status"]).replace("_"," ").title()+" · "+
-                    str((row.get("analysis") or {}).get("recommendation","Not analyzed"))+
-                    " · Review "+str(row.get("next_review") or "not set"))
-                if b.button("Open case",key="rn_case_"+str(row["id"])):
-                    _go("recommendation" if (row.get("analysis") or {}).get("recommendation") else "assessment",str(row["id"]))
+                with st.container(border=True,key="rn_history_"+str(row["id"])):
+                    due=(row.get("next_review") and str(row["next_review"])[:10]<=date.today().isoformat()
+                         and row["status"] not in ("draft","archived"))
+                    st.markdown("**"+escape(str(row["initiative"]))+"**")
+                    st.caption(("SYNTHETIC DEMONSTRATION · " if row["synthetic"] else "")+
+                        ("Review due" if due else str(row["status"]).replace("_"," ").title())+" · "+
+                        str((row.get("analysis") or {}).get("recommendation","Not analyzed"))+
+                        " · Review "+str(row.get("next_review") or "not set"))
+                    a,b,c=st.columns(3)
+                    if a.button("Open",key="rn_case_"+str(row["id"]),use_container_width=True):
+                        _event(token,uid,str(row["id"]),"reopened",row["synthetic"])
+                        _go("recommendation" if (row.get("analysis") or {}).get("recommendation") else "assessment",str(row["id"]))
+                    if b.button("Duplicate",key="rn_copy_"+str(row["id"]),use_container_width=True):
+                        try:created=_duplicate(token,uid,row,sum(x["status"]!="archived" for x in records))
+                        except (ValueError,RuntimeError,TimeoutError) as e:st.error(str(e))
+                        else:
+                            _event(token,uid,created,"service_start",False)
+                            _go("assessment",created)
+                    if c.button("Restore" if row["status"]=="archived" else "Archive",
+                                key="rn_archive_"+str(row["id"]),use_container_width=True):
+                        try:_change_status(token,uid,row,"draft" if row["status"]=="archived" else "archived")
+                        except (ValueError,RuntimeError,TimeoutError) as e:st.error(str(e))
             return
         if not case:
             st.info("Select an assessment in My assessments or start a new one.")

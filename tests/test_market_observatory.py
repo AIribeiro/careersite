@@ -130,7 +130,8 @@ class ObservatoryTests(unittest.TestCase):
         })
         flowables=_additional_market_lenses([optional],_styles())
         self.assertTrue(any(isinstance(x,PageBreak) for x in flowables))
-        rendered=" ".join(x.text for x in flowables if isinstance(x,Paragraph))
+        rendered=" ".join(y.text for x in flowables
+                          for y in getattr(x,"_content",[x]) if isinstance(y,Paragraph))
         self.assertIn("41 percentage points",rendered)
         self.assertIn("Manpower",rendered)
         self.assertEqual(_additional_market_lenses([],_styles()),[])

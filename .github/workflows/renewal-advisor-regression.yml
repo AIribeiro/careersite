@@ -1,0 +1,59 @@
+name: AI Portfolio Renewal Advisor regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/page_advisory_renewal*.py'
+      - 'src/page_advisory_member_experience.py'
+      - 'src/page_advisory_portal.py'
+      - 'src/page_public_services.py'
+      - 'src/advisory_service_visibility.py'
+      - 'tests/test_ai_portfolio_renewal.py'
+      - 'tests/test_advisory_service_visibility.py'
+      - 'supabase/migrations/*ai_portfolio_renewal*'
+      - '.github/workflows/renewal-advisor-regression.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/page_advisory_renewal*.py'
+      - 'src/page_advisory_member_experience.py'
+      - 'src/page_advisory_portal.py'
+      - 'src/page_public_services.py'
+      - 'src/advisory_service_visibility.py'
+      - 'tests/test_ai_portfolio_renewal.py'
+      - 'tests/test_advisory_service_visibility.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  renewal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned application dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Compile application and all Renewal modules
+        run: python -m compileall -q main.py app.py src tests
+      - name: Test recommendation engine, exports and access contracts
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m unittest tests/test_ai_portfolio_renewal.py tests/test_advisory_service_visibility.py -v
+      - name: Assert no public Renewal export URLs
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          app = Path("src/page_advisory_renewal.py").read_text()
+          assert 'st.download_button(' in app
+          assert 'private_storage' not in app
+          assert 'service_role' not in app
+          assert 'openai.ChatCompletion' not in app
+          print('Private-in-session export route contract verified')
+          PY

@@ -264,7 +264,13 @@ def ranked_portfolio_signals(
 
     measured, sessions = _article_coverage(report)
     recent_measured, recent_sessions = _article_coverage(focus)
-    if sessions >= 30 and measured / sessions < .60:
+    # Fast canonical aggregates do not supply scroll-depth observations.
+    # Missing fields mean unmeasured, not 0% coverage.
+    depth_available = any(
+        "depth_measured_sessions" in row
+        for row in _item_rows(report, "article")
+    )
+    if depth_available and sessions >= 30 and measured / sessions < .60:
         if recent and recent_sessions >= 20 and recent_measured / recent_sessions >= .80:
             add(Signal(
                 "coverage_improving", "Recent reading is better measured than the historical total",

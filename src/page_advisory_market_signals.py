@@ -207,6 +207,41 @@ def _load_curated(token: str) -> tuple[list[dict], list[dict]]:
     return p, b
 
 
+def _release_snapshot(token: str, points: list[dict], briefs: list[dict]) -> tuple[list[dict], list[dict], dict]:
+    """Bind published editions to the same approved evidence as the executive PDFs.
+
+    The initial 2026 catalogue remains a clearly marked pre-release preview
+    until the owner completes the first formal editorial source approval.
+    """
+    response=_request_json(
+        "POST",_rest_url("rpc/portfolio_market_signals_current_release_v1"),
+        token=token,payload={},timeout=10,
+    )
+    if not isinstance(response,dict) or type(response.get("published")) is not bool:
+        raise RuntimeError("Verified editorial release state unavailable.")
+    if not response["published"]:
+        return points,briefs,response
+    codes=response.get("evidence_codes")
+    slugs=response.get("brief_slugs")
+    if not isinstance(codes,list) or not isinstance(slugs,list) or len(codes)<2 or not slugs:
+        raise ValueError("Published edition has an incomplete evidence manifest.")
+    point_map={p["code"]:p for p in points}
+    brief_map={b["slug"]:b for b in briefs}
+    if len(set(codes))!=len(codes) or len(set(slugs))!=len(slugs):
+        raise ValueError("Published edition includes duplicate references.")
+    if any(x not in point_map for x in codes) or any(x not in brief_map for x in slugs):
+        raise ValueError("The published edition refers to missing data or analysis.")
+    selected_points=[point_map[c] for c in codes]
+    selected_briefs=[brief_map[c] for c in slugs]
+    selected_codes=set(codes)
+    for brief in selected_briefs:
+        if not set(brief["evidence_codes"]).issubset(selected_codes):
+            raise ValueError("Executive analysis cites evidence outside its published edition.")
+    if len({p["source_family"] for p in selected_points})<2:
+        raise ValueError("A published edition requires independent source families.")
+    return selected_points,selected_briefs,response
+
+
 def _freshness(point: dict, today: date | None = None) -> str:
     today = today or date.today()
     verified = date.fromisoformat(str(point["verified_on"])[:10])
@@ -426,6 +461,21 @@ def executive_pdf(points: list[dict], brief: dict, geography: str) -> bytes:
     return result
 
 
+def _record_market_event(token: str, event: str, lens: str = "", detail: str = "") -> None:
+    """Best-effort anonymous usage event. Never submit user notes or private responses."""
+    if not token or event not in {"open","lens","decision","pdf_decision","pdf_review","csv_evidence"}:
+        return
+    try:
+        _request_json(
+            "POST", _rest_url("rpc/portfolio_market_signals_record_event_v1"),
+            token=token, timeout=6,
+            payload={"p_event":event,"p_lens":lens[:50],"p_detail":detail[:120]},
+        )
+    except (RuntimeError,ValueError,TimeoutError,KeyError,OSError):
+        # Observability must never block verified evidence access.
+        pass
+
+
 def render_private_market_signals(session: dict, user: dict) -> None:
     """Only called after Advisory profile, password, membership and role checks."""
     token = str(session.get("access_token") or "")
@@ -440,10 +490,27 @@ def render_private_market_signals(session: dict, user: dict) -> None:
         )
         try:
             points, briefs = _load_curated(token)
+            points, briefs, release = _release_snapshot(token,points,briefs)
         except (RuntimeError, PermissionError, ValueError, KeyError, TimeoutError, OSError) as exc:
             st.error("The verified market evidence is temporarily unavailable. "
                      "No cached or invented figures will be shown. Please retry.")
             return
+        if release.get("published"):
+            st.success(
+                "Verified editorial edition: "+str(release.get("title") or "")+
+                " · "+str(release.get("issue_date") or "")+
+                ". Charts and downloads are restricted to this edition's approved evidence."
+            )
+        else:
+            st.warning(
+                "Initial editorial edition is still under source-by-source review. "
+                "These dated observations remain an exploratory preview and must not be "
+                "represented as a formally released market report."
+            )
+        viewer_key = "market_signals_open_" + str(user.get("id") or "member")
+        if not st.session_state.get(viewer_key):
+            _record_market_event(token,"open")
+            st.session_state[viewer_key] = True
         family_count = len({p["source_family"] for p in points})
         periods = [str(p["verified_on"])[:10] for p in points]
         st.caption(
@@ -463,6 +530,9 @@ def render_private_market_signals(session: dict, user: dict) -> None:
             selection_mode="single",required=True,default="leadership",
             key="market_signals_lens",label_visibility="collapsed",width="stretch",
         )
+        if st.session_state.get("market_signals_previous_lens") != lens:
+            _record_market_event(token,"lens",str(lens))
+            st.session_state["market_signals_previous_lens"] = lens
         areas = sorted({p["geography"] for p in points if p["lens"] == lens})
         geo = st.selectbox(
             "Geography",areas,index=areas.index("Sweden") if "Sweden" in areas else 0,
@@ -489,6 +559,8 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 "Download verified evidence ledger (CSV)",_safe_csv(selected),
                 "AI_Data_Market_Signals_Evidence.csv","text/csv",
                 key="market_signals_csv",use_container_width=True,
+                on_click=_record_market_event,
+                args=(token,"csv_evidence",str(lens),str(geo)),
             )
         _head("EXECUTIVE JUDGEMENT","From indicators to a defensible choice",
               "Choose the leadership decision you are facing. Each interpretation exposes supporting sources, contrary evidence and limits.")
@@ -497,6 +569,9 @@ def render_private_market_signals(session: dict, user: dict) -> None:
             key="market_signals_decision",
         )
         brief=briefs[selected_brief]
+        if st.session_state.get("market_signals_previous_decision") != brief["slug"]:
+            _record_market_event(token,"decision",str(lens),str(brief["slug"]))
+            st.session_state["market_signals_previous_decision"] = brief["slug"]
         grade=brief["support_level"]
         grade_label=("Two or more independent source families" if grade=="independent_sources"
                      else "Single-source analysis" if grade=="single_source" else "Context only")
@@ -545,6 +620,8 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 mime="application/pdf",
                 key="market_signals_pdf",type="primary",
                 use_container_width=True,
+                on_click=_record_market_event,
+                args=(token,"pdf_decision",str(lens),str(brief["slug"])),
             )
         st.markdown("#### Complete Market Review")
         st.caption(
@@ -565,6 +642,8 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 mime="application/pdf",
                 key="market_review_pdf",
                 use_container_width=True,
+                on_click=_record_market_event,
+                args=(token,"pdf_review","all","market-review"),
             )
         st.caption("Market Signals edition 1.0 · Independent research interpretation by Jair Ribeiro. "
                    "Not investment, recruitment or legal advice. Source populations, releases and methods govern the figures.")

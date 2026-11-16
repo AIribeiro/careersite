@@ -219,19 +219,23 @@ def load_bundle(slug: str, *, asset_root: Path | None = None,
             current = _remote_manifest(slug)
             if (current is not None
                     and current.get("article_fingerprint") == expected_fingerprint
-                    and current.get("slug") == slug
-                    and current.get("revision") != data.get("revision")):
-                # Never roll back a newer packaged v4 to a cached older v3.
-                def version_number(record):
-                    match = re.match(r"^v([0-9]+)(?:[._-]|$)",
-                                     str(record.get("revision", "")))
-                    return int(match.group(1)) if match else None
-                cached_version = version_number(data)
-                remote_version = version_number(current)
-                if (cached_version is None or remote_version is None
-                        or remote_version > cached_version):
-                    data = current
-                    remote = True
+                    and current.get("slug") == slug):
+                old_source = data.get("article_fingerprint") != expected_fingerprint
+                different_release = current.get("revision") != data.get("revision")
+                if old_source or different_release:
+                    # Recover edited source even if its revision label did not
+                    # change; but never downgrade a newer local v4 to cached v3.
+                    def version_number(record):
+                        match = re.match(r"^v([0-9]+)(?:[._-]|$)",
+                                         str(record.get("revision", "")))
+                        return int(match.group(1)) if match else None
+                    cached_version = version_number(data)
+                    remote_version = version_number(current)
+                    if (old_source or cached_version is None
+                            or remote_version is None
+                            or remote_version > cached_version):
+                        data = current
+                        remote = True
     if not isinstance(data, dict) or data.get("schema_version") != 1:
         raise ArtworkError("Unsupported artwork manifest")
     if data.get("slug") != slug or not HASH.fullmatch(str(data.get("article_fingerprint", ""))):

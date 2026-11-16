@@ -207,6 +207,41 @@ def _load_curated(token: str) -> tuple[list[dict], list[dict]]:
     return p, b
 
 
+def _release_snapshot(token: str, points: list[dict], briefs: list[dict]) -> tuple[list[dict], list[dict], dict]:
+    """Bind published editions to the same approved evidence as the executive PDFs.
+
+    The initial 2026 catalogue remains a clearly marked pre-release preview
+    until the owner completes the first formal editorial source approval.
+    """
+    response=_request_json(
+        "POST",_rest_url("rpc/portfolio_market_signals_current_release_v1"),
+        token=token,payload={},timeout=10,
+    )
+    if not isinstance(response,dict) or type(response.get("published")) is not bool:
+        raise RuntimeError("Verified editorial release state unavailable.")
+    if not response["published"]:
+        return points,briefs,response
+    codes=response.get("evidence_codes")
+    slugs=response.get("brief_slugs")
+    if not isinstance(codes,list) or not isinstance(slugs,list) or len(codes)<2 or not slugs:
+        raise ValueError("Published edition has an incomplete evidence manifest.")
+    point_map={p["code"]:p for p in points}
+    brief_map={b["slug"]:b for b in briefs}
+    if len(set(codes))!=len(codes) or len(set(slugs))!=len(slugs):
+        raise ValueError("Published edition includes duplicate references.")
+    if any(x not in point_map for x in codes) or any(x not in brief_map for x in slugs):
+        raise ValueError("The published edition refers to missing data or analysis.")
+    selected_points=[point_map[c] for c in codes]
+    selected_briefs=[brief_map[c] for c in slugs]
+    selected_codes=set(codes)
+    for brief in selected_briefs:
+        if not set(brief["evidence_codes"]).issubset(selected_codes):
+            raise ValueError("Executive analysis cites evidence outside its published edition.")
+    if len({p["source_family"] for p in selected_points})<2:
+        raise ValueError("A published edition requires independent source families.")
+    return selected_points,selected_briefs,response
+
+
 def _freshness(point: dict, today: date | None = None) -> str:
     today = today or date.today()
     verified = date.fromisoformat(str(point["verified_on"])[:10])
@@ -455,10 +490,23 @@ def render_private_market_signals(session: dict, user: dict) -> None:
         )
         try:
             points, briefs = _load_curated(token)
+            points, briefs, release = _release_snapshot(token,points,briefs)
         except (RuntimeError, PermissionError, ValueError, KeyError, TimeoutError, OSError) as exc:
             st.error("The verified market evidence is temporarily unavailable. "
                      "No cached or invented figures will be shown. Please retry.")
             return
+        if release.get("published"):
+            st.success(
+                "Verified editorial edition: "+str(release.get("title") or "")+
+                " · "+str(release.get("issue_date") or "")+
+                ". Charts and downloads are restricted to this edition's approved evidence."
+            )
+        else:
+            st.warning(
+                "Initial editorial edition is still under source-by-source review. "
+                "These dated observations remain an exploratory preview and must not be "
+                "represented as a formally released market report."
+            )
         viewer_key = "market_signals_open_" + str(user.get("id") or "member")
         if not st.session_state.get(viewer_key):
             _record_market_event(token,"open")

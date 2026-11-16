@@ -103,6 +103,49 @@ class MarketManagementTests(unittest.TestCase):
                    side_effect=RuntimeError("source temporarily unavailable")):
             _record_market_event("token","open")
 
+    def test_release_manifest_prevents_unapproved_evidence_from_appearing(self):
+        from page_advisory_market_signals import _release_snapshot
+        points=[
+            {"code":"scb_a","source_family":"scb_enterprise_ai_adoption"},
+            {"code":"jobtech_b","source_family":"af_jobtech_target_demand"},
+            {"code":"unused","source_family":"brainville_consulting_market"},
+        ]
+        briefs=[
+            {"slug":"approved","evidence_codes":["scb_a","jobtech_b"]},
+            {"slug":"not_released","evidence_codes":["unused","jobtech_b"]},
+        ]
+        response={"published":True,"slug":"initial-release",
+            "evidence_codes":["scb_a","jobtech_b"],"brief_slugs":["approved"],
+            "title":"Initial release","issue_date":"2026-11-16"}
+        with patch("page_advisory_market_signals._request_json",return_value=response):
+            chosen,approved,release=_release_snapshot("member-token",points,briefs)
+        self.assertEqual([p["code"] for p in chosen],["scb_a","jobtech_b"])
+        self.assertEqual([b["slug"] for b in approved],["approved"])
+        self.assertTrue(release["published"])
+
+    def test_release_contract_fails_closed_on_missing_or_external_evidence(self):
+        from page_advisory_market_signals import _release_snapshot
+        points=[{"code":"scb_a","source_family":"scb_enterprise_ai_adoption"},
+                {"code":"jobtech_b","source_family":"af_jobtech_target_demand"}]
+        briefs=[{"slug":"analysis","evidence_codes":["scb_a","outside_manifest"]}]
+        release={"published":True,"evidence_codes":["scb_a","jobtech_b"],
+                 "brief_slugs":["analysis"]}
+        with patch("page_advisory_market_signals._request_json",return_value=release):
+            with self.assertRaisesRegex(ValueError,"outside"):
+                _release_snapshot("member-token",points,briefs)
+        with patch("page_advisory_market_signals._request_json",return_value={}):
+            with self.assertRaises(RuntimeError):
+                _release_snapshot("member-token",points,briefs)
+
+    def test_pre_release_is_disclosed_without_claiming_final_signoff(self):
+        from page_advisory_market_signals import _release_snapshot
+        with patch("page_advisory_market_signals._request_json",return_value={
+            "published":False,"mode":"pre_release"
+        }):
+            points,briefs,meta=_release_snapshot("owner-token",[],[])
+        self.assertEqual(meta["mode"],"pre_release")
+        self.assertFalse(meta["published"])
+
     def test_no_direct_owner_table_writes_in_interface(self):
         code=(ROOT/"src/page_owner_market_signals.py").read_text()
         self.assertIn("portfolio_market_signals_owner_action_v1",code)

@@ -129,7 +129,7 @@ def decision_record_cta_html() -> str:
         '@media(max-width:650px){.site .renewal-worksheet-cta{padding:19px}'
         '.site .renewal-worksheet-cta a{width:100%}}</style>'
         '<span class="eyebrow">EXECUTIVE DECISION RECORD · MEMBER RESOURCE</span>'
-        '<h3>Take the Renewal Challenge into your next meeting.</h3>'
+        '<h3>Download your Executive Decision Record</h3>'
         '<p>A one-page, fillable A4 record for your business outcome, the '
         'incumbent and alternative, the two decision passes, the authorized '
         'choice and the evidence for the next review. Included with your '
@@ -137,5 +137,5 @@ def decision_record_cta_html() -> str:
         '<a href="?page=briefing&amp;article=' + SLUG
         + '&amp;worksheet=1" target="_self" '
         'data-hq-event="briefing_decision_record_open">'
-        'Download the fillable A4 decision record</a></section>'
+        'Download fillable A4 Executive Decision Record</a></section>'
     )

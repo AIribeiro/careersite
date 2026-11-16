@@ -553,9 +553,12 @@ def _advisory_account(session: dict, user: dict, profile: dict) -> None:
     elif view == "workshop":
         from page_advisory_leadership_workshop import render_private_leadership_workshop
         render_private_leadership_workshop(session, user)
+    elif view == "renewal":
+        from page_advisory_renewal import render_private_renewal
+        render_private_renewal(session, user)
     elif view == "account":
         _advisory_account_settings(session, user, profile)
-    if view in ("scorecard", "rollout", "decision", "workshop"):
+    if view in ("scorecard", "rollout", "decision", "workshop", "renewal"):
         st.divider()
         if st.button("Return to Advisory overview",
                      key="advisory_return_" + view):

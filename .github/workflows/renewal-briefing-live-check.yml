@@ -50,11 +50,21 @@ jobs:
               for attempt in range(5):
                   try:
                       page.goto(base+route,wait_until='domcontentloaded',timeout=45000)
-                      page.wait_for_selector('.site .briefing-preview-hero h1',state='visible',timeout=25000)
-                      heading=page.locator('.site .briefing-preview-hero h1').first.inner_text()
+                      # Streamlit Cloud serves the app inside a /~/+/ child frame.
+                      # Read the actual app frame rather than the empty outer shell.
+                      content_frame=None
+                      for wait in range(15):
+                          for frame in page.frames:
+                              if frame.locator('.site .briefing-preview-hero h1').count() > 0:
+                                  content_frame=frame
+                                  break
+                          if content_frame:break
+                          time.sleep(2)
+                      assert content_frame is not None,'Full page did not mount a Streamlit content frame'
+                      heading=content_frame.locator('.site .briefing-preview-hero h1').first.inner_text()
                       assert heading=='Would You Fund the Same AI Initiatives Today?', heading
-                      assert page.locator('.site .briefing-unlock-primary').count()>=1, 'Missing free reader unlock'
-                      public_body=page.locator('body').inner_text()
+                      assert content_frame.locator('.site .briefing-unlock-primary').count()>=1, 'Missing free reader unlock'
+                      public_body=content_frame.locator('body').inner_text()
                       assert 'Download the fillable A4 decision record' not in public_body, 'Private resource leaked to public'
                       print('LIVE PUBLIC PREVIEW: title, free registration and private-worksheet exclusion verified',flush=True)
                       last=''
@@ -68,12 +78,20 @@ jobs:
               # the visitor reaches this same edition, not the site's default home.
               try:
                   page.goto('https://jairribeiro.com/'+route,wait_until='domcontentloaded',timeout=35000)
-                  time.sleep(12)
-                  frame_texts=[]
-                  for f in page.frames:
-                      try:frame_texts.append(f.locator('body').inner_text(timeout=6000))
-                      except Exception:pass
-                  assert any('Would You Fund the Same AI Initiatives Today?' in s for s in frame_texts),'Branded URL did not show new briefing in available frames'
+                  # A registrar's masked frame may contain another Streamlit
+                  # content frame. Inspect all available frames, including nested.
+                  matched=False
+                  for attempt in range(16):
+                      for frame in page.frames:
+                          try:
+                              titles=frame.locator('.site .briefing-preview-hero h1')
+                              if titles.count() and titles.first.inner_text(timeout=4000)=='Would You Fund the Same AI Initiatives Today?':
+                                  matched=True
+                                  break
+                          except Exception:pass
+                      if matched:break
+                      time.sleep(2)
+                  assert matched,'Branded URL did not show new briefing in any nested frame'
                   print('BRANDED PAGE: correct briefing title rendered',flush=True)
               except Exception as exc:
                   print('BRANDED PAGE WARNING:',type(exc).__name__,str(exc)[:300],flush=True)

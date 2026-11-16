@@ -915,8 +915,8 @@ def build_market_review_pdf(points:list[dict],briefs:list[dict],
     page()
 
     # 14+. Comprehensive full observation register.
-    _section(story,styles,"Appendix A / Source and observation register",
-        "All approved data in the edition.")
+    _section(story,styles,"Appendix A / Verified evidence ledger",
+        "Source and observation register: all approved evidence.")
     story.append(p("The tables below enumerate every approved observation passed to "
        "the report, including completed and partial periods. Codes identify "
        "the exact evidence records used by the dashboard and executive "

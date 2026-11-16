@@ -39,7 +39,8 @@ jobs:
       - name: Install current PDF and image dependencies
         run: python -m pip install -r requirements.txt
       - name: Generate source-locked desktop, mobile and A4 artwork
-        run: python scripts/build_renewal_artwork.py
+        # Omit the legacy 3.8KB thumbnail: it is not an approved author likeness.
+        run: python scripts/build_renewal_artwork.py --portrait /tmp/renewal-no-portrait
       - name: Verify source fingerprint, asset SHA, images and A4 PDF
         env:
           PYTHONPATH: src

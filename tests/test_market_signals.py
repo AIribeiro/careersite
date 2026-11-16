@@ -72,6 +72,21 @@ class MarketSignalsTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 _load_curated("invalid-token")
 
+    def test_curated_catalogue_paginates_instead_of_silently_truncating(self):
+        first=[point("p"+str(i)) for i in range(200)]
+        final=point("p200")
+        analysis={
+            **brief(),
+            "evidence_codes":["p0","p200"],
+            "support_level":"single_source",
+        }
+        with patch("page_advisory_market_signals._request_json",
+                   side_effect=[first,[final],[analysis]]) as api:
+            observations,briefs=_load_curated("member-token")
+        self.assertEqual(len(observations),201)
+        self.assertEqual(len(briefs),1)
+        self.assertEqual(api.call_count,3)
+
     def test_independent_source_claim_requires_two_families(self):
         p1=point()
         p2=point("jt_oct_2026","scb_enterprise_ai_adoption",29)

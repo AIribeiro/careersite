@@ -16,6 +16,7 @@ import math
 import altair as alt
 import pandas as pd
 import streamlit as st
+from market_labelled_bars import labelled_bars_html
 
 DASHBOARDS = {
     "pulse": "Executive market pulse",
@@ -142,18 +143,19 @@ def _cards(items:list[tuple[str,dict|None,str]]) -> None:
 
 def _bars(items:list[dict], label_map:dict[str,str], *,
           title:str, unit:str, denominator:str, color:str="#183149") -> None:
-    rows=[{"Indicator":label_map[p["code"]],"Value":float(p["value"]),
-           "Period":_when(p),"Source":p["source_title"]}
-          for p in items if p["code"] in label_map]
+    rows=[{
+        "label":label_map[p["code"]],
+        "value":float(p["value"]),
+        "display_value":_value(p),
+        "period":_when(p),
+        "source":p["source_title"],
+    } for p in items if p["code"] in label_map]
     if not rows:return
-    df=pd.DataFrame(rows)
+    # Render real, wrapping label text. Axis labelLimit only increases the
+    # clipping margin and does not guarantee complete text on mobile devices.
+    rows.sort(key=lambda row:row["value"],reverse=True)
     _heading(title,denominator)
-    chart=alt.Chart(df).mark_bar(color=color,cornerRadiusEnd=3).encode(
-        x=alt.X("Value:Q",title=unit,scale=alt.Scale(zero=True)),
-        y=alt.Y("Indicator:N",sort="-x",title=None,axis=alt.Axis(labelLimit=350)),
-        tooltip=["Indicator:N",alt.Tooltip("Value:Q",format=",.1f"),"Period:N","Source:N"],
-    ).properties(height=max(150,45*len(rows)))
-    st.altair_chart(chart,use_container_width=True)
+    st.html(labelled_bars_html(rows,color=color,unit_label=unit))
 
 
 def leadership_timeline(points:list[dict], *, include_partial:bool=False) -> list[dict]:

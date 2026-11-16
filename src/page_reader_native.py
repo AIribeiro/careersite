@@ -954,6 +954,35 @@ def _library(session: dict, user: dict) -> None:
         'within easy reach.</p></section>'
     )
 
+    # Editorial handoff to the independent market-intelligence service.
+    # Visibility is controlled by Advisory; Reader membership alone does not
+    # bypass the verified Advisory account requirement.
+    from advisory_service_visibility import service_enabled as _market_enabled
+    if _market_enabled("market-signals"):
+        st.html("""
+        <section style="background:#F9F7F2;border:1px solid #DDD7CE;
+          border-left:4px solid #B17B58;padding:18px 22px;margin:12px 0 20px;
+          color:#173149;line-height:1.6" aria-label="Market intelligence">
+          <span style="font-size:10px;letter-spacing:.14em;color:#996749;font-weight:800">
+            NEW · EXECUTIVE MARKET REVIEW
+          </span>
+          <h3 style="font:500 24px/1.23 Georgia,serif;margin:8px 0">
+            AI &amp; Data Market Signals
+          </h3>
+          <p style="font-size:13px;color:#526477;margin:6px 0 11px">
+            Explore verified Swedish AI adoption, leadership demand and
+            Data capabilities. Challenge the interpretation and download
+            a cited executive decision brief.
+          </p>
+          <a href="?page=advisory-access&amp;view=market-signals" target="_self"
+             style="color:#194C70;font-size:13px;font-weight:800;
+                    text-decoration:underline;text-underline-offset:4px"
+             data-hq-event="reader_market_review_open">
+            Explore the executive market review
+          </a>
+        </section>
+        """)
+
     try:
         published = list(fetch_published_articles())
         published.sort(key=lambda a: str(a.published_at or a.created_at or ""),

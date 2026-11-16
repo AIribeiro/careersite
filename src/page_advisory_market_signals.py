@@ -426,6 +426,21 @@ def executive_pdf(points: list[dict], brief: dict, geography: str) -> bytes:
     return result
 
 
+def _record_market_event(token: str, event: str, lens: str = "", detail: str = "") -> None:
+    """Best-effort anonymous usage event. Never submit user notes or private responses."""
+    if not token or event not in {"open","lens","decision","pdf_decision","pdf_review","csv_evidence"}:
+        return
+    try:
+        _request_json(
+            "POST", _rest_url("rpc/portfolio_market_signals_record_event_v1"),
+            token=token, timeout=6,
+            payload={"p_event":event,"p_lens":lens[:50],"p_detail":detail[:120]},
+        )
+    except (RuntimeError,ValueError,TimeoutError,KeyError,OSError):
+        # Observability must never block verified evidence access.
+        pass
+
+
 def render_private_market_signals(session: dict, user: dict) -> None:
     """Only called after Advisory profile, password, membership and role checks."""
     token = str(session.get("access_token") or "")
@@ -444,6 +459,10 @@ def render_private_market_signals(session: dict, user: dict) -> None:
             st.error("The verified market evidence is temporarily unavailable. "
                      "No cached or invented figures will be shown. Please retry.")
             return
+        viewer_key = "market_signals_open_" + str(user.get("id") or "member")
+        if not st.session_state.get(viewer_key):
+            _record_market_event(token,"open")
+            st.session_state[viewer_key] = True
         family_count = len({p["source_family"] for p in points})
         periods = [str(p["verified_on"])[:10] for p in points]
         st.caption(
@@ -463,6 +482,9 @@ def render_private_market_signals(session: dict, user: dict) -> None:
             selection_mode="single",required=True,default="leadership",
             key="market_signals_lens",label_visibility="collapsed",width="stretch",
         )
+        if st.session_state.get("market_signals_previous_lens") != lens:
+            _record_market_event(token,"lens",str(lens))
+            st.session_state["market_signals_previous_lens"] = lens
         areas = sorted({p["geography"] for p in points if p["lens"] == lens})
         geo = st.selectbox(
             "Geography",areas,index=areas.index("Sweden") if "Sweden" in areas else 0,
@@ -489,6 +511,8 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 "Download verified evidence ledger (CSV)",_safe_csv(selected),
                 "AI_Data_Market_Signals_Evidence.csv","text/csv",
                 key="market_signals_csv",use_container_width=True,
+                on_click=_record_market_event,
+                args=(token,"csv_evidence",str(lens),str(geo)),
             )
         _head("EXECUTIVE JUDGEMENT","From indicators to a defensible choice",
               "Choose the leadership decision you are facing. Each interpretation exposes supporting sources, contrary evidence and limits.")
@@ -497,6 +521,9 @@ def render_private_market_signals(session: dict, user: dict) -> None:
             key="market_signals_decision",
         )
         brief=briefs[selected_brief]
+        if st.session_state.get("market_signals_previous_decision") != brief["slug"]:
+            _record_market_event(token,"decision",str(lens),str(brief["slug"]))
+            st.session_state["market_signals_previous_decision"] = brief["slug"]
         grade=brief["support_level"]
         grade_label=("Two or more independent source families" if grade=="independent_sources"
                      else "Single-source analysis" if grade=="single_source" else "Context only")
@@ -545,6 +572,8 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 mime="application/pdf",
                 key="market_signals_pdf",type="primary",
                 use_container_width=True,
+                on_click=_record_market_event,
+                args=(token,"pdf_decision",str(lens),str(brief["slug"])),
             )
         st.markdown("#### Complete Market Review")
         st.caption(
@@ -565,6 +594,8 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 mime="application/pdf",
                 key="market_review_pdf",
                 use_container_width=True,
+                on_click=_record_market_event,
+                args=(token,"pdf_review","all","market-review"),
             )
         st.caption("Market Signals edition 1.0 · Independent research interpretation by Jair Ribeiro. "
                    "Not investment, recruitment or legal advice. Source populations, releases and methods govern the figures.")

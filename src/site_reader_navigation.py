@@ -44,6 +44,7 @@ _ALLOWED_QUERY = frozenset({
     "weekly_ai",
     "access",
     "pdf",
+    "worksheet",
     "signin",
     "download",
     "utm_source",
@@ -63,7 +64,7 @@ _JS = r"""
 export default function(component) {
   const { setTriggerValue } = component;
   const allowedPages = new Set(["home","impact","thinking","briefings","briefing","about","certifications","contact","advisory","advisory-scorecard","advisory-rollout","advisory-decision","advisory-leadership","advisory-access","privacy","enterprise","transformation","governance","consulting","ai-data-governance","readers","analytics"]);
-  const allowedParams = new Set(["page","article","briefings_page","weekly_ai","access","pdf","signin","download","utm_source","utm_medium","utm_campaign","utm_content","utm_term","source","role","go","view","request","workspace"]);
+  const allowedParams = new Set(["page","article","briefings_page","weekly_ai","access","pdf","worksheet","signin","download","utm_source","utm_medium","utm_campaign","utm_content","utm_term","source","role","go","view","request","workspace"]);
   const advisoryViews = new Set(["overview","requests","messages","scorecard","rollout","decision","workshop","account"]);
   const brandedHosts = new Set(['jairribeiro.com', 'advisory.jairribeiro.com']);
   const onPortfolioClick = (event) => {
@@ -97,6 +98,11 @@ export default function(component) {
     if (request && (page !== 'advisory-access' || view !== 'messages' ||
         !/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(request))) return;
     if (route.has('workspace') && page !== 'analytics') return;
+    // Only the published Renewal briefing can open the protected A4 worksheet.
+    if (route.has('worksheet') &&
+        !(page === 'briefing' &&
+          article === 'would-you-fund-the-same-ai-initiatives-today' &&
+          route.get('worksheet') === '1')) return;
     // Do not interfere with section anchors on the current page.
     if (sameAppPath && url.search === current.search && url.hash) return;
     if (!route.has('page')) route.set('page', page);
@@ -140,6 +146,12 @@ def _parse_portfolio_route(query: object) -> dict[str, str] | None:
     ):
         return None
     if "workspace" in params and params["page"] != "analytics":
+        return None
+    if "worksheet" in params and not (
+        params["page"] == "briefing" and
+        params.get("article") == "would-you-fund-the-same-ai-initiatives-today" and
+        params["worksheet"] == "1"
+    ):
         return None
     return params
 

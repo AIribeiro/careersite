@@ -17,18 +17,20 @@ SERVICE_LABELS = {
     "rollout": "Enterprise AI Rollout Readiness Advisor",
     "scorecard": "AI Portfolio Prioritization Scorecard",
     "workshop": "Executive AI Leadership Workshop",
+    "renewal": "AI Portfolio Renewal Advisor",
 }
 PAGE_SERVICES = {
     "advisory-decision": "decision",
     "advisory-rollout": "rollout",
     "advisory-scorecard": "scorecard",
     "advisory-leadership": "workshop",
+    "advisory-renewal": "renewal",
 }
 
 
 @st.cache_data(ttl=20, show_spinner=False)
 def service_visibility() -> dict[str, bool]:
-    """Fetch availability for all five services in one request, fail closed."""
+    """Fetch availability for all registered services in one request, fail closed."""
     rows = _request_json(
         "GET",
         _rest_url(

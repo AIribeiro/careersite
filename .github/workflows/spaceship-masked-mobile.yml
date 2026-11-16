@@ -6,6 +6,8 @@ on:
       - main.py
       - src/site_embedded_mobile.py
       - tests/test_spaceship_masked_mobile.py
+      - tests/masked_mobile_dialog_smoke_app.py
+      - tests/masked_mobile_dialog_browser_smoke.py
       - .github/workflows/spaceship-masked-mobile.yml
   push:
     branches:
@@ -14,6 +16,8 @@ on:
       - main.py
       - src/site_embedded_mobile.py
       - tests/test_spaceship_masked_mobile.py
+      - tests/masked_mobile_dialog_smoke_app.py
+      - tests/masked_mobile_dialog_browser_smoke.py
       - .github/workflows/spaceship-masked-mobile.yml
 
 jobs:
@@ -30,3 +34,23 @@ jobs:
         run: pip install streamlit==1.64.0
       - name: Verify embedded-mobile fallback
         run: python -m unittest discover -s tests -p 'test_spaceship_masked_mobile.py' -v
+      - name: Install Chromium for real mobile modal geometry
+        run: |
+          pip install playwright==1.58.0
+          python -m playwright install chromium --with-deps
+      - name: Start synthetic modal fixture
+        run: |
+          nohup streamlit run tests/masked_mobile_dialog_smoke_app.py \
+            --server.headless true --server.port 8518 \
+            --browser.gatherUsageStats false \
+            > /tmp/masked-modal-streamlit.log 2>&1 &
+          for attempt in $(seq 1 40); do
+            if curl --silent --fail http://127.0.0.1:8518/_stcore/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/masked-modal-streamlit.log
+          exit 1
+      - name: Verify real mobile and masked iframe dialog dimensions
+        run: python tests/masked_mobile_dialog_browser_smoke.py

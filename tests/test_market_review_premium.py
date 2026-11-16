@@ -256,7 +256,7 @@ class FullMarketReviewContract(unittest.TestCase):
         self.assertTrue(doc.startswith(b"%PDF"))
         body="\n".join(p.extract_text() or "" for p in PdfReader(BytesIO(doc)).pages)
         self.assertNotIn("10.7% YoY",body)
-        self.assertIn("Leadership recruitment",body)
+        self.assertIn("Leadership demand",body)
 
     def test_authored_synthesis_not_treated_as_causal_statistic(self):
         assert "causal" in self.text.lower()

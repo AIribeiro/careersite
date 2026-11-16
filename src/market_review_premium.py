@@ -415,11 +415,15 @@ def build_market_review_pdf(points:list[dict],briefs:list[dict],
              "AI use is visible across Swedish enterprises. This does not tell us "
              "whether organisations are making money, changing workflows or building "
              "durable capability. A narrow AI/Data leadership advertisement series "
-             "and broader consulting-market activity are useful context, but neither "
-             "provides a measure of specialist skills scarcity or actual hiring."),
+             + ("and the broader consulting marketplace are useful context, but neither "
+                "provides a measure of specialist skills scarcity or actual hiring."
+                if "brainville_consulting_market" in families else
+                "is context for job advertisements, not completed hires or specialist "
+                "skills scarcity.")),
         Spacer(1,15),
         p(f"Published {issue}  |  {len(idx)} published observations  |  "
-          f"{len(briefs)} executive analyses  |  {len(families)} publisher families","small"),
+          f"{len(briefs)} executive {'analysis' if len(briefs)==1 else 'analyses'}"
+          f"  |  {len(families)} publisher families","small"),
         p("Scope: only the formally approved edition dataset. Additional staged "
           "indicators are excluded until they pass source review. Method and complete "
           "observation register appear at the end of this document.","disclaimer"),
@@ -637,8 +641,9 @@ def build_market_review_pdf(points:list[dict],briefs:list[dict],
     _section(story,styles,"04  /  Leadership demand",
         "Leadership demand: an observable title basket, not a boom.",
         "This derived measure counts a deliberately selected set of advertised "
-        "AI/Data leadership titles. It is useful for following a consistent "
-        "definition, not estimating all hiring or labour scarcity.")
+        "AI/Data leadership titles. It is not a labour-market census. "
+        "It is useful for following a consistent definition, not estimating "
+        "all hiring or labour scarcity.")
     if national:
         sub("Sweden: complete publication months, frozen JobTech classifier v1")
         chart(national,ceiling=max(1,max(x[1] for x in national)),tone=BLUE)

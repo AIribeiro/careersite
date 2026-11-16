@@ -628,7 +628,7 @@ def build_market_review_pdf(points:list[dict],briefs:list[dict],
     periods,series,partial=_jobtech(idx)
     national=[(str(series[m]["Sweden"].get("period_label") or m)[:22],
                 _n(series[m]["Sweden"])) for m in periods if "Sweden" in series[m]]
-    _section(story,styles,"04  /  Leadership recruitment",
+    _section(story,styles,"04  /  Leadership demand",
         "An observable title-basket - not a labour-market boom.",
         "This derived measure counts a deliberately selected set of advertised "
         "AI/Data leadership titles. It is useful for following a consistent "
@@ -831,7 +831,7 @@ def build_market_review_pdf(points:list[dict],briefs:list[dict],
 
     # 12. Practical actions and decision rights.
     _section(story,styles,"09  /  Leadership decision agenda",
-        "Decisions, owners and evidence - not a blanket recommendation.",
+        "Decision agenda: owners, evidence and reversible commitments.",
         "This is a repeatable discussion framework, not a prescribed "
         "ranking of AI initiatives. Record thresholds before making "
         "a new investment or hiring commitment.")

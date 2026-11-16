@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "page:advisory-renewal",
+      "type": "New page",
+      "title": "Advisory Renewal",
+      "description": "Discover the newly published portfolio page.",
+      "date": "2026-11-16T19:19:23+01:00",
+      "href": "?page=advisory-renewal",
+      "cta": "Explore the page"
+    },
+    {
       "key": "page:advisory-rollout",
       "type": "New page",
       "title": "Advisory Rollout",

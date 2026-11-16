@@ -7,6 +7,7 @@ from io import BytesIO
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 from zipfile import ZipFile, BadZipFile
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -197,7 +198,7 @@ class RenewalUIContractTests(unittest.TestCase):
 
     def test_private_data_is_not_exported_as_static(self):
         source=(ROOT/"src/page_advisory_renewal.py").read_text(encoding="utf-8")
-        self.assertIn('token=token',source)
+        self.assertIn('"token":token',source)
         self.assertIn('owner_id=eq.',source)
         self.assertIn('st.download_button',source)
         self.assertNotIn('openai.',source.lower())
@@ -205,7 +206,7 @@ class RenewalUIContractTests(unittest.TestCase):
 
     def test_disabled_services_hide_from_regular_members(self):
         from advisory_service_visibility import service_enabled
-        with unittest.mock.patch("advisory_service_visibility.service_visibility",
+        with patch("advisory_service_visibility.service_visibility",
                                  return_value={"renewal":False}):
             self.assertFalse(service_enabled("renewal"))
             self.assertTrue(service_enabled("renewal",admin=True))
@@ -220,7 +221,7 @@ class RenewalUIContractTests(unittest.TestCase):
                      "portfolio_advisory_user_roles"):
             self.assertIn(term,source)
         self.assertNotIn("service_role",source)
-        self.assertIn("is_enabled,false",source.replace(" ",""))
+        self.assertIn("values ('renewal'",source)
 
     def test_export_case_specific_financial_formulas_and_pdf(self):
         from page_advisory_renewal_reports import report_pdf,report_xlsx

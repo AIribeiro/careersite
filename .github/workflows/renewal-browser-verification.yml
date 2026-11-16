@@ -92,6 +92,22 @@ jobs:
                           print(f'PASS {base} {label}: {title}, {dims} / {card_layout}',flush=True)
                           page.screenshot(path=f"renewal-{('brand' if 'jairribeiro.com' in base else 'streamlit')}-{label}.png",
                                           full_page=True,timeout=12000)
+                          if label=='desktop':
+                              page.goto(base+'?page=advisory&source=internal_qa&role=renewal_smoke',
+                                        wait_until='domcontentloaded',timeout=40000)
+                              discovered=None
+                              for attempt in range(25):
+                                  for frame in page.frames:
+                                      card=frame.locator('article[data-analytics-section="advisory-renewal"]')
+                                      if card.count() and card.is_visible():
+                                          discovered=card
+                                          break
+                                  if discovered:break
+                                  page.wait_for_timeout(1000)
+                              if not discovered:
+                                  raise RuntimeError('Enabled Renewal service not discoverable from main Advisory page')
+                              assert discovered.locator('a[href*="advisory-renewal"]').count()==1
+                              print('PASS '+base+' public Advisory discovery: visible Renewal service CTA',flush=True)
                       except Exception as exc:
                           failures.append(f'{base} {label}: {type(exc).__name__}: {str(exc)[:250]}')
                           print('FAIL',failures[-1],flush=True)

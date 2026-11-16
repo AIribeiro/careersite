@@ -523,47 +523,15 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 f"{len(overdue)} observations have passed their source-specific recheck interval. "
                 "Their last verified values are retained with dates; the tool will not present them as current."
             )
-        _head("EXPLORE", "The indicators beneath the narrative",
-              "Select a market lens. All charts preserve source populations and observation windows.")
-        lens = st.pills(
-            "Market lens",list(LENSES),format_func=lambda x:LENSES[x],
-            selection_mode="single",required=True,default="leadership",
-            key="market_signals_lens",label_visibility="collapsed",width="stretch",
-        )
+        from page_advisory_market_observatory import render_market_observatory
+        render_market_observatory(points)
+        lens = str(st.session_state.get("market_observatory_section") or "pulse")
+        geo = "Sweden"
         if st.session_state.get("market_signals_previous_lens") != lens:
-            _record_market_event(token,"lens",str(lens))
+            _record_market_event(token,"lens",lens)
             st.session_state["market_signals_previous_lens"] = lens
-        areas = sorted({p["geography"] for p in points if p["lens"] == lens})
-        geo = st.selectbox(
-            "Geography",areas,index=areas.index("Sweden") if "Sweden" in areas else 0,
-            key="market_signals_geography",help="Regional breakdowns are available only when grounded source observations exist.",
-        )
-        selected = [p for p in points if p["lens"]==lens and p["geography"]==geo]
-        selected_complete = [p for p in selected if p["period_complete"]]
-        last_complete = max(selected_complete,key=lambda p:p["period_end"]) if selected_complete else None
-        if last_complete:
-            cols=st.columns(3)
-            cols[0].metric("Selected market",geo)
-            cols[1].metric("Latest complete-period measure",_value(last_complete))
-            cols[2].metric("Latest complete reference",str(last_complete["period_label"]))
-        _plot(points,lens,geo)
-        with st.expander("Evidence table · observations and source dates"):
-            rows = [{
-                "Measure":p["metric_label"],"Value":_value(p),"Geography":p["geography"],
-                "Period":p["period_label"],"Complete":bool(p["period_complete"]),
-                "Published":p["published_on"],"Verified":p["verified_on"],
-                "Source":p["source_family"],"Status":_freshness(p),
-            } for p in selected]
-            st.dataframe(pd.DataFrame(rows),hide_index=True,use_container_width=True)
-            st.download_button(
-                "Download verified evidence ledger (CSV)",_safe_csv(selected),
-                "AI_Data_Market_Signals_Evidence.csv","text/csv",
-                key="market_signals_csv",use_container_width=True,
-                on_click=_record_market_event,
-                args=(token,"csv_evidence",str(lens),str(geo)),
-            )
-        _head("EXECUTIVE JUDGEMENT","From indicators to a defensible choice",
-              "Choose the leadership decision you are facing. Each interpretation exposes supporting sources, contrary evidence and limits.")
+        _head("EDITORIAL INTERPRETATION","What the observed signals mean for the decisions ahead",
+              "The dashboard shows factual evidence; this companion analysis records executive judgement, counterarguments and the next practical decision.")
         selected_brief = st.selectbox(
             "Decision theme",range(len(briefs)),format_func=lambda ix:briefs[ix]["title"],
             key="market_signals_decision",

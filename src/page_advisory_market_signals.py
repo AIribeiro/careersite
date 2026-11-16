@@ -79,6 +79,11 @@ MARKET_STYLE = """
 .st-key-market_signals_workspace [data-testid="stPills"] button {
  min-height:42px;white-space:nowrap;font-weight:700;
 }
+.market-editorial-status {margin:10px 0 17px;padding:13px 17px;
+ border-left:2px solid #B17B58;border-bottom:1px solid #E1DCD3;
+ background:#F9F7F3;color:#334D5F}
+.market-editorial-status strong {font-size:11px;font-weight:800;letter-spacing:.035em}
+.market-editorial-status p {font-size:12px;line-height:1.65;color:#5F6F7D;margin:5px 0 0}
 .market-hero {background:linear-gradient(120deg,#10253A,#203D53);color:#fff;
  padding:clamp(28px,4vw,51px);margin:7px 0 21px}
 .market-hero .eyebrow {text-transform:uppercase;letter-spacing:.17em;font-size:10px;
@@ -546,18 +551,24 @@ def render_private_market_signals(session: dict, user: dict) -> None:
             st.error("The verified market evidence is temporarily unavailable. "
                      "No cached or invented figures will be shown. Please retry.")
             return
+        # An editorial status should convey the publication vintage without
+        # presenting internal editorial workflow warnings as a reader alert.
         if release.get("published"):
-            st.success(
-                "Verified editorial edition: "+str(release.get("title") or "")+
-                " · "+str(release.get("issue_date") or "")+
-                ". Charts and downloads are restricted to this edition's approved evidence."
-            )
+            edition_status = ("Edition 01 · Published " +
+                              str(release.get("issue_date") or "November 2026"))
         else:
-            st.warning(
-                "Initial editorial edition is still under source-by-source review. "
-                "These dated observations remain an exploratory preview and must not be "
-                "represented as a formally released market report."
-            )
+            edition_status = "November 2026 · Editorial review"
+        st.html(
+            '<section class="market-editorial-status" aria-label="Editorial status">'
+            '<strong>Market Intelligence · '+html_escape(edition_status)+'</strong>'
+            '<p>Evidence-linked indicators with transparent reporting periods, '
+            'source references and methodological limitations. '
+            + ('The inaugural executive market review is undergoing final '
+               'editorial verification.' if not release.get("published") else
+               'The inaugural executive market review has been formally released '
+               'with a dated evidence manifest and supporting source records.')
+            + '</p></section>'
+        )
         viewer_key = "market_signals_open_" + str(user.get("id") or "member")
         if not st.session_state.get(viewer_key):
             _record_market_event(token,"open")

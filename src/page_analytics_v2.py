@@ -7,7 +7,7 @@ ADVISORY_OWNER_DIALOGUE_RELEASE = "owner_dialogue_20261115"
 from page_analytics import (
     _noindex, _dashboard_css, REPORTING_WINDOWS, REPORTING_WINDOW_LABELS, _fetch_dashboard,
 )
-from analytics_reporting_period import initialize_reporting_period, remember_reporting_period
+from analytics_reporting_period import remember_reporting_period
 
 
 def render_site_analytics_dashboard() -> None:
@@ -118,7 +118,8 @@ def _render_public_analytics() -> None:
         key="analytics_portfolio_kind", width="stretch",
     ) or "page"
     window_options = [key for key, _ in REPORTING_WINDOWS]
-    initialize_reporting_period(st.session_state, _fetch_dashboard)
+    from page_public_portfolio_overview import initialize_editorial_reporting_period
+    initialize_editorial_reporting_period(st.session_state)
     window = st.selectbox(
         "Reporting period",
         window_options,
@@ -126,7 +127,7 @@ def _render_public_analytics() -> None:
         key="careersite_analytics_reporting_window",
         on_change=remember_reporting_period,
         args=(st.session_state,),
-        help="Defaults to the first period with visits, from Last hour through All. Calendar periods use Stockholm time; weeks start Monday. Last Week and Last Month are completed periods. You can select any period manually.",
+        help="Automatically selects the earliest reporting window with an Article, Weekly AI or Executive Briefing read, through This year. Portfolio visits do not count. Manual periods, including All, remain available.",
     )
     if str(window) in ("last_hour","today"):
         st.caption("Short windows are useful for monitoring, not for judging hiring or content outcomes.")

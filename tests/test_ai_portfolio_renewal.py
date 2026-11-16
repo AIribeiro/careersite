@@ -223,6 +223,23 @@ class RenewalUIContractTests(unittest.TestCase):
         self.assertNotIn("service_role",source)
         self.assertIn("values ('renewal'",source)
 
+    def test_authenticated_workspace_renders_navigation_and_private_case(self):
+        from streamlit.testing.v1 import AppTest
+        app=AppTest.from_file(str(ROOT/"tests/renewal_workspace_smoke_app.py"),
+                              default_timeout=30).run()
+        self.assertFalse(app.exception,[str(e.message) for e in app.exception])
+        self.assertTrue(any("Start new assessment" in b.label for b in app.button))
+        # Streamlit can rerun a case without a new identity system or redirect.
+        app.session_state["renewal_selected"]="11111111-2222-4333-8444-555555555555"
+        app.session_state["renewal_section"]="recommendation"
+        app.session_state["rn_nav_pills"]="recommendation"
+        app.run()
+        self.assertFalse(app.exception,[str(e.message) for e in app.exception])
+        self.assertTrue(any("Record executive authorization" in b.label
+                            for b in app.button))
+        self.assertTrue(any("Download executive PDF" in b.label
+                            for b in app.button))
+
     def test_export_case_specific_financial_formulas_and_pdf(self):
         from page_advisory_renewal_reports import report_pdf,report_xlsx
         case=make_case()

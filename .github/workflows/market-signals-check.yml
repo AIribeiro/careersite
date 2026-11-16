@@ -8,6 +8,7 @@ on:
       - 'src/page_owner_market_signals.py'
       - 'src/page_owner_advisory_management.py'
       - 'src/page_advisory_market_review.py'
+      - 'src/market_review_premium.py'
       - 'src/advisory_service_visibility.py'
       - 'src/page_advisory_portal.py'
       - 'src/page_advisory_member_experience.py'
@@ -16,6 +17,7 @@ on:
       - 'src/site_reader_navigation.py'
       - 'main.py'
       - 'tests/test_market_signals.py'
+      - 'tests/test_market_review_premium.py'
       - 'tests/test_market_signals_landing.py'
       - 'tests/test_market_chart_labels.py'
       - 'tests/test_market_observatory.py'
@@ -47,6 +49,7 @@ jobs:
             src/page_owner_market_signals.py \
             src/page_owner_advisory_management.py \
             src/page_advisory_market_review.py \
+            src/market_review_premium.py \
             src/advisory_service_visibility.py \
             src/page_advisory_portal.py \
             src/page_advisory_member_experience.py \
@@ -54,12 +57,15 @@ jobs:
             src/page_reader_native.py \
             src/site_reader_navigation.py \
             tests/test_market_signals.py \
+            tests/test_market_review_premium.py \
             tests/test_market_signals_landing.py \
             tests/test_market_chart_labels.py \
             tests/test_market_observatory.py \
             tests/test_market_signals_management.py
       - name: Verify evidence integrity and PDF export
         run: python -m unittest discover -s tests -p 'test_market_signals.py' -v
+      - name: Validate complete executive research PDF, evidence register and layout
+        run: python -m unittest discover -s tests -p 'test_market_review_premium.py' -v
       - name: Verify full-length mobile chart labels and sanitisation
         run: python -m unittest discover -s tests -p 'test_market_chart_labels.py' -v
       - name: Verify premium Market Signals public landing and access links

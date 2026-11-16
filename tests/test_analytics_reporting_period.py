@@ -24,6 +24,25 @@ class ReportingPeriodTests(unittest.TestCase):
             self.assertEqual(state[WINDOW_KEY], expected)
             self.assertEqual([c.args[0] for c in fetch.call_args_list], list(DEFAULT_WINDOWS[:index+1]))
 
+    def test_auto_window_can_stop_at_this_year(self):
+        windows = DEFAULT_WINDOWS[:DEFAULT_WINDOWS.index("this_year") + 1]
+        state = {}
+        fetch = Mock(return_value={"totals": {"recorded_views": 0}})
+        initialize_reporting_period(state, fetch, windows=windows)
+        self.assertEqual(state[WINDOW_KEY], "this_year")
+        self.assertEqual([c.args[0] for c in fetch.call_args_list], list(windows))
+        self.assertNotIn("all", [c.args[0] for c in fetch.call_args_list])
+
+    def test_manual_all_is_still_respected_with_limited_auto_windows(self):
+        state = {WINDOW_KEY: "all"}
+        remember_reporting_period(state)
+        fetch = Mock()
+        initialize_reporting_period(
+            state, fetch, windows=DEFAULT_WINDOWS[:DEFAULT_WINDOWS.index("this_year") + 1],
+        )
+        self.assertEqual(state[WINDOW_KEY], "all")
+        fetch.assert_not_called()
+
     def test_all_empty_stops_at_all(self):
         state = {}
         fetch = Mock(return_value={"totals": {"sessions": 0}})

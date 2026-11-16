@@ -1,0 +1,45 @@
+name: Renewal A4 reader session regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/site_reader_navigation.py'
+      - 'src/briefing_renewal_worksheet.py'
+      - 'src/page_reader_native.py'
+      - 'tests/test_renewal_same_session_route.py'
+      - 'tests/test_renewal_worksheet_reader_access.py'
+      - 'tests/test_briefing_renewal_worksheet.py'
+      - 'tests/reader_navigation_browser_smoke.py'
+      - 'tests/reader_navigation_smoke_app.py'
+      - '.github/workflows/renewal-reader-session.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-verified-reader-download-route:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install application and browser dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install playwright==1.58.0
+          python -m playwright install chromium
+      - name: Verify route permission and fillable document controls
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m compileall -q src/site_reader_navigation.py src/page_reader_native.py src/briefing_renewal_worksheet.py
+          python -m unittest -v tests.test_renewal_same_session_route tests.test_briefing_renewal_worksheet tests.test_renewal_worksheet_reader_access
+      - name: Verify same signed-in browser session follows worksheet link
+        run: |
+          streamlit run tests/reader_navigation_smoke_app.py --server.headless=true --server.port=8515 --server.address=127.0.0.1 > /tmp/renewal-reader-smoke.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl --silent --fail http://127.0.0.1:8515/_stcore/health > /dev/null; then break; fi
+            sleep 1
+          done
+          python tests/reader_navigation_browser_smoke.py || (cat /tmp/renewal-reader-smoke.log && exit 1)

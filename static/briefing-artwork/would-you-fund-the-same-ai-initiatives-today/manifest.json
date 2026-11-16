@@ -1,27 +1,27 @@
 {
   "schema_version": 1,
   "slug": "would-you-fund-the-same-ai-initiatives-today",
-  "revision": "v2-humanized-20261116-release",
+  "revision": "v3-premium-editorial-20261116",
   "article_fingerprint": "b9e255ca0e7ac9fdf7504e98fe07dd9e8f642c96c4e492d6aac4adf511c27bd5",
-  "heading": "Would you fund it again?",
-  "deck": "Existing AI initiatives must compete for the next commitment.",
+  "heading": "Would you fund the same AI initiatives today?",
+  "deck": "Existing commitments must compete for the next investment.",
   "desktop": {
     "file": "desktop.webp",
-    "sha256": "a38d638b1654f88de6a292874dbe42d05900735228e2268fdb3d3c7019a00da4",
+    "sha256": "ba67714e67f7ff38cb7294e4d07be45f62a4a1bca50ebcb24d81a2238189edb2",
     "width": 1800,
-    "height": 1370
+    "height": 2550
   },
   "mobile": {
     "file": "mobile.webp",
-    "sha256": "0807ec5a5a599ac344407ddf374ca5efee60c6ae04e7453d15f943764cd9760d",
+    "sha256": "24ed1f388e3179dcc3c6620fb4f660709f787141d431c9100aba7a66fe3daaa8",
     "width": 900,
-    "height": 2470
+    "height": 3560
   },
   "pdf": {
     "file": "infographic.pdf",
-    "sha256": "8605770f7086cc52d5df8adf67ad298395de577469ef2097a39a456c40125abd",
+    "sha256": "451f9c7ee7750c8d0eb44e0d75a1bb29d5d3f3675a76acb9d4f4317547b487b9",
     "pages": 1
   },
-  "alt_text": "Original AI Portfolio Renewal Challenge map. Compare Renew, Replace and Test against future business value and evidence in a clean-sheet pass, then restore switching costs, continuity, mandatory safeguards and ownership before the executive decision.",
-  "caption": "The AI Portfolio Renewal Challenge: review incumbent and alternative investments in two passes before renewing, replacing, testing or ending discretionary expenditure. Original decision illustration by Jair Ribeiro."
+  "alt_text": "The AI Portfolio Renewal Challenge. Compare the existing AI initiative with the best credible alternative for the same business result. Pass one removes prior-approval bias and compares future value, observed evidence, and shared capacity; pass two restores switching costs, continuity, and decision rights. Leaders then renew, replace, test, or stop.",
+  "caption": "AI Portfolio Renewal Challenge: make the incumbent compete, evaluate in two passes, then record an accountable next commitment. Original framework and infographic by Jair Ribeiro."
 }

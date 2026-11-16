@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/build_renewal_artwork.py'
+      - 'tests/test_briefing_renewal_worksheet.py'
       - '.github/workflows/ai-portfolio-renewal-artwork.yml'
   workflow_dispatch:
 permissions:

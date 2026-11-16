@@ -157,7 +157,8 @@ class MarketManagementTests(unittest.TestCase):
         self.assertIn("market-editorial-status",code)
         self.assertIn("Market Intelligence · ",code)
         self.assertIn("Evidence-linked indicators with transparent reporting periods",code)
-        self.assertIn("The inaugural executive market review has been formally released",code)
+        self.assertIn("Edition 01 published ",code)
+        self.assertIn("Market Intelligence · November 2026",code)
         self.assertNotIn("Initial editorial edition is still under source-by-source review.",code)
         self.assertNotIn("must not be represented as a formally released market report.",code)
 

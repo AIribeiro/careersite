@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'src/page_advisory_market_signals.py'
+      - 'src/page_owner_market_signals.py'
+      - 'src/page_owner_advisory_management.py'
       - 'src/page_advisory_market_review.py'
       - 'src/advisory_service_visibility.py'
       - 'src/page_advisory_portal.py'
@@ -12,6 +14,7 @@ on:
       - 'src/site_reader_navigation.py'
       - 'main.py'
       - 'tests/test_market_signals.py'
+      - 'tests/test_market_signals_management.py'
       - '.github/workflows/market-signals-check.yml'
   workflow_dispatch:
 
@@ -34,6 +37,8 @@ jobs:
         run: |
           python -m py_compile main.py \
             src/page_advisory_market_signals.py \
+            src/page_owner_market_signals.py \
+            src/page_owner_advisory_management.py \
             src/page_advisory_market_review.py \
             src/advisory_service_visibility.py \
             src/page_advisory_portal.py \
@@ -41,6 +46,9 @@ jobs:
             src/page_public_services.py \
             src/page_reader_native.py \
             src/site_reader_navigation.py \
-            tests/test_market_signals.py
+            tests/test_market_signals.py \
+            tests/test_market_signals_management.py
       - name: Verify evidence integrity and PDF export
         run: python -m unittest discover -s tests -p 'test_market_signals.py' -v
+      - name: Verify owner operations and publication-control boundaries
+        run: python -m unittest discover -s tests -p 'test_market_signals_management.py' -v

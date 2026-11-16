@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "slug": "would-you-fund-the-same-ai-initiatives-today",
-  "revision": "v3-premium-editorial-20261116",
+  "revision": "v4-vector-print-20261116",
   "article_fingerprint": "b9e255ca0e7ac9fdf7504e98fe07dd9e8f642c96c4e492d6aac4adf511c27bd5",
   "heading": "Would you fund the same AI initiatives today?",
   "deck": "Existing commitments must compete for the next investment.",
@@ -18,9 +18,11 @@
     "height": 3560
   },
   "pdf": {
-    "file": "infographic.pdf",
-    "sha256": "5320761c41b80e9e42e584dc769b13b6c8624950c4fffb1697d554119cd85236",
-    "pages": 1
+    "file": "infographic-a4-vector-v4.pdf",
+    "sha256": "ce01184bca20fb222b9e7f181a1853371bfff46ba171b6607680050e22af1934",
+    "pages": 1,
+    "format": "vector",
+    "bytes": 79006
   },
   "alt_text": "The AI Portfolio Renewal Challenge. Compare the existing AI initiative with the best credible alternative for the same business result. Pass one removes prior-approval bias and compares future value, observed evidence, and shared capacity; pass two restores switching costs, continuity, and decision rights. Leaders then renew, replace, test, or stop.",
   "caption": "AI Portfolio Renewal Challenge: make the incumbent compete, evaluate in two passes, then record an accountable next commitment. Original framework and infographic by Jair Ribeiro."

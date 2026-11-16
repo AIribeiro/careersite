@@ -156,6 +156,27 @@ def _date(value: object, fallback: date | None = None) -> date:
         return fallback or date.today()
 
 
+def _review_pdf_compatible(evidence_codes: list[str]) -> bool:
+    """Mirror the database full-PDF template guard for immediate owner feedback.
+
+    The trigger in Supabase is authoritative if templates or releases differ.
+    """
+    selected=set(evidence_codes)
+    required={
+        "scb_2026_ai_10plus","scb_2026_ai_250plus",
+        "scb_2026_analytics_internal","scb_2026_ai_expertise_barrier",
+        "jobtech_v1_sep_se","jobtech_v1_oct_se",
+        "jobtech_v1_sep_vgr","jobtech_v1_oct_vgr",
+        "brainville_202610_assignments_yoy",
+        "brainville_202610_consultants_yoy",
+    }
+    complete={
+        "jobtech_v1_jun_se","jobtech_v1_jul_se","jobtech_v1_aug_se",
+        "jobtech_v1_sep_se","jobtech_v1_oct_se",
+    }
+    return required.issubset(selected) and len(complete.intersection(selected))>=3
+
+
 def _status(day: object, cadence: int) -> str:
     if not day:
         return "Unverified"
@@ -605,6 +626,15 @@ def _editions(token: str,data: dict) -> None:
             else:
                 st.warning("Edition is not ready for publication.")
             st.json(gate,expanded=False)
+        pdf_compatible=_review_pdf_compatible(e.get("evidence_codes") or [])
+        if not pdf_compatible:
+            st.error(
+                "The full market-review PDF cannot be generated from this edition's selected "
+                "evidence. Keep the original 2026 source metrics and at least three complete "
+                "JobTech months, or update the PDF template before release."
+            )
+        else:
+            st.caption("Current full-review PDF template: required source metrics and chart periods present.")
         st.write("**Editorial note:**",e.get("editorial_note") or "—")
         with st.form("market_edition_publication"):
             note=st.text_area("Publication decision / withdrawal rationale",
@@ -614,7 +644,7 @@ def _editions(token: str,data: dict) -> None:
             a,b=st.columns(2)
             with a:
                 publish=st.form_submit_button("Publish edition",type="primary",
-                    disabled=e["status"]!="draft" or not reviewed or not bool(gate and gate["ready"]))
+                    disabled=e["status"]!="draft" or not reviewed or not pdf_compatible or not bool(gate and gate["ready"]))
             with b:
                 withdraw=st.form_submit_button("Withdraw edition",
                     disabled=e["status"]!="published" or not reviewed)

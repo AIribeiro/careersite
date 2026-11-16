@@ -31,6 +31,9 @@ jobs:
           assert manifest.status_code==200, 'Published manifest not available: '+str(manifest.status_code)
           b=manifest.json()
           assert b['article_fingerprint']=='b9e255ca0e7ac9fdf7504e98fe07dd9e8f642c96c4e492d6aac4adf511c27bd5'
+          assert b['revision']=='v3-premium-editorial-20261116','The live repository is still serving the old infographic revision'
+          assert b['desktop']['width']==1800 and b['desktop']['height']==2550
+          assert b['mobile']['width']==900 and b['mobile']['height']==3560
           for name in ('desktop','mobile','pdf'):
               spec=b[name]
               res=requests.get(raw+spec['file'],timeout=30)

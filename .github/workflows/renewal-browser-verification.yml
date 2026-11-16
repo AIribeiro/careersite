@@ -45,7 +45,7 @@ jobs:
                           # The branded root can use a cross-origin forwarding frame.
                           # Inspect each rendered frame rather than just its shell.
                           rendered=None
-                          for attempt in range(30):
+                          for attempt in range(15):
                               for frame in page.frames:
                                   if frame.locator('main.renewal-public h1').count():
                                       rendered=frame
@@ -53,6 +53,14 @@ jobs:
                               if rendered:break
                               page.wait_for_timeout(1000)
                           if not rendered:
+                              print('DIAGNOSTIC HTTP',response.status if response else None,
+                                    'URL',page.url,'TITLE',page.title(),flush=True)
+                              for frame in page.frames:
+                                  print('FRAME URL',frame.url[:350],flush=True)
+                                  try:print('FRAME BODY',repr(frame.locator('body').inner_text(timeout=5000)[:1400]),flush=True)
+                                  except Exception as d:print('FRAME ERR',str(d)[:300],flush=True)
+                              page.screenshot(path=f"renewal-{('brand' if 'jairribeiro.com' in base else 'streamlit')}-{label}.png",
+                                              full_page=True,timeout=12000)
                               raise RuntimeError('Renewal public route did not render in any frame')
                           title=rendered.locator('main.renewal-public h1').first.inner_text()
                           body=rendered.locator('main.renewal-public').first.inner_text()

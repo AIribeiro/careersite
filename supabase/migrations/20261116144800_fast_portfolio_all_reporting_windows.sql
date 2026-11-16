@@ -15,7 +15,7 @@ BEGIN
   IF p_token IS DISTINCT FROM 'public-readonly-v1' THEN
     RAISE EXCEPTION 'invalid analytics access code' USING ERRCODE='28000';
   END IF;
-  IF p_window NOT IN ('last_hour','today','yesterday','this_week','last_week','this_month','last_month','this_year','all','7d') THEN
+  IF p_window NOT IN ('last_hour','today','yesterday','this_week','last_week','this_month','last_month','this_year','all','7d','previous_7d') THEN
     RAISE EXCEPTION 'unsupported overview reporting window' USING ERRCODE='22023';
   END IF;
   SELECT c.reset_at INTO v_reset
@@ -23,6 +23,9 @@ BEGIN
   CASE p_window
     WHEN '7d' THEN
       v_since := now() - interval '7 days';
+    WHEN 'previous_7d' THEN
+      v_until := now() - interval '7 days';
+      v_since := now() - interval '14 days';
     WHEN 'last_hour' THEN
       v_since := now() - interval '1 hour';
     WHEN 'today' THEN
@@ -93,6 +96,7 @@ BEGIN
     'period_until',v_until,
     'period_label',CASE p_window
       WHEN '7d' THEN 'Last 7 days'
+      WHEN 'previous_7d' THEN 'Previous 7 days'
       WHEN 'last_hour' THEN 'Last hour'
       WHEN 'today' THEN 'Today'
       WHEN 'yesterday' THEN 'Yesterday'

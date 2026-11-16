@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "page:advisory-market-signals",
+      "type": "New page",
+      "title": "Advisory Market Signals",
+      "description": "Discover the newly published portfolio page.",
+      "date": "2026-11-16T20:55:19+01:00",
+      "href": "?page=advisory-market-signals",
+      "cta": "Explore the page"
+    },
+    {
       "key": "page:advisory-renewal",
       "type": "New page",
       "title": "Advisory Renewal",

@@ -22,6 +22,7 @@ def run():
                 ("smoke-briefing-a", "briefing"),
                 ("smoke-catalog", "briefings"),
                 ("smoke-briefing-b", "briefing"),
+                ("smoke-renewal-record", "briefing"),
                 ("smoke-library", "readers"),
                 ("smoke-advisory-account", "advisory-access"),
                 ("smoke-branded-advisory", "advisory-access"),
@@ -32,6 +33,8 @@ def run():
                 expect(page.get_by_text("READER PAGE: " + route)).to_be_visible(
                     timeout=20000
                 )
+                if target_id == "smoke-renewal-record":
+                    expect(page.get_by_text("WORKSHEET ROUTE: 1")).to_be_visible()
                 now = page.get_by_text(re.compile(r"MEMBER SESSION: [0-9a-f-]{36}"))
                 expect(now).to_have_text("MEMBER SESSION: " + identity)
                 print(target_id, route, "session retained")

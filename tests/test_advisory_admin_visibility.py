@@ -66,7 +66,7 @@ class AdvisoryAdminVisibilityTests(unittest.TestCase):
 
     def test_admin_still_gets_all_cards_and_clickable_ctas(self):
         from page_public_services import advisory
-        visibility = {k: False for k in ("requests", "decision", "rollout", "scorecard", "workshop")}
+        visibility = {k: False for k in ("requests", "decision", "rollout", "scorecard", "workshop", "renewal")}
         with (
             patch("page_public_services.viewer_is_admin", return_value=True),
             patch("advisory_service_visibility.service_visibility", return_value=visibility),
@@ -77,9 +77,10 @@ class AdvisoryAdminVisibilityTests(unittest.TestCase):
             'href="?page=advisory-rollout"',
             'href="?page=advisory-scorecard"',
             'href="?page=advisory-leadership"',
+            'href="?page=advisory-renewal"',
         ):
             self.assertIn(target, html)
-        self.assertIn("04 / Available now", html)
+        self.assertIn("05 / Available now", html)
 
     def test_verified_admin_rpc_and_owner_controlled_role_writer(self):
         role_source = (ROOT / "src/advisory_service_visibility.py").read_text(encoding="utf-8")

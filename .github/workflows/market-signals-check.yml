@@ -7,6 +7,7 @@ on:
       - 'src/page_advisory_portal.py'
       - 'src/page_advisory_member_experience.py'
       - 'src/page_public_services.py'
+      - 'src/page_reader_native.py'
       - 'main.py'
       - 'tests/test_market_signals.py'
       - '.github/workflows/market-signals-check.yml'
@@ -23,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: pip
       - name: Install exact portfolio dependencies
         run: python -m pip install -r requirements.txt
@@ -35,6 +36,7 @@ jobs:
             src/page_advisory_portal.py \
             src/page_advisory_member_experience.py \
             src/page_public_services.py \
+            src/page_reader_native.py \
             tests/test_market_signals.py
       - name: Verify evidence integrity and PDF export
         run: python -m unittest discover -s tests -p 'test_market_signals.py' -v

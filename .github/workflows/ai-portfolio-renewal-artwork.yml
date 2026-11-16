@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - name: Validate source-locked premium renderer
+      # Re-run validation after the reviewed generator reached main.\n      - name: Validate source-locked premium renderer
         run: |
           python - <<'PY'
           from pathlib import Path

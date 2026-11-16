@@ -7,19 +7,19 @@
   "deck": "Existing commitments must compete for the next investment.",
   "desktop": {
     "file": "desktop.webp",
-    "sha256": "ba67714e67f7ff38cb7294e4d07be45f62a4a1bca50ebcb24d81a2238189edb2",
+    "sha256": "d10803692f9483bc187261dc17f56384fee8abc5d12084ff1dfdc75ecbde1088",
     "width": 1800,
     "height": 2550
   },
   "mobile": {
     "file": "mobile.webp",
-    "sha256": "24ed1f388e3179dcc3c6620fb4f660709f787141d431c9100aba7a66fe3daaa8",
+    "sha256": "97371ae6d1864d90b653d334d79b86be3af60cfaaa714718fa9db9eb58f94d89",
     "width": 900,
     "height": 3560
   },
   "pdf": {
     "file": "infographic.pdf",
-    "sha256": "451f9c7ee7750c8d0eb44e0d75a1bb29d5d3f3675a76acb9d4f4317547b487b9",
+    "sha256": "5320761c41b80e9e42e584dc769b13b6c8624950c4fffb1697d554119cd85236",
     "pages": 1
   },
   "alt_text": "The AI Portfolio Renewal Challenge. Compare the existing AI initiative with the best credible alternative for the same business result. Pass one removes prior-approval bias and compares future value, observed evidence, and shared capacity; pass two restores switching costs, continuity, and decision rights. Leaders then renew, replace, test, or stop.",

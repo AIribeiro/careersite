@@ -473,7 +473,9 @@ def _analysis_ui(token: str,uid: str,case: dict) -> None:
                       "changes":change,"inputs":scenario_inputs,"analysis":what_if,
                       "base_revision":case["revision"],"model_version":MODEL_VERSION,
                       "synthetic":case["synthetic"]})
-            except (RuntimeError,ValueError,TimeoutError) as e:st.error("Scenario could not be saved: "+str(e))
+            except (RuntimeError,ValueError,TimeoutError) as e:
+                _event(token,uid,str(case["id"]),"error",case["synthetic"])
+                st.error("Scenario could not be saved: "+str(e))
             else:_event(token,uid,str(case["id"]),"scenario_saved",case["synthetic"]);st.rerun()
     if scenarios:
         with st.expander(f"Saved scenario history ({len(scenarios)})"):
@@ -543,6 +545,7 @@ def _recommendation_ui(token: str,uid: str,case: dict) -> None:
                     _api("PATCH","portfolio_advisory_renewal_assessments?id=eq."+quote(case["id"],safe=""),token,
                          {"status":"decision_recorded","next_review":str(review)})
                 except (RuntimeError,ValueError,TimeoutError) as e:
+                    _event(token,uid,str(case["id"]),"error",case["synthetic"])
                     st.error("Decision persistence could not be confirmed: "+str(e))
                 else:
                     _event(token,uid,str(case["id"]),"decision_recorded",case["synthetic"])
@@ -554,6 +557,7 @@ def _recommendation_ui(token: str,uid: str,case: dict) -> None:
             pdf=report_pdf(_inputs(case),result,current,synthetic=case["synthetic"],created=case["created_at"])
             excel=report_xlsx(_inputs(case),result,current,synthetic=case["synthetic"])
         except (ValueError,RuntimeError,UnicodeError) as e:
+            _event(token,uid,str(case["id"]),"error",bool(case.get("synthetic",False)))
             st.error("Report generation failed: "+str(e))
             return
         a,b=st.columns(2)
@@ -592,6 +596,7 @@ def render_private_renewal(session: dict,user: dict) -> None:
         st.session_state["renewal_section"]=section
         try:records=_cases(token,uid)
         except (RuntimeError,ValueError,TimeoutError,OSError):
+            _event(token,uid,None,"error",False)
             st.error("Your private assessments cannot be loaded. No assumptions were changed.");return
         selected_id=st.session_state.get("renewal_selected") or ""
         cases={str(row["id"]):row for row in records}

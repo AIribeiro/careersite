@@ -1,4 +1,4 @@
-"""Regression coverage for authenticated Renewal Challenge resources."""
+"""Regression coverage for authenticated Renewal Excel Decision Advisor."""
 from __future__ import annotations
 
 import sys
@@ -6,12 +6,14 @@ from pathlib import Path
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
+from zipfile import ZipFile
+from io import BytesIO
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 
 class RenewalReaderAccessTests(unittest.TestCase):
-    def test_full_reader_shows_worksheet_before_artwork(self):
+    def test_full_reader_shows_excel_cta_before_artwork(self):
         import page_executive_briefings as briefing
         article = SimpleNamespace(
             slug="would-you-fund-the-same-ai-initiatives-today",
@@ -29,40 +31,41 @@ class RenewalReaderAccessTests(unittest.TestCase):
             )
         self.assertEqual(html.count('data-analytics-section="briefing-decision-record"'), 1)
         self.assertLess(
-            html.index("Download fillable A4 Executive Decision Record"),
+            html.index("Download Excel Decision Advisor (.xlsx)"),
             html.index('<figure id="artwork">'),
         )
         self.assertIn("worksheet=1", html)
+        self.assertNotIn("fillable A4 record",html)
 
-    def test_member_library_download_exposes_actual_pdf_with_verified_session(self):
+    def test_member_library_exposes_xlsx_only_with_verified_session(self):
         import page_reader_native as reader
-        from pypdf import PdfReader
-        from io import BytesIO
-
-        session = {"access_token": "unit-test-token"}
-        user = {"id": "test-verified-reader"}
-        with patch.object(reader, "_session", return_value=(session, user)), \
-             patch.object(reader.st, "download_button") as download:
-            reader._renewal_worksheet_download(session, user, key="regression")
+        from briefing_renewal_excel import FILE_NAME,MIME
+        session={"access_token":"unit-test-token"}
+        user={"id":"test-verified-reader"}
+        with patch.object(reader, "_session", return_value=(session,user)), \
+             patch.object(reader.st,"download_button") as download:
+            reader._renewal_worksheet_download(session,user,key="regression")
         download.assert_called_once()
-        kwargs = download.call_args.kwargs
-        self.assertEqual(kwargs["mime"], "application/pdf")
-        self.assertEqual(kwargs["file_name"], "AI_Portfolio_Renewal_Executive_Decision_Record.pdf")
-        self.assertTrue(kwargs["data"].startswith(b"%PDF-"))
-        self.assertEqual(len(PdfReader(BytesIO(kwargs["data"])).get_fields()), 8)
-        self.assertEqual(kwargs["on_click"], reader._record_worksheet_download)
+        params=download.call_args.kwargs
+        self.assertEqual(params["mime"],MIME)
+        self.assertEqual(params["file_name"],FILE_NAME)
+        self.assertTrue(params["data"].startswith(b"PK"))
+        with ZipFile(BytesIO(params["data"])) as archive:
+            self.assertIn("xl/workbook.xml",archive.namelist())
+            self.assertIn("xl/worksheets/sheet3.xml",archive.namelist())
+        self.assertEqual(params["on_click"],reader._record_worksheet_download)
 
-    def test_anonymous_member_download_cannot_expose_bytes(self):
+    def test_anonymous_user_gets_no_workbook_bytes(self):
         import page_reader_native as reader
-        with patch.object(reader, "_session", return_value=(None, None)), \
-             patch.object(reader.st, "download_button") as download, \
-             patch.object(reader.st, "info") as info:
+        with patch.object(reader,"_session",return_value=(None,None)), \
+             patch.object(reader.st,"download_button") as download, \
+             patch.object(reader.st,"info") as info:
             reader._renewal_worksheet_download(
-                {"access_token": "stale"}, {"id": "guest"}, key="anonymous"
+                {"access_token":"stale"},{"id":"guest"},key="anonymous"
             )
         download.assert_not_called()
         info.assert_called_once()
 
 
-if __name__ == "__main__":
+if __name__=="__main__":
     unittest.main()

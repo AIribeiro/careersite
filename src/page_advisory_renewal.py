@@ -312,8 +312,9 @@ def _stage_ui(case: dict,token: str,uid: str) -> None:
                 d["authority"]=st.text_input("Funding decision authority",value=d["authority"])
                 d["next_commitment"]=_num("Next commitment requested (total, shared currency)",d["next_commitment"],prefix+"_next")
                 d["opportunity_cost_day"]=_num("Opportunity cost per specialist day",d["opportunity_cost_day"],prefix+"_day",help="Use a supported forgone alternative value or document why zero is appropriate.")
-            d["materiality"]=st.slider("Material financial advantage required",min_value=0.01,max_value=0.50,value=float(d["materiality"]),step=0.01,format="%.0f%%",
+            materiality_pct=st.slider("Material financial advantage required (%)",min_value=1,max_value=50,value=int(round(float(d["materiality"])*100)),step=1,
                                       help="Default 10%; management judgment, not a statistically validated threshold.")
+            d["materiality"]=materiality_pct/100
             d["mandatory_obligation"]=_yes("Mandatory legal, contractual or service-continuity duty?",d["mandatory_obligation"],prefix+"_mandatory")
             d["material_nonfinancial"]=_yes("Material nonfinancial benefit or avoided risk?",d["material_nonfinancial"],prefix+"_nonfinance")
             if d["material_nonfinancial"]:
@@ -345,7 +346,13 @@ def _stage_ui(case: dict,token: str,uid: str) -> None:
             d["controls"]=_selector("Risk and control status",CONTROLS,d["controls"],key=prefix+"_controls")
             d["operating_owner"]=_yes("Is ongoing operating ownership confirmed?",d["operating_owner"],prefix+"_owner")
             d["mandatory_meets"]=_yes("Would this option satisfy mandatory duties?",d["mandatory_meets"],prefix+"_meets")
-            st.caption("Capture observations and assumptions separately in the case description or your executive record. Unsupported benefits do not become facts by entering numbers.")
+            d["benefit_basis"]=st.text_area("Benefit basis and measurement period",value=str(d.get("benefit_basis","")),height=72,
+                                           help="What is measured, estimated or assumed? State the source and time window.")
+            d["cost_basis"]=st.text_area("Future cost basis and exclusions",value=str(d.get("cost_basis","")),height=72,
+                                        help="Include only the remaining horizon; avoid double-counting specialist capacity already in costs.")
+            d["evidence_note"]=st.text_area("Observed evidence, dependencies and data limits",value=str(d.get("evidence_note","")),height=72)
+            d["reusable_assets"]=st.text_input("Useful existing assets or migration impacts",value=str(d.get("reusable_assets","")))
+            st.caption("Observations are not automatically treated as proven outcomes; missing financial evidence can change the executive judgment.")
         a,b=st.columns(2)
         save=a.form_submit_button("Save draft",use_container_width=True)
         advance=b.form_submit_button("Save & continue",type="primary",use_container_width=True)
@@ -396,8 +403,9 @@ def _analysis_ui(token: str,uid: str,case: dict) -> None:
     st.markdown("#### Challenge the assumptions")
     st.caption("Change a defensible assumption. The comparison updates immediately; saving creates a separate scenario, not a rewrite of the base case.")
     scenario_type=st.selectbox("Stress test",("Alternative benefit downside","Incumbent meets its target",
-          "Replacement transition shock","Higher specialist opportunity cost",
-          "Alternative evidence matures","Mandatory duty blocks replacement"),key="rn_scenario_type")
+          "Replacement delayed by months","Replacement transition shock","Capacity cannot be released",
+          "Higher specialist opportunity cost","Alternative evidence matures",
+          "Mandatory duty blocks replacement"),key="rn_scenario_type")
     change={}
     if scenario_type=="Alternative benefit downside":
         pct=st.slider("Alternative benefit reduction",0,60,20,5,key="rn_down")
@@ -405,9 +413,16 @@ def _analysis_ui(token: str,uid: str,case: dict) -> None:
     elif scenario_type=="Incumbent meets its target":
         pct=st.slider("Incumbent benefit increase",0,100,25,5,key="rn_up")
         change={"incumbent.benefit":round(float(data["incumbent"]["benefit"])*(1+pct/100),2)}
+    elif scenario_type=="Replacement delayed by months":
+        months=st.slider("Additional months before benefits materialize",0,int(c["horizon_months"]),min(6,int(c["horizon_months"])),1,key="rn_delay")
+        st.caption("Assumption: benefits accrue uniformly over the shared horizon; only the alternative's future benefit is reduced. Costs are held constant.")
+        change={"alternative.benefit":round(float(data["alternative"]["benefit"])*max(0,int(c["horizon_months"])-months)/int(c["horizon_months"]),2)}
     elif scenario_type=="Replacement transition shock":
         pct=st.slider("Alternative transition cost increase",0,200,50,10,key="rn_switch")
         change={"alternative.transition_cost":round(float(data["alternative"]["transition_cost"])*(1+pct/100),2)}
+    elif scenario_type=="Capacity cannot be released":
+        st.caption("Conservative comparison: assume the alternative cannot release incumbent specialist capacity. The alternative bears at least the incumbent's specialist days.")
+        change={"alternative.specialist_days":max(float(data["alternative"]["specialist_days"]),float(data["incumbent"]["specialist_days"]))}
     elif scenario_type=="Higher specialist opportunity cost":
         pct=st.slider("Scarce specialist day cost increase",0,200,50,10,key="rn_day")
         change={"context.opportunity_cost_day":round(float(c["opportunity_cost_day"])*(1+pct/100),2)}

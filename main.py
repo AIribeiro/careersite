@@ -85,7 +85,7 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-decision", "advisory-leadership", "advisory-renewal", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
+PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-decision", "advisory-leadership", "advisory-renewal", "advisory-market-signals", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -136,6 +136,7 @@ TITLES = {
     "advisory-decision": "AI Investment Decision Advisor | Jair Ribeiro",
     "advisory-leadership": "Executive AI Leadership Workshop | Jair Ribeiro",
     "advisory-renewal": "AI Portfolio Renewal Advisor | Jair Ribeiro",
+    "advisory-market-signals": "AI & Data Market Signals | Jair Ribeiro",
     "privacy": "Privacy & Data | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
     "analytics": "Portfolio & Career Intelligence | Jair Ribeiro",
@@ -313,6 +314,9 @@ else:
     elif PAGE == "advisory-renewal":
         from page_advisory_renewal import advisory_renewal
         render_page = advisory_renewal
+    elif PAGE == "advisory-market-signals":
+        from page_advisory_market_signals import advisory_market_signals
+        render_page = advisory_market_signals
     elif PAGE == "privacy":
         from page_public_services import privacy
         render_page = privacy
@@ -326,13 +330,13 @@ else:
     # Separate Python build, footer selection and Streamlit HTML emission.
     # This helps distinguish cold imports from content or DOM work in Cloud logs.
     build_started = perf_counter()
-    if PAGE in {"advisory-decision", "advisory-rollout", "advisory-scorecard", "advisory-leadership", "advisory-renewal"}:
+    if PAGE in {"advisory-decision", "advisory-rollout", "advisory-scorecard", "advisory-leadership", "advisory-renewal", "advisory-market-signals"}:
         import advisory_service_visibility as advisory_visibility
 
         # Streamlit Cloud can keep the former service catalogue in sys.modules
         # when main.py reruns after a release. Reload the catalogue once if the
         # newly registered page has not yet appeared in that running process.
-        if PAGE == "advisory-renewal" and advisory_visibility.PAGE_SERVICES.get(PAGE) != "renewal":
+        if PAGE in {"advisory-renewal", "advisory-market-signals"} and advisory_visibility.PAGE_SERVICES.get(PAGE) != ({"advisory-renewal":"renewal","advisory-market-signals":"market-signals"}[PAGE]):
             import importlib
             advisory_visibility = importlib.reload(advisory_visibility)
 

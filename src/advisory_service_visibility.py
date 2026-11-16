@@ -18,6 +18,7 @@ SERVICE_LABELS = {
     "scorecard": "AI Portfolio Prioritization Scorecard",
     "workshop": "Executive AI Leadership Workshop",
     "renewal": "AI Portfolio Renewal Advisor",
+    "market-signals": "AI & Data Market Signals",
 }
 PAGE_SERVICES = {
     "advisory-decision": "decision",
@@ -25,6 +26,7 @@ PAGE_SERVICES = {
     "advisory-scorecard": "scorecard",
     "advisory-leadership": "workshop",
     "advisory-renewal": "renewal",
+    "advisory-market-signals": "market-signals",
 }
 
 

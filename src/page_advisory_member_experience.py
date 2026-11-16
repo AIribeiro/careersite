@@ -20,7 +20,7 @@ from advisory_service_visibility import service_enabled
 MEMBER_EXPERIENCE_VERSION = "rollout_consistent_overview_20261115"
 
 VIEWS = (
-    "overview", "requests", "messages", "scorecard", "rollout", "decision", "renewal", "workshop", "account",
+    "overview", "requests", "messages", "scorecard", "rollout", "decision", "renewal", "workshop", "market-signals", "account",
 )
 VIEW_LABELS = {
     "overview": "Overview",
@@ -31,6 +31,7 @@ VIEW_LABELS = {
     "decision": "Investment Advisor",
     "workshop": "Leadership Workshop",
     "renewal": "Renewal Advisor",
+    "market-signals": "Market Signals",
     "account": "Account",
 }
 MEMBER_CSS = """
@@ -92,7 +93,7 @@ def member_navigation(*, admin: bool = False) -> str:
     """A single-row, touch-scrollable menu; URL preserves the active section."""
     requested = str(st.query_params.get("view") or "overview").lower()
     displayed = tuple(v for v in VIEWS if v not in
-                      ("requests", "scorecard", "rollout", "decision", "workshop", "renewal")
+                      ("requests", "scorecard", "rollout", "decision", "workshop", "renewal", "market-signals")
                       or service_enabled(v, admin=admin))
     if requested not in displayed:
         requested = "overview"
@@ -589,6 +590,19 @@ def render_overview(session: dict, user: dict, profile: dict, *, admin: bool = F
             if st.button("Open Leadership Workshop", key="overview_leadership_workshop", disabled=not service_enabled("workshop", admin=admin),
                          use_container_width=True):
                 navigate("workshop")
+
+    if service_enabled("market-signals", admin=admin):
+        with st.container(border=True, key="overview_card_market_signals"):
+            _overview_service_copy(
+                "06", "Market intelligence", "AI & Data Market Signals",
+                "Explore verified AI adoption, Data capabilities, AI leadership demand "
+                "and market conditions, then challenge assumptions before acting.",
+                "Interactive dashboard, traced evidence and downloadable executive PDF",
+                "Free self-service for verified Advisory members",
+            )
+            if st.button("Open AI & Data Market Signals", key="overview_market_signals",
+                         use_container_width=True):
+                navigate("market-signals")
 
     st.html(
         '<div class="rl-workspace advisory-overview"><div class="membership-note">'

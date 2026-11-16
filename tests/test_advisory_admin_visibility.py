@@ -78,9 +78,10 @@ class AdvisoryAdminVisibilityTests(unittest.TestCase):
             'href="?page=advisory-scorecard"',
             'href="?page=advisory-leadership"',
             'href="?page=advisory-renewal"',
+            'href="?page=advisory-market-signals"',
         ):
             self.assertIn(target, html)
-        self.assertIn("05 / Available now", html)
+        self.assertIn("06 / Available now", html)
 
     def test_verified_admin_rpc_and_owner_controlled_role_writer(self):
         role_source = (ROOT / "src/advisory_service_visibility.py").read_text(encoding="utf-8")

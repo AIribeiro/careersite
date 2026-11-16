@@ -1387,27 +1387,6 @@ def _briefing_access_dialog(slug: str, title: str, purpose: str) -> None:
             st.info("The PDF could not be prepared; the full edition remains available.")
     else:
         st.caption("An A4 infographic PDF is not available for this edition.")
-    # This separate, fillable worksheet is a member-only tool, not the
-    # printable infographic. Keep the actual download within the verified
-    # session dialog so readers can find it directly beside the infographic.
-    if slug == "would-you-fund-the-same-ai-initiatives-today":
-        from briefing_renewal_worksheet import build_decision_record_pdf
-        st.markdown("#### Executive Decision Record")
-        st.caption("Fillable A4 worksheet · eight editable fields · included with free reader access")
-        try:
-            st.download_button(
-                "Download fillable A4 Executive Decision Record",
-                data=build_decision_record_pdf(),
-                file_name="AI_Portfolio_Renewal_Executive_Decision_Record.pdf",
-                mime="application/pdf",
-                type="primary",
-                key="reader_dialog_renewal_record_download",
-                on_click=_record_download,
-                args=(session["access_token"], str(user["id"]), slug),
-                width="stretch",
-            )
-        except (RuntimeError, ValueError, OSError):
-            st.error("The fillable decision record could not be prepared.")
     st.caption("Signed in as " + str(user.get("email") or ""))
     if st.button("Continue reading the complete briefing", key="reader_dialog_close"):
         _dismiss_briefing_dialog()

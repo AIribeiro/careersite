@@ -119,6 +119,22 @@ class ObservatoryTests(unittest.TestCase):
         self.assertEqual(_freshness(p,date(2026,12,4)),"Overdue for recheck")
         self.assertEqual(_freshness(p,date(2026,11,10)),"Future verification — investigate")
 
+    def test_market_review_pdf_supplement_is_derived_only_from_released_context(self):
+        from page_advisory_market_review import _additional_market_lenses,_styles
+        from reportlab.platypus import Paragraph,PageBreak
+        optional=point("market_context_20261116_03",41,series="employment_outlook_q4_it_tech",
+            unit="percentage points",family="manpower_employment_outlook")
+        optional.update({
+            "metric_label":"IT & Tech net hiring intentions · Q4 2026",
+            "period_label":"Q4 2026","population_note":"Manpower employer survey"
+        })
+        flowables=_additional_market_lenses([optional],_styles())
+        self.assertTrue(any(isinstance(x,PageBreak) for x in flowables))
+        rendered=" ".join(x.text for x in flowables if isinstance(x,Paragraph))
+        self.assertIn("41 percentage points",rendered)
+        self.assertIn("Manpower",rendered)
+        self.assertEqual(_additional_market_lenses([],_styles()),[])
+
     def test_public_observatory_has_no_private_db_access(self):
         code=(ROOT/"src/page_advisory_market_observatory.py").read_text()
         self.assertNotIn("fetch_market_records(",code)

@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'src/page_advisory_market_signals.py'
+      - 'src/page_advisory_market_review.py'
       - 'src/advisory_service_visibility.py'
       - 'src/page_advisory_portal.py'
       - 'src/page_advisory_member_experience.py'
@@ -33,6 +34,7 @@ jobs:
         run: |
           python -m py_compile main.py \
             src/page_advisory_market_signals.py \
+            src/page_advisory_market_review.py \
             src/advisory_service_visibility.py \
             src/page_advisory_portal.py \
             src/page_advisory_member_experience.py \

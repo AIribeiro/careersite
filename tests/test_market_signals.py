@@ -102,6 +102,31 @@ class MarketSignalsTests(unittest.TestCase):
             _parse_portfolio_route("?page=advisory-market-signals&access_token=secret")
         )
 
+    def test_chart_excludes_partial_month_and_preserves_observation_window(self):
+        from page_advisory_market_signals import _plot
+        values = []
+        for id, n, start, complete in [
+            ("jun",12,"2026-06-01",True),
+            ("jul",15,"2026-07-01",True),
+            ("aug",10,"2026-08-01",True),
+            ("oct",29,"2026-10-01",True),
+            ("nov",12,"2026-11-01",False),
+        ]:
+            values.append({
+                "code": id, "lens":"leadership",
+                "geography":"Sweden", "period_complete": complete,
+                "period_end":start[:7]+"-28", "period_start":start,
+                "period_label":id.title()+" 2026",
+                "value":n, "metric_unit":"ads",
+            })
+        with patch("page_advisory_market_signals.st.altair_chart") as chart:
+            with patch("page_advisory_market_signals.st.caption") as caption:
+                _plot(values,"leadership","Sweden")
+        self.assertEqual(chart.call_count, 1)
+        graph=chart.call_args.args[0]
+        self.assertEqual(len(graph.data), 4)
+        self.assertTrue(any("incomplete" in str(call.args).lower() for call in caption.call_args_list))
+
     def test_full_market_review_has_a_chart_decision_agenda_and_traceable_sources(self):
         from page_advisory_market_review import market_review_pdf
         base = point("scb_2026_ai_10plus")

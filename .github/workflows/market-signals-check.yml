@@ -66,6 +66,58 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_market_signals.py' -v
       - name: Validate complete executive research PDF, evidence register and layout
         run: python -m unittest discover -s tests -p 'test_market_review_premium.py' -v
+      - name: Render researched PDF into QA images and verify legibility
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "src")
+          sys.path.insert(0, "tests")
+          from test_market_review_premium import verified_edition_fixture
+          from page_advisory_market_review import market_review_pdf
+          points,briefs=verified_edition_fixture()
+          path=Path("/tmp/market-review-qa.pdf")
+          path.write_bytes(market_review_pdf(
+              points,briefs,{"issue_date":"2026-11-16","status":"published"}
+          ))
+          print("Rendered approved 30-observation synthetic QA manuscript:",path.stat().st_size,"bytes")
+          PY
+          python -m pip install --quiet pymupdf==1.26.7
+          mkdir -p /tmp/market-review-renders
+          python - <<'PY'
+          import pymupdf
+          from PIL import Image,ImageStat
+          from pathlib import Path
+          doc=pymupdf.open("/tmp/market-review-qa.pdf")
+          assert doc.page_count>=13,("Unexpected page count",doc.page_count)
+          pages=[0,1,2,3,6,7,8,13,14]
+          print(f"Research QA: {doc.page_count} A4 pages")
+          for n in pages:
+              page=doc[n]
+              assert abs(page.rect.width-595.28)<.5
+              assert abs(page.rect.height-841.89)<.5
+              assert len(page.get_text().strip())>100
+              for item in page.get_text("dict")["blocks"]:
+                  for line in item.get("lines",[]):
+                      for span in line["spans"]:
+                          if span["text"].strip():
+                              assert page.rect.contains(pymupdf.Rect(span["bbox"])),(n,span["text"][:50],span["bbox"])
+              path=Path(f"/tmp/market-review-renders/page-{n+1:02d}.png")
+              page.get_pixmap(matrix=pymupdf.Matrix(1.4,1.4),alpha=False).save(path)
+              im=Image.open(path).convert("RGB")
+              assert im.width>800 and im.height>1100,(path,im.size)
+              stat=ImageStat.Stat(im)
+              assert min(stat.stddev)>8,(path,stat.stddev)
+              print(f"{path.name}: {im.width}x{im.height}, variance={[round(v,1) for v in stat.stddev]}")
+          PY
+      - name: Upload synthetic QA PDF and page renders
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-review-qa-renders
+          path: |
+            /tmp/market-review-qa.pdf
+            /tmp/market-review-renders/*.png
+          retention-days: 7
       - name: Verify full-length mobile chart labels and sanitisation
         run: python -m unittest discover -s tests -p 'test_market_chart_labels.py' -v
       - name: Verify premium Market Signals public landing and access links

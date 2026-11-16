@@ -551,23 +551,25 @@ def render_private_market_signals(session: dict, user: dict) -> None:
             st.error("The verified market evidence is temporarily unavailable. "
                      "No cached or invented figures will be shown. Please retry.")
             return
-        # An editorial status should convey the publication vintage without
-        # presenting internal editorial workflow warnings as a reader alert.
-        if release.get("published"):
-            edition_status = ("Edition 01 · Published " +
-                              str(release.get("issue_date") or "November 2026"))
-        else:
-            edition_status = "November 2026 · Editorial review"
+        # Compact month-first research label for readers; publication is
+        # represented only by the verified Supabase edition manifest.
+        is_released = bool(release.get("published"))
+        issue = str(release.get("issue_date") or "")
+        try:
+            issue_label = date.fromisoformat(issue).strftime("%d %B %Y").lstrip("0")
+        except ValueError:
+            issue_label = "November 2026"
+        statement = (
+            "Edition 01 published " + html_escape(issue_label) + ". "
+            if is_released else
+            "The inaugural executive market review is undergoing final editorial verification. "
+        )
         st.html(
             '<section class="market-editorial-status" aria-label="Editorial status">'
-            '<strong>Market Intelligence · '+html_escape(edition_status)+'</strong>'
-            '<p>Evidence-linked indicators with transparent reporting periods, '
-            'source references and methodological limitations. '
-            + ('The inaugural executive market review is undergoing final '
-               'editorial verification.' if not release.get("published") else
-               'The inaugural executive market review has been formally released '
-               'with a dated evidence manifest and supporting source records.')
-            + '</p></section>'
+            '<strong>Market Intelligence · November 2026</strong>'
+            '<p>' + statement +
+            'Evidence-linked indicators with transparent reporting periods, '
+            'source references and methodological limitations.</p></section>'
         )
         viewer_key = "market_signals_open_" + str(user.get("id") or "member")
         if not st.session_state.get(viewer_key):

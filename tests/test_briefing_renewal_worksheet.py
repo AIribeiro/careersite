@@ -30,7 +30,7 @@ class RenewalDecisionRecordTests(unittest.TestCase):
         html = decision_record_cta_html()
         self.assertIn("worksheet=1", html)
         self.assertIn("article=" + SLUG, html)
-        self.assertIn("Download the fillable A4 decision record", html)
+        self.assertIn("Download fillable A4 Executive Decision Record", html)
         self.assertNotIn(".pdf", html)
         self.assertNotIn("raw.githubusercontent.com", html)
 

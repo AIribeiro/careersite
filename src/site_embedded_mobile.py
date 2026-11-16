@@ -142,6 +142,156 @@ def mount_masked_mobile_fix() -> None:
     st.html(EMBEDDED_MOBILE_SCRIPT, unsafe_allow_javascript=True)
 
 
+
+# Streamlit 1.64 renders st.dialog in a React Aria modal portal rather than as
+# a child of the portfolio .site element. Scaling .site in a masked iframe
+# therefore leaves the login dialog unreadably small. Target only the Reader
+# dialogs (marked in their body), and scale the *panel* rather than the fixed
+# overlay so the backdrop and scroll behavior remain intact.
+READER_DIALOG_MOBILE_CSS = r"""
+<style>
+@media (max-width:700px), (max-device-width:700px) {
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) {
+    box-sizing:border-box!important;
+    padding:8px 0 max(10px,env(safe-area-inset-bottom))!important;
+    align-items:flex-start!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) > div {
+    box-sizing:border-box!important;
+    width:calc(100vw - 24px)!important;
+    max-width:calc(100vw - 24px)!important;
+    min-width:0!important;
+    margin:8px auto!important;
+    border-radius:10px!important;
+  }
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) [role="dialog"] {
+    box-sizing:border-box;min-width:0!important;
+  }
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) h3 {
+    font-size:clamp(21px,5.8vw,27px)!important;
+    line-height:1.17!important;
+    overflow-wrap:anywhere;
+  }
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) h2,
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) p,
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) label {
+    overflow-wrap:anywhere;
+  }
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) [data-testid="stForm"],
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) [data-testid="stTextInput"] {
+    box-sizing:border-box;min-width:0;max-width:100%;width:100%;
+  }
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) input {
+    box-sizing:border-box;max-width:100%;min-height:44px;
+    font-size:16px!important;
+  }
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) [data-testid="stRadio"] [role="radiogroup"] {
+    flex-wrap:wrap!important;row-gap:8px;column-gap:14px;
+  }
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) [data-testid="stFormSubmitButton"] button,
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) [data-testid="stButton"] button {
+    min-height:44px;white-space:normal!important;
+  }
+}
+/* The outer URL-masking document may omit viewport metadata. The iframe then
+   gets a 980px CSS canvas on a real phone. This is a CSS-only fallback; when
+   JavaScript is permitted it sets the exact zoom and panel width. */
+@media screen and (min-width:760px) and (max-device-width:700px) {
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) {
+    --jr-dialog-zoom:2.5;--jr-dialog-width:366px;
+  }
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) > div {
+    zoom:var(--jr-dialog-zoom)!important;
+    width:var(--jr-dialog-width)!important;
+    max-width:var(--jr-dialog-width)!important;
+    margin:8px auto!important;
+  }
+}
+@media screen and (min-width:760px) and (max-device-width:359px) {
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) {--jr-dialog-zoom:2.9;--jr-dialog-width:320px}
+}
+@media screen and (min-width:760px) and (min-device-width:360px) and (max-device-width:375px) {
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) {--jr-dialog-zoom:2.65;--jr-dialog-width:345px}
+}
+@media screen and (min-width:760px) and (min-device-width:401px) and (max-device-width:430px) {
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) {--jr-dialog-zoom:2.36;--jr-dialog-width:404px}
+}
+@media screen and (min-width:760px) and (min-device-width:431px) and (max-device-width:480px) {
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) {--jr-dialog-zoom:2.14;--jr-dialog-width:450px}
+}
+@media screen and (min-width:760px) and (min-device-width:481px) and (max-device-width:600px) {
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) {--jr-dialog-zoom:1.8;--jr-dialog-width:520px}
+}
+@media screen and (min-width:760px) and (min-device-width:601px) and (max-device-width:700px) {
+  [data-testid="stDialog"]:has(.jr-reader-dialog-marker) {--jr-dialog-zoom:1.48;--jr-dialog-width:630px}
+}
+</style>
+"""
+
+READER_DIALOG_MOBILE_SCRIPT = r"""
+<script>
+(function () {
+  "use strict";
+  function adaptReaderDialog() {
+    const overlay = document.querySelector('[data-testid="stDialog"]:has(.jr-reader-dialog-marker)');
+    if (!overlay) return;
+    // Streamlit 1.64: fixed React Aria overlay > modal panel > [role=dialog].
+    const panel = overlay.querySelector(':scope > div') ||
+      overlay.querySelector('[role="dialog"]')?.parentElement;
+    if (!panel) return;
+
+    let framed = false;
+    try { framed = window.self !== window.top; }
+    catch (_error) { framed = true; }
+    const physical = Number(window.screen && window.screen.width) || 0;
+    const layout = Number(window.innerWidth) || 0;
+    const masked = framed && physical >= 280 && physical <= 720 &&
+      layout >= 760 && layout > physical * 1.45;
+    if (masked) {
+      const ratio = Math.min(3.5, layout / physical);
+      const available = Math.max(240, physical - 24);
+      // The overlay stays fixed at viewport size. Only its panel grows to
+      // phone-readable scale; the panel remains centered and scrollable.
+      panel.style.setProperty('zoom', String(ratio), 'important');
+      panel.style.setProperty('width', available + 'px', 'important');
+      panel.style.setProperty('max-width', available + 'px', 'important');
+      panel.style.setProperty('min-width', '0', 'important');
+      overlay.setAttribute('data-jr-reader-modal-mobile', 'masked');
+    } else {
+      panel.style.removeProperty('zoom');
+      panel.style.removeProperty('width');
+      panel.style.removeProperty('max-width');
+      panel.style.removeProperty('min-width');
+      overlay.removeAttribute('data-jr-reader-modal-mobile');
+    }
+  }
+  if (!window.__jrReaderDialogMobileFix) {
+    window.__jrReaderDialogMobileFix = adaptReaderDialog;
+    window.addEventListener('resize', adaptReaderDialog, {passive:true});
+    window.addEventListener('orientationchange', adaptReaderDialog);
+    // Dialogs can re-mount after a Streamlit fragment rerun. The observer
+    // only watches child changes, avoiding loops from style updates.
+    const observer = new MutationObserver(adaptReaderDialog);
+    observer.observe(document.documentElement, {childList:true,subtree:true});
+  }
+  window.__jrReaderDialogMobileFix();
+})();
+</script>
+"""
+
+
+def mount_reader_dialog_mobile_fix() -> None:
+    """Present the Reader login modal at readable phone size, including masking."""
+    st.html(
+        READER_DIALOG_MOBILE_CSS +
+        '<span class="jr-reader-dialog-marker" aria-hidden="true" '
+        'style="display:none"></span>'
+    )
+    st.html(READER_DIALOG_MOBILE_SCRIPT, unsafe_allow_javascript=True)
+
+
 NATIVE_EMBEDDED_MOBILE_SCRIPT = r"""
 <script>
 (function () {

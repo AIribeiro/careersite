@@ -178,8 +178,7 @@ def _build_input_sheet():
     ):
         s.text(f"A{row}", label,3); s.text(f"H{row}", note,10)
         if row in (11,13):continue
-        if row in (16,17):continue
-        # Blank typed input areas remain editable.
+        # Blank typed input areas remain editable, including dates.
         s.text(f"D{row}", "",4)
     s.num("D11",12,4)
     s.num("D13",0.10,9)

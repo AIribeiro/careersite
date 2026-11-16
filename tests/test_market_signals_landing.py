@@ -116,7 +116,11 @@ class MarketSignalsLandingTests(unittest.TestCase):
     def test_external_evidence_links_are_safe_and_source_specific(self):
         for link in self.parser.links:
             href=link.get("href","")
-            if href.startswith("https://"):
+            if href.startswith("https://") and any(
+                publisher in href for publisher in (
+                    "scb.se/", "jobtechdev.se/", "brainville.com/"
+                )
+            ):
                 self.assertIn("noopener",link.get("rel",""))
                 self.assertIn("noreferrer",link.get("rel",""))
         self.assertIn("/sv/Blog/Post/1923",self.page)

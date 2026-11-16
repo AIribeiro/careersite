@@ -75,15 +75,15 @@ class EditorialPeriodTests(unittest.TestCase):
         self.assertEqual(state[WINDOW_KEY], "yesterday")
         fetch.assert_not_called()
 
-    def test_auto_count_uses_content_rpc_not_dashboard_traffic(self):
+    def test_auto_count_uses_fast_report_not_dashboard_traffic(self):
         _editorial_reporting_activity.clear()
-        with (patch("page_public_portfolio_overview._article_metadata", return_value=[]),
-              patch("page_public_portfolio_overview._fetch_rpc",
-                    return_value=_report(editorial=0, portfolio=800)) as rpc):
+        with (patch("page_public_portfolio_overview._fast_portfolio_overview",
+                    return_value=_report(editorial=0, portfolio=800)) as fast,
+              patch("page_public_portfolio_overview.fetch_intelligence",
+                    side_effect=AssertionError("heavy RPC must not be called"))):
             result = _editorial_reporting_activity("yesterday")
         self.assertEqual(result, {"totals": {"recorded_views": 0}})
-        rpc.assert_called_once()
-        self.assertEqual(rpc.call_args.args[0], "careersite_content_intelligence_v2")
+        fast.assert_called_once_with("yesterday")
 
     def test_year_auto_check_uses_fast_reporting(self):
         _editorial_reporting_activity.clear()

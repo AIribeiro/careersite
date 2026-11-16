@@ -10,6 +10,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from site_embedded_mobile import (
     EMBEDDED_MOBILE_SCRIPT,
     MASKED_FRAME_FALLBACK_CSS,
+    READER_DIALOG_MOBILE_CSS,
+    READER_DIALOG_MOBILE_SCRIPT,
     support_masked_mobile_media,
 )
 
@@ -141,6 +143,54 @@ class MaskedForwardingMobileTests(unittest.TestCase):
             callback.index('st.query_params.pop("token_hash", None)'),
             callback.index('user = _verify({"token_hash": token, "type": auth_type})'),
         )
+
+    def test_reader_dialog_is_scaled_independently_of_the_public_article(self):
+        # Streamlit 1.64 renders the dialog in a portal, outside .site.
+        css = READER_DIALOG_MOBILE_CSS
+        script = READER_DIALOG_MOBILE_SCRIPT
+        self.assertIn('[data-testid="stDialog"]:has(.jr-reader-dialog-marker) > div', css)
+        self.assertIn("(max-width:700px), (max-device-width:700px)", css)
+        self.assertIn("(min-width:760px) and (max-device-width:700px)", css)
+        self.assertIn("zoom:var(--jr-dialog-zoom)!important", css)
+        self.assertIn("font-size:16px!important", css)
+        self.assertIn("overflow-y:auto!important", css)
+        self.assertIn("flex-wrap:wrap!important", css)
+        self.assertIn("const panel = overlay.querySelector(':scope > div')", script)
+        self.assertIn("window.self !== window.top", script)
+        self.assertIn("layout > physical * 1.45", script)
+        self.assertIn("panel.style.setProperty('zoom', String(ratio), 'important')", script)
+        self.assertIn("panel.style.setProperty('width', available + 'px', 'important')", script)
+        self.assertIn("new MutationObserver(adaptReaderDialog)", script)
+        # Never expose reader credentials or verification tokens in browser JS.
+        self.assertNotIn("token_hash", script)
+        self.assertNotIn("access_token", script)
+
+    def test_reader_dialog_mobile_adapter_only_runs_inside_access_dialogs(self):
+        from site_embedded_mobile import mount_reader_dialog_mobile_fix
+        from unittest.mock import patch
+        with patch("site_embedded_mobile.st.html") as rendered:
+            mount_reader_dialog_mobile_fix()
+        self.assertEqual(rendered.call_count, 2)
+        first = rendered.call_args_list[0].args[0]
+        self.assertIn(READER_DIALOG_MOBILE_CSS, first)
+        self.assertIn('class="jr-reader-dialog-marker"', first)
+        self.assertNotIn("unsafe_allow_javascript",
+                         rendered.call_args_list[0].kwargs)
+        self.assertEqual(
+            rendered.call_args_list[1].args[0], READER_DIALOG_MOBILE_SCRIPT,
+        )
+        self.assertTrue(
+            rendered.call_args_list[1].kwargs["unsafe_allow_javascript"],
+        )
+        from pathlib import Path
+        native = (Path(__file__).resolve().parents[1] /
+                  "src" / "page_reader_native.py").read_text(encoding="utf-8")
+        for name in ("_briefing_access_dialog", "_article_access_dialog",
+                     "_weekly_ai_access_dialog"):
+            head = native.index("def " + name + "(")
+            body = native[head:native.find("\ndef ", head + 4)
+                          if native.find("\ndef ", head + 4) > 0 else len(native)]
+            self.assertIn("mount_reader_dialog_mobile_fix()", body)
 
     def test_phone_menu_replaces_wrapping_desktop_navigation(self):
         from site_components import MOBILE_NAV_CSS, nav

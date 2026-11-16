@@ -7,13 +7,13 @@ DEFAULT_WINDOWS = ("last_hour", "today", "yesterday", "this_week", "last_week",
 MANUAL_KEY = "careersite_reporting_manual_v2"
 
 
-def initialize_reporting_period(state, fetch_dashboard):
+def initialize_reporting_period(state, fetch_dashboard, *, windows=DEFAULT_WINDOWS):
     # Only an explicit choice is a preference. Automatic choices are refreshed
     # on rerun, so yesterday's empty window cannot become a sticky default.
     if state.get(MANUAL_KEY) and state.get(PREFERENCE_KEY) in DEFAULT_WINDOWS:
         state[WINDOW_KEY] = state[PREFERENCE_KEY]
         return
-    for window in DEFAULT_WINDOWS:
+    for window in windows:
         try:
             data = fetch_dashboard(window)
             totals = data.get("totals", {})

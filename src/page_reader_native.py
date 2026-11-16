@@ -1346,6 +1346,26 @@ def _briefing_access_dialog(slug: str, title: str, purpose: str) -> None:
         "The full edition and executive decision framework are now available "
         "on this page."
     )
+    # PDF bytes are available only inside this verified reader-session dialog.
+    # The fillable decision record is distinct from the downloadable infographic.
+    if slug == "would-you-fund-the-same-ai-initiatives-today":
+        from briefing_renewal_worksheet import build_decision_record_pdf
+        st.markdown("**Executive Decision Record · Fillable A4 PDF**")
+        st.caption("A practical worksheet to compare the current AI initiative with its strongest alternative.")
+        try:
+            st.download_button(
+                "Download the fillable Executive Decision Record (A4)",
+                data=build_decision_record_pdf(),
+                file_name="AI_Portfolio_Renewal_Executive_Decision_Record.pdf",
+                mime="application/pdf",
+                type="primary",
+                key="reader_renewal_record_download",
+                on_click=_record_download,
+                args=(session["access_token"], str(user["id"]), slug),
+                width="stretch",
+            )
+        except (RuntimeError, ValueError, OSError):
+            st.error("The fillable decision record could not be prepared.")
     if has_briefing_pdf(slug):
         try:
             with st.spinner("Preparing the A4 infographic"):

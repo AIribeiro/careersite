@@ -61,8 +61,18 @@ MARKET_STYLE = """
  background:#FFFDF9;border:1px solid #DDD8CF;border-top:2px solid #AD7855;
  padding:14px 16px;border-radius:4px;
 }
-.st-key-market_signals_workspace [data-testid="stMetricLabel"] {color:#53677B}
-.st-key-market_signals_workspace [data-testid="stMetricValue"] {color:#142B42}
+.st-key-market_signals_workspace [data-testid="stMetricLabel"] {
+ color:#53677B;white-space:normal!important;overflow:visible!important;
+ max-width:100%;min-width:0;
+}
+.st-key-market_signals_workspace [data-testid="stMetricLabel"] * {
+ white-space:normal!important;text-overflow:clip!important;
+ overflow-wrap:anywhere!important;overflow:visible!important;
+}
+.st-key-market_signals_workspace [data-testid="stMetricValue"] {
+ color:#142B42;white-space:normal!important;overflow-wrap:anywhere;
+}
+.st-key-market_signals_workspace [data-testid="stMetric"] {min-width:0;}
 .st-key-market_signals_workspace [data-testid="stPills"] {
  overflow-x:auto;max-width:100%;padding:8px;background:#FFFDF9;border:1px solid #E3DDD5;
 }

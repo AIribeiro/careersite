@@ -87,6 +87,21 @@ class MarketSignalsTests(unittest.TestCase):
             self.assertEqual(len(out[0]),2)
             self.assertEqual(len(out[1]),1)
 
+    def test_market_routes_preserve_member_session(self):
+        from site_reader_navigation import _ALLOWED_PAGES, _parse_portfolio_route
+        self.assertIn("advisory-market-signals", _ALLOWED_PAGES)
+        self.assertEqual(
+            _parse_portfolio_route("?page=advisory-access&view=market-signals"),
+            {"page": "advisory-access", "view": "market-signals"},
+        )
+        self.assertEqual(
+            _parse_portfolio_route("?page=advisory-market-signals"),
+            {"page": "advisory-market-signals"},
+        )
+        self.assertIsNone(
+            _parse_portfolio_route("?page=advisory-market-signals&access_token=secret")
+        )
+
     def test_csv_escapes_spreadsheet_formula(self):
         p=point()
         p["source_title"]="=IMPORTXML('secret')"

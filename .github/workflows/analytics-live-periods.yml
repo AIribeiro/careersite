@@ -1,0 +1,58 @@
+name: Analytics live reporting periods
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/analytics-live-periods.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Install browser test tools
+        run: |
+          python -m pip install -q playwright==1.58.0
+          python -m playwright install chromium
+      - name: Verify every reporting period in production browser
+        env:
+          PORTFOLIO_URL: https://jairribeiro-ai.streamlit.app/?page=analytics&view=overview&source=internal_qa&role=smoke
+        run: |
+          python - <<'PY'
+          import os
+          from playwright.sync_api import sync_playwright
+          labels=["Last hour","Today","Yesterday","This Week","Last Week","This Month","Last Month","This year","All"]
+          with sync_playwright() as pw:
+              browser=pw.chromium.launch(headless=True)
+              page=browser.new_page(viewport={"width":1120,"height":900})
+              errors=[]
+              try:
+                  page.goto(os.environ["PORTFOLIO_URL"],wait_until="domcontentloaded",timeout=45000)
+                  page.get_by_text("Portfolio visits & reads",exact=False).first.wait_for(timeout=45000)
+                  print("OVERVIEW: loaded",flush=True)
+                  for label in labels:
+                      try:
+                          box=page.get_by_test_id("stSelectbox").first
+                          box.click(timeout=10000)
+                          page.get_by_role("option",name=label,exact=True).click(timeout=10000)
+                          page.wait_for_timeout(2500)
+                          try:
+                              page.locator(".pv-card").first.wait_for(timeout=12000)
+                          except Exception:
+                              pass
+                          body=page.locator("body").inner_text(timeout=10000)
+                          is_error="Portfolio reporting is temporarily unavailable." in body
+                          cards=page.locator(".pv-card").count()
+                          print(f"PERIOD {label}: cards={cards} error={is_error}; snippet={body[body.find('Reporting period'):body.find('Reporting period')+230]!r}",flush=True)
+                          if is_error or cards<4:
+                              errors.append(label)
+                      except Exception as exc:
+                          errors.append(label)
+                          print(f"PERIOD {label}: EXCEPTION {type(exc).__name__}: {str(exc)[:350]}",flush=True)
+                  print("BROWSER FAILING PERIODS:",errors,flush=True)
+              finally:
+                  browser.close()
+              if errors:
+                  raise SystemExit("Failing reporting periods: "+", ".join(errors))
+          PY

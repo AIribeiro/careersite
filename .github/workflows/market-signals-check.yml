@@ -8,6 +8,7 @@ on:
       - 'src/page_advisory_member_experience.py'
       - 'src/page_public_services.py'
       - 'src/page_reader_native.py'
+      - 'src/site_reader_navigation.py'
       - 'main.py'
       - 'tests/test_market_signals.py'
       - '.github/workflows/market-signals-check.yml'
@@ -37,6 +38,7 @@ jobs:
             src/page_advisory_member_experience.py \
             src/page_public_services.py \
             src/page_reader_native.py \
+            src/site_reader_navigation.py \
             tests/test_market_signals.py
       - name: Verify evidence integrity and PDF export
         run: python -m unittest discover -s tests -p 'test_market_signals.py' -v

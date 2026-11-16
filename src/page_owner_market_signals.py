@@ -5,7 +5,7 @@ The interface never writes the evidence or analysis tables directly.
 """
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 from html import escape
 from urllib.parse import quote

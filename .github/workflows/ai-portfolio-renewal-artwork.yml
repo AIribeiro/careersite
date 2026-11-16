@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/build_renewal_artwork.py'
+      - 'tests/test_renewal_worksheet_reader_access.py'
       - 'tests/test_briefing_renewal_worksheet.py'
       - '.github/workflows/ai-portfolio-renewal-artwork.yml'
   workflow_dispatch:
@@ -45,7 +46,7 @@ jobs:
         env:
           PYTHONPATH: src
         run: |
-          python -m unittest -v tests.test_briefing_approved_asset_renderer tests.test_briefing_renewal_worksheet
+          python -m unittest -v tests.test_briefing_approved_asset_renderer tests.test_briefing_renewal_worksheet tests.test_renewal_worksheet_reader_access
           python - <<'PY'
           from pathlib import Path
           from PIL import Image

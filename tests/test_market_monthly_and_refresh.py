@@ -34,7 +34,7 @@ class MonthlyObservatoryTests(unittest.TestCase):
         }
         self.assertEqual(_validate_archive(historic),historic)
         self.assertIn("Retrospective leadership",archive_option_label(historic))
-        self.assertIn("not a full AI/Data market",archive_coverage(historic).lower().replace("this was ",""))
+        self.assertIn("not a full ai/data market",archive_coverage(historic).lower())
         fake=dict(historic)
         fake["observations"]=[dict(point,source_family="scb_enterprise_ai_adoption")]
         with self.assertRaises(ValueError):
@@ -178,8 +178,9 @@ class AdminMarketRefreshTests(unittest.TestCase):
         self.assertEqual(rpc.call_count,3)
         payload=rpc.call_args.kwargs["payload"]["p_result"]
         self.assertEqual(len(payload["source_results"]),9)
-        self.assertTrue(payload["calculations"]["publication_unchanged"] is False
-                        if "publication_unchanged" in payload["calculations"] else True)
+        self.assertEqual(payload["release_slug"],"edition-01")
+        self.assertEqual(payload["proposal_count"],0)
+        self.assertEqual(len(payload["source_results"]),9)
 
 
 if __name__=="__main__":

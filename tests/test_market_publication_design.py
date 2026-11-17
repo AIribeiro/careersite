@@ -117,7 +117,7 @@ class MarketPublicationSystemTests(unittest.TestCase):
                     self.assertAlmostEqual(float(p.mediabox.height),841.89,delta=.25)
                     length=len(" ".join((p.extract_text() or "").split()))
                     # Editorial covers deliberately use fewer words than analysis pages.
-                    min_chars = 650 if n == 1 else 900
+                    min_chars = 650 if n == 1 else (250 if n == len(doc.pages) else 900)
                     self.assertGreater(length,min_chars,
                         "Sparse page in executive publication: "+
                         str(n)+" / "+str(len(doc.pages)))

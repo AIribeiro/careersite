@@ -414,7 +414,7 @@ def sources_table(points, format_value, *, sty=None, include_provenance=False):
             if not pub_date or not ver_date:
                 raise ValueError("Published source missing release / verification date: "+code)
             reading.append(P(
-                "Publisher date: "+pub_date+"  |  Research checked: "+ver_date+
+                "Observation published: "+pub_date+"  |  Research checked: "+ver_date+
                 "  |  Source family: "+clean(item.get("source_family")),
                 "table_small",sty=s))
         rows.append([context,reading])

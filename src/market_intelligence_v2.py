@@ -435,7 +435,7 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
             raise ValueError("Non-finite evidence cannot appear on the cover.")
         if abs(number)>=10000 and unit in {"vacancies","advertisements"}:
             return f"{number/1000:,.1f}k"
-        label=f"{int(number):,}" if number.is_integer() else f"{number:,.1f}"
+        label=_num(number)
         return label+("%" if unit=="percent" else "")
     metrics=[]
     for item in (evidence+[evidence[-1]]*3)[:3]:

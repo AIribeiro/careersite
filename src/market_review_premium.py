@@ -91,8 +91,13 @@ def _n(p: dict) -> float:
 
 
 def _num(value: float) -> str:
-    value=float(value)
-    return f"{int(value):,}" if value.is_integer() else f"{value:,.1f}"
+    """Preserve significant source precision instead of rounding to one decimal."""
+    from decimal import Decimal
+    number = Decimal(str(value))
+    if not number.is_finite():
+        raise ValueError("Source observation must be finite.")
+    shown = format(number, ",f")
+    return shown.rstrip("0").rstrip(".") if "." in shown else shown
 
 
 def _measure(p: dict) -> str:

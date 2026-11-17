@@ -371,7 +371,7 @@ def decision_table(items,*,sty=None):
     return tbl
 
 
-def sources_table(points, format_value, *, sty=None, include_provenance=False):
+def sources_table(points, format_value, *, sty=None, include_provenance=False, compact_provenance=False):
     """Clickable source register, optionally with publication-grade lineage.
 
     Detailed source tables disclose the population, method, limits and
@@ -408,6 +408,8 @@ def sources_table(points, format_value, *, sty=None, include_provenance=False):
                 value=clean(item.get(field))
                 if not value:
                     raise ValueError("Published source missing "+field+": "+code)
+                if field=="methodology" and compact_provenance:
+                    value="See source-method register: "+clean(item["source_family"])
                 reading.append(P(label+": "+value,"table_small",sty=s))
             pub_date=clean(item.get("published_on"))
             ver_date=clean(item.get("verified_on"))
@@ -431,3 +433,45 @@ def sources_table(points, format_value, *, sty=None, include_provenance=False):
         ("RIGHTPADDING",(0,0),(-1,-1),7),
     ]))
     return table
+
+def source_family_methods(points, *, sty=None):
+    """Publish each full source methodology once, with all scope caveats.
+
+    The observation appendix still preserves per-record population, caveat,
+    publisher date, checked date and clickable original-source URL.
+    """
+    s=sty or styles()
+    by_family={}
+    for p in points:
+        family=clean(p.get("source_family"))
+        if not family:
+            raise ValueError("A source-family method is missing.")
+        by_family.setdefault(family,[]).append(p)
+    rows=[[P("SOURCE SERIES","table_head",sty=s),
+           P("RETRIEVAL AND MEASUREMENT METHOD","table_head",sty=s)]]
+    for family,group in sorted(by_family.items()):
+        methods=sorted({clean(p.get("methodology")) for p in group})
+        limits=sorted({clean(p.get("caveat")) for p in group})
+        if "" in methods or "" in limits:
+            raise ValueError("Missing family method or interpretation caveat: "+family)
+        source_title=clean(group[0].get("source_title"))
+        notes=[P("Published source: "+source_title,"table_small",sty=s)]
+        for i,method in enumerate(methods,1):
+            notes.append(P("Method "+str(i)+": "+method,"table_small",sty=s))
+        for i,caveat in enumerate(limits,1):
+            notes.append(P("Scope limit "+str(i)+": "+caveat,"table_small",sty=s))
+        rows.append([[P(family,"table_bold",sty=s),
+                      P(str(len(group))+" observations","table_small",sty=s)],
+                     notes])
+    tbl=LongTable(rows,colWidths=[51*mm,BODY-51*mm],hAlign="LEFT",repeatRows=1)
+    tbl.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,0),NAVY),
+        ("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,SAND]),
+        ("VALIGN",(0,0),(-1,-1),"TOP"),
+        ("LINEBELOW",(0,1),(-1,-1),0.35,LINE),
+        ("TOPPADDING",(0,0),(-1,-1),7),
+        ("BOTTOMPADDING",(0,0),(-1,-1),7),
+        ("LEFTPADDING",(0,0),(-1,-1),8),
+        ("RIGHTPADDING",(0,0),(-1,-1),8),
+    ]))
+    return tbl

@@ -50,6 +50,21 @@ _CARDS = {
     "about": ("The personal journey", "Who I am",
               "The places, cultures and experiences that have shaped my work with people.",
               "Explore my story"),
+    "advisory-market-demo": (
+        "Public research sample", "Historical evidence review",
+        "Read the June–August 2026 leadership-advertisement sample, including sources and limitations.",
+        "View the public sample",
+    ),
+    "advisory-access&view=market-signals": (
+        "Published Market Observatory", "November 2026 research",
+        "Open the full published edition, reviewed dashboard observations and downloadable decision briefs.",
+        "Open the full Observatory",
+    ),
+    "advisory": (
+        "Executive Advisory", "Other Advisory services",
+        "Explore decision-support services for enterprise AI investment, capability and adoption.",
+        "Explore Advisory",
+    ),
 }
 
 # Three destinations per page, ordered to serve a realistic next intent.
@@ -58,6 +73,9 @@ _PAGE_ROUTES = {
     "ai-data-governance": ("impact", "briefings", "about"),
     "thinking": ("impact", "ai-data-governance", "about"),
     "contact": ("impact", "ai-data-governance", "thinking"),
+    "advisory-market-signals": (
+        "advisory-market-demo", "advisory-access&view=market-signals", "advisory"
+    ),
 }
 
 _PAGE_COPY = {
@@ -86,6 +104,11 @@ _PAGE_COPY = {
         "If you would like to explore the work first, these three destinations "
         "offer a practical view of my experience, approach and published perspectives.",
     ),
+    "advisory-market-signals": (
+        "Continue with the research.",
+        "Review the public historical sample, open the complete published Observatory "
+        "or explore related executive Advisory services.",
+    ),
 }
 
 
@@ -95,7 +118,10 @@ def _destinations_for(page: str) -> tuple[Destination, ...]:
     if page not in _PAGE_ROUTES:
         raise ValueError(f"Unsupported portfolio navigation page: {page}")
     return tuple(
-        Destination(f"{index:02d}", *_CARDS[route], route, f"{page}_next_{route.replace('-', '_')}")
+        Destination(
+            f"{index:02d}", *_CARDS[route], route,
+            f"{page}_next_{route.replace('-', '_').replace('&view=', '_')}"
+        )
         for index, route in enumerate(_PAGE_ROUTES[page], 1)
     )
 

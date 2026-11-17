@@ -218,6 +218,7 @@ jobs:
               print(name,"pages:",pdf.page_count,"bytes:",len(data))
           PY
       - name: Upload synthetic QA PDF and page renders
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: market-review-qa-renders

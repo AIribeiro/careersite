@@ -89,7 +89,8 @@ def _number(n: object, *, decimals: int = 1) -> str:
 
 def _value(point: dict) -> str:
     unit=str(point.get("metric_unit") or "")
-    val=_number(point["value"])
+    from market_review_premium import _num
+    val=_num(point["value"])
     if unit=="percent":return val+"%"
     if unit in ("SEK/month","SEK_per_month"):return val+" SEK/mo"
     if unit in ("percentage points","percent YoY"):return val+(" pp" if unit=="percentage points" else "% YoY")

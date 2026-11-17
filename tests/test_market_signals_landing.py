@@ -99,29 +99,50 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_executive_target_and_decision_value_are_explicit(self):
         for phrase in (
-            "AI &amp; Data Market Intelligence for Executive Decision-Making",
+            "Swedish AI &amp; Data Market Review",
             "For CEOs, CFOs, CHROs",
-            "Internal capability, recruitment or external expertise",
-            "Business outcomes beyond reported adoption",
-            "Presenting evidence and uncertainty to management",
+            "Recruit, develop internally or seek external expertise?",
+            "Which AI investments deserve the next budget?",
+            "Bring a stronger case to the leadership table",
             "Market Observatory",
             "Complete AI &amp; Data Market Review",
             "Executive Decision Briefs and source register",
         ):
             self.assertIn(phrase,self.page)
 
+    def test_executive_value_precedes_scope_caveats(self):
+        html=MARKET_SIGNALS_LANDING_HTML
+        hero=html.split('<section class="ms-hero"',1)[1].split('</section>',1)[0]
+        intro=html.split('<section class="ms-section ms-section--white" id="ms-findings"',1)[1].split('<div class="ms-proofs">',1)[0]
+        for phrase in (
+            "Evidence for executive decisions",
+            "five decision perspectives",
+            "workforce planning",
+            "Read the November report · Free registration",
+            "Explore the June–August historical sample without registering",
+        ):
+            self.assertIn(phrase,hero)
+        for defensive in ("cannot", "not a market forecast", "comprehensive AI recruitment census", "limited evidence", "where its limits lie"):
+            self.assertNotIn(defensive,hero.lower())
+            self.assertNotIn(defensive,intro.lower())
+        self.assertIn("Research sources and how to use the findings.",html)
+        self.assertIn("exact replication is not assured",html)
+        self.assertIn("switched to SNI 2025",html)
+        self.assertIn("Brainville",html)
+        self.assertIn("not a market forecast",html)
+
     def test_executive_headlines_use_measured_claims_not_promotional_promises(self):
         expected=[
-            "AI &amp; Data Market Intelligence for Executive Decision-Making",
-            "What the published evidence shows",
-            "AI use is reported; business outcomes require separate evidence.",
-            "Senior AI &amp; Data advertisements: a selective observed sample.",
-            "Consulting assignments and available capacity both increased.",
-            "Not all Swedish recruitment opportunities are advertised.",
-            "Historical leadership-advertisement evidence, June–August 2026.",
-            "Source provenance, definitions and limitations.",
-            "Limits of the published evidence.",
-            "November 2026: Research and supporting evidence.",
+            "Swedish AI &amp; Data Market Review",
+            "What the market evidence tells leaders",
+            "AI adoption is widespread. Business value is the next question.",
+            "Senior AI &amp; Data leadership: examine the roles behind the numbers.",
+            "Consulting activity and available capacity rose together.",
+            "Recruitment demand extends beyond job advertisements.",
+            "Explore the June–August research sample.",
+            "Research sources and how to use the findings.",
+            "Interpret each measure in its proper context.",
+            "Bring the November research into your next leadership discussion.",
         ]
         for heading in expected:
             self.assertIn(heading,self.page)
@@ -148,7 +169,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
             "+10.7",
             "+18.5",
             "October 2026",
-            "measure different populations",
+            "evidence series · 5 publishers",
         ):
             self.assertIn(phrase.lower(),self.page.lower())
         self.assertNotIn("AI jobs increased 45%",self.page)
@@ -158,9 +179,9 @@ class MarketSignalsLandingTests(unittest.TestCase):
         import json
         manuscript=json.loads((ROOT/"docs/market_signals/november_2026_executive_v2.json").read_text(encoding="utf-8"))
         expected="Executive Edition "+manuscript["version"]
-        # Publication card, evidence introduction, report description and CTA.
-        self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(expected),4)
-        self.assertEqual(self.page.count(expected),4)
+        # Publication card, evidence introduction and full-report description; the CTA uses action language.
+        self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(expected),3)
+        self.assertEqual(self.page.count(expected),3)
         for obsolete in (
             "Executive Edition 2.0</h2>",
             "in Executive Edition 2.0. No single",
@@ -172,11 +193,11 @@ class MarketSignalsLandingTests(unittest.TestCase):
     def test_three_material_selection_biases_are_publicly_explained(self):
         html=MARKET_SIGNALS_LANDING_HTML
         for phrase in (
-            "exact point-in-time reproduction is not guaranteed",
+            "historical API results may change and exact replication is not assured",
             "operations, digital, product and commercial titles",
-            "Changes in platform participation may also affect",
+            "Changes in platform participation and coverage can affect",
             "switched to SNI 2025",
-            "exact replication is not assured",
+            "not a count of all AI leadership roles, vacancies or hires",
             "not a market forecast",
         ):
             self.assertIn(phrase,html)
@@ -253,10 +274,10 @@ class MarketSignalsLandingTests(unittest.TestCase):
         for claim in (
             "not a market forecast",
             "not a count of all AI leadership roles, vacancies or hires",
-            "not AI/Data specialists alone",
-            "not a full market review from those summer months",
+            "marketplace covering many consulting disciplines",
+            "The sample was prepared in November using historical JobTech records",
             "not published in the current edition",
-            "no personal approval is needed",
+            "Create a free Advisory account",
         ):
             self.assertIn(claim.lower(),self.page.lower())
 

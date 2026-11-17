@@ -129,7 +129,7 @@ class MonthlyObservatoryTests(unittest.TestCase):
         self.assertIn('"advisory-market-demo"',main)
         self.assertIn("render_public_market_demo_download()",main)
         self.assertIn('"advisory-market-demo": "market-signals"',visibility)
-        self.assertIn("04 / PUBLIC RESEARCH SAMPLE",landing)
+        self.assertIn("04 / TRY THE RESEARCH",landing)
         self.assertIn('?page=advisory-market-demo',landing)
         self.assertIn("Before you create an account",public_market_demo_html())
 

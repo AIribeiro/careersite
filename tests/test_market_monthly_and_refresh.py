@@ -71,7 +71,7 @@ class MonthlyObservatoryTests(unittest.TestCase):
         self.assertGreater(len(blob),3000)
         pdf=PdfReader(BytesIO(blob))
         self.assertGreaterEqual(len(pdf.pages),4)
-        content="\n".join(p.extract_text() or "" for p in pdf.pages)
+        content=" ".join(("\n".join(p.extract_text() or "" for p in pdf.pages)).split())
         for phrase in [
             "June-August 2026","16 November 2026","17 November 2026",
             "stockholm","Västra Götaland","No contemporaneous measures",

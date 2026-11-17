@@ -65,6 +65,16 @@ def portfolio_visit_rows(report: dict, kind: str) -> list[dict]:
     return sorted(values, key=lambda row: (-row["Views"], row["Content"]))
 
 
+def advisory_visit_rows(pages: list[dict]) -> list[dict]:
+    """Canonical Advisory landing and service routes, without altering site totals."""
+    selected = []
+    for row in pages:
+        slug = str(row.get("Slug") or "").strip().lower()
+        if slug == "advisory" or slug.startswith(("advisory-", "advisory_", "advisory/")):
+            selected.append(row)
+    return selected
+
+
 def split_editorial_rows(
     articles: list[dict], published_catalogue: list[object],
 ) -> tuple[list[dict], list[dict], list[dict]]:
@@ -262,6 +272,9 @@ def render_public_portfolio_overview() -> None:
     pages = portfolio_visit_rows(report, "page")
     historical_routes = [row for row in pages if row["Slug"] in RETIRED_ROUTES]
     current_routes = [row for row in pages if row["Slug"] not in RETIRED_ROUTES]
+    advisory_pages = advisory_visit_rows(current_routes)
+    advisory_views = sum(row["Views"] for row in advisory_pages)
+    advisory_page_sessions = sum(row["Sessions"] for row in advisory_pages)
     articles = portfolio_visit_rows(report, "article")
     quality = report.get("quality") or {}
     page_views = max(0, int(quality.get("page_views") or 0))
@@ -309,6 +322,17 @@ def render_public_portfolio_overview() -> None:
         # Preserve selected-period views if the independent lifetime service fails.
         # The public dashboard never substitutes selected-period totals as lifetime.
         pass
+    # Advisory is a subset of page traffic. The lightweight lifetime RPC only
+    # returns publication rows, so use the cached all-period canonical page RPC.
+    lifetime_advisory = None
+    try:
+        all_pages = portfolio_visit_rows(
+            report if str(window) == "all" else _fast_portfolio_overview("all"),
+            "page",
+        )
+        lifetime_advisory = sum(row["Views"] for row in advisory_visit_rows(all_pages))
+    except (RuntimeError, ValueError, TimeoutError, PermissionError, TypeError):
+        pass
 
     with st.expander("Reporting context · October navigation change", expanded=False):
         st.caption(
@@ -323,7 +347,7 @@ def render_public_portfolio_overview() -> None:
                 "cohorts. Views are not reassigned to About or Experience."
             )
             _ranking_chart(historical_routes, compact=True)
-    # All four headlines use canonical views, so selected-period values
+    # All five headlines use canonical views, so selected-period values
     # can be compared with the corresponding lifetime view totals.
     # Site-wide sessions remain a separate supporting reach metric.
     cards = [
@@ -384,6 +408,19 @@ def render_public_portfolio_overview() -> None:
             "rows": briefing_rows,
             "available": catalogue_available,
         },
+        {
+            "title": "Advisory",
+            "category": "Services",
+            "measure": "Advisory page views",
+            "views": advisory_views,
+            "lifetime": lifetime_advisory,
+            "sessions": advisory_page_sessions,
+            "sessions_label": "advisory page-item sessions",
+            "items": len(advisory_pages),
+            "item_unit": "destinations viewed",
+            "rank_title": "Top advisory pages",
+            "rows": advisory_pages,
+        },
     ]
     for card in cards:
         card["period_label"] = REPORTING_WINDOW_LABELS.get(str(window), "Selected period")
@@ -391,7 +428,7 @@ def render_public_portfolio_overview() -> None:
 
     # Registration is a distinct user lifecycle event—not another visit or
     # content view. Use the SAME reporting-window selector and calendar
-    # boundaries as the four existing analytics cards.
+    # boundaries as the five analytics cards.
     from portfolio_reader_kpi import reader_registration_totals, reader_registration_kpi
     try:
         reader_counts = reader_registration_totals(str(window))
@@ -406,7 +443,7 @@ def render_public_portfolio_overview() -> None:
 
 
     if site_views is not None:
-        # Place the accounting directly under the four cards. Ordinary page
+        # Place the accounting directly under the five cards. Ordinary page
         # views exclude historical Thinking events; both belong to the site
         # total, while editorial views are already included and are not additive
         # on top of that site-wide total.

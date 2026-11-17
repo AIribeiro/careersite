@@ -1,4 +1,4 @@
-# Market Signals public promise register — Edition 01
+# Market Signals public promise register — Executive Edition 2.0 and original Edition 01 archive
 
 Reviewed: 17 November 2026. Scope: public landing and historical sample, verified
 against Supabase published edition `ai-data-market-review-2026-11-edition-01`,
@@ -6,7 +6,31 @@ the member dashboard code, the full-report PDF generator, and the public
 historical-sample PDF. This is a content and availability audit, not a claim
 that every hosted browser session or publisher endpoint has been rechecked.
 
-## What we can say now
+## Current public publication — Executive Edition 2.0 (17 November 2026)
+
+The public landing page was updated following the independently audited V2 publication.
+Its claims are limited to the signed-off member evidence and reports:
+
+| Public promise | Published evidence / implementation | Interpretation boundary |
+| --- | --- | --- |
+| 43 published observations | `sweden-ai-data-market-review-2026-11-v2` edition archive contains 43 immutable records | Observations are not 43 independent source datasets |
+| Five executive decision perspectives | Five content chapters in `portfolio_market_signal_editorial_v2.analysis` | Analyses and recommendations are editorial judgements, not survey findings |
+| Six research sources | SCB enterprise AI, SCB recruitment needs, derived JobTech v1, Brainville, KI business survey, European Commission Sweden Digital Decade | Survey populations and methods are not interchangeable |
+| Three conditional scenarios, six agenda decisions | Versioned V2 editorial manuscript and authenticated report generator | No probability claim or universal hiring forecast |
+| Full Executive Market Review PDF | `market_intelligence_v2.build_executive_market_pdf` uses the same signed-off edition and manuscript as the reader UI | Requires a verified Advisory member; website deployment must be separately verified |
+| Five focused Executive Decision Brief PDFs | `market_intelligence_v2.build_executive_decision_pdf` keyed to the selected decision perspective | Supporting original evidence retained and linked |
+| 159,500 vacancies, Q2 2026 | SCB LOR survey; 127,500 advertised, 32,100 other recruitment channels | All-economy estimate with survey uncertainty, not AI job count |
+| 110.7 business confidence, October 2026 | KI total-business confidence indicator; past staffing balance 2; expected next staffing balance 7 | Confidence and net balances are not completed recruitment |
+| 68 national Digital Decade measures, EUR 3.55bn | EC Sweden 2026 national Digital Decade roadmap | Combined digital-policy budgets, not AI-exclusive spending or corporate ROI |
+
+The original Edition 01 remains accessible through the frozen monthly archive and
+retains its 30 observations, four original interpretations, three publisher families,
+and the figures and report that were available on 16 November. The public June–August
+research demonstration remains deliberately limited to that historic JobTech basket.
+
+## Original November Edition 01 — historical claim record
+
+## What we could say in Edition 01
 
 | Public claim | Evidence behind it | Important constraint |
 | --- | --- | --- |

@@ -217,8 +217,18 @@ class MaskedForwardingMobileTests(unittest.TestCase):
         )
         self.assertIn("support_masked_mobile_media(CSS + IMAGE_CSS + pathway_css)", main)
         self.assertIn("mount_masked_mobile_fix()", main)
+        # The historical sample intentionally has two public HTML fragments,
+        # with its native PDF between them. Both the single-fragment and
+        # split-fragment paths must render before the mobile adapter runs.
+        self.assertIn("shared_styles = support_masked_mobile_media(", main)
+        self.assertIn("st.html(shared_styles +", main)
+        self.assertIn("st.html('<div class=\"site\">' + demo_closing", main)
         self.assertLess(
-            main.index("st.html(support_masked_mobile_media("),
+            main.index("st.html(shared_styles +"),
+            main.index("    mount_masked_mobile_fix()"),
+        )
+        self.assertLess(
+            main.index("render_public_market_demo_download()"),
             main.index("    mount_masked_mobile_fix()"),
         )
 

@@ -376,13 +376,26 @@ else:
     # Page-specific styles (including Advisory) need the same physical-device
     # breakpoints as the shared CSS when Spaceship serves a 980px masked frame.
     responsive_document = support_masked_mobile_media(page_document)
-    st.html(support_masked_mobile_media(CSS + IMAGE_CSS + pathway_css) + '<div class="site">' + responsive_document + '</div>')
+    shared_styles = support_masked_mobile_media(CSS + IMAGE_CSS + pathway_css)
+    if PAGE == "advisory-market-demo":
+        from page_advisory_market_demo import (
+            split_public_market_demo_at_download,
+            render_public_market_demo_download,
+        )
+        # Streamlit download buttons are native widgets. Mount the document
+        # in two balanced fragments so the PDF is immediately after the
+        # historical findings, BEFORE Where to next and the site-wide footer.
+        demo_reading, demo_closing = split_public_market_demo_at_download(
+            responsive_document
+        )
+        st.html(shared_styles + '<div class="site">' + demo_reading + '</div>')
+        render_public_market_demo_download()
+        st.html('<div class="site">' + demo_closing + '</div>')
+    else:
+        st.html(shared_styles + '<div class="site">' + responsive_document + '</div>')
     # Compensate for mobile devices whose masking-provider frame is ~980px wide.
     # The adapter is inert for normal Streamlit visits and desktop iframes.
     mount_masked_mobile_fix()
-    if PAGE == "advisory-market-demo":
-        from page_advisory_market_demo import render_public_market_demo_download
-        render_public_market_demo_download()
     html_done = perf_counter()
     # Both the preview's free-access invitation and the infographic CTA
     # open one native sign-in dialog anchored to the current publication.

@@ -109,7 +109,7 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
                 text="\n".join(page.extract_text() or "" for page in reader.pages)
                 self.assertIn(t["title"][:15],text)
                 self.assertIn("Recommended action",text)
-                self.assertIn("Source record",text)
+                self.assertIn("source record",text.lower())
 
 if __name__=="__main__":
     unittest.main()

@@ -313,7 +313,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <span class="ms-label">04 / TRY THE RESEARCH</span>
       <h3>See the approach before you sign up.</h3>
       <p>Read a free, five-page example based on our earliest complete set of reviewed leadership job-advertisement records, from June to August 2026. It includes the figures, a chart, the questions they raise and the limits of what we can conclude.</p>
-      <p>This sample was prepared in November 2026 using older JobTech records. It is <strong>not</strong> a full market review from those summer months; later SCB and Brainville figures are not included.</p>
+      <p>This sample was prepared in November 2026 using older JobTech records. It is not a full market review from those summer months; later SCB and Brainville figures are not included.</p>
       <a class="ms-demo-link" href="?page=advisory-market-demo" target="_self"
          data-hq-event="market_signals_public_demo">See the sample and get the PDF</a>
       <div class="ms-proof-question"><strong>What you will see</strong>How we explain a number, consider other explanations and turn it into a useful question for leaders.</div>

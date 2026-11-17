@@ -311,6 +311,30 @@ _PAGE_COPY.update({
 })
 
 
+# The Market Signals public page has an established three-step visitor journey:
+# Advisory overview, historical sample, then the full member review. Preserve
+# those actual destinations within the common footer component.
+_CARDS.update({
+    "advisory-market-demo": (
+        "Historical market evidence", "Explore the Market Observatory",
+        "Examine the historical observations, their sources and limitations.",
+        "Open the observatory",
+    ),
+    "advisory-access&view=market-signals": (
+        "Member research", "Access the complete market review",
+        "Open the verified Advisory account to work with the full report.",
+        "Open the market review",
+    ),
+})
+_PAGE_ROUTES["advisory-market-signals"] = (
+    "advisory", "advisory-market-demo", "advisory-access&view=market-signals",
+)
+_PAGE_COPY["advisory-market-signals"] = (
+    "Continue from the market evidence.",
+    "Return to Advisory, examine the historical example or open the full member review.",
+)
+
+
 def _destinations_for(page: str) -> tuple[Destination, ...]:
     if page == "about":
         return DESTINATIONS
@@ -320,8 +344,11 @@ def _destinations_for(page: str) -> tuple[Destination, ...]:
     routes = list(_PAGE_ROUTES[page])
     # Never advertise a disabled Advisory service to a regular visitor.
     # Verify admin status through the established authorization function.
-    if any(route.startswith("advisory-") and route != "advisory-access"
-           for route in routes):
+    if page != "advisory-market-signals" and any(
+        route in {"advisory-decision", "advisory-rollout", "advisory-scorecard",
+                  "advisory-leadership", "advisory-renewal", "advisory-market-demo"}
+        for route in routes
+    ):
         from advisory_service_visibility import (
             PAGE_SERVICES, service_enabled, viewer_is_admin,
         )
@@ -338,7 +365,7 @@ def _destinations_for(page: str) -> tuple[Destination, ...]:
             routes.append(fallback)
     return tuple(
         Destination(f"{index:02d}", *_CARDS[route], route,
-                    f"{page}_next_{route.replace('-', '_')}")
+                    f"{page}_next_{route.replace('&view=', '_').replace('-', '_')}")
         for index, route in enumerate(routes[:3], 1)
     )
 

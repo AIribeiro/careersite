@@ -10,6 +10,7 @@ from html import escape
 import re
 
 from site_components import footer, nav
+from about_next_navigation import portfolio_next_navigation
 from site_embedded_mobile import support_masked_mobile_media
 
 NATIVE_SHELL_CSS = r"""
@@ -270,6 +271,21 @@ def native_header(page: str, *, navigation_locked: bool = False,
     )
 
 
+
+def _shared_portfolio_next_css() -> str:
+    """Use the canonical public closing-navigation rules in native forms too.
+
+    Only the self-contained final stylesheet section is copied: injecting the
+    entire public CSS would change Streamlit form and account widget layouts.
+    """
+    from site_styles import CSS
+    marker = "/* About closing navigation"
+    if marker not in CSS:
+        return ""
+    rules = marker + CSS.split(marker, 1)[1].split("</style>", 1)[0]
+    return support_masked_mobile_media("<style>" + rules + "</style>")
+
+
 def native_footer(page: str, *, navigation_locked: bool = False) -> str:
     """Real portfolio footer plus contextual support, never credentials."""
     if page == "advisory-access":
@@ -288,11 +304,15 @@ def native_footer(page: str, *, navigation_locked: bool = False) -> str:
     else:
         raise ValueError("Unknown native portfolio page")
     site_footer = footer()
+    next_navigation = portfolio_next_navigation(page)
     if navigation_locked:
         note = _inert_links(note)
+        next_navigation = _inert_links(next_navigation)
         site_footer = _inert_links(site_footer)
     return (
-        '<div class="site native-shell native-shell-footer">'
+        _shared_portfolio_next_css()
+        + '<div class="site native-shell native-shell-footer">'
+        + next_navigation
         + '<div class="native-support" role="note">' + note + '</div>'
         + site_footer + '</div>'
     )

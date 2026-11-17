@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from site_assets import READERS_EMAIL
 from site_components import footer, nav
+from about_next_navigation import portfolio_next_navigation
 from site_image_styles import IMAGE_CSS
 from site_styles import CSS
 from site_embedded_mobile import support_masked_mobile_media
@@ -514,4 +515,5 @@ def reader_footer() -> str:
         '<a href="?page=privacy" target="_self">Privacy &amp; data</a>'
         '</div>'
     )
-    return '<div class="site reader-shell-footer">' + support + footer() + '</div>'
+    return ('<div class="site reader-shell-footer">' + portfolio_next_navigation("readers")
+            + support + footer() + '</div>')

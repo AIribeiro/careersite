@@ -68,6 +68,13 @@ DEMO_CSS="""
 .market-demo-facts span {font-size:12px;color:#5C7082}
 .market-demo-method {border-left:3px solid #AD7956;background:#F0ECE5;padding:21px 25px}
 .market-demo-method p {font-size:13px;margin:4px 0;line-height:1.8}
+.market-demo-hero-links{display:flex;gap:12px 25px;flex-wrap:wrap;align-items:center;margin:25px 0 0!important}
+.market-demo-hero-links a{font-size:13px;font-weight:800;line-height:1.5;color:#f0c8a9!important;text-decoration:underline;text-underline-offset:5px}
+.market-demo-hero-links a:hover,.market-demo-hero-links a:focus-visible{color:#fff!important}
+.market-demo-inline-download{margin:24px 0 0!important}
+.market-demo-inline-download a{color:#193a53!important;font-weight:800;font-size:14px;text-decoration:underline;text-underline-offset:5px}
+.market-demo-inline-download a:focus-visible{outline:2px solid #a97755;outline-offset:4px}
+#market-demo-pdf{scroll-margin-top:20px}
 .market-demo-breadcrumb{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 31px;color:#d5dfe7;font-size:12px;line-height:1.6}
 .market-demo-breadcrumb a{color:#edbb96!important;text-decoration:none!important;font-weight:700}
 .market-demo-breadcrumb a:hover,.market-demo-breadcrumb a:focus-visible{text-decoration:underline!important}
@@ -403,6 +410,11 @@ def public_market_demo_html() -> str:
           <p>Before you create an account, take a look at a short example of our research.
           It examines selected senior AI &amp; Data job advertisements in Sweden
           from June to August 2026, and explains what those figures can—and cannot—tell us.</p>
+          <p class="market-demo-hero-links">
+            <a href="#market-demo-pdf" data-hq-event="market_demo_pdf_jump">Download the free historical PDF ↓</a>
+            <a href="?page=advisory-access&amp;view=market-signals" target="_self"
+               data-hq-event="market_demo_full_review_hero">Access the current Executive Market Review →</a>
+          </p>
         </div></section>
         <section class="market-demo-content"><div class="container">
           <h2>Scope and observations · June–August 2026</h2>
@@ -419,25 +431,48 @@ def public_market_demo_html() -> str:
             The numbers are not all vacancies or completed hires. We reviewed this
             historical selection in November 2026. Later SCB and Brainville research
             is not included in the summer figures.</p></div>
-          
+          <p class="market-demo-inline-download"><a href="#market-demo-pdf"
+            data-hq-event="market_demo_pdf_jump_content">Download the five-page historical review ↓</a></p>
         </div></section>
        </main>"""
     )
 
 
+def split_public_market_demo_at_download(document: str) -> tuple[str,str]:
+    """Return two balanced HTML fragments with the native PDF between them.
+
+    The common Where-to-next navigator and the portfolio footer must remain
+    below the PDF rather than being emitted before the Streamlit button.
+    This is intentionally scoped to the historical sample; other public pages
+    continue using the standard single-document path.
+    """
+    anchor = '<section class="about-next portfolio-next" id="advisory-market-demo-continue"'
+    if document.count(anchor) != 1:
+        raise ValueError("Historical sample closing navigation is unavailable.")
+    idx = document.index(anchor)
+    if '<footer class="footer">' not in document[idx:]:
+        raise ValueError("Historical sample site-wide footer is unavailable.")
+    if "</main>" not in document[idx:]:
+        raise ValueError("Historical sample markup has no closing main.")
+    before = document[:idx] + "</main>"
+    after = '<main class="site">' + document[idx:]
+    return before, after
+
+
 def render_public_market_demo_download() -> None:
-    """Native no-login PDF download, then contextual Advisory navigation and shared footer."""
+    """Free historical PDF in native Streamlit, before shared navigation."""
+    st.html('<div id="market-demo-pdf" aria-hidden="true"></div>')
     with st.container(key="market_demo_native_download"):
         st.html(
-            '<div class="market-demo-download-kicker">HISTORICAL RESEARCH / PUBLIC PDF</div>'
-            '<h2 class="market-demo-download-title">Historical evidence review · June–August 2026</h2>'
+            '<div class="market-demo-download-kicker">FREE HISTORICAL RESEARCH / PDF</div>'
+            '<h2 class="market-demo-download-title">Download the June–August 2026 research sample</h2>'
             '<p class="market-demo-download-lead">'
-            'A five-page PDF with the figures, a chart, alternative explanations, '
-            'questions for a leadership discussion and the source records. '
-            'You can read it without creating an account.</p>'
+            'The five-page review includes monthly and regional figures, a chart, '
+            'alternative explanations, executive discussion questions and original '
+            'source references. No registration is required.</p>'
         )
         st.download_button(
-            "Download historical evidence review · PDF",
+            "Download five-page historical market review · PDF",
             data=public_historical_demo_pdf(),
             file_name="Jair_Ribeiro_Market_Observatory_Public_Demo_Jun_Aug_2026.pdf",
             mime="application/pdf",
@@ -446,34 +481,27 @@ def render_public_market_demo_download() -> None:
             use_container_width=True,
         )
         st.caption(
-            "Source: frozen JobTech v1 June–August 2026 observations; "
-            "archival review 16 November 2026; issued 17 November 2026."
+            "Historical scope: JobTech senior AI & Data advertisements, "
+            "June–August 2026. Prepared November 2026."
         )
     st.html(
         '<div class="site">'
-        '<section class="market-demo-end" aria-labelledby="market-demo-next-title"><div class="container">'
-        '<p class="market-demo-end-kicker">RELATED RESEARCH</p>'
-        '<h2 id="market-demo-next-title">November 2026: The Full Published Review</h2>'
-        '<p class="market-demo-end-lead">This example covers only the earliest reviewed job-advertisement history. '
-        'The November 2026 review adds figures about AI use, data and analytics '
-        'and consulting activity, with a fuller discussion of business decisions.</p>'
-        '<nav class="market-demo-end-grid" aria-label="Continue within Advisory">'
-        '<a class="market-demo-next-card" href="?page=advisory-market-signals" target="_self" '
-        'data-hq-event="market_demo_back_to_service">'
-        '<small>RESEARCH SCOPE</small><h3>Research scope and access</h3>'
-        '<p>Explore the research topics, what is published and what is still being '
-        'checked before you create an account.</p>'
-        '<span class="market-demo-next-link">Back to the Market Signals overview →</span></a>'
+        '<section class="market-demo-end" aria-labelledby="market-demo-next-title">'
+        '<div class="container">'
+        '<p class="market-demo-end-kicker">CURRENT EXECUTIVE RESEARCH</p>'
+        '<h2 id="market-demo-next-title">Looking for the complete November market assessment?</h2>'
+        '<p class="market-demo-end-lead">This free PDF is an older, narrowly focused '
+        'research sample—not the full Executive Market Review 2.0. '
+        'The current report examines AI adoption, workforce demand, business '
+        'conditions, sourcing choices and regional differences, with recommendations '
+        'and supporting evidence. A verified Advisory account gives access to '
+        'the full PDF and five executive decision briefs.</p>'
         '<a class="market-demo-next-card market-demo-next-card--featured" '
         'href="?page=advisory-access&amp;view=market-signals" target="_self" '
         'data-hq-event="market_demo_open_full_observatory">'
-        '<small>PUBLISHED EDITION</small><h3>November 2026 Market Review</h3>'
-        '<p>Read the November research report, explore published figures and download '
-        'decision briefs. A free account is required.</p>'
-        '<span class="market-demo-next-link">Open the full research →</span></a>'
-        '</nav>'
-        '<a class="market-demo-end-home" href="?page=advisory" target="_self" '
-        'data-hq-event="market_demo_all_advisory">Browse all Advisory services →</a>'
-        '</div></section>'
-        + footer() + '</div>'
+        '<small>COMPLETE EXECUTIVE MARKET REVIEW 2.0</small>'
+        '<h3>Read and download the current research</h3>'
+        '<span class="market-demo-next-link">Access the full report · Free account →</span>'
+        '</a>'
+        '</div></section></div>'
     )

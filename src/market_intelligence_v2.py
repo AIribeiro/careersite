@@ -26,7 +26,7 @@ from market_review_premium import (
 )
 
 REQUIRED_TOP = (
-    "title", "issue_date", "assessment", "cover_assessment", "why_it_matters",
+    "title", "issue_date", "assessment", "cover_assessment", "reading_note", "why_it_matters",
     "what_changed", "themes", "decision_agenda", "outlook",
     "methodology_note",
 )
@@ -257,8 +257,8 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
         "AI adoption and market recruitment are different business signals",
         editorial["why_it_matters"],sty=s))
     story.append(Spacer(1,16))
-    story.append(P("Editorial correction and evidence scope","h2",sty=s))
-    story.append(P(editorial.get("correction_note") or "Recommendations are editorial interpretations rather than direct statistical findings.","body_compact",sty=s))
+    story.append(P("How to read this edition","h2",sty=s))
+    story.append(P(editorial["reading_note"],"body_compact",sty=s))
     story.append(P("What changed since the earlier research","h2",sty=s))
     story.append(P(editorial["what_changed"],"body",sty=s))
     story.append(P("Five decision perspectives","h2",sty=s))
@@ -523,8 +523,7 @@ def render_executive_intelligence(streamlit, editorial: dict,
         '<h4>What has changed</h4><p>'+
         html_escape(editorial["what_changed"])+'</p></section>'
     )
-    if editorial.get("correction_note"):
-        st.caption(editorial["correction_note"])
+    st.caption(editorial["reading_note"])
     st.markdown("#### Download the complete executive market review")
     st.caption(
         "Complete November research report: five executive analyses, "

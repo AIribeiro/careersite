@@ -381,6 +381,13 @@ def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
         "The practical output is a capability decision with accountable ownership, "
         "a sourcing comparison and an evidence threshold for revisiting the choice.",
         sty=sty))
+    story.append(Spacer(1,16))
+    story.append(P("A practical starting rule","h2",sty=sty))
+    story.append(metric_cards([
+        ("BUILD","Permanent capability","Own repeated, decision-critical work internally."),
+        ("CONTRACT","Time-bound expertise","Require a handover, exit terms and retained accountability."),
+        ("TEST","Unproven mandate","Validate the business outcome before committing to a position."),
+    ],sty=sty))
     story.append(PageBreak())
 
     # PAGE 5: transparency remains complete, but is no longer the product.

@@ -312,8 +312,9 @@ def inject_live_home_update() -> None:
       // This live announcement must never push visible content around while
       // a visitor is reading it. Keep the reliable published first frame and
       // retry on the next refresh once the section has left the viewport.
-      const bounds = root.getBoundingClientRect();
-      if (bounds.bottom > 0 && bounds.top < window.parent.innerHeight) return;
+      const bounds = typeof root.getBoundingClientRect === "function"
+        ? root.getBoundingClientRect() : null;
+      if (bounds && bounds.bottom > 0 && bounds.top < window.parent.innerHeight) return;
       const latest = candidates[0].row;
       const kind = labelFor(latest);
       const meta = root.querySelector("[data-news-meta]");

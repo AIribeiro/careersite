@@ -398,27 +398,27 @@ def public_market_demo_html() -> str:
             <span aria-hidden="true">/</span>
             <span aria-current="page">Historical sample</span>
           </nav>
-          <p class="eyebrow">Public example / No registration needed</p>
-          <h1>The earliest Market Observatory evidence.</h1>
-          <p>A downloadable historical research sample using the first three complete
-          months of our approved Swedish AI &amp; Data leadership title-basket.
-          See how the service separates what is measurable from what remains unknown.</p>
+          <p class="eyebrow">A look inside / Public research example</p>
+          <h1>See how we examine the market—not just the headline.</h1>
+          <p>Before you create an account, take a look at a short example of our research.
+          It examines selected senior AI &amp; Data job advertisements in Sweden
+          from June to August 2026, and explains what those figures can—and cannot—tell us.</p>
         </div></section>
         <section class="market-demo-content"><div class="container">
-          <h2>Historical market sample · June-August 2026</h2>
-          <p>This is a retrospective analysis prepared in November 2026.
-          It is not an edition published during those summer months,
-          and it does not claim to represent the entire AI, Data and Analytics market.</p>
+          <h2>A closer look at leadership job adverts · June–August 2026</h2>
+          <p>We prepared this five-page example in November 2026 using older JobTech records.
+          It was not published during the summer, and it covers a selected set of
+          job titles rather than the whole AI &amp; Data labour market.</p>
           <div class="market-demo-facts">
-            <div><strong>12</strong><span>Swedish qualifying advertisements · June 2026</span></div>
-            <div><strong>15</strong><span>Swedish qualifying advertisements · July 2026</span></div>
-            <div><strong>10</strong><span>Swedish qualifying advertisements · August 2026</span></div>
+            <div><strong>12</strong><span>Selected Swedish job advertisements · June 2026</span></div>
+            <div><strong>15</strong><span>Selected Swedish job advertisements · July 2026</span></div>
+            <div><strong>10</strong><span>Selected Swedish job advertisements · August 2026</span></div>
           </div>
-          <div class="market-demo-method"><p><strong>Evidence boundary.</strong>
-            The original data was reviewed on 16 November 2026 using the frozen
-            JobTech v1 method. No later-published SCB adoption or Brainville
-            consulting data is included. The full member Observatory
-            contains additional, separately approved source families.</p></div>
+          <div class="market-demo-method"><p><strong>What these figures cover.</strong>
+            We counted a defined selection of senior AI &amp; Data job advertisements.
+            The numbers are not all vacancies or completed hires. We reviewed this
+            historical selection in November 2026. Later SCB and Brainville research
+            is not included in the summer figures.</p></div>
           
         </div></section>
        </main>"""
@@ -429,15 +429,15 @@ def render_public_market_demo_download() -> None:
     """Native no-login PDF download, then contextual Advisory navigation and shared footer."""
     with st.container(key="market_demo_native_download"):
         st.html(
-            '<div class="market-demo-download-kicker">THE RESEARCH / OPEN ACCESS</div>'
-            '<h2 class="market-demo-download-title">Download the historical Market Observatory</h2>'
+            '<div class="market-demo-download-kicker">A PREVIEW OF THE RESEARCH</div>'
+            '<h2 class="market-demo-download-title">Read the historical market sample</h2>'
             '<p class="market-demo-download-lead">'
-            'A five-page PDF with the original figures, alternative interpretations, '
-            'executive decision questions and complete evidence register. '
-            'No registration required.</p>'
+            'A five-page PDF with the figures, a chart, alternative explanations, '
+            'questions for a leadership discussion and the source records. '
+            'You can read it without creating an account.</p>'
         )
         st.download_button(
-            "Download the public historical Market Observatory · PDF",
+            "Download the five-page research sample · PDF",
             data=public_historical_demo_pdf(),
             file_name="Jair_Ribeiro_Market_Observatory_Public_Demo_Jun_Aug_2026.pdf",
             mime="application/pdf",
@@ -452,25 +452,25 @@ def render_public_market_demo_download() -> None:
     st.html(
         '<div class="site">'
         '<section class="market-demo-end" aria-labelledby="market-demo-next-title"><div class="container">'
-        '<p class="market-demo-end-kicker">YOUR NEXT STEP / ADVISORY</p>'
-        '<h2 id="market-demo-next-title">Continue with the evidence.</h2>'
-        '<p class="market-demo-end-lead">This public sample shows the method. '
-        'Go back to the service overview or open the full member Observatory '
-        'for published editions and decision dashboards.</p>'
+        '<p class="market-demo-end-kicker">WHERE TO GO NEXT</p>'
+        '<h2 id="market-demo-next-title">Explore the full research at your own pace.</h2>'
+        '<p class="market-demo-end-lead">This example covers only the earliest reviewed job-advertisement history. '
+        'The November 2026 review adds figures about AI use, data and analytics '
+        'and consulting activity, with a fuller discussion of business decisions.</p>'
         '<nav class="market-demo-end-grid" aria-label="Continue within Advisory">'
         '<a class="market-demo-next-card" href="?page=advisory-market-signals" target="_self" '
         'data-hq-event="market_demo_back_to_service">'
-        '<small>PREVIOUS / THE SERVICE</small><h3>Back to Market Signals</h3>'
-        '<p>See the full service proposition, its editorial method and what is '
-        'available to registered readers.</p>'
-        '<span class="market-demo-next-link">Explore the service overview →</span></a>'
+        '<small>ABOUT THE SERVICE</small><h3>See what Market Signals offers</h3>'
+        '<p>Explore the research topics, what is published and what is still being '
+        'checked before you create an account.</p>'
+        '<span class="market-demo-next-link">Back to the Market Signals overview →</span></a>'
         '<a class="market-demo-next-card market-demo-next-card--featured" '
         'href="?page=advisory-access&amp;view=market-signals" target="_self" '
         'data-hq-event="market_demo_open_full_observatory">'
-        '<small>NEXT / THE FULL RESEARCH</small><h3>Open the full Observatory</h3>'
-        '<p>Explore the published research, eight decision dashboards and monthly versions. '
-        'Registration is free.</p>'
-        '<span class="market-demo-next-link">Continue to the Observatory →</span></a>'
+        '<small>READ THE FULL REPORT</small><h3>Read the complete November review</h3>'
+        '<p>Read the November research report, explore published figures and download '
+        'decision briefs. A free account is required.</p>'
+        '<span class="market-demo-next-link">Open the full research →</span></a>'
         '</nav>'
         '<a class="market-demo-end-home" href="?page=advisory" target="_self" '
         'data-hq-event="market_demo_all_advisory">Browse all Advisory services →</a>'

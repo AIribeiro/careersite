@@ -24,6 +24,7 @@ on:
       - 'tests/test_market_monthly_and_refresh.py'
       - 'tests/test_market_review_premium.py'
       - 'tests/test_market_signals_landing.py'
+      - 'tests/test_market_signals_claims_contract.py'
       - 'tests/test_market_chart_labels.py'
       - 'tests/test_market_observatory.py'
       - 'tests/test_market_signals_management.py'
@@ -68,6 +69,7 @@ jobs:
             tests/test_market_monthly_and_refresh.py \
             tests/test_market_review_premium.py \
             tests/test_market_signals_landing.py \
+            tests/test_market_signals_claims_contract.py \
             tests/test_market_chart_labels.py \
             tests/test_market_observatory.py \
             tests/test_market_signals_management.py
@@ -161,6 +163,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_market_chart_labels.py' -v
       - name: Verify premium Market Signals public landing and access links
         run: python -m unittest discover -s tests -p 'test_market_signals_landing.py' -v
+      - name: Verify reader promises against actual reports, evidence and approved dashboards
+        run: python -m unittest discover -s tests -p 'test_market_signals_claims_contract.py' -v
       - name: Verify monthly archives, all-source refresh and public historic PDF
         run: python -m unittest discover -s tests -p 'test_market_monthly_and_refresh.py' -v
       - name: Verify market observatory and public-data isolation

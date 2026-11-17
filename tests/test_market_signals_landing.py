@@ -49,30 +49,30 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_executive_target_and_decision_value_are_explicit(self):
         for phrase in (
-            "The AI &amp; Data market, beyond the headlines.",
-            "Heads of AI",
+            "Make sense of Sweden's AI &amp; Data market.",
+            "For AI, Data and Analytics leaders",
             "Build, recruit or contract?",
-            "Is adoption outpacing organisational readiness?",
-            "What can you defend in the management meeting?",
+            "Is AI changing the work?",
+            "What can we confidently tell the leadership team?",
             "Market Observatory",
-            "Executive Market Review",
-            "Decision briefs &amp; evidence ledger",
+            "Complete AI &amp; Data Market Review",
+            "Decision briefs &amp; source list",
         ):
             self.assertIn(phrase,self.page)
 
     def test_high_value_examples_are_exact_dated_edition_01_scope(self):
         for phrase in (
             "Published 16 November 2026",
-            "source-linked observations",
-            "publisher families",
-            "four" if False else "executive analyses",
+            "published data points",
+            "data sources",
+            "written analyses",
             "49<span>%</span>",
             "85%",
             "29",
             "+10.7",
             "+18.5",
             "October 2026",
-            "different populations",
+            "measure different things",
         ):
             self.assertIn(phrase.lower(),self.page.lower())
         self.assertNotIn("AI jobs increased 45%",self.page)
@@ -85,7 +85,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
             "Enterprise adoption &amp; capabilities",
             "AI skills &amp; management economics",
             "Consulting &amp; sector conditions",
-            "Cross-source interpretations",
+            "Interpretations &amp; trade-offs",
             "Explore market trends",
             "Sources &amp; measurement",
         ]
@@ -140,12 +140,12 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_explicitly_honest_on_vintages_and_cross_source_logic(self):
         for claim in (
-            "not a claim that every market indicator updates in real time",
-            "not a count of every AI vacancy",
-            "not AI specialists alone",
-            "not statistical causation",
-            "not every staged source is part of Edition 01",
-            "No individual approval",
+            "not a live forecast",
+            "not a count of all vacancies",
+            "not AI/Data specialists alone",
+            "not a full market review from those summer months",
+            "not published in Edition 01",
+            "no personal approval is needed",
         ):
             self.assertIn(claim.lower(),self.page.lower())
 

@@ -15,13 +15,17 @@ Its claims are limited to the signed-off member evidence and reports:
 | --- | --- | --- |
 | 43 published observations | `sweden-ai-data-market-review-2026-11-v2` edition archive contains 43 immutable records | Observations are not 43 independent source datasets |
 | Five executive decision perspectives | Five content chapters in `portfolio_market_signal_editorial_v2.analysis` | Analyses and recommendations are editorial judgements, not survey findings |
-| Six research sources | SCB enterprise AI, SCB recruitment needs, derived JobTech v1, Brainville, KI business survey, European Commission Sweden Digital Decade | Survey populations and methods are not interchangeable |
+| Six evidence series / five publishing organisations | SCB enterprise AI, SCB recruitment needs, derived JobTech v1, Brainville, KI business survey, European Commission Sweden Digital Decade | Two series are from SCB; distinct measures are not independently replicated findings |
 | Three conditional scenarios, six agenda decisions | Versioned V2 editorial manuscript and authenticated report generator | No probability claim or universal hiring forecast |
-| Full Executive Market Review PDF | `market_intelligence_v2.build_executive_market_pdf` uses the same signed-off edition and manuscript as the reader UI | Requires a verified Advisory member; website deployment must be separately verified |
+| Full Executive Market Review PDF | `market_intelligence_v2.build_executive_market_pdf` uses the signed-off edition and manuscript, an authored cover summary and source-level methods, populations, caveats and dates | Requires a verified Advisory member; website deployment and authenticated download must be separately verified |
 | Five focused Executive Decision Brief PDFs | `market_intelligence_v2.build_executive_decision_pdf` keyed to the selected decision perspective | Supporting original evidence retained and linked |
-| 159,500 vacancies, Q2 2026 | SCB LOR survey; 127,500 advertised, 32,100 other recruitment channels | All-economy estimate with survey uncertainty, not AI job count |
+| 159,500 vacancies, Q2 2026 | SCB LOR survey; 127,500 advertised, 32,100 where employers recruited using other channels | All-economy estimate; the vacancies are not completed hires, rounded components may differ and YoY +8% is within uncertainty |
 | 110.7 business confidence, October 2026 | KI total-business confidence indicator; past staffing balance 2; expected next staffing balance 7 | Confidence and net balances are not completed recruitment |
 | 68 national Digital Decade measures, EUR 3.55bn | EC Sweden 2026 national Digital Decade roadmap | Combined digital-policy budgets, not AI-exclusive spending or corporate ROI |
+
+**Editorial correction record (17 Nov 2026):** the landing-page headline no longer describes other-channel vacancies as jobs already filled. The executive manuscript no longer compares AI use growth against unmeasured capability and hiring growth rates. The cover is authored within length limits. PDF source registers disclose methodology, denominator, caveat, publication and verification vintage per observation. The exact [JobTech v1 selection and reproduction contract](market_signals/JOBTECH_V1_REPRODUCTION.md) is published without embedded service credentials; the historical API can still revise results. These corrections do not change numeric evidence records.
+
+**Verification boundary:** automated content tests, render preflight and GitHub checks are not equivalent to a signed-in download from the live hosted domain. Never mark that step complete based solely on CI.
 
 The original Edition 01 remains accessible through the frozen monthly archive and
 retains its 30 observations, four original interpretations, three publisher families,

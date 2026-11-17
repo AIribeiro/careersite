@@ -67,7 +67,10 @@ def load_market_archives(token: str) -> list[dict]:
 def archive_option_label(item: dict) -> str:
     date_label=_month_label(item["month_start"])
     if item["archive_kind"]=="published_edition":
-        return f"{date_label} · Full published edition"
+        slug=str(item.get("edition_slug") or "")
+        if slug.endswith("-v2"):
+            return f"{date_label} · Executive analysis 2.0"
+        return f"{date_label} · Original published edition"
     return f"{date_label} · Retrospective leadership archive"
 
 

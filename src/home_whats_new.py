@@ -26,6 +26,19 @@ ROOT = Path(__file__).resolve().parents[1]
 # Use the date the public item became available, not a routine file edit date.
 SITE_RELEASES = (
     {
+        "type": "Executive research",
+        "title": "Sweden’s AI & Data Market: Evidence for Executive Decisions",
+        "description": (
+            "The November 2026 review goes beyond job listings to examine AI adoption, "
+            "recruitment demand, business confidence and regional conditions. "
+            "Five executive perspectives, three outlook scenarios and practical "
+            "recommendations draw on 43 published observations from six sources."
+        ),
+        "date": "2026-11-17T09:47:15+01:00",
+        "href": "?page=advisory-market-signals",
+        "cta": "Read the executive review",
+    },
+    {
         "type": "Page update",
         "title": "AI & Data Governance — Executive Framework",
         "description": "Explore the illustrated framework for enterprise AI and data ownership, decisions and controls.",
@@ -90,6 +103,10 @@ def _static_items() -> tuple[NewsItem, ...]:
                 href=_safe_relative_href(row["href"]),
                 cta=row["cta"],
             ))
+    # Editorial releases outrank machine-discovered route descriptions. A
+    # historical sample, unpublished utility or generic placeholder is never
+    # promoted just because a route was created after the actual service.
+    curated_hrefs = {row["href"] for row in SITE_RELEASES}
     # GitHub release workflow appends public page/credential launch events here.
     # This file is tiny, local to the deployment, and requires no network call.
     try:
@@ -100,13 +117,22 @@ def _static_items() -> tuple[NewsItem, ...]:
     for row in published:
         if not isinstance(row, dict):
             continue
+        description = str(row.get("description") or "").strip()
+        href = str(row.get("href") or "")
+        if (
+            row.get("promote_home") is False
+            or href in curated_hrefs
+            or href.endswith("-demo")
+            or description in {"", "Discover the newly published portfolio page."}
+        ):
+            continue
         moment = _timestamp(row.get("date", ""))
         if moment is None or not all(isinstance(row.get(k), str) and row[k] for k in ("type", "title", "href")):
             continue
         items.append(NewsItem(
             type=row["type"],
             title=row["title"],
-            description=str(row.get("description") or ""),
+            description=description,
             published_at=moment,
             href=_safe_relative_href(row["href"]),
             cta=str(row.get("cta") or "Explore the update"),
@@ -185,17 +211,17 @@ def latest_local_release(now: datetime | None = None) -> NewsItem:
 
 NEWS_CSS = """<style>
 .site .home-news-strip{background:#f3f0eb;border-bottom:1px solid #ded5ca}
-.site .home-news-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding-top:14px;padding-bottom:15px;text-align:center}
-.site .home-news-copy{min-width:0;width:100%;max-width:920px;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center}
+.site .home-news-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding-top:22px;padding-bottom:23px;text-align:center}
+.site .home-news-copy{min-width:0;width:100%;max-width:960px;display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center}
 .site .home-news-overline{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:11px;font:800 10px/1.4 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
 .site .home-news-heading{color:#a66b48}
 .site .home-news-meta{color:#7c7d7c;letter-spacing:.07em}
 .site .home-news-overline .home-news-dot{width:5px;height:5px;border-radius:50%;background:#c48e6c}
-.site .home-news-title{color:#1a2d41;font:500 clamp(18px,2vw,23px)/1.17 Georgia,serif;letter-spacing:-.012em;margin:0;overflow-wrap:anywhere}
-.site .home-news-summary{display:block;font:400 12px/1.5 Arial,sans-serif;color:#596675;max-width:820px;margin:0 auto;text-align:center}
-.site .home-news-link{display:inline-flex;align-items:center;justify-content:center;gap:9px;flex:0 0 auto;align-self:center;min-height:32px;padding:4px 0;margin:2px auto 0;border-bottom:1px solid #a87856;color:#233d56!important;text-decoration:none!important;font:750 12px/1.3 Arial,sans-serif;white-space:nowrap}
+.site .home-news-title{color:#1a2d41;font:500 clamp(23px,2.8vw,31px)/1.2 Georgia,serif;letter-spacing:-.012em;margin:0;overflow-wrap:anywhere}
+.site .home-news-summary{display:block;font:400 clamp(13px,1.25vw,15px)/1.68 Arial,sans-serif;color:#435669;max-width:860px;margin:0 auto;text-align:center}
+.site .home-news-link{display:inline-flex;align-items:center;justify-content:center;gap:9px;flex:0 0 auto;align-self:center;min-height:36px;padding:6px 0;margin:5px auto 0;border-bottom:1px solid #a87856;color:#233d56!important;text-decoration:none!important;font:750 13px/1.4 Arial,sans-serif;white-space:nowrap}
 .site .home-news-link:hover,.site .home-news-link:focus-visible{color:#955c39!important;border-bottom-color:#955c39}
-@media(max-width:760px){.site .home-news-inner{gap:5px;padding-top:13px;padding-bottom:14px}.site .home-news-copy{max-width:100%}.site .home-news-link{align-self:center;margin:3px auto 0}}
+@media(max-width:760px){.site .home-news-inner{gap:7px;padding-top:18px;padding-bottom:19px}.site .home-news-copy{max-width:100%}.site .home-news-link{align-self:center;margin:3px auto 0}}
 @media(prefers-reduced-motion:reduce){.site .home-news-link{transition:none}}
 </style>"""
 

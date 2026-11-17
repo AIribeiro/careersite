@@ -75,7 +75,7 @@ class MonthlyObservatoryTests(unittest.TestCase):
         for phrase in [
             "June-August 2026","16 November 2026","17 November 2026",
             "stockholm","Västra Götaland","No contemporaneous measures",
-            "not a report published","jobtech_v1_jun_se","jobtech_v1_aug_vgr",
+            "must not be described as a report published","jobtech_v1_jun_se","jobtech_v1_aug_vgr",
             "12","15","10",
         ]:
             self.assertIn(phrase.casefold(),content.casefold())

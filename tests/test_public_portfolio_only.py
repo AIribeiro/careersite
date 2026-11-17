@@ -27,6 +27,24 @@ class PortfolioOnlyAccessTests(unittest.TestCase):
         self.assertEqual(portfolio_visit_rows(report, "page")[0]["Views"], 9)
         self.assertEqual(len(portfolio_visit_rows(report, "article")), 2)
 
+    def test_advisory_pages_are_a_non_additive_subset(self):
+        from page_public_portfolio_overview import advisory_visit_rows, portfolio_visit_rows
+        report = {"performance": [
+            {"kind": "page", "content": "Home", "views": 35, "sessions": 22},
+            {"kind": "page", "content": "Advisory", "views": 1, "sessions": 1},
+            {"kind": "page", "content": "Advisory-Market-Signals", "views": 5, "sessions": 5},
+            {"kind": "page", "content": "Advisory-Market-Demo", "views": 2, "sessions": 2},
+            {"kind": "article", "content": "advisory-example", "views": 4, "sessions": 3},
+            {"kind": "page", "content": "advisory-not-realistic", "views": 0, "sessions": 0},
+        ]}
+        pages = portfolio_visit_rows(report, "page")
+        advisory = advisory_visit_rows(pages)
+        self.assertEqual(sum(row["Views"] for row in advisory), 8)
+        self.assertEqual(len(advisory), 3)
+        self.assertEqual(sum(row["Sessions"] for row in advisory), 8)
+        self.assertEqual(sum(row["Views"] for row in pages), 43)
+        self.assertNotIn("Home", [row["Content"] for row in advisory])
+
     def test_public_entry_does_not_route_to_hiring_renderers(self):
         from page_analytics_v2 import _render_public_analytics
         from streamlit.testing.v1 import AppTest

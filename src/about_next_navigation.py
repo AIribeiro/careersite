@@ -112,19 +112,235 @@ _PAGE_COPY = {
 }
 
 
+# These routes use the same design, vocabulary and measurement as the core pages.
+# Account routes point to their existing authenticated entrypoints only.
+_CARDS.update({
+    "home": [
+        "Portfolio",
+        "Portfolio home",
+        "Start with the experience, perspectives and services available here.",
+        "Return home"
+    ],
+    "advisory": [
+        "Executive advisory",
+        "Explore Advisory",
+        "Decision-support services for AI investment, adoption and governance.",
+        "Explore Advisory"
+    ],
+    "readers": [
+        "Reader library",
+        "Premium Reader Library",
+        "Complete Executive AI Briefings, current articles and Weekly AI.",
+        "Open the library"
+    ],
+    "advisory-decision": [
+        "AI investment",
+        "Investment Decision Advisor",
+        "Examine the case for an AI investment before committing resources.",
+        "Explore the advisor"
+    ],
+    "advisory-rollout": [
+        "AI adoption",
+        "Rollout Readiness Advisor",
+        "Examine organizational readiness before extending an AI rollout.",
+        "Explore the advisor"
+    ],
+    "advisory-scorecard": [
+        "AI portfolio",
+        "Portfolio Prioritization Scorecard",
+        "Compare initiatives and record the reasoning behind priorities.",
+        "Explore the scorecard"
+    ],
+    "advisory-leadership": [
+        "Executive leadership",
+        "AI Leadership Workshop",
+        "Examine leadership readiness and work through executive dilemmas.",
+        "Explore the workshop"
+    ],
+    "advisory-renewal": [
+        "AI portfolio",
+        "Portfolio Renewal Advisor",
+        "Reconsider whether an existing AI initiative deserves further investment.",
+        "Explore the advisor"
+    ],
+    "advisory-market-signals": [
+        "Market intelligence",
+        "AI & Data Market Signals",
+        "Examine sourced market evidence and its limits.",
+        "Explore market signals"
+    ]
+})
+_PAGE_ROUTES.update({
+    "home": [
+        "impact",
+        "thinking",
+        "advisory"
+    ],
+    "briefings": [
+        "thinking",
+        "readers",
+        "advisory"
+    ],
+    "briefing": [
+        "briefings",
+        "thinking",
+        "advisory"
+    ],
+    "advisory": [
+        "advisory-decision",
+        "briefings",
+        "impact"
+    ],
+    "advisory-scorecard": [
+        "advisory",
+        "briefings",
+        "ai-data-governance"
+    ],
+    "advisory-rollout": [
+        "advisory",
+        "thinking",
+        "ai-data-governance"
+    ],
+    "advisory-decision": [
+        "advisory",
+        "briefings",
+        "ai-data-governance"
+    ],
+    "advisory-leadership": [
+        "advisory",
+        "impact",
+        "briefings"
+    ],
+    "advisory-renewal": [
+        "advisory",
+        "briefings",
+        "thinking"
+    ],
+    "advisory-market-signals": [
+        "advisory",
+        "thinking",
+        "impact"
+    ],
+    "advisory-market-demo": [
+        "advisory",
+        "thinking",
+        "briefings"
+    ],
+    "readers": [
+        "briefings",
+        "thinking",
+        "advisory"
+    ],
+    "advisory-access": [
+        "advisory",
+        "readers",
+        "briefings"
+    ],
+    "analytics": [
+        "thinking",
+        "briefings",
+        "advisory"
+    ],
+    "privacy": [
+        "home",
+        "thinking",
+        "advisory"
+    ]
+})
+_PAGE_COPY.update({
+    "home": [
+        "Explore the work behind this portfolio.",
+        "Continue with leadership experience, published perspectives or executive advisory."
+    ],
+    "briefings": [
+        "Take the next step from the briefings.",
+        "Explore the wider writing, access the reader library or consider an executive decision-support service."
+    ],
+    "briefing": [
+        "Continue beyond this briefing.",
+        "Read other executive decisions, explore the wider analysis or examine the Advisory services."
+    ],
+    "advisory": [
+        "Explore the evidence behind the advice.",
+        "Move from executive decision support to related briefings and the leadership experience behind the approach."
+    ],
+    "advisory-scorecard": [
+        "Continue with the wider decision.",
+        "Explore the other Advisory services, relevant briefings and the governance approach."
+    ],
+    "advisory-rollout": [
+        "Connect rollout readiness with the wider work.",
+        "Continue with Advisory, published analysis or the governance principles behind adoption."
+    ],
+    "advisory-decision": [
+        "Continue beyond the investment choice.",
+        "Explore Advisory, executive briefings and practical governance considerations."
+    ],
+    "advisory-leadership": [
+        "Connect leadership with real decisions.",
+        "Explore related Advisory support, leadership experience and executive briefings."
+    ],
+    "advisory-renewal": [
+        "Revisit the wider portfolio question.",
+        "Explore Advisory, executive briefings and other perspectives on AI investment."
+    ],
+    "advisory-market-signals": [
+        "Put market evidence in context.",
+        "Continue with Advisory, the published analysis or leadership experience."
+    ],
+    "advisory-market-demo": [
+        "Continue beyond the market example.",
+        "Explore the Advisory offer, published perspectives and executive briefings."
+    ],
+    "readers": [
+        "Continue exploring the portfolio.",
+        "Discover the complete briefings collection, wider writing and available Advisory services."
+    ],
+    "advisory-access": [
+        "Continue exploring the portfolio.",
+        "Review the Advisory services, visit your Reader library or explore executive briefings."
+    ],
+    "analytics": [
+        "Explore the published work.",
+        "Continue with executive perspectives, briefings or Advisory services."
+    ],
+    "privacy": [
+        "Return to the portfolio.",
+        "Explore the portfolio, read published perspectives or review the Advisory services."
+    ]
+})
+
+
 def _destinations_for(page: str) -> tuple[Destination, ...]:
     if page == "about":
         return DESTINATIONS
     if page not in _PAGE_ROUTES:
         raise ValueError(f"Unsupported portfolio navigation page: {page}")
-    return tuple(
-        Destination(
-            f"{index:02d}", *_CARDS[route], route,
-            f"{page}_next_{route.replace('-', '_').replace('&view=', '_')}"
-        )
-        for index, route in enumerate(_PAGE_ROUTES[page], 1)
-    )
 
+    routes = list(_PAGE_ROUTES[page])
+    # Never advertise a disabled Advisory service to a regular visitor.
+    # Verify admin status through the established authorization function.
+    if any(route.startswith("advisory-") and route != "advisory-access"
+           for route in routes):
+        from advisory_service_visibility import (
+            PAGE_SERVICES, service_enabled, viewer_is_admin,
+        )
+        admin = viewer_is_admin()
+        routes = [
+            route for route in routes
+            if route not in PAGE_SERVICES
+            or service_enabled(PAGE_SERVICES[route], admin=admin)
+        ]
+    for fallback in ("briefings", "thinking", "impact", "ai-data-governance", "about", "advisory", "home"):
+        if len(routes) >= 3:
+            break
+        if fallback != page and fallback not in routes:
+            routes.append(fallback)
+    return tuple(
+        Destination(f"{index:02d}", *_CARDS[route], route,
+                    f"{page}_next_{route.replace('-', '_')}")
+        for index, route in enumerate(routes[:3], 1)
+    )
 
 def portfolio_next_navigation(page: str) -> str:
     """Render the same three-card closing design, tailored to the current page."""

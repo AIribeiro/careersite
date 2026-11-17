@@ -235,14 +235,15 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
       "title":"AI & Data Market Review",
       "subtitle":editorial["title"],
       "assessment":editorial["assessment"],
+      "question":"Where should capital, talent and governance move first - and what would change our mind?",
       "edition":"EXECUTIVE EDITION 2.0 / SWEDEN",
       "issue":editorial["issue_date"],
       "metrics":[
         (_value(idx["scb_2026_ai_10plus"]),"Enterprises using AI",
          "Sweden 2026 | Firms with 10+ staff"),
-        (_value(idx["scb_lor_2026q2_total"]),"Vacant positions",
-         "Q2 2026 | All recruitment channels"),
-        (_value(idx["jobtech_v1_oct_se"]),"Senior AI/Data adverts",
+        (_value(idx["scb_2026_ai_250plus"]),"Large firms using AI",
+         "2026 | Enterprises with 250+ staff"),
+        (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),"Senior AI/Data adverts",
          "October 2026 | Selected title basket"),
       ],
     }
@@ -262,7 +263,8 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
             P(f"{i:02d} / {t['title']}","h2",sty=s),
             P(t["thesis"],"body_compact",sty=s)
         ]))
-    story.append(PageBreak())
+    story.append(Spacer(1,14))
+    story.append(CondPageBreak(285))
 
     section(story,"02 / The evidence",
         "Read different measurements together - without adding them",
@@ -304,7 +306,8 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
           "SCB whole-economy Q2 2026 survey estimates. These are not AI-specific "
           "opportunities and must not be added to JobTech title counts.",
           "caption",sty=s))
-    story.append(PageBreak())
+    story.append(Spacer(1,18))
+    story.append(CondPageBreak(310))
 
     for i,t in enumerate(editorial["themes"],1):
         story.append(CondPageBreak(255))
@@ -407,6 +410,7 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         "title":"Executive Decision Brief",
         "subtitle":theme["title"],
         "assessment":theme["thesis"]+" "+theme["implication"],
+        "question":"Which decision would you revisit if the next evidence release contradicts your assumption?",
         "edition":"MARKET SIGNALS / "+theme_key.upper(),
         "issue":editorial["issue_date"],
         "metrics":metrics,
@@ -443,9 +447,6 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
     story.append(Spacer(1,15))
     story.append(P("What would change our assessment","h2",sty=s))
     story.append(P(theme["monitor"],"body",sty=s))
-    story.append(P(
-        "Research boundary: "+editorial["methodology_note"],
-        "body_small",sty=s))
     story.append(PageBreak())
 
     section(story,"03 / Evidence trail",

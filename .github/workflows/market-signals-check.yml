@@ -18,6 +18,7 @@ on:
       - 'src/page_public_services.py'
       - 'src/page_reader_native.py'
       - 'src/site_reader_navigation.py'
+      - 'tests/test_advisory_session_navigation.py'
       - 'main.py'
       - 'tests/test_market_signals.py'
       - 'tests/test_market_monthly_and_refresh.py'
@@ -164,5 +165,7 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_market_monthly_and_refresh.py' -v
       - name: Verify market observatory and public-data isolation
         run: python -m unittest discover -s tests -p 'test_market_observatory.py' -v
+      - name: Verify new public demo in session-preserving navigation
+        run: python -m unittest discover -s tests -p 'test_advisory_session_navigation.py' -v
       - name: Verify owner operations and publication-control boundaries
         run: python -m unittest discover -s tests -p 'test_market_signals_management.py' -v

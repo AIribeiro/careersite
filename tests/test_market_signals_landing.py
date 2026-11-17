@@ -169,6 +169,19 @@ class MarketSignalsLandingTests(unittest.TestCase):
         ):
             self.assertNotIn(obsolete,self.page)
 
+    def test_three_material_selection_biases_are_publicly_explained(self):
+        html=MARKET_SIGNALS_LANDING_HTML
+        for phrase in (
+            "exact point-in-time reproduction is not guaranteed",
+            "operations, digital, product and commercial titles",
+            "Changes in platform participation may also affect",
+            "switched to SNI 2025",
+            "exact replication is not assured",
+            "not a market forecast",
+        ):
+            self.assertIn(phrase,html)
+        self.assertNotIn("author-defined, reproducible set",html)
+
     def test_all_eight_real_dashboard_topics_present(self):
         expected=[
             "Executive evidence overview",

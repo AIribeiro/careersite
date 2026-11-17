@@ -26,7 +26,7 @@ from market_review_premium import (
 )
 
 REQUIRED_TOP = (
-    "title", "issue_date", "assessment", "cover_assessment", "reading_note", "why_it_matters",
+    "version", "title", "issue_date", "assessment", "cover_assessment", "reading_note", "why_it_matters",
     "what_changed", "themes", "decision_agenda", "outlook",
     "methodology_note",
 )
@@ -82,6 +82,8 @@ def validate_editorial(payload: dict, points: list[dict], edition_slug: str) -> 
         raise ValueError("Executive research edition is incomplete.")
     if payload.get("edition_slug") != edition_slug:
         raise ValueError("The editorial analysis is not bound to this evidence edition.")
+    if not re.fullmatch(r"[0-9]+\.[0-9]+(?:\.[0-9]+)?",str(payload["version"])):
+        raise ValueError("Executive edition version is invalid.")
     if not 100 <= len(str(payload["cover_assessment"])) <= 500:
         raise ValueError("Cover assessment must be concise and complete, not truncated.")
     by_code = {str(p.get("code")): p for p in points}
@@ -175,7 +177,7 @@ def _value(point):
     unit=point.get("metric_unit")
     return _num(n)+("%" if unit=="percent" else
                     "% YoY" if unit=="percent YoY" else
-                    " advertisements" if unit=="advertisements" else
+                    (" advertisement" if n==1 else " advertisements") if unit=="advertisements" else
                     " "+str(unit or ""))
 
 
@@ -238,7 +240,7 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
       "subtitle":editorial["title"],
       "assessment":editorial["cover_assessment"],
       "question":"Which decisions does this evidence support - and what remains unknown?",
-      "edition":"EXECUTIVE EDITION 2.0 / SWEDEN",
+      "edition":"EXECUTIVE EDITION "+editorial["version"]+" / SWEDEN",
       "issue":editorial["issue_date"],
       "metrics":[
         (_value(idx["scb_2026_ai_10plus"]),"Enterprises using AI",
@@ -261,12 +263,15 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     story.append(P(editorial["reading_note"],"body_compact",sty=s))
     story.append(P("What changed since the earlier research","h2",sty=s))
     story.append(P(editorial["what_changed"],"body",sty=s))
-    story.append(P("Five decision perspectives","h2",sty=s))
+    perspectives=[P("Five decision perspectives","h2",sty=s)]
     for i,t in enumerate(editorial["themes"],1):
-        story.append(KeepTogether([
+        perspectives.extend([
             P(f"{i:02d} / {t['title']}","h2",sty=s),
             P(t["thesis"],"body_compact",sty=s)
-        ]))
+        ])
+    # A five-part executive preview is one editorial unit; never orphan its
+    # heading at the foot of the preceding page.
+    story.append(KeepTogether(perspectives))
     story.append(Spacer(1,14))
     story.append(CondPageBreak(285))
 
@@ -356,7 +361,7 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     # Keep the next agenda with the downside scenario if space permits.
     # A forced new page previously left one scenario almost alone.
     story.append(Spacer(1,18))
-    story.append(CondPageBreak(275))
+    story.append(CondPageBreak(515))
 
     section(story,"09 / Executive decision agenda",
         "Decisions to take into the next executive meeting",
@@ -366,10 +371,9 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     agenda=[(x["decision"],x["owner"],x["horizon"],x["action"])
             for x in editorial["decision_agenda"]]
     story.append(decision_table(agenda,sty=s))
-    # Keep appendix evidence alongside the final decision entries where space
-    # permits; a forced break produced a nearly empty agenda continuation.
-    story.append(Spacer(1,18))
-    story.append(CondPageBreak(280))
+    # The six decisions should finish together rather than carry a single
+    # table row onto the source appendix page.
+    story.append(PageBreak())
 
     section(story,"10 / Research transparency",
         "Source and observation register",
@@ -380,36 +384,30 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     story.append(P(
        "Research method and limits: "+editorial["methodology_note"],
        "body_small",sty=s))
-    story.append(Spacer(1,9))
-    story.append(Spacer(1,13))
-    story.append(P(
-       "Interpretation and selection risks: SCB changed its enterprise industry "
-       "coverage in 2026, limiting direct year-on-year comparison. The JobTech "
-       "leadership-title basket excludes many operational and product leaders "
-       "with AI responsibility and is too small to estimate national hiring. "
-       "Brainville reflects one broad consulting marketplace rather than an "
-       "AI-specialist census. In-house data analytics staffing is not a measure "
-       "of operating readiness or realised business benefit.",
-       "body_small",sty=s))
+    story.append(Spacer(1,10))
     story.append(Paragraph(
        'JobTech selected-title evidence: '
        '<link href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" color="#1F5773">'
-       'query seeds, headline classifier, deduplication and revision limitations</link>.',
+       'search seeds, classifier, exclusions and retrospective revision limits</link>.',
        s["body_small"]))
     story.append(P(
-       "Source measurements describe different populations. Survey uptake "
-       "is not return on investment; digital roadmap budgets are not company "
-       "AI spending; vacancy advertisements are not hiring outcomes. "
-       "Partial months are not extrapolated.",
+       "The source-series register prints each complete methodology and "
+       "limitation once. Every observation below cites its exact method and "
+       "limit number, original publisher, population and verification date. "
+       "None of these unrelated indicators is a company AI return estimate.",
        "body_small",sty=s))
-    story.append(Spacer(1,9))
-    story.append(P("Source-series methods and limitations","h2",sty=s))
-    story.append(source_family_methods(points,sty=s))
-    story.append(Spacer(1,15))
-    story.append(P("Observation register: populations, caveats and source dates","h2",sty=s))
+    # Never leave the methods heading stranded at the end of an introduction.
+    story.append(KeepTogether([
+        P("Source-series methods and limitations","h2",sty=s),
+        source_family_methods(points,sty=s),
+    ]))
+    story.append(Spacer(1,13))
+    story.append(CondPageBreak(145))
+    story.append(P("Observation register: population, source and dates","h2",sty=s))
+
     story.append(sources_table(points,_value,sty=s,include_provenance=True,compact_provenance=True))
     return assemble(story,cover,
-      "Jair Ribeiro | Swedish AI and Data Market Review | Executive Edition 2.0",
+      "Jair Ribeiro | Swedish AI and Data Market Review | Executive Edition "+editorial["version"],
       min_bytes=10000)
 
 
@@ -449,7 +447,7 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         "subtitle":theme["title"],
         "assessment":theme["thesis"]+" "+theme["implication"],
         "question":"Which decision would you revisit if the next evidence release contradicts your assumption?",
-        "edition":"MARKET SIGNALS / "+theme_key.upper(),
+        "edition":"EDITION "+editorial["version"]+" / "+theme_key.upper(),
         "issue":editorial["issue_date"],
         "metrics":metrics,
     }
@@ -503,7 +501,7 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
        "own performance baseline, workforce capabilities, risk posture and "
        "operational constraints.", "body_small",sty=s))
     return assemble(story,cover,
-        "Jair Ribeiro | Executive Decision Brief | "+theme["title"],
+        "Jair Ribeiro | Executive Decision Brief "+editorial["version"]+" | "+theme["title"],
         min_bytes=5000)
 
 
@@ -535,7 +533,7 @@ def render_executive_intelligence(streamlit, editorial: dict,
         "Download complete Executive Market Review · PDF",
         data=full,mime="application/pdf",
         file_name="Jair_Ribeiro_Market_Signals_Executive_Review_"+
-                  editorial["issue_date"]+".pdf",
+                  editorial["issue_date"]+"_v"+editorial["version"]+".pdf",
         key="market_v2_complete_pdf",type="primary",use_container_width=True,
         on_click=record_event,args=(member_token,"pdf_review","all",edition_slug))
     tabs=[LENS_LABELS[k] for k in LENSES]
@@ -590,6 +588,6 @@ def render_executive_intelligence(streamlit, editorial: dict,
     st.download_button(
         "Download this Executive Decision Brief · PDF",
         data=focused,mime="application/pdf",
-        file_name="Jair_Ribeiro_Market_Signals_"+choice+".pdf",
+        file_name="Jair_Ribeiro_Market_Signals_"+choice+"_v"+editorial["version"]+".pdf",
         key="market_v2_decision_pdf",use_container_width=True,
         on_click=record_event,args=(member_token,"pdf_decision",choice,edition_slug))

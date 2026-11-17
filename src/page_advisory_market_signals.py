@@ -265,14 +265,14 @@ MARKET_SIGNALS_LANDING_HTML = """
     </div>
     <aside class="ms-edition" aria-label="Published research edition">
       <small>November 2026 / Published edition</small>
-      <h2>AI &amp; Data Market Review<br>Executive Edition 2.0.1</h2>
+      <h2>AI &amp; Data Market Review<br>Executive Edition 2.0.2</h2>
       <p>Published 17 November 2026. Five executive decision perspectives, three conditional outlook scenarios and a management action agenda interpret six reviewed evidence series from five publishing organisations. Their methods and populations differ.</p>
       <div class="ms-edition-counts">
         <div><strong>43</strong><span>published observations</span></div>
         <div><strong>5</strong><span>executive decision perspectives</span></div>
         <div><strong>6</strong><span>evidence series · 5 publishers</span></div>
       </div>
-      <p class="ms-edition-note">All figures retain their reporting periods and limitations. This edition is not a live market forecast.</p>
+      <p class="ms-edition-note">All figures retain their reporting periods and limitations. This edition is not a market forecast, a comprehensive AI recruitment census or a measure of realised AI business return.</p>
     </aside>
   </div>
 </div></section>
@@ -281,7 +281,7 @@ MARKET_SIGNALS_LANDING_HTML = """
   <div class="ms-section-head">
     <div><p class="ms-overline">November 2026 / Published observations</p>
       <h2 id="ms-findings-title">What the published evidence shows—and where its limits lie.</h2></div>
-    <p class="ms-section-intro">The selected findings below illustrate distinct types of evidence in Executive Edition 2.0.1. No single measure proves AI business value or a market-wide shortage of specialist leaders. The public historical sample remains separate from the full research.</p>
+    <p class="ms-section-intro">The selected findings below illustrate distinct types of evidence in Executive Edition 2.0.2. No single measure proves AI business value or a market-wide shortage of specialist leaders. The public historical sample remains separate from the full research.</p>
   </div>
   <div class="ms-proofs">
     <article class="ms-proof">
@@ -296,7 +296,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <span class="ms-label">02 / Senior leadership advertisements</span>
       <h3>Senior AI &amp; Data advertisements: a selective observed sample.</h3>
       <div class="ms-number">29</div>
-      <p>Our frozen JobTech title classifier counted 29 advertisements for selected senior AI and Data/Analytics titles in Sweden in October 2026. This is a small sample of indexed advertisements, not all roles, completed appointments or a national hiring trend.</p>
+      <p>Our frozen 30-seed JobTech title classifier counted 29 selected senior AI and Data/Analytics advertisements in Sweden in October 2026. Roles under operations, digital, product and commercial titles can be missed. This indexed sample is not a national hiring trend or a count of completed appointments; exact point-in-time reproduction is not guaranteed.</p>
       <div class="ms-proof-question"><strong>Executive consideration</strong>Before recruiting, have you agreed what this leader needs to own and deliver?</div>
       <p class="ms-proof-source"><a href="https://historical.api.jobtechdev.se/search" target="_blank" rel="noopener noreferrer">Source: Arbetsförmedlingen JobTech, selected titles</a> · October 2026 · <a href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" target="_blank" rel="noopener noreferrer">Method and reproduction limits</a></p>
     </article>
@@ -307,7 +307,7 @@ MARKET_SIGNALS_LANDING_HTML = """
         <div>+10.7<span>%</span><small>Listed assignments · YoY</small></div>
         <div>+18.5<span>%</span><small>Available consultants · YoY</small></div>
       </div>
-      <p>Brainville reported both increases in its Swedish marketplace for October 2026 compared with a year earlier. They describe different groups across many professions, not AI/Data specialists alone.</p>
+      <p>Brainville reported both increases in its Swedish marketplace for October 2026 compared with a year earlier. They describe activity on one platform across many professions, not AI/Data specialists alone. Changes in platform participation may also affect the year-on-year comparison.</p>
       <div class="ms-proof-question"><strong>Executive consideration</strong>What should your team learn to do itself, and where would outside expertise really help?</div>
       <p class="ms-proof-source"><a href="https://www.brainville.com/sv/Blog/Post/1923" target="_blank" rel="noopener noreferrer">Source: Brainville, October 2026 market report</a></p>
     </article>
@@ -408,7 +408,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <div class="ms-format-bottom">Interactive views · Historical records · Source details</div></article>
     <article class="ms-format"><small>02 / DOWNLOAD A4 PDF</small>
       <h3>Complete AI &amp; Data Market Review</h3>
-      <p>Executive Edition 2.0.1 examines enterprise AI use, observed recruitment and staffing signals, organisational capabilities, consulting choices and regional recruitment considerations. It includes five substantive analyses, scenarios, a leadership decision agenda and an appendix tracing all 43 approved observations.</p>
+      <p>Executive Edition 2.0.2 examines enterprise AI use, observed recruitment and staffing signals, organisational capabilities, consulting choices and regional recruitment considerations. It includes five substantive analyses, scenarios, a leadership decision agenda and an appendix tracing all 43 approved observations.</p>
       <div class="ms-format-bottom">17 November 2026 · Full executive research PDF · Sources</div></article>
     <article class="ms-format"><small>03 / USE IN A MEETING</small>
       <h3>Executive Decision Briefs and source register</h3>
@@ -426,9 +426,9 @@ MARKET_SIGNALS_LANDING_HTML = """
   <div class="ms-standard">
     <div>
       <ul class="ms-source-list">
-        <li><strong>Statistics Sweden (SCB)</strong>National survey figures on AI use, data analysis and barriers to adoption. The 2026 survey changed its industry coverage, which matters for year-on-year comparisons.</li>
-        <li><strong>Arbetsförmedlingen JobTech</strong>An author-defined, reproducible set of headline-classified senior AI/Data advertisements from public records. It is not a count of all vacancies or completed hires; API revisions may change retrospective results. <a href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" target="_blank" rel="noopener noreferrer">Selection method and limitations</a>.</li>
-        <li><strong>Brainville</strong>October 2026 changes in a broad Swedish consulting marketplace. These figures do not measure AI-specialist availability.</li>
+        <li><strong>Statistics Sweden (SCB)</strong>National survey figures on AI use, data analysis and non-adoption barriers. The 2026 survey expanded industry coverage and switched to SNI 2025; comparisons with earlier years require a like-for-like population check.</li>
+        <li><strong>Arbetsförmedlingen JobTech</strong>An author-defined, documented 30-seed, headline-classified sample of senior AI/Data advertisements. Titles outside the classifier can be missed; historical API results may change and exact replication is not assured. It is not a count of all AI leadership roles, vacancies or hires. <a href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" target="_blank" rel="noopener noreferrer">Selection method and limitations</a>.</li>
+        <li><strong>Brainville</strong>October 2026 listing changes on Brainville's marketplace across many consulting disciplines. Platform participation and coverage can change; these figures do not establish Swedish consultant-market totals or AI-specialist availability.</li>
         <li><strong>SCB Recruitment Needs and Vacancies</strong>Survey estimates covering advertised and non-advertised vacancies, including uncertainty and regional comparisons.</li>
         <li><strong>Konjunkturinstitutet</strong>Swedish business confidence, recent staffing and future employment intentions; the measures are not actual hires.</li>
         <li><strong>European Commission</strong>Sweden's Digital Decade roadmap, policy priorities and planned budgets; not AI-only investment or company ROI.</li>
@@ -452,7 +452,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <h2 id="ms-cta-title">November 2026: Research and supporting evidence.</h2>
       <p>Read the November executive analysis, explore the underlying evidence and download substantial decision briefs for your leadership team. Recommendations describe choices and conditions; company-specific decisions still require internal facts.</p>
       <div class="ms-actions">
-        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_final_register">Access Executive Edition 2.0.1 · Free account</a>
+        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_final_register">Access Executive Edition 2.0.2 · Free account</a>
         <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;signin=1" target="_self" data-hq-event="market_signals_final_signin">Already registered? Sign in</a>
       </div>
     </div>
@@ -913,7 +913,7 @@ def render_private_market_signals(session: dict, user: dict) -> None:
             st.warning(
                 "This original November executive edition is retained as an "
                 "historical evidence record. Some editorial statements have "
-                "been corrected in Executive Edition 2.0.1. For current "
+                "been corrected in Executive Edition 2.0.2. For current "
                 "management decisions, select the corrected edition above."
             )
             render_market_observatory(points,historical=False)

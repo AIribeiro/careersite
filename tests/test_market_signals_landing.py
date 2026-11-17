@@ -252,7 +252,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
     def test_explicitly_honest_on_vintages_and_cross_source_logic(self):
         for claim in (
             "not a market forecast",
-            "not a count of all vacancies",
+            "not a count of all AI leadership roles, vacancies or hires",
             "not AI/Data specialists alone",
             "not a full market review from those summer months",
             "not published in the current edition",

@@ -131,10 +131,9 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
         pages=PdfReader(BytesIO(raw)).pages
         all_text="\n".join(page.extract_text() or "" for page in pages)
         for term in (
-            "Population / denominator", "How measured / derived",
-            "What it cannot establish", "Research checked:",
-            "Source family:", "query seeds, headline classifier",
-            "Interpretation and selection risks",
+            "Population:", "Research method / limitation:",
+            "Method 1:", "Limit 1:", "Published:", "Verified:",
+            "query seeds, classifier", "Source-series methods and limitations",
         ):
             self.assertIn(term,all_text)
         for point_record in self.points:
@@ -164,7 +163,7 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
     def test_sources_require_full_provenance(self):
         broken=json.loads(json.dumps(self.points))
         broken[0].pop("population_note")
-        with self.assertRaisesRegex(ValueError,"missing population_note"):
+        with self.assertRaisesRegex(ValueError,"missing provenance"):
             build_executive_market_pdf(broken,self.editorial,SLUG)
 
     def test_full_report_download_is_visible_before_decision_drilldown(self):

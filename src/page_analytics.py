@@ -78,6 +78,7 @@ def _dashboard_payload(window: str) -> dict[str, object]:
     raise ValueError("Unsupported analytics reporting window.")
 
 
+@st.cache_data(ttl=45, max_entries=24, show_spinner=False)
 def _fetch_dashboard(window: str) -> dict:
     endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{DASHBOARD_RPC}"
     payload = json.dumps(_dashboard_payload(window)).encode("utf-8")

@@ -25,6 +25,7 @@ from thinking_articles import resolve_article
 ARTICLE_DASHBOARD_RPC = "careersite_analytics_articles_v2"
 
 
+@st.cache_data(ttl=60, max_entries=24, show_spinner=False)
 def _fetch_article_dashboard(window: str) -> dict:
     endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{ARTICLE_DASHBOARD_RPC}"
     payload = json.dumps(_dashboard_payload(window)).encode("utf-8")

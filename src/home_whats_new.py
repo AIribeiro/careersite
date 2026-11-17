@@ -309,6 +309,12 @@ def inject_live_home_update() -> None:
       if (!candidates.length || candidates[0].time <= localPublished) return;
       const root = doc.querySelector("#home-whats-new");
       if (!root) return;
+      // This live announcement must never push visible content around while
+      // a visitor is reading it. Keep the reliable published first frame and
+      // retry on the next refresh once the section has left the viewport.
+      const bounds = typeof root.getBoundingClientRect === "function"
+        ? root.getBoundingClientRect() : null;
+      if (bounds && bounds.bottom > 0 && bounds.top < window.parent.innerHeight) return;
       const latest = candidates[0].row;
       const kind = labelFor(latest);
       const meta = root.querySelector("[data-news-meta]");

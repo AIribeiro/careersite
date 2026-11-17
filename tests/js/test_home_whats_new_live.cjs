@@ -16,7 +16,12 @@ const elements = {
     setAttribute(key, value) {this.attrs[key] = value;}
   },
 };
-const root = {querySelector(selector){return elements[selector] || null;}};
+// The first CMS response arrives while the announcement is visible.
+const bounds = {top: 110, bottom: 350};
+const root = {
+  querySelector(selector){return elements[selector] || null;},
+  getBoundingClientRect(){return bounds;}
+};
 const listeners = {};
 const doc = {
   visibilityState: 'visible',
@@ -25,7 +30,8 @@ const doc = {
 };
 const requests = [];
 let intervalMs;
-globalThis.window = {parent: {document: doc}, addEventListener() {}};
+let refreshInterval;
+globalThis.window = {parent: {document: doc, innerHeight: 850}, addEventListener() {}};
 globalThis.fetch = async (url, opts) => {
   requests.push({url, opts});
   return {ok: true, async json() {return [
@@ -43,15 +49,20 @@ globalThis.fetch = async (url, opts) => {
 };
 globalThis.setTimeout = () => 1;
 globalThis.clearTimeout = () => {};
-globalThis.setInterval = (_callback, ms) => {intervalMs = ms; return 2;};
+globalThis.setInterval = (callback, ms) => {intervalMs = ms; refreshInterval = callback; return 2;};
 globalThis.AbortController = class {signal = {}; abort() {}};
 // Clock is fixed so future CMS issues can be tested against a published
 // November 17 market research edition, irrespective of CI wall-clock time.
 Date.now = () => Date.parse('2026-11-19T09:00:00+00:00');
 vm.runInThisContext(match[1]);
-setImmediate(() => {
+setImmediate(async () => {
   try {
     assert.equal(requests.length, 1, 'Must fetch immediately on page load');
+    assert.equal(elements['[data-news-title]'].textContent, '',
+      'A live CMS update must not move an announcement currently visible to the reader');
+    bounds.top = 1350;
+    bounds.bottom = 1600;
+    await refreshInterval();
     assert.match(requests[0].url, /status=eq\.published/);
     assert.equal(elements['[data-news-meta]'].textContent.startsWith('Executive briefing · '), true);
     assert.equal(elements['[data-news-title]'].textContent,
@@ -61,6 +72,7 @@ setImmediate(() => {
       '?page=briefing&article=ai-adoption-four-leadership-responses');
     assert.equal(elements['[data-news-link]'].textContent, 'Read the briefing →');
     assert.equal(elements['[data-news-link]'].attrs['data-hq-content-type'], 'briefing');
+    assert.equal(requests.length, 2, 'Should refresh only when the next scheduled check runs');
     assert.equal(intervalMs, 120000);
     assert.equal(typeof listeners.visibilitychange, 'function');
     process.stdout.write('Executive Briefing automatic homepage refresh: passed\n');

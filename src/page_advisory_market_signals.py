@@ -266,11 +266,11 @@ MARKET_SIGNALS_LANDING_HTML = """
     <aside class="ms-edition" aria-label="Published research edition">
       <small>November 2026 / Published edition</small>
       <h2>AI &amp; Data Market Review<br>Executive Edition 2.0</h2>
-      <p>Published 17 November 2026. Five executive decision perspectives, three conditional outlook scenarios and a management action agenda connect six verified evidence sources to investment, capability, hiring and sourcing choices.</p>
+      <p>Published 17 November 2026. Five executive decision perspectives, three conditional outlook scenarios and a management action agenda interpret six reviewed evidence series from five publishing organisations. Their methods and populations differ.</p>
       <div class="ms-edition-counts">
         <div><strong>43</strong><span>published observations</span></div>
         <div><strong>5</strong><span>executive decision perspectives</span></div>
-        <div><strong>6</strong><span>research sources</span></div>
+        <div><strong>6</strong><span>evidence series · 5 publishers</span></div>
       </div>
       <p class="ms-edition-note">All figures retain their reporting periods and limitations. This edition is not a live market forecast.</p>
     </aside>
@@ -294,11 +294,11 @@ MARKET_SIGNALS_LANDING_HTML = """
     </article>
     <article class="ms-proof">
       <span class="ms-label">02 / Senior leadership advertisements</span>
-      <h3>Senior AI &amp; Data recruitment: a limited observed sample.</h3>
+      <h3>Senior AI &amp; Data advertisements: a selective observed sample.</h3>
       <div class="ms-number">29</div>
-      <p>Our defined JobTech search found 29 advertisements in Sweden for selected senior AI and Data/Analytics job titles in October 2026. This is a small, selective sample—not a count of all vacancies or people hired.</p>
+      <p>Our frozen JobTech title classifier counted 29 advertisements for selected senior AI and Data/Analytics titles in Sweden in October 2026. This is a small sample of indexed advertisements, not all roles, completed appointments or a national hiring trend.</p>
       <div class="ms-proof-question"><strong>Executive consideration</strong>Before recruiting, have you agreed what this leader needs to own and deliver?</div>
-      <p class="ms-proof-source"><a href="https://historical.api.jobtechdev.se/search" target="_blank" rel="noopener noreferrer">Source: Arbetsförmedlingen JobTech, selected titles</a> · October 2026</p>
+      <p class="ms-proof-source"><a href="https://historical.api.jobtechdev.se/search" target="_blank" rel="noopener noreferrer">Source: Arbetsförmedlingen JobTech, selected titles</a> · October 2026 · <a href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" target="_blank" rel="noopener noreferrer">Method and reproduction limits</a></p>
     </article>
     <article class="ms-proof">
       <span class="ms-label">03 / Consulting market activity</span>
@@ -313,9 +313,9 @@ MARKET_SIGNALS_LANDING_HTML = """
     </article>
     <article class="ms-proof">
       <span class="ms-label">04 / Total recruitment demand</span>
-      <h3>Many Swedish vacancies are filled through channels other than advertisements.</h3>
+      <h3>Not all Swedish recruitment opportunities are advertised.</h3>
       <div class="ms-number">159,500</div>
-      <p>SCB estimated 159,500 vacant positions across the Swedish economy in Q2 2026: 127,500 advertised and 32,100 where employers sought candidates through other channels. These are survey estimates, not AI-specific job counts. The 8% year-on-year increase lies within statistical uncertainty.</p>
+      <p>SCB estimated 159,500 vacancies across the Swedish economy in Q2 2026: about 127,500 advertised and 32,100 where employers sought candidates through other channels. These estimates describe vacancies and recruitment methods, not positions successfully filled or AI-specific hiring. Rounded components may not sum exactly. The reported 8% year-on-year change lies within statistical uncertainty.</p>
       <div class="ms-proof-question"><strong>Executive consideration</strong>Are we choosing the right mix of external recruiting, internal development and specialist support?</div>
       <p class="ms-proof-source"><a href="https://www.scb.se/hitta-statistik/statistik-efter-amne/arbetsmarknad/efterfragan-pa-arbetskraft/lediga-jobb-och-rekryteringsbehov/pong/statistiknyhet/lediga-jobb-och-rekryteringsbehov-2a-kvartalet-2026/" target="_blank" rel="noopener noreferrer">Source: SCB Recruitment Needs and Vacancies, Q2 2026</a></p>
     </article>
@@ -408,7 +408,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <div class="ms-format-bottom">Interactive views · Historical records · Source details</div></article>
     <article class="ms-format"><small>02 / DOWNLOAD A4 PDF</small>
       <h3>Complete AI &amp; Data Market Review</h3>
-      <p>Executive Edition 2.0 examines enterprise AI adoption, workforce demand, business capabilities, consulting choices and regional differences. It includes five substantive analyses, scenarios, a leadership decision agenda and an appendix tracing all 43 approved observations.</p>
+      <p>Executive Edition 2.0 examines enterprise AI use, observed recruitment and staffing signals, organisational capabilities, consulting choices and regional recruitment considerations. It includes five substantive analyses, scenarios, a leadership decision agenda and an appendix tracing all 43 approved observations.</p>
       <div class="ms-format-bottom">17 November 2026 · Full executive research PDF · Sources</div></article>
     <article class="ms-format"><small>03 / USE IN A MEETING</small>
       <h3>Executive Decision Briefs and source register</h3>
@@ -421,13 +421,13 @@ MARKET_SIGNALS_LANDING_HTML = """
   <div class="ms-section-head">
     <div><p class="ms-overline">Sources and methods</p>
       <h2 id="ms-standards-title">Source provenance, definitions and limitations.</h2></div>
-    <p class="ms-section-intro">Every figure in the published edition has a source, date, defined group and explanation of its limits. We distinguish what the publisher measured from what we think it may mean for a leader.</p>
+    <p class="ms-section-intro">Every published observation is tied to a source, reporting date, defined population and documented limitations. The full report and focused PDFs include those qualifications alongside the editorial interpretation. None of the six series measures company-specific AI investment return.</p>
   </div>
   <div class="ms-standard">
     <div>
       <ul class="ms-source-list">
         <li><strong>Statistics Sweden (SCB)</strong>National survey figures on AI use, data analysis and barriers to adoption. The 2026 survey changed its industry coverage, which matters for year-on-year comparisons.</li>
-        <li><strong>Arbetsförmedlingen JobTech</strong>A selected set of senior AI/Data job advertisements drawn from public records. It is not a count of all vacancies or completed hires.</li>
+        <li><strong>Arbetsförmedlingen JobTech</strong>An author-defined, reproducible set of headline-classified senior AI/Data advertisements from public records. It is not a count of all vacancies or completed hires; API revisions may change retrospective results. <a href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" target="_blank" rel="noopener noreferrer">Selection method and limitations</a>.</li>
         <li><strong>Brainville</strong>October 2026 changes in a broad Swedish consulting marketplace. These figures do not measure AI-specialist availability.</li>
         <li><strong>SCB Recruitment Needs and Vacancies</strong>Survey estimates covering advertised and non-advertised vacancies, including uncertainty and regional comparisons.</li>
         <li><strong>Konjunkturinstitutet</strong>Swedish business confidence, recent staffing and future employment intentions; the measures are not actual hires.</li>

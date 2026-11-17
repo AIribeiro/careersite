@@ -633,17 +633,29 @@ def _ledger(points:list[dict]) -> None:
     st.caption("Historic revisions retain their publication provenance; additional source families enter only after owner editorial approval.")
 
 
-def render_market_observatory(points:list[dict]) -> None:
-    """Full market-intelligence dashboards, scoped to reviewed/published evidence."""
+def render_market_observatory(points:list[dict], *, historical:bool=False) -> None:
+    """Full edition or explicitly limited retrospective monthly source snapshot."""
     st.html(CSS)
     st.markdown("### AI & Data Market Observatory")
-    st.caption(
-        "Sweden-focused · Source-led · Professional and enterprise AI/Data signals · "
-        "No personal pipeline or individual employment forecasts"
-    )
-    section=st.selectbox("Explore dashboard",list(DASHBOARDS),
-        format_func=lambda k:DASHBOARDS[k],
-        key="market_observatory_section",help="One mobile-friendly selector, eight decision-oriented dashboards.")
+    if historical:
+        st.caption(
+            "Retrospective historical title-basket snapshot · Only evidence confirmed for "
+            "the selected publication month · No later survey or consulting figures"
+        )
+        allowed={"demand":DASHBOARDS["demand"],
+                 "trends":DASHBOARDS["trends"],"ledger":DASHBOARDS["ledger"]}
+        key="market_observatory_historical_section"
+    else:
+        st.caption(
+            "Sweden-focused · Source-led · Professional and enterprise AI/Data signals · "
+            "No personal pipeline or individual employment forecasts"
+        )
+        allowed=DASHBOARDS
+        key="market_observatory_section"
+    section=st.selectbox("Explore dashboard",list(allowed),
+        format_func=lambda k:allowed[k],
+        key=key,help=("Historical source views cannot fabricate later market measures."
+            if historical else "Eight decision-oriented dashboards."))
     st.divider()
     if section=="pulse":_executive_pulse(points)
     elif section=="demand":_demand(points)

@@ -15,6 +15,7 @@ from html import escape
 from io import BytesIO
 
 import streamlit as st
+from reportlab.graphics.shapes import Drawing,Rect,String,Line
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
@@ -111,6 +112,28 @@ def _frame(canv,doc):
     canv.restoreState()
 
 
+def _historical_national_chart(months:list[str], lookup:dict) -> Drawing:
+    """Print-ready labelled bars for the original national cohort only."""
+    width=WIDTH
+    height=122
+    bar_bottom=28
+    max_count=max(1,max(int(lookup.get((m,"Sweden"),0)) for m in months))
+    chart=Drawing(width,height)
+    chart.add(Line(0,bar_bottom,width,bar_bottom,strokeColor=RULE))
+    slot=width/max(1,len(months))
+    for i,month in enumerate(months):
+        n=int(lookup.get((month,"Sweden"),0))
+        x=slot*(i+.5)
+        bar_h=80*n/max_count
+        chart.add(Rect(x-21,bar_bottom,42,max(1,bar_h),fillColor=INK,strokeColor=None))
+        chart.add(Rect(x-21,bar_bottom+bar_h-3,42,3,fillColor=ACCENT,strokeColor=None))
+        chart.add(String(x-6,bar_bottom+bar_h+7,str(n),fontName="Helvetica-Bold",
+                         fontSize=11,fillColor=INK))
+        chart.add(String(x-17,8,date.fromisoformat(month+"-01").strftime("%b %Y"),
+                         fontName="Helvetica",fontSize=8,fillColor=MUTED))
+    return chart
+
+
 def _records_for_month(points:list[dict],month_label:str) -> dict[str,int]:
     out={}
     for point in points:
@@ -198,7 +221,11 @@ def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
        ("BOTTOMPADDING",(0,0),(-1,-1),12),
        ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
     ]))
-    story.append(t);story.append(Spacer(1,15))
+    story.append(t);story.append(Spacer(1,13))
+    if len(months)>1:
+        add("National title-basket trend · complete months only","section")
+        story.append(_historical_national_chart(months,lookup))
+        story.append(Spacer(1,12))
     if len(months)>1:
         add("Reading a small series","section")
         add("The national sequence is "+", ".join(

@@ -356,9 +356,9 @@ else:
     raw_document = render_page()
     # Related editorial reading belongs before the site-wide closing navigator,
     # so the same navigator is the last content section on every public route.
-    raw_document = inject_writing_footer(raw_document, PAGE, article_slug=str(ARTICLE_QUERY or ""))
+    page_document = inject_writing_footer(raw_document, PAGE, article_slug=str(ARTICLE_QUERY or ""))
     page_document = inject_portfolio_continuation(
-        raw_document,
+        page_document,
         PAGE,
         article_slug=str(ARTICLE_QUERY or ""),
         weekly_archive=(str(st.query_params.get("weekly_ai", "")).lower() == "archive"),

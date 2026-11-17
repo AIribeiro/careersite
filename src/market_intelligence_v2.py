@@ -43,7 +43,7 @@ LENS_LABELS = {
     "workforce": "Workforce and leadership capabilities",
     "operating_model": "Data and AI operating models",
     "sourcing": "Sourcing and consulting decisions",
-    "regional": "Sector and regional differences",
+    "regional": "Regional recruitment and sourcing choices",
 }
 STYLE = """
 <style>
@@ -392,12 +392,11 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
        "AI-specialist census. In-house data analytics staffing is not a measure "
        "of operating readiness or realised business benefit.",
        "body_small",sty=s))
-    story.append(P(
-       "JobTech v1 reproduction method, search seeds, classification and "
-       "vintage limitations: "
-       "https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/"
-       "JOBTECH_V1_REPRODUCTION.md",
-       "body_small",sty=s))
+    story.append(Paragraph(
+       'JobTech selected-title evidence: '
+       '<link href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" color="#1F5773">'
+       'query seeds, headline classifier, deduplication and revision limitations</link>.',
+       s["body_small"]))
     story.append(P(
        "Source measurements describe different populations. Survey uptake "
        "is not return on investment; digital roadmap budgets are not company "
@@ -489,7 +488,10 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         "drawn automatically from disconnected indicators.",sty=s)
     story.append(sources_table(evidence,_value,sty=s,include_provenance=True))
     story.append(Spacer(1,13))
-    story.append(P("JobTech selected-title method (where applicable): https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md","body_small",sty=s))
+    story.append(Paragraph(
+        'For JobTech observations: <link href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" color="#1F5773">'
+        'source selection, classifier and reproduction limits</link>.',
+        s["body_small"]))
     story.append(Spacer(1,10))
     story.append(P(
        "Before acting, test the recommendation against your organisation's "

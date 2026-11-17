@@ -392,8 +392,8 @@ def decision_table(items,*,sty=None):
         ("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,SAND]),
         ("LINEBELOW",(0,1),(-1,-1),.35,LINE),
         ("VALIGN",(0,0),(-1,-1),"TOP"),
-        ("TOPPADDING",(0,0),(-1,-1),11),
-        ("BOTTOMPADDING",(0,0),(-1,-1),11),
+        ("TOPPADDING",(0,0),(-1,-1),8),
+        ("BOTTOMPADDING",(0,0),(-1,-1),8),
         ("LEFTPADDING",(0,0),(-1,-1),10),
         ("RIGHTPADDING",(0,0),(-1,-1),9),
     ]))

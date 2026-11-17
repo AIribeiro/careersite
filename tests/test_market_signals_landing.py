@@ -55,7 +55,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
             "Is AI changing the work?",
             "What can we confidently tell the leadership team?",
             "Market Observatory",
-            "Executive Market Review",
+            "Complete AI &amp; Data Market Review",
             "Decision briefs &amp; source list",
         ):
             self.assertIn(phrase,self.page)

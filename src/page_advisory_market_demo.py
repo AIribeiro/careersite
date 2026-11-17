@@ -450,12 +450,17 @@ def split_public_market_demo_at_download(document: str) -> tuple[str,str]:
     if document.count(anchor) != 1:
         raise ValueError("Historical sample closing navigation is unavailable.")
     idx = document.index(anchor)
-    if '<footer class="footer">' not in document[idx:]:
-        raise ValueError("Historical sample site-wide footer is unavailable.")
     if "</main>" not in document[idx:]:
         raise ValueError("Historical sample markup has no closing main.")
+    if document.count('<footer class="footer">') > 1:
+        raise ValueError("Historical sample must have one site-wide footer.")
     before = document[:idx] + "</main>"
     after = '<main class="site">' + document[idx:]
+    # The historical route itself has no footer. The original native PDF
+    # renderer used to append it after the button; retain that exact standard
+    # footer in the second HTML fragment, after the shared navigator.
+    if '<footer class="footer">' not in after:
+        after += footer()
     return before, after
 
 

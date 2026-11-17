@@ -68,7 +68,35 @@ DEMO_CSS="""
 .market-demo-facts span {font-size:12px;color:#5C7082}
 .market-demo-method {border-left:3px solid #AD7956;background:#F0ECE5;padding:21px 25px}
 .market-demo-method p {font-size:13px;margin:4px 0;line-height:1.8}
-@media(max-width:710px) {.market-demo-facts {grid-template-columns:1fr}}
+.market-demo-breadcrumb{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 31px;color:#d5dfe7;font-size:12px;line-height:1.6}
+.market-demo-breadcrumb a{color:#edbb96!important;text-decoration:none!important;font-weight:700}
+.market-demo-breadcrumb a:hover,.market-demo-breadcrumb a:focus-visible{text-decoration:underline!important}
+.market-demo-breadcrumb [aria-current=page]{color:#fff}
+.st-key-market_demo_native_download{max-width:1120px;margin:2px auto 44px;padding:clamp(22px,3vw,38px);background:#fffefa;border:1px solid #ddd6ca;border-top:3px solid #ad7956}
+.st-key-market_demo_native_download .market-demo-download-kicker{font-size:10px;letter-spacing:.15em;color:#996743;font-weight:800}
+.st-key-market_demo_native_download .market-demo-download-title{font:500 clamp(27px,3vw,40px)/1.19 Georgia,serif;color:#1b3347;margin:12px 0}
+.st-key-market_demo_native_download .market-demo-download-lead{font-size:14px;line-height:1.75;color:#506678;max-width:800px;margin:0 0 20px}
+.st-key-market_demo_native_download [data-testid=stDownloadButton] button{min-height:50px;background:#163249!important;color:#fff!important;border-color:#163249!important;font-weight:750}
+.st-key-market_demo_native_download [data-testid=stDownloadButton] button:hover{background:#2b516b!important}
+.site .market-demo-end{background:#f4f0e9;padding:clamp(45px,6vw,77px) 0;border-top:1px solid #ded6ca}
+.site .market-demo-end .market-demo-end-kicker{font-size:11px;color:#956744;letter-spacing:.14em;font-weight:800;text-transform:uppercase;margin:0 0 12px}
+.site .market-demo-end h2{font:500 clamp(29px,3.6vw,46px)/1.15 Georgia,serif;color:#193249;margin:0 0 12px}
+.site .market-demo-end .market-demo-end-lead{font-size:15px;line-height:1.75;color:#536678;max-width:760px;margin:0 0 28px}
+.site .market-demo-end-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.site .market-demo-next-card{display:block;min-width:0;padding:clamp(22px,3vw,32px);background:#fffefa;border:1px solid #d9d2c8;text-decoration:none!important}
+.site .market-demo-next-card:hover,.site .market-demo-next-card:focus-visible{border-color:#ad7956}
+.site .market-demo-next-card--featured{background:#183348;border-color:#183348}
+.site .market-demo-next-card small{font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:#976947}
+.site .market-demo-next-card--featured small{color:#edbb99}
+.site .market-demo-next-card h3{font:500 clamp(22px,2.5vw,30px)/1.23 Georgia,serif;color:#1b3347;margin:14px 0}
+.site .market-demo-next-card--featured h3{color:#fff}
+.site .market-demo-next-card p{font-size:13px;line-height:1.68;color:#526579;margin:0 0 22px}
+.site .market-demo-next-card--featured p{color:#d0dae2}
+.site .market-demo-next-link{font-size:13px;font-weight:800;color:#996744}
+.site .market-demo-next-card--featured .market-demo-next-link{color:#edbc98}
+.site .market-demo-end-home{display:inline-flex;margin-top:26px;color:#2f5168!important;font-size:13px;font-weight:700;text-decoration:underline;text-underline-offset:4px}
+
+@media(max-width:710px) {.market-demo-facts,.site .market-demo-end-grid {grid-template-columns:1fr}.market-demo-breadcrumb{gap:7px;margin-bottom:23px}.st-key-market_demo_native_download{margin:2px 0 37px;padding:22px 17px}}
 </style>
 """
 
@@ -363,6 +391,13 @@ def public_market_demo_html() -> str:
       SERVICES_CSS+DEMO_CSS+nav("advisory")+
       """<main class="site">
         <section class="market-demo-hero"><div class="container">
+          <nav class="market-demo-breadcrumb" aria-label="Advisory breadcrumb">
+            <a href="?page=advisory" target="_self" data-hq-event="market_demo_breadcrumb_advisory">Advisory</a>
+            <span aria-hidden="true">/</span>
+            <a href="?page=advisory-market-signals" target="_self" data-hq-event="market_demo_breadcrumb_market_signals">Market Signals</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Historical sample</span>
+          </nav>
           <p class="eyebrow">Public example / No registration needed</p>
           <h1>The earliest Market Observatory evidence.</h1>
           <p>A downloadable historical research sample using the first three complete
@@ -384,28 +419,61 @@ def public_market_demo_html() -> str:
             JobTech v1 method. No later-published SCB adoption or Brainville
             consulting data is included. The full member Observatory
             contains additional, separately approved source families.</p></div>
-          <h2>Get the public historical PDF</h2>
-          <p>Below is the free downloadable sample, with the original figures,
-          competing interpretations, executive decision questions and complete
-          evidence record. No registration required.</p>
+          
         </div></section>
        </main>"""
     )
 
 
 def render_public_market_demo_download() -> None:
-    """Native browser download, not a URL that needs a member token."""
-    st.download_button(
-        "Download the public historical Market Observatory · PDF",
-        data=public_historical_demo_pdf(),
-        file_name="Jair_Ribeiro_Market_Observatory_Public_Demo_Jun_Aug_2026.pdf",
-        mime="application/pdf",
-        key="public_market_observatory_pdf",
-        type="primary",
-        use_container_width=True,
+    """Native no-login PDF download, then contextual Advisory navigation and shared footer."""
+    with st.container(key="market_demo_native_download"):
+        st.html(
+            '<div class="market-demo-download-kicker">THE RESEARCH / OPEN ACCESS</div>'
+            '<h2 class="market-demo-download-title">Download the historical Market Observatory</h2>'
+            '<p class="market-demo-download-lead">'
+            'A five-page PDF with the original figures, alternative interpretations, '
+            'executive decision questions and complete evidence register. '
+            'No registration required.</p>'
+        )
+        st.download_button(
+            "Download the public historical Market Observatory · PDF",
+            data=public_historical_demo_pdf(),
+            file_name="Jair_Ribeiro_Market_Observatory_Public_Demo_Jun_Aug_2026.pdf",
+            mime="application/pdf",
+            key="public_market_observatory_pdf",
+            type="primary",
+            use_container_width=True,
+        )
+        st.caption(
+            "Source: frozen JobTech v1 June–August 2026 observations; "
+            "archival review 16 November 2026; issued 17 November 2026."
+        )
+    st.html(
+        '<div class="site">'
+        '<section class="market-demo-end" aria-labelledby="market-demo-next-title"><div class="container">'
+        '<p class="market-demo-end-kicker">YOUR NEXT STEP / ADVISORY</p>'
+        '<h2 id="market-demo-next-title">Continue with the evidence.</h2>'
+        '<p class="market-demo-end-lead">This public sample shows the method. '
+        'Go back to the service overview or open the full member Observatory '
+        'for published editions and decision dashboards.</p>'
+        '<nav class="market-demo-end-grid" aria-label="Continue within Advisory">'
+        '<a class="market-demo-next-card" href="?page=advisory-market-signals" target="_self" '
+        'data-hq-event="market_demo_back_to_service">'
+        '<small>PREVIOUS / THE SERVICE</small><h3>Back to Market Signals</h3>'
+        '<p>See the full service proposition, its editorial method and what is '
+        'available to registered readers.</p>'
+        '<span class="market-demo-next-link">Explore the service overview →</span></a>'
+        '<a class="market-demo-next-card market-demo-next-card--featured" '
+        'href="?page=advisory-access&amp;view=market-signals" target="_self" '
+        'data-hq-event="market_demo_open_full_observatory">'
+        '<small>NEXT / THE FULL RESEARCH</small><h3>Open the full Observatory</h3>'
+        '<p>Explore the published research, eight decision dashboards and monthly versions. '
+        'Registration is free.</p>'
+        '<span class="market-demo-next-link">Continue to the Observatory →</span></a>'
+        '</nav>'
+        '<a class="market-demo-end-home" href="?page=advisory" target="_self" '
+        'data-hq-event="market_demo_all_advisory">Browse all Advisory services →</a>'
+        '</div></section>'
+        + footer() + '</div>'
     )
-    st.caption(
-       "Source: frozen JobTech v1 June-August 2026 observations; "
-       "archival review 16 November 2026; issued 17 November 2026."
-    )
-    st.html(footer())

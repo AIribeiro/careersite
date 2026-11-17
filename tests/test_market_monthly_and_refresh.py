@@ -83,6 +83,37 @@ class MonthlyObservatoryTests(unittest.TestCase):
         self.assertNotIn("Brainville reports assignments",content)
         self.assertIn("Source and audit trail",content)
 
+    def test_public_demo_has_contextual_breadcrumb_without_random_writing_strip(self):
+        from page_home_featured import inject_writing_footer
+        document=public_market_demo_html()
+        self.assertIn('aria-label="Advisory breadcrumb"', document)
+        self.assertIn('href="?page=advisory-market-signals"', document)
+        self.assertIn('href="?page=advisory"', document)
+        self.assertIn("Historical sample", document)
+        self.assertNotIn("Get the public historical PDF", document)
+        decorated=inject_writing_footer(document,"advisory-market-demo")
+        self.assertEqual(decorated,document)
+        self.assertNotIn('data-analytics-section="site-writing-footer"',decorated)
+
+    def test_public_pdf_is_followed_by_advisory_routes_and_standard_footer(self):
+        from page_advisory_market_demo import render_public_market_demo_download
+        with patch("page_advisory_market_demo.st") as streamlit:
+            with patch("page_advisory_market_demo.public_historical_demo_pdf",
+                       return_value=b"%PDF-1.4 test"):
+                render_public_market_demo_download()
+            streamlit.download_button.assert_called_once()
+            self.assertIn("No registration required",
+                          streamlit.html.call_args_list[0].args[0])
+            bottom=streamlit.html.call_args_list[-1].args[0]
+            self.assertIn('aria-label="Continue within Advisory"',bottom)
+            self.assertIn('href="?page=advisory-market-signals"',bottom)
+            self.assertIn('href="?page=advisory-access&amp;view=market-signals"',bottom)
+            self.assertIn('href="?page=advisory"',bottom)
+            self.assertIn('<footer class="footer">',bottom)
+            self.assertEqual(bottom.count('<footer class="footer">'),1)
+            self.assertLess(bottom.index('market-demo-end'),bottom.index('<footer class="footer">'))
+            self.assertNotIn("From my writing",bottom)
+
     def test_historical_pdf_refuses_later_or_incomplete_evidence(self):
         bad=[dict(_sample_points()[0],source_family="brainville_consulting_market")]
         with self.assertRaises(ValueError):

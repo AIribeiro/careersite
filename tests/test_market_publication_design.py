@@ -115,7 +115,10 @@ class MarketPublicationSystemTests(unittest.TestCase):
                 with self.subTest(pages=len(doc.pages),page=n):
                     self.assertAlmostEqual(float(p.mediabox.width),595.28,delta=.25)
                     self.assertAlmostEqual(float(p.mediabox.height),841.89,delta=.25)
-                    self.assertGreater(len(" ".join((p.extract_text() or "").split())),155)
+                    length=len(" ".join((p.extract_text() or "").split()))
+                    self.assertGreater(length,900,
+                        "Sparse page in executive publication: "+
+                        str(n)+" / "+str(len(doc.pages)))
 
     def test_one_shared_publication_technology_not_invented_claims(self):
         for path in (

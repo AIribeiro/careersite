@@ -265,7 +265,7 @@ MARKET_SIGNALS_LANDING_HTML = """
     </div>
     <aside class="ms-edition" aria-label="Published research edition">
       <small>November 2026 / Published edition</small>
-      <h2>AI &amp; Data Market Review<br>Executive Edition 2.0</h2>
+      <h2>AI &amp; Data Market Review<br>Executive Edition 2.0.1</h2>
       <p>Published 17 November 2026. Five executive decision perspectives, three conditional outlook scenarios and a management action agenda interpret six reviewed evidence series from five publishing organisations. Their methods and populations differ.</p>
       <div class="ms-edition-counts">
         <div><strong>43</strong><span>published observations</span></div>
@@ -281,7 +281,7 @@ MARKET_SIGNALS_LANDING_HTML = """
   <div class="ms-section-head">
     <div><p class="ms-overline">November 2026 / Published observations</p>
       <h2 id="ms-findings-title">What the published evidence shows—and where its limits lie.</h2></div>
-    <p class="ms-section-intro">The selected findings below illustrate distinct types of evidence in Executive Edition 2.0. No single measure proves AI business value or a market-wide shortage of specialist leaders. The public historical sample remains separate from the full research.</p>
+    <p class="ms-section-intro">The selected findings below illustrate distinct types of evidence in Executive Edition 2.0.1. No single measure proves AI business value or a market-wide shortage of specialist leaders. The public historical sample remains separate from the full research.</p>
   </div>
   <div class="ms-proofs">
     <article class="ms-proof">
@@ -408,7 +408,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <div class="ms-format-bottom">Interactive views · Historical records · Source details</div></article>
     <article class="ms-format"><small>02 / DOWNLOAD A4 PDF</small>
       <h3>Complete AI &amp; Data Market Review</h3>
-      <p>Executive Edition 2.0 examines enterprise AI use, observed recruitment and staffing signals, organisational capabilities, consulting choices and regional recruitment considerations. It includes five substantive analyses, scenarios, a leadership decision agenda and an appendix tracing all 43 approved observations.</p>
+      <p>Executive Edition 2.0.1 examines enterprise AI use, observed recruitment and staffing signals, organisational capabilities, consulting choices and regional recruitment considerations. It includes five substantive analyses, scenarios, a leadership decision agenda and an appendix tracing all 43 approved observations.</p>
       <div class="ms-format-bottom">17 November 2026 · Full executive research PDF · Sources</div></article>
     <article class="ms-format"><small>03 / USE IN A MEETING</small>
       <h3>Executive Decision Briefs and source register</h3>
@@ -452,7 +452,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <h2 id="ms-cta-title">November 2026: Research and supporting evidence.</h2>
       <p>Read the November executive analysis, explore the underlying evidence and download substantial decision briefs for your leadership team. Recommendations describe choices and conditions; company-specific decisions still require internal facts.</p>
       <div class="ms-actions">
-        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_final_register">Access Executive Edition 2.0 · Free account</a>
+        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_final_register">Access Executive Edition 2.0.1 · Free account</a>
         <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;signin=1" target="_self" data-hq-event="market_signals_final_signin">Already registered? Sign in</a>
       </div>
     </div>

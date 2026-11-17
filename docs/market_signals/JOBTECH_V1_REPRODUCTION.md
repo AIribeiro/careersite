@@ -1,9 +1,9 @@
-# JobTech senior AI & Data leadership advertisement basket — v1 reproduction record
+# JobTech senior AI & Data advertisement basket — v1 method and verification limits
 
-**Edition:** Swedish AI & Data Market Review, November 2026 (Executive Edition 2.0)  
+**Edition:** Swedish AI & Data Market Review, November 2026 (Executive Edition 2.0.2; prior publication vintages retained)  
 **Classification source:** Supabase Edge function `jobtech-target-probe`, version 1, SHA-256 `2a07910b4d2f662f2322979bbc3ae4b5924cea4ddd3dfe2f5dce9aba5d153365`  
 **Frozen publication observations:** June–October complete calendar months; November 1–15 separately labelled incomplete. The 16 November 2026 extraction is the publication vintage.  
-**Scope:** Author-defined *advertisement sample* for strategic/senior AI and Data/Analytics titles in Sweden, not all vacancies, unique open positions, people hired, candidate supply, salary, or market size.
+**Scope:** Author-defined *advertisement sample* for selected strategic/senior AI and Data/Analytics titles in Sweden, not all vacancies, unique open positions, people hired, candidate supply, salary, or market size. The published 29 for October 2026 is a frozen research observation, not an official Arbetsförmedlingen AI management statistic.
 
 ## Retrieval contract
 
@@ -47,6 +47,14 @@
 28. `AI strateg`
 29. `AI ansvarig`
 30. `Verksamhetsutvecklare AI`
+
+## Explicit title-selection bias
+
+The 30 search seeds and the headline classifier were designed to identify a **narrow group of senior job titles**. They are not a stratified or representative sample. A leader responsible for enterprise AI may be advertised as Head of Operations, Chief Digital Officer, Product Director, Commercial Transformation Lead, Business Improvement Head, HR leader, general manager or another title outside the rules. The exclusion rules also remove many engineering, product, project and architecture roles, even when those positions influence or own AI outcomes. These omitted opportunities are **not zero demand**; their number is unknown. Title changes alone can change observed month-to-month counts.
+
+**Recruitment-channel coverage:** advertisements in the queried JobTech sources do not represent unadvertised searches, executive search, internal appointments or all third-party job boards. The recorded publication month is the advertisement's date, while the research extraction and verification dates can be months later.
+
+**Numerical interpretation:** with small totals, an increase from 20 in September to 29 in October is a difference inside this selection only. Do not turn it into a percentage change for Sweden's national AI leadership market, an estimate of completed recruitment or evidence of specialist shortage.
 
 ## Frozen classifier code
 
@@ -93,7 +101,7 @@ The `classify` function returns tier A (AI leadership), B (senior Data/Analytics
 
 **Interpretation:** The percentages and counts in this basket are *author-derived*, not official Arbetsförmedlingen statistics about total AI leadership vacancies. The classification is selective, revisions can change counts, and monthly samples are small. Never annualise an incomplete month, infer hires from advertisements, or attribute hiring changes to AI adoption.
 
-## Reproducibility limits
+## Repeatability and point-in-time verification limits
 
 This document supplies query semantics and executable classifier logic, but **does not constitute a published immutable record-level advertisement export**. Historical API entries can be revised or removed, regional classifications can change, pagination and free-text query behavior can evolve, and original IDs are not included in the public edition. Therefore a later replay may produce different counts even with the same code. A fully independent point-in-time replication would require the preserved response dataset and exact request/response audit artifacts; the present claim is *method transparency and approximate re-execution*, not guaranteed exact reproduction.
 

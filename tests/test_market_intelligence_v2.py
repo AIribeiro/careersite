@@ -19,7 +19,7 @@ from market_intelligence_v2 import (
 from test_market_review_premium import verified_edition_fixture, point
 
 
-SLUG="sweden-ai-data-market-review-2026-11-v2-0-1"
+SLUG="sweden-ai-data-market-review-2026-11-v2-0-2"
 
 
 def verified_v2_fixture():
@@ -156,6 +156,52 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
         focused=build_executive_decision_pdf(self.points,self.editorial,SLUG,"investment")
         focused_text=" ".join(page.extract_text() or "" for page in PdfReader(BytesIO(focused)).pages)
         self.assertIn("3.55 EUR billion",focused_text)
+
+    def test_archive_labels_preserve_superseded_editions(self):
+        from market_archive import archive_option_label, archive_coverage
+        base={
+            "archive_kind":"published_edition",
+            "month_start":"2026-11-01",
+            "observations":self.points,
+            "interpretations":[{"slug":"example"}],
+        }
+        latest=dict(base,edition_slug=SLUG)
+        old=dict(base,edition_slug="sweden-ai-data-market-review-2026-11-v2-0-1")
+        self.assertIn("2.0.2 (latest)",archive_option_label(latest))
+        self.assertIn("2.0.1 (superseded)",archive_option_label(old))
+        self.assertIn("JobTech, Brainville and SCB",archive_coverage(latest))
+        self.assertIn("superseded",archive_coverage(old).lower())
+
+    def test_scope_biases_are_mandatory_and_visible_in_every_relevant_pdf(self):
+        import copy
+        from pypdf import PdfReader
+        from io import BytesIO
+        self.assertEqual({r["key"] for r in self.editorial["coverage_cautions"]},
+                         {"jobtech","brainville","scb"})
+        full=PdfReader(BytesIO(build_executive_market_pdf(
+            self.points,self.editorial,SLUG)))
+        full_text=" ".join(p.extract_text() or "" for p in full.pages)
+        for phrase in (
+            "Three boundaries to interpret before acting",
+            "JobTech: selected advertisements",
+            "Brainville: activity on one consulting platform",
+            "SCB: 2026 industry coverage changed",
+            "exact point-in-time replication cannot be guaranteed",
+        ):
+            self.assertIn(phrase,full_text)
+        sourcing=PdfReader(BytesIO(build_executive_decision_pdf(
+            self.points,self.editorial,SLUG,"sourcing")))
+        sourcing_text=" ".join(p.extract_text() or "" for p in sourcing.pages)
+        self.assertIn("Brainville: activity on one consulting platform",sourcing_text)
+        self.assertIn("SCB: 2026 industry coverage changed",sourcing_text)
+        workforce=PdfReader(BytesIO(build_executive_decision_pdf(
+            self.points,self.editorial,SLUG,"workforce")))
+        workforce_text=" ".join(p.extract_text() or "" for p in workforce.pages)
+        self.assertIn("JobTech: selected advertisements",workforce_text)
+        invalid=copy.deepcopy(self.editorial)
+        invalid.pop("coverage_cautions")
+        with self.assertRaisesRegex(ValueError,"incomplete"):
+            validate_editorial(invalid,self.points,SLUG)
 
     def test_editorial_rejects_missing_cover_summary(self):
         copy=json.loads(json.dumps(self.editorial))

@@ -1,4 +1,4 @@
-# Market Signals public promise register — Executive Edition 2.0 and original Edition 01 archive
+# Market Signals public claims register — Executive Edition 2.0.2 and archived releases
 
 Reviewed: 17 November 2026. Scope: public landing and historical sample, verified
 against Supabase published edition `ai-data-market-review-2026-11-edition-01`,
@@ -6,14 +6,14 @@ the member dashboard code, the full-report PDF generator, and the public
 historical-sample PDF. This is a content and availability audit, not a claim
 that every hosted browser session or publisher endpoint has been rechecked.
 
-## Current public publication — Executive Edition 2.0 (17 November 2026)
+## Current public publication — Executive Edition 2.0.2 (17 November 2026)
 
 The public landing page was updated following the independently audited V2 publication.
 Its claims are limited to the signed-off member evidence and reports:
 
 | Public promise | Published evidence / implementation | Interpretation boundary |
 | --- | --- | --- |
-| 43 published observations | `sweden-ai-data-market-review-2026-11-v2-0-1` edition archive contains 43 immutable records | Observations are not 43 independent source datasets |
+| 43 published observations | `sweden-ai-data-market-review-2026-11-v2-0-2` edition archive references the same 43 immutable observations | Observations are not 43 independent source datasets |
 | Five executive decision perspectives | Five content chapters in `portfolio_market_signal_editorial_v2.analysis` | Analyses and recommendations are editorial judgements, not survey findings |
 | Six evidence series / five publishing organisations | SCB enterprise AI, SCB recruitment needs, derived JobTech v1, Brainville, KI business survey, European Commission Sweden Digital Decade | Two series are from SCB; distinct measures are not independently replicated findings |
 | Three conditional scenarios, six agenda decisions | Versioned V2 editorial manuscript and authenticated report generator | No probability claim or universal hiring forecast |
@@ -27,10 +27,22 @@ Its claims are limited to the signed-off member evidence and reports:
 
 **Verification boundary:** automated content tests, render preflight and GitHub checks are not equivalent to a signed-in download from the live hosted domain. Never mark that step complete based solely on CI.
 
-The 17 November Executive Edition 2.0 is preserved in its original signed-off archive; this correction publishes a successor edition rather than altering the immutable manuscript. The original Edition 01 remains accessible through the frozen monthly archive and
+Executive Editions 2.0 and 2.0.1 retain their original signed-off records; the v2.0.2 successor clarifies selection bias and evidence comparability without altering the 43 numeric observations. The original Edition 01 remains accessible through the frozen monthly archive and
 retains its 30 observations, four original interpretations, three publisher families,
 and the figures and report that were available on 16 November. The public June–August
 research demonstration remains deliberately limited to that historic JobTech basket.
+
+## Selection and comparability rules — Edition 2.0.2
+
+| Series | Observable claim | What cannot be inferred |
+| --- | --- | --- |
+| SCB 2026 enterprise IT | Reported AI use among enterprises with at least 10 employees in the 2026 survey | Year-over-year growth without an SNI 2025 / industry-coverage reconciliation; ROI, company operating readiness, causal business outcomes |
+| Arbetsförmedlingen JobTech, researcher-derived title basket | Count of indexed advertisements selected by 30 search seeds and headline-only inclusion/exclusion rules, with dated extraction | Nationwide AI leadership demand, unadvertised executive searches, operating/product/digital titles outside the sample, hired people, talent shortages, or exact historical replay without archived source records |
+| Brainville October marketplace | Year-on-year change in listings on one broad consulting platform | National or AI-specific consultant supply, pricing, demand, skill availability, or representative trend independent of changes in platform participation |
+| SCB Q2 vacancies | Survey estimates for advertised and other-channel vacant positions | Completed hires, AI specialist positions, or a statistically confirmed Q2 year-on-year change |
+| KI business survey | Confidence indicator and employment net balances | Completed hires or a causal response to enterprise AI investment |
+
+The three published limits appear beside the executive reading in the full PDF and member view, and relevant limitations appear before the supporting sources in each focused decision PDF. The report also states the evidence boundaries on the public landing page. This is a **disclosure and interpretation correction**, not a statistical resampling or new independent validation of the selected JobTech records. The old signed-off editions and historical June–August sample remain available without retroactive changes to their numeric observations.
 
 ## Original November Edition 01 — historical claim record
 

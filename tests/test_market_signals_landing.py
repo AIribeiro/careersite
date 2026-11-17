@@ -169,6 +169,26 @@ class MarketSignalsLandingTests(unittest.TestCase):
         ):
             self.assertNotIn(obsolete,self.page)
 
+    def test_three_material_selection_biases_are_publicly_explained(self):
+        html=MARKET_SIGNALS_LANDING_HTML
+        for phrase in (
+            "exact point-in-time reproduction is not guaranteed",
+            "operations, digital, product and commercial titles",
+            "Changes in platform participation may also affect",
+            "switched to SNI 2025",
+            "exact replication is not assured",
+            "not a market forecast",
+        ):
+            self.assertIn(phrase,html)
+        self.assertNotIn("author-defined, reproducible set",html)
+
+    def test_superseded_editions_keep_historical_reader_access(self):
+        source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
+        self.assertIn('"sweden-ai-data-market-review-2026-11-v2",',source)
+        self.assertIn('"sweden-ai-data-market-review-2026-11-v2-0-1",',source)
+        self.assertIn("render_market_observatory(points,historical=False)",source)
+        self.assertIn("Select the latest edition",source)
+
     def test_all_eight_real_dashboard_topics_present(self):
         expected=[
             "Executive evidence overview",
@@ -231,8 +251,8 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_explicitly_honest_on_vintages_and_cross_source_logic(self):
         for claim in (
-            "not a live market forecast",
-            "not a count of all vacancies",
+            "not a market forecast",
+            "not a count of all AI leadership roles, vacancies or hires",
             "not AI/Data specialists alone",
             "not a full market review from those summer months",
             "not published in the current edition",

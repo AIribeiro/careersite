@@ -68,8 +68,10 @@ def archive_option_label(item: dict) -> str:
     date_label=_month_label(item["month_start"])
     if item["archive_kind"]=="published_edition":
         slug=str(item.get("edition_slug") or "")
+        if slug.endswith("-v2-0-2"):
+            return f"{date_label} · Executive edition 2.0.2 (latest)"
         if slug.endswith("-v2-0-1"):
-            return f"{date_label} · Executive edition 2.0.1 (corrected)"
+            return f"{date_label} · Executive edition 2.0.1 (superseded)"
         if slug.endswith("-v2"):
             return f"{date_label} · Executive edition 2.0 (superseded)"
         return f"{date_label} · Original published edition"
@@ -79,18 +81,24 @@ def archive_option_label(item: dict) -> str:
 def archive_coverage(item: dict) -> str:
     if item["archive_kind"]=="published_edition":
         slug=str(item.get("edition_slug") or "")
+        if slug.endswith("-v2-0-2"):
+            return (
+              f"Executive Edition 2.0.2 · {len(item['observations'])} approved "
+              "source observations · five decision perspectives with explicit "
+              "JobTech, Brainville and SCB evidence boundaries. Four earlier "
+              "decision notes remain archived; statistical values are unchanged."
+            )
         if slug.endswith("-v2-0-1"):
             return (
-              f"Executive Edition 2.0.1 · {len(item['observations'])} approved "
-              "source observations · five executive decision perspectives in the "
-              "corrected member report. Four earlier authored decision notes "
-              "remain in the frozen archive; source values are unchanged."
+              f"Superseded Executive Edition 2.0.1 · {len(item['observations'])} "
+              "original approved observations. Editorial selection and survey "
+              "comparability clarifications appear in Edition 2.0.2."
             )
         if slug.endswith("-v2"):
             return (
               f"Superseded Executive Edition 2.0 · {len(item['observations'])} "
-              "original published observations. Its interpretations were "
-              "corrected in Executive Edition 2.0.1; retained for provenance."
+              "original published observations. Its interpretation is superseded "
+              "by the revised November research; retained for provenance."
             )
         return (
           f"Frozen published edition · {len(item['observations'])} approved "

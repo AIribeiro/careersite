@@ -39,7 +39,7 @@ DEMO_SOURCE_CHECKED="2026-11-16"
 DEMO_CREATED="2026-11-17"
 
 # Approved historical observations, extracted from the publicly reviewed
-# JobTech v1 basket; manually frozen for demo reproducibility.
+# JobTech v1 basket; fixed for historical comparison, not exact API replay.
 EARLIEST_COMPLETE_MONTHS=(
     ("June 2026", "Sweden",12),("June 2026","Stockholm",6),
     ("June 2026","Västra Götaland",2),
@@ -438,7 +438,7 @@ def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
     story.append(Spacer(1,12))
     story.append(P("The measurement boundary","h2",sty=sty))
     story.append(P(
-        "Headline-only role classification, source deduplication and later API "
+        "Headline-only role selection excludes many AI-accountable operating and product leaders. Source deduplication and later API "
         "indexing can affect the displayed count. An advertisement is not a "
         "filled position. No contemporaneous measures of enterprise AI use, "
         "analytics capability, salaries, qualified candidates or AI-specific "
@@ -450,7 +450,7 @@ def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
         "It must not be described as a report published in June, July or August. "
         "The full current edition uses separately verified, later-period sources.",
         "body_compact",sty=sty))
-    story.append(P("Method: 30 high-signal search seeds, a headline-only senior "
+    story.append(P("Method: 30 defined search seeds, a selective headline-only senior "
         "role classifier and deduplication by source original_id or fallback "
         "fingerprint. Query provenance: JobTech Historical Ads / "
         "historical.api.jobtechdev.se/search.","caption",sty=sty))
@@ -527,7 +527,7 @@ def public_market_demo_html() -> str:
           </div>
           <div class="market-demo-method"><p><strong>Scope of the historical data.</strong>
             We counted a defined selection of senior AI &amp; Data job advertisements.
-            The numbers are not all vacancies or completed hires. We reviewed this
+            The sample omits AI leaders advertised under operational, product, digital and commercial titles; it does not measure all vacancies or completed hires. We reviewed this
             historical selection in November 2026. Later SCB and Brainville research
             is not included in the summer figures.</p></div>
           <p class="market-demo-inline-download"><a href="#market-demo-pdf"
@@ -595,7 +595,7 @@ def render_public_market_demo_download() -> None:
         '<p class="market-demo-end-kicker">CURRENT EXECUTIVE RESEARCH</p>'
         '<h2 id="market-demo-next-title">Looking for the complete November market assessment?</h2>'
         '<p class="market-demo-end-lead">This free PDF is an older, narrowly focused '
-        'research sample—not the full Executive Market Review 2.0. '
+        'research sample—not the complete November executive edition. '
         'The current report examines AI adoption, workforce demand, business '
         'conditions, sourcing choices and regional differences, with recommendations '
         'and supporting evidence. A verified Advisory account gives access to '
@@ -603,7 +603,7 @@ def render_public_market_demo_download() -> None:
         '<a class="market-demo-next-card market-demo-next-card--featured" '
         'href="?page=advisory-access&amp;view=market-signals" target="_self" '
         'data-hq-event="market_demo_open_full_observatory">'
-        '<small>COMPLETE EXECUTIVE MARKET REVIEW 2.0</small>'
+        '<small>COMPLETE EXECUTIVE MARKET REVIEW</small>'
         '<h3>Read and download the current research</h3>'
         '<span class="market-demo-next-link">Access the full report · Free account →</span>'
         '</a>'

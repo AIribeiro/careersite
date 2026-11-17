@@ -1,6 +1,6 @@
 """Aligned, responsive executive cards for portfolio readership summaries.
 
-The same structure, number format and five-row ranking apply across all four
+The same structure, number format and five-row ranking apply across all five
 measurement groups. All dynamic article titles are HTML-escaped.
 """
 from __future__ import annotations
@@ -13,7 +13,7 @@ _CARD_STYLES = """
 .pv-grid-wrap {width:100%;container-type:inline-size}\n.pv-grid, .pv-grid * {box-sizing:border-box}
 .pv-grid {
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:repeat(var(--pv-grid-columns,5),minmax(0,1fr));
   align-items:stretch;
   gap:10px;
   margin:10px 0 8px;
@@ -192,9 +192,9 @@ def _card(spec: dict, index: int) -> str:
 
 
 def portfolio_metric_grid(cards: list[dict]) -> str:
-    """Build four equal-structure cards; keep every category independent."""
-    if len(cards) != 4:
-        raise ValueError("The portfolio overview requires exactly four metric groups.")
-    return _CARD_STYLES + '<div class="pv-grid-wrap"><div class="pv-grid" aria-label="Portfolio readership overview">' + (
+    """Build four or five equal-structure cards; keep groups independent."""
+    if len(cards) not in (4, 5):
+        raise ValueError("The portfolio overview requires four or five metric groups.")
+    return _CARD_STYLES + '<div class="pv-grid-wrap"><div class="pv-grid" style="--pv-grid-columns:' + str(len(cards)) + '" aria-label="Portfolio readership overview">' + (
         "".join(_card(spec, index) for index, spec in enumerate(cards, 1))
     ) + '</div></div>'

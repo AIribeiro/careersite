@@ -271,7 +271,7 @@ def _demand(points:list[dict]) -> None:
     st.dataframe([{"Region":p["geography"],"Month":p["period_label"],"Adverts":int(p["value"]),
         "Measurement":"Complete month"} for p in series],
         hide_index=True,use_container_width=True)
-    _source_note(series,"Retrospective API indexing may revise historical monthly counts; classifier v1 is frozen.")
+    _source_note(series,caveat="Retrospective API indexing may revise historical monthly counts; classifier v1 is frozen.")
 
 
 def _adoption(points:list[dict]) -> None:

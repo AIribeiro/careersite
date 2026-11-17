@@ -361,7 +361,7 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     # Keep the next agenda with the downside scenario if space permits.
     # A forced new page previously left one scenario almost alone.
     story.append(Spacer(1,18))
-    story.append(CondPageBreak(515))
+    story.append(CondPageBreak(275))
 
     section(story,"09 / Executive decision agenda",
         "Decisions to take into the next executive meeting",

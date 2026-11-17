@@ -99,6 +99,22 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
             self.assertIn(word.lower(),extracted.lower())
         self.assertNotIn("jair.ribeiro@outlook.it",extracted)
 
+    def test_full_report_download_is_visible_before_decision_drilldown(self):
+        source=(ROOT/"src/market_intelligence_v2.py").read_text(encoding="utf-8")
+        member=source.split("def render_executive_intelligence(",1)[1]
+        self.assertIn("Download complete Executive Market Review",member)
+        self.assertIn("Download this Executive Decision Brief",member)
+        self.assertLess(
+            member.index("Download complete Executive Market Review"),
+            member.index("st.selectbox("),
+        )
+        self.assertLess(
+            member.index("st.selectbox("),
+            member.index("Download this Executive Decision Brief"),
+        )
+        self.assertEqual(member.count('key="market_v2_complete_pdf"'),1)
+        self.assertEqual(member.count('key="market_v2_decision_pdf"'),1)
+
     def test_all_five_decision_pdfs_have_substantial_analysis(self):
         for t in self.editorial["themes"]:
             with self.subTest(lens=t["key"]):

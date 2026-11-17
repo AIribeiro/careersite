@@ -13,6 +13,8 @@ on:
       - 'src/page_advisory_market_review.py'
       - 'src/market_review_premium.py'
       - 'src/market_intelligence_v2.py'
+      - 'src/market_publication_design.py'
+      - 'tests/test_market_publication_design.py'
       - 'docs/market_signals/november_2026_executive_v2.json'
       - 'tests/test_market_intelligence_v2.py'
       - 'src/advisory_service_visibility.py'
@@ -63,6 +65,7 @@ jobs:
             src/page_advisory_market_review.py \
             src/market_review_premium.py \
             src/market_intelligence_v2.py \
+            src/market_publication_design.py \
             src/advisory_service_visibility.py \
             src/page_advisory_portal.py \
             src/page_advisory_member_experience.py \
@@ -71,6 +74,7 @@ jobs:
             src/site_reader_navigation.py \
             tests/test_market_signals.py \
             tests/test_market_intelligence_v2.py \
+            tests/test_market_publication_design.py \
             tests/test_market_monthly_and_refresh.py \
             tests/test_market_review_premium.py \
             tests/test_market_signals_landing.py \
@@ -82,6 +86,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_market_signals.py' -v
       - name: Validate 2.0 executive research, sources and both PDF outputs
         run: python -m unittest discover -s tests -p 'test_market_intelligence_v2.py' -v
+      - name: Verify premium publication design and decision quality across formats
+        run: python -m unittest discover -s tests -p 'test_market_publication_design.py' -v
       - name: Validate complete executive research PDF, evidence register and layout
         run: python -m unittest discover -s tests -p 'test_market_review_premium.py' -v
       - name: Render researched PDF into QA images and verify legibility
@@ -157,6 +163,60 @@ jobs:
               )
           print("Public oldest-data demo rendered and geometry checked:",len(data),"bytes,",doc.page_count,"pages")
           PY
+      - name: Render every premium publication and check visible geometry
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          import pymupdf
+          from PIL import Image, ImageDraw
+          sys.path.insert(0,"src")
+          sys.path.insert(0,"tests")
+          from page_advisory_market_demo import public_historical_demo_pdf
+          from test_market_intelligence_v2 import verified_v2_fixture,SLUG
+          from market_intelligence_v2 import build_executive_market_pdf,build_executive_decision_pdf
+          points,editorial=verified_v2_fixture()
+          docs={"public-historical":public_historical_demo_pdf(),
+                "full-executive":build_executive_market_pdf(points,editorial,SLUG)}
+          for t in editorial["themes"]:
+              docs["decision-"+t["key"]]=build_executive_decision_pdf(points,editorial,SLUG,t["key"])
+          out=Path("/tmp/market-review-renders")
+          out.mkdir(exist_ok=True,parents=True)
+          for name,data in docs.items():
+              (out/(name+".pdf")).write_bytes(data)
+              pdf=pymupdf.open(stream=data,filetype="pdf")
+              preview=[]
+              for i,page in enumerate(pdf):
+                  assert abs(page.rect.width-595.28)<.6
+                  assert abs(page.rect.height-841.89)<.6
+                  text=page.get_text().strip()
+                  assert len(text)>155,(name,i+1,len(text))
+                  for b in page.get_text("dict")["blocks"]:
+                      for line in b.get("lines",[]):
+                          for span in line["spans"]:
+                              if not span["text"].strip():continue
+                              box=pymupdf.Rect(span["bbox"])
+                              assert page.rect.contains(box),(name,i+1,span["text"][:40],box)
+                  pix=page.get_pixmap(matrix=pymupdf.Matrix(1.25,1.25),alpha=False)
+                  output=out/(f"{name}-p{i+1:02d}.png")
+                  pix.save(output)
+                  if i<6:
+                      im=Image.open(output).convert("RGB")
+                      im.thumbnail((410,580))
+                      preview.append(im.copy())
+              # Contact sheets make visual review of typography, content density
+              # and continuity across all three publication variants repeatable.
+              width=2*432;height=((len(preview)+1)//2)*606
+              collage=Image.new("RGB",(width,height),(227,228,230))
+              d=ImageDraw.Draw(collage)
+              for j,im in enumerate(preview):
+                  x=(j%2)*432+11
+                  y=(j//2)*606+18
+                  collage.paste(im,(x,y))
+                  d.text((x,y+582),"Page "+str(j+1),fill=(20,43,61))
+              collage.save(out/(name+"-contact-sheet.png"))
+              print(name,"pages:",pdf.page_count,"bytes:",len(data))
+          PY
       - name: Upload synthetic QA PDF and page renders
         uses: actions/upload-artifact@v4
         with:
@@ -165,6 +225,7 @@ jobs:
             /tmp/market-review-qa.pdf
             /tmp/public-market-demo.pdf
             /tmp/market-review-renders/*.png
+            /tmp/market-review-renders/*.pdf
           retention-days: 7
       - name: Verify full-length mobile chart labels and sanitisation
         run: python -m unittest discover -s tests -p 'test_market_chart_labels.py' -v

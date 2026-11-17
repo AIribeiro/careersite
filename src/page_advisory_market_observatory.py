@@ -24,7 +24,7 @@ DASHBOARDS = {
     "adoption": "Enterprise adoption & capabilities",
     "talent": "AI skills & management economics",
     "commercial": "Consulting & sector conditions",
-    "signals": "Cross-source interpretations",
+    "signals": "Interpretations & trade-offs",
     "trends": "Explore market trends",
     "ledger": "Sources & measurement",
 }
@@ -456,13 +456,14 @@ def interpretation_pairs(points:list[dict]) -> list[dict]:
 
 def _interpretations(points:list[dict]) -> None:
     _intro(
-        "Where the signals disagree, leaders learn",
-        "The most useful market reading is often a tension between two measurements. "
-        "These comparisons expose the question—not a causal claim or a personalised hiring score.",
+        "Read what the figures suggest—and what they do not",
+        "These comparisons bring related published figures into a business discussion. "
+        "Some come from the same publisher; none proves why a change occurred or "
+        "predicts a result for your organisation.",
     )
     all_pairs=interpretation_pairs(points)
     if not all_pairs:
-        st.info("There are no cross-source comparisons with published supporting observations.")
+        st.info("No supported comparisons are available in this edition.")
         return
     for item in all_pairs:
         with st.container(border=True):
@@ -478,8 +479,9 @@ def _interpretations(points:list[dict]) -> None:
                     st.markdown(f'[{p["source_title"]}]({p["source_url"]}) · {_when(p)}')
                     st.caption(p["population_note"]+" · "+p["caveat"])
     st.caption(
-        "These are structured editorial questions based on paired observations. "
-        "They are neither statistical correlations nor forecasts of any individual outcome."
+        "These are questions drawn from published observations. The figures may "
+        "cover different groups and periods, so they are not statistical tests "
+        "or forecasts for an individual organisation."
     )
 
 

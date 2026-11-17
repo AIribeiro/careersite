@@ -1,30 +1,29 @@
-"""Append contextual closing navigation to primary portfolio landing pages.
+"""Attach the common contextual navigation to every public portfolio route.
 
-Do not attach the landing-page route index to individual Thinking articles or
-the Weekly AI archive. Existing article-level navigation remains unchanged.
+Individual articles retain their editorial related-reading sections. The shared
+three-card navigator follows those sections and precedes the site-wide footer.
+Explicit renderers using the same component are left intact.
 """
 from __future__ import annotations
 
-from about_next_navigation import portfolio_next_navigation
+from about_next_navigation import _PAGE_COPY, portfolio_next_navigation
 
-LANDING_PAGES = frozenset({"impact", "ai-data-governance", "thinking", "contact"})
+LANDING_PAGES = frozenset(_PAGE_COPY)
 
 
 def inject_portfolio_continuation(
     document: str, page: str, *, article_slug: str = "", weekly_archive: bool = False
 ) -> str:
-    if page not in LANDING_PAGES:
+    """Insert exactly one relevant closing navigator before the document footer.
+
+    Article slugs and archive flags are accepted for backwards compatibility.
+    All rendered article, briefing, archive and service pages now participate.
+    """
+    if page not in LANDING_PAGES or "<main" not in document or "</main>" not in document:
         return document
-    if page == "thinking" and (article_slug.strip() or weekly_archive):
-        return document
-    if "<main" not in document or "</main>" not in document:
-        return document
-    # Page renderers already include the shared navigation on the core pages.
-    # Prevent a duplicate section regardless of which layer added it.
     if (
-        f'data-analytics-section="{page}-next-destinations"' in document
-        or 'class="about-next portfolio-next"' in document
-        or 'data-analytics-section="site-writing-footer"' in document
+        'class="about-next portfolio-next"' in document
+        or f'data-analytics-section="{page}-next-destinations"' in document
     ):
         return document
     index = document.rfind("</main>")

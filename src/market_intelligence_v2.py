@@ -349,7 +349,10 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
               " | Leadership response: "+t["leadership_response"],sty=s),
             Spacer(1,10),
         ]))
-    story.append(PageBreak())
+    # Keep the next agenda with the downside scenario if space permits.
+    # A forced new page previously left one scenario almost alone.
+    story.append(Spacer(1,18))
+    story.append(CondPageBreak(275))
 
     section(story,"09 / Executive decision agenda",
         "Decisions to take into the next executive meeting",
@@ -359,10 +362,7 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     agenda=[(x["decision"],x["owner"],x["horizon"],x["action"])
             for x in editorial["decision_agenda"]]
     story.append(decision_table(agenda,sty=s))
-    story.append(Spacer(1,19))
-    story.append(panel("Judgement boundary",
-       "Market evidence informs the decision - it does not make it for you",
-       editorial["methodology_note"],sty=s))
+    # Avoid a page carrying only a repeated methodology panel.
     story.append(PageBreak())
 
     section(story,"10 / Research transparency",
@@ -371,6 +371,10 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
         "Each observation retains its original period, geography, value and "
         "clickable source. The editorial discussion and PDF use this same "
         "signed-off edition; later source releases cannot alter it.",sty=s)
+    story.append(P(
+       "Research method and limits: "+editorial["methodology_note"],
+       "body_small",sty=s))
+    story.append(Spacer(1,9))
     story.append(sources_table(points,_value,sty=s))
     story.append(Spacer(1,13))
     story.append(P(

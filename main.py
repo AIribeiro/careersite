@@ -354,14 +354,16 @@ else:
             st.query_params["page"] = "advisory"
             st.rerun()
     raw_document = render_page()
-    raw_document = inject_portfolio_continuation(
+    # Related editorial reading belongs before the site-wide closing navigator,
+    # so the same navigator is the last content section on every public route.
+    raw_document = inject_writing_footer(raw_document, PAGE, article_slug=str(ARTICLE_QUERY or ""))
+    page_document = inject_portfolio_continuation(
         raw_document,
         PAGE,
         article_slug=str(ARTICLE_QUERY or ""),
         weekly_archive=(str(st.query_params.get("weekly_ai", "")).lower() == "archive"),
     )
     build_done = perf_counter()
-    page_document = inject_writing_footer(raw_document, PAGE, article_slug=str(ARTICLE_QUERY or ""))
     footer_done = perf_counter()
     page_html_size = len(page_document.encode("utf-8"))
     # The executive Home navigation has a dedicated, scoped visual system.

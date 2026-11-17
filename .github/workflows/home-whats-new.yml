@@ -7,6 +7,11 @@ on:
       - 'main.py'
       - 'src/page_home.py'
       - 'src/home_whats_new.py'
+      - 'src/site_meta.py'
+      - 'data/portfolio_release_feed.json'
+      - 'scripts/sync_portfolio_releases.py'
+      - 'tests/test_home_market_announcement.py'
+      - 'tests/js/test_home_whats_new_live.cjs'
       - 'src/page_certifications.py'
       - 'tests/test_home_whats_new.py'
       - '.github/workflows/home-whats-new.yml'
@@ -16,6 +21,11 @@ on:
       - 'main.py'
       - 'src/page_home.py'
       - 'src/home_whats_new.py'
+      - 'src/site_meta.py'
+      - 'data/portfolio_release_feed.json'
+      - 'scripts/sync_portfolio_releases.py'
+      - 'tests/test_home_market_announcement.py'
+      - 'tests/js/test_home_whats_new_live.cjs'
       - 'src/page_certifications.py'
       - 'tests/test_home_whats_new.py'
       - '.github/workflows/home-whats-new.yml'
@@ -38,6 +48,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Compile changed application code
-        run: python -m py_compile main.py src/page_home.py src/home_whats_new.py tests/test_home_whats_new.py
+        run: python -m py_compile main.py src/page_home.py src/home_whats_new.py src/site_meta.py scripts/sync_portfolio_releases.py tests/test_home_whats_new.py tests/test_home_market_announcement.py
       - name: Verify release selection and live publication refresh
-        run: python -m unittest -v tests.test_home_whats_new
+        run: python -m unittest -v tests.test_home_whats_new tests.test_home_market_announcement

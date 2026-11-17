@@ -2,22 +2,23 @@
   "schema_version": 1,
   "items": [
     {
-      "key": "page:advisory-market-demo",
-      "type": "New page",
-      "title": "Advisory Market Demo",
-      "description": "Discover the newly published portfolio page.",
-      "date": "2026-11-17T07:49:09+01:00",
-      "href": "?page=advisory-market-demo",
-      "cta": "Explore the page"
+      "key": "page:advisory-market-signals",
+      "type": "Executive research",
+      "title": "Sweden’s AI & Data Market: Evidence for Executive Decisions",
+      "description": "The November 2026 review goes beyond job listings to examine AI adoption, recruitment demand, business confidence and regional conditions. Five executive perspectives, three outlook scenarios and practical recommendations draw on 43 published observations from six sources.",
+      "date": "2026-11-17T09:47:15+01:00",
+      "href": "?page=advisory-market-signals",
+      "cta": "Read the executive review"
     },
     {
-      "key": "page:advisory-market-signals",
-      "type": "New page",
-      "title": "Advisory Market Signals",
-      "description": "Discover the newly published portfolio page.",
-      "date": "2026-11-16T20:55:19+01:00",
-      "href": "?page=advisory-market-signals",
-      "cta": "Explore the page"
+      "key": "page:advisory-market-demo",
+      "type": "Historical sample",
+      "title": "Historical AI & Data Market Research Sample",
+      "description": "A public example of selected senior AI and Data advertisements from June–August 2026. It is not the current executive market review.",
+      "date": "2026-11-17T07:49:09+01:00",
+      "href": "?page=advisory-market-demo",
+      "cta": "Explore the historical sample",
+      "promote_home": false
     },
     {
       "key": "page:advisory-renewal",

@@ -362,8 +362,10 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     agenda=[(x["decision"],x["owner"],x["horizon"],x["action"])
             for x in editorial["decision_agenda"]]
     story.append(decision_table(agenda,sty=s))
-    # Avoid a page carrying only a repeated methodology panel.
-    story.append(PageBreak())
+    # Keep appendix evidence alongside the final decision entries where space
+    # permits; a forced break produced a nearly empty agenda continuation.
+    story.append(Spacer(1,18))
+    story.append(CondPageBreak(280))
 
     section(story,"10 / Research transparency",
         "Source and observation register",

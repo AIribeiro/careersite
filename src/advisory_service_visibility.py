@@ -27,6 +27,7 @@ PAGE_SERVICES = {
     "advisory-leadership": "workshop",
     "advisory-renewal": "renewal",
     "advisory-market-signals": "market-signals",
+    "advisory-market-demo": "market-signals",
 }
 
 

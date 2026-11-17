@@ -77,7 +77,7 @@ class PublicationClaimsTests(unittest.TestCase):
         self.assertIn("Additional skills and salary measures are being checked",self.html)
         self.assertIn("June–October 2026 show retrospective leadership-advertisement records only",self.html)
         self.assertNotIn("AI salary benchmark available now",self.html)
-        self.assertNotIn("live market forecast",self.html.lower())
+        self.assertIn("not a live market forecast",self.html.lower())
 
     def test_public_sample_is_oldest_narrow_history_not_full_market(self):
         html=public_market_demo_html()

@@ -6,6 +6,7 @@ historical demos ahead of the actual signed-off executive research edition.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from html import escape
 import json
 from pathlib import Path
 import sys
@@ -51,7 +52,7 @@ class ExecutiveHomeAnnouncementTests(unittest.TestCase):
     def test_home_markup_clearly_explains_offer_and_links_to_main_service(self):
         with patch.object(news,"_credential_items",return_value=()):
             markup=news.home_whats_new()
-        self.assertIn(TITLE,markup)
+        self.assertIn(escape(TITLE),markup)
         self.assertIn("recruitment demand",markup)
         self.assertIn("three outlook scenarios",markup)
         self.assertIn('href="?page=advisory-market-signals"',markup)

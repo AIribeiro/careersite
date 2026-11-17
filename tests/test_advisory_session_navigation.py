@@ -31,6 +31,7 @@ class AdvisorySessionNavigationTests(unittest.TestCase):
             "?page=advisory-access&view=scorecard",
             "?page=advisory-access&view=rollout",
             "?page=advisory-access&view=messages&request=00000000-0000-4000-8000-000000000001",
+            "?page=advisory-market-demo",
             "?page=advisory",
             "?page=advisory-scorecard",
             "?page=advisory-rollout",

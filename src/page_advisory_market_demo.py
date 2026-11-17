@@ -409,7 +409,7 @@ def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
             if p["geography"] in REGIONS else 9
         )
         summary="  |  ".join(
-            p["geography"]+": "+str(int(p["value"]))+" ads"
+            p["geography"]+": "+str(int(p["value"]))+(" ad" if int(p["value"])==1 else " ads")
             for p in bucket
         )
         codes="  /  ".join(p["code"] for p in bucket)
@@ -455,7 +455,7 @@ def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
         "fingerprint. Query provenance: JobTech Historical Ads / "
         "historical.api.jobtechdev.se/search.","caption",sty=sty))
     story.append(P(
-       "For current market decisions, Executive Edition 2.0 adds independently "
+       "For current market decisions, the latest Executive Edition adds independently "
        "verified AI adoption, recruitment, business confidence and sourcing "
        "evidence. The complete report and focused decision briefs are available "
        "through the Advisory account at jairribeiro.com.",

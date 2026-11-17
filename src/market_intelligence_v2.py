@@ -257,6 +257,8 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
         "AI adoption and market recruitment are different business signals",
         editorial["why_it_matters"],sty=s))
     story.append(Spacer(1,16))
+    story.append(P("Editorial correction and evidence scope","h2",sty=s))
+    story.append(P(editorial.get("correction_note") or "Recommendations are editorial interpretations rather than direct statistical findings.","body_compact",sty=s))
     story.append(P("What changed since the earlier research","h2",sty=s))
     story.append(P(editorial["what_changed"],"body",sty=s))
     story.append(P("Five decision perspectives","h2",sty=s))
@@ -452,7 +454,7 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         theme["title"],theme["thesis"],sty=s)
     story.append(P("Evidence, not assumption","h2",sty=s))
     story.append(P(theme["evidence"],"body",sty=s))
-    story.append(P("Our independent interpretation","h2",sty=s))
+    story.append(P("Our interpretation of the evidence","h2",sty=s))
     story.append(P(theme["interpretation"],"body",sty=s))
     story.append(panel("Challenge the interpretation",
         "An alternative explanation",theme["alternative"],sty=s))
@@ -487,6 +489,8 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         "drawn automatically from disconnected indicators.",sty=s)
     story.append(sources_table(evidence,_value,sty=s,include_provenance=True))
     story.append(Spacer(1,13))
+    story.append(P("JobTech selected-title method (where applicable): https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md","body_small",sty=s))
+    story.append(Spacer(1,10))
     story.append(P(
        "Before acting, test the recommendation against your organisation's "
        "own performance baseline, workforce capabilities, risk posture and "

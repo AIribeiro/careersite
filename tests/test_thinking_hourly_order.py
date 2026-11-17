@@ -82,6 +82,15 @@ def test_controller_preserves_dom_and_falls_back_on_unavailable_analytics(monkey
     assert "stopped" in script
 
 
+def test_hourly_order_never_moves_sections_currently_in_view():
+    source = (ROOT / "src" / "thinking_dynamic_order.py").read_text(encoding="utf-8")
+    assert "const visibleSection = nodes.some" in source
+    assert "bounds.bottom > 0 && bounds.top < win.innerHeight" in source
+    assert "pendingOrder = ordered.slice()" in source
+    assert "win.addEventListener('scroll', retryWhenOffscreen" in source
+    assert "win.removeEventListener('scroll', retryWhenOffscreen)" in source
+
+
 def test_controller_is_only_mounted_for_thinking_catalogue():
     main = (ROOT / "main.py").read_text(encoding="utf-8")
     assert 'PAGE == "thinking"' in main

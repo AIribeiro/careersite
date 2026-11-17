@@ -72,7 +72,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
             "+10.7",
             "+18.5",
             "October 2026",
-            "different populations",
+            "measure different things",
         ):
             self.assertIn(phrase.lower(),self.page.lower())
         self.assertNotIn("AI jobs increased 45%",self.page)

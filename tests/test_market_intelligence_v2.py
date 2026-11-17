@@ -71,6 +71,12 @@ def verified_v2_fixture():
             "period_label":period,
             "period_complete":True,
         })
+        row["source_title"]={"scb_recruitment_needs_lor":"SCB Recruitment Needs and Vacancies", "ki_konjunkturbarometern":"KI Business Tendency Survey", "ec_digital_decade_sweden":"European Commission Digital Decade Sweden"}[family]
+        row["population_note"]="Defined survey or policy population, not AI-specialist hiring."
+        row["methodology"]="Official reported measure, with an explicit observational date."
+        row["caveat"]="Not a causal measure of AI investment returns, workforce shortages or outcomes."
+        row["published_on"]="2026-11-05"
+        row["verified_on"]="2026-11-17"
         p.append(row)
     return p,editorial
 
@@ -119,6 +125,34 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
         ):
             self.assertIn(word.lower(),extracted.lower())
         self.assertNotIn("jair.ribeiro@outlook.it",extracted)
+
+    def test_full_report_retains_source_denominators_and_caveats_in_pdf(self):
+        raw=build_executive_market_pdf(self.points,self.editorial,SLUG)
+        pages=PdfReader(BytesIO(raw)).pages
+        all_text="\n".join(page.extract_text() or "" for page in pages)
+        for term in (
+            "Population / denominator", "How measured / derived",
+            "What it cannot establish", "Research checked:",
+            "Source family:", "JobTech v1 reproduction method",
+            "Interpretation and selection risks",
+        ):
+            self.assertIn(term,all_text)
+        for point_record in self.points:
+            self.assertIn(point_record["code"],all_text)
+        for sentence in self.editorial["cover_assessment"].split(". "):
+            self.assertIn(sentence[:35],all_text.replace("\n"," "))
+
+    def test_editorial_rejects_missing_cover_summary(self):
+        copy=json.loads(json.dumps(self.editorial))
+        copy.pop("cover_assessment")
+        with self.assertRaisesRegex(ValueError,"incomplete"):
+            validate_editorial(copy,self.points,SLUG)
+
+    def test_sources_require_full_provenance(self):
+        broken=json.loads(json.dumps(self.points))
+        broken[0].pop("population_note")
+        with self.assertRaisesRegex(ValueError,"missing population_note"):
+            build_executive_market_pdf(broken,self.editorial,SLUG)
 
     def test_full_report_download_is_visible_before_decision_drilldown(self):
         source=(ROOT/"src/market_intelligence_v2.py").read_text(encoding="utf-8")

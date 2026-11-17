@@ -50,6 +50,9 @@ def verified_v2_fixture():
     available={row["code"] for row in p}
     needed={code for theme in editorial["themes"]
             for code in theme["evidence_codes"]}
+    # Q1 is in the signed-off full edition even though only Q2 is cited by a theme.
+    # Include both vintages so the combined SCB-family heading is regression-tested.
+    needed.add("scb_lor_2026q1_total")
     for code in sorted(needed-available):
         # Synthetic only: real member report uses the signed-off Supabase rows.
         family=(

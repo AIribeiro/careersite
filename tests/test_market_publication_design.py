@@ -71,7 +71,7 @@ class MarketPublicationSystemTests(unittest.TestCase):
         self.assertLessEqual(len(pdf.pages),30)
         pages=printable_text(pdf)
         cover=pages[0].lower()
-        for phrase in ("market signals / sweden","executive edition 2.0",
+        for phrase in ("market signals / sweden","executive edition "+self.editorial["version"],
                        "jair ribeiro","the evidence at a glance"):
             self.assertIn(phrase,cover)
         content=" ".join(pages).lower()
@@ -87,6 +87,47 @@ class MarketPublicationSystemTests(unittest.TestCase):
             self.assertIn(p["code"].lower(),content)
         self.assertGreaterEqual(len(uris(pdf)),len(self.points))
         self.assertFalse(any(u.startswith("http://") for u in uris(pdf)))
+
+    def test_version_and_publisher_scope_are_consistent(self):
+        pdf=reader(build_executive_market_pdf(self.points,self.editorial,SLUG))
+        cover=printable_text(pdf)[0].lower()
+        self.assertIn("executive edition "+self.editorial["version"],cover)
+        self.assertNotIn("executive edition 2.0 / sweden",cover)
+        self.assertIn("edition "+self.editorial["version"],str(pdf.metadata.title).lower())
+        pages=printable_text(pdf)
+        method_pages=[p for p in pages if "source-series methods and limitations" in p.lower()]
+        self.assertEqual(len(method_pages),1)
+        self.assertIn("METHOD AND INTERPRETATION BOUNDARIES",
+                      method_pages[0])
+        content=" ".join(pages)
+        self.assertIn("SCB Recruitment Needs and Vacancies",content)
+        self.assertIn("Source releases represented:",content)
+        self.assertIn("Q1 2026",content)
+        self.assertIn("Q2 2026",content)
+        # The only inherited Q1 wording must be tied to the Q1 source release,
+        # never to the entire seven-observation family.
+        for page in pages:
+            if "7 observations" in page and "Q1 2026" in page:
+                self.assertIn("Q2 2026",page)
+
+    def test_evidence_appendix_is_readable_and_cross_referenced(self):
+        pdf=reader(build_executive_market_pdf(self.points,self.editorial,SLUG))
+        text=" ".join(printable_text(pdf))
+        for phrase in ("OBSERVATION / PROVENANCE","PERIOD / VALUE",
+                       "method 1, limit","Population:","Published:","Verified:"):
+            self.assertIn(phrase.lower(),text.lower())
+        self.assertIn("1 advertisement",text)
+        self.assertNotIn("1 advertisements",text)
+        self.assertGreaterEqual(len(pdf.outline),10)
+
+    def test_agenda_not_stranded_before_sources(self):
+        pdf=reader(build_executive_market_pdf(self.points,self.editorial,SLUG))
+        pages=printable_text(pdf)
+        agenda=[i for i,p in enumerate(pages) if
+            "Decisions to take into the next executive" in p]
+        self.assertEqual(len(agenda),1)
+        self.assertIn("Set the market review triggers",pages[agenda[0]])
+        self.assertNotIn("Source and observation register",pages[agenda[0]])
 
     def test_decision_briefs_share_identity_and_remain_specific(self):
         for theme in self.editorial["themes"]:

@@ -50,6 +50,9 @@ def verified_v2_fixture():
     available={row["code"] for row in p}
     needed={code for theme in editorial["themes"]
             for code in theme["evidence_codes"]}
+    # Q1 is in the signed-off full edition even though only Q2 is cited by a theme.
+    # Include both vintages so the combined SCB-family heading is regression-tested.
+    needed.add("scb_lor_2026q1_total")
     for code in sorted(needed-available):
         # Synthetic only: real member report uses the signed-off Supabase rows.
         family=(
@@ -71,7 +74,7 @@ def verified_v2_fixture():
             "period_label":period,
             "period_complete":True,
         })
-        row["source_title"]={"scb_recruitment_needs_lor":"SCB Recruitment Needs and Vacancies", "ki_konjunkturbarometern":"KI Business Tendency Survey", "ec_digital_decade_sweden":"European Commission Digital Decade Sweden"}[family]
+        row["source_title"]={"scb_recruitment_needs_lor":"SCB Recruitment Needs and Vacancies, "+("Q1 2026" if "_2026q1_" in code else "Q2 2026"), "ki_konjunkturbarometern":"KI Business Tendency Survey", "ec_digital_decade_sweden":"European Commission Digital Decade Sweden"}[family]
         row["population_note"]="Defined survey or policy population, not AI-specialist hiring."
         row["methodology"]="Official reported measure, with an explicit observational date."
         row["caveat"]="Not a causal measure of AI investment returns, workforce shortages or outcomes."
@@ -131,10 +134,9 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
         pages=PdfReader(BytesIO(raw)).pages
         all_text="\n".join(page.extract_text() or "" for page in pages)
         for term in (
-            "Population / denominator", "How measured / derived",
-            "What it cannot establish", "Research checked:",
-            "Source family:", "query seeds, headline classifier",
-            "Interpretation and selection risks",
+            "Population:", "Research method / limitation:",
+            "Method 1:", "Limit 1:", "Published:", "Verified:",
+            "search seeds, classifier", "Source-series methods and limitations",
         ):
             self.assertIn(term,all_text)
         for point_record in self.points:
@@ -164,7 +166,7 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
     def test_sources_require_full_provenance(self):
         broken=json.loads(json.dumps(self.points))
         broken[0].pop("population_note")
-        with self.assertRaisesRegex(ValueError,"missing population_note"):
+        with self.assertRaisesRegex(ValueError,"missing provenance"):
             build_executive_market_pdf(broken,self.editorial,SLUG)
 
     def test_full_report_download_is_visible_before_decision_drilldown(self):

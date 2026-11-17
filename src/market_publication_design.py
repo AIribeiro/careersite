@@ -13,6 +13,7 @@ from __future__ import annotations
 from html import escape
 from io import BytesIO
 from math import isfinite
+import re
 from urllib.parse import urlsplit
 
 from reportlab.graphics.shapes import Drawing, Rect, String, Line
@@ -112,6 +113,18 @@ def styles():
           fontSize=7.4,leading=10.8,textColor=SLATE),
       "right":ParagraphStyle("mp_right",fontName="Helvetica",
           fontSize=7.3,leading=11,textColor=SLATE,alignment=TA_RIGHT),
+      "source_title":ParagraphStyle("mp_source_title",fontName="Helvetica-Bold",
+          fontSize=8.65,leading=12.2,textColor=INK,spaceAfter=3),
+      "source_value":ParagraphStyle("mp_source_value",fontName="Helvetica-Bold",
+          fontSize=10.3,leading=13,textColor=NAVY,spaceAfter=3),
+      "source_id":ParagraphStyle("mp_source_id",fontName="Helvetica",
+          fontSize=7.65,leading=10.9,textColor=SLATE,spaceAfter=2),
+      "source_note":ParagraphStyle("mp_source_note",fontName="Helvetica",
+          fontSize=8.1,leading=11.9,textColor=SLATE,spaceAfter=2),
+      "source_header":ParagraphStyle("mp_source_header",fontName="Helvetica-Bold",
+          fontSize=8.15,leading=11.3,textColor=WHITE),
+      "source_method":ParagraphStyle("mp_source_method",fontName="Helvetica",
+          fontSize=8.2,leading=12.2,textColor=INK,spaceAfter=3),
     }
     return s
 
@@ -141,6 +154,8 @@ def cover_callback(spec: dict):
         raise ValueError("Publication cover needs three verified metric summaries.")
     def draw(c,doc):
         c.saveState()
+        c.bookmarkPage("market-cover")
+        c.addOutlineEntry("Cover", "market-cover", level=0)
         c.setFillColor(MIDNIGHT);c.rect(0,0,W,H,stroke=0,fill=1)
         c.setFillColor(NAVY);c.rect(0,236,W,H-236,stroke=0,fill=1)
         # Oversized editorial motif is vector-only, with low-contrast geometry.
@@ -232,9 +247,23 @@ def interior_callback(kicker="MARKET SIGNALS / EXECUTIVE RESEARCH"):
     return draw
 
 
+class MarketPublicationDoc(SimpleDocTemplate):
+    """Create PDF outline bookmarks for real editorial chapters."""
+    def afterFlowable(self, flowable):
+        if not isinstance(flowable, Paragraph) or flowable.style.name!="mp_eyebrow":
+            return
+        label=clean(flowable.getPlainText())
+        match=re.match(r"^(\d{2})\s*/\s*(.+)$",label)
+        if not match:
+            return
+        anchor="market-chapter-"+match.group(1)
+        self.canv.bookmarkPage(anchor)
+        self.canv.addOutlineEntry(label,anchor,level=0)
+
+
 def new_publication(title,author="Jair Ribeiro | Enterprise AI & Data"):
     output=BytesIO()
-    doc=SimpleDocTemplate(output,pagesize=A4,leftMargin=LEFT,
+    doc=MarketPublicationDoc(output,pagesize=A4,leftMargin=LEFT,
       rightMargin=RIGHT,topMargin=30*mm,bottomMargin=24*mm,
       title=clean(title),author=author,subject="Market Signals Advisory research")
     return output,doc
@@ -255,11 +284,11 @@ def assemble(story,cover,title,*,min_bytes=4000):
 
 def section(story,number,title,lede="",*,sty=None):
     s=sty or styles()
-    story.append(P(number.upper(),"eyebrow",sty=s))
-    story.append(P(title,"h1",sty=s))
+    heading=[P(number.upper(),"eyebrow",sty=s),P(title,"h1",sty=s)]
     if lede:
-        story.append(P(lede,"lead",sty=s))
-    story.append(HRFlowable(width="100%",thickness=1,color=LINE,spaceBefore=2,spaceAfter=13))
+        heading.append(P(lede,"lead",sty=s))
+    heading.append(HRFlowable(width="100%",thickness=1,color=LINE,spaceBefore=2,spaceAfter=13))
+    story.append(KeepTogether(heading))
 
 
 def subsection(story,title,body,*,sty=None):
@@ -363,115 +392,144 @@ def decision_table(items,*,sty=None):
         ("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,SAND]),
         ("LINEBELOW",(0,1),(-1,-1),.35,LINE),
         ("VALIGN",(0,0),(-1,-1),"TOP"),
-        ("TOPPADDING",(0,0),(-1,-1),11),
-        ("BOTTOMPADDING",(0,0),(-1,-1),11),
+        ("TOPPADDING",(0,0),(-1,-1),8),
+        ("BOTTOMPADDING",(0,0),(-1,-1),8),
         ("LEFTPADDING",(0,0),(-1,-1),10),
         ("RIGHTPADDING",(0,0),(-1,-1),9),
     ]))
     return tbl
 
 
-def sources_table(points, format_value, *, sty=None, include_provenance=False, compact_provenance=False):
-    """Clickable source register, optionally with publication-grade lineage.
-
-    Detailed source tables disclose the population, method, limits and
-    verification vintage inside the PDF, rather than only in the member app.
-    """
-    s=sty or styles()
-    rows=[[P("EVIDENCE / PERIOD","table_head",sty=s),
-           P("OBSERVATION / ORIGINAL SOURCE","table_head",sty=s)]]
-    unique=set()
-    for item in sorted(points,key=lambda p:(str(p["source_family"]),str(p["code"]))):
-        code=str(item["code"])
-        if code in unique:
-            raise ValueError("Repeated source identifier in market publication.")
-        unique.add(code)
-        href=source_url(item["source_url"])
-        source=escape(clean(item["source_title"]),quote=False)
-        val=escape(clean(format_value(item)),quote=False)
-        pub=escape(clean(item.get("period_label") or ""),quote=False)
-        region=escape(clean(item.get("geography") or ""),quote=False)
-        period_state=(" | Incomplete period" if item.get("period_complete") is False
-                      else "")
-        context=[P(code,"table_bold",sty=s),
-                 P(pub+"  |  "+region+period_state,"table_small",sty=s)]
-        reading=[Paragraph(
-            f'<b>{_markup(item.get("metric_label") or "Market observation")}</b>  /  {val}<br/>'
-            f'<link href="{href}" color="#1F5773">{source} (original publisher)</link>',
-            s["table"])]
-        if include_provenance:
-            for field, label in (
-                ("population_note","Population / denominator"),
-                ("methodology","How measured / derived"),
-                ("caveat","What it cannot establish"),
-            ):
-                value=clean(item.get(field))
-                if not value:
-                    raise ValueError("Published source missing "+field+": "+code)
-                if field=="methodology" and compact_provenance:
-                    value="See source-method register: "+clean(item["source_family"])
-                reading.append(P(label+": "+value,"table_small",sty=s))
-            pub_date=clean(item.get("published_on"))
-            ver_date=clean(item.get("verified_on"))
-            if not pub_date or not ver_date:
-                raise ValueError("Published source missing release / verification date: "+code)
-            reading.append(P(
-                "Observation published: "+pub_date+"  |  Research checked: "+ver_date+
-                "  |  Source family: "+clean(item.get("source_family")),
-                "table_small",sty=s))
-        rows.append([context,reading])
-    table=LongTable(rows,colWidths=[56*mm,BODY-56*mm],hAlign="LEFT",
-                    repeatRows=1,splitByRow=1)
-    table.setStyle(TableStyle([
-        ("BACKGROUND",(0,0),(-1,0),NAVY),
-        ("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,SAND]),
-        ("LINEBELOW",(0,1),(-1,-1),.35,LINE),
-        ("VALIGN",(0,0),(-1,-1),"TOP"),
-        ("TOPPADDING",(0,0),(-1,-1),4),
-        ("BOTTOMPADDING",(0,0),(-1,-1),4),
-        ("LEFTPADDING",(0,0),(-1,-1),8),
-        ("RIGHTPADDING",(0,0),(-1,-1),7),
-    ]))
-    return table
-
-def source_family_methods(points, *, sty=None):
-    """Publish each full source methodology once, with all scope caveats.
-
-    The observation appendix still preserves per-record population, caveat,
-    publisher date, checked date and clickable original-source URL.
-    """
-    s=sty or styles()
-    by_family={}
-    for p in points:
-        family=clean(p.get("source_family"))
+def _source_refs(points):
+    """Number each family method/limit deterministically for legible cross-references."""
+    families={}
+    for item in points:
+        family=clean(item.get("source_family"))
         if not family:
-            raise ValueError("A source-family method is missing.")
-        by_family.setdefault(family,[]).append(p)
-    rows=[[P("SOURCE SERIES","table_head",sty=s),
-           P("RETRIEVAL AND MEASUREMENT METHOD","table_head",sty=s)]]
-    for family,group in sorted(by_family.items()):
+            raise ValueError("Market source is missing its family.")
+        families.setdefault(family,[]).append(item)
+    refs={}
+    for family,group in families.items():
         methods=sorted({clean(p.get("methodology")) for p in group})
         limits=sorted({clean(p.get("caveat")) for p in group})
         if "" in methods or "" in limits:
-            raise ValueError("Missing family method or interpretation caveat: "+family)
-        source_title=clean(group[0].get("source_title"))
-        notes=[P("Published source: "+source_title,"table_small",sty=s)]
+            raise ValueError("Incomplete method or caveat for "+family)
+        for item in group:
+            refs[item["code"]]=(family,
+                methods.index(clean(item["methodology"]))+1,
+                limits.index(clean(item["caveat"]))+1)
+    return families,refs
+
+
+def _publication_value(item,format_value):
+    value=clean(format_value(item))
+    if float(item["value"])==1 and item.get("metric_unit")=="advertisements":
+        return value.replace("1 advertisements","1 advertisement")
+    return value
+
+
+def sources_table(points, format_value, *, sty=None,
+                  include_provenance=False, compact_provenance=False):
+    """Record-level source appendix with readable, linked verification fields.
+
+    Compact provenance points to the numbered, fully printed family methods
+    and scope limits rather than repeating identical paragraphs 43 times.
+    """
+    s=sty or styles()
+    families,refs=_source_refs(points)
+    rows=[[P("PERIOD / VALUE","source_header",sty=s),
+           P("OBSERVATION / PROVENANCE","source_header",sty=s)]]
+    seen=set()
+    for item in sorted(points,key=lambda p:(str(p["source_family"]),str(p["code"]))):
+        code=clean(item["code"])
+        if code in seen:
+            raise ValueError("Repeated source identifier in market publication.")
+        seen.add(code)
+        href=source_url(item["source_url"])
+        title=escape(clean(item["source_title"]),quote=False)
+        metric=clean(item.get("metric_label") or "Market observation")
+        value=_publication_value(item,format_value)
+        pub=clean(item.get("period_label") or "")
+        geo=clean(item.get("geography") or "")
+        period_state=("  |  PARTIAL PERIOD" if item.get("period_complete") is False else "")
+        left=[P(pub,"source_title",sty=s),P(geo+period_state,"source_note",sty=s),
+              P(value,"source_value",sty=s)]
+        right=[P(metric,"source_title",sty=s),
+               P("Record ID: "+code,"source_id",sty=s),
+               Paragraph('<link href="'+href+'" color="#1F5773">'+
+                         "Publisher record: "+title+'</link>',s["source_note"])]
+        if include_provenance:
+            population=clean(item.get("population_note"))
+            method=clean(item.get("methodology"))
+            caveat=clean(item.get("caveat"))
+            published=clean(item.get("published_on"))
+            verified=clean(item.get("verified_on"))
+            if not all((population,method,caveat,published,verified)):
+                raise ValueError("Published evidence record missing provenance: "+code)
+            right.append(P("Population: "+population,"source_note",sty=s))
+            if compact_provenance:
+                family,method_id,limit_id=refs[code]
+                right.append(P(
+                    "Research method / limitation: "+family+
+                    "  [method "+str(method_id)+", limit "+str(limit_id)+"]",
+                    "source_note",sty=s))
+            else:
+                right.append(P("Method: "+method,"source_note",sty=s))
+                right.append(P("Limitation: "+caveat,"source_note",sty=s))
+            right.append(P("Published: "+published+"  |  Verified: "+verified,
+                           "source_note",sty=s))
+        rows.append([left,right])
+    tbl=LongTable(rows,colWidths=[48*mm,BODY-48*mm],hAlign="LEFT",
+                  repeatRows=1,splitByRow=1)
+    tbl.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,0),NAVY),
+        ("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,SAND]),
+        ("LINEBELOW",(0,1),(-1,-1),0.4,LINE),
+        ("VALIGN",(0,0),(-1,-1),"TOP"),
+        ("TOPPADDING",(0,0),(-1,-1),7),
+        ("BOTTOMPADDING",(0,0),(-1,-1),7),
+        ("LEFTPADDING",(0,0),(-1,-1),9),
+        ("RIGHTPADDING",(0,0),(-1,-1),9),
+    ]))
+    return tbl
+
+
+def source_family_methods(points, *, sty=None):
+    """One full explanation per method/limit, with references from each record."""
+    s=sty or styles()
+    families,_=_source_refs(points)
+    rows=[[P("PUBLISHER / SERIES","source_header",sty=s),
+           P("METHOD AND INTERPRETATION BOUNDARIES","source_header",sty=s)]]
+    for family,group in sorted(families.items()):
+        methods=sorted({clean(p.get("methodology")) for p in group})
+        limits=sorted({clean(p.get("caveat")) for p in group})
+        titles=sorted({clean(p.get("source_title")) for p in group})
+        if not all(titles):
+            raise ValueError("Source family missing publisher title: "+family)
+        # A Q1 source record must not be shown as the title for a combined Q1/Q2 series.
+        title_roots=sorted({re.sub(r",\s*Q[1-4]\s+20\d{2}$","",t).strip() for t in titles})
+        readable=" / ".join(title_roots)
+        left=[P(readable,"source_title",sty=s),
+              P("Series key: "+family,"source_id",sty=s),
+              P(str(len(group))+" observations","source_note",sty=s)]
+        notes=[]
+        if len(titles)>1:
+            notes.append(P("Source releases represented: "+"; ".join(titles),
+                           "source_note",sty=s))
         for i,method in enumerate(methods,1):
-            notes.append(P("Method "+str(i)+": "+method,"table_small",sty=s))
+            notes.append(P("Method "+str(i)+": "+method,"source_method",sty=s))
         for i,caveat in enumerate(limits,1):
-            notes.append(P("Scope limit "+str(i)+": "+caveat,"table_small",sty=s))
-        rows.append([[P(family,"table_bold",sty=s),
-                      P(str(len(group))+" observations","table_small",sty=s)],
-                     notes])
-    tbl=LongTable(rows,colWidths=[51*mm,BODY-51*mm],hAlign="LEFT",repeatRows=1)
+            notes.append(P("Limit "+str(i)+": "+caveat,"source_method",sty=s))
+        rows.append([left,notes])
+    tbl=LongTable(rows,colWidths=[60*mm,BODY-60*mm],hAlign="LEFT",repeatRows=1)
     tbl.setStyle(TableStyle([
         ("BACKGROUND",(0,0),(-1,0),NAVY),
         ("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,SAND]),
         ("VALIGN",(0,0),(-1,-1),"TOP"),
-        ("LINEBELOW",(0,1),(-1,-1),0.35,LINE),
-        ("TOPPADDING",(0,0),(-1,-1),7),
-        ("BOTTOMPADDING",(0,0),(-1,-1),7),
-        ("LEFTPADDING",(0,0),(-1,-1),8),
-        ("RIGHTPADDING",(0,0),(-1,-1),8),
+        ("LINEBELOW",(0,1),(-1,-1),.4,LINE),
+        ("TOPPADDING",(0,0),(-1,-1),9),
+        ("BOTTOMPADDING",(0,0),(-1,-1),9),
+        ("LEFTPADDING",(0,0),(-1,-1),9),
+        ("RIGHTPADDING",(0,0),(-1,-1),9),
     ]))
     return tbl

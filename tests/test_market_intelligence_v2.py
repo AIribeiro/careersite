@@ -133,7 +133,7 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
         for term in (
             "Population:", "Research method / limitation:",
             "Method 1:", "Limit 1:", "Published:", "Verified:",
-            "query seeds, classifier", "Source-series methods and limitations",
+            "search seeds, classifier", "Source-series methods and limitations",
         ):
             self.assertIn(term,all_text)
         for point_record in self.points:

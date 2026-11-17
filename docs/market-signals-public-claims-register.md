@@ -13,7 +13,7 @@ Its claims are limited to the signed-off member evidence and reports:
 
 | Public promise | Published evidence / implementation | Interpretation boundary |
 | --- | --- | --- |
-| 43 published observations | `sweden-ai-data-market-review-2026-11-v2` edition archive contains 43 immutable records | Observations are not 43 independent source datasets |
+| 43 published observations | `sweden-ai-data-market-review-2026-11-v2-0-1` edition archive contains 43 immutable records | Observations are not 43 independent source datasets |
 | Five executive decision perspectives | Five content chapters in `portfolio_market_signal_editorial_v2.analysis` | Analyses and recommendations are editorial judgements, not survey findings |
 | Six evidence series / five publishing organisations | SCB enterprise AI, SCB recruitment needs, derived JobTech v1, Brainville, KI business survey, European Commission Sweden Digital Decade | Two series are from SCB; distinct measures are not independently replicated findings |
 | Three conditional scenarios, six agenda decisions | Versioned V2 editorial manuscript and authenticated report generator | No probability claim or universal hiring forecast |
@@ -27,7 +27,7 @@ Its claims are limited to the signed-off member evidence and reports:
 
 **Verification boundary:** automated content tests, render preflight and GitHub checks are not equivalent to a signed-in download from the live hosted domain. Never mark that step complete based solely on CI.
 
-The original Edition 01 remains accessible through the frozen monthly archive and
+The 17 November Executive Edition 2.0 is preserved in its original signed-off archive; this correction publishes a successor edition rather than altering the immutable manuscript. The original Edition 01 remains accessible through the frozen monthly archive and
 retains its 30 observations, four original interpretations, three publisher families,
 and the figures and report that were available on 16 November. The public June–August
 research demonstration remains deliberately limited to that historic JobTech basket.

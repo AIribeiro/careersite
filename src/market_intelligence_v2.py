@@ -28,7 +28,7 @@ from market_review_premium import (
 REQUIRED_TOP = (
     "version", "title", "issue_date", "assessment", "cover_assessment", "reading_note", "why_it_matters",
     "what_changed", "themes", "decision_agenda", "outlook",
-    "methodology_note",
+    "methodology_note", "coverage_cautions",
 )
 REQUIRED_THEME = (
     "key", "title", "thesis", "evidence", "interpretation",
@@ -86,6 +86,11 @@ def validate_editorial(payload: dict, points: list[dict], edition_slug: str) -> 
         raise ValueError("Executive edition version is invalid.")
     if not 100 <= len(str(payload["cover_assessment"])) <= 500:
         raise ValueError("Cover assessment must be concise and complete, not truncated.")
+    cautions=payload["coverage_cautions"]
+    if not isinstance(cautions,list) or len(cautions)!=3 or {x.get("key") for x in cautions if isinstance(x,dict)}!={"jobtech","brainville","scb"}:
+        raise ValueError("The three evidence-selection limits are required.")
+    if any(not all(isinstance(x.get(k),str) and len(x[k])>=15 for k in ("title","text")) for x in cautions):
+        raise ValueError("Evidence-selection limitation is incomplete.")
     by_code = {str(p.get("code")): p for p in points}
     if len(by_code) != len(points):
         raise ValueError("Duplicate evidence identifiers.")
@@ -165,6 +170,18 @@ def _new_document(title):
 
 def _p(styles,content,kind="body"):
     return _P(styles,content,kind)
+
+
+def _relevant_cautions(editorial, points):
+    """Select scope warnings for the evidence families used in a PDF brief."""
+    family_keys={
+        "af_jobtech_target_demand":"jobtech",
+        "brainville_consulting_market":"brainville",
+        "scb_enterprise_ai_adoption":"scb",
+    }
+    wanted={family_keys[p["source_family"]] for p in points
+            if p.get("source_family") in family_keys}
+    return [x for x in editorial["coverage_cautions"] if x["key"] in wanted]
 
 
 def _evidence_items(points,codes):
@@ -261,6 +278,12 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     story.append(Spacer(1,16))
     story.append(P("How to read this edition","h2",sty=s))
     story.append(P(editorial["reading_note"],"body_compact",sty=s))
+    story.append(P("Three boundaries to interpret before acting","h2",sty=s))
+    for risk in editorial["coverage_cautions"]:
+        story.append(KeepTogether([
+            P(risk["title"],"h2",sty=s),
+            P(risk["text"],"body_small",sty=s),
+        ]))
     story.append(P("What changed since the earlier research","h2",sty=s))
     story.append(P(editorial["what_changed"],"body",sty=s))
     perspectives=[P("Five decision perspectives","h2",sty=s)]
@@ -489,6 +512,11 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         "All cited evidence is retained here with its scope and publisher. "
         "The reading above is an editorial judgement, not a causal claim "
         "drawn automatically from disconnected indicators.",sty=s)
+    relevant=_relevant_cautions(editorial,evidence)
+    if relevant:
+        story.append(P("What these measures cannot establish","h2",sty=s))
+        for item in relevant:
+            story.append(P(item["title"]+": "+item["text"],"body_small",sty=s))
     story.append(sources_table(evidence,_value,sty=s,include_provenance=True))
     story.append(Spacer(1,13))
     story.append(Paragraph(
@@ -522,6 +550,10 @@ def render_executive_intelligence(streamlit, editorial: dict,
         html_escape(editorial["what_changed"])+'</p></section>'
     )
     st.caption(editorial["reading_note"])
+    st.markdown("#### Where the evidence can mislead")
+    for risk in editorial["coverage_cautions"]:
+        with st.expander(risk["title"],expanded=False):
+            st.write(risk["text"])
     st.markdown("#### Download the complete executive market review")
     st.caption(
         "Complete November research report: five executive analyses, "
@@ -554,6 +586,9 @@ def render_executive_intelligence(streamlit, editorial: dict,
                     ("What would change our assessment","monitor"),
                 ))+'</article>')
     index={p["code"]:p for p in points}
+    selected_evidence=_evidence_items(points,t["evidence_codes"])
+    for risk in _relevant_cautions(editorial,selected_evidence):
+        st.caption(risk["title"]+": "+risk["text"])
     with st.expander("Check the evidence behind this assessment",expanded=False):
         for code in t["evidence_codes"]:
             p=index[code]
@@ -581,7 +616,7 @@ def render_executive_intelligence(streamlit, editorial: dict,
         st.caption("Condition: "+item["condition"]+
                    "  |  Executive response: "+item["leadership_response"])
     st.caption(editorial["methodology_note"])
-    st.markdown("[JobTech v1 title-basket selection and reproduction method](https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md)")
+    st.markdown("[JobTech v1 title-basket selection and verification limits](https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md)")
     st.markdown("#### Download this executive decision brief")
     st.caption("Focused PDF for the selected executive decision perspective.")
     focused=build_executive_decision_pdf(points,editorial,edition_slug,choice)

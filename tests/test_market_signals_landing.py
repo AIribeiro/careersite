@@ -42,6 +42,38 @@ class MarketSignalsLandingTests(unittest.TestCase):
         cls.parser.feed(cls.page)
         cls.copy=" ".join(cls.parser.text)
 
+    def test_headlines_and_subheadings_use_full_available_content_width(self):
+        css=MARKET_SIGNALS_LANDING_CSS
+        self.assertIn(".ms-hero-grid {display:grid;grid-template-columns:minmax(0,1fr)",css)
+        self.assertIn(".ms-section-head {display:block;width:100%",css)
+        self.assertIn(".ms-cta-grid {display:grid;grid-template-columns:minmax(0,1fr)",css)
+        self.assertIn(".ms-hero h1 {display:block;width:100%;max-width:none",css)
+        self.assertIn(".ms-section h2 {display:block;width:100%;max-width:none",css)
+        self.assertIn(".ms-lastcta h2 {display:block;width:100%;max-width:none",css)
+        self.assertIn(".ms-section-intro {font-size:15px;color:#56687A;line-height:1.77;width:100%;max-width:none",css)
+        self.assertIn(".ms-hero-lead {color:#D6DFE9;font-size:clamp(17px,1.5vw,20px);line-height:1.65;width:100%;max-width:none",css)
+        self.assertIn(".container {width:calc(100% - clamp(30px,5vw,88px));max-width:none",css)
+        self.assertNotIn("grid-template-columns:minmax(0,1.15fr) minmax(0,.8fr)",css)
+        self.assertNotIn("max-width:950px",css)
+
+    def test_market_signals_footer_is_standard_and_contextual(self):
+        from page_home_featured import inject_writing_footer
+        document=self.page
+        self.assertEqual(document.count('<footer class="footer">'),1)
+        self.assertIn('aria-label="Market Signals footer navigation"',document)
+        self.assertIn('data-analytics-section="market-signals-footer-navigation"',document)
+        for href in (
+            '?page=advisory',
+            '?page=advisory-market-demo',
+            '?page=home',
+            '?page=advisory-access&amp;view=market-signals',
+        ):
+            self.assertIn('href="'+href+'"',document)
+        self.assertLess(document.index('aria-label="Market Signals footer navigation"'),
+                        document.index('<footer class="footer">'))
+        self.assertEqual(inject_writing_footer(document,"advisory-market-signals"),document)
+        self.assertNotIn('data-analytics-section="site-writing-footer"',document)
+
     def test_no_generic_old_four_lens_page(self):
         self.assertNotIn("Four evidence lenses",self.page)
         self.assertNotIn("Market signals connected to leadership decisions.",self.page)

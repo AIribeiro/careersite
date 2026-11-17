@@ -53,7 +53,7 @@ class MarketPublicationSystemTests(unittest.TestCase):
         self.assertIn("the evidence at a glance",cover)
         body=" ".join(pages).lower()
         for phrase in (
-            "the signal is small", "what leadership should do",
+            "the signal is small", "the management question is not",
             "geography and interpretation", "four decisions worth making",
             "source and audit trail", "16 november 2026",
             "17 november 2026", "jobtech_v1_jun_se",

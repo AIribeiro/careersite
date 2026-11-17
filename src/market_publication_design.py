@@ -113,7 +113,6 @@ def styles():
           fontSize=7.4,leading=10.8,textColor=SLATE),
       "right":ParagraphStyle("mp_right",fontName="Helvetica",
           fontSize=7.3,leading=11,textColor=SLATE,alignment=TA_RIGHT),
-    }
       "source_title":ParagraphStyle("mp_source_title",fontName="Helvetica-Bold",
           fontSize=8.65,leading=12.2,textColor=INK,spaceAfter=3),
       "source_value":ParagraphStyle("mp_source_value",fontName="Helvetica-Bold",

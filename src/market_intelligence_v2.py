@@ -26,7 +26,7 @@ from market_review_premium import (
 )
 
 REQUIRED_TOP = (
-    "title", "issue_date", "assessment", "why_it_matters",
+    "title", "issue_date", "assessment", "cover_assessment", "why_it_matters",
     "what_changed", "themes", "decision_agenda", "outlook",
     "methodology_note",
 )
@@ -82,6 +82,8 @@ def validate_editorial(payload: dict, points: list[dict], edition_slug: str) -> 
         raise ValueError("Executive research edition is incomplete.")
     if payload.get("edition_slug") != edition_slug:
         raise ValueError("The editorial analysis is not bound to this evidence edition.")
+    if not 100 <= len(str(payload["cover_assessment"])) <= 500:
+        raise ValueError("Cover assessment must be concise and complete, not truncated.")
     by_code = {str(p.get("code")): p for p in points}
     if len(by_code) != len(points):
         raise ValueError("Duplicate evidence identifiers.")
@@ -234,8 +236,8 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     cover={
       "title":"AI & Data Market Review",
       "subtitle":editorial["title"],
-      "assessment":editorial["assessment"],
-      "question":"Where should capital, talent and governance move first - and what would change our mind?",
+      "assessment":editorial["cover_assessment"],
+      "question":"Which decisions does this evidence support - and what remains unknown?",
       "edition":"EXECUTIVE EDITION 2.0 / SWEDEN",
       "issue":editorial["issue_date"],
       "metrics":[
@@ -377,8 +379,23 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
        "Research method and limits: "+editorial["methodology_note"],
        "body_small",sty=s))
     story.append(Spacer(1,9))
-    story.append(sources_table(points,_value,sty=s))
+    story.append(sources_table(points,_value,sty=s,include_provenance=True))
     story.append(Spacer(1,13))
+    story.append(P(
+       "Interpretation and selection risks: SCB changed its enterprise industry "
+       "coverage in 2026, limiting direct year-on-year comparison. The JobTech "
+       "leadership-title basket excludes many operational and product leaders "
+       "with AI responsibility and is too small to estimate national hiring. "
+       "Brainville reflects one broad consulting marketplace rather than an "
+       "AI-specialist census. In-house data analytics staffing is not a measure "
+       "of operating readiness or realised business benefit.",
+       "body_small",sty=s))
+    story.append(P(
+       "JobTech v1 reproduction method, search seeds, classification and "
+       "vintage limitations: "
+       "https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/"
+       "JOBTECH_V1_REPRODUCTION.md",
+       "body_small",sty=s))
     story.append(P(
        "Source measurements describe different populations. Survey uptake "
        "is not return on investment; digital roadmap budgets are not company "
@@ -468,7 +485,7 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         "All cited evidence is retained here with its scope and publisher. "
         "The reading above is an editorial judgement, not a causal claim "
         "drawn automatically from disconnected indicators.",sty=s)
-    story.append(sources_table(evidence,_value,sty=s))
+    story.append(sources_table(evidence,_value,sty=s,include_provenance=True))
     story.append(Spacer(1,13))
     story.append(P(
        "Before acting, test the recommendation against your organisation's "

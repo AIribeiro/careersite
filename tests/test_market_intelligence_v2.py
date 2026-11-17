@@ -19,7 +19,7 @@ from market_intelligence_v2 import (
 from test_market_review_premium import verified_edition_fixture, point
 
 
-SLUG="sweden-ai-data-market-review-2026-11-v2"
+SLUG="sweden-ai-data-market-review-2026-11-v2-0-1"
 
 
 def verified_v2_fixture():

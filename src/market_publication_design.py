@@ -399,8 +399,8 @@ def sources_table(points,format_value,*,sty=None):
         ("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,SAND]),
         ("LINEBELOW",(0,1),(-1,-1),.35,LINE),
         ("VALIGN",(0,0),(-1,-1),"TOP"),
-        ("TOPPADDING",(0,0),(-1,-1),7),
-        ("BOTTOMPADDING",(0,0),(-1,-1),7),
+        ("TOPPADDING",(0,0),(-1,-1),3),
+        ("BOTTOMPADDING",(0,0),(-1,-1),3),
         ("LEFTPADDING",(0,0),(-1,-1),9),
         ("RIGHTPADDING",(0,0),(-1,-1),7),
     ]))

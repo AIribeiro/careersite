@@ -276,7 +276,8 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
          "Swedish firms, 10+ staff | 2026"),
         (_value(idx["scb_2026_ai_250plus"]),"AI use among large firms",
          "250+ employees | 2026"),
-        (_value(idx["jobtech_v1_oct_se"]),"Selected senior AI/Data adverts",
+        (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),
+         "Selected senior AI/Data adverts",
          "October 2026 | National basket"),
     ],sty=s))
     story.append(Spacer(1,18))

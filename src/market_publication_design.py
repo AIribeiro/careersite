@@ -133,6 +133,7 @@ def cover_callback(spec: dict):
     title=clean(spec["title"])
     subtitle=clean(spec.get("subtitle") or "")
     assessment=clean(spec.get("assessment") or "")
+    question=clean(spec.get("question") or "")
     edition=clean(spec.get("edition") or "")
     issue=clean(spec.get("issue") or "")
     metrics=list(spec.get("metrics") or [])
@@ -162,14 +163,27 @@ def cover_callback(spec: dict):
             fontSize=19.0,leading=24.3,textColor=colors.HexColor("#EADBCB"))
         y=text_on(c,subtitle,sub_style,LEFT,y-16,BODY-30)
         c.setStrokeColor(COPPER);c.setLineWidth(1)
-        rule_y=min(y-20,402)
+        # Keep the argument adjacent to the headline. The former fixed 402pt
+        # divider created a large visual hole on the title page.
+        rule_y=min(y-25,490)
         c.line(LEFT,rule_y,W-RIGHT,rule_y)
         assess_style=ParagraphStyle("mp_cover_assess",fontName="Helvetica",
             fontSize=10.2,leading=17.0,textColor=colors.HexColor("#E8EEF1"))
         assess_text=assessment if len(assessment)<=540 else assessment[:537].rstrip()+"..."
-        y2=text_on(c,assess_text,assess_style,LEFT,rule_y-22,BODY-24)
-        if y2<250:
+        y2=text_on(c,assess_text,assess_style,LEFT,rule_y-20,BODY-24)
+        if y2<255:
             raise ValueError("Cover text exceeds its designed reading area.")
+        if question and y2>=320:
+            qtop=min(y2-22,335)
+            c.setFont("Helvetica-Bold",7.4);c.setFillColor(BRASS)
+            c.drawString(LEFT,qtop,"THE EXECUTIVE QUESTION")
+            question_style=ParagraphStyle("mp_cover_question",
+                fontName="Times-Roman",fontSize=15.3,leading=19.4,
+                textColor=WHITE)
+            bottom=text_on(c,question[:155],question_style,
+                           LEFT,qtop-13,BODY-27)
+            if bottom<241:
+                raise ValueError("Executive question overlaps the cover facts.")
         # Off-white metric band: exactly three fact boxes, never a generic slogan.
         c.setFillColor(SAND);c.rect(0,0,W,235,stroke=0,fill=1)
         c.setFillColor(COPPER);c.rect(0,233,W,2,stroke=0,fill=1)

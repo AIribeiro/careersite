@@ -85,7 +85,7 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-decision", "advisory-leadership", "advisory-renewal", "advisory-market-signals", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
+PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-decision", "advisory-leadership", "advisory-renewal", "advisory-market-signals", "advisory-market-demo", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -137,6 +137,7 @@ TITLES = {
     "advisory-leadership": "Executive AI Leadership Workshop | Jair Ribeiro",
     "advisory-renewal": "AI Portfolio Renewal Advisor | Jair Ribeiro",
     "advisory-market-signals": "AI & Data Market Signals | Jair Ribeiro",
+    "advisory-market-demo": "Historical Market Observatory | Jair Ribeiro",
     "privacy": "Privacy & Data | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
     "analytics": "Portfolio & Career Intelligence | Jair Ribeiro",
@@ -317,6 +318,9 @@ else:
     elif PAGE == "advisory-market-signals":
         from page_advisory_market_signals import advisory_market_signals
         render_page = advisory_market_signals
+    elif PAGE == "advisory-market-demo":
+        from page_advisory_market_demo import public_market_demo_html
+        render_page = public_market_demo_html
     elif PAGE == "privacy":
         from page_public_services import privacy
         render_page = privacy
@@ -330,13 +334,13 @@ else:
     # Separate Python build, footer selection and Streamlit HTML emission.
     # This helps distinguish cold imports from content or DOM work in Cloud logs.
     build_started = perf_counter()
-    if PAGE in {"advisory-decision", "advisory-rollout", "advisory-scorecard", "advisory-leadership", "advisory-renewal", "advisory-market-signals"}:
+    if PAGE in {"advisory-decision", "advisory-rollout", "advisory-scorecard", "advisory-leadership", "advisory-renewal", "advisory-market-signals", "advisory-market-demo"}:
         import advisory_service_visibility as advisory_visibility
 
         # Streamlit Cloud can keep the former service catalogue in sys.modules
         # when main.py reruns after a release. Reload the catalogue once if the
         # newly registered page has not yet appeared in that running process.
-        if PAGE in {"advisory-renewal", "advisory-market-signals"} and advisory_visibility.PAGE_SERVICES.get(PAGE) != ({"advisory-renewal":"renewal","advisory-market-signals":"market-signals"}[PAGE]):
+        if PAGE in {"advisory-renewal", "advisory-market-signals", "advisory-market-demo"} and advisory_visibility.PAGE_SERVICES.get(PAGE) != ({"advisory-renewal":"renewal","advisory-market-signals":"market-signals","advisory-market-demo":"market-signals"}[PAGE]):
             import importlib
             advisory_visibility = importlib.reload(advisory_visibility)
 
@@ -374,6 +378,9 @@ else:
     # Compensate for mobile devices whose masking-provider frame is ~980px wide.
     # The adapter is inert for normal Streamlit visits and desktop iframes.
     mount_masked_mobile_fix()
+    if PAGE == "advisory-market-demo":
+        from page_advisory_market_demo import render_public_market_demo_download
+        render_public_market_demo_download()
     html_done = perf_counter()
     # Both the preview's free-access invitation and the infographic CTA
     # open one native sign-in dialog anchored to the current publication.

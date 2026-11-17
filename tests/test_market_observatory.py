@@ -160,7 +160,7 @@ class ObservatoryTests(unittest.TestCase):
     def test_public_render_path_passes_curated_edition_snapshot(self):
         code=(ROOT/"src/page_advisory_market_signals.py").read_text()
         self.assertIn("points, briefs, release = _release_snapshot(token,points,briefs)",code)
-        self.assertIn("render_market_observatory(points)",code)
+        self.assertIn("render_market_observatory(points,historical=historical)",code)
         self.assertNotIn("render_swedish_job_market(",code)
 
 

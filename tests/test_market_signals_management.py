@@ -23,9 +23,9 @@ class MarketManagementTests(unittest.TestCase):
         self.assertIn("render_owner_market_signals(token)",owner)
         self.assertIn('from page_owner_market_signals import render_owner_market_signals',owner)
 
-    def test_all_eight_management_domains_are_present(self):
+    def test_all_nine_management_domains_are_present(self):
         self.assertEqual(set(SECTIONS),
-            {"overview","coverage","sources","evidence","analysis","editions","engagement","audit"})
+            {"overview","refresh","coverage","sources","evidence","analysis","editions","engagement","audit"})
 
     def test_sources_are_marked_overdue_only_after_their_cadence(self):
         today=date.today()
@@ -157,8 +157,8 @@ class MarketManagementTests(unittest.TestCase):
         self.assertIn("market-editorial-status",code)
         self.assertIn("Market Intelligence · ",code)
         self.assertIn("Evidence-linked indicators with transparent reporting periods",code)
-        self.assertIn("Edition 01 published ",code)
-        self.assertIn("Market Intelligence · November 2026",code)
+        self.assertIn("Frozen published executive market edition",code)
+        self.assertIn("Market Intelligence · '+html_escape(issue_month)",code)
         self.assertNotIn("Initial editorial edition is still under source-by-source review.",code)
         self.assertNotIn("must not be represented as a formally released market report.",code)
 

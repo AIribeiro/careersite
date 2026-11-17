@@ -17,6 +17,7 @@ from advisory_service_visibility import service_visibility
 
 SECTIONS = {
     "overview": "Executive overview",
+    "refresh": "Refresh sources & analytics",
     "coverage": "Analytics coverage & intake",
     "sources": "Source assurance",
     "evidence": "Evidence catalogue",
@@ -224,6 +225,78 @@ def _hero() -> None:
         '<p>Control the evidence, not just the visibility switch. Track source reliability, '
         'stage verified observations, review executive interpretation, release editions, '
         'measure readership and preserve the audit trail.</p></div>'
+    )
+
+
+def _refresh_all(token: str,data: dict) -> None:
+    """Run a real, audited multi-source refresh without silent publication."""
+    st.subheader("One-click source and analytics refresh")
+    st.caption(
+        "Checks every registered publisher, attempts a complete-month frozen JobTech v1 "
+        "re-extraction, recomputes the published edition's evidence and trend inputs, "
+        "and records any discrepancy. This does not change a signed-off edition or "
+        "automatically approve new publisher figures."
+    )
+    if st.button(
+        "Refresh all sources & recalculate analytics",
+        key="market_admin_refresh_all",type="primary",
+        use_container_width=True
+    ):
+        from market_admin_refresh import run_admin_market_refresh
+        try:
+            with st.spinner(
+                "Checking original publishers and running frozen JobTech v1 "
+                "complete-month replay. Failed sources will be reported individually."
+            ):
+                receipt=run_admin_market_refresh(token,data)
+            st.session_state["market_signals_admin_flash"]=(
+                "Refresh recorded as "+str(receipt["receipt"]["status"])+
+                "; "+str(receipt["receipt"]["sources_checked"])+
+                " source families accounted for. No edition was silently changed."
+            )
+            st.rerun()
+        except (PermissionError,RuntimeError,ValueError,TimeoutError,OSError) as exc:
+            st.error("The source refresh was not confirmed: "+str(exc)[:400])
+    try:
+        results=_get(token,
+            "portfolio_market_signal_refresh_runs?"
+            "select=id,started_at,finished_at,status,checked_count,successful_checks,"
+            "failed_checks,proposal_count,source_results,calculations,note"
+            "&order=started_at.desc&limit=12",limit=12)
+    except (RuntimeError,ValueError,OSError,TimeoutError):
+        st.error("The recorded market refresh history is not readable.")
+        return
+    if not results:
+        st.info("No administrator-triggered source refresh has been recorded.")
+        return
+    last=results[0]
+    a,b,c,d=st.columns(4)
+    a.metric("Sources accounted for",int(last["checked_count"]))
+    b.metric("Publisher checks passed",int(last["successful_checks"]))
+    c.metric("Checks failed/partial",int(last["failed_checks"]))
+    d.metric("Revised values proposed",int(last["proposal_count"]))
+    st.caption(
+        "Last run "+str(last["started_at"])[:19]+" UTC · "+
+        str(last["status"]).upper()+". A reachable webpage is not a newly "
+        "verified statistic or an automatically published edition."
+    )
+    rows=[]
+    for entry in last.get("source_results") or []:
+        rows.append({
+            "Publisher":entry.get("source_family"),
+            "Outcome":entry.get("status"),
+            "Editorial approval":entry.get("review_status"),
+            "HTTP":entry.get("http_status") or "—",
+            "Numeric extraction":("Replayed" if entry.get("extracted_new_metrics") else "Not verified"),
+            "Reason":entry.get("error") or entry.get("description"),
+        })
+    st.dataframe(rows,hide_index=True,use_container_width=True)
+    with st.expander("Calculation details, JobTech replay and checksum"):
+        st.json(last.get("calculations") or {},expanded=False)
+    st.caption(
+        "New or changed observations remain proposals in this audit. "
+        "Use Evidence catalogue, Source assurance and Editorial editions "
+        "to verify and publish a subsequent version."
     )
 
 
@@ -867,6 +940,7 @@ def render_owner_market_signals(token: str) -> None:
     )
     st.divider()
     if section=="overview":_overview(token,data,pipeline,kpi)
+    elif section=="refresh":_refresh_all(token,data)
     elif section=="coverage":_analytics_coverage(token,data)
     elif section=="sources":_sources(token,data,pipeline)
     elif section=="evidence":_evidence(token,data)

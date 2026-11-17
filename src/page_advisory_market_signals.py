@@ -161,7 +161,7 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-section--ink h2 {color:#F9F8F4}
 .site.ms-landing .ms-section-intro {font-size:15px;color:#56687A;line-height:1.77;max-width:530px;margin:0}
 .site.ms-landing .ms-section--ink .ms-section-intro {color:#CAD5DF}
-.site.ms-landing .ms-proofs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.site.ms-landing .ms-proofs {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
 .site.ms-landing .ms-proof {background:#FFFEFC;border:1px solid #DDD6CD;padding:clamp(19px,2.5vw,30px);display:flex;flex-direction:column;min-height:330px}
 .site.ms-landing .ms-proof .ms-label,.site.ms-landing .ms-usecase .ms-label {font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#996843;font-weight:850}
 .site.ms-landing .ms-proof h3 {color:#1D344A;font:500 clamp(22px,2vw,28px)/1.18 Georgia,serif;margin:18px 0 17px}
@@ -174,6 +174,13 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-proof .ms-proof-question strong {display:block;color:#A36C4B;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
 .site.ms-landing .ms-proof-source {font-size:11px!important;line-height:1.55!important;color:#6B7780!important;margin-top:11px!important}
 .site.ms-landing .ms-proof-source a {color:#295778!important;text-underline-offset:3px}
+.site.ms-landing .ms-proof--demo {background:#183349;border-color:#183349}
+.site.ms-landing .ms-proof--demo h3,.site.ms-landing .ms-proof--demo p,.site.ms-landing .ms-proof--demo .ms-proof-question {color:#F7F8F5}
+.site.ms-landing .ms-proof--demo .ms-label,.site.ms-landing .ms-proof--demo .ms-proof-question strong {color:#EDBC99}
+.site.ms-landing .ms-proof--demo .ms-proof-question {border-top-color:#5E7180}
+.site.ms-landing .ms-demo-link {display:block;background:#DCA987;color:#132D42!important;font-size:13px;font-weight:800;text-decoration:none!important;text-align:center;padding:15px 12px;margin:15px 0;line-height:1.5}
+.site.ms-landing .ms-demo-link:hover,.site.ms-landing .ms-demo-link:focus-visible {background:#F0C3A2}
+.site.ms-landing .ms-proof--demo .ms-proof-source {color:#D6DDE4!important}
 .site.ms-landing .ms-note {font-size:12px;line-height:1.65;color:#667789;margin:17px 0 0}
 .site.ms-landing .ms-decision-list {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .site.ms-landing .ms-usecase {border-top:2px solid #AD7B59;padding:23px 26px 25px;background:#FFFEFC;min-height:190px}
@@ -271,8 +278,8 @@ MARKET_SIGNALS_LANDING_HTML = """
 <section class="ms-section ms-section--white" id="ms-findings" aria-labelledby="ms-findings-title"><div class="container">
   <div class="ms-section-head">
     <div><p class="ms-overline">From the published evidence / November 2026</p>
-      <h2 id="ms-findings-title">Three signals worth challenging in your next leadership meeting.</h2></div>
-    <p class="ms-section-intro">A good market briefing should change the questions leaders ask. These figures are from Edition 01—not illustrative market estimates—and each supports a different management discussion.</p>
+      <h2 id="ms-findings-title">Three current findings. One historical research sample.</h2></div>
+    <p class="ms-section-intro">Review three measured findings from published Edition 01. The fourth panel offers a free, no-login historical PDF showing how the earliest available observations are analysed.</p>
   </div>
   <div class="ms-proofs">
     <article class="ms-proof">
@@ -301,6 +308,22 @@ MARKET_SIGNALS_LANDING_HTML = """
       <p>Brainville reported both increases for its Swedish consulting marketplace in October 2026. The figures cover all consulting professions, not AI specialists alone.</p>
       <div class="ms-proof-question"><strong>Leadership question</strong>Before contracting, are you buying scarce expertise or a capability you could develop and retain?</div>
       <p class="ms-proof-source"><a href="https://www.brainville.com/sv/Blog/Post/1923" target="_blank" rel="noopener noreferrer">Brainville · October 2026 market commentary</a> · Two different populations</p>
+    </article>
+    <article class="ms-proof ms-proof--demo">
+      <span class="ms-label">04 / PUBLIC RESEARCH SAMPLE</span>
+      <h3>See how market evidence becomes a decision.</h3>
+      <p>Download a genuine, no-registration historical Market Observatory PDF.
+      It examines the earliest complete JobTech leadership-advertisement observations
+      from June–August 2026, with original source references, competing explanations,
+      methodology and practical executive questions.</p>
+      <p><strong>Archival scope:</strong> this is a retrospectively prepared title-basket sample,
+      not a full market review published in summer 2026. Later SCB and Brainville
+      releases are not backdated.</p>
+      <a class="ms-demo-link" href="?page=advisory-market-demo" target="_self"
+         data-hq-event="market_signals_public_demo">Open &amp; download public sample PDF</a>
+      <div class="ms-proof-question"><strong>What the sample demonstrates</strong>
+        Evidence, uncertainty and an accountable management decision—without invented market conclusions.</div>
+      <p class="ms-proof-source">JobTech v1 · June–August 2026 · Retrospectively verified November 2026</p>
     </article>
   </div>
   <p class="ms-note">These are separate measures, not a combined AI market index. SCB adoption, curated JobTech advertisements and Brainville consulting conditions measure different populations. Interpretation is presented as interpretation, not statistical causation.</p>
@@ -803,26 +826,46 @@ def render_private_market_signals(session: dict, user: dict) -> None:
         try:
             points, briefs = _load_curated(token)
             points, briefs, release = _release_snapshot(token,points,briefs)
+            from market_archive import (
+                load_market_archives,archive_option_label,archive_coverage
+            )
+            monthly_archives=load_market_archives(token)
         except (RuntimeError, PermissionError, ValueError, KeyError, TimeoutError, OSError) as exc:
-            st.error("The verified market evidence is temporarily unavailable. "
-                     "No cached or invented figures will be shown. Please retry.")
+            st.error("The verified market evidence or monthly archive is unavailable. "
+                     "No cached or invented figures will be substituted.")
             return
-        # Compact month-first research label for readers; publication is
-        # represented only by the verified Supabase edition manifest.
-        is_released = bool(release.get("published"))
-        issue = str(release.get("issue_date") or "")
-        try:
-            issue_label = date.fromisoformat(issue).strftime("%d %B %Y").lstrip("0")
-        except ValueError:
-            issue_label = "November 2026"
-        statement = (
-            "Edition 01 published " + html_escape(issue_label) + ". "
-            if is_released else
-            "The inaugural executive market review is undergoing final editorial verification. "
+        if not monthly_archives:
+            st.error("No immutable monthly edition is available for viewing.")
+            return
+        selected_month=st.selectbox(
+            "Market observatory · Monthly editions",
+            monthly_archives,
+            format_func=archive_option_label,
+            key="market_signals_monthly_vintage",
+            help="Choose the complete published edition or a separately labelled "
+                 "retrospective JobTech-only monthly reconstruction."
+        )
+        historical=selected_month["archive_kind"]=="retrospective_title_basket"
+        points=list(selected_month["observations"])
+        briefs=list(selected_month["interpretations"])
+        if not historical:
+            release={
+                "published":True,"issue_date":str(selected_month["first_published_at"])[:10],
+                "slug":selected_month.get("edition_slug"),
+                "title":selected_month["title"],
+            }
+        st.caption(archive_coverage(selected_month))
+        issue_month=date.fromisoformat(str(selected_month["month_start"])[:10]).strftime("%B %Y")
+        issue_label=str(selected_month["first_published_at"])[:10]
+        statement=(
+            "Historical reconstruction verified in November 2026. "
+            "Not a contemporary full-market edition. "
+            if historical else
+            "Frozen published executive market edition, released " + html_escape(issue_label) + ". "
         )
         st.html(
             '<section class="market-editorial-status" aria-label="Editorial status">'
-            '<strong>Market Intelligence · November 2026</strong>'
+            '<strong>Market Intelligence · '+html_escape(issue_month)+'</strong>'
             '<p>' + statement +
             'Evidence-linked indicators with transparent reporting periods, '
             'source references and methodological limitations.</p></section>'
@@ -844,7 +887,24 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 "Their last verified values are retained with dates; the tool will not present them as current."
             )
         from page_advisory_market_observatory import render_market_observatory
-        render_market_observatory(points)
+        render_market_observatory(points,historical=historical)
+        if historical:
+            from page_advisory_market_demo import historical_market_pdf
+            st.markdown("#### Download this historical evidence record")
+            st.caption(
+                "This PDF analyses only the selected complete-month frozen JobTech "
+                "observations. Broader AI adoption, Data capabilities and consulting "
+                "conditions cannot be reconstructed from this older monthly cohort."
+            )
+            st.download_button(
+                "Download historical market snapshot · PDF",
+                data=historical_market_pdf(points,month_label=issue_month),
+                file_name="Jair_Ribeiro_Historical_Market_"+str(selected_month["month_start"])[:7]+".pdf",
+                mime="application/pdf",
+                key="market_historical_pdf",
+                use_container_width=True,
+            )
+            return
         lens = str(st.session_state.get("market_observatory_section") or "pulse")
         geo = "Sweden"
         if st.session_state.get("market_signals_previous_lens") != lens:

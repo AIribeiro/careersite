@@ -31,6 +31,8 @@ ALLOWED_HOSTS={
     "techsverige.se","www.techsverige.se"
 }
 ARTICLE_OVERRIDE={
+ "af_jobtech_target_demand":
+    "https://historical.api.jobtechdev.se/search?published-after=2026-10-01&published-before=2026-11-01&q=AI%20Lead&limit=1",
  "scb_enterprise_ai_adoption":
     "https://www.scb.se/hitta-statistik/statistik-efter-amne/forskning-och-det-digitala-samhallet/det-digitala-samhallet/it-anvandning-i-foretag/pong/statistiknyhet/it-anvandning-i-foretag-2026/",
  "brainville_consulting_market":"https://www.brainville.com/sv/Blog/Post/1923",
@@ -305,7 +307,14 @@ def run_admin_market_refresh(token:str, data:dict) -> dict:
     points=data["points"];briefs=data["briefs"]
     with ThreadPoolExecutor(max_workers=6) as pool:
         responses=list(pool.map(_source_check,sources))
-    replay=_jobtech_latest_complete(points)
+    source_probe=next((r for r in responses
+                       if r["source_family"]=="af_jobtech_target_demand"),None)
+    replay=(
+        _jobtech_latest_complete(points)
+        if source_probe and source_probe.get("status")=="reachable"
+        else {"ok":False,"queries_attempted":0,"queries_failed":0,
+              "error":"Publisher API probe failed; full title-basket replay not attempted."}
+    )
     for row in responses:
         if row["source_family"]=="af_jobtech_target_demand":
             row["source_check"]="frozen_classifier_complete_month_replay"

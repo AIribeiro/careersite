@@ -604,7 +604,8 @@ def _freshness(point: dict, today: date | None = None) -> str:
 
 def _value(point: dict) -> str:
     number = float(point["value"])
-    shown = f"{int(number):,}" if number.is_integer() else f"{number:,.1f}"
+    from market_review_premium import _num
+    shown = _num(number)
     unit = str(point["metric_unit"])
     return shown + ("%" if unit == "percent" else " " + unit)
 

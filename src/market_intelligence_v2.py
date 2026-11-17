@@ -371,6 +371,20 @@ def render_executive_intelligence(streamlit, editorial: dict,
         '<h4>What has changed</h4><p>'+
         html_escape(editorial["what_changed"])+'</p></section>'
     )
+    st.markdown("#### Download the complete executive market review")
+    st.caption(
+        "Complete November research report: five executive analyses, "
+        "conditional outlook, leadership decisions, charts and original evidence. "
+        "PDF included with your Advisory account."
+    )
+    full=build_executive_market_pdf(points,editorial,edition_slug)
+    st.download_button(
+        "Download complete Executive Market Review · PDF",
+        data=full,mime="application/pdf",
+        file_name="Jair_Ribeiro_Market_Signals_Executive_Review_"+
+                  editorial["issue_date"]+".pdf",
+        key="market_v2_complete_pdf",type="primary",use_container_width=True,
+        on_click=record_event,args=(member_token,"pdf_review","all",edition_slug))
     tabs=[LENS_LABELS[k] for k in LENSES]
     choice=st.selectbox("Executive decision perspective",LENSES,
              format_func=lambda k:LENS_LABELS[k],key="market_v2_theme")
@@ -412,15 +426,8 @@ def render_executive_intelligence(streamlit, editorial: dict,
         st.caption("Condition: "+item["condition"]+
                    "  |  Executive response: "+item["leadership_response"])
     st.caption(editorial["methodology_note"])
-    st.markdown("#### Executive publications")
-    full=build_executive_market_pdf(points,editorial,edition_slug)
-    st.download_button(
-        "Download complete Executive Market Review · PDF",
-        data=full,mime="application/pdf",
-        file_name="Jair_Ribeiro_Market_Signals_Executive_Review_"+
-                  editorial["issue_date"]+".pdf",
-        key="market_v2_complete_pdf",type="primary",use_container_width=True,
-        on_click=record_event,args=(member_token,"pdf_review","all",edition_slug))
+    st.markdown("#### Download this executive decision brief")
+    st.caption("Focused PDF for the selected executive decision perspective.")
     focused=build_executive_decision_pdf(points,editorial,edition_slug,choice)
     st.download_button(
         "Download this Executive Decision Brief · PDF",

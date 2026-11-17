@@ -231,7 +231,7 @@ def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
     )
     cover={
         "title":"AI & Data Market Review",
-        "subtitle":("The senior leadership hiring signal - "
+        "subtitle":(date_span+" | The senior leadership hiring signal - "
                     "what a narrow historical sample can really tell us"),
         "assessment":(
             sample_trend+" The numbers help challenge a hiring assumption, "

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "slug": "when-an-ai-agent-stops-who-finishes-the-work",
+  "revision": "v1-approved-20261117",
+  "article_fingerprint": "ab5355f0dc78cf28a4806c1794db57c1d6814a9fd5a70e5a363204d7ae6117cd",
+  "heading": "When an AI Agent Stops, Who Finishes the Work?",
+  "deck": "A stopped run is not necessarily a finished business task.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "c0d931dea65156481aaa765390ca8c9b3434042a5daa8f09e4c2a6866140b857",
+    "width": 2000,
+    "height": 2828
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "8383d4a1f0c4544a47cc9141e529c739ee9553028e1b2893092de8c0b46fd351",
+    "width": 1200,
+    "height": 3460
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "acb4a700479a404f98a150eca29b6d1b6a8b4b16928be38a2522e4da82c7e416",
+    "pages": 1,
+    "bytes": 2898660,
+    "format": "lossless-jpeg2000"
+  },
+  "alt_text": "A central AI agent flow leads to four distinct business outcomes: verified completion, a controlled stop, confirmed partial execution and unknown external state. Each has a different executive response. Governance covers authorization before execution, controls during tool use and verification and recovery afterward.",
+  "caption": "Agent run outcomes and governance responsibilities. Source: independently authored editorial judgment, informed by the references in the companion briefing. © Jair Ribeiro."
+}

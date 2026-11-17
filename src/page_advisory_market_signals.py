@@ -213,6 +213,7 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-quality {background:#E9E3D9;border-left:3px solid #A57250;padding:clamp(20px,2.7vw,33px)}
 .site.ms-landing .ms-quality h3 {font:500 27px/1.22 Georgia,serif;color:#1C364D;margin:0 0 18px}
 .site.ms-landing .ms-quality p {font-size:13px;line-height:1.8;color:#46586A;margin:0 0 15px}
+.site.ms-landing .ms-quality p strong {display:block;margin-bottom:3px;color:#1D3449;font-weight:800}
 .site.ms-landing .ms-quality .ms-small {font-size:11px;color:#667484}
 .site.ms-landing .ms-lastcta {background:#122A3D;color:#FAF8F3;padding:clamp(55px,7vw,86px) 0}
 .site.ms-landing .ms-cta-grid {display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:clamp(25px,6vw,90px);align-items:center}
@@ -251,18 +252,18 @@ MARKET_SIGNALS_LANDING_HTML = """
 <section class="ms-hero" aria-labelledby="ms-title"><div class="container">
   <div class="ms-hero-grid">
     <div>
-      <p class="ms-overline">Market Signals / Research for AI &amp; Data leaders</p>
-      <h1 id="ms-title">Make sense of Sweden's AI &amp; Data market.</h1>
-      <p class="ms-hero-lead">See what Swedish companies report about AI, where selected leadership roles are advertised, and how the consulting market is changing.</p>
-      <p class="ms-hero-context">Use the figures to question your assumptions about investment, skills and outside support. Read the analysis, check the sources and take the questions into your next management meeting. This research adds context; it does not make decisions for your organisation.</p>
+      <p class="ms-overline">AI &amp; Data Market Signals / Sweden</p>
+      <h1 id="ms-title">Swedish AI &amp; Data: Evidence for Executive Decisions</h1>
+      <p class="ms-hero-lead">A focused review of reported enterprise AI use, selected senior AI &amp; Data job advertisements, and consulting-market activity in Sweden.</p>
+      <p class="ms-hero-context">The research separates observed measures from assumptions about business value, capability needs and recruitment. Original sources, alternative explanations and decision questions are provided; conclusions about an individual organisation require its own evidence.</p>
       <div class="ms-actions">
-        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_register">Explore the research · Free registration</a>
-        <a class="ms-button ms-button--outline" href="#ms-findings">See what the research covers</a>
+        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_register">Access the published research</a>
+        <a class="ms-button ms-button--outline" href="#ms-findings">Review selected findings</a>
       </div>
-      <p class="ms-hero-meta">Reading the public sample is free. Create a free Advisory account to open the full research and downloads.</p>
+      <p class="ms-hero-meta">The historical research sample is public. The full report, Observatory and downloadable materials are available through free Advisory registration.</p>
     </div>
     <aside class="ms-edition" aria-label="Published research edition">
-      <small>Published research / November 2026</small>
+      <small>November 2026 / Published edition</small>
       <h2>AI &amp; Data Market Review<br>Edition 01</h2>
       <p>Published 16 November 2026. This edition examines reported AI use, selected senior AI/Data job advertisements and wider consulting activity in Sweden, with the original figures and their limitations.</p>
       <div class="ms-edition-counts">
@@ -270,53 +271,53 @@ MARKET_SIGNALS_LANDING_HTML = """
         <div><strong>4</strong><span>written analyses</span></div>
         <div><strong>3</strong><span>data sources</span></div>
       </div>
-      <p class="ms-edition-note">This is a dated research edition, not a live forecast. Numbers are added to later editions only after review.</p>
+      <p class="ms-edition-note">All figures retain their reporting periods and limitations. This edition is not a live market forecast.</p>
     </aside>
   </div>
 </div></section>
 
 <section class="ms-section ms-section--white" id="ms-findings" aria-labelledby="ms-findings-title"><div class="container">
   <div class="ms-section-head">
-    <div><p class="ms-overline">A look inside / November 2026 edition</p>
-      <h2 id="ms-findings-title">Three findings you can explore. One report you can try.</h2></div>
-    <p class="ms-section-intro">These are actual findings in the published research, not forecasts. Each raises a different business question. The fourth card gives you a free sample of how we examine the evidence.</p>
+    <div><p class="ms-overline">November 2026 / Published observations</p>
+      <h2 id="ms-findings-title">What the published evidence shows—and where its limits lie.</h2></div>
+    <p class="ms-section-intro">Three distinct measures from Edition 01 illustrate the research. The fourth panel provides a public historical sample. None of these figures, on its own, establishes business value or market-wide AI hiring conditions.</p>
   </div>
   <div class="ms-proofs">
     <article class="ms-proof">
-      <span class="ms-label">01 / AI use in Swedish companies</span>
-      <h3>AI is being used. Is it improving how work gets done?</h3>
+      <span class="ms-label">01 / Enterprise AI adoption</span>
+      <h3>AI use is reported; business outcomes require separate evidence.</h3>
       <div class="ms-number">49<span>%</span></div>
       <p>of Swedish enterprises with at least 10 employees reported using AI in the 2026 SCB survey. Among enterprises with 250 or more employees, the share was <strong>85%</strong>. These numbers measure reported use, not business results.</p>
-      <div class="ms-proof-question"><strong>Question for your team</strong>What has improved in cost, service, quality or risk since people started using AI?</div>
+      <div class="ms-proof-question"><strong>Executive consideration</strong>What has improved in cost, service, quality or risk since people started using AI?</div>
       <p class="ms-proof-source"><a href="https://www.scb.se/hitta-statistik/statistik-efter-amne/forskning-och-det-digitala-samhallet/det-digitala-samhallet/it-anvandning-i-foretag/pong/statistiknyhet/it-anvandning-i-foretag-2026/" target="_blank" rel="noopener noreferrer">Source: Statistics Sweden (SCB), 2026 survey</a></p>
     </article>
     <article class="ms-proof">
-      <span class="ms-label">02 / AI &amp; Data leadership roles</span>
-      <h3>Recruitment adverts are visible. What do they really tell us?</h3>
+      <span class="ms-label">02 / Senior leadership advertisements</span>
+      <h3>Senior AI &amp; Data recruitment: a limited observed sample.</h3>
       <div class="ms-number">29</div>
       <p>Our defined JobTech search found 29 advertisements in Sweden for selected senior AI and Data/Analytics job titles in October 2026. This is a small, selective sample—not a count of all vacancies or people hired.</p>
-      <div class="ms-proof-question"><strong>Question for your team</strong>Before recruiting, have you agreed what this leader needs to own and deliver?</div>
+      <div class="ms-proof-question"><strong>Executive consideration</strong>Before recruiting, have you agreed what this leader needs to own and deliver?</div>
       <p class="ms-proof-source"><a href="https://historical.api.jobtechdev.se/search" target="_blank" rel="noopener noreferrer">Source: Arbetsförmedlingen JobTech, selected titles</a> · October 2026</p>
     </article>
     <article class="ms-proof">
-      <span class="ms-label">03 / The consulting market</span>
-      <h3>More consulting assignments—and more consultants available.</h3>
+      <span class="ms-label">03 / Consulting market activity</span>
+      <h3>Consulting assignments and available capacity both increased.</h3>
       <div class="ms-number ms-number-pair">
         <div>+10.7<span>%</span><small>Listed assignments · YoY</small></div>
         <div>+18.5<span>%</span><small>Available consultants · YoY</small></div>
       </div>
       <p>Brainville reported both increases in its Swedish marketplace for October 2026 compared with a year earlier. They describe different groups across many professions, not AI/Data specialists alone.</p>
-      <div class="ms-proof-question"><strong>Question for your team</strong>What should your team learn to do itself, and where would outside expertise really help?</div>
+      <div class="ms-proof-question"><strong>Executive consideration</strong>What should your team learn to do itself, and where would outside expertise really help?</div>
       <p class="ms-proof-source"><a href="https://www.brainville.com/sv/Blog/Post/1923" target="_blank" rel="noopener noreferrer">Source: Brainville, October 2026 market report</a></p>
     </article>
     <article class="ms-proof ms-proof--demo">
-      <span class="ms-label">04 / TRY THE RESEARCH</span>
-      <h3>See the approach before you sign up.</h3>
+      <span class="ms-label">04 / Historical research sample</span>
+      <h3>Historical leadership-advertisement evidence, June–August 2026.</h3>
       <p>Read a free, five-page example based on our earliest complete set of reviewed leadership job-advertisement records, from June to August 2026. It includes the figures, a chart, the questions they raise and the limits of what we can conclude.</p>
       <p>This sample was prepared in November 2026 using older JobTech records. It is not a full market review from those summer months; later SCB and Brainville figures are not included.</p>
       <a class="ms-demo-link" href="?page=advisory-market-demo" target="_self"
-         data-hq-event="market_signals_public_demo">See the sample and get the PDF</a>
-      <div class="ms-proof-question"><strong>What you will see</strong>How we explain a number, consider other explanations and turn it into a useful question for leaders.</div>
+         data-hq-event="market_signals_public_demo">View the historical research sample</a>
+      <div class="ms-proof-question"><strong>What the analysis includes</strong>How we explain a number, consider other explanations and turn it into a useful question for leaders.</div>
       <p class="ms-proof-source">JobTech · June–August 2026 · Sample prepared November 2026</p>
     </article>
   </div>
@@ -325,51 +326,51 @@ MARKET_SIGNALS_LANDING_HTML = """
 
 <section class="ms-section ms-section--paper" aria-labelledby="ms-decisions-title"><div class="container">
   <div class="ms-section-head">
-    <div><p class="ms-overline">For people making AI &amp; Data decisions</p>
-      <h2 id="ms-decisions-title">Useful questions for the next leadership meeting.</h2></div>
+    <div><p class="ms-overline">Executive applications</p>
+      <h2 id="ms-decisions-title">Executive decisions that benefit from market context.</h2></div>
     <p class="ms-section-intro">For AI, Data and Analytics leaders, CIO/CDO teams and executive sponsors. Market evidence helps challenge a plan; your own business evidence is still needed to choose what to do.</p>
   </div>
   <div class="ms-decision-list">
-    <article class="ms-usecase"><span class="ms-label">People &amp; capability</span>
-      <h3>Build, recruit or contract?</h3>
+    <article class="ms-usecase"><span class="ms-label">Capability sourcing</span>
+      <h3>Internal capability, recruitment or external expertise</h3>
       <p>Use selected leadership advertisements and wider consulting figures to test a sourcing assumption—then compare options against what your organisation needs.</p></article>
     <article class="ms-usecase"><span class="ms-label">Business value</span>
-      <h3>Is AI changing the work?</h3>
+      <h3>Business outcomes beyond reported adoption</h3>
       <p>Look beyond reported adoption. Discuss how your organisation measures outcomes, handles its data and assigns responsibility for results.</p></article>
     <article class="ms-usecase"><span class="ms-label">Recruitment decisions</span>
-      <h3>Are we reading the hiring numbers correctly?</h3>
+      <h3>Recruitment assumptions and observed advertisements</h3>
       <p>See which job titles were included, how monthly counts vary and why advertisements alone cannot establish a talent shortage.</p></article>
     <article class="ms-usecase"><span class="ms-label">Management discussion</span>
-      <h3>What can we confidently tell the leadership team?</h3>
+      <h3>Presenting evidence and uncertainty to management</h3>
       <p>Bring a sourced interpretation, its alternative explanations and a practical question to the discussion.</p></article>
   </div>
 </div></section>
 
 <section class="ms-section ms-section--ink" id="ms-inside" aria-labelledby="ms-workspace-title"><div class="container">
   <div class="ms-section-head">
-    <div><p class="ms-overline" style="color:#E6B48B">Inside Market Signals</p>
-      <h2 id="ms-workspace-title">Explore the data. Understand what it can tell you.</h2></div>
+    <div><p class="ms-overline" style="color:#E6B48B">Research workspace</p>
+      <h2 id="ms-workspace-title">The Market Observatory: measures, comparisons and source records.</h2></div>
     <p class="ms-section-intro">The member Observatory has eight sections. Edition 01 contains published figures on AI use, selected leadership adverts and consulting activity. Skills, pay and wider sector figures are still being reviewed, so those sections do not yet contain a complete set of data.</p>
   </div>
   <div class="ms-workspace">
     <div class="ms-dashboard-list" aria-label="Market Signals dashboard sections">
-      <article><span>01 / OVERVIEW</span><h3>Executive market pulse</h3><p>Start with selected findings and see the dates and groups they cover.</p></article>
-      <article><span>02 / LEADERSHIP ADVERTS</span><h3>AI &amp; Data leadership demand</h3><p>Follow a defined set of senior job advertisements by complete month and region.</p></article>
-      <article><span>03 / AI IN BUSINESS</span><h3>Enterprise adoption &amp; capabilities</h3><p>Explore SCB figures on AI use, analytics and barriers, with their different survey groups kept separate.</p></article>
-      <article><span>04 / UNDER REVIEW</span><h3>AI skills &amp; management economics</h3><p>Additional skills and salary measures are being checked; they are not published in Edition 01.</p></article>
-      <article><span>05 / CONSULTING</span><h3>Consulting &amp; sector conditions</h3><p>See Brainville's October consulting figures. Further sector indicators are awaiting review.</p></article>
-      <article><span>06 / EXPLANATIONS</span><h3>Interpretations &amp; trade-offs</h3><p>See what published figures suggest, what else might explain them and where comparisons stop.</p></article>
-      <article><span>07 / HISTORY</span><h3>Explore market trends</h3><p>Compare completed periods within the same measure; partial months are shown separately.</p></article>
-      <article><span>08 / ORIGINAL RECORDS</span><h3>Sources &amp; measurement</h3><p>Check original links, dates, survey groups and limitations, and export the source list.</p></article>
+      <article><span>01 / OVERVIEW</span><h3>Executive evidence overview</h3><p>Start with selected findings and see the dates and groups they cover.</p></article>
+      <article><span>02 / LEADERSHIP ADVERTS</span><h3>AI &amp; Data leadership advertisements</h3><p>Follow a defined set of senior job advertisements by complete month and region.</p></article>
+      <article><span>03 / AI IN BUSINESS</span><h3>Enterprise AI adoption &amp; capabilities</h3><p>Explore SCB figures on AI use, analytics and barriers, with their different survey groups kept separate.</p></article>
+      <article><span>04 / UNDER REVIEW</span><h3>Skills and management pay — under review</h3><p>Additional skills and salary measures are being checked; they are not published in Edition 01.</p></article>
+      <article><span>05 / CONSULTING</span><h3>Consulting and sector context</h3><p>See Brainville's October consulting figures. Further sector indicators are awaiting review.</p></article>
+      <article><span>06 / EXPLANATIONS</span><h3>Interpretation and evidence limits</h3><p>See what published figures suggest, what else might explain them and where comparisons stop.</p></article>
+      <article><span>07 / HISTORY</span><h3>Comparable historical observations</h3><p>Compare completed periods within the same measure; partial months are shown separately.</p></article>
+      <article><span>08 / ORIGINAL RECORDS</span><h3>Sources and measurement methods</h3><p>Check original links, dates, survey groups and limitations, and export the source list.</p></article>
     </div>
     <aside class="ms-path">
-      <p class="ms-overline" style="color:#EDB994">A practical way to use it</p>
-      <h3>Start with your question, not a headline.</h3>
+      <p class="ms-overline" style="color:#EDB994">Analytical approach</p>
+      <h3>A structured assessment of the evidence.</h3>
       <ol>
-        <li><strong>Choose the question.</strong>What are you trying to decide about investment, capability or people?</li>
-        <li><strong>Read the evidence.</strong>Check the figure, its date and the group it actually describes.</li>
-        <li><strong>Consider another explanation.</strong>Understand what the figure cannot tell you.</li>
-        <li><strong>Prepare the discussion.</strong>Download the report or decision brief and record what you still need to know.</li>
+        <li><strong>Define the decision.</strong>What are you trying to decide about investment, capability or people?</li>
+        <li><strong>Establish the evidence base.</strong>Check the figure, its date and the group it actually describes.</li>
+        <li><strong>Test alternative explanations.</strong>Understand what the figure cannot tell you.</li>
+        <li><strong>Record the implications.</strong>Download the report or decision brief and record what you still need to know.</li>
       </ol>
       <p class="ms-path-caption">Monthly archive: November 2026 is the complete published edition. June–October 2026 show retrospective leadership-advertisement records only, not full monthly reports.</p>
       <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_dashboard_cta">Open Market Signals</a></div>
@@ -379,8 +380,8 @@ MARKET_SIGNALS_LANDING_HTML = """
 
 <section class="ms-section ms-section--white" aria-labelledby="ms-materials-title"><div class="container">
   <div class="ms-section-head">
-    <div><p class="ms-overline">Included with your free account</p>
-      <h2 id="ms-materials-title">Read the analysis. Explore the figures. Take the material with you.</h2></div>
+    <div><p class="ms-overline">Published research / Member access</p>
+      <h2 id="ms-materials-title">Research publications and supporting records.</h2></div>
     <p class="ms-section-intro">Choose the format that suits your next discussion: examine the data, read the complete research or take a focused decision brief.</p>
   </div>
   <div class="ms-formats">
@@ -393,7 +394,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <p>The November 2026 research edition examines adoption, Data and Analytics capabilities, leadership advertisements and consulting conditions. It includes alternative explanations, an executive decision agenda and all 30 published observations.</p>
       <div class="ms-format-bottom">Edition 01 · Full research PDF · Source appendix</div></article>
     <article class="ms-format"><small>03 / USE IN A MEETING</small>
-      <h3>Decision briefs &amp; source list</h3>
+      <h3>Decision briefs and source register</h3>
       <p>Choose one of four written analyses and download its PDF, including the supporting figures and a printable decision record. You can also export the published source list as a CSV file.</p>
       <div class="ms-format-bottom">Four decision themes · Decision brief PDF · Source CSV</div></article>
   </div>
@@ -401,8 +402,8 @@ MARKET_SIGNALS_LANDING_HTML = """
 
 <section class="ms-section ms-section--paper" aria-labelledby="ms-standards-title"><div class="container">
   <div class="ms-section-head">
-    <div><p class="ms-overline">Where the numbers come from</p>
-      <h2 id="ms-standards-title">You should be able to check every figure.</h2></div>
+    <div><p class="ms-overline">Sources and methods</p>
+      <h2 id="ms-standards-title">Source provenance, definitions and limitations.</h2></div>
     <p class="ms-section-intro">Every figure in the published edition has a source, date, defined group and explanation of its limits. We distinguish what the publisher measured from what we think it may mean for a leader.</p>
   </div>
   <div class="ms-standard">
@@ -415,10 +416,10 @@ MARKET_SIGNALS_LANDING_HTML = """
       <p class="ms-note">Other proposed data on skills, management pay and sector conditions are not included until their sources and definitions are checked.</p>
     </div>
     <aside class="ms-quality">
-      <h3>What the numbers cannot answer.</h3>
-      <p><strong>Are companies getting value from AI?</strong>Reported use alone cannot tell us.</p>
-      <p><strong>Is there a national shortage of AI leaders?</strong>A small selection of job adverts cannot establish that.</p>
-      <p><strong>Are AI consultants getting harder to find?</strong>Broad consulting marketplace activity cannot answer that.</p>
+      <h3>Limits of the published evidence.</h3>
+      <p><strong>Business value from AI</strong>Reported use alone cannot tell us.</p>
+      <p><strong>AI leadership talent shortages</strong>A small selection of job adverts cannot establish that.</p>
+      <p><strong>Availability of specialist AI consultants</strong>Broad consulting marketplace activity cannot answer that.</p>
       <p class="ms-small">Those questions need additional evidence. This service does not use private job-search records or personal hiring forecasts to make market claims.</p>
     </aside>
   </div>
@@ -427,15 +428,15 @@ MARKET_SIGNALS_LANDING_HTML = """
 <section class="ms-lastcta" aria-labelledby="ms-cta-title"><div class="container">
   <div class="ms-cta-grid">
     <div>
-      <p class="ms-overline" style="color:#E9B88E">Free access to the full research</p>
-      <h2 id="ms-cta-title">Bring a better question to your next AI &amp; Data decision.</h2>
+      <p class="ms-overline" style="color:#E9B88E">Research access</p>
+      <h2 id="ms-cta-title">November 2026: Research and supporting evidence.</h2>
       <p>Read the complete November review, explore the published dashboard data and download decision briefs you can use with your team. The research will help you examine a choice; it will not make a company-specific recommendation for you.</p>
       <div class="ms-actions">
-        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_final_register">Create a free account · Read the research</a>
+        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_final_register">Access Edition 01 · Free account</a>
         <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;signin=1" target="_self" data-hq-event="market_signals_final_signin">Already registered? Sign in</a>
       </div>
     </div>
-    <aside class="ms-cta-aside"><strong>Who it's for</strong>
+    <aside class="ms-cta-aside"><strong>Intended readers</strong>
       <p>Enterprise AI leaders, Data &amp; Analytics executives, CIO/CDO teams and executive sponsors responsible for capability, investment and operating-model decisions.</p>
       <p>Registration is free. No personal approval is needed; once your Advisory account is verified, you can use the research yourself.</p>
     </aside>

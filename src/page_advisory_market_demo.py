@@ -398,14 +398,14 @@ def public_market_demo_html() -> str:
             <span aria-hidden="true">/</span>
             <span aria-current="page">Historical sample</span>
           </nav>
-          <p class="eyebrow">A look inside / Public research example</p>
-          <h1>See how we examine the market—not just the headline.</h1>
+          <p class="eyebrow">Public research sample / JobTech</p>
+          <h1>Historical AI &amp; Data Leadership Advertisements</h1>
           <p>Before you create an account, take a look at a short example of our research.
           It examines selected senior AI &amp; Data job advertisements in Sweden
           from June to August 2026, and explains what those figures can—and cannot—tell us.</p>
         </div></section>
         <section class="market-demo-content"><div class="container">
-          <h2>A closer look at leadership job adverts · June–August 2026</h2>
+          <h2>Scope and observations · June–August 2026</h2>
           <p>We prepared this five-page example in November 2026 using older JobTech records.
           It was not published during the summer, and it covers a selected set of
           job titles rather than the whole AI &amp; Data labour market.</p>
@@ -414,7 +414,7 @@ def public_market_demo_html() -> str:
             <div><strong>15</strong><span>Selected Swedish job advertisements · July 2026</span></div>
             <div><strong>10</strong><span>Selected Swedish job advertisements · August 2026</span></div>
           </div>
-          <div class="market-demo-method"><p><strong>What these figures cover.</strong>
+          <div class="market-demo-method"><p><strong>Scope of the historical data.</strong>
             We counted a defined selection of senior AI &amp; Data job advertisements.
             The numbers are not all vacancies or completed hires. We reviewed this
             historical selection in November 2026. Later SCB and Brainville research
@@ -429,15 +429,15 @@ def render_public_market_demo_download() -> None:
     """Native no-login PDF download, then contextual Advisory navigation and shared footer."""
     with st.container(key="market_demo_native_download"):
         st.html(
-            '<div class="market-demo-download-kicker">A PREVIEW OF THE RESEARCH</div>'
-            '<h2 class="market-demo-download-title">Read the historical market sample</h2>'
+            '<div class="market-demo-download-kicker">HISTORICAL RESEARCH / PUBLIC PDF</div>'
+            '<h2 class="market-demo-download-title">Historical evidence review · June–August 2026</h2>'
             '<p class="market-demo-download-lead">'
             'A five-page PDF with the figures, a chart, alternative explanations, '
             'questions for a leadership discussion and the source records. '
             'You can read it without creating an account.</p>'
         )
         st.download_button(
-            "Download the five-page research sample · PDF",
+            "Download historical evidence review · PDF",
             data=public_historical_demo_pdf(),
             file_name="Jair_Ribeiro_Market_Observatory_Public_Demo_Jun_Aug_2026.pdf",
             mime="application/pdf",
@@ -452,22 +452,22 @@ def render_public_market_demo_download() -> None:
     st.html(
         '<div class="site">'
         '<section class="market-demo-end" aria-labelledby="market-demo-next-title"><div class="container">'
-        '<p class="market-demo-end-kicker">WHERE TO GO NEXT</p>'
-        '<h2 id="market-demo-next-title">Explore the full research at your own pace.</h2>'
+        '<p class="market-demo-end-kicker">RELATED RESEARCH</p>'
+        '<h2 id="market-demo-next-title">November 2026: The Full Published Review</h2>'
         '<p class="market-demo-end-lead">This example covers only the earliest reviewed job-advertisement history. '
         'The November 2026 review adds figures about AI use, data and analytics '
         'and consulting activity, with a fuller discussion of business decisions.</p>'
         '<nav class="market-demo-end-grid" aria-label="Continue within Advisory">'
         '<a class="market-demo-next-card" href="?page=advisory-market-signals" target="_self" '
         'data-hq-event="market_demo_back_to_service">'
-        '<small>ABOUT THE SERVICE</small><h3>See what Market Signals offers</h3>'
+        '<small>RESEARCH SCOPE</small><h3>Research scope and access</h3>'
         '<p>Explore the research topics, what is published and what is still being '
         'checked before you create an account.</p>'
         '<span class="market-demo-next-link">Back to the Market Signals overview →</span></a>'
         '<a class="market-demo-next-card market-demo-next-card--featured" '
         'href="?page=advisory-access&amp;view=market-signals" target="_self" '
         'data-hq-event="market_demo_open_full_observatory">'
-        '<small>READ THE FULL REPORT</small><h3>Read the complete November review</h3>'
+        '<small>PUBLISHED EDITION</small><h3>November 2026 Market Review</h3>'
         '<p>Read the November research report, explore published figures and download '
         'decision briefs. A free account is required.</p>'
         '<span class="market-demo-next-link">Open the full research →</span></a>'

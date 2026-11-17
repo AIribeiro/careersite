@@ -69,7 +69,7 @@ class PublicationClaimsTests(unittest.TestCase):
 
     def test_all_eight_tabs_named_but_unapproved_families_not_promised(self):
         self.assertEqual(len(DASHBOARDS),8)
-        self.assertEqual(DASHBOARDS["signals"],"Interpretations & trade-offs")
+        self.assertEqual(DASHBOARDS["signals"],"Interpretation and evidence limits")
         for name in DASHBOARDS.values():
             self.assertIn(name.replace("&","&amp;"),self.html)
         self.assertIn("not published in Edition 01",self.html)
@@ -77,7 +77,7 @@ class PublicationClaimsTests(unittest.TestCase):
         self.assertIn("Additional skills and salary measures are being checked",self.html)
         self.assertIn("June–October 2026 show retrospective leadership-advertisement records only",self.html)
         self.assertNotIn("AI salary benchmark available now",self.html)
-        self.assertNotIn("live market forecast",self.html.lower())
+        self.assertIn("not a live market forecast",self.html.lower())
 
     def test_public_sample_is_oldest_narrow_history_not_full_market(self):
         html=public_market_demo_html()
@@ -109,7 +109,7 @@ class PublicationClaimsTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase,public)
         self.assertIn("what the figure cannot tell",public)
-        self.assertIn("what the numbers cannot answer",public)
+        self.assertIn("limits of the published evidence",public)
 
     def test_exportable_pdf_uses_same_scope_not_unapproved_sources(self):
         doc=market_review_pdf(self.points,self.briefs,

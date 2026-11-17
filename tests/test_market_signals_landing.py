@@ -49,16 +49,41 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_executive_target_and_decision_value_are_explicit(self):
         for phrase in (
-            "Make sense of Sweden's AI &amp; Data market.",
+            "Swedish AI &amp; Data: Evidence for Executive Decisions",
             "For AI, Data and Analytics leaders",
-            "Build, recruit or contract?",
-            "Is AI changing the work?",
-            "What can we confidently tell the leadership team?",
+            "Internal capability, recruitment or external expertise",
+            "Business outcomes beyond reported adoption",
+            "Presenting evidence and uncertainty to management",
             "Market Observatory",
             "Complete AI &amp; Data Market Review",
-            "Decision briefs &amp; source list",
+            "Decision briefs and source register",
         ):
             self.assertIn(phrase,self.page)
+
+    def test_executive_headlines_use_measured_claims_not_promotional_promises(self):
+        expected=[
+            "Swedish AI &amp; Data: Evidence for Executive Decisions",
+            "What the published evidence shows",
+            "AI use is reported; business outcomes require separate evidence.",
+            "Senior AI &amp; Data recruitment: a limited observed sample.",
+            "Consulting assignments and available capacity both increased.",
+            "Historical leadership-advertisement evidence, June–August 2026.",
+            "Source provenance, definitions and limitations.",
+            "Limits of the published evidence.",
+            "November 2026: Research and supporting evidence.",
+        ]
+        for heading in expected:
+            self.assertIn(heading,self.page)
+        for obsolete in [
+            "Make sense of Sweden's AI",
+            "Three findings you can explore",
+            "One report you can try",
+            "Start with your question, not a headline",
+            "Bring a better question",
+            "TRY THE RESEARCH",
+            "You should be able to check every figure",
+        ]:
+            self.assertNotIn(obsolete,self.page)
 
     def test_high_value_examples_are_exact_dated_edition_01_scope(self):
         for phrase in (
@@ -80,14 +105,14 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_all_eight_real_dashboard_topics_present(self):
         expected=[
-            "Executive market pulse",
-            "AI &amp; Data leadership demand",
-            "Enterprise adoption &amp; capabilities",
-            "AI skills &amp; management economics",
-            "Consulting &amp; sector conditions",
-            "Interpretations &amp; trade-offs",
-            "Explore market trends",
-            "Sources &amp; measurement",
+            "Executive evidence overview",
+            "AI &amp; Data leadership advertisements",
+            "Enterprise AI adoption &amp; capabilities",
+            "Skills and management pay — under review",
+            "Consulting and sector context",
+            "Interpretation and evidence limits",
+            "Comparable historical observations",
+            "Sources and measurement methods",
         ]
         for text in expected:
             self.assertIn(text,self.page)
@@ -140,7 +165,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_explicitly_honest_on_vintages_and_cross_source_logic(self):
         for claim in (
-            "not a live forecast",
+            "not a live market forecast",
             "not a count of all vacancies",
             "not AI/Data specialists alone",
             "not a full market review from those summer months",

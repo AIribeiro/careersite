@@ -19,14 +19,14 @@ import streamlit as st
 from market_labelled_bars import labelled_bars_html
 
 DASHBOARDS = {
-    "pulse": "Executive market pulse",
-    "demand": "AI & Data leadership demand",
-    "adoption": "Enterprise adoption & capabilities",
-    "talent": "AI skills & management economics",
-    "commercial": "Consulting & sector conditions",
-    "signals": "Interpretations & trade-offs",
-    "trends": "Explore market trends",
-    "ledger": "Sources & measurement",
+    "pulse": "Executive evidence overview",
+    "demand": "AI & Data leadership advertisements",
+    "adoption": "Enterprise AI adoption & capabilities",
+    "talent": "Skills and management pay — under review",
+    "commercial": "Consulting and sector context",
+    "signals": "Interpretation and evidence limits",
+    "trends": "Comparable historical observations",
+    "ledger": "Sources and measurement methods",
 }
 COLORS = {"ink":"#183149","copper":"#AD7956","blue":"#547A8F","green":"#527365","grey":"#77848C"}
 CADENCE_DAYS = {
@@ -174,7 +174,7 @@ def leadership_timeline(points:list[dict], *, include_partial:bool=False) -> lis
 def _executive_pulse(points:list[dict]) -> None:
     idx=_point_map(points)
     _intro(
-        "The AI economy has more than one clock",
+        "Market evidence: different measures and reporting periods",
         "Enterprise adoption, senior leadership advertisements, organisational capabilities "
         "and consulting conditions measure different populations and update at different speeds. "
         "This board separates them. It does not turn unlike figures into a single market score.",
@@ -187,7 +187,7 @@ def _executive_pulse(points:list[dict]) -> None:
         ("Consulting assignments · YoY",idx.get("brainville_202610_assignments_yoy"),"Brainville · overall Swedish consulting market"),
         ("Available consultants · YoY",idx.get("brainville_202610_consultants_yoy"),"Brainville · overall Swedish consulting market"),
     ])
-    _heading("Three questions to take into your leadership meeting")
+    _heading("Executive implications and questions for review")
     stories=[
       ("Adoption ≠ organisational readiness",
        "Large organisations report extensive AI use; the skills and data barriers come from a "
@@ -222,7 +222,7 @@ def _demand(points:list[dict]) -> None:
         st.warning("Reviewed AI/Data leadership-demand time series is unavailable.")
         return
     _intro(
-        "Watch the same roles, with the same rules",
+        "Selected senior leadership advertisements over time",
         "The frozen title-basket v1 is a deliberately narrow measure of published strategic AI/Data "
         "leadership advertisements. It is not a labour-market census. Each month is deduplicated, "
         "and incomplete periods are shown separately rather than joined to the trend.",
@@ -277,7 +277,7 @@ def _demand(points:list[dict]) -> None:
 def _adoption(points:list[dict]) -> None:
     idx=_point_map(points)
     _intro(
-        "AI adoption is not an operating-capability assessment",
+        "Enterprise AI use and organisational capability",
         "The same enterprise survey provides several useful perspectives, but not all percentages "
         "have the same denominator. Company-size adoption, analytics capability and barriers "
         "among firms that considered AI but did not adopt it appear as distinct analyses.",
@@ -318,7 +318,7 @@ def _adoption(points:list[dict]) -> None:
 
 def _talent(points:list[dict]) -> None:
     idx=_point_map(points)
-    _intro("AI skills are spreading beyond specialist functions",
+    _intro("AI skills and management-pay indicators: publication status",
            "AI keyword mentions, occupational group coverage and managerial compensation "
            "are different signals. The former measures job-ad wording; the latter gives broad "
            "occupational salary benchmarks, not AI Director compensation.")
@@ -362,7 +362,7 @@ def _context_pair(points:list[dict], names:list[tuple[str,str]],
 def _commercial(points:list[dict]) -> None:
     idx=_point_map(points)
     _intro(
-        "Market confidence and commercial delivery are not the same",
+        "Consulting activity and wider sector context",
         "These contextual measures explain the conditions surrounding AI and Data capability "
         "decisions. They are broader than specialist AI hiring and should not be read as direct "
         "signals of AI leadership vacancies.",
@@ -456,7 +456,7 @@ def interpretation_pairs(points:list[dict]) -> list[dict]:
 
 def _interpretations(points:list[dict]) -> None:
     _intro(
-        "Read what the figures suggest—and what they do not",
+        "Interpreting related measures and their limits",
         "These comparisons bring related published figures into a business discussion. "
         "Some come from the same publisher; none proves why a change occurred or "
         "predicts a result for your organisation.",
@@ -501,7 +501,7 @@ def comparable_series(points:list[dict], series:str, geography:str) -> tuple[lis
 
 
 def _trend_explorer(points:list[dict]) -> None:
-    _intro("Inspect trends without mixing definitions",
+    _intro("Comparable measures across complete reporting periods",
            "Choose one published indicator and geography. A line appears only with two "
            "or more comparable, complete reporting periods. One observation is a snapshot, "
            "not a manufactured historical trend.")
@@ -580,7 +580,7 @@ def _evidence_csv(points:list[dict]) -> bytes:
 
 def _ledger(points:list[dict]) -> None:
     _intro(
-        "A source ledger you can challenge",
+        "Published observations and original source records",
         "Every published number retains a publisher, observation period, release date, "
         "verification date, population, source methodology and limitations. "
         "A completed ingestion check is not proof that a new release exists.",

@@ -374,7 +374,7 @@ def sources_table(points,format_value,*,sty=None):
         rows.append([
             [P(code,"table_bold",sty=s),P(pub+"  |  "+region,"table_small",sty=s)],
             Paragraph(
-              f'<b>{_markup(item["metric_label"])}</b>  /  {val}<br/>'
+              f'<b>{_markup(item.get("metric_label") or "Selected senior AI/Data leadership advertisements")}</b>  /  {val}<br/>'
               f'<link href="{href}" color="#1F5773">{source} (original publisher)</link>',
               s["table"]),
         ])

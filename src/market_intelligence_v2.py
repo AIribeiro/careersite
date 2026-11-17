@@ -399,13 +399,21 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         raise ValueError("Decision brief has no authenticated source evidence.")
     s=styles()
     def condensed_value(point):
-        text=_value(point)
-        return text if len(text)<=22 else text[:21]
+        number=float(point["value"])
+        unit=str(point.get("metric_unit") or "")
+        if not isfinite(number):
+            raise ValueError("Non-finite evidence cannot appear on the cover.")
+        if abs(number)>=10000 and unit in {"vacancies","advertisements"}:
+            return f"{number/1000:,.1f}k"
+        label=f"{int(number):,}" if number.is_integer() else f"{number:,.1f}"
+        return label+("%" if unit=="percent" else "")
     metrics=[]
     for item in (evidence+[evidence[-1]]*3)[:3]:
+        unit=str(item.get("metric_unit") or "").replace("percent","")
+        note=(unit+" | " if unit.strip() else "")+str(item["period_label"])
         metrics.append((condensed_value(item),
-          str(item["metric_label"])[:58],
-          str(item["period_label"])+" | "+str(item["geography"])))
+          str(item.get("metric_label") or "Verified market observation")[:58],
+          note[:70]))
     cover={
         "title":"Executive Decision Brief",
         "subtitle":theme["title"],

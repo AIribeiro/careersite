@@ -44,6 +44,23 @@ class MonthlyObservatoryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             _validate_archive(future)
 
+    def test_immutable_successor_and_superseded_archive_are_distinct(self):
+        record={
+            "archive_kind":"published_edition",
+            "month_start":"2026-11-01",
+            "observations":[{"code":"approved"}]*43,
+            "interpretations":[{"slug":"legacy"}]*4,
+        }
+        corrected=dict(record,edition_slug="sweden-ai-data-market-review-2026-11-v2-0-1")
+        old=dict(record,edition_slug="sweden-ai-data-market-review-2026-11-v2")
+        self.assertIn("2.0.1 (corrected)",archive_option_label(corrected))
+        self.assertIn("2.0 (superseded)",archive_option_label(old))
+        self.assertIn("five executive decision perspectives",archive_coverage(corrected))
+        self.assertIn("corrected in Executive Edition 2.0.1",archive_coverage(old))
+        source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
+        self.assertIn('str(release.get("slug") or "") == "sweden-ai-data-market-review-2026-11-v2"',source)
+        self.assertIn("original November executive edition is retained",source)
+
     def test_archive_member_token_and_dated_result_required(self):
         with self.assertRaises(PermissionError):
             load_market_archives("")

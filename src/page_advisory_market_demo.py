@@ -198,172 +198,229 @@ def _strict_historical_points(points:list[dict]) -> list[dict]:
 
 
 def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
-    """Printable research snapshot for one historic month or June-Aug sample."""
-    points=_strict_historical_points(points)
-    unique_months=sorted(set(
-        str(p["period_start"])[:7] for p in points
-    ))
-    s=_styles()
-    out=BytesIO()
-    doc=SimpleDocTemplate(out,pagesize=A4,leftMargin=18*mm,rightMargin=18*mm,
-       topMargin=23*mm,bottomMargin=21*mm,
-       title="Historical AI & Data Market Observatory - "+month_label,
-       author="Jair Ribeiro | Enterprise AI & Data")
-    story=[]
-    def add(txt,style="body"):story.append(_P(s,txt,style))
-    def page():story.append(PageBreak())
-    def section(title,lead):
-        add(title,"chapter");add(lead)
-    add("PUBLIC HISTORICAL RESEARCH SAMPLE  /  VERSION 01","kicker")
-    add("AI & Data Market Observatory","hero")
-    add(month_label+" | The earliest verified leadership-advertisement history","chapter")
-    story.append(HRFlowable(width="100%",thickness=2,color=ACCENT,spaceAfter=21))
-    add("This is a genuine historical example of the evidence standard used by "
-        "the AI & Data Market Signals service. It covers only an approved, narrow "
-        "basket of JobTech leadership advertisements. It does not recreate the "
-        "full AI, Data and Analytics market at that time.")
-    add("The observations were originally published in the stated historical "
-        "months, but this research reconstruction was prepared on 17 November "
-        "2026 from extracted records reviewed on 16 November 2026. "
-        "It must not be described as a report published in June, July or August.")
-    add("Three distinctions that matter","section")
-    for item in [
-        "Advertisement count is not a filled position, job offer or census of all AI-related work.",
-        "Stockholm and Västra Götaland are contained within the national Sweden count. They cannot be added to it.",
-        "The classification is headline-only and deliberately excludes many technical and product roles; later indexing can revise historical records.",
-    ]:add("- "+item)
-    page()
+    """Independent historical analysis: executive content first, audit last.
 
-    add("01 / What the archived evidence measures","kicker")
-    section("Leadership advertisements, narrowly defined",
-        "The same frozen AI/Data leadership title-basket version 1 was applied to "
-        "the approved JobTech publication-month observations. The small sample "
-        "is useful for disciplined comparison, not a broad recruiting market forecast.")
-    months=unique_months
+    A narrow JobTech title basket must never be presented as broad national
+    AI recruitment. All numerical comparisons are generated from the exact
+    approved input vintage; no current market figures or private user data
+    enter the public report.
+    """
+    from market_publication_design import (
+        P, assemble, bars, decision_table, metric_cards, panel,
+        section, sources_table, styles,
+    )
+    points=_strict_historical_points(points)
+    months=sorted({str(p["period_start"])[:7] for p in points})
     lookup={(str(p["period_start"])[:7],str(p["geography"])):int(p["value"])
             for p in points}
-    rows=[["Month","Sweden","Stockholm","Västra Götaland"]]
-    for month in months:
-        rows.append([date.fromisoformat(month+"-01").strftime("%B %Y"),
-            *[str(lookup.get((month,region),"—")) for region in REGIONS]])
-    t=Table([[ _P(s,x,"table") for x in row] for row in rows],
-       colWidths=[53*mm,36*mm,40*mm,45*mm],repeatRows=1)
-    t.setStyle(TableStyle([
-       ("BACKGROUND",(0,0),(-1,0),PAPER),
-       ("ROWBACKGROUNDS",(0,1),(-1,-1),[colors.white,PAPER]),
-       ("LINEBELOW",(0,0),(-1,-1),.6,RULE),
-       ("TOPPADDING",(0,0),(-1,-1),12),
-       ("BOTTOMPADDING",(0,0),(-1,-1),12),
-       ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
-    ]))
-    story.append(t);story.append(Spacer(1,13))
-    if len(months)>1:
-        add("National title-basket trend · complete months only","section")
-        story.append(_historical_national_chart(months,lookup))
-        story.append(Spacer(1,12))
-    if len(months)>1:
-        add("Reading a small series","section")
-        add("The national sequence is "+", ".join(
-            str(lookup.get((month,"Sweden"),"not recorded")) for month in months
-        )+" qualifying advertisements across the archived complete months. "
-        "The changes are observations inside a tightly defined sample, "
-        "not a signal that all Swedish AI leadership hiring grew or contracted.")
+    if any(("Sweden" not in {p["geography"] for p in points
+              if str(p["period_start"])[:7]==month}) for month in months):
+        raise ValueError("A complete national observation is required.")
+    series=[(date.fromisoformat(m+"-01").strftime("%B %Y"),
+             lookup[(m,"Sweden")]) for m in months]
+    first,last=series[0][1],series[-1][1]
+    single=len(series)==1
+    date_span=month_label.replace("–","-")
+    sample_trend=(
+        "The selected national advertisement basket records "
+        +", ".join(str(n) for _,n in series)
+        +" qualifying advertisements across the archived complete months."
+        if not single else
+        "This edition contains one complete month and establishes a dated "
+        "observation, not a trend."
+    )
+    cover={
+        "title":"AI & Data Market Review",
+        "subtitle":("The senior leadership hiring signal - "
+                    "what a narrow historical sample can really tell us"),
+        "assessment":(
+            sample_trend+" The numbers help challenge a hiring assumption, "
+            "but they cannot establish total AI vacancies, candidate scarcity "
+            "or completed recruitment. A useful executive response is to "
+            "define the capability first, then compare how to obtain it."
+        ),
+        "edition":"PUBLIC RESEARCH / HISTORICAL EDITION",
+        "issue":"17 NOVEMBER 2026",
+        "metrics":[
+            (str(series[0][1]),"First observed month",series[0][0]+" | Selected ads"),
+            (str(max(n for _,n in series)),"Highest monthly count",
+             "Within the defined sample only"),
+            (str(series[-1][1]),"Last observed month",series[-1][0]+" | Selected ads"),
+        ],
+    }
+    sty=styles()
+    story=[]
+
+    # PAGE 2: the argument and the evidence must be adjacent. A title page
+    # followed by multiple caution pages would make the sample unworthy of
+    # an executive's time.
+    section(story,"01 / Executive reading",
+        "The signal is small. The management question is not.",
+        "A three-month record of selected AI and Data leadership advertisements "
+        "is enough to challenge assumptions - not enough to declare a national "
+        "hiring boom or shortage.",sty=sty)
+    story.append(metric_cards([
+        (str(n),"Selected advertisements",m+" | Sweden")
+        for m,n in (series+[series[-1]]*3)[:3]
+    ],sty=sty))
+    story.append(Spacer(1,18))
+    story.append(P("Selected national leadership-title advertisements",
+                   "h2",sty=sty))
+    if single:
+        story.append(panel("Evidence discipline","One month is not a market trend",
+          "The count is a dated baseline. To assess direction, compare it with "
+          "other complete months captured through the same title classifier.",
+          sty=sty))
     else:
-        add("Reading a single month","section")
-        add("One complete monthly observation establishes a dated baseline, "
-            "not a trend. A reliable comparison requires at least one further "
-            "complete and comparably classified month.")
-    add("What would weaken this interpretation?","section")
-    add("Different role titles, agency-only assignments, employer-specific "
-        "advertising channels and retrospective API indexing may change "
-        "what is visible. No conclusion about skills scarcity or the "
-        "speed of hiring follows from these counts.")
-    page()
+        story.append(bars([(m.split()[0],n) for m,n in series],
+                          suffix=" ads",sty=sty))
+        story.append(Spacer(1,11))
+        story.append(panel("Executive interpretation",
+            "Do not confuse the change in advertised titles with the demand for AI capability",
+            "A rise or fall inside a small, headline-classified sample can reflect "
+            "role naming, advertising channels, timing, indexing changes or a real "
+            "shift in recruiting. The counts alone cannot distinguish these explanations.",
+            sty=sty))
+    story.append(Spacer(1,15))
+    story.append(P("What this changes in a leadership discussion","h2",sty=sty))
+    story.append(P(
+        "When executives see AI adoption accelerating, it is tempting to assume "
+        "that the market for dedicated AI leaders must be expanding at the same pace. "
+        "This evidence does not support that shortcut. Before approving new headcount, "
+        "name the enterprise decisions the role would own, the outcomes it must "
+        "change and the alternative ways the capability could be secured.",
+        "body",sty=sty))
+    story.append(PageBreak())
 
-    add("02 / What an AI or Data leader can do with this","kicker")
-    section("An executive discussion, not a forecast",
-        "A market review becomes useful when it changes how decisions are framed. "
-        "The archived data can challenge overgeneralised claims about senior "
-        "AI hiring, but your organisation still needs its own evidence.")
-    tests=[
-        ("Define the capability",
-         "Describe the actual leadership work: operating model, governance, "
-         "portfolio choices, adoption, data stewardship or technical delivery."),
-        ("Clarify the search geography",
-         "What would be gained or lost by permitting remote, hybrid or "
-         "adjacent-region candidates? The archived region counts do not "
-         "measure available candidates."),
-        ("Test an alternative",
-         "Compare a permanent hire, internal development and external "
-         "support against the same accountable six-month outcome."),
-        ("Set a reversal condition",
-         "What would make you abandon the original talent assumption? "
-         "Define the evidence before a costly hiring commitment."),
-    ]
-    for title,body in tests:
-        story.append(KeepTogether([_P(s,title,"section"),_P(s,body)]))
-    add("Management meeting question","section")
-    add("Are we facing a shortage of leaders, or have we defined the "
-        "responsibilities and sourcing constraints too narrowly?")
-    page()
-
-    add("03 / What this historical data cannot show","kicker")
-    section("A deliberate boundary is part of credible research.",
-        "The full member Observatory has additional later-published measures. "
-        "Those are intentionally absent from this historical public sample.")
-    for label,what in [
-        ("Enterprise AI adoption","No SCB 2026 enterprise AI release is included or backdated to these historic months."),
-        ("Data and Analytics capability","No contemporaneous measures of internal analytics staff, BI or data quality."),
-        ("AI leadership hiring outcomes","No count of filled vacancies, total executive positions, salary or candidate supply."),
-        ("Consulting availability","No Brainville October 2026 source is presented as evidence for earlier months."),
-        ("Causal market conclusions","Nothing in this narrow title series identifies why advertised roles appeared."),
-    ]:
-        story.append(KeepTogether([_P(s,label,"section"),_P(s,what)]))
-    add("How the complete subscription-free service differs","section")
-    add("Verified members can examine later approved editions, enterprise "
-        "adoption, capability and consulting evidence, source comparisons, "
-        "independent executive analysis and research PDFs. Each source "
-        "enters only after a dated editorial release.")
-    page()
-
-    add("Appendix / Source and audit trail","kicker")
-    section("Trace every historical observation",
-        "This is the full record set used by the sample. Each row has the "
-        "same narrow definition and an original source URL.")
-    rows=[["Publication month","Geography","Adverts","Evidence code"]]
-    for p in sorted(points,key=lambda x:(str(x["period_start"]),str(x["geography"]))):
-        rows.append([
-            str(p["period_label"]),str(p["geography"]),str(int(p["value"])),str(p["code"])
+    # PAGE 3: regional evidence and multiple interpretations.
+    section(story,"02 / Geography and interpretation",
+        "A regional count is a sourcing constraint, not a talent forecast",
+        "National and regional advertisements belong to the same dataset; "
+        "Stockholm and Västra Götaland are subsets of Sweden, not additional "
+        "vacancies to be added to the national count.",sty=sty)
+    records=[]
+    for m in months:
+        label=date.fromisoformat(m+"-01").strftime("%b %Y")
+        national=lookup[(m,"Sweden")]
+        stockholm=lookup.get((m,"Stockholm"))
+        vgr=lookup.get((m,"Västra Götaland"))
+        records.append((label,national,stockholm,vgr))
+    head=[P(x,"table_head",sty=sty) for x in
+          ("MONTH","SWEDEN","STOCKHOLM","VÄSTRA GÖTALAND")]
+    table_rows=[head]
+    for month,n,sto,vgr in records:
+        table_rows.append([
+            P(month,"table_bold",sty=sty),
+            P(str(n),"table",sty=sty),
+            P(str(sto) if sto is not None else "Not observed","table",sty=sty),
+            P(str(vgr) if vgr is not None else "Not observed","table",sty=sty),
         ])
-    tab=Table([[_P(s,x,"small") for x in row] for row in rows],
-        colWidths=[47*mm,38*mm,19*mm,70*mm],repeatRows=1)
-    tab.setStyle(TableStyle([
-        ("ROWBACKGROUNDS",(0,0),(-1,-1),[PAPER,colors.white]),
-        ("LINEBELOW",(0,0),(-1,-1),.4,RULE),
-        ("TOPPADDING",(0,0),(-1,-1),6),
-        ("BOTTOMPADDING",(0,0),(-1,-1),6),
-        ("VALIGN",(0,0),(-1,-1),"TOP"),
+    regional=Table(table_rows,colWidths=[43*mm,32*mm,42*mm,55*mm])
+    regional.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,0),colors.HexColor("#142B3D")),
+        ("ROWBACKGROUNDS",(0,1),(-1,-1),
+         [colors.white,colors.HexColor("#F5F2EC")]),
+        ("LINEBELOW",(0,1),(-1,-1),.4,colors.HexColor("#DADFDC")),
+        ("TOPPADDING",(0,0),(-1,-1),13),
+        ("BOTTOMPADDING",(0,0),(-1,-1),13),
+        ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
     ]))
-    story.append(tab);story.append(Spacer(1,15))
-    story.append(Paragraph(
-      '<link href="'+JOBTECH_URL+'" color="#295A79">Original JobTech Historical Ads query interface</link>',
-      s["small"]))
-    add("Classifier: Jair high-signal AI/Data leadership title basket v1; "
-        "30 curated search seeds, headline-only strategic/senior role filter, "
-        "deduplication by source original_id or fallback fingerprint. "
-        "Live and historical job APIs were unioned in the original extraction; "
-        "retrospective changes may occur.")
-    add("Evidence checked: 16 November 2026. Demo issued: 17 November 2026. "
-        "Other provider sources were not included. No private personal "
-        "career intelligence was used.")
-    add("Jair Ribeiro | Enterprise AI & Data leadership. "
-        "This independent historical research sample is for contextual "
-        "executive discussion, not recruiting, legal or investment advice.","small")
-    doc.build(story,onFirstPage=_frame,onLaterPages=_frame)
-    blob=out.getvalue()
-    if not blob.startswith(b"%PDF") or len(blob)<3200:
-        raise ValueError("Historical sample report failed PDF verification.")
-    return blob
+    story.append(regional)
+    story.append(Spacer(1,19))
+    story.append(panel("Our reading",
+       "Smaller local counts warrant a wider search design, not a scarcity claim",
+       "A small monthly number does not measure the number of qualified people, "
+       "unadvertised searches or the ability to operate across sites. Treat "
+       "geography as a negotiable business requirement where the work permits it.",
+       sty=sty))
+    story.append(Spacer(1,16))
+    for h,b in [
+        ("Alternative explanation: the role is advertised under another name",
+         "Enterprise AI responsibility may sit inside operations, analytics, "
+         "product, digital or process improvement rather than a job title that "
+         "explicitly contains AI."),
+        ("Alternative explanation: recruitment is not publicly advertised",
+         "Executive search, internal appointment and specialist contract channels "
+         "are not captured by the title-basket totals."),
+        ("What would strengthen the finding",
+         "Several complete comparable months, broader role classification, "
+         "independent recruitment evidence and actual appointment data would "
+         "provide firmer support than one small series."),
+    ]:
+        story.append(KeepTogether([P(h,"h2",sty=sty),
+                                   P(b,"body_compact",sty=sty)]))
+    story.append(PageBreak())
+
+    # PAGE 4: decision support, rather than a generic disclaimer catalogue.
+    section(story,"03 / Management decisions",
+        "Four decisions worth making before the next recruitment request",
+        "Use the historical figures as a challenge to the hiring case, then "
+        "introduce your organisation's own operational and workforce evidence.",
+        sty=sty)
+    story.append(decision_table([
+        ("Define the missing capability","CEO / AI sponsor","Now",
+         "Write the outcome and decision rights first: governance, investment "
+         "prioritisation, adoption, data ownership, or technical delivery. "
+         "Do not let the job title substitute for the mandate."),
+        ("Make sourcing options comparable","CHRO / Capability owner","Next 30 days",
+         "Compare a permanent appointment, internal development and a defined "
+         "external engagement against the same six-month business result."),
+        ("Challenge geography and presence","HR / Business operations","Before advertising",
+         "Document which responsibilities require physical proximity or a "
+         "specific language, and widen the search where those constraints "
+         "are not operationally necessary."),
+        ("Establish the reversal test","CFO / Hiring sponsor","Next review",
+         "Specify which recruitment, performance or business evidence "
+         "would make you change the hiring plan rather than defending the "
+         "original assumption."),
+    ],sty=sty))
+    story.append(Spacer(1,18))
+    story.append(panel("Boardroom question",
+        "Are we short of AI leaders - or have we defined the work and the search too narrowly?",
+        "The practical output is a capability decision with accountable ownership, "
+        "a sourcing comparison and an evidence threshold for revisiting the choice.",
+        sty=sty))
+    story.append(PageBreak())
+
+    # PAGE 5: transparency remains complete, but is no longer the product.
+    section(story,"04 / Evidence and audit",
+        "Source and audit trail",
+        "This register reproduces every included observation. Its scope is "
+        "limited to JobTech's frozen senior AI/Data title basket; no subsequent "
+        "SCB adoption or consulting-market publication has been backdated.",
+        sty=sty)
+    story.append(sources_table(points,
+                lambda p:str(int(p["value"]))+" selected advertisements",
+                sty=sty))
+    story.append(Spacer(1,15))
+    story.append(P("The measurement boundary","h2",sty=sty))
+    story.append(P(
+        "Headline-only role classification, source deduplication and later API "
+        "indexing can affect the displayed count. An advertisement is not a "
+        "filled position. No contemporaneous measures of enterprise AI use, "
+        "analytics capability, salaries, qualified candidates or AI-specific "
+        "consulting availability are contained in this historical series.",
+        "body_compact",sty=sty))
+    story.append(P(
+        "This research reconstruction was prepared on 17 November 2026 "
+        "from archived observations reviewed on 16 November 2026. "
+        "It must not be described as a report published in June, July or August. "
+        "The full current edition uses separately verified, later-period sources.",
+        "body_compact",sty=sty))
+    story.append(P("Method: 30 high-signal search seeds, a headline-only senior "
+        "role classifier and deduplication by source original_id or fallback "
+        "fingerprint. Query provenance: JobTech Historical Ads / "
+        "historical.api.jobtechdev.se/search.","caption",sty=sty))
+    story.append(panel("The next decision",
+       "Where to look for the current, broader market assessment",
+       "The published Executive Edition 2.0 adds enterprise AI adoption, "
+       "labour-demand surveys, business confidence, consulting conditions "
+       "and regional analysis. The full report and five decision briefs are "
+       "available through the free Advisory account at jairribeiro.com.",
+       sty=sty))
+    return assemble(story,cover,
+        "Jair Ribeiro | Historical AI and Data Market Review | "+date_span,
+        min_bytes=4500)
 
 
 def _sample_points() -> list[dict]:

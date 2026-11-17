@@ -157,6 +157,21 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
         focused_text=" ".join(page.extract_text() or "" for page in PdfReader(BytesIO(focused)).pages)
         self.assertIn("3.55 EUR billion",focused_text)
 
+    def test_archive_labels_preserve_superseded_editions(self):
+        from market_archive import archive_option_label, archive_coverage
+        base={
+            "archive_kind":"published_edition",
+            "month_start":"2026-11-01",
+            "observations":self.points,
+            "interpretations":[{"slug":"example"}],
+        }
+        latest=dict(base,edition_slug=SLUG)
+        old=dict(base,edition_slug="sweden-ai-data-market-review-2026-11-v2-0-1")
+        self.assertIn("2.0.2 (latest)",archive_option_label(latest))
+        self.assertIn("2.0.1 (superseded)",archive_option_label(old))
+        self.assertIn("JobTech, Brainville and SCB",archive_coverage(latest))
+        self.assertIn("superseded",archive_coverage(old).lower())
+
     def test_scope_biases_are_mandatory_and_visible_in_every_relevant_pdf(self):
         import copy
         from pypdf import PdfReader

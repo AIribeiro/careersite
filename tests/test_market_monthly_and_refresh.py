@@ -102,7 +102,7 @@ class MonthlyObservatoryTests(unittest.TestCase):
                        return_value=b"%PDF-1.4 test"):
                 render_public_market_demo_download()
             streamlit.download_button.assert_called_once()
-            self.assertIn("No registration required",
+            self.assertIn("without creating an account",
                           streamlit.html.call_args_list[0].args[0])
             bottom=streamlit.html.call_args_list[-1].args[0]
             self.assertIn('aria-label="Continue within Advisory"',bottom)
@@ -131,7 +131,7 @@ class MonthlyObservatoryTests(unittest.TestCase):
         self.assertIn('"advisory-market-demo": "market-signals"',visibility)
         self.assertIn("04 / PUBLIC RESEARCH SAMPLE",landing)
         self.assertIn('?page=advisory-market-demo',landing)
-        self.assertIn("No registration",public_market_demo_html())
+        self.assertIn("Before you create an account",public_market_demo_html())
 
 
 class AdminMarketRefreshTests(unittest.TestCase):

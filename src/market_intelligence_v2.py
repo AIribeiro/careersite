@@ -381,11 +381,6 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
        "Research method and limits: "+editorial["methodology_note"],
        "body_small",sty=s))
     story.append(Spacer(1,9))
-    story.append(P("Source-series methods and limitations","h2",sty=s))
-    story.append(source_family_methods(points,sty=s))
-    story.append(Spacer(1,15))
-    story.append(P("Observation register: populations, caveats and source dates","h2",sty=s))
-    story.append(sources_table(points,_value,sty=s,include_provenance=True,compact_provenance=True))
     story.append(Spacer(1,13))
     story.append(P(
        "Interpretation and selection risks: SCB changed its enterprise industry "
@@ -407,6 +402,12 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
        "AI spending; vacancy advertisements are not hiring outcomes. "
        "Partial months are not extrapolated.",
        "body_small",sty=s))
+    story.append(Spacer(1,9))
+    story.append(P("Source-series methods and limitations","h2",sty=s))
+    story.append(source_family_methods(points,sty=s))
+    story.append(Spacer(1,15))
+    story.append(P("Observation register: populations, caveats and source dates","h2",sty=s))
+    story.append(sources_table(points,_value,sty=s,include_provenance=True,compact_provenance=True))
     return assemble(story,cover,
       "Jair Ribeiro | Swedish AI and Data Market Review | Executive Edition 2.0",
       min_bytes=10000)

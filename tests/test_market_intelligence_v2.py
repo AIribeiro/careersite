@@ -71,7 +71,7 @@ def verified_v2_fixture():
             "period_label":period,
             "period_complete":True,
         })
-        row["source_title"]={"scb_recruitment_needs_lor":"SCB Recruitment Needs and Vacancies", "ki_konjunkturbarometern":"KI Business Tendency Survey", "ec_digital_decade_sweden":"European Commission Digital Decade Sweden"}[family]
+        row["source_title"]={"scb_recruitment_needs_lor":"SCB Recruitment Needs and Vacancies, "+("Q1 2026" if "_2026q1_" in code else "Q2 2026"), "ki_konjunkturbarometern":"KI Business Tendency Survey", "ec_digital_decade_sweden":"European Commission Digital Decade Sweden"}[family]
         row["population_note"]="Defined survey or policy population, not AI-specialist hiring."
         row["methodology"]="Official reported measure, with an explicit observational date."
         row["caveat"]="Not a causal measure of AI investment returns, workforce shortages or outcomes."

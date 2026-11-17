@@ -43,7 +43,21 @@ def constant(source: str, name: str):
             try:
                 return ast.literal_eval(node.value)
             except (ValueError, SyntaxError, TypeError):
-                return None
+                # A dict may contain one dynamic value (HOME_TITLE or
+                # HOME_DESCRIPTION). Read the remaining literal entries
+                # without importing the site's runtime or evaluating code.
+                if not isinstance(node.value, ast.Dict):
+                    return None
+                values = {}
+                for key, value in zip(node.value.keys, node.value.values):
+                    try:
+                        parsed_key = ast.literal_eval(key)
+                        parsed_value = ast.literal_eval(value)
+                    except (ValueError, SyntaxError, TypeError):
+                        continue
+                    if isinstance(parsed_key, str) and isinstance(parsed_value, str):
+                        values[parsed_key] = parsed_value
+                return values
     return None
 
 
@@ -92,9 +106,16 @@ def new_release_items(previous: str, current: str, issued_at: str) -> list[dict[
     descriptions = constant(git_file(current, "src/site_meta.py"), "DESCRIPTIONS") or {}
     events = []
     for route in sorted(new_routes - old_routes):
-        # Skip aliases, CMS readers and the private admin workspace.
+        # A demo/verification route or account utility must not outrank the
+        # actual research publication merely because its page was added last.
         if route in {"home", "briefing", "analytics", "admin", "certifications",
-                     "enterprise", "transformation", "governance", "consulting"}:
+                     "enterprise", "transformation", "governance", "consulting",
+                     "privacy", "advisory-access", "advisory-market-demo"} or route.endswith("-demo"):
+            continue
+        description = str(descriptions.get(route) or "").strip()
+        # Do not advertise an unexplained route with a machine placeholder.
+        # Editorial description is a prerequisite for homepage promotion.
+        if len(description) < 60:
             continue
         title = new_titles.get(route) or route.replace("-", " ").title()
         title = title.split(" | ")[0].strip()
@@ -102,10 +123,10 @@ def new_release_items(previous: str, current: str, issued_at: str) -> list[dict[
             "key": "page:" + route,
             "type": "New page",
             "title": title,
-            "description": descriptions.get(route, "Discover the newly published portfolio page.")[:220],
+            "description": description[:320],
             "date": timestamp,
             "href": "?page=" + route,
-            "cta": "Explore the page",
+            "cta": "Explore the research" if route == "advisory-market-signals" else "Explore the service",
         })
 
     old_credentials = credential_rows(git_file(previous, "src/page_certifications.py"))

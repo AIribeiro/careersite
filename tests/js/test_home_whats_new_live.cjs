@@ -36,7 +36,7 @@ globalThis.fetch = async (url, opts) => {
     {
       title: 'AI Adoption Is Not One Problem: Four Leadership Responses',
       slug: 'ai-adoption-four-leadership-responses',
-      kind: 'Executive Briefing', published_at: '2026-11-04T12:40:21.959975+00:00',
+      kind: 'Executive Briefing', published_at: '2026-11-18T12:40:21.959975+00:00',
       subtitle: 'Four separate leadership decisions.'
     }
   ];}};
@@ -45,6 +45,9 @@ globalThis.setTimeout = () => 1;
 globalThis.clearTimeout = () => {};
 globalThis.setInterval = (_callback, ms) => {intervalMs = ms; return 2;};
 globalThis.AbortController = class {signal = {}; abort() {}};
+// Clock is fixed so future CMS issues can be tested against a published
+// November 17 market research edition, irrespective of CI wall-clock time.
+Date.now = () => Date.parse('2026-11-19T09:00:00+00:00');
 vm.runInThisContext(match[1]);
 setImmediate(() => {
   try {

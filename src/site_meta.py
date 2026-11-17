@@ -34,6 +34,8 @@ DESCRIPTIONS = {
     "presence": "Selected speaking, publications and externally documented contributions across enterprise AI, Data, responsible adoption and governance.",
     "contact": "Contact Jair Ribeiro about AI, Data and Analytics mandates involving strategy, portfolio, governance, adoption and operating capability.",
     "advisory": "Executive AI and Data advisory with Jair Ribeiro: independent decision review, portfolio priorities, governance, adoption and operating-model choices.",
+    "advisory-market-signals": "Swedish AI & Data Market Intelligence for Executive Decision-Making: sourced analysis of AI adoption, workforce demand, business conditions, sourcing, and regional evidence, with executive decision briefs.",
+    "advisory-market-demo": "Public historical research sample of selected senior AI and Data advertisements from June–August 2026; not the current full Market Signals Advisory edition.",
     "advisory-scorecard": "AI Portfolio Prioritization Scorecard: selective pro-bono executive service for comparing AI initiatives by value, feasibility, capacity, adoption, data readiness and controls. Individual approval required.",
     "privacy": "Privacy notice for Jair Ribeiro’s portfolio and Premium Reader library: information collected, access, correspondence, website measurement and GDPR rights.",
     "enterprise": "Enterprise AI & Data experience across strategy, portfolio, operating models, governance, adoption and technical judgment.",

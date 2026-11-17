@@ -86,10 +86,10 @@ class HomeWhatsNewTests(unittest.TestCase):
     def test_entire_announcement_and_cta_are_centered(self) -> None:
         markup = news.home_whats_new()
         self.assertIn("flex-direction:column;align-items:center;justify-content:center", markup)
-        self.assertIn("max-width:920px;display:flex;flex-direction:column;align-items:center", markup)
+        self.assertIn("max-width:960px;display:flex;flex-direction:column;align-items:center", markup)
         self.assertIn("justify-content:center;flex-wrap:wrap", markup)
         self.assertIn("margin:0 auto;text-align:center", markup)
-        self.assertIn("align-self:center;min-height:32px", markup)
+        self.assertIn("align-self:center;min-height:36px", markup)
         self.assertIn("@media(max-width:760px)", markup)
         self.assertIn('data-news-title', markup)
         self.assertIn('data-news-link', markup)

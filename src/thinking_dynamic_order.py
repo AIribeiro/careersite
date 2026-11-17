@@ -47,6 +47,8 @@ def mount_thinking_hourly_order() -> None:
   let timer = null;
   let inFlight = null;
   let lastHourSlot = -1;
+  let pendingOrder = null;
+  let pendingFrame = false;
 
   const isLanding = () => {
     const params = new URLSearchParams(win.location.search);
@@ -77,7 +79,23 @@ def mount_thinking_hourly_order() -> None:
     if (!fixedReader || fixedReader.parentNode !== parent) return false;
     const currently = Array.from(parent.children).filter(node => nodes.includes(node));
     if (currently.every((node, i) => node === nodes[i]) &&
-        fixedReader.nextElementSibling === nodes[0]) return true;
+        fixedReader.nextElementSibling === nodes[0]) {
+      pendingOrder = null;
+      return true;
+    }
+
+    // Moving populated sections while they intersect the viewport is a
+    // measurable layout shift. Keep the existing order while someone is
+    // reading; apply the latest rankings once all moved sections are offscreen.
+    const visibleSection = nodes.some(node => {
+      const bounds = node.getBoundingClientRect();
+      return bounds.bottom > 0 && bounds.top < win.innerHeight;
+    });
+    if (visibleSection) {
+      pendingOrder = ordered.slice();
+      return true;
+    }
+    pendingOrder = null;
 
     const observed = doc.elementFromPoint(
       Math.floor(win.innerWidth / 2), Math.floor(win.innerHeight / 2)
@@ -167,6 +185,18 @@ def mount_thinking_hourly_order() -> None:
     }
   };
 
+  const retryWhenOffscreen = () => {
+    if (!pendingOrder || pendingFrame || stopped || !isLanding()) return;
+    pendingFrame = true;
+    win.requestAnimationFrame(() => {
+      pendingFrame = false;
+      if (pendingOrder && !stopped && isLanding()) reorder(pendingOrder);
+    });
+  };
+  // Passive listeners do no work when there is no deferred reorder.
+  win.addEventListener('scroll', retryWhenOffscreen, { passive: true });
+  win.addEventListener('resize', retryWhenOffscreen, { passive: true });
+
   const onVisibility = () => {
     if (stopped || doc.hidden || !isLanding()) return;
     if (Math.floor(Date.now() / 3600000) !== lastHourSlot) {
@@ -179,6 +209,9 @@ def mount_thinking_hourly_order() -> None:
       stopped = true;
       if (timer !== null) win.clearTimeout(timer);
       if (inFlight) inFlight.abort();
+      pendingOrder = null;
+      win.removeEventListener('scroll', retryWhenOffscreen);
+      win.removeEventListener('resize', retryWhenOffscreen);
       doc.removeEventListener('visibilitychange', onVisibility);
     }
   };

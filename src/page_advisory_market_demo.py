@@ -453,7 +453,7 @@ def render_public_market_demo_download() -> None:
         '<div class="site">'
         '<section class="market-demo-end" aria-labelledby="market-demo-next-title"><div class="container">'
         '<p class="market-demo-end-kicker">WHERE TO GO NEXT</p>'
-        '<h2 id="market-demo-next-title">Explore the full research when you're ready.</h2>'
+        '<h2 id="market-demo-next-title">Explore the full research at your own pace.</h2>'
         '<p class="market-demo-end-lead">This example covers only the earliest reviewed job-advertisement history. '
         'The November 2026 review adds figures about AI use, data and analytics '
         'and consulting activity, with a fuller discussion of business decisions.</p>'

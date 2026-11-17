@@ -12,6 +12,9 @@ on:
       - 'src/page_owner_advisory_management.py'
       - 'src/page_advisory_market_review.py'
       - 'src/market_review_premium.py'
+      - 'src/market_intelligence_v2.py'
+      - 'docs/market_signals/november_2026_executive_v2.json'
+      - 'tests/test_market_intelligence_v2.py'
       - 'src/advisory_service_visibility.py'
       - 'src/page_advisory_portal.py'
       - 'src/page_advisory_member_experience.py'
@@ -59,6 +62,7 @@ jobs:
             src/page_owner_advisory_management.py \
             src/page_advisory_market_review.py \
             src/market_review_premium.py \
+            src/market_intelligence_v2.py \
             src/advisory_service_visibility.py \
             src/page_advisory_portal.py \
             src/page_advisory_member_experience.py \
@@ -66,6 +70,7 @@ jobs:
             src/page_reader_native.py \
             src/site_reader_navigation.py \
             tests/test_market_signals.py \
+            tests/test_market_intelligence_v2.py \
             tests/test_market_monthly_and_refresh.py \
             tests/test_market_review_premium.py \
             tests/test_market_signals_landing.py \
@@ -75,6 +80,8 @@ jobs:
             tests/test_market_signals_management.py
       - name: Verify evidence integrity and PDF export
         run: python -m unittest discover -s tests -p 'test_market_signals.py' -v
+      - name: Validate 2.0 executive research, sources and both PDF outputs
+        run: python -m unittest discover -s tests -p 'test_market_intelligence_v2.py' -v
       - name: Validate complete executive research PDF, evidence register and layout
         run: python -m unittest discover -s tests -p 'test_market_review_premium.py' -v
       - name: Render researched PDF into QA images and verify legibility

@@ -77,7 +77,10 @@ class ArticleAnalyticsTests(unittest.TestCase):
         # The main report stays visual-first; attribution details are optional.
         main_report = article_dashboard.split("def render_article_analytics()", 1)[1]
         self.assertNotIn("st.dataframe", main_report)
-        self.assertIn('with st.expander("Exact source counts", expanded=False):', article_dashboard)
+        # Source counts are now conveyed by the hoverable chart, rather than
+        # a separate expander; protect that intentional visual-first contract.
+        self.assertIn("st.altair_chart(", article_dashboard)
+        self.assertIn("Source counts and shares are available on chart hover", article_dashboard)
 
 
 if __name__ == "__main__":

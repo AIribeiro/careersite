@@ -154,6 +154,21 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertNotIn("AI jobs increased 45%",self.page)
         self.assertNotIn("AI consultant shortages",self.page)
 
+    def test_all_published_edition_labels_match_signed_off_manuscript(self):
+        import json
+        manuscript=json.loads((ROOT/"docs/market_signals/november_2026_executive_v2.json").read_text(encoding="utf-8"))
+        expected="Executive Edition "+manuscript["version"]
+        # Publication card, evidence introduction, report description and CTA.
+        self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(expected),4)
+        self.assertEqual(self.page.count(expected),4)
+        for obsolete in (
+            "Executive Edition 2.0</h2>",
+            "in Executive Edition 2.0. No single",
+            "Executive Edition 2.0 examines",
+            "Access Executive Edition 2.0 · Free account",
+        ):
+            self.assertNotIn(obsolete,self.page)
+
     def test_all_eight_real_dashboard_topics_present(self):
         expected=[
             "Executive evidence overview",

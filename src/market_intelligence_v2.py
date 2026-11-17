@@ -327,7 +327,7 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
         story.append(Spacer(1,12))
         story.append(P("Business implication","h2",sty=s))
         story.append(P(t["implication"],"body",sty=s))
-        story.append(panel("Executive decision",
+        story.append(panel("Recommended action",
             "What leadership should do",t["recommendation"],dark=True,sty=s))
         story.append(Spacer(1,12))
         story.append(P("Evidence that would change the recommendation",

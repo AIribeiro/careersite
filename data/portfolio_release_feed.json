@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "page:advisory-market-demo",
+      "type": "New page",
+      "title": "Advisory Market Demo",
+      "description": "Discover the newly published portfolio page.",
+      "date": "2026-11-17T07:49:09+01:00",
+      "href": "?page=advisory-market-demo",
+      "cta": "Explore the page"
+    },
+    {
       "key": "page:advisory-market-signals",
       "type": "New page",
       "title": "Advisory Market Signals",

@@ -106,7 +106,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
             "Presenting evidence and uncertainty to management",
             "Market Observatory",
             "Complete AI &amp; Data Market Review",
-            "Decision briefs and source register",
+            "Executive Decision Briefs and source register",
         ):
             self.assertIn(phrase,self.page)
 
@@ -135,12 +135,12 @@ class MarketSignalsLandingTests(unittest.TestCase):
         ]:
             self.assertNotIn(obsolete,self.page)
 
-    def test_high_value_examples_are_exact_dated_edition_01_scope(self):
+    def test_high_value_examples_are_exact_dated_executive_edition_scope(self):
         for phrase in (
-            "Published 16 November 2026",
-            "published data points",
-            "data sources",
-            "written analyses",
+            "Published 17 November 2026",
+            "published observations",
+            "research sources",
+            "executive decision perspectives",
             "49<span>%</span>",
             "85%",
             "29",
@@ -219,7 +219,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
             "not a count of all vacancies",
             "not AI/Data specialists alone",
             "not a full market review from those summer months",
-            "not published in Edition 01",
+            "not published in the current edition",
             "no personal approval is needed",
         ):
             self.assertIn(claim.lower(),self.page.lower())

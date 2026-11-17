@@ -6,7 +6,7 @@ inputs, and records a transparent owner-only run. It never silently changes
 signed-off observations or previously published monthly editions.
 
 NOTE: A successful website availability request is NOT evidence that its
-statistics have been re-measured. The nine publisher statuses carry that
+statistics have been re-measured. The registered publisher statuses carry that
 distinction explicitly; unapproved families remain excluded from publication.
 """
 from __future__ import annotations
@@ -28,7 +28,8 @@ ALLOWED_HOSTS={
     "jobsearch.api.jobtechdev.se","www.brainville.com","brainville.com",
     "www.almega.se","almega.se","www.konj.se","konj.se",
     "www.manpowergroup.se","manpowergroup.se","www.swedbank.se","swedbank.se",
-    "techsverige.se","www.techsverige.se"
+    "techsverige.se","www.techsverige.se",
+    "digital-strategy.ec.europa.eu"
 }
 ARTICLE_OVERRIDE={
  "af_jobtech_target_demand":
@@ -36,6 +37,9 @@ ARTICLE_OVERRIDE={
  "scb_enterprise_ai_adoption":
     "https://www.scb.se/hitta-statistik/statistik-efter-amne/forskning-och-det-digitala-samhallet/det-digitala-samhallet/it-anvandning-i-foretag/pong/statistiknyhet/it-anvandning-i-foretag-2026/",
  "brainville_consulting_market":"https://www.brainville.com/sv/Blog/Post/1923",
+ "scb_recruitment_needs_lor":"https://www.scb.se/hitta-statistik/statistik-efter-amne/arbetsmarknad/efterfragan-pa-arbetskraft/lediga-jobb-och-rekryteringsbehov/pong/statistiknyhet/lediga-jobb-och-rekryteringsbehov-2a-kvartalet-2026/",
+ "ec_digital_decade_sweden":"https://digital-strategy.ec.europa.eu/en/factpages/swedens-2026-digital-decade-country-report",
+ "ki_konjunkturbarometern":"https://www.konj.se/publikationer/konjunkturbarometern/2026-10-29-stort-fall-i-hushallens-stamningslage/",
 }
 
 # Frozen JobTech title-basket v1 queries and exclusion/role patterns. Method
@@ -286,7 +290,7 @@ def _recalculate(points:list[dict],briefs:list[dict],edition:dict) -> dict:
 
 
 def run_admin_market_refresh(token:str, data:dict) -> dict:
-    """One click checks all nine source families and recalculates the edition.
+    """One click checks all registered source families and recalculates the edition.
 
     A partial or failed provider response is written as such; missing extracts
     never become zero or silently update reader-facing published statistics.

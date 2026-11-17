@@ -886,6 +886,31 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 "Their last verified values are retained with dates; the tool will not present them as current."
             )
         from page_advisory_market_observatory import render_market_observatory
+        if not historical:
+            # The published V2 analysis is edition-bound and is available only
+            # through the same verified member JWT as the approved observations.
+            from market_intelligence_v2 import (
+                load_published_editorial, render_executive_intelligence,
+            )
+            try:
+                v2 = load_published_editorial(
+                    token, str(release.get("slug") or ""), points,
+                    _request_json, _rest_url,
+                )
+            except (PermissionError, RuntimeError, ValueError, KeyError, OSError):
+                st.error(
+                    "The executive analysis cannot be verified for this edition. "
+                    "No inferred or unchecked market conclusions will be shown."
+                )
+                return
+            if v2 is not None:
+                render_executive_intelligence(
+                    st, v2, points, str(release["slug"]), token, _record_market_event,
+                )
+                with st.expander("Explore the underlying evidence and historical charts",
+                                 expanded=False):
+                    render_market_observatory(points,historical=False)
+                return
         render_market_observatory(points,historical=historical)
         if historical:
             from page_advisory_market_demo import historical_market_pdf

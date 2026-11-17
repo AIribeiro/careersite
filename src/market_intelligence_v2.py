@@ -224,7 +224,7 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     from reportlab.platypus import CondPageBreak
     from market_publication_design import (
         P, assemble, bars, decision_table, metric_cards, panel, section,
-        sources_table, styles,
+        source_family_methods, sources_table, styles,
     )
     validate_editorial(editorial,points,edition_slug)
     idx={p["code"]:p for p in points}
@@ -381,7 +381,11 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
        "Research method and limits: "+editorial["methodology_note"],
        "body_small",sty=s))
     story.append(Spacer(1,9))
-    story.append(sources_table(points,_value,sty=s,include_provenance=True))
+    story.append(P("Source-series methods and limitations","h2",sty=s))
+    story.append(source_family_methods(points,sty=s))
+    story.append(Spacer(1,15))
+    story.append(P("Observation register: populations, caveats and source dates","h2",sty=s))
+    story.append(sources_table(points,_value,sty=s,include_provenance=True,compact_provenance=True))
     story.append(Spacer(1,13))
     story.append(P(
        "Interpretation and selection risks: SCB changed its enterprise industry "

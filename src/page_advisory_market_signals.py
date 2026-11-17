@@ -127,16 +127,16 @@ MARKET_SIGNALS_LANDING_CSS = """
 /* Scoped, accessible editorial landing page. No scripts, external assets or fixed widths. */
 .site.ms-landing {width:100%;max-width:100%;overflow-x:clip;overflow-wrap:break-word}
 .site.ms-landing *, .site.ms-landing *::before,.site.ms-landing *::after {box-sizing:border-box}
-.site.ms-landing .container {min-width:0;max-width:100%}
+.site.ms-landing .container {width:calc(100% - clamp(30px,5vw,88px));max-width:none;min-width:0}
 .site.ms-landing .ms-hero {background:#101f32;color:#f8f7f2;padding:clamp(52px,7vw,99px) 0 66px;position:relative}
 .site.ms-landing .ms-hero:before {content:"";position:absolute;inset:0 0 auto; height:4px;background:linear-gradient(90deg,#B67D59 0%,#B67D59 21%,transparent 21%,transparent 100%)}
-.site.ms-landing .ms-hero-grid {display:grid;grid-template-columns:minmax(0,1.42fr) minmax(0,.7fr);gap:clamp(28px,5vw,88px);align-items:end}
+.site.ms-landing .ms-hero-grid {display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(28px,4vw,52px);align-items:start;width:100%}
 .site.ms-landing .ms-hero-grid > *,.site.ms-landing .ms-grid > *,.site.ms-landing .ms-proofs > * {min-width:0}
 .site.ms-landing .ms-overline {font-size:11px;line-height:1.5;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:#AD6844;margin:0 0 17px}
 .site.ms-landing .ms-hero .ms-overline {color:#E8B995}
-.site.ms-landing .ms-hero h1 {font:500 clamp(39px,4.9vw,69px)/1.07 Georgia,serif;letter-spacing:-.037em;max-width:950px;margin:0 0 24px;color:#fff;white-space:normal!important;overflow-wrap:break-word;text-wrap:balance}
-.site.ms-landing .ms-hero-lead {color:#D6DFE9;font-size:clamp(17px,1.5vw,20px);line-height:1.65;max-width:690px;margin:0}
-.site.ms-landing .ms-hero-context {font-size:14px;color:#BFCBD7;line-height:1.72;max-width:670px;margin:18px 0 0}
+.site.ms-landing .ms-hero h1 {display:block;width:100%;max-width:none;font:500 clamp(39px,4.9vw,69px)/1.07 Georgia,serif;letter-spacing:-.037em;margin:0 0 24px;color:#fff;white-space:normal!important;overflow-wrap:break-word;text-wrap:pretty}
+.site.ms-landing .ms-hero-lead {color:#D6DFE9;font-size:clamp(17px,1.5vw,20px);line-height:1.65;width:100%;max-width:none;margin:0}
+.site.ms-landing .ms-hero-context {font-size:14px;color:#BFCBD7;line-height:1.72;width:100%;max-width:none;margin:18px 0 0}
 .site.ms-landing .ms-actions {display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:30px 0 0}
 .site.ms-landing .ms-button {display:inline-flex;min-height:50px;align-items:center;justify-content:center;text-align:center;padding:14px 20px;background:#DCA987;border:1px solid #DCA987;color:#10273A!important;font-size:13px;font-weight:850;letter-spacing:.01em;text-decoration:none!important;line-height:1.35;max-width:100%}
 .site.ms-landing .ms-button:hover,.site.ms-landing .ms-button:focus-visible {background:#F4C8A9}
@@ -144,7 +144,7 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-button--outline:hover {background:#24394F}
 .site.ms-landing a:focus-visible {outline:3px solid #E5A675;outline-offset:3px}
 .site.ms-landing .ms-hero-meta {color:#BCC9D6;font-size:12px;line-height:1.6;margin:19px 0 0}
-.site.ms-landing .ms-edition {background:#1B3349;border:1px solid #53677B;border-top:3px solid #D3A07C;padding:clamp(21px,3vw,33px);max-width:100%}
+.site.ms-landing .ms-edition {background:#1B3349;border:1px solid #53677B;border-top:3px solid #D3A07C;padding:clamp(21px,3vw,33px);width:100%;max-width:none}
 .site.ms-landing .ms-edition small {font-weight:800;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#E8BB98}
 .site.ms-landing .ms-edition h2 {font:500 clamp(24px,2.5vw,32px)/1.17 Georgia,serif;color:#fff;margin:15px 0 12px;letter-spacing:-.015em;overflow-wrap:anywhere}
 .site.ms-landing .ms-edition p {font-size:13px;line-height:1.73;color:#CCD6DF;margin:0}
@@ -156,10 +156,10 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-section--white {background:#FFFDF9}
 .site.ms-landing .ms-section--paper {background:#F4F0E9}
 .site.ms-landing .ms-section--ink {background:#11283C;color:#F5F4F1}
-.site.ms-landing .ms-section-head {display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.8fr);gap:clamp(20px,5vw,90px);align-items:end;margin:0 0 34px}
-.site.ms-landing .ms-section h2 {font:500 clamp(31px,4.1vw,54px)/1.12 Georgia,serif;color:#1A3045;letter-spacing:-.025em;white-space:normal!important;overflow-wrap:break-word;text-wrap:balance;margin:0}
+.site.ms-landing .ms-section-head {display:block;width:100%;margin:0 0 34px}
+.site.ms-landing .ms-section h2 {display:block;width:100%;max-width:none;font:500 clamp(31px,4.1vw,54px)/1.12 Georgia,serif;color:#1A3045;letter-spacing:-.025em;white-space:normal!important;overflow-wrap:break-word;text-wrap:pretty;margin:0}
 .site.ms-landing .ms-section--ink h2 {color:#F9F8F4}
-.site.ms-landing .ms-section-intro {font-size:15px;color:#56687A;line-height:1.77;max-width:530px;margin:0}
+.site.ms-landing .ms-section-intro {font-size:15px;color:#56687A;line-height:1.77;width:100%;max-width:none;margin:18px 0 0}
 .site.ms-landing .ms-section--ink .ms-section-intro {color:#CAD5DF}
 .site.ms-landing .ms-proofs {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
 .site.ms-landing .ms-proof {background:#FFFEFC;border:1px solid #DDD6CD;padding:clamp(19px,2.5vw,30px);display:flex;flex-direction:column;min-height:330px}
@@ -216,15 +216,22 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-quality p strong {display:block;margin-bottom:3px;color:#1D3449;font-weight:800}
 .site.ms-landing .ms-quality .ms-small {font-size:11px;color:#667484}
 .site.ms-landing .ms-lastcta {background:#122A3D;color:#FAF8F3;padding:clamp(55px,7vw,86px) 0}
-.site.ms-landing .ms-cta-grid {display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:clamp(25px,6vw,90px);align-items:center}
-.site.ms-landing .ms-lastcta h2 {font:500 clamp(32px,4.4vw,56px)/1.13 Georgia,serif;color:#fff;letter-spacing:-.025em;overflow-wrap:break-word;margin:0}
+.site.ms-landing .ms-cta-grid {display:grid;grid-template-columns:minmax(0,1fr);gap:30px;align-items:start}
+.site.ms-landing .ms-lastcta h2 {display:block;width:100%;max-width:none;font:500 clamp(32px,4.4vw,56px)/1.13 Georgia,serif;color:#fff;letter-spacing:-.025em;overflow-wrap:break-word;margin:0}
 .site.ms-landing .ms-lastcta p {color:#D2DEE9;font-size:15px;line-height:1.75;margin:17px 0}
-.site.ms-landing .ms-cta-aside {padding:24px;border-left:2px solid #C9916E;background:#203A50}
+.site.ms-landing .ms-cta-aside {width:100%;padding:24px;border-left:2px solid #C9916E;background:#203A50}
 .site.ms-landing .ms-cta-aside strong {color:#FCE4D1}
 .site.ms-landing .ms-cta-aside p {margin:10px 0 0;font-size:13px}
+.site.ms-landing .ms-footer-navigation {padding:clamp(34px,5vw,56px) 0;background:#EEE9E1;border-top:1px solid #D8D1C7}
+.site.ms-landing .ms-footer-navigation .ms-footer-heading {font:500 clamp(25px,3vw,36px)/1.2 Georgia,serif;color:#1A3045;margin:0 0 20px}
+.site.ms-landing .ms-footer-nav-links {display:flex;gap:12px;flex-wrap:wrap}
+.site.ms-landing .ms-footer-nav-links a {display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:12px 18px;border:1px solid #C8BFB4;color:#1C3C55!important;background:#FFFEFC;font-size:13px;line-height:1.45;font-weight:750;text-decoration:none!important}
+.site.ms-landing .ms-footer-nav-links a:hover,.site.ms-landing .ms-footer-nav-links a:focus-visible {border-color:#A77455;background:#F9F2E9}
+.site.ms-landing .ms-footer-nav-links a.ms-footer-primary {background:#1B354B;border-color:#1B354B;color:#fff!important}
+.site.ms-landing .ms-footer-nav-links a.ms-footer-primary:hover {background:#2A4A63}
 @media(max-width:1100px) {
  .site.ms-landing .ms-hero-grid {grid-template-columns:minmax(0,1fr)}
- .site.ms-landing .ms-edition {max-width:710px}
+ .site.ms-landing .ms-edition {max-width:none}
  .site.ms-landing .ms-proofs {grid-template-columns:repeat(2,minmax(0,1fr))}
  .site.ms-landing .ms-section-head {grid-template-columns:minmax(0,1fr);gap:13px}
  .site.ms-landing .ms-workspace,.site.ms-landing .ms-standard,.site.ms-landing .ms-cta-grid {grid-template-columns:minmax(0,1fr);gap:25px}
@@ -240,6 +247,8 @@ MARKET_SIGNALS_LANDING_CSS = """
  .site.ms-landing .ms-actions {align-items:stretch}
  .site.ms-landing .ms-actions .ms-button {width:100%}
  .site.ms-landing .ms-usecase {min-height:0}
+ .site.ms-landing .ms-footer-nav-links {flex-direction:column}
+ .site.ms-landing .ms-footer-nav-links a {width:100%}
 }
 @media(prefers-reduced-motion:reduce) {
  .site.ms-landing .ms-button {transition:none}
@@ -442,6 +451,18 @@ MARKET_SIGNALS_LANDING_HTML = """
     </aside>
   </div>
 </div></section>
+
+<section class="ms-footer-navigation" aria-labelledby="ms-footer-heading" data-analytics-section="market-signals-footer-navigation">
+  <div class="container">
+    <h2 class="ms-footer-heading" id="ms-footer-heading">Continue within Advisory</h2>
+    <nav class="ms-footer-nav-links" aria-label="Market Signals footer navigation">
+      <a href="?page=advisory" target="_self" data-hq-event="market_signals_footer_advisory">All Advisory services</a>
+      <a href="?page=advisory-market-demo" target="_self" data-hq-event="market_signals_footer_demo">Public research sample</a>
+      <a href="?page=home" target="_self" data-hq-event="market_signals_footer_home">Portfolio home</a>
+      <a class="ms-footer-primary" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_footer_member">Full Market Observatory</a>
+    </nav>
+  </div>
+</section>
 </main>
 """
 

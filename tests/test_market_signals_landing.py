@@ -49,7 +49,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_executive_target_and_decision_value_are_explicit(self):
         for phrase in (
-            "Swedish AI &amp; Data: Evidence for Executive Decisions",
+            "AI &amp; Data Market Intelligence for Executive Decision-Making",
             "For AI, Data and Analytics leaders",
             "Internal capability, recruitment or external expertise",
             "Business outcomes beyond reported adoption",
@@ -62,7 +62,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_executive_headlines_use_measured_claims_not_promotional_promises(self):
         expected=[
-            "Swedish AI &amp; Data: Evidence for Executive Decisions",
+            "AI &amp; Data Market Intelligence for Executive Decision-Making",
             "What the published evidence shows",
             "AI use is reported; business outcomes require separate evidence.",
             "Senior AI &amp; Data recruitment: a limited observed sample.",

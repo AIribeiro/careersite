@@ -253,7 +253,7 @@ MARKET_SIGNALS_LANDING_HTML = """
   <div class="ms-hero-grid">
     <div>
       <p class="ms-overline">AI &amp; Data Market Signals / Sweden</p>
-      <h1 id="ms-title">Swedish AI &amp; Data: Evidence for Executive Decisions</h1>
+      <h1 id="ms-title">AI &amp; Data Market Intelligence for Executive Decision-Making</h1>
       <p class="ms-hero-lead">A focused review of reported enterprise AI use, selected senior AI &amp; Data job advertisements, and consulting-market activity in Sweden.</p>
       <p class="ms-hero-context">The research separates observed measures from assumptions about business value, capability needs and recruitment. Original sources, alternative explanations and decision questions are provided; conclusions about an individual organisation require its own evidence.</p>
       <div class="ms-actions">

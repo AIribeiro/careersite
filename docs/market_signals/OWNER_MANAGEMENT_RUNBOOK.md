@@ -1,5 +1,18 @@
 # AI & Data Market Signals — Owner Operations Runbook
 
+
+## Market Signals Advisory 2.0 — November 2026 research release
+
+- The original Edition 01 and the June–October retrospective archives remain immutable.
+- Version 2 uses a new edition slug and a separate `portfolio_market_signal_editorial_v2` record, keyed by `edition_slug` and `analysis_version`. It does not change previously published figures.
+- Five executive decision perspectives each contain a thesis, cited evidence, interpretation, competing explanation, business implication, recommended decision, and observable review condition.
+- The complete Executive Market Review and the decision-specific PDFs are generated from the same verified, published JSON manuscript and approved edition evidence. No separate hardcoded conclusions may bypass editorial approval.
+- The new evidence families are SCB Recruitment Needs and Vacancies (LOR), Konjunkturinstitutet Business Tendency Survey, and European Commission Sweden Digital Decade. All remain subject to evidence verification; survey figures use their own reporting populations and Digital Decade budgets are not AI-specific company expenditure.
+- A new PDF or website claims only the research scope actually present in its edition. Any newly observed data must be staged and reviewed before being published into a successor release.
+- The V2 editorial row is visible to an active verified Advisory member only when `is_published=true` and the service is enabled; admins retain existing test privileges. Public visitors and unauthenticated users have no editorial SQL access.
+- CI must pass the focused `test_market_intelligence_v2.py`, existing Market Signals suite, report rendering and Source/Edition release checks. Wider portfolio test failures unrelated to this feature must be evaluated before production deployment.
+- The source refresh is a reachability/replay and audit, not an automatic verification of new statistical values. New publisher families can appear in the owner source list before their figures are included in a published edition.
+
 ## Entry point
 Open the private owner workspace: Advisory Operations → Service management → Market Signals management.
 Seven workspaces: Executive overview, Source assurance, Evidence catalogue, Executive interpretations, Editorial editions, Audience & downloads, Editorial audit.

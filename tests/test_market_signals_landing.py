@@ -100,7 +100,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
     def test_executive_target_and_decision_value_are_explicit(self):
         for phrase in (
             "AI &amp; Data Market Intelligence for Executive Decision-Making",
-            "For AI, Data and Analytics leaders",
+            "For CEOs, CFOs, CHROs",
             "Internal capability, recruitment or external expertise",
             "Business outcomes beyond reported adoption",
             "Presenting evidence and uncertainty to management",

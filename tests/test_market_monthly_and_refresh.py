@@ -95,24 +95,50 @@ class MonthlyObservatoryTests(unittest.TestCase):
         self.assertEqual(decorated,document)
         self.assertNotIn('data-analytics-section="site-writing-footer"',decorated)
 
-    def test_public_pdf_is_followed_by_advisory_routes_and_standard_footer(self):
-        from page_advisory_market_demo import render_public_market_demo_download
+    def test_public_pdf_comes_before_where_to_next_and_standard_footer(self):
+        from page_advisory_market_demo import (
+            render_public_market_demo_download,
+            split_public_market_demo_at_download,
+        )
+        from site_portfolio_continuation import inject_portfolio_continuation
+        decorated=inject_portfolio_continuation(
+            public_market_demo_html(), "advisory-market-demo"
+        )
+        first,last=split_public_market_demo_at_download(decorated)
+        self.assertIn("Scope and observations",first)
+        self.assertIn('href="#market-demo-pdf"',first)
+        self.assertNotIn("Where to next?",first)
+        self.assertNotIn('<footer class="footer">',first)
+        self.assertTrue(first.rstrip().endswith("</main>"))
+        self.assertTrue(last.startswith('<main class="site">'))
+        self.assertIn("Where to next?",last)
+        self.assertIn('aria-label="Continue exploring the portfolio"',last)
+        self.assertIn('<footer class="footer">',last)
+        self.assertEqual(last.count('<footer class="footer">'),1)
+        self.assertLess(last.index("Where to next?"),last.index('<footer class="footer">'))
+        self.assertNotIn("market-demo-end",last)
         with patch("page_advisory_market_demo.st") as streamlit:
             with patch("page_advisory_market_demo.public_historical_demo_pdf",
                        return_value=b"%PDF-1.4 test"):
                 render_public_market_demo_download()
             streamlit.download_button.assert_called_once()
-            self.assertIn("without creating an account",
-                          streamlit.html.call_args_list[0].args[0])
-            bottom=streamlit.html.call_args_list[-1].args[0]
-            self.assertIn('aria-label="Continue within Advisory"',bottom)
-            self.assertIn('href="?page=advisory-market-signals"',bottom)
-            self.assertIn('href="?page=advisory-access&amp;view=market-signals"',bottom)
-            self.assertIn('href="?page=advisory"',bottom)
-            self.assertIn('<footer class="footer">',bottom)
-            self.assertEqual(bottom.count('<footer class="footer">'),1)
-            self.assertLess(bottom.index('market-demo-end'),bottom.index('<footer class="footer">'))
-            self.assertNotIn("From my writing",bottom)
+            self.assertIn("five-page historical market review",
+                          streamlit.download_button.call_args.args[0])
+            self.assertEqual(
+                streamlit.download_button.call_args.kwargs["mime"],
+                "application/pdf"
+            )
+            self.assertIn('id="market-demo-pdf"',streamlit.html.call_args_list[0].args[0])
+            before_pdf=streamlit.html.call_args_list[1].args[0]
+            self.assertIn("No registration is required",before_pdf)
+            after_pdf=streamlit.html.call_args_list[-1].args[0]
+            self.assertIn('href="?page=advisory-access&amp;view=market-signals"',after_pdf)
+            self.assertNotIn('<footer class="footer">',after_pdf)
+
+    def test_public_pdf_split_fails_closed_if_navigation_is_not_injected(self):
+        from page_advisory_market_demo import split_public_market_demo_at_download
+        with self.assertRaisesRegex(ValueError,"closing navigation"):
+            split_public_market_demo_at_download(public_market_demo_html())
 
     def test_historical_pdf_refuses_later_or_incomplete_evidence(self):
         bad=[dict(_sample_points()[0],source_family="brainville_consulting_market")]
@@ -128,6 +154,7 @@ class MonthlyObservatoryTests(unittest.TestCase):
         visibility=(ROOT/"src/advisory_service_visibility.py").read_text()
         self.assertIn('"advisory-market-demo"',main)
         self.assertIn("render_public_market_demo_download()",main)
+        self.assertIn("split_public_market_demo_at_download(",main)
         self.assertIn('"advisory-market-demo": "market-signals"',visibility)
         self.assertIn("06 / Historical research sample",landing)
         self.assertIn('?page=advisory-market-demo',landing)

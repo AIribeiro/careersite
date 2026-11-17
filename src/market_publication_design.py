@@ -35,7 +35,7 @@ BRASS=colors.HexColor("#CF9D77")
 MIST=colors.HexColor("#E8EFF0")
 SAND=colors.HexColor("#F5F2EC")
 PALE=colors.HexColor("#FAF9F5")
-LINE=colors.HexColor("#DADFDc")
+LINE=colors.HexColor("#DADFDC")
 WHITE=colors.white
 W,H=A4
 LEFT=19*mm
@@ -313,7 +313,7 @@ def bars(rows,*,label="Selected observations",suffix="",sty=None):
         drawing=Drawing(74*mm,14)
         drawing.add(Rect(0,3,74*mm,8,fillColor=MIST,strokeColor=None))
         drawing.add(Rect(0,3,max(1,74*mm*num/maximum),8,
-                         fillColor=TEAL if False else NAVY,strokeColor=None))
+                         fillColor=NAVY,strokeColor=None))
         drawing.add(Rect(max(0,74*mm*num/maximum-2),3,2,8,
                          fillColor=COPPER,strokeColor=None))
         out.append([P(name,"table_bold",sty=s),drawing,

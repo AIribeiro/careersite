@@ -347,7 +347,7 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
         ]))
     story.append(PageBreak())
 
-    section(story,"09 / Leadership agenda",
+    section(story,"09 / Executive decision agenda",
         "Decisions to take into the next executive meeting",
         "Use the market evidence to challenge a decision, then supply your "
         "organisation's own operational, financial and workforce information "

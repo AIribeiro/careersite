@@ -142,6 +142,19 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
         for sentence in self.editorial["cover_assessment"].split(". "):
             self.assertIn(sentence[:35],all_text.replace("\n"," "))
 
+    def test_decimal_precision_is_retained_in_full_and_focused_pdfs(self):
+        from market_review_premium import _num
+        self.assertEqual(_num(3.55),"3.55")
+        self.assertEqual(_num(10.7),"10.7")
+        self.assertEqual(_num(49),"49")
+        self.assertEqual(_num(159500),"159,500")
+        full=build_executive_market_pdf(self.points,self.editorial,SLUG)
+        text=" ".join(page.extract_text() or "" for page in PdfReader(BytesIO(full)).pages)
+        self.assertIn("3.55 EUR billion",text)
+        focused=build_executive_decision_pdf(self.points,self.editorial,SLUG,"investment")
+        focused_text=" ".join(page.extract_text() or "" for page in PdfReader(BytesIO(focused)).pages)
+        self.assertIn("3.55 EUR billion",focused_text)
+
     def test_editorial_rejects_missing_cover_summary(self):
         copy=json.loads(json.dumps(self.editorial))
         copy.pop("cover_assessment")

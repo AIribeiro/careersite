@@ -906,6 +906,18 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 "Their last verified values are retained with dates; the tool will not present them as current."
             )
         from page_advisory_market_observatory import render_market_observatory
+        if (not historical and
+            str(release.get("slug") or "") == "sweden-ai-data-market-review-2026-11-v2"):
+            # Preserve the withdrawn original evidence without implicitly
+            # validating an interpretation superseded by the audited 2.0.1 edition.
+            st.warning(
+                "This original November executive edition is retained as an "
+                "historical evidence record. Some editorial statements have "
+                "been corrected in Executive Edition 2.0.1. For current "
+                "management decisions, select the corrected edition above."
+            )
+            render_market_observatory(points,historical=False)
+            return
         if not historical:
             # The published V2 analysis is edition-bound and is available only
             # through the same verified member JWT as the approved observations.

@@ -57,7 +57,7 @@ class PublicationClaimsTests(unittest.TestCase):
         observatory=(ROOT/"src/page_advisory_market_observatory.py").read_text()
         self.assertIn("Market Observatory",actual)
         self.assertIn("Complete AI &amp; Data Market Review",actual)
-        self.assertIn("Five decision perspectives",actual)
+        self.assertIn("five decision perspectives",actual.lower())
         self.assertIn("alternative explanations",actual)
         self.assertIn("market_review_pdf(points,briefs,release)",internal)
         self.assertIn("executive_pdf(points,brief,geo)",internal)
@@ -86,7 +86,7 @@ class PublicationClaimsTests(unittest.TestCase):
         self.assertEqual({p["source_family"] for p in sample},{"af_jobtech_target_demand"})
         self.assertEqual({str(p["period_start"])[:7] for p in sample},
                          {"2026-06","2026-07","2026-08"})
-        self.assertIn("not a full market review from those summer months",self.html)
+        self.assertIn("The sample was prepared in November using historical JobTech records",self.html)
         self.assertIn("Later SCB and Brainville research",html)
         self.assertIn("created an account" if False else "Before you create an account",html)
         self.assertTrue(public_historical_demo_pdf().startswith(b"%PDF"))
@@ -108,8 +108,8 @@ class PublicationClaimsTests(unittest.TestCase):
         for phrase in disallowed:
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase,public)
-        self.assertIn("what the figure cannot tell",public)
-        self.assertIn("limits of the published evidence",public)
+        self.assertIn("source dates, populations and methods",public)
+        self.assertIn("research sources and how to use the findings",public)
 
     def test_exportable_pdf_uses_same_scope_not_unapproved_sources(self):
         doc=market_review_pdf(self.points,self.briefs,

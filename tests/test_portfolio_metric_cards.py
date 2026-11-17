@@ -48,6 +48,35 @@ class PortfolioMetricCardTests(unittest.TestCase):
         self.assertEqual(content.count('class="pv-card__value">1,200</strong>'), 4)
         self.assertEqual(content.count("1,200 of 1,234 lifetime views (97.24% of total)"), 4)
 
+    def test_five_cards_render_advisory_after_executive_briefings(self):
+        advisory = spec("Advisory", rows=[
+            {"Content": "Advisory-Market-Signals", "Views": 5, "Sessions": 5},
+        ])
+        advisory.update({
+            "category": "Services",
+            "measure": "Advisory page views",
+            "views": 8,
+            "lifetime": 50,
+            "sessions": 8,
+            "sessions_label": "advisory page-item sessions",
+            "items": 3,
+            "item_unit": "destinations viewed",
+            "rank_title": "Top advisory pages",
+            "period_label": "Today",
+        })
+        content = portfolio_metric_grid([
+            spec("Portfolio visits"), spec("Articles"), spec("Weekly AI"),
+            spec("Executive Briefings"), advisory,
+        ])
+        self.assertEqual(content.count('<section class="pv-card"'), 5)
+        self.assertIn("--pv-grid-columns:5", content)
+        self.assertLess(content.index("Executive Briefings analytics"),
+                        content.index("Advisory analytics"))
+        self.assertIn("05 / Services", content)
+        self.assertIn("8 of 50 lifetime views (16% of total)", content)
+        self.assertIn("Top advisory pages", content)
+        self.assertIn("advisory page-item sessions", content)
+
     def test_tablet_and_mobile_use_container_width_not_viewport(self):
         content = portfolio_metric_grid([spec(x) for x in ("A", "B", "C", "D")])
         self.assertIn("container-type:inline-size", content)

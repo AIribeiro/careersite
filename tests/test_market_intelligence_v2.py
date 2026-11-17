@@ -133,7 +133,7 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
         for term in (
             "Population / denominator", "How measured / derived",
             "What it cannot establish", "Research checked:",
-            "Source family:", "JobTech v1 reproduction method",
+            "Source family:", "query seeds, headline classifier",
             "Interpretation and selection risks",
         ):
             self.assertIn(term,all_text)

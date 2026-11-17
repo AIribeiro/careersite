@@ -389,10 +389,45 @@ def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
         "limited to JobTech's frozen senior AI/Data title basket; no subsequent "
         "SCB adoption or consulting-market publication has been backdated.",
         sty=sty)
-    story.append(sources_table(points,
-                lambda p:str(int(p["value"]))+" selected advertisements",
-                sty=sty))
-    story.append(Spacer(1,15))
+    # A grouped audit table is easier to read than repeating the same
+    # publisher nine times. It still contains each approved observation code.
+    audit=[[P("PERIOD","table_head",sty=sty),
+            P("THREE GEOGRAPHIES / FROZEN SOURCE IDENTIFIERS","table_head",sty=sty)]]
+    for month in months:
+        label=date.fromisoformat(month+"-01").strftime("%B %Y")
+        bucket=sorted(
+            [p for p in points if str(p["period_start"])[:7]==month],
+            key=lambda p:("Sweden","Stockholm","Västra Götaland").index(p["geography"])
+            if p["geography"] in REGIONS else 9
+        )
+        summary="  |  ".join(
+            p["geography"]+": "+str(int(p["value"]))+" ads"
+            for p in bucket
+        )
+        codes="  /  ".join(p["code"] for p in bucket)
+        audit.append([
+            P(label,"table_bold",sty=sty),
+            [P(summary,"table",sty=sty),P(codes,"table_small",sty=sty)]
+        ])
+    ledger=Table(audit,colWidths=[42*mm,130*mm],repeatRows=1)
+    ledger.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,0),colors.HexColor("#142B3D")),
+        ("ROWBACKGROUNDS",(0,1),(-1,-1),
+         [colors.white,colors.HexColor("#F5F2EC")]),
+        ("LINEBELOW",(0,1),(-1,-1),.5,colors.HexColor("#DADFDC")),
+        ("VALIGN",(0,0),(-1,-1),"TOP"),
+        ("TOPPADDING",(0,0),(-1,-1),13),
+        ("BOTTOMPADDING",(0,0),(-1,-1),13),
+        ("LEFTPADDING",(0,0),(-1,-1),9),
+        ("RIGHTPADDING",(0,0),(-1,-1),8),
+    ]))
+    story.append(ledger)
+    story.append(Spacer(1,11))
+    story.append(Paragraph(
+      '<link href="'+JOBTECH_URL+'" color="#1F5773">'
+      'JobTech Historical Ads - original publisher query</link>',
+      sty["source"]))
+    story.append(Spacer(1,12))
     story.append(P("The measurement boundary","h2",sty=sty))
     story.append(P(
         "Headline-only role classification, source deduplication and later API "
@@ -411,13 +446,12 @@ def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
         "role classifier and deduplication by source original_id or fallback "
         "fingerprint. Query provenance: JobTech Historical Ads / "
         "historical.api.jobtechdev.se/search.","caption",sty=sty))
-    story.append(panel("The next decision",
-       "Where to look for the current, broader market assessment",
-       "The published Executive Edition 2.0 adds enterprise AI adoption, "
-       "labour-demand surveys, business confidence, consulting conditions "
-       "and regional analysis. The full report and five decision briefs are "
-       "available through the free Advisory account at jairribeiro.com.",
-       sty=sty))
+    story.append(P(
+       "For current market decisions, Executive Edition 2.0 adds independently "
+       "verified AI adoption, recruitment, business confidence and sourcing "
+       "evidence. The complete report and focused decision briefs are available "
+       "through the Advisory account at jairribeiro.com.",
+       "body_small",sty=sty))
     return assemble(story,cover,
         "Jair Ribeiro | Historical AI and Data Market Review | "+date_span,
         min_bytes=4500)

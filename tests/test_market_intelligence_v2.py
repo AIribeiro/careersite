@@ -29,6 +29,24 @@ def verified_v2_fixture():
             encoding="utf-8"
         )
     )
+    # Exact source-vintage test values make rendered preview pages honest
+    # examples of the published research, not 1% placeholder indicators.
+    # These are fixture-only copies of verified official observations.
+    official={
+      "scb_lor_2026q1_total":(143600,"vacancies","Total vacancies","2026 Q1"),
+      "scb_lor_2026q2_total":(159500,"vacancies","Total vacant jobs, all recruitment channels","2026 Q2"),
+      "scb_lor_2026q2_advertised":(127500,"vacancies","Advertised vacant jobs","2026 Q2"),
+      "scb_lor_2026q2_other_channels":(32100,"vacancies","Vacancies via other recruitment channels","2026 Q2"),
+      "scb_lor_2026q2_vgr_per100":(3.2,"vacancies per 100 jobs","Västra Götaland vacancy rate","2026 Q2"),
+      "scb_lor_2026q2_national_per100":(2.9,"vacancies per 100 jobs","National vacancy rate","2026 Q2"),
+      "scb_lor_2026q2_yoy_percent":(8,"percent","Reported vacancy change, YoY","2026 Q2"),
+      "ki_2026_10_business_confidence":(110.7,"index points","Business confidence indicator","October 2026"),
+      "ki_2026_10_staffing_past_net":(2,"net balance","Recent employment change balance","October 2026"),
+      "ki_2026_10_staffing_future_net":(7,"net balance","Expected employment balance","October 2026"),
+      "ec_dd_sweden_2026_roadmap_measures":(68,"measures","Digital Decade roadmap measures","Sweden 2026"),
+      "ec_dd_sweden_2026_roadmap_total_eurb":(3.55,"EUR billion","Combined national roadmap budget","Sweden 2026"),
+      "ec_dd_sweden_2026_roadmap_expiring_pct":(46,"percent","Roadmap measures ending in 2026","Sweden 2026"),
+    }
     available={row["code"] for row in p}
     needed={code for theme in editorial["themes"]
             for code in theme["evidence_codes"]}
@@ -39,7 +57,8 @@ def verified_v2_fixture():
             else "ki_konjunkturbarometern" if code.startswith("ki_")
             else "ec_digital_decade_sweden"
         )
-        row=point(code,1)
+        val,unit,label,period=official.get(code,(1,"percent",code,"2026"))
+        row=point(code,val)
         row.update({
             "source_family":family,
             "source_url":{
@@ -47,7 +66,9 @@ def verified_v2_fixture():
                 "ki_konjunkturbarometern":"https://www.konj.se/publikationer/konjunkturbarometern/",
                 "ec_digital_decade_sweden":"https://digital-strategy.ec.europa.eu/en/factpages/swedens-2026-digital-decade-country-report",
             }[family],
-            "metric_label":code.replace("_"," "),
+            "metric_label":label,
+            "metric_unit":unit,
+            "period_label":period,
             "period_complete":True,
         })
         p.append(row)
@@ -124,7 +145,7 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
                 self.assertGreaterEqual(len(reader.pages),2)
                 text="\n".join(page.extract_text() or "" for page in reader.pages)
                 self.assertIn(t["title"][:15],text)
-                self.assertIn("Recommended action",text)
+                self.assertIn("recommended action",text.lower())
                 self.assertIn("source record",text.lower())
 
 if __name__=="__main__":

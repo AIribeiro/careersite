@@ -213,146 +213,270 @@ def _leadership_chart(story,styles,points):
 
 def build_executive_market_pdf(points: list[dict], editorial: dict,
                                edition_slug: str) -> bytes:
-    """Standalone, versioned PDF from the exact member-visible edition."""
+    """Full executive research, not a stitched dashboard export.
+
+    One edition manifest drives the website, this complete publication, and
+    five focused decision briefs. The PDF design is shared with the free
+    historical report, without changing either edition's factual scope.
+    """
+    from reportlab.platypus import CondPageBreak
+    from market_publication_design import (
+        P, assemble, bars, decision_table, metric_cards, panel, section,
+        sources_table, styles,
+    )
     validate_editorial(editorial,points,edition_slug)
-    styles=_sty()
-    stream,doc=_new_document("Swedish AI and Data Market Review | Executive Intelligence")
-    story=[]
-    story.extend([
-        Spacer(1,30),
-        _p(styles,"INDEPENDENT RESEARCH  /  SWEDEN  /  "+editorial["issue_date"],"eyebrow"),
-        _p(styles,"Swedish AI & Data","large"),
-        _p(styles,"Market Review","large"),
-        _p(styles,editorial["title"],"lead"),
-        HRFlowable(width="100%",thickness=2,color=COPPER,spaceBefore=5,spaceAfter=17),
-        _callout(styles,"The central assessment",editorial["assessment"]),
-        Spacer(1,20),
-        _p(styles,"An executive publication on investment, workforce, business capabilities, sourcing and regional decisions.","body"),
-        _p(styles,"Version "+str(editorial.get("version","2.0"))+"  |  "+
-                editorial["issue_date"]+"  |  Signed-off evidence from "+
-                str(len({p["source_family"] for p in points}))+
-                " publishers  |  "+str(len(points))+" source observations","small"),
-        _p(styles,"Published analysis is bound to its evidence edition. Later data releases cannot silently change these conclusions.","disclaimer"),
-        PageBreak(),
-    ])
-    _section(story,styles,"Executive reading",
-             "What is changing - and what leaders should decide")
-    story.append(_p(styles,editorial["assessment"],"lead"))
-    story.append(_p(styles,"Why it matters","sub"))
-    story.append(_p(styles,editorial["why_it_matters"]))
-    story.append(_p(styles,"What has changed","sub"))
-    story.append(_p(styles,editorial["what_changed"]))
-    story.append(_p(styles,"Five decisions requiring attention","sub"))
-    for n,theme in enumerate(editorial["themes"],1):
-        story.append(KeepTogether([
-            _p(styles,"%02d / %s"%(n,theme["title"]),"sub"),
-            _p(styles,theme["implication"],"small"),
-        ]))
-    story.append(PageBreak())
-    _section(story,styles,"Market evidence",
-             "The measurements behind our assessment",
-             "Different indicators answer different questions. They are not a single AI maturity score or a causal model.")
     idx={p["code"]:p for p in points}
-    items=[]
-    for label,code in (
-        ("Enterprise AI use (10+ employees)","scb_2026_ai_10plus"),
-        ("Large-enterprise AI use","scb_2026_ai_250plus"),
-        ("October AI/Data leadership ads","jobtech_v1_oct_se"),
-    ):
-        if code in idx:items.append((label,_value(idx[code])))
-    if items:story.extend([_stats(styles,items),Spacer(1,19)])
-    _leadership_chart(story,styles,points)
-    story.append(_p(styles,
-        "These figures represent different populations. Survey-reported adoption does not demonstrate business return; advertised titles are neither completed recruitment nor an economy-wide census.","body"))
-    story.append(PageBreak())
-    for i,theme in enumerate(editorial["themes"],1):
-        _chapter(story,styles,theme,i,points)
-        story.append(PageBreak())
-    _section(story,styles,"Conditional outlook","What we expect - and what could prove us wrong")
-    for scenario in editorial["outlook"]:
-        story.extend([
-            _p(styles,scenario["period"],"sub"),
-            _p(styles,scenario["reading"]),
-            _p(styles,"Condition: "+scenario["condition"],"small"),
-            _p(styles,"Leadership response: "+scenario["leadership_response"],"small"),
-        ])
-    story.append(PageBreak())
-    _section(story,styles,"Executive decision agenda",
-             "What the leadership team should resolve")
-    entries=[(x["decision"],x["owner"],x["horizon"],x["action"])
-             for x in editorial["decision_agenda"]]
-    story.append(_structured_table(styles,
-        ["DECISION","ACCOUNTABLE FUNCTION","TIME FRAME","RECOMMENDED ACTION"],
-        entries,[40*mm,38*mm,25*mm,71*mm]))
-    story.append(Spacer(1,18))
-    story.append(_callout(styles,"Research boundary",editorial["methodology_note"]))
-    story.append(PageBreak())
-    _section(story,styles,"Original evidence","Source and observation register")
-    seen=set()
-    for point in sorted(points,key=lambda p:(p["source_family"],p["code"])):
-        if point["code"] in seen:raise ValueError("Repeated evidence record")
-        seen.add(point["code"])
+    for code in ("scb_2026_ai_10plus","scb_2026_ai_250plus",
+                 "scb_lor_2026q2_total","jobtech_v1_oct_se"):
+        if code not in idx:
+            raise ValueError("Executive publication is missing a signed-off cover indicator.")
+    s=styles()
+    cover={
+      "title":"AI & Data Market Review",
+      "subtitle":editorial["title"],
+      "assessment":editorial["assessment"],
+      "question":"Where should capital, talent and governance move first - and what would change our mind?",
+      "edition":"EXECUTIVE EDITION 2.0 / SWEDEN",
+      "issue":editorial["issue_date"],
+      "metrics":[
+        (_value(idx["scb_2026_ai_10plus"]),"Enterprises using AI",
+         "Sweden 2026 | Firms with 10+ staff"),
+        (_value(idx["scb_2026_ai_250plus"]),"Large firms using AI",
+         "2026 | Enterprises with 250+ staff"),
+        (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),"Senior AI/Data adverts",
+         "October 2026 | Selected title basket"),
+      ],
+    }
+    story=[]
+    section(story,"01 / Executive reading",
+        "What is changing - and what leaders should decide",
+        editorial["assessment"],sty=s)
+    story.append(panel("Why this matters",
+        "AI adoption and market recruitment are different business signals",
+        editorial["why_it_matters"],sty=s))
+    story.append(Spacer(1,16))
+    story.append(P("What changed since the earlier research","h2",sty=s))
+    story.append(P(editorial["what_changed"],"body",sty=s))
+    story.append(P("Five decision perspectives","h2",sty=s))
+    for i,t in enumerate(editorial["themes"],1):
         story.append(KeepTogether([
-            _p(styles,point["code"]+"  /  "+point["metric_label"],"sub"),
-            _p(styles,_value(point)+"   |   "+str(point["geography"])+
-               "   |   "+str(point["period_label"]),"small"),
-            _p(styles,"Population: "+str(point["population_note"])+
-               "   |   Published: "+str(point["published_on"])+
-               "   |   Verified: "+str(point["verified_on"]),"tiny"),
-            _source_link(styles,point,"Publisher: "+str(point["source_title"])),
+            P(f"{i:02d} / {t['title']}","h2",sty=s),
+            P(t["thesis"],"body_compact",sty=s)
         ]))
-    story.append(_p(styles,
-      "Source limitations, survey changes, incomplete periods and advertisement-classifier coverage govern every interpretation. Published evidence is not an individual company forecast.","disclaimer"))
-    doc.build(story,onFirstPage=_page,onLaterPages=_page)
-    data=stream.getvalue()
-    if not data.startswith(b"%PDF") or len(data)<5000:
-        raise ValueError("Executive market review failed PDF validation.")
-    return data
+    story.append(Spacer(1,14))
+    story.append(CondPageBreak(285))
+
+    section(story,"02 / The evidence",
+        "Read different measurements together - without adding them",
+        "These indicators cover different populations and time frames. "
+        "Their value lies in the questions they raise together, not in an "
+        "invented national AI market score.",sty=s)
+    story.append(metric_cards([
+        (_value(idx["scb_2026_ai_10plus"]),"AI use across enterprises",
+         "Swedish firms, 10+ staff | 2026"),
+        (_value(idx["scb_2026_ai_250plus"]),"AI use among large firms",
+         "250+ employees | 2026"),
+        (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),
+         "Selected senior AI/Data adverts",
+         "October 2026 | National basket"),
+    ],sty=s))
+    story.append(Spacer(1,18))
+    months=(("June","jobtech_v1_jun_se"),("July","jobtech_v1_jul_se"),
+            ("August","jobtech_v1_aug_se"),("September","jobtech_v1_sep_se"),
+            ("October","jobtech_v1_oct_se"))
+    chart=[(n,float(idx[code]["value"])) for n,code in months
+           if code in idx and idx[code].get("period_complete") is True]
+    if len(chart)>2:
+        story.append(P("Selected AI/Data leadership-title advertisements",
+                       "h2",sty=s))
+        story.append(bars(chart,suffix=" ads",sty=s))
+        story.append(P(
+          "Complete months only. This is a deduplicated, defined title basket: "
+          "not all AI-related vacancies, completed appointments or a market-wide "
+          "recruitment census.","caption",sty=s))
+        story.append(Spacer(1,11))
+    if all(x in idx for x in ("scb_lor_2026q2_advertised",
+                             "scb_lor_2026q2_other_channels")):
+        story.append(P("Recruitment beyond public job advertisements",
+                       "h2",sty=s))
+        story.append(bars([
+          ("Advertised opportunities",float(idx["scb_lor_2026q2_advertised"]["value"])),
+          ("Other recruitment channels",float(idx["scb_lor_2026q2_other_channels"]["value"])),
+        ],sty=s))
+        story.append(P(
+          "SCB whole-economy Q2 2026 survey estimates. These are not AI-specific "
+          "opportunities and must not be added to JobTech title counts.",
+          "caption",sty=s))
+    story.append(Spacer(1,18))
+    story.append(CondPageBreak(310))
+
+    for i,t in enumerate(editorial["themes"],1):
+        story.append(CondPageBreak(255))
+        section(story,f"0{i+2} / {LENS_LABELS[t['key']]}",
+            t["title"],t["thesis"],sty=s)
+        story.append(P("What the evidence says","h2",sty=s))
+        story.append(P(t["evidence"],"body",sty=s))
+        story.append(P("Our reading","h2",sty=s))
+        story.append(P(t["interpretation"],"body",sty=s))
+        story.append(panel("An explanation to test",
+            "What else could produce the same observation?",t["alternative"],sty=s))
+        story.append(Spacer(1,12))
+        story.append(P("Business implication","h2",sty=s))
+        story.append(P(t["implication"],"body",sty=s))
+        story.append(panel("Executive decision",
+            "What leadership should do",t["recommendation"],dark=True,sty=s))
+        story.append(Spacer(1,12))
+        story.append(P("Evidence that would change the recommendation",
+                       "h2",sty=s))
+        story.append(P(t["monitor"],"body_compact",sty=s))
+        story.append(P(
+          "Referenced observations: "+", ".join(t["evidence_codes"])+
+          ". Original sources and exact measurement dates appear in the "
+          "final source register.","caption",sty=s))
+        story.append(Spacer(1,16))
+
+    story.append(PageBreak())
+    section(story,"08 / Outlook",
+        "Conditional outlook: watch what actually changes",
+        "Scenarios are not probability forecasts. Each reading is tied to "
+        "an observable condition and a specific leadership response.",sty=s)
+    for t in editorial["outlook"]:
+        story.append(KeepTogether([
+            P(t["period"],"h2",sty=s),
+            P(t["reading"],"body",sty=s),
+            panel("If the evidence changes","Condition and leadership response",
+              "Condition: "+t["condition"]+
+              " | Leadership response: "+t["leadership_response"],sty=s),
+            Spacer(1,10),
+        ]))
+    # Keep the next agenda with the downside scenario if space permits.
+    # A forced new page previously left one scenario almost alone.
+    story.append(Spacer(1,18))
+    story.append(CondPageBreak(275))
+
+    section(story,"09 / Executive decision agenda",
+        "Decisions to take into the next executive meeting",
+        "Use the market evidence to challenge a decision, then supply your "
+        "organisation's own operational, financial and workforce information "
+        "before making the commitment.",sty=s)
+    agenda=[(x["decision"],x["owner"],x["horizon"],x["action"])
+            for x in editorial["decision_agenda"]]
+    story.append(decision_table(agenda,sty=s))
+    # Keep appendix evidence alongside the final decision entries where space
+    # permits; a forced break produced a nearly empty agenda continuation.
+    story.append(Spacer(1,18))
+    story.append(CondPageBreak(280))
+
+    section(story,"10 / Research transparency",
+        "Source and observation register",
+        "The complete evidence ledger is included for independent checking. "
+        "Each observation retains its original period, geography, value and "
+        "clickable source. The editorial discussion and PDF use this same "
+        "signed-off edition; later source releases cannot alter it.",sty=s)
+    story.append(P(
+       "Research method and limits: "+editorial["methodology_note"],
+       "body_small",sty=s))
+    story.append(Spacer(1,9))
+    story.append(sources_table(points,_value,sty=s))
+    story.append(Spacer(1,13))
+    story.append(P(
+       "Source measurements describe different populations. Survey uptake "
+       "is not return on investment; digital roadmap budgets are not company "
+       "AI spending; vacancy advertisements are not hiring outcomes. "
+       "Partial months are not extrapolated.",
+       "body_small",sty=s))
+    return assemble(story,cover,
+      "Jair Ribeiro | Swedish AI and Data Market Review | Executive Edition 2.0",
+      min_bytes=10000)
 
 
 def build_executive_decision_pdf(points: list[dict], editorial: dict,
                                  edition_slug: str, theme_key: str) -> bytes:
+    """Focused independent research with a decision, challenge and evidence."""
+    from market_publication_design import (
+        P, assemble, decision_table, metric_cards, panel, section,
+        sources_table, styles,
+    )
     validate_editorial(editorial,points,edition_slug)
     theme=next((t for t in editorial["themes"] if t["key"]==theme_key),None)
-    if not theme:raise ValueError("Unknown executive decision perspective.")
-    styles=_sty()
-    stream,doc=_new_document("Market Signals | "+theme["title"])
-    story=[
-        Spacer(1,19),
-        _p(styles,"MARKET SIGNALS / EXECUTIVE DECISION BRIEF","eyebrow"),
-        _p(styles,theme["title"],"chapter"),
-        _p(styles,theme["thesis"],"lead"),
-        HRFlowable(width="100%",thickness=1.5,color=COPPER,spaceAfter=13),
-    ]
-    for heading,key in (
-        ("Evidence","evidence"),("Our reading","interpretation"),
-        ("What could explain it differently","alternative"),
-        ("Business implication","implication"),
-        ("Recommended action","recommendation"),
-        ("What would change the recommendation","monitor"),
-    ):
-        story.append(_p(styles,heading,"sub"))
-        story.append(_p(styles,theme[key]))
+    if theme is None:
+        raise ValueError("Unknown executive decision perspective.")
+    evidence=_evidence_items(points,theme["evidence_codes"])
+    if not evidence:
+        raise ValueError("Decision brief has no authenticated source evidence.")
+    s=styles()
+    def condensed_value(point):
+        number=float(point["value"])
+        unit=str(point.get("metric_unit") or "")
+        if not isfinite(number):
+            raise ValueError("Non-finite evidence cannot appear on the cover.")
+        if abs(number)>=10000 and unit in {"vacancies","advertisements"}:
+            return f"{number/1000:,.1f}k"
+        label=f"{int(number):,}" if number.is_integer() else f"{number:,.1f}"
+        return label+("%" if unit=="percent" else "")
+    metrics=[]
+    for item in (evidence+[evidence[-1]]*3)[:3]:
+        unit=str(item.get("metric_unit") or "").replace("percent","")
+        note=(unit+" | " if unit.strip() else "")+str(item["period_label"])
+        metrics.append((condensed_value(item),
+          str(item.get("metric_label") or "Verified market observation")[:58],
+          note[:70]))
+    cover={
+        "title":"Executive Decision Brief",
+        "subtitle":theme["title"],
+        "assessment":theme["thesis"]+" "+theme["implication"],
+        "question":"Which decision would you revisit if the next evidence release contradicts your assumption?",
+        "edition":"MARKET SIGNALS / "+theme_key.upper(),
+        "issue":editorial["issue_date"],
+        "metrics":metrics,
+    }
+    story=[]
+    section(story,"01 / Executive decision",
+        theme["title"],theme["thesis"],sty=s)
+    story.append(P("Evidence, not assumption","h2",sty=s))
+    story.append(P(theme["evidence"],"body",sty=s))
+    story.append(P("Our independent interpretation","h2",sty=s))
+    story.append(P(theme["interpretation"],"body",sty=s))
+    story.append(panel("Challenge the interpretation",
+        "An alternative explanation",theme["alternative"],sty=s))
+    story.append(Spacer(1,12))
+    story.append(P("What this means for business","h2",sty=s))
+    story.append(P(theme["implication"],"body",sty=s))
     story.append(PageBreak())
-    _section(story,styles,"Source record",
-             "Evidence and measurement boundaries")
-    for item in _evidence_items(points,theme["evidence_codes"]):
-        story.extend([
-            _p(styles,item["metric_label"]+" / "+_value(item),"sub"),
-            _p(styles,str(item["period_label"])+" / "+str(item["geography"])+
-               " / "+str(item["population_note"]),"small"),
-            _p(styles,"Caution: "+str(item["caveat"]),"small"),
-            _source_link(styles,item,str(item["source_title"])),
-        ])
-    story.append(Spacer(1,16))
-    story.append(_p(styles,"Review question","sub"))
-    story.append(_p(styles,theme["monitor"]))
-    story.append(_p(styles,"Research limits: "+editorial["methodology_note"],"small"))
-    doc.build(story,onFirstPage=_page,onLaterPages=_page)
-    data=stream.getvalue()
-    if not data.startswith(b"%PDF") or len(data)<2200:
-        raise ValueError("Executive decision brief failed PDF validation.")
-    return data
+
+    section(story,"02 / Decision playbook",
+        "From the market signal to an accountable management choice",
+        "A specific capability or investment decision should have an owner, "
+        "an action and a review condition - not simply a preferred headline.",
+        sty=s)
+    story.append(panel("Recommended action",
+        "The decision worth taking now",theme["recommendation"],dark=True,sty=s))
+    story.append(Spacer(1,18))
+    story.append(decision_table([
+        ("Frame the choice","Executive sponsor","Now",theme["implication"]),
+        ("Take the first step","Capability / business owner","Next 30 days",
+         theme["recommendation"]),
+        ("Review the decision","Strategy / HR / AI leadership","Next evidence release",
+         theme["monitor"]),
+    ],sty=s))
+    # The monitoring condition is already recorded in the decision table.
+    # Repeating it here pushes a lone paragraph to an almost empty page.
+    story.append(PageBreak())
+
+    section(story,"03 / Evidence trail",
+        "Original source record",
+        "All cited evidence is retained here with its scope and publisher. "
+        "The reading above is an editorial judgement, not a causal claim "
+        "drawn automatically from disconnected indicators.",sty=s)
+    story.append(sources_table(evidence,_value,sty=s))
+    story.append(Spacer(1,13))
+    story.append(P(
+       "Before acting, test the recommendation against your organisation's "
+       "own performance baseline, workforce capabilities, risk posture and "
+       "operational constraints.", "body_small",sty=s))
+    return assemble(story,cover,
+        "Jair Ribeiro | Executive Decision Brief | "+theme["title"],
+        min_bytes=5000)
 
 
 def render_executive_intelligence(streamlit, editorial: dict,

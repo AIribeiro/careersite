@@ -241,6 +241,7 @@ def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
         ),
         "edition":"PUBLIC RESEARCH / HISTORICAL EDITION",
         "issue":"17 NOVEMBER 2026",
+        "question":"Are we short of AI leadership capacity, or have we defined the work and the search too narrowly?",
         "metrics":[
             (str(series[0][1]),"First observed month",series[0][0]+" | Selected ads"),
             (str(max(n for _,n in series)),"Highest monthly count",

@@ -118,12 +118,42 @@ jobs:
               assert min(stat.stddev)>8,(path,stat.stddev)
               print(f"{path.name}: {im.width}x{im.height}, variance={[round(v,1) for v in stat.stddev]}")
           PY
+      - name: Render and inspect public earliest-data PDF
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          import pymupdf
+          sys.path.insert(0,"src")
+          from page_advisory_market_demo import public_historical_demo_pdf
+          data=public_historical_demo_pdf()
+          path=Path("/tmp/public-market-demo.pdf")
+          path.write_bytes(data)
+          doc=pymupdf.open(stream=data,filetype="pdf")
+          assert doc.page_count>=4
+          destination=Path("/tmp/market-review-renders")
+          destination.mkdir(parents=True,exist_ok=True)
+          for i,page in enumerate(doc):
+              assert abs(page.rect.width-595.28)<.5
+              assert abs(page.rect.height-841.89)<.5
+              assert len(page.get_text().strip())>100
+              for block in page.get_text("dict")["blocks"]:
+                  for line in block.get("lines",[]):
+                      for span in line["spans"]:
+                          if span["text"].strip():
+                              assert page.rect.contains(pymupdf.Rect(span["bbox"])),(i,span["text"][:40])
+              page.get_pixmap(matrix=pymupdf.Matrix(1.4,1.4),alpha=False).save(
+                  destination/f"public-demo-{i+1:02d}.png"
+              )
+          print("Public oldest-data demo rendered and geometry checked:",len(data),"bytes,",doc.page_count,"pages")
+          PY
       - name: Upload synthetic QA PDF and page renders
         uses: actions/upload-artifact@v4
         with:
           name: market-review-qa-renders
           path: |
             /tmp/market-review-qa.pdf
+            /tmp/public-market-demo.pdf
             /tmp/market-review-renders/*.png
           retention-days: 7
       - name: Verify full-length mobile chart labels and sanitisation

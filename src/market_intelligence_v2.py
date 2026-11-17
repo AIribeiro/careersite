@@ -443,6 +443,9 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
     story.append(Spacer(1,15))
     story.append(P("What would change our assessment","h2",sty=s))
     story.append(P(theme["monitor"],"body",sty=s))
+    story.append(P(
+        "Research boundary: "+editorial["methodology_note"],
+        "body_small",sty=s))
     story.append(PageBreak())
 
     section(story,"03 / Evidence trail",
@@ -451,10 +454,11 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         "The reading above is an editorial judgement, not a causal claim "
         "drawn automatically from disconnected indicators.",sty=s)
     story.append(sources_table(evidence,_value,sty=s))
-    story.append(Spacer(1,15))
-    story.append(panel("Research boundary",
-        "Check company-specific facts before acting",
-        editorial["methodology_note"],sty=s))
+    story.append(Spacer(1,13))
+    story.append(P(
+       "Before acting, test the recommendation against your organisation's "
+       "own performance baseline, workforce capabilities, risk posture and "
+       "operational constraints.", "body_small",sty=s))
     return assemble(story,cover,
         "Jair Ribeiro | Executive Decision Brief | "+theme["title"],
         min_bytes=5000)

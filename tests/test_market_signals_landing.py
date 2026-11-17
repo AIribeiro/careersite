@@ -65,7 +65,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
             "Published 16 November 2026",
             "published data points",
             "data sources",
-            "four" if False else "executive analyses",
+            "written analyses",
             "49<span>%</span>",
             "85%",
             "29",

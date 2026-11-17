@@ -68,17 +68,33 @@ def archive_option_label(item: dict) -> str:
     date_label=_month_label(item["month_start"])
     if item["archive_kind"]=="published_edition":
         slug=str(item.get("edition_slug") or "")
+        if slug.endswith("-v2-0-1"):
+            return f"{date_label} · Executive edition 2.0.1 (corrected)"
         if slug.endswith("-v2"):
-            return f"{date_label} · Executive analysis 2.0"
+            return f"{date_label} · Executive edition 2.0 (superseded)"
         return f"{date_label} · Original published edition"
     return f"{date_label} · Retrospective leadership archive"
 
 
 def archive_coverage(item: dict) -> str:
     if item["archive_kind"]=="published_edition":
+        slug=str(item.get("edition_slug") or "")
+        if slug.endswith("-v2-0-1"):
+            return (
+              f"Executive Edition 2.0.1 · {len(item['observations'])} approved "
+              "source observations · five executive decision perspectives in the "
+              "corrected member report. Four earlier authored decision notes "
+              "remain in the frozen archive; source values are unchanged."
+            )
+        if slug.endswith("-v2"):
+            return (
+              f"Superseded Executive Edition 2.0 · {len(item['observations'])} "
+              "original published observations. Its interpretations were "
+              "corrected in Executive Edition 2.0.1; retained for provenance."
+            )
         return (
           f"Frozen published edition · {len(item['observations'])} approved "
-          f"observations · {len(item['interpretations'])} executive analyses. "
+          f"observations · {len(item['interpretations'])} original decision notes. "
           "Values remain as released even when current market data changes."
         )
     return (

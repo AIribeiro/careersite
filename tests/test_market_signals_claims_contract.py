@@ -1,4 +1,4 @@
-"""Market Signals public claims vs Edition 01 data, report outputs, and current tabs.
+"""Market Signals public claims vs original archive and current V2 research.
 
 Protect against turning an unapproved market source or a dormant
 dashboard section into an advertised research product.
@@ -46,10 +46,10 @@ class PublicationClaimsTests(unittest.TestCase):
             with self.subTest(code=code):
                 self.assertEqual(float(self.by_code[code]["value"]),float(value))
                 self.assertIn(str(value),self.html)
-        self.assertIn("Published 16 November 2026",self.html)
-        self.assertIn("<strong>30</strong>",self.html)
-        self.assertIn("<strong>4</strong>",self.html)
-        self.assertIn("<strong>3</strong>",self.html)
+        self.assertIn("Published 17 November 2026",self.html)
+        self.assertIn("<strong>43</strong>",self.html)
+        self.assertIn("<strong>5</strong>",self.html)
+        self.assertIn("<strong>6</strong>",self.html)
 
     def test_claimed_deliverables_are_implemented(self):
         actual=advisory_market_signals()
@@ -57,8 +57,8 @@ class PublicationClaimsTests(unittest.TestCase):
         observatory=(ROOT/"src/page_advisory_market_observatory.py").read_text()
         self.assertIn("Market Observatory",actual)
         self.assertIn("Complete AI &amp; Data Market Review",actual)
-        self.assertIn("Four decision themes",actual)
-        self.assertIn("a printable decision record",actual)
+        self.assertIn("Five decision perspectives",actual)
+        self.assertIn("alternative explanations",actual)
         self.assertIn("market_review_pdf(points,briefs,release)",internal)
         self.assertIn("executive_pdf(points,brief,geo)",internal)
         self.assertIn("Download filtered source ledger",observatory)
@@ -72,7 +72,7 @@ class PublicationClaimsTests(unittest.TestCase):
         self.assertEqual(DASHBOARDS["signals"],"Interpretation and evidence limits")
         for name in DASHBOARDS.values():
             self.assertIn(name.replace("&","&amp;"),self.html)
-        self.assertIn("not published in Edition 01",self.html)
+        self.assertIn("not published in the current edition",self.html)
         self.assertIn("Further sector indicators are awaiting review",self.html)
         self.assertIn("Additional skills and salary measures are being checked",self.html)
         self.assertIn("June–October 2026 show retrospective leadership-advertisement records only",self.html)

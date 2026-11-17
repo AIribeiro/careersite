@@ -427,8 +427,8 @@ MARKET_SIGNALS_LANDING_HTML = """
     <div>
       <ul class="ms-source-list">
         <li><strong>Statistics Sweden (SCB)</strong>National survey figures on AI use, data analysis and non-adoption barriers. The 2026 survey expanded industry coverage and switched to SNI 2025; comparisons with earlier years require a like-for-like population check.</li>
-        <li><strong>Arbetsförmedlingen JobTech</strong>An author-defined, documented 30-seed, headline-classified sample of senior AI/Data advertisements. Titles outside the classifier can be missed; historical API results may change and exact replication is not assured. It is not a count of all AI leadership roles, vacancies or hires. <a href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" target="_blank" rel="noopener noreferrer">Selection method and limitations</a>.</li>
-        <li><strong>Brainville</strong>October 2026 listing changes on Brainville's marketplace across many consulting disciplines. Platform participation and coverage can change; these figures do not establish Swedish consultant-market totals or AI-specialist availability.</li>
+        <li><strong>Arbetsförmedlingen JobTech</strong>A documented 30-seed, headline-classified sample of senior AI/Data job advertisements. It can exclude AI-accountable roles under operations, digital, product and commercial titles. Historical API results may change and exact replication is not assured. These selected advertisements are not a count of all AI leadership roles, vacancies or hires. <a href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" target="_blank" rel="noopener noreferrer">Selection method and limitations</a>.</li>
+        <li><strong>Brainville</strong>October 2026 listing changes in a marketplace covering many consulting disciplines. Changes in platform participation and coverage can affect year-on-year comparisons. These figures describe Brainville activity rather than national or AI-specialist consultant availability.</li>
         <li><strong>SCB Recruitment Needs and Vacancies</strong>Survey estimates covering advertised and non-advertised vacancies, including uncertainty and regional comparisons.</li>
         <li><strong>Konjunkturinstitutet</strong>Swedish business confidence, recent staffing and future employment intentions; the measures are not actual hires.</li>
         <li><strong>European Commission</strong>Sweden's Digital Decade roadmap, policy priorities and planned budgets; not AI-only investment or company ROI.</li>
@@ -440,7 +440,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <p><strong>AI business value</strong>Use company-level cost, service, quality and risk outcomes alongside national adoption figures.</p>
       <p><strong>Leadership recruitment</strong>JobTech's selected titles provide a focused sample. Include other job titles and recruitment channels for a broader view.</p>
       <p><strong>Consulting expertise</strong>Brainville measures activity on its platform. Confirm relevant skills, availability and rates for your specific requirement.</p>
-      <p class="ms-small">The report distinguishes observed data from editorial interpretation and records the conditions that would change an assessment.</p>
+      <p class="ms-small">The three outlook scenarios describe conditions to monitor, not a market forecast. The report distinguishes observed data from editorial judgement and records the evidence that could change an assessment.</p>
     </aside>
   </div>
 </div></section>

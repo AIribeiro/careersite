@@ -452,9 +452,8 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         ("Review the decision","Strategy / HR / AI leadership","Next evidence release",
          theme["monitor"]),
     ],sty=s))
-    story.append(Spacer(1,15))
-    story.append(P("What would change our assessment","h2",sty=s))
-    story.append(P(theme["monitor"],"body",sty=s))
+    # The monitoring condition is already recorded in the decision table.
+    # Repeating it here pushes a lone paragraph to an almost empty page.
     story.append(PageBreak())
 
     section(story,"03 / Evidence trail",

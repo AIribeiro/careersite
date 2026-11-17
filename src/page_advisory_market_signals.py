@@ -803,26 +803,46 @@ def render_private_market_signals(session: dict, user: dict) -> None:
         try:
             points, briefs = _load_curated(token)
             points, briefs, release = _release_snapshot(token,points,briefs)
+            from market_archive import (
+                load_market_archives,archive_option_label,archive_coverage
+            )
+            monthly_archives=load_market_archives(token)
         except (RuntimeError, PermissionError, ValueError, KeyError, TimeoutError, OSError) as exc:
-            st.error("The verified market evidence is temporarily unavailable. "
-                     "No cached or invented figures will be shown. Please retry.")
+            st.error("The verified market evidence or monthly archive is unavailable. "
+                     "No cached or invented figures will be substituted.")
             return
-        # Compact month-first research label for readers; publication is
-        # represented only by the verified Supabase edition manifest.
-        is_released = bool(release.get("published"))
-        issue = str(release.get("issue_date") or "")
-        try:
-            issue_label = date.fromisoformat(issue).strftime("%d %B %Y").lstrip("0")
-        except ValueError:
-            issue_label = "November 2026"
-        statement = (
-            "Edition 01 published " + html_escape(issue_label) + ". "
-            if is_released else
-            "The inaugural executive market review is undergoing final editorial verification. "
+        if not monthly_archives:
+            st.error("No immutable monthly edition is available for viewing.")
+            return
+        selected_month=st.selectbox(
+            "Market observatory · Monthly editions",
+            monthly_archives,
+            format_func=archive_option_label,
+            key="market_signals_monthly_vintage",
+            help="Choose the complete published edition or a separately labelled "
+                 "retrospective JobTech-only monthly reconstruction."
+        )
+        historical=selected_month["archive_kind"]=="retrospective_title_basket"
+        points=list(selected_month["observations"])
+        briefs=list(selected_month["interpretations"])
+        if not historical:
+            release={
+                "published":True,"issue_date":str(selected_month["first_published_at"])[:10],
+                "slug":selected_month.get("edition_slug"),
+                "title":selected_month["title"],
+            }
+        st.caption(archive_coverage(selected_month))
+        issue_month=date.fromisoformat(str(selected_month["month_start"])[:10]).strftime("%B %Y")
+        issue_label=str(selected_month["first_published_at"])[:10]
+        statement=(
+            "Historical reconstruction verified in November 2026. "
+            "Not a contemporary full-market edition. "
+            if historical else
+            "Frozen published executive market edition, released " + html_escape(issue_label) + ". "
         )
         st.html(
             '<section class="market-editorial-status" aria-label="Editorial status">'
-            '<strong>Market Intelligence · November 2026</strong>'
+            '<strong>Market Intelligence · '+html_escape(issue_month)+'</strong>'
             '<p>' + statement +
             'Evidence-linked indicators with transparent reporting periods, '
             'source references and methodological limitations.</p></section>'
@@ -844,7 +864,24 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                 "Their last verified values are retained with dates; the tool will not present them as current."
             )
         from page_advisory_market_observatory import render_market_observatory
-        render_market_observatory(points)
+        render_market_observatory(points,historical=historical)
+        if historical:
+            from page_advisory_market_demo import historical_market_pdf
+            st.markdown("#### Download this historical evidence record")
+            st.caption(
+                "This PDF analyses only the selected complete-month frozen JobTech "
+                "observations. Broader AI adoption, Data capabilities and consulting "
+                "conditions cannot be reconstructed from this older monthly cohort."
+            )
+            st.download_button(
+                "Download historical market snapshot · PDF",
+                data=historical_market_pdf(points,month_label=issue_month),
+                file_name="Jair_Ribeiro_Historical_Market_"+str(selected_month["month_start"])[:7]+".pdf",
+                mime="application/pdf",
+                key="market_historical_pdf",
+                use_container_width=True,
+            )
+            return
         lens = str(st.session_state.get("market_observatory_section") or "pulse")
         geo = "Sweden"
         if st.session_state.get("market_signals_previous_lens") != lens:

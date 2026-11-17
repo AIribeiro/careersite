@@ -30,6 +30,7 @@ from reportlab.platypus import (
 from site_cms import _request_json, _rest_url
 from market_labelled_bars import labelled_bars_html
 from site_components import nav, footer
+from about_next_navigation import portfolio_next_navigation
 from page_public_services import SERVICES_CSS
 
 PALETTE = {
@@ -222,13 +223,6 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-cta-aside {width:100%;padding:24px;border-left:2px solid #C9916E;background:#203A50}
 .site.ms-landing .ms-cta-aside strong {color:#FCE4D1}
 .site.ms-landing .ms-cta-aside p {margin:10px 0 0;font-size:13px}
-.site.ms-landing .ms-footer-navigation {padding:clamp(34px,5vw,56px) 0;background:#EEE9E1;border-top:1px solid #D8D1C7}
-.site.ms-landing .ms-footer-navigation .ms-footer-heading {font:500 clamp(25px,3vw,36px)/1.2 Georgia,serif;color:#1A3045;margin:0 0 20px}
-.site.ms-landing .ms-footer-nav-links {display:flex;gap:12px;flex-wrap:wrap}
-.site.ms-landing .ms-footer-nav-links a {display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:12px 18px;border:1px solid #C8BFB4;color:#1C3C55!important;background:#FFFEFC;font-size:13px;line-height:1.45;font-weight:750;text-decoration:none!important}
-.site.ms-landing .ms-footer-nav-links a:hover,.site.ms-landing .ms-footer-nav-links a:focus-visible {border-color:#A77455;background:#F9F2E9}
-.site.ms-landing .ms-footer-nav-links a.ms-footer-primary {background:#1B354B;border-color:#1B354B;color:#fff!important}
-.site.ms-landing .ms-footer-nav-links a.ms-footer-primary:hover {background:#2A4A63}
 @media(max-width:1100px) {
  .site.ms-landing .ms-hero-grid {grid-template-columns:minmax(0,1fr)}
  .site.ms-landing .ms-edition {max-width:none}
@@ -247,8 +241,6 @@ MARKET_SIGNALS_LANDING_CSS = """
  .site.ms-landing .ms-actions {align-items:stretch}
  .site.ms-landing .ms-actions .ms-button {width:100%}
  .site.ms-landing .ms-usecase {min-height:0}
- .site.ms-landing .ms-footer-nav-links {flex-direction:column}
- .site.ms-landing .ms-footer-nav-links a {width:100%}
 }
 @media(prefers-reduced-motion:reduce) {
  .site.ms-landing .ms-button {transition:none}
@@ -452,17 +444,6 @@ MARKET_SIGNALS_LANDING_HTML = """
   </div>
 </div></section>
 
-<section class="ms-footer-navigation" aria-labelledby="ms-footer-heading" data-analytics-section="market-signals-footer-navigation">
-  <div class="container">
-    <h2 class="ms-footer-heading" id="ms-footer-heading">Continue within Advisory</h2>
-    <nav class="ms-footer-nav-links" aria-label="Market Signals footer navigation">
-      <a href="?page=advisory" target="_self" data-hq-event="market_signals_footer_advisory">All Advisory services</a>
-      <a href="?page=advisory-market-demo" target="_self" data-hq-event="market_signals_footer_demo">Public research sample</a>
-      <a href="?page=home" target="_self" data-hq-event="market_signals_footer_home">Portfolio home</a>
-      <a class="ms-footer-primary" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_footer_member">Full Market Observatory</a>
-    </nav>
-  </div>
-</section>
 </main>
 """
 
@@ -472,7 +453,10 @@ def advisory_market_signals() -> str:
         SERVICES_CSS
         + MARKET_SIGNALS_LANDING_CSS
         + nav("advisory")
-        + MARKET_SIGNALS_LANDING_HTML
+        + MARKET_SIGNALS_LANDING_HTML.replace(
+            "</main>",
+            portfolio_next_navigation("advisory-market-signals") + "</main>",
+        )
         + footer()
     )
 

@@ -516,6 +516,8 @@ def render_executive_intelligence(streamlit, editorial: dict,
         '<h4>What has changed</h4><p>'+
         html_escape(editorial["what_changed"])+'</p></section>'
     )
+    if editorial.get("correction_note"):
+        st.caption(editorial["correction_note"])
     st.markdown("#### Download the complete executive market review")
     st.caption(
         "Complete November research report: five executive analyses, "
@@ -558,7 +560,11 @@ def render_executive_intelligence(streamlit, editorial: dict,
                 html_escape(p["population_note"])+'<p><a href="'+
                 html_escape(_safe_url(p["source_url"]),quote=True)+
                 '" target="_blank" rel="noopener noreferrer">'+
-                html_escape(p["source_title"])+'</a></p></div>')
+                html_escape(p["source_title"])+'</a></p><p>Method: '+
+                html_escape(p["methodology"])+'</p><p>Limit: '+
+                html_escape(p["caveat"])+'</p><small>Observation: '+
+                html_escape(p["published_on"])+' | Verified: '+
+                html_escape(p["verified_on"])+'</small></div>')
     st.markdown("#### What leadership teams should do next")
     for item in editorial["decision_agenda"]:
         with st.expander(item["decision"]+"  ·  "+item["horizon"],expanded=False):
@@ -571,6 +577,7 @@ def render_executive_intelligence(streamlit, editorial: dict,
         st.caption("Condition: "+item["condition"]+
                    "  |  Executive response: "+item["leadership_response"])
     st.caption(editorial["methodology_note"])
+    st.markdown("[JobTech v1 title-basket selection and reproduction method](https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md)")
     st.markdown("#### Download this executive decision brief")
     st.caption("Focused PDF for the selected executive decision perspective.")
     focused=build_executive_decision_pdf(points,editorial,edition_slug,choice)

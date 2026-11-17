@@ -39,6 +39,19 @@ def point(code, val, *, when="2026-10-01", end="2026-10-31",
 
 
 class ObservatoryTests(unittest.TestCase):
+    def test_demand_dashboard_keyword_only_source_note_does_not_crash(self):
+        from unittest.mock import patch
+        from page_advisory_market_observatory import _demand
+        rows=[
+            point("sept_se",20,when="2026-09-01",end="2026-09-30"),
+            point("oct_se",29,when="2026-10-01",end="2026-10-31"),
+        ]
+        with patch("page_advisory_market_observatory.st") as streamlit:
+            streamlit.multiselect.return_value=["Sweden"]
+            _demand(rows)
+            self.assertTrue(streamlit.caption.called)
+            self.assertIn("classifier v1 is frozen",str(streamlit.caption.call_args_list))
+
     def test_eight_decision_oriented_dashboards_are_available(self):
         self.assertEqual(len(DASHBOARDS),8)
         self.assertEqual(set(DASHBOARDS),{

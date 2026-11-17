@@ -193,7 +193,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
     def test_three_material_selection_biases_are_publicly_explained(self):
         html=MARKET_SIGNALS_LANDING_HTML
         for phrase in (
-            "historical API results may change and exact replication is not assured",
+            "Historical API results may change and exact replication is not assured",
             "operations, digital, product and commercial titles",
             "Changes in platform participation and coverage can affect",
             "switched to SNI 2025",

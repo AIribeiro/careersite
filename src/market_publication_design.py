@@ -169,7 +169,9 @@ def cover_callback(spec: dict):
         c.line(LEFT,rule_y,W-RIGHT,rule_y)
         assess_style=ParagraphStyle("mp_cover_assess",fontName="Helvetica",
             fontSize=10.2,leading=17.0,textColor=colors.HexColor("#E8EEF1"))
-        assess_text=assessment if len(assessment)<=540 else assessment[:537].rstrip()+"..."
+        if len(assessment)>540:
+            raise ValueError("Cover assessment is too long; edit it rather than silently truncating.")
+        assess_text=assessment
         y2=text_on(c,assess_text,assess_style,LEFT,rule_y-20,BODY-24)
         if y2<255:
             raise ValueError("Cover text exceeds its designed reading area.")
@@ -369,8 +371,12 @@ def decision_table(items,*,sty=None):
     return tbl
 
 
-def sources_table(points,format_value,*,sty=None):
-    """Compact, complete clickable evidence ledger, suitable for an appendix."""
+def sources_table(points, format_value, *, sty=None, include_provenance=False, compact_provenance=False):
+    """Clickable source register, optionally with publication-grade lineage.
+
+    Detailed source tables disclose the population, method, limits and
+    verification vintage inside the PDF, rather than only in the member app.
+    """
     s=sty or styles()
     rows=[[P("EVIDENCE / PERIOD","table_head",sty=s),
            P("OBSERVATION / ORIGINAL SOURCE","table_head",sty=s)]]
@@ -385,23 +391,87 @@ def sources_table(points,format_value,*,sty=None):
         val=escape(clean(format_value(item)),quote=False)
         pub=escape(clean(item.get("period_label") or ""),quote=False)
         region=escape(clean(item.get("geography") or ""),quote=False)
-        rows.append([
-            [P(code,"table_bold",sty=s),P(pub+"  |  "+region,"table_small",sty=s)],
-            Paragraph(
-              f'<b>{_markup(item.get("metric_label") or "Selected senior AI/Data leadership advertisements")}</b>  /  {val}<br/>'
-              f'<link href="{href}" color="#1F5773">{source} (original publisher)</link>',
-              s["table"]),
-        ])
-    table=LongTable(rows,colWidths=[64*mm,BODY-64*mm],hAlign="LEFT",
+        period_state=(" | Incomplete period" if item.get("period_complete") is False
+                      else "")
+        context=[P(code,"table_bold",sty=s),
+                 P(pub+"  |  "+region+period_state,"table_small",sty=s)]
+        reading=[Paragraph(
+            f'<b>{_markup(item.get("metric_label") or "Market observation")}</b>  /  {val}<br/>'
+            f'<link href="{href}" color="#1F5773">{source} (original publisher)</link>',
+            s["table"])]
+        if include_provenance:
+            for field, label in (
+                ("population_note","Population / denominator"),
+                ("methodology","How measured / derived"),
+                ("caveat","What it cannot establish"),
+            ):
+                value=clean(item.get(field))
+                if not value:
+                    raise ValueError("Published source missing "+field+": "+code)
+                if field=="methodology" and compact_provenance:
+                    value="See source-method register: "+clean(item["source_family"])
+                reading.append(P(label+": "+value,"table_small",sty=s))
+            pub_date=clean(item.get("published_on"))
+            ver_date=clean(item.get("verified_on"))
+            if not pub_date or not ver_date:
+                raise ValueError("Published source missing release / verification date: "+code)
+            reading.append(P(
+                "Observation published: "+pub_date+"  |  Research checked: "+ver_date+
+                "  |  Source family: "+clean(item.get("source_family")),
+                "table_small",sty=s))
+        rows.append([context,reading])
+    table=LongTable(rows,colWidths=[56*mm,BODY-56*mm],hAlign="LEFT",
                     repeatRows=1,splitByRow=1)
     table.setStyle(TableStyle([
         ("BACKGROUND",(0,0),(-1,0),NAVY),
         ("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,SAND]),
         ("LINEBELOW",(0,1),(-1,-1),.35,LINE),
         ("VALIGN",(0,0),(-1,-1),"TOP"),
-        ("TOPPADDING",(0,0),(-1,-1),3),
-        ("BOTTOMPADDING",(0,0),(-1,-1),3),
-        ("LEFTPADDING",(0,0),(-1,-1),9),
+        ("TOPPADDING",(0,0),(-1,-1),4),
+        ("BOTTOMPADDING",(0,0),(-1,-1),4),
+        ("LEFTPADDING",(0,0),(-1,-1),8),
         ("RIGHTPADDING",(0,0),(-1,-1),7),
     ]))
     return table
+
+def source_family_methods(points, *, sty=None):
+    """Publish each full source methodology once, with all scope caveats.
+
+    The observation appendix still preserves per-record population, caveat,
+    publisher date, checked date and clickable original-source URL.
+    """
+    s=sty or styles()
+    by_family={}
+    for p in points:
+        family=clean(p.get("source_family"))
+        if not family:
+            raise ValueError("A source-family method is missing.")
+        by_family.setdefault(family,[]).append(p)
+    rows=[[P("SOURCE SERIES","table_head",sty=s),
+           P("RETRIEVAL AND MEASUREMENT METHOD","table_head",sty=s)]]
+    for family,group in sorted(by_family.items()):
+        methods=sorted({clean(p.get("methodology")) for p in group})
+        limits=sorted({clean(p.get("caveat")) for p in group})
+        if "" in methods or "" in limits:
+            raise ValueError("Missing family method or interpretation caveat: "+family)
+        source_title=clean(group[0].get("source_title"))
+        notes=[P("Published source: "+source_title,"table_small",sty=s)]
+        for i,method in enumerate(methods,1):
+            notes.append(P("Method "+str(i)+": "+method,"table_small",sty=s))
+        for i,caveat in enumerate(limits,1):
+            notes.append(P("Scope limit "+str(i)+": "+caveat,"table_small",sty=s))
+        rows.append([[P(family,"table_bold",sty=s),
+                      P(str(len(group))+" observations","table_small",sty=s)],
+                     notes])
+    tbl=LongTable(rows,colWidths=[51*mm,BODY-51*mm],hAlign="LEFT",repeatRows=1)
+    tbl.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,0),NAVY),
+        ("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,SAND]),
+        ("VALIGN",(0,0),(-1,-1),"TOP"),
+        ("LINEBELOW",(0,1),(-1,-1),0.35,LINE),
+        ("TOPPADDING",(0,0),(-1,-1),7),
+        ("BOTTOMPADDING",(0,0),(-1,-1),7),
+        ("LEFTPADDING",(0,0),(-1,-1),8),
+        ("RIGHTPADDING",(0,0),(-1,-1),8),
+    ]))
+    return tbl

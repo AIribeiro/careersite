@@ -26,7 +26,7 @@ from market_review_premium import (
 )
 
 REQUIRED_TOP = (
-    "title", "issue_date", "assessment", "why_it_matters",
+    "title", "issue_date", "assessment", "cover_assessment", "reading_note", "why_it_matters",
     "what_changed", "themes", "decision_agenda", "outlook",
     "methodology_note",
 )
@@ -43,7 +43,7 @@ LENS_LABELS = {
     "workforce": "Workforce and leadership capabilities",
     "operating_model": "Data and AI operating models",
     "sourcing": "Sourcing and consulting decisions",
-    "regional": "Sector and regional differences",
+    "regional": "Regional recruitment and sourcing choices",
 }
 STYLE = """
 <style>
@@ -82,6 +82,8 @@ def validate_editorial(payload: dict, points: list[dict], edition_slug: str) -> 
         raise ValueError("Executive research edition is incomplete.")
     if payload.get("edition_slug") != edition_slug:
         raise ValueError("The editorial analysis is not bound to this evidence edition.")
+    if not 100 <= len(str(payload["cover_assessment"])) <= 500:
+        raise ValueError("Cover assessment must be concise and complete, not truncated.")
     by_code = {str(p.get("code")): p for p in points}
     if len(by_code) != len(points):
         raise ValueError("Duplicate evidence identifiers.")
@@ -222,7 +224,7 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     from reportlab.platypus import CondPageBreak
     from market_publication_design import (
         P, assemble, bars, decision_table, metric_cards, panel, section,
-        sources_table, styles,
+        source_family_methods, sources_table, styles,
     )
     validate_editorial(editorial,points,edition_slug)
     idx={p["code"]:p for p in points}
@@ -234,8 +236,8 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
     cover={
       "title":"AI & Data Market Review",
       "subtitle":editorial["title"],
-      "assessment":editorial["assessment"],
-      "question":"Where should capital, talent and governance move first - and what would change our mind?",
+      "assessment":editorial["cover_assessment"],
+      "question":"Which decisions does this evidence support - and what remains unknown?",
       "edition":"EXECUTIVE EDITION 2.0 / SWEDEN",
       "issue":editorial["issue_date"],
       "metrics":[
@@ -255,6 +257,8 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
         "AI adoption and market recruitment are different business signals",
         editorial["why_it_matters"],sty=s))
     story.append(Spacer(1,16))
+    story.append(P("How to read this edition","h2",sty=s))
+    story.append(P(editorial["reading_note"],"body_compact",sty=s))
     story.append(P("What changed since the earlier research","h2",sty=s))
     story.append(P(editorial["what_changed"],"body",sty=s))
     story.append(P("Five decision perspectives","h2",sty=s))
@@ -323,7 +327,7 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
         story.append(Spacer(1,12))
         story.append(P("Business implication","h2",sty=s))
         story.append(P(t["implication"],"body",sty=s))
-        story.append(panel("Executive decision",
+        story.append(panel("Recommended action",
             "What leadership should do",t["recommendation"],dark=True,sty=s))
         story.append(Spacer(1,12))
         story.append(P("Evidence that would change the recommendation",
@@ -377,14 +381,33 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
        "Research method and limits: "+editorial["methodology_note"],
        "body_small",sty=s))
     story.append(Spacer(1,9))
-    story.append(sources_table(points,_value,sty=s))
     story.append(Spacer(1,13))
+    story.append(P(
+       "Interpretation and selection risks: SCB changed its enterprise industry "
+       "coverage in 2026, limiting direct year-on-year comparison. The JobTech "
+       "leadership-title basket excludes many operational and product leaders "
+       "with AI responsibility and is too small to estimate national hiring. "
+       "Brainville reflects one broad consulting marketplace rather than an "
+       "AI-specialist census. In-house data analytics staffing is not a measure "
+       "of operating readiness or realised business benefit.",
+       "body_small",sty=s))
+    story.append(Paragraph(
+       'JobTech selected-title evidence: '
+       '<link href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" color="#1F5773">'
+       'query seeds, headline classifier, deduplication and revision limitations</link>.',
+       s["body_small"]))
     story.append(P(
        "Source measurements describe different populations. Survey uptake "
        "is not return on investment; digital roadmap budgets are not company "
        "AI spending; vacancy advertisements are not hiring outcomes. "
        "Partial months are not extrapolated.",
        "body_small",sty=s))
+    story.append(Spacer(1,9))
+    story.append(P("Source-series methods and limitations","h2",sty=s))
+    story.append(source_family_methods(points,sty=s))
+    story.append(Spacer(1,15))
+    story.append(P("Observation register: populations, caveats and source dates","h2",sty=s))
+    story.append(sources_table(points,_value,sty=s,include_provenance=True,compact_provenance=True))
     return assemble(story,cover,
       "Jair Ribeiro | Swedish AI and Data Market Review | Executive Edition 2.0",
       min_bytes=10000)
@@ -435,7 +458,7 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         theme["title"],theme["thesis"],sty=s)
     story.append(P("Evidence, not assumption","h2",sty=s))
     story.append(P(theme["evidence"],"body",sty=s))
-    story.append(P("Our independent interpretation","h2",sty=s))
+    story.append(P("Our interpretation of the evidence","h2",sty=s))
     story.append(P(theme["interpretation"],"body",sty=s))
     story.append(panel("Challenge the interpretation",
         "An alternative explanation",theme["alternative"],sty=s))
@@ -468,8 +491,13 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         "All cited evidence is retained here with its scope and publisher. "
         "The reading above is an editorial judgement, not a causal claim "
         "drawn automatically from disconnected indicators.",sty=s)
-    story.append(sources_table(evidence,_value,sty=s))
+    story.append(sources_table(evidence,_value,sty=s,include_provenance=True))
     story.append(Spacer(1,13))
+    story.append(Paragraph(
+        'For JobTech observations: <link href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" color="#1F5773">'
+        'source selection, classifier and reproduction limits</link>.',
+        s["body_small"]))
+    story.append(Spacer(1,10))
     story.append(P(
        "Before acting, test the recommendation against your organisation's "
        "own performance baseline, workforce capabilities, risk posture and "
@@ -495,6 +523,7 @@ def render_executive_intelligence(streamlit, editorial: dict,
         '<h4>What has changed</h4><p>'+
         html_escape(editorial["what_changed"])+'</p></section>'
     )
+    st.caption(editorial["reading_note"])
     st.markdown("#### Download the complete executive market review")
     st.caption(
         "Complete November research report: five executive analyses, "
@@ -537,7 +566,11 @@ def render_executive_intelligence(streamlit, editorial: dict,
                 html_escape(p["population_note"])+'<p><a href="'+
                 html_escape(_safe_url(p["source_url"]),quote=True)+
                 '" target="_blank" rel="noopener noreferrer">'+
-                html_escape(p["source_title"])+'</a></p></div>')
+                html_escape(p["source_title"])+'</a></p><p>Method: '+
+                html_escape(p["methodology"])+'</p><p>Limit: '+
+                html_escape(p["caveat"])+'</p><small>Observation: '+
+                html_escape(p["published_on"])+' | Verified: '+
+                html_escape(p["verified_on"])+'</small></div>')
     st.markdown("#### What leadership teams should do next")
     for item in editorial["decision_agenda"]:
         with st.expander(item["decision"]+"  ·  "+item["horizon"],expanded=False):
@@ -550,6 +583,7 @@ def render_executive_intelligence(streamlit, editorial: dict,
         st.caption("Condition: "+item["condition"]+
                    "  |  Executive response: "+item["leadership_response"])
     st.caption(editorial["methodology_note"])
+    st.markdown("[JobTech v1 title-basket selection and reproduction method](https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md)")
     st.markdown("#### Download this executive decision brief")
     st.caption("Focused PDF for the selected executive decision perspective.")
     focused=build_executive_decision_pdf(points,editorial,edition_slug,choice)

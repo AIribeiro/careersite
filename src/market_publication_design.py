@@ -166,8 +166,8 @@ def cover_callback(spec: dict):
         c.line(LEFT,rule_y,W-RIGHT,rule_y)
         assess_style=ParagraphStyle("mp_cover_assess",fontName="Helvetica",
             fontSize=10.2,leading=17.0,textColor=colors.HexColor("#E8EEF1"))
-        assessment=assessment if len(assessment)<=540 else assessment[:537].rstrip()+"..."
-        y2=text_on(c,assessment,assess_style,LEFT,rule_y-22,BODY-24)
+        assess_text=assessment if len(assessment)<=540 else assessment[:537].rstrip()+"..."
+        y2=text_on(c,assess_text,assess_style,LEFT,rule_y-22,BODY-24)
         if y2<250:
             raise ValueError("Cover text exceeds its designed reading area.")
         # Off-white metric band: exactly three fact boxes, never a generic slogan.

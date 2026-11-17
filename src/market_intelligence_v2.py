@@ -437,6 +437,7 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
 def build_executive_decision_pdf(points: list[dict], editorial: dict,
                                  edition_slug: str, theme_key: str) -> bytes:
     """Focused independent research with a decision, challenge and evidence."""
+    from reportlab.platypus import CondPageBreak
     from market_publication_design import (
         P, assemble, decision_table, metric_cards, panel, section,
         sources_table, styles,
@@ -503,9 +504,10 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
         ("Review the decision","Strategy / HR / AI leadership","Next evidence release",
          theme["monitor"]),
     ],sty=s))
-    # The monitoring condition is already recorded in the decision table.
-    # Repeating it here pushes a lone paragraph to an almost empty page.
-    story.append(PageBreak())
+    # Keep the evidence trail near the decision playbook. A forced chapter
+    # break previously left one isolated source on a largely empty final page.
+    story.append(Spacer(1,12))
+    story.append(CondPageBreak(190))
 
     section(story,"03 / Evidence trail",
         "Original source record",

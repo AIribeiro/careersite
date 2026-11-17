@@ -145,7 +145,7 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
                 self.assertGreaterEqual(len(reader.pages),2)
                 text="\n".join(page.extract_text() or "" for page in reader.pages)
                 self.assertIn(t["title"][:15],text)
-                self.assertIn("Recommended action",text)
+                self.assertIn("recommended action",text.lower())
                 self.assertIn("source record",text.lower())
 
 if __name__=="__main__":

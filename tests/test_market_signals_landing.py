@@ -56,23 +56,41 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertNotIn("grid-template-columns:minmax(0,1.15fr) minmax(0,.8fr)",css)
         self.assertNotIn("max-width:950px",css)
 
-    def test_market_signals_footer_is_standard_and_contextual(self):
+    def test_market_signals_uses_shared_where_to_next_and_standard_footer(self):
         from page_home_featured import inject_writing_footer
+        from about_next_navigation import portfolio_next_navigation
+        from site_portfolio_continuation import inject_portfolio_continuation
+        from site_styles import CSS
         document=self.page
+        navigation=portfolio_next_navigation("advisory-market-signals")
+        self.assertIn(navigation,document)
+        self.assertEqual(document.count('class="about-next portfolio-next"'),1)
+        self.assertEqual(document.count('class="about-next-card"'),3)
+        self.assertEqual(document.count('class="about-next-card-number"'),3)
         self.assertEqual(document.count('<footer class="footer">'),1)
-        self.assertIn('aria-label="Market Signals footer navigation"',document)
-        self.assertIn('data-analytics-section="market-signals-footer-navigation"',document)
+        self.assertIn('<p class="eyebrow">Where to next?</p>',document)
+        self.assertIn('data-analytics-section="advisory-market-signals-next-destinations"',document)
+        self.assertIn('aria-label="Continue exploring the portfolio"',document)
         for href in (
             '?page=advisory',
             '?page=advisory-market-demo',
-            '?page=home',
             '?page=advisory-access&amp;view=market-signals',
         ):
-            self.assertIn('href="'+href+'"',document)
-        self.assertLess(document.index('aria-label="Market Signals footer navigation"'),
+            self.assertIn('href="'+href+'"',navigation)
+        self.assertIn('data-hq-event="advisory-market-signals_next_advisory_access_market_signals"',document)
+        self.assertLess(document.index('id="advisory-market-signals-continue"'),
+                        document.index("</main>"))
+        self.assertLess(document.index("</main>"),
                         document.index('<footer class="footer">'))
         self.assertEqual(inject_writing_footer(document,"advisory-market-signals"),document)
+        self.assertEqual(inject_portfolio_continuation(document,"advisory-market-signals"),document)
+        self.assertNotIn('class="ms-footer-navigation"',document)
+        self.assertNotIn('aria-label="Market Signals footer navigation"',document)
         self.assertNotIn('data-analytics-section="site-writing-footer"',document)
+        self.assertIn(".site .about-next-grid",CSS)
+        self.assertIn("grid-template-columns:repeat(3,minmax(0,1fr))",CSS)
+        self.assertIn("@media(max-width:900px)",CSS)
+        self.assertIn("@media(max-width:600px)",CSS)
 
     def test_no_generic_old_four_lens_page(self):
         self.assertNotIn("Four evidence lenses",self.page)

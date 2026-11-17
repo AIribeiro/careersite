@@ -521,10 +521,11 @@ def build_executive_decision_pdf(points: list[dict], editorial: dict,
             story.append(P(item["title"]+": "+item["text"],"body_small",sty=s))
     story.append(sources_table(evidence,_value,sty=s,include_provenance=True))
     story.append(Spacer(1,13))
-    story.append(Paragraph(
-        'For JobTech observations: <link href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" color="#1F5773">'
-        'source selection, classifier and reproduction limits</link>.',
-        s["body_small"]))
+    if any(p.get("source_family")=="af_jobtech_target_demand" for p in evidence):
+        story.append(Paragraph(
+            'For selected JobTech advertisements: <link href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" color="#1F5773">'
+            'search terms, headline exclusions and historical replay limits</link>.',
+            s["body_small"]))
     story.append(Spacer(1,10))
     story.append(P(
        "Before acting, test the recommendation against your organisation's "

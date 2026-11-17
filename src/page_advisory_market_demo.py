@@ -307,11 +307,12 @@ def historical_market_pdf(points:list[dict],*,month_label:str) -> bytes:
 def _sample_points() -> list[dict]:
     mapping={"June 2026":"2026-06","July 2026":"2026-07","August 2026":"2026-08"}
     region_code={"Sweden":"se","Stockholm":"sto","Västra Götaland":"vgr"}
+    month_code={"2026-06":"jun","2026-07":"jul","2026-08":"aug"}
     rows=[]
     for label,geo,val in EARLIEST_COMPLETE_MONTHS:
         month=mapping[label]
         rows.append({
-          "code":"jobtech_v1_"+month[-2:]+"_"+region_code[geo],
+          "code":"jobtech_v1_"+month_code[month]+"_"+region_code[geo],
           "series_code":"jobtech_ai_data_leadership_v1",
           "period_label":label,"period_start":month+"-01",
           "period_end":{"2026-06":"2026-06-30","2026-07":"2026-07-31","2026-08":"2026-08-31"}[month],

@@ -182,6 +182,13 @@ class MarketSignalsLandingTests(unittest.TestCase):
             self.assertIn(phrase,html)
         self.assertNotIn("author-defined, reproducible set",html)
 
+    def test_superseded_editions_keep_historical_reader_access(self):
+        source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
+        self.assertIn('"sweden-ai-data-market-review-2026-11-v2",',source)
+        self.assertIn('"sweden-ai-data-market-review-2026-11-v2-0-1",',source)
+        self.assertIn("render_market_observatory(points,historical=False)",source)
+        self.assertIn("Select the latest edition",source)
+
     def test_all_eight_real_dashboard_topics_present(self):
         expected=[
             "Executive evidence overview",
@@ -244,7 +251,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_explicitly_honest_on_vintages_and_cross_source_logic(self):
         for claim in (
-            "not a live market forecast",
+            "not a market forecast",
             "not a count of all vacancies",
             "not AI/Data specialists alone",
             "not a full market review from those summer months",

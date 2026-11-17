@@ -396,11 +396,11 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
        "limit number, original publisher, population and verification date. "
        "None of these unrelated indicators is a company AI return estimate.",
        "body_small",sty=s))
-    # Never leave the methods heading stranded at the end of an introduction.
-    story.append(KeepTogether([
-        P("Source-series methods and limitations","h2",sty=s),
-        source_family_methods(points,sty=s),
-    ]))
+    # Keep the heading with at least the first method row, then let the
+    # six-row LongTable flow across pages rather than reserving a blank half-page.
+    story.append(CondPageBreak(180))
+    story.append(P("Source-series methods and limitations","h2",sty=s))
+    story.append(source_family_methods(points,sty=s))
     story.append(Spacer(1,13))
     story.append(CondPageBreak(145))
     story.append(P("Observation register: population, source and dates","h2",sty=s))

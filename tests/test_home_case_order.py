@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+"""Selected Home evidence appears after navigation and ahead of editorial."""
 from pathlib import Path
 import unittest
 
@@ -7,22 +6,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class HomeCaseOrderTests(unittest.TestCase):
-    def test_home_leads_with_three_modern_leadership_cases(self) -> None:
+    def test_proof_is_prominent_and_not_buried_in_activity_counts(self):
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
-        section = home.split('<p class="eyebrow">Selected experience</p>', 1)[1]
-        section = section.split('{framework_teaser()}', 1)[0]
-
-        volvo = section.index('<span class="org">Volvo Group / Volvo Trucks</span>')
-        msx = section.index('<span class="org">MSX International</span>')
-        kimberly_clark = section.index('<span class="org">Kimberly-Clark</span>')
-
-        self.assertLess(volvo, msx)
-        self.assertLess(msx, kimberly_clark)
-        self.assertNotIn('<span class="org">IBM</span>', section)
-        self.assertIn(
-            "Across these roles, the pattern is consistent: start with the business problem",
-            section,
-        )
+        evidence = (ROOT / "src/portfolio_operating_evidence.py").read_text(encoding="utf-8")
+        self.assertLess(home.index("{home_pathways()}"), home.index("{home_evidence()}"))
+        self.assertLess(home.index("{home_evidence()}"), home.index("{home_whats_new()}"))
+        self.assertLess(evidence.index("Customer Interview Analyzer"),
+                        evidence.index("80+ AI opportunities"))
+        self.assertIn("not scaled", evidence)
+        self.assertNotIn("verified ROI", evidence.lower())
 
 
 if __name__ == "__main__":

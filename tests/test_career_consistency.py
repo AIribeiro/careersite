@@ -114,9 +114,9 @@ class CareerFactConsistencyTests(unittest.TestCase):
         self.assertIn("operational adoption is evidenced separately", presence_html.lower())
 
         home_html = home()
-        self.assertIn("Microsoft 365 Copilot and agent initiatives", home_html)
+        self.assertIn("Customer Interview Analyzer", home_html)
         self.assertNotIn("reducing cycle time and cost while increasing practical use", home_html)
-        self.assertIn("targeting cycle time, cost and practical adoption", home_html)
+        self.assertIn("was not scaled", home_html)
 
     def test_selected_credentials_exist_on_both_surfaces(self) -> None:
         from page_certifications import certifications
@@ -139,7 +139,7 @@ class CareerFactConsistencyTests(unittest.TestCase):
 
         self.assertIn("from career_facts import", cv_source)
         self.assertIn("from career_facts import", home_source)
-        self.assertIn("from career_facts import", about_source)
+        self.assertNotIn("Dec 2025 - Jun 2026", about_source)
         self.assertIn("from career_facts import", impact_source)
 
 

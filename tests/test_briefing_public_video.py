@@ -89,3 +89,28 @@ def test_video_appears_before_editorial_opening_and_member_access():
     assert '@media(max-width:600px)' in html
     assert "What leaders need to decide" in html
     assert "From the published edition" not in html
+    # Full article width is deliberate for this briefing, not a global template change.
+    assert '<main class="briefing-preview briefing-preview--wide">' in html
+    assert ".briefing-preview--wide .briefing-preview-grid{grid-template-columns:minmax(0,1fr)" in html
+    assert ".briefing-preview--wide .briefing-preview-copy{width:100%;max-width:none;min-width:0}" in html
+    assert "width:min(1480px,calc(100% - clamp(32px,6vw,112px)))" in html
+    assert ".briefing-preview--wide .briefing-preview-aside ul{display:grid;" in html
+
+
+def test_wide_layout_is_scoped_to_the_scaling_briefing():
+    """Other Executive AI Briefings retain the established two-column design."""
+    from types import SimpleNamespace
+    from briefing_reader_preview import render_public_briefing_preview
+
+    other = SimpleNamespace(
+        slug="other-executive-briefing",
+        title="Another executive briefing",
+        subtitle="A separate editorial topic",
+        excerpt="A separate editorial topic",
+        content_html="<h2>The Leadership Decision</h2><p>This is an illustrative public preview for layout testing with a sufficient number of words to count as a readable decision paragraph for the reader.</p>",
+    )
+    html = render_public_briefing_preview(other, "18 Nov 2026")
+    assert '<main class="briefing-preview">' in html
+    assert '<main class="briefing-preview briefing-preview--wide">' not in html
+    assert '<section class="briefing-preview-video"' not in html
+    assert 'grid-template-columns:minmax(0,1.35fr) minmax(240px,.65fr)' in html

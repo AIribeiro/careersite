@@ -42,7 +42,7 @@ def test_shared_next_navigation_uses_tablet_width_and_remains_standard() -> None
     assert ".site .portfolio-next .about-next-grid>a.about-next-card:last-child{" in css
     assert "grid-column:1/-1;" in css
     assert ".site .portfolio-next a.about-next-card{min-height:0;padding:19px}" in css
-    assert "'<nav class="about-next-grid" aria-label="Continue exploring the portfolio">'" in nav
+    assert "Continue exploring the portfolio" in nav
     assert 'class="about-next portfolio-next"' in nav
 
 

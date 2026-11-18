@@ -7,6 +7,27 @@ on:
 permissions:
   contents: read
 jobs:
+  byte-ranges:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Print production MP4 and poster range responses
+        run: |
+          python - <<'PY'
+          import requests
+          urls=[
+            "https://jairribeiro-ai.streamlit.app/app/static/market-signals/market-review-november-2026.mp4",
+            "https://go.jairribeiro.com/app/static/market-signals/market-review-november-2026.mp4",
+            "https://raw.githubusercontent.com/AIribeiro/careersite/main/static/market-signals/market-review-november-2026.mp4",
+            "https://media.githubusercontent.com/media/AIribeiro/careersite/main/static/market-signals/market-review-november-2026.mp4"
+          ]
+          for u in urls:
+              try:
+                  r=requests.get(u,headers={"Range":"bytes=0-1"},timeout=17,stream=True)
+                  print("RANGE RESULT",u,"STATUS",r.status_code,"CONTENT-RANGE",r.headers.get("Content-Range"),"ACCEPT-RANGES",r.headers.get("Accept-Ranges"),"TYPE",r.headers.get("Content-Type"),"ENCODING",r.headers.get("Content-Encoding"),"FINAL",r.url,flush=True)
+                  r.close()
+              except Exception as e:print("RANGE ERROR",u,str(e)[:180],flush=True)
+          PY
   diagnose:
     runs-on: ubuntu-24.04
     timeout-minutes: 12

@@ -380,17 +380,18 @@ def bars(rows,*,label="Selected observations",suffix="",sty=None):
     return tbl
 
 
-def decision_table(items,*,sty=None):
+def decision_table(items,*,sty=None,header_left="DECISION AND ACCOUNTABILITY",
+                   header_right="PRACTICAL NEXT ACTION",show_context=True):
     """Two readable columns beat the old cramped four-column checklist."""
     s=sty or styles()
-    rows=[[P("DECISION AND ACCOUNTABILITY","table_head",sty=s),
-           P("PRACTICAL NEXT ACTION","table_head",sty=s)]]
+    rows=[[P(header_left,"table_head",sty=s),
+           P(header_right,"table_head",sty=s)]]
     for title,owner,horizon,action in items:
-        rows.append([
-            [P(title,"table_bold",sty=s),
-             P(owner+"  |  "+horizon,"table_small",sty=s)],
-            P(action,"table",sty=s),
-        ])
+        left=[P(title,"table_bold",sty=s)]
+        context="  |  ".join(x for x in (owner,horizon) if x)
+        if show_context and context:
+            left.append(P(context,"table_small",sty=s))
+        rows.append([left,P(action,"table",sty=s)])
     tbl=LongTable(rows,colWidths=[65*mm,BODY-65*mm],hAlign="LEFT",repeatRows=1)
     tbl.setStyle(TableStyle([
         ("BACKGROUND",(0,0),(-1,0),NAVY),

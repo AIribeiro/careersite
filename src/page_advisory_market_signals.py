@@ -202,12 +202,10 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-path .ms-path-caption {margin:16px 0 0;color:#C4D1DC;font-size:11px;line-height:1.65}
 .site.ms-landing .ms-formats {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .site.ms-landing .ms-perspectives {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-.site.ms-landing .ms-candidate-value{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
-.site.ms-landing .ms-candidate-value article{background:#fffefa;border-top:2px solid #b17b58;
- padding:20px 16px 19px;min-width:0}
-.site.ms-landing .ms-candidate-value h3{font-size:14px;line-height:1.45;font-weight:800;
- color:#1b354a;margin:0 0 9px}
-.site.ms-landing .ms-candidate-value p{font-size:12px;line-height:1.65;color:#536579;margin:0}
+.site.ms-landing .ms-candidate-value{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.site.ms-landing .ms-candidate-value article{background:#fffefa;border-top:2px solid #b17b58;padding:23px 19px;min-width:0}
+.site.ms-landing .ms-candidate-value h3{font-size:15px;line-height:1.4;font-weight:800;color:#1b354a;margin:0 0 10px}
+.site.ms-landing .ms-candidate-value p{font-size:14px;line-height:1.72;color:#536579;margin:0}
 .site.ms-landing .ms-perspective {background:#fffefa;border:1px solid #ddd6cc;border-top:3px solid #b17b58;padding:clamp(22px,3vw,34px)}
 .site.ms-landing .ms-perspective h3 {font:500 clamp(23px,2.6vw,33px)/1.2 Georgia,serif;color:#193449;margin:12px 0}
 .site.ms-landing .ms-perspective p {font-size:14px;line-height:1.72;color:#4d6072}
@@ -284,26 +282,26 @@ MARKET_SIGNALS_LANDING_HTML = """
 <section class="ms-hero" aria-labelledby="ms-title"><div class="container">
   <div class="ms-hero-grid">
     <div>
-      <p class="ms-overline">AI &amp; Data Market Signals / Sweden</p>
+      <p class="ms-overline">Sweden / AI &amp; Data market research</p>
       <h1 id="ms-title">Swedish AI &amp; Data Market Review</h1>
-      <p class="ms-hero-lead">One Swedish AI &amp; Data evidence base. Two research perspectives: executive decisions and the job market for candidates.</p>
-      <p class="ms-hero-context">The November research brings together enterprise AI adoption, recruitment, business conditions and consulting activity. Read it from the perspective of a business leader making investment and capability decisions, or a professional deciding where and how to search for work. Both editions preserve the same published facts and evidence limits.</p>
+      <p class="ms-hero-lead">Two free reports on Sweden’s AI &amp; Data market: one for people looking for work and one for business leaders.</p>
+      <p class="ms-hero-context">Looking for AI or Data work in Sweden? Whether you are starting out, changing direction or already experienced, the Jobseeker Edition helps you search beyond job titles, explain your skills and plan your next four weeks. The Executive Edition helps business leaders examine investment and workforce decisions.</p>
       <div class="ms-actions">
-        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_register">Executive edition · Free registration</a>
-        <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_jobseeker_cta">Jobseeker edition · Free registration</a>
+        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_register">For business leaders · Free report</a>
+        <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_jobseeker_cta">Looking for work? Read the free report</a>
       </div>
-      <p class="ms-hero-meta">Both November editions are available to registered readers, each with its own downloadable A4 PDF. The June–August historical job-advertisement sample remains open without registration.</p>
+      <p class="ms-hero-meta">Both reports are in English and free after creating an account, with separate PDFs to download. The June–August historical sample is open without registration.</p>
     </div>
     <aside class="ms-edition" aria-label="Published research edition">
-      <small>November 2026 / Two research perspectives</small>
-      <h2>Swedish AI &amp; Data Market Review<br>Two November Editions</h2>
-      <p>Published 17 November 2026. The Executive Edition and the new Jobseeker Edition use 43 reviewed observations from six evidence series and five publishing organisations. Each draws a different set of decisions from the same evidence.</p>
+      <small>November 2026 / Jobseekers and business leaders</small>
+      <h2>Swedish AI &amp; Data Market Review<br>Two ways to use the research</h2>
+      <p>The Executive Edition was published on 17 November and the Jobseeker Edition was prepared on 18 November 2026. Both use 43 reviewed observations from six evidence series and five publishing organisations, with guidance written for different readers.</p>
       <div class="ms-edition-counts">
         <div><strong>43</strong><span>published observations</span></div>
-        <div><strong>5</strong><span>executive decision perspectives</span></div>
+        <div><strong>5</strong><span>topics in each report</span></div>
         <div><strong>6</strong><span>evidence series · 5 publishers</span></div>
       </div>
-      <p class="ms-edition-note">Executive edition: investment and organisational capability. Jobseeker edition: opportunity discovery, candidate positioning, geographic choices and employment models.</p>
+      <p class="ms-edition-note">For jobseekers: where to look, how to show your skills and which roles suit you. For business leaders: investment, staffing and capability decisions.</p>
     </aside>
   </div>
 </div></section>
@@ -311,51 +309,51 @@ MARKET_SIGNALS_LANDING_HTML = """
 
 <section class="ms-section ms-section--paper" id="ms-perspectives" aria-labelledby="ms-perspectives-title"><div class="container">
   <div class="ms-section-head">
-    <div><p class="ms-overline">Two editions / One verified evidence base</p>
-      <h2 id="ms-perspectives-title">Choose the perspective that serves your decision.</h2></div>
-    <p class="ms-section-intro">The observations, source dates and methods are identical. The interpretation and practical next steps are written for two different audiences.</p>
+    <div><p class="ms-overline">Two free reports / Same checked figures</p>
+      <h2 id="ms-perspectives-title">Which report is right for you?</h2></div>
+    <p class="ms-section-intro">Both versions explain the November evidence in different ways. Choose practical job-search advice or research for business and hiring decisions.</p>
   </div>
   <div class="ms-perspectives">
     <article class="ms-perspective">
-      <span class="ms-label">01 / Executive and business leaders</span>
-      <h3>Decide where AI and Data investment should go.</h3>
-      <p>Five research perspectives on measurable returns, workforce needs, internal capability, consulting choices and regional recruitment. Includes management scenarios, a decision agenda and the complete Executive Edition PDF.</p>
-      <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self">Read the executive edition</a></div>
+      <span class="ms-label">01 / Employers and business leaders</span>
+      <h3>Plan AI investment and hiring decisions.</h3>
+      <p>Understand what the Swedish market figures mean for AI investment, workforce needs, internal skills and external support. Includes five analyses, scenarios, an action plan and a complete PDF.</p>
+      <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self">Read the Executive Edition · Free</a></div>
     </article>
     <article class="ms-perspective">
-      <span class="ms-label">02 / AI and Data professionals seeking work</span>
-      <h3>Understand the market behind your next career move.</h3>
-      <p>For experienced AI and Data professionals considering a move in Sweden. See how to test where you search, which responsibilities fit, how to demonstrate your contribution and when geography or interim assignments deserve attention. Includes five candidate decisions, a 30-day plan and a separate sourced PDF.</p>
-      <div class="ms-actions"><a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self">Read the jobseeker edition</a></div>
+      <span class="ms-label">02 / People looking for work in Sweden</span>
+      <h3>Make a more focused search for AI or Data work.</h3>
+      <p>For people entering the field, returning to work, switching roles or already experienced. Find related job titles, prepare examples of your skills, compare locations and working arrangements, and follow a simple four-week plan. Includes five topics and a separate PDF. The job-ad sample covers senior roles, not every entry-level opening.</p>
+      <div class="ms-actions"><a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self">Read the Jobseeker Edition · Free</a></div>
     </article>
   </div>
-  <p class="ms-note">A dated November 2026 research snapshot, not a vacancy board or salary survey. The candidate edition focuses its advertised-role analysis on a selected sample of senior AI/Data titles and does not estimate all AI jobs or individual hiring outcomes.</p>
+  <p class="ms-note">För dig som söker jobb inom AI och data i Sverige: Här hittar du marknadsfakta, konkreta råd och en plan för jobbsökningen. Rapporten är på engelska och gratis efter registrering. The November 2026 research is a dated snapshot, not live job listings or a salary survey; JobTech covers selected senior titles only.</p>
 </div></section>
 
 <section class="ms-section ms-section--white" id="ms-jobseeker-benefits" aria-labelledby="ms-jobseeker-benefits-title"><div class="container">
   <div class="ms-section-head">
-    <div><p class="ms-overline">Jobseeker edition / Your next 30 days</p>
-    <h2 id="ms-jobseeker-benefits-title">Five decisions to make your search more deliberate.</h2></div>
-    <p class="ms-section-intro">A research-based way to decide where to invest time, test assumptions and assess progress. The market figures provide context; your own eligible roles and responses determine what works for you.</p>
+    <div><p class="ms-overline">Jobseeker Edition / Four-week plan</p>
+      <h2 id="ms-jobseeker-benefits-title">Five practical steps for your AI or Data job search.</h2></div>
+    <p class="ms-section-intro">Whether you are new to the field, changing careers or already experienced, use this report to look for suitable work and test what gets a response. It is research for planning your search, not a prediction of your next offer.</p>
   </div>
   <div class="ms-candidate-value">
-    <article><h3>01 / Where to look</h3><p>Compare advertised roles with relevant professional and direct employer conversations.</p></article>
-    <article><h3>02 / Which roles fit</h3><p>Search responsibilities beyond AI titles, then verify mandate, level and requirements.</p></article>
-    <article><h3>03 / What to demonstrate</h3><p>Show your contribution to outcomes, data quality, adoption and business decisions.</p></article>
-    <article><h3>04 / How far to search</h3><p>Test onsite, hybrid and genuinely remote options against your constraints.</p></article>
-    <article><h3>05 / Which work model</h3><p>Evaluate permanent versus interim roles without inferring specialist demand from broad data.</p></article>
+    <article><h3>01 / Where to look</h3><p>Try suitable job ads, people in your field and a few relevant employers. See which leads to real replies.</p></article>
+    <article><h3>02 / Which roles fit</h3><p>Read the tasks, not just job titles. Check required skills, experience level and language before applying.</p></article>
+    <article><h3>03 / How to show your skills</h3><p>Prepare real examples from work, studies, internships or projects. Explain what you did and learned.</p></article>
+    <article><h3>04 / Where you can work</h3><p>Compare nearby, hybrid and genuinely remote jobs against travel, language and eligibility rules.</p></article>
+    <article><h3>05 / What type of job suits you</h3><p>Consider permanent or fixed-term jobs, and contract work where suitable. Compare pay, support and stability.</p></article>
   </div>
   <div class="ms-actions">
-    <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_jobseeker_cta">Read and download the Jobseeker Edition · Free registration</a>
+    <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_jobseeker_cta">Read the free Jobseeker Edition and download the PDF</a>
   </div>
-  <p class="ms-note">Best suited to experienced professionals exploring AI, Data &amp; Analytics, governance and related business leadership mandates. It does not rank employers, reveal hidden vacancies or forecast interview or offer chances.</p>
+  <p class="ms-note">The report is in English and available with free registration. The selected JobTech sample covers senior AI/Data adverts; the national vacancy figures cover every kind of job. Neither represents a live list of all openings.</p>
 </div></section>
 
 <section class="ms-section ms-section--white" id="ms-findings" aria-labelledby="ms-findings-title"><div class="container">
   <div class="ms-section-head">
     <div><p class="ms-overline">November 2026 / Published observations</p>
-      <h2 id="ms-findings-title">What the market evidence tells leaders.</h2></div>
-    <p class="ms-section-intro">Five findings from Executive Edition 2.0.2 connect enterprise AI adoption, senior job advertisements, consulting activity, vacancies and business confidence to management questions worth examining.</p>
+      <h2 id="ms-findings-title">What the Swedish market figures show.</h2></div>
+    <p class="ms-section-intro">The statistics cover different groups and periods. Choose the Executive Edition for business decisions or the Jobseeker Edition for ways to use this evidence in your own search.</p>
   </div>
   <div class="ms-proofs">
     <article class="ms-proof">
@@ -440,8 +438,8 @@ MARKET_SIGNALS_LANDING_HTML = """
 <section class="ms-section ms-section--ink" id="ms-inside" aria-labelledby="ms-workspace-title"><div class="container">
   <div class="ms-section-head">
     <div><p class="ms-overline" style="color:#E6B48B">Research workspace</p>
-      <h2 id="ms-workspace-title">Start with executive decisions. Explore the evidence behind them.</h2></div>
-    <p class="ms-section-intro">Read five decision perspectives, three outlook scenarios and a management action agenda. Then use the Market Observatory to examine the original sources, historical records and eight research sections.</p>
+      <h2 id="ms-workspace-title">Explore the data behind both reports.</h2></div>
+    <p class="ms-section-intro">Both reports use the same research. Members can read either edition and explore the original figures, historical records and sources in the Market Observatory.</p>
   </div>
   <div class="ms-workspace">
     <div class="ms-dashboard-list" aria-label="Market Signals dashboard sections">
@@ -472,8 +470,8 @@ MARKET_SIGNALS_LANDING_HTML = """
 <section class="ms-section ms-section--white" aria-labelledby="ms-materials-title"><div class="container">
   <div class="ms-section-head">
     <div><p class="ms-overline">Published research / Member access</p>
-      <h2 id="ms-materials-title">Choose the research format that fits your next discussion.</h2></div>
-    <p class="ms-section-intro">Read either audience's analysis online, download its complete November PDF or use a focused executive decision brief.</p>
+      <h2 id="ms-materials-title">Read online or download the report that fits you.</h2></div>
+    <p class="ms-section-intro">Read the Jobseeker or Executive Edition online, download its complete PDF and check the source records.</p>
   </div>
   <div class="ms-formats">
     <article class="ms-format"><small>01 / EXPLORE ONLINE</small>
@@ -486,7 +484,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <div class="ms-format-bottom">17 November 2026 · Full executive research PDF · Sources</div></article>
     <article class="ms-format"><small>03 / DOWNLOAD A4 PDF</small>
       <h3>Market Review — Jobseeker Edition</h3>
-      <p>Jobseeker Edition 1.0, prepared 18 November 2026, uses the signed-off 17 November data. Five candidate decisions, a practical 30-day search plan, three conditional scenarios and a complete evidence register help experienced professionals assess their own approach. It is not a vacancy or salary database.</p>
+      <p>Jobseeker Edition 1.0, prepared 18 November 2026, interprets the same signed-off 17 November observations. Five decision perspectives, a suggested 30-day search plan, conditional scenarios and a source register support more deliberate career choices, without claiming to map every AI vacancy.</p>
       <div class="ms-format-bottom">18 November 2026 · Candidate-focused research PDF · Sources</div></article>
     <article class="ms-format"><small>04 / USE IN A MEETING</small>
       <h3>Executive Decision Briefs and source register</h3>
@@ -499,7 +497,7 @@ MARKET_SIGNALS_LANDING_HTML = """
   <div class="ms-section-head">
     <div><p class="ms-overline">Sources and methods</p>
       <h2 id="ms-standards-title">Research sources and how to use the findings.</h2></div>
-    <p class="ms-section-intro">The report records the publisher, reporting period, population and research method for each observation. Review these details when comparing market signals or applying them to your own business decisions.</p>
+    <p class="ms-section-intro">The report shows who published each figure, when it was measured and what it covers. Check these details before using a number to plan a job search or business decision.</p>
   </div>
   <div class="ms-standard">
     <div>
@@ -528,9 +526,10 @@ MARKET_SIGNALS_LANDING_HTML = """
     <div>
       <p class="ms-overline" style="color:#E9B88E">Research access</p>
       <h2 id="ms-cta-title">Use the November research for your next decision.</h2>
-      <p>Choose the Executive Edition to examine investment and capability decisions, or the Jobseeker Edition to assess opportunity discovery and career choices. Both include downloadable research PDFs and the same source register.</p>
+      <p>Looking for work? Use the Jobseeker Edition to find related roles, show your skills and plan a four-week search. Business leaders can use the Executive Edition to review AI investment and workforce decisions. Both have a free PDF.</p>
       <div class="ms-actions">
-        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_final_register">Read and download the report · Free registration</a>
+        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_final_jobseeker">Jobseeker report · Free account</a>
+        <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=executive" target="_self" data-hq-event="market_signals_final_register">Executive report · Free account</a>
         <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;signin=1" target="_self" data-hq-event="market_signals_final_signin">Already registered? Sign in</a>
       </div>
     </div>
@@ -1022,10 +1021,10 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                     render_jobseeker_intelligence,
                 )
                 if str(release.get("slug") or "") == JOBSEEKER_EDITION:
-                    st.markdown("### Choose your research perspective")
+                    st.markdown("### Which report would you like to read?")
                     st.caption(
-                        "Two separate readings of the same signed-off November "
-                        "evidence. Your membership includes both complete PDFs."
+                        "Both reports use the same checked November 2026 research. "
+                        "Your free account includes both downloadable PDFs."
                     )
                     preferred = str(st.query_params.get("perspective", "")).lower()
                     previously_applied = st.session_state.get("market_review_link_preference")
@@ -1043,9 +1042,14 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                             if preferred == "jobseeker" else "Executive / Business leader"
                         )
                     perspective = st.radio(
-                        "Research edition",
+                        "Choose a report",
                         ("Executive / Business leader",
                          "Jobseeker / AI & Data professional"),
+                        format_func=lambda value: (
+                            "Looking for work — Jobseeker Edition"
+                            if value.startswith("Jobseeker")
+                            else "For employers and leaders — Executive Edition"
+                        ),
                         horizontal=True,key="market_review_perspective",
                     )
                     if perspective.startswith("Jobseeker"):

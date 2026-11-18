@@ -242,10 +242,11 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
         f'<h1>{title}</h1><p class="briefing-preview-deck">{subtitle}</p>'
         f'<div class="briefing-preview-meta">{escape(str(read_metadata))} · By Jair Ribeiro</div>'
         '</div></section>'
-        + video_html
-        + '<section class="briefing-preview-body" data-analytics-section="briefing-public-opening">'
+        '<section class="briefing-preview-body" data-analytics-section="briefing-public-opening">'
         '<div class="container"><div class="briefing-preview-grid">'
-        '<article class="briefing-preview-copy"><div class="briefing-preview-decision">'
+        '<article class="briefing-preview-copy">'
+        + video_html
+        + '<div class="briefing-preview-decision">'
         '<span class="briefing-preview-small-head">What leaders need to decide</span>'
         + '<h2>' + opening_heading + '</h2>' + decision_html + '</div>'
         + move_html + context_html + '</article>'

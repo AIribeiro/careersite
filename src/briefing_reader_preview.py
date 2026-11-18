@@ -13,6 +13,7 @@ import re
 
 from site_components import footer, nav
 from thinking_core import THINKING_CSS
+from briefing_reader_preview_video import render_briefing_video_preview
 
 
 PREVIEW_CSS = r"""<style>
@@ -230,6 +231,7 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
         '<p>Detailed reasoning, practical decisions and the original executive infographic.</p>'
     )
     access_base = f"?page=briefing&amp;article={slug}&amp;access=1"
+    video_html = render_briefing_video_preview(str(article.slug or ""))
     return (
         THINKING_CSS + PREVIEW_CSS + nav("thinking")
         + '<main class="briefing-preview">'
@@ -249,7 +251,8 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
         '<aside class="briefing-preview-aside">'
         '<strong>Inside the complete edition</strong>'
         + inside + '</aside></div>'
-        '<section class="briefing-unlock" data-analytics-section="briefing-reader-free-access">'
+        + video_html
+        + '<section class="briefing-unlock" data-analytics-section="briefing-reader-free-access">'
         '<div class="briefing-unlock-inner"><div><p class="eyebrow">Executive AI Reader Library · Free registration</p>'
         '<h2>Examine the decision and its trade-offs.</h2>'
         '<p>Read the supporting reasoning, decision framework and operating '

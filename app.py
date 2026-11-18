@@ -548,6 +548,24 @@ async def _briefing_artwork_pdf(request):
         return PlainTextResponse("Infographic not found", status_code=404)
     return RedirectResponse("/?page=briefing&article=" + slug + "&pdf=1", status_code=303)
 
+async def _briefing_public_video_file(request):
+    """First-party streaming video and poster for the approved public preview."""
+    from briefing_reader_preview_video import public_preview_media_path
+    slug = str(request.path_params.get("slug") or "")
+    asset = str(request.path_params.get("asset") or "")
+    path = public_preview_media_path(slug, asset)
+    if path is None:
+        return PlainTextResponse("Preview video asset not found", status_code=404)
+    return FileResponse(
+        path,
+        media_type="video/mp4" if asset == "preview.mp4" else "image/jpeg",
+        headers={
+            "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
 async def _weekly_ai_evergreen_image(_request):
     path = ROOT / "assets" / "weekly_ai_evergreen_visual.webp"
     if not path.is_file():
@@ -625,6 +643,7 @@ app = App(
         Route("/briefing-ai-roi/infographic.{ext}", _roi_infographic_image, methods=["GET", "HEAD"]),
         Route("/briefing-ai-authority/infographic.{ext}", _authority_infographic, methods=["GET", "HEAD"]),
         Route("/briefing-artwork/{slug}/download.pdf", _briefing_artwork_pdf, methods=["GET", "HEAD"]),
+        Route("/briefing-preview-video/{slug}/{asset}", _briefing_public_video_file, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/evergreen.webp", _weekly_ai_evergreen_image, methods=["GET", "HEAD"]),
         Route("/weekly-ai-cover/{slug}.png", _weekly_ai_cover, methods=["GET", "HEAD"]),
         Route("/thinking/{slug}", _thinking_article, methods=["GET", "HEAD"]),

@@ -378,25 +378,22 @@ else:
     responsive_document = support_masked_mobile_media(page_document)
     shared_styles = support_masked_mobile_media(CSS + IMAGE_CSS + pathway_css)
     if PAGE == "advisory-market-signals":
-        # Video is a native Streamlit iframe because st.html sanitizes embedded
-        # iframes. Splitting only at a closed-section marker keeps the public
-        # service navigation, footer and reader-access routes unchanged.
-        from page_advisory_market_signals import (
-            MARKET_REVIEW_VIDEO_EMBED_URL,
-            split_market_landing_at_video,
-        )
+        # Place the approved, 58-second research MP4 in a native Streamlit
+        # video control. It is packaged in this repository, not dependent on a
+        # time-limited HeyGen URL or third-party public sharing permissions.
+        # Splitting at a closed section preserves footer and member routes.
+        from page_advisory_market_signals import split_market_landing_at_video
         reading, remainder = split_market_landing_at_video(responsive_document)
         # Each st.html call is parsed independently. Close and reopen the
-        # scoped <main> around the native iframe so the second half retains
-        # the same mobile breakpoints, typography, footer and navigation.
+        # scoped <main> around the native media player, while keeping the same
+        # responsive styles and site-wide continuation navigation.
         st.html(shared_styles + '<div class="site">' + reading + '</main></div>')
+        market_video_path = ROOT / "static/market-signals/market-review-november-2026.mp4"
+        if not market_video_path.is_file():
+            raise FileNotFoundError("Published Market Review video asset is missing.")
         with st.container(key="market_video_player"):
-            st.iframe(
-                MARKET_REVIEW_VIDEO_EMBED_URL,
-                width="stretch", height=650,
-                alt="Swedish AI and Data Market Review: 58-second faceless research video",
-                tab_index=0,
-            )
+            st.video(str(market_video_path), format="video/mp4",
+                     autoplay=False, muted=False)
         st.html('<div class="site"><main class="site advisory-page ms-landing">' +
                 remainder + '</div>')
     elif PAGE == "advisory-market-demo":

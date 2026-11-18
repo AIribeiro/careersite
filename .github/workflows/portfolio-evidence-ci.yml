@@ -70,7 +70,7 @@ jobs:
           data = build_public_cv()
           pages = PdfReader(BytesIO(data), strict=True).pages
           assert len(pages) == 2, f"CV unexpectedly expanded to {len(pages)} pages"
-          text = " ".join((page.extract_text() or "") for page in pages)
+          text = " ".join(" ".join((page.extract_text() or "") for page in pages).split())
           assert "Customer Interview Analyzer" in text
           assert "did not scale it" in text
           print("CV verified: two pages, working prototype and bounded outcome")

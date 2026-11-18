@@ -3,7 +3,7 @@ from __future__ import annotations
 """Canonical public distribution policy for Jair Ribeiro's career site.
 
 This module intentionally contains only the active Streamlit distribution surface.
-Alternate deployments are not public distribution targets until explicitly promoted.
+The CV is distributed through the approved branded domain; preserve existing campaign URLs.
 """
 
 from urllib.parse import urlencode
@@ -47,7 +47,7 @@ def attributed_url(
 
 PERMANENT_SURFACES = {
     "linkedin": attributed_url("linkedin"),
-    "cv": attributed_url("cv"),
+    "cv": "https://jairribeiro.com/?source=cv",
     "email": attributed_url("email"),
     "outreach": attributed_url("outreach"),
     "application": attributed_url("application"),

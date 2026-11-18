@@ -1,0 +1,109 @@
+name: Market Signals PDF page preview capture
+
+on:
+  push:
+    paths:
+      - '.github/workflows/market-signals-pdf-previews.yml'
+      - 'src/market_intelligence_v2.py'
+      - 'src/market_jobseeker_edition.py'
+      - 'src/market_publication_design.py'
+      - 'docs/market_signals/november_2026_executive_v2.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install publication and raster dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.txt
+          python -m pip install --disable-pip-version-check 'PyMuPDF==1.26.7' 'Pillow==12.3.0'
+      - name: Capture full original A4 pages from both PDF generators
+        run: |
+          python - <<'PY'
+          import sys, json, hashlib
+          from pathlib import Path
+          import pymupdf
+          from PIL import Image
+          sys.path[:0] = ["src", "tests"]
+          from test_market_intelligence_v2 import verified_v2_fixture, SLUG
+          from market_intelligence_v2 import build_executive_market_pdf
+          from market_jobseeker_edition import jobseeker_market_pdf
+          points, editorial = verified_v2_fixture()
+          reports = {
+              "executive": build_executive_market_pdf(points, editorial, SLUG),
+              "jobseeker": jobseeker_market_pdf(points, editorial, SLUG),
+          }
+          targets = {
+              "executive": [
+                  ("executive-ai-investment", "AI adoption is not a business case for the next investment", "What the evidence says"),
+                  ("executive-capability", "The capability gap is a management question before it is a technology question", "What the evidence says"),
+              ],
+              "jobseeker": [
+                  ("jobseeker-adoption-capabilities", "Business AI adoption and hiring are different measures", "Obstacles reported by some AI non-adopters"),
+                  ("jobseeker-skills-proof", "Make your skills visible through real examples", "How this could help your search"),
+              ],
+          }
+          out=Path("static/market-signals/previews")
+          out.mkdir(parents=True,exist_ok=True)
+          manifest={"edition_slug":SLUG,"render_method":"PyMuPDF full-page, no crops or overlays","source":"Same PDF generators and official-value verified test fixture used in production quality checks","images":[]}
+          for edition, raw in reports.items():
+              doc=pymupdf.open(stream=raw,filetype="pdf")
+              assert len(doc) >= 8, (edition,len(doc))
+              used=set()
+              for asset, phrase, body_indicator in targets[edition]:
+                  candidates=[]
+                  for i,page in enumerate(doc):
+                      txt=" ".join(page.get_text().split())
+                      ix=txt.casefold().find(phrase.casefold())
+                      if ix < 0:continue
+                      if body_indicator.casefold() not in txt.casefold(): continue
+                      # Prefer a full explanatory page, not the small index/preview.
+                      candidates.append((ix,i,txt))
+                  assert candidates,(edition,phrase,[(i,p.get_text()[:250]) for i,p in enumerate(doc)])
+                  ix,i,txt=min(candidates)
+                  assert i not in used
+                  used.add(i)
+                  page=doc[i]
+                  assert abs(page.rect.width-595.28)<.6 and abs(page.rect.height-841.89)<.6
+                  # Direct screenshot of the full page; no cropping, restyling or text reconstruction.
+                  pix=page.get_pixmap(matrix=pymupdf.Matrix(1.85,1.85),alpha=False)
+                  fp=out/(asset+".png")
+                  pix.save(fp)
+                  with Image.open(fp) as im:
+                      im.verify()
+                  assert pix.width>1000 and pix.height>1500
+                  assert len(txt)>250
+                  digest=hashlib.sha256(fp.read_bytes()).hexdigest()
+                  manifest["images"].append({
+                      "edition":edition,"file":fp.as_posix(),
+                      "page_number":i+1,"pages_in_document":len(doc),
+                      "page_heading":phrase,"sha256":digest,
+                      "pdf_sha256":hashlib.sha256(raw).hexdigest(),
+                      "width":pix.width,"height":pix.height,
+                  })
+                  print(f"VERBATIM PDF PAGE {edition} {asset}: page {i+1}/{len(doc)}, {pix.width}x{pix.height}, {fp.stat().st_size:,} bytes")
+                  print("  START OF PAGE TEXT:",txt[:235])
+          assert len(manifest["images"])==4
+          (out/"manifest.json").write_text(json.dumps(manifest,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+          PY
+      - name: Publish four independently rendered PDF page captures
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git add static/market-signals/previews/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish four verbatim November PDF page previews [skip ci]'
+            git push origin HEAD:main
+          fi

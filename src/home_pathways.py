@@ -32,29 +32,29 @@ class Pathway(NamedTuple):
 PATHWAYS = (
     Pathway(
         "impact", "01", "Experience & impact", "What I’ve led",
-        "Leadership responsibilities, decisions and practical contributions "
-        "across international enterprise settings.",
+        "Selected work, decisions and concrete contributions "
+        "across enterprise AI and Data roles.",
         "Leadership evidence", "Explore my experience", "impact",
         "journey_home_impact",
     ),
     Pathway(
         "governance", "02", "Governance & adoption", "How I make AI work",
-        "How I approach ownership, decision rights, governance and adoption "
-        "so AI can become part of everyday business operations.",
+        "How I approach ownership, controls and adoption "
+        "in real business workflows.",
         "Operating perspective", "Explore governance", "ai-data-governance",
         "journey_home_governance",
     ),
     Pathway(
         "thinking", "03", "Articles & perspectives", "How I think",
-        "Weekly AI, Executive AI Briefings and longer perspectives on "
-        "the choices facing enterprise AI and Data leaders.",
+        "Briefings and articles on practical decisions "
+        "facing enterprise AI and Data leaders.",
         "Published perspectives", "Explore Thinking", "thinking",
         "journey_home_thinking",
     ),
     Pathway(
         "about", "04", "My journey", "Who I am",
-        "The places I’ve called home, the experiences that shaped me, "
-        "and a little about life beyond my professional roles.",
+        "The countries, experiences and people that shaped my work "
+        "and life beyond it.",
         "Beyond the job title", "Explore my story", "about",
         "journey_home_about",
     ),
@@ -158,16 +158,13 @@ def home_pathways() -> str:
         '<div class="journey-intro home-pathways-intro">'
         '<div class="home-pathways-heading">'
         '<p class="eyebrow">Explore the portfolio</p>'
-        '<h2 id="home-pathways-title">AI strategy is only the beginning.</h2>'
+        '<h2 id="home-pathways-title">AI leadership: work, decisions and perspective.</h2>'
         '<span class="home-pathways-heading-rule" aria-hidden="true"></span>'
         '</div>'
         '<div class="home-pathways-context">'
-        '<p>I’m Jair Ribeiro. My focus is the leadership work that follows: '
-        'choosing which AI and Data opportunities deserve attention, '
-        'making ownership explicit, and helping organizations turn technology '
-        'into changes in everyday operations. This portfolio brings together '
-        'what I’ve led, how I approach governance and adoption, the perspectives '
-        'I publish, and the personal journey behind my work.</p>'
+        '<p>I work across AI product development, portfolio choices, '
+        'governance and adoption. Explore the work, practical methods, '
+        'published perspectives and career background.</p>'
         '<div class="home-pathways-index" aria-hidden="true">'
         '<span>Four perspectives</span>'
         '<span>One career, seen from different angles</span>'

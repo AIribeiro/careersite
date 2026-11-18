@@ -435,8 +435,8 @@ MARKET_SIGNALS_LANDING_HTML = """
    <p class="ms-film-meta">58 seconds · English narration and captions · Plays only when selected</p>
   </div>
   <figure class="ms-video-figure">
-   <video class="ms-video-player" controls playsinline preload="none" poster="/app/static/market-signals/market-review-poster.jpg" aria-label="Swedish AI and Data Market Review, 58-second research explainer">
-    <source src="/app/static/market-signals/market-review-november-2026.mp4" type="video/mp4">
+   <video class="ms-video-player" controls playsinline webkit-playsinline preload="metadata" poster="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f2223462c7bd42f77ccfa73911d83/static/market-signals/market-review-poster.jpg" aria-label="Swedish AI and Data Market Review, 58-second research explainer">
+    <source src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f2223462c7bd42f77ccfa73911d83/static/market-signals/market-review-november-2026.mp4" type="video/mp4">
     <a href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer">Watch the research video on HeyGen</a>.
    </video>
    <figcaption>58-second evidence overview</figcaption>

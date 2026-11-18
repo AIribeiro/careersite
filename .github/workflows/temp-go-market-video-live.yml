@@ -18,7 +18,7 @@ jobs:
           python - <<'PY'
           import json,time
           from playwright.sync_api import sync_playwright
-          url="https://go.jairribeiro.com/?source=internal_qa&role=smoke"
+          url="https://go.jairribeiro.com/?page=advisory-market-signals&source=internal_qa&role=smoke"
           with sync_playwright() as p:
               browser=p.chromium.launch(headless=True,args=["--autoplay-policy=no-user-gesture-required"])
               page=browser.new_page(viewport={"width":390,"height":844},is_mobile=True,has_touch=True)
@@ -38,7 +38,7 @@ jobs:
                   if frame:break
                   page.wait_for_timeout(2400)
               if not frame:
-                  print("NO_VIDEO",page.url,[(x.url,x.locator('body').count()) for x in page.frames],flush=True)
+                  print("NO_VIDEO",page.url,[(x.url,x.locator("body").count(),x.locator("body").inner_text(timeout=2000)[:260] if x.locator("body").count() else "") for x in page.frames],flush=True)
                   raise AssertionError("Live masked domain did not display the video element")
               v=frame.locator(".ms-video-player")
               v.scroll_into_view_if_needed()

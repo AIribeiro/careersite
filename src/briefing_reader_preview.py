@@ -29,6 +29,14 @@ PREVIEW_CSS = r"""<style>
 .site .briefing-preview-body .container{max-width:1050px}
 .site .briefing-preview-grid {display:grid;grid-template-columns:minmax(0,1.35fr) minmax(240px,.65fr);gap:clamp(25px,5vw,70px);align-items:start}
 .site .briefing-preview-copy {max-width:745px}
+/* This illustrated edition reads as one editorial column; the media and prose
+   fill the same responsive page width, and supporting topics follow below. */
+.site .briefing-preview--wide .briefing-preview-hero .container,.site .briefing-preview--wide .briefing-preview-body .container{width:min(1480px,calc(100% - clamp(32px,6vw,112px)));max-width:none}
+.site .briefing-preview--wide .briefing-preview-grid{grid-template-columns:minmax(0,1fr);gap:clamp(24px,3vw,42px)}
+.site .briefing-preview--wide .briefing-preview-copy{width:100%;max-width:none;min-width:0}
+.site .briefing-preview--wide .briefing-preview-video,.site .briefing-preview--wide .briefing-preview-video-player{width:100%;max-width:none;min-width:0}
+.site .briefing-preview--wide .briefing-preview-aside{width:100%;max-width:none}
+.site .briefing-preview--wide .briefing-preview-aside ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));column-gap:clamp(16px,3vw,36px)}
 .site .briefing-preview-copy .eyebrow{font-size:10px;color:#b86134}
 .site .briefing-preview-copy h2{font:400 clamp(30px,3.6vw,43px)/1.17 Georgia,serif;letter-spacing:-.025em;margin:13px 0 23px;color:#142c3f}
 .site .briefing-preview-copy p {font:400 clamp(15px,1.45vw,17px)/1.82 Arial,sans-serif;color:#344653;margin:0 0 21px}
@@ -232,9 +240,11 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
     )
     access_base = f"?page=briefing&amp;article={slug}&amp;access=1"
     video_html = render_briefing_video_preview(str(article.slug or ""))
+    # Keep the wider editorial layout exclusive to the scaling-AI edition.
+    wide_class = " briefing-preview--wide" if str(article.slug or "") == "scaling-ai-across-the-enterprise-reuse-and-change" else ""
     return (
         THINKING_CSS + PREVIEW_CSS + nav("thinking")
-        + '<main class="briefing-preview">'
+        + f'<main class="briefing-preview{wide_class}">'
         '<section class="briefing-preview-hero" data-analytics-section="briefing-public-preview-intro">'
         '<div class="container"><a class="briefing-preview-back" href="?page=briefings" target="_self">'
         '← All Executive AI Briefings</a>'

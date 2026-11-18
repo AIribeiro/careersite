@@ -345,7 +345,21 @@ Future visits use your email and password, not an email access link.</p>
     st.rerun()
 
 
-def _advisory_login() -> None:
+def _finish_advisory_authentication(auth_surface=None) -> None:
+    """Remove the old sign-in widget tree before rendering the member view.
+
+    A completed Streamlit form submission can leave its prior elements visible
+    during an immediate rerun, especially in the masked-domain Streamlit frame.
+    Explicitly clearing the stable auth placeholder prevents a stale sign-in
+    surface being retained above the authenticated account shell.
+    """
+    st.session_state.pop("advisory_auth_mode", None)
+    if auth_surface is not None:
+        auth_surface.empty()
+    st.rerun()
+
+
+def _advisory_login(auth_surface=None) -> None:
     requested_service = str(st.query_params.get("view") or "")
     from advisory_service_visibility import service_enabled
     # Anonymous and regular visitors cannot discover a hidden service via a URL.
@@ -396,7 +410,7 @@ Your account also provides free access to the Executive AI Reader Library.</p>
         if submit:
             try:
                 _password_signin(str(email).strip().lower(), str(password))
-                st.rerun()
+                _finish_advisory_authentication(auth_surface)
             except (RuntimeError, ValueError, TimeoutError, KeyError):
                 st.error("Sign-in failed. Check your email and password.")
         with st.expander("Forgot your password?"):
@@ -694,7 +708,9 @@ def render_advisory_portal() -> None:
                 elif notice[0] == "warning":
                     st.warning(str(notice[1]))
             st.session_state.pop("advisory_member", None)
-            _advisory_login()
+            auth_surface = st.empty()
+            with auth_surface.container():
+                _advisory_login(auth_surface)
         else:
             member_logout_toolbar(session, user, context="advisory")
 

@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+"""Operating evidence is concise, anonymous and tied to bounded career facts."""
 from pathlib import Path
 import unittest
 
@@ -7,40 +6,31 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ImpactCaseConsistencyTests(unittest.TestCase):
-    def test_home_uses_three_modern_cases_while_impact_keeps_ibm_as_foundation(self) -> None:
-        home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
+    def test_featured_case_has_business_mechanism_and_honest_outcome(self):
+        src = (ROOT / "src/portfolio_operating_evidence.py").read_text(encoding="utf-8")
+        case = src.split('def impact_evidence()', 1)[1]
+        self.assertIn('id="customer-interview-analyzer"', case)
+        self.assertIn("two hours", case)
+        self.assertIn("transcribed and translated", case)
+        self.assertIn("not rolled out at scale", case)
+        for employer in ("Volvo Group", "MSX International", "Kimberly-Clark"):
+            self.assertNotIn(employer, case)
+        self.assertLess(case.index("Customer interviews"), case.index("80+ AI opportunities"))
+
+    def test_career_history_remains_a_separate_bounded_section(self):
         impact = (ROOT / "src/page_impact.py").read_text(encoding="utf-8")
-
-        home_expected = [
-            "Volvo Group / Volvo Trucks",
-            "MSX International",
-            "Kimberly-Clark",
-        ]
-
-        home_section = home.split('<p class="eyebrow">Selected experience</p>', 1)[1]
-        home_section = home_section.split('<p class="eyebrow">Recurring questions</p>', 1)[0]
-
-        home_positions = [home_section.index(f'<span class="org">{org}</span>') for org in home_expected]
-        self.assertEqual(home_positions, sorted(home_positions))
-        self.assertNotIn('<span class="org">IBM</span>', home_section)
-
-        # Homepage remains three selected cases; the Impact page also includes
-        # the earlier Volvo chapter as its own dated case.
-        self.assertEqual(impact.count("        case(\n"), 4)
-        self.assertIn('"Senior Artificial Intelligence Business Expert"', impact)
-        self.assertIn("Wroclaw, Poland", impact)
-        self.assertIn("Göteborg, Sweden", impact)
-        # Impact uses reverse chronological order; Home uses curated order.
-        self.assertLess(
-            impact.index('"MSX International"'),
-            impact.index('"Volvo Group / Volvo Trucks"'),
-        )
-
-        self.assertIn("Foundation · IBM", impact)
-        self.assertIn("Where the business-translation thread started.", impact)
-        self.assertIn("Cloud and AI Project Manager | IBM Watson Solution Designer", impact)
-        self.assertIn("IBM Design Thinking", impact)
-        self.assertIn("A foundation for the work that followed", impact)
+        for phrase in ("MSX International", "Volvo Group / Volvo Trucks",
+                       "Kimberly-Clark", "Senior AI Business Expert",
+                       "IBM Watson solution design", "2026–2027"):
+            if phrase == "2026–2027":
+                # Produced dynamically from the canonical approved roadmap date.
+                self.assertIn("MSX_ROADMAP", impact)
+            else:
+                self.assertIn(phrase, impact)
+        self.assertIn('{impact_evidence()}', impact)
+        self.assertIn('{portfolio_next_navigation("impact")}', impact)
+        self.assertIn("100+ AI learning sessions", impact)
+        self.assertNotIn("100+ production deployments", impact)
 
 
 if __name__ == "__main__":

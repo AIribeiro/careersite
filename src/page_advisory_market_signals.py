@@ -556,7 +556,7 @@ def split_market_landing_at_video(document: str) -> tuple[str, str]:
 
 
 def advisory_market_signals() -> str:
-    """Executive-market-intelligence service landing page; no privileged API reads."""
+    """Public two-audience Market Review landing; no privileged API reads."""
     return (
         SERVICES_CSS
         + MARKET_SIGNALS_LANDING_CSS

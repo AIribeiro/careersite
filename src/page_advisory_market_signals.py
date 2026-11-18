@@ -319,10 +319,11 @@ MARKET_SIGNALS_LANDING_HTML = """
       <p class="ms-hero-meta">Both reports are in English and free with registration, with separate PDFs. The June–August historical sample remains open without an account.</p>
       <div class="ms-trust-strip" aria-label="November research">
         <span><strong>43</strong> published observations</span>
+        <span><strong>5</strong> topics in each report</span>
         <span><strong>6</strong> evidence series · 5 publishers</span>
         <span><strong>2</strong> research perspectives</span>
       </div>
-      <p class="ms-issue-line">Executive Edition published 17 November · Jobseeker Edition prepared 18 November 2026</p>
+      <p class="ms-issue-line">The Executive Edition was published on 17 November and the Jobseeker Edition was prepared on 18 November 2026</p>
     </div>
 
   </div>

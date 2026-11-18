@@ -12,6 +12,8 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+      - name: Install FFmpeg tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Inspect MP4 codec and fast-start metadata
         run: |
           ffprobe -v error -show_entries format=duration,format_name,size:stream=index,codec_type,codec_name,profile,pix_fmt,width,height,level -of json static/market-signals/market-review-november-2026.mp4

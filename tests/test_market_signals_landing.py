@@ -56,6 +56,18 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertNotIn("grid-template-columns:minmax(0,1.15fr) minmax(0,.8fr)",css)
         self.assertNotIn("max-width:950px",css)
 
+    def test_masked_mobile_landing_neutralizes_double_zoom(self):
+        # This is specific to the large hero visible through go.jairribeiro.com.
+        # The shared fallback stays in place for every other portfolio route.
+        css=MARKET_SIGNALS_LANDING_CSS
+        self.assertIn('html[data-jr-masked-mobile="true"] .site.ms-landing {zoom:1!important}',css)
+        self.assertIn('html[data-jr-masked-mobile="true"] .site.ms-landing .ms-hero h1 {',css)
+        self.assertIn('font-size:36px;line-height:1.12;overflow-wrap:normal',css)
+        self.assertIn('width:calc(100% - 32px);max-width:100%',css)
+        self.assertIn('html[data-jr-masked-mobile="true"] .site.ms-landing .ms-section h2',css)
+        self.assertIn('(min-width:760px) and (max-device-width:700px)',css)
+        self.assertNotIn('.site.ms-landing {zoom:1!important}',css.split('@media screen and (min-width:760px)',1)[0])
+
     def test_market_signals_uses_shared_where_to_next_and_standard_footer(self):
         from page_home_featured import inject_writing_footer
         from about_next_navigation import portfolio_next_navigation

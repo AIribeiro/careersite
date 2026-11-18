@@ -77,7 +77,7 @@ def nav(active: str) -> str:
     top_item_style = "display:inline-flex!important;align-items:center;justify-content:center;white-space:nowrap"
 
     def link(page: str, label: str) -> str:
-        cls = "link on" if page == active else "link"
+        cls = "link on" if page == active or (page == "about" and active in {"certifications", "presence"}) else "link"
         return (
             f'<a class="{cls}" style="{top_item_style}" href="?page={page}" '
             f'target="_self">{html.escape(label)}</a>'

@@ -316,7 +316,13 @@ MARKET_SIGNALS_LANDING_HTML = """
         <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_register">For business leaders · Executive Edition</a>
         <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_jobseeker_cta">Looking for work? Jobseeker Edition</a>
       </div>
-      <p class="ms-hero-meta">Both reports are in English and free after creating an account, with separate PDFs to download. The June–August historical sample is open without registration.</p>
+      <p class="ms-hero-meta">Both reports are in English and free with registration, with separate PDFs. The June–August historical sample remains open without an account.</p>
+      <div class="ms-trust-strip" aria-label="November research">
+        <span><strong>43</strong> published observations</span>
+        <span><strong>6</strong> evidence series · 5 publishers</span>
+        <span><strong>2</strong> research perspectives</span>
+      </div>
+      <p class="ms-issue-line">Executive Edition published 17 November · Jobseeker Edition prepared 18 November 2026</p>
     </div>
 
   </div>

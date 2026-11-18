@@ -67,8 +67,16 @@ def test_video_appears_before_editorial_opening_and_member_access():
     )
     html = render_public_briefing_preview(article, "18 Nov 2026")
     video_at = html.index('<section class="briefing-preview-video"')
+    body_at = html.index('<section class="briefing-preview-body"')
     opening_at = html.index('<div class="briefing-preview-grid">')
     unlock_at = html.index('<section class="briefing-unlock"')
-    assert video_at < opening_at < unlock_at
+    # The media must be a full-width sibling ABOVE the paper body, not a
+    # child of its centered .container. The inner wrapper owns video alignment.
+    assert video_at < body_at < opening_at < unlock_at
+    assert html.count('<section class="briefing-preview-video"') == 1
+    assert '<div class="briefing-preview-video-inner">' in html
+    assert '.site .briefing-preview-video{width:100%;box-sizing:border-box;' in html
+    assert '.site .briefing-preview-video-inner{box-sizing:border-box;width:100%;max-width:1120px;' in html
+    assert '@media(max-width:600px)' in html
     assert "What leaders need to decide" in html
     assert "From the published edition" not in html

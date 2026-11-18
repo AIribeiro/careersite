@@ -1,0 +1,76 @@
+name: Temporary iOS Market Video Playback Diagnostics
+on:
+  push:
+    branches: [fix/market-video-ios-playback-20261118]
+    paths:
+      - .github/workflows/temp-market-ios-video-diagnostics.yml
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect MP4 codec and fast-start metadata
+        run: |
+          ffprobe -v error -show_entries format=duration,format_name,size:stream=index,codec_type,codec_name,profile,pix_fmt,width,height,level -of json static/market-signals/market-review-november-2026.mp4
+          python - <<'PY'
+          from pathlib import Path
+          b=Path("static/market-signals/market-review-november-2026.mp4").read_bytes()
+          print("atoms:",[(tag,b.find(tag)) for tag in (b"ftyp",b"moov",b"mdat")],flush=True)
+          PY
+      - name: Compare byte-range support on Streamlit, branded frame and GitHub CDN
+        run: |
+          python - <<'PY'
+          import requests
+          urls=[
+            "https://jairribeiro-ai.streamlit.app/app/static/market-signals/market-review-november-2026.mp4",
+            "https://go.jairribeiro.com/app/static/market-signals/market-review-november-2026.mp4",
+            "https://jairribeiro.com/app/static/market-signals/market-review-november-2026.mp4",
+            "https://raw.githubusercontent.com/AIribeiro/careersite/main/static/market-signals/market-review-november-2026.mp4",
+            "https://media.githubusercontent.com/media/AIribeiro/careersite/main/static/market-signals/market-review-november-2026.mp4",
+          ]
+          for u in urls:
+            try:
+              r=requests.get(u,headers={"Range":"bytes=0-1","Accept":"*/*","User-Agent":"Mozilla/5.0"},timeout=22,stream=True,allow_redirects=True)
+              data=next(r.iter_content(chunk_size=16),b"")
+              print("RANGE",u,"status",r.status_code,"final",r.url,"headers",{k:v for k,v in r.headers.items() if k.lower() in ("accept-ranges","content-range","content-length","content-type","content-encoding","access-control-allow-origin")},"firstbytes",data.hex(),flush=True)
+              r.close()
+            except Exception as e:print("ERROR",u,str(e)[:180],flush=True)
+          PY
+      - name: Install Playwright browsers
+        run: |
+          python -m pip install --quiet playwright==1.58.0
+          python -m playwright install chromium webkit --with-deps
+      - name: Test video currentTime advancement in Chromium and WebKit on the live site
+        run: |
+          python - <<'PY'
+          import json,time
+          from playwright.sync_api import sync_playwright
+          site="https://jairribeiro-ai.streamlit.app/?page=advisory-market-signals&source=internal_qa&role=smoke"
+          with sync_playwright() as p:
+            for engine in ("chromium","webkit"):
+              browser=getattr(p,engine).launch(headless=True)
+              ctx=browser.new_context(viewport={"width":390,"height":844},is_mobile=True,has_touch=True,ignore_https_errors=True)
+              page=ctx.new_page()
+              failed=[]
+              page.on("requestfailed",lambda req: failed.append({"url":req.url[:180],"failure":req.failure}))
+              try:
+                page.goto(site,wait_until="domcontentloaded",timeout=65000)
+                video=page.locator(".ms-video-player")
+                video.wait_for(state="attached",timeout=45000)
+                video.scroll_into_view_if_needed()
+                video.click(timeout=8000,force=True)
+                try:
+                  result=video.evaluate("""async v => {let attempted;try{await v.play();attempted='resolved'}catch(e){attempted=e.name+':'+e.message}return {attempted,readyState:v.readyState,networkState:v.networkState,error:v.error?.code,duration:v.duration,currentTime:v.currentTime,videoWidth:v.videoWidth,src:v.currentSrc,paused:v.paused}}""")
+                except Exception as exc:
+                  result={"playException":str(exc)[:220]}
+                page.wait_for_timeout(3500)
+                after=video.evaluate("""v=>({readyState:v.readyState,networkState:v.networkState,error:v.error?.code,duration:v.duration,currentTime:v.currentTime,videoWidth:v.videoWidth,src:v.currentSrc,paused:v.paused})""")
+                print("PLAYBACK",engine,json.dumps({"initial":result,"after":after,"failed":failed[-10:]}),flush=True)
+              except Exception as exc:
+                print("BROWSER_ERROR",engine,str(exc)[:700],flush=True)
+              finally:
+                browser.close()
+          PY

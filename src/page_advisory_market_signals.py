@@ -536,7 +536,7 @@ MARKET_SIGNALS_LANDING_HTML = """
   <div class="ms-section-head">
     <p class="ms-overline">Published materials / Downloadable PDFs</p>
     <h2 id="ms-materials-title">Take the research into your next discussion.</h2>
-    <p class="ms-section-intro">Choose the full report for your perspective. Both are included with free registration and draw on the same November evidence.</p>
+    <p class="ms-section-intro">Choose the complete A4 PDF for your perspective. Both reports are included with free registration and draw on the same November evidence.</p>
   </div>
   <div class="ms-formats">
     <article class="ms-format"><small>FOR BUSINESS LEADERS / Executive Edition 2.0.2</small>

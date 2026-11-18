@@ -31,7 +31,7 @@ class RuntimeSmokeTests(unittest.TestCase):
             for page in reader.pages
             for annotation in page.get("/Annots", [])
         }
-        self.assertIn("https://jairribeiro-ai.streamlit.app/?source=cv", links)
+        self.assertIn("https://jairribeiro.com/?source=cv", links)
 
         tracked = subprocess.run(
             ["git", "ls-files", "--error-unmatch", f"static/{filename}"],
@@ -64,7 +64,7 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertIsNotNone(generated_reader.trailer.get("/Root"))
         self.assertEqual(site_cv.CV_FILENAME, filename)
         self.assertEqual(site_cv.CV_SITE_DISPLAY, "AI & Data Portfolio")
-        self.assertEqual(site_cv.CV_SITE_URL, "https://jairribeiro-ai.streamlit.app/?source=cv")
+        self.assertEqual(site_cv.CV_SITE_URL, "https://jairribeiro.com/?source=cv")
         self.assertEqual(generated, committed)
         self.assertIn(site_cv.CV_SITE_URL, links)
         source = (ROOT / "src/site_cv.py").read_text(encoding="utf-8")

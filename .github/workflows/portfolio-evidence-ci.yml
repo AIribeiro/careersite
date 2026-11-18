@@ -10,6 +10,8 @@ on:
       - "src/portfolio_operating_evidence.py"
       - "src/site_cv.py"
       - "src/site_meta.py"
+      - "src/site_styles.py"
+      - "tests/test_evidence_grid_responsive.py"
       - "tests/test_home_grid_layout.py"
       - "tests/test_home_case_order.py"
       - "tests/test_impact_case_consistency.py"
@@ -25,6 +27,8 @@ on:
       - "src/portfolio_operating_evidence.py"
       - "src/site_cv.py"
       - "src/site_meta.py"
+      - "src/site_styles.py"
+      - "tests/test_evidence_grid_responsive.py"
       - "tests/test_home_grid_layout.py"
       - "tests/test_home_case_order.py"
       - "tests/test_impact_case_consistency.py"
@@ -48,7 +52,7 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install -r requirements.txt pytest
       - name: Compile affected modules
-        run: python -m compileall -q src/page_home.py src/page_impact.py src/page_ai_data_governance.py src/portfolio_operating_evidence.py src/site_cv.py src/site_meta.py
+        run: python -m compileall -q src/page_home.py src/page_impact.py src/page_ai_data_governance.py src/portfolio_operating_evidence.py src/site_cv.py src/site_meta.py src/site_styles.py
       - name: Test evidence, CV and public-copy contracts
         run: |
           python -m pytest -q \
@@ -60,7 +64,8 @@ jobs:
             tests/test_msx_dates.py \
             tests/test_home_pathways.py \
             tests/test_core_portfolio_navigation.py \
-            tests/test_governance_feature.py
+            tests/test_governance_feature.py \
+            tests/test_evidence_grid_responsive.py
       - name: Confirm generated CV still fits two pages
         run: |
           python - <<'PY'

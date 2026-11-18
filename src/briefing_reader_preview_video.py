@@ -18,7 +18,7 @@ MEDIA_SHA256 = {
 }
 
 PREVIEW_VIDEO_CSS = """<style>
-.site .briefing-preview-video{margin:clamp(34px,5vw,62px) 0 0;padding:clamp(21px,3.4vw,36px);background:#0d2234;color:#fff;border:1px solid #35546a;box-shadow:0 18px 40px rgba(13,32,49,.14)}
+.site .briefing-preview-video{margin:0 0 clamp(38px,5.5vw,72px);padding:clamp(21px,3.4vw,36px);background:#0d2234;color:#fff;border:1px solid #35546a;box-shadow:0 18px 40px rgba(13,32,49,.14)}
 .site .briefing-preview-video .eyebrow{color:#55d0d7!important;letter-spacing:.13em;font-size:10px;font-weight:800}
 .site .briefing-preview-video h2{color:#fff;font:500 clamp(25px,3.3vw,38px)/1.16 Georgia,serif;letter-spacing:-.02em;margin:11px 0 12px}
 .site .briefing-preview-video .briefing-video-description{max-width:780px;color:#cbd6df;font:400 clamp(13px,1.5vw,15px)/1.7 Arial,sans-serif;margin:0 0 22px}
@@ -54,9 +54,25 @@ def public_preview_media_path(slug: str, asset_name: str) -> Path | None:
     return path if _matches_approved_sha(str(path), MEDIA_SHA256[asset_name]) else None
 
 
+# Use Streamlit's documented static-media handler. Custom ASGI paths can be
+# intercepted by the branded frame/proxy and return non-video content.
+STATIC_MEDIA_ORIGIN = "https://jairribeiro-ai.streamlit.app"
+GITHUB_MEDIA_ROOT = (
+    "https://raw.githubusercontent.com/AIribeiro/careersite/main/"
+    "static/briefing-videos"
+)
+
+
 def _url(asset_name: str) -> str:
     version = MEDIA_SHA256[asset_name][:12]
-    return f"/briefing-preview-video/{BRIEFING_VIDEO_SLUG}/{asset_name}?v={version}"
+    return (
+        f"{STATIC_MEDIA_ORIGIN}/app/static/briefing-videos/"
+        f"{BRIEFING_VIDEO_SLUG}/{asset_name}?v={version}"
+    )
+
+
+def _backup_url() -> str:
+    return f"{GITHUB_MEDIA_ROOT}/{BRIEFING_VIDEO_SLUG}/preview.mp4"
 
 
 def render_briefing_video_preview(slug: str) -> str:
@@ -78,10 +94,13 @@ def render_briefing_video_preview(slug: str) -> str:
         'aria-label="Scaling AI Across the Enterprise: executive explainer narrated by Jair Ribeiro" '
         'poster="' + _url("poster.jpg") + '">'
         '<source src="' + _url("preview.mp4") + '" type="video/mp4">'
-        '<p class="briefing-video-fallback">Your browser cannot play this video. '
-        '<a href="' + _url("preview.mp4") + '">Open the video</a>.</p>'
+        '<source src="' + _backup_url() + '" type="video/mp4">'
+        '<p class="briefing-video-fallback">Your browser cannot play the embedded video. '
+        '<a href="' + _url("preview.mp4") + '" target="_blank" rel="noopener">Open the video in a new tab</a>.</p>'
         '</video></div>'
         '<p class="briefing-video-credit">Narrated by Jair Ribeiro · English subtitles included · '
-        'Full decision framework in the briefing below</p>'
+        'Full decision framework in the briefing below · '
+        '<a href="' + _url("preview.mp4") + '" target="_blank" rel="noopener" '
+        'style="color:#eac3a3;text-decoration:underline">Open video separately</a></p>'
         '</section>'
     )

@@ -115,11 +115,12 @@ class MarketSignalsLandingTests(unittest.TestCase):
         hero=html.split('<section class="ms-hero"',1)[1].split('</section>',1)[0]
         intro=html.split('<section class="ms-section ms-section--white" id="ms-findings"',1)[1].split('<div class="ms-proofs">',1)[0]
         for phrase in (
-            "Evidence for executive decisions",
-            "five decision perspectives",
-            "workforce planning",
-            "Read the November report · Free registration",
-            "Explore the June–August historical sample without registering",
+            "One Swedish AI &amp; Data evidence base.",
+            "executive decisions",
+            "job market for candidates",
+            "Executive edition · Free registration",
+            "Jobseeker edition · Free registration",
+            "Both November editions are available to registered readers",
         ):
             self.assertIn(phrase,hero)
         for defensive in ("cannot", "not a market forecast", "comprehensive AI recruitment census", "limited evidence", "where its limits lie"):
@@ -142,7 +143,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
             "Explore the June–August research sample.",
             "Research sources and how to use the findings.",
             "Interpret each measure in its proper context.",
-            "Bring the November research into your next leadership discussion.",
+            "Use the November research for your next decision.",
         ]
         for heading in expected:
             self.assertIn(heading,self.page)

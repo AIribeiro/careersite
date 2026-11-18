@@ -370,11 +370,11 @@ MARKET_SIGNALS_LANDING_HTML = """
     <article class="ms-perspective">
       <span class="ms-label">02 / People looking for work in Sweden</span>
       <h3>Make a more focused search for AI or Data work.</h3>
-      <p>Explore where to search, how to describe your skills and which working arrangements suit you. Read five job-search topics, possible market conditions and a practical four-week plan, then download the complete PDF and source register.</p>
+      <p>Explore where to search, how to describe your skills and which working arrangements suit you, including when returning to work. Read five job-search topics, possible market conditions and a practical four-week plan, then download the complete PDF and source register.</p>
       <div class="ms-actions"><a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self">Read the Jobseeker Edition · Free</a></div>
     </article>
   </div>
-  <p class="ms-note">För dig som söker jobb inom AI och data i Sverige: Här hittar du marknadsfakta, konkreta råd och en plan för jobbsökningen. Rapporten är på engelska och gratis efter registrering. The November 2026 research is a dated snapshot, not live job listings or a salary survey. JobTech covers selected senior titles, not every entry-level opening.</p>
+  <p class="ms-note">För dig som söker jobb inom AI och data i Sverige: Här hittar du marknadsfakta, konkreta råd och en plan för jobbsökningen. Rapporten är på engelska och gratis efter registrering. The November 2026 research is a dated snapshot, not live job listings or a salary survey. JobTech covers selected senior titles only—not every entry-level opening.</p>
 </div></section>
 
 <section class="ms-section ms-section--white" id="ms-findings" aria-labelledby="ms-findings-title"><div class="container">

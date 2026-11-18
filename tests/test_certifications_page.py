@@ -20,12 +20,15 @@ class CertificationsPageTests(unittest.TestCase):
         self.assertIn("from page_certifications import certifications", main)
         self.assertIn("?page=certifications", about)
 
-        from site_components import ABOUT_PAGES, nav
+        from site_components import nav
 
-        self.assertEqual(ABOUT_PAGES["certifications"], "Credentials & Certifications")
+        self.assertIn('elif PAGE == "certifications":', main)
+        self.assertIn('elif PAGE == "presence":', main)
+        self.assertIn("from page_presence import presence", main)
+        self.assertIn("?page=presence", about)
         menu = nav("certifications")
-        self.assertIn("Credentials &amp; Certifications", menu)
-        self.assertIn('summary class="link on"', menu)
+        self.assertIn('href="?page=about"', menu)
+        self.assertIn('class="link on"', menu)
 
     def test_flagship_credentials_are_curated_unique_and_verifiable(self) -> None:
         from page_certifications import FLAGSHIP, EITCA_COMPONENTS

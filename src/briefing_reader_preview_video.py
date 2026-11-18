@@ -18,7 +18,8 @@ MEDIA_SHA256 = {
 }
 
 PREVIEW_VIDEO_CSS = """<style>
-.site .briefing-preview-video{margin:0 0 clamp(38px,5.5vw,72px);padding:clamp(21px,3.4vw,36px);background:#0d2234;color:#fff;border:1px solid #35546a;box-shadow:0 18px 40px rgba(13,32,49,.14)}
+.site .briefing-preview-video{width:100%;box-sizing:border-box;margin:0;padding:clamp(32px,5vw,65px) 0;background:#0d2234;color:#fff;border-top:1px solid #35546a;border-bottom:1px solid #35546a}
+.site .briefing-preview-video-inner{box-sizing:border-box;width:100%;max-width:1120px;margin:0 auto;padding:0 clamp(18px,3.2vw,38px)}
 .site .briefing-preview-video .eyebrow{color:#55d0d7!important;letter-spacing:.13em;font-size:10px;font-weight:800}
 .site .briefing-preview-video h2{color:#fff;font:500 clamp(25px,3.3vw,38px)/1.16 Georgia,serif;letter-spacing:-.02em;margin:11px 0 12px}
 .site .briefing-preview-video .briefing-video-description{max-width:780px;color:#cbd6df;font:400 clamp(13px,1.5vw,15px)/1.7 Arial,sans-serif;margin:0 0 22px}
@@ -27,7 +28,7 @@ PREVIEW_VIDEO_CSS = """<style>
 .site .briefing-video-credit{margin:12px 0 0;color:#b5c6d2;font:600 11px/1.65 Arial,sans-serif}
 .site .briefing-video-fallback{color:#fff;font-size:12px}
 .site .briefing-video-fallback a{color:#eac3a3!important}
-@media(max-width:600px){.site .briefing-preview-video{padding:18px 14px 22px;margin-top:30px}.site .briefing-preview-video .briefing-video-description{margin-bottom:15px}}
+@media(max-width:600px){.site .briefing-preview-video{padding:32px 0 38px}.site .briefing-preview-video-inner{padding:0 16px}.site .briefing-preview-video .briefing-video-description{margin-bottom:15px}}
 </style>"""
 
 
@@ -84,6 +85,7 @@ def render_briefing_video_preview(slug: str) -> str:
         PREVIEW_VIDEO_CSS
         + '<section class="briefing-preview-video" data-analytics-section="briefing-public-video" '
           'aria-labelledby="briefing-preview-video-title">'
+        '<div class="briefing-preview-video-inner">'
         '<span class="eyebrow">Executive explainer · 1 min 45 sec</span>'
         '<h2 id="briefing-preview-video-title">One AI success. Two different outcomes.</h2>'
         '<p class="briefing-video-description">Why the same AI solution can improve work in one team '
@@ -102,5 +104,5 @@ def render_briefing_video_preview(slug: str) -> str:
         'Full decision framework in the briefing below · '
         '<a href="' + _url("preview.mp4") + '" target="_blank" rel="noopener" '
         'style="color:#eac3a3;text-decoration:underline">Open video separately</a></p>'
-        '</section>'
+        '</div></section>'
     )

@@ -16,7 +16,7 @@ class HomeGridLayoutTests(unittest.TestCase):
         self.assertIn("Customer Interview Analyzer", section)
         self.assertIn("was not scaled", section)
         self.assertIn('href="?page=impact#customer-interview-analyzer"', section)
-        self.assertNotIn("claim of a fully scaled operating model", section)
+        self.assertIn("not a claim of a fully scaled operating model", section)
 
     def test_navigation_and_closing_contact_are_preserved(self):
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")

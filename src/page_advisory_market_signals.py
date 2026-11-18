@@ -234,6 +234,62 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-cta-aside {width:100%;padding:24px;border-left:2px solid #C9916E;background:#203A50}
 .site.ms-landing .ms-cta-aside strong {color:#FCE4D1}
 .site.ms-landing .ms-cta-aside p {margin:10px 0 0;font-size:13px}
+
+/* Publication flow: introduction → video → equal report choices → evidence → downloads. */
+.site.ms-landing .ms-hero {padding:clamp(50px,5.6vw,84px) 0 clamp(36px,4vw,58px)}
+.site.ms-landing .ms-edition {padding:19px clamp(20px,3vw,34px);border-top-width:2px}
+.site.ms-landing .ms-edition-counts {margin:10px 0 12px;padding:12px 0}
+.site.ms-landing .ms-section {padding:clamp(48px,6vw,77px) 0}
+.site.ms-landing .ms-video-grid {display:grid;grid-template-columns:minmax(0,1.12fr) minmax(250px,.62fr);gap:clamp(34px,5vw,88px);align-items:center}
+.site.ms-landing .ms-video-grid > * {min-width:0}
+.site.ms-landing .ms-video-story {min-width:0}
+.site.ms-landing .ms-video-story h2 {max-width:920px}
+.site.ms-landing .ms-video-points {display:grid;gap:0;margin:28px 0 17px;border-top:1px solid #DDD5C9}
+.site.ms-landing .ms-video-points div {display:grid;grid-template-columns:minmax(0,140px) minmax(0,1fr);gap:18px;padding:17px 0;border-bottom:1px solid #DDD5C9}
+.site.ms-landing .ms-video-points strong {font-size:13px;color:#193449}
+.site.ms-landing .ms-video-points span {font-size:14px;line-height:1.6;color:#536579}
+.site.ms-landing .ms-video-note {font-size:12px;line-height:1.7;color:#647588}
+.site.ms-landing .ms-text-link {display:inline-block;margin-top:18px;color:#214B6A!important;font-size:14px;font-weight:800;text-decoration:underline;text-underline-offset:5px}
+.site.ms-landing .ms-video-figure {margin:0 auto;width:100%;max-width:345px}
+.site.ms-landing .ms-video-shell {background:#ECE9E2;border:7px solid #E6E2D9;box-shadow:0 19px 44px rgba(17,35,51,.15);width:100%;overflow:hidden}
+.site.ms-landing .ms-video-player {display:block;width:100%;max-width:100%;aspect-ratio:512/910;height:auto;object-fit:contain;background:#F5F2EB}
+.site.ms-landing .ms-video-figure figcaption {font-size:11px;line-height:1.6;text-align:center;color:#5C6C7C;margin-top:13px}
+.site.ms-landing .ms-perspectives {align-items:stretch;gap:20px}
+.site.ms-landing .ms-perspective {display:flex;flex-direction:column;min-width:0;min-height:380px;padding:clamp(22px,3vw,33px)}
+.site.ms-landing .ms-perspective h3 {font-size:clamp(26px,2.6vw,33px);max-width:26ch}
+.site.ms-landing .ms-perspective p {margin:0 0 10px;line-height:1.7}
+.site.ms-landing .ms-perspective-benefits {padding:0;margin:8px 0 26px;list-style:none}
+.site.ms-landing .ms-perspective-benefits li {border-top:1px solid #E6E1D8;padding:10px 0;font-size:13px;color:#3D5567;line-height:1.6}
+.site.ms-landing .ms-perspective-benefits li::before {content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#A97252;margin:0 10px 2px 0}
+.site.ms-landing .ms-perspective .ms-actions {margin-top:auto;padding-top:12px}
+.site.ms-landing .ms-perspective .ms-button {width:100%;background:#1B374D;border-color:#1B374D;color:#fff!important}
+.site.ms-landing .ms-perspective .ms-button:hover {background:#2E5069}
+.site.ms-landing .ms-proofs {grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+.site.ms-landing .ms-proof {min-height:0;padding:clamp(18px,2vw,26px)}
+.site.ms-landing .ms-proof h3 {font-size:clamp(21px,1.9vw,27px);line-height:1.22}
+.site.ms-landing .ms-proof .ms-number {font-size:clamp(38px,3.3vw,51px)}
+.site.ms-landing .ms-workspace--compact {grid-template-columns:minmax(0,1fr) minmax(0,.85fr);gap:clamp(28px,4vw,65px)}
+.site.ms-landing .ms-access-overview article {border-top:1px solid #53687A;padding:19px 0}
+.site.ms-landing .ms-access-overview span {color:#E4B48E;letter-spacing:.12em;font-weight:850;font-size:10px}
+.site.ms-landing .ms-access-overview h3 {font:500 23px/1.2 Georgia,serif;color:#fff;margin:10px 0}
+.site.ms-landing .ms-access-overview p {font-size:13px;line-height:1.7;color:#C6D3DF;margin:0}
+.site.ms-landing .ms-research-index {min-width:0}
+.site.ms-landing .ms-research-details {background:#203A51;border:1px solid #516A7E;padding:20px}
+.site.ms-landing .ms-research-details summary {cursor:pointer;color:#FFF7F1;font-size:15px;font-weight:800;line-height:1.5}
+.site.ms-landing .ms-research-details[open] summary {padding-bottom:14px;border-bottom:1px solid #516A7E}
+.site.ms-landing .ms-research-details .ms-dashboard-list {grid-template-columns:minmax(0,1fr)}
+.site.ms-landing .ms-research-small {color:#C1CDD8;font-size:12px;line-height:1.65}
+.site.ms-landing .ms-formats {gap:20px}
+.site.ms-landing .ms-format {padding:clamp(23px,3vw,34px)}
+.site.ms-landing .ms-format h3 {font-size:clamp(23px,2.4vw,30px)}
+.site.ms-landing .ms-methods-details {border:1px solid #D3C8B9;padding:clamp(18px,3vw,27px);background:#FBF9F4}
+.site.ms-landing .ms-methods-details summary {font-size:15px;color:#18374B;font-weight:850;cursor:pointer;line-height:1.55}
+.site.ms-landing .ms-methods-details[open] summary {margin-bottom:25px;padding-bottom:17px;border-bottom:1px solid #D3C8B9}
+.site.ms-landing .ms-methods-section {padding-top:31px;padding-bottom:57px}
+@media(max-width:1100px) {
+ .site.ms-landing .ms-proofs {grid-template-columns:repeat(2,minmax(0,1fr))}
+ .site.ms-landing .ms-video-grid {grid-template-columns:minmax(0,1fr) minmax(230px,.7fr);gap:30px}
+}
 @media(max-width:1100px) {
  .site.ms-landing .ms-hero-grid {grid-template-columns:minmax(0,1fr)}
  .site.ms-landing .ms-edition {max-width:none}
@@ -245,6 +301,10 @@ MARKET_SIGNALS_LANDING_CSS = """
  .site.ms-landing .ms-hero {padding:50px 0}
  .site.ms-landing .ms-hero h1 {font-size:clamp(36px,8.5vw,52px);line-height:1.11}
  .site.ms-landing .ms-proofs,.site.ms-landing .ms-decision-list,.site.ms-landing .ms-formats,.site.ms-landing .ms-perspectives,.site.ms-landing .ms-candidate-value {grid-template-columns:minmax(0,1fr)}
+  .site.ms-landing .ms-video-grid,.site.ms-landing .ms-workspace--compact {grid-template-columns:minmax(0,1fr)}
+  .site.ms-landing .ms-video-points div {grid-template-columns:minmax(0,1fr);gap:4px}
+  .site.ms-landing .ms-video-figure {max-width:min(100%,320px)}
+  .site.ms-landing .ms-perspective {min-height:0}
  .site.ms-landing .ms-proof {min-height:0}
  .site.ms-landing .ms-dashboard-list {grid-template-columns:minmax(0,1fr)}
  .site.ms-landing .ms-edition-counts {gap:5px}

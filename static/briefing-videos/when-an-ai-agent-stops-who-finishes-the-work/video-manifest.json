@@ -69,11 +69,13 @@
         "size_bytes": 195695
       }
     ],
-    "git_binary_available": false
+    "git_binary_available": false,
+    "public_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/executive-briefings/when-an-ai-agent-stops-who-finishes-the-work/preview-v1-d0fbd81b.mp4",
+    "delivery": "supabase-public-storage"
   },
   "poster": {
     "file": "poster.jpg",
     "sha256": "05968e6939ec1ef08b0b7efe454614881db9d283d9091fac03500a457737ba89"
   },
-  "note": "Owner-approved exact MP4 is assembled atomically from validated binary Git blobs at portfolio runtime; no Actions build job required. Fail closed if any chunk or output hash mismatches."
+  "note": "Exact owner-approved MP4 is served from durable public Storage, verified against original MD5 0623d831417d06e3d287b9f256ccb809 and SHA-256 d0fbd81bbbec75630e3aa41b6d852639f1c49ef5e67a96ff70417f5d1995bf41. Git binary chunks remain as transport archival copies; no runtime reconstruction required for playback."
 }

@@ -88,3 +88,24 @@ def test_chunk_tampering_rejected_without_fallback():
     from briefing_reader_preview_video import _approved_manifest
     manifest = _approved_manifest(AGENT_SLUG)
     assert manifest and manifest["web"]["chunks"][0]["sha256"].startswith("bc70a878")
+
+
+def test_agent_playback_uses_public_mp4_and_poster_not_ephemeral_streamlit_media():
+    """P0 regression: both media URLs must work without a Streamlit session."""
+    html = render_briefing_video_preview(AGENT_SLUG)
+    assert (
+        '<source src="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/'
+        'object/public/portfolio-public-videos/executive-briefings/'
+        'when-an-ai-agent-stops-who-finishes-the-work/'
+        'preview-v1-d0fbd81b.mp4" type="video/mp4">'
+    ) in html
+    assert (
+        'poster="https://raw.githubusercontent.com/AIribeiro/careersite/main/'
+        'static/briefing-videos/when-an-ai-agent-stops-who-finishes-the-work/'
+        'poster.jpg?v=05968e6939ec"'
+    ) in html
+    assert "agent-briefing-video-delivery" not in html
+    assert (
+        'app/static/briefing-videos/'
+        'when-an-ai-agent-stops-who-finishes-the-work/preview.mp4'
+    ) not in html

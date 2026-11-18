@@ -416,9 +416,12 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),"Selected senior AI/Data adverts","JobTech, October 2026"),
     ],sty=sty))
     story.append(Spacer(1,17))
-    story.append(P("Five candidate decision perspectives", "h2",sty=sty))
+    # A five-part preview is one reading unit: never leave one item orphaned
+    # at the foot of the page while the other four start the next page.
+    preview=[P("Five candidate decision perspectives","h2",sty=sty)]
     for i,x in enumerate(FINDINGS,1):
-        story.append(P(f"{i:02d} / {x['title']}","body_compact",sty=sty))
+        preview.append(P(f"{i:02d} / {x['title']}","body_compact",sty=sty))
+    story.append(KeepTogether(preview))
     story.append(Spacer(1,12))
     story.append(CondPageBreak(235))
 
@@ -531,7 +534,7 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
     story.append(P("Independent research by Jair Ribeiro | jairribeiro.com",
                    "caption",sty=sty))
     return assemble(story,cover,
-       "Jair Ribeiro | Swedish AI & Data Job Market Review | Candidate Edition 1.0",
+       "Jair Ribeiro | Swedish AI & Data Market Review | Jobseeker Edition 1.0",
        min_bytes=10000,
        interior_kicker="MARKET SIGNALS / JOBSEEKER RESEARCH",
        interior_footer="Independent market research")

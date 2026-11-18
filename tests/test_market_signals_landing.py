@@ -146,7 +146,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
                       "Two editions. One evidence base.",
                       "Five market signals worth understanding.",
                       "AI adoption is widespread. Business value is the next question.",
-                      "Senior AI &amp; Data leadership: examine the roles behind the numbers.",
+                      "Internal analytics capability is a separate measure from AI adoption.",
                       "Consulting activity and available capacity rose together.",
                       "Recruitment demand extends beyond job advertisements.",
                       "Explore the June–August research sample.",

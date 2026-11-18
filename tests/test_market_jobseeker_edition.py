@@ -42,8 +42,9 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertIn("Jobseeker Edition",str(pdf.metadata.title))
         self.assertNotIn("Job Market Review",str(pdf.metadata.title))
         overview_pages=[
-            (page.extract_text() or "") for page in pdf.pages
-            if "Five candidate decision perspectives" in (page.extract_text() or "")
+            " ".join((page.extract_text() or "").split()) for page in pdf.pages
+            if "Five candidate decision perspectives" in
+               " ".join((page.extract_text() or "").split())
         ]
         self.assertEqual(len(overview_pages),1)
         for item in FINDINGS:

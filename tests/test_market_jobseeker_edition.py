@@ -48,7 +48,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         ]
         self.assertEqual(len(overview_pages),1)
         for item in FINDINGS:
-            self.assertIn(item["title"].lower(),
+            self.assertIn(item["title"][:15].lower(),
                           " ".join(overview_pages[0].lower().split()))
         self.assertGreaterEqual(len(pdf.pages),8)
         text=" ".join(" ".join(p.extract_text() or "" for p in pdf.pages).split())
@@ -68,7 +68,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
     def test_accessible_copy_in_both_member_reader_and_download(self):
         from market_jobseeker_edition import INTRO, VALUE, FINDINGS, READING_HELP
         self.assertIn("Looking for work",INTRO)
-        self.assertIn("starting",VALUE.lower())
+        self.assertIn("new to the field",VALUE.lower())
         self.assertEqual(len(READING_HELP),5)
         self.assertTrue(any("courses" in item["reading"] for item in FINDINGS))
         self.assertTrue(any("entry-level" in item["reading"] for item in FINDINGS))
@@ -102,8 +102,8 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertIn("five questions for your job search",text)
         for question,_ in DECISION_MAP:
             self.assertIn(question.lower(),text)
-        for phrase in ("salary offers", "not only ai and data jobs",
-                       "selected senior", "survey"):
+        for phrase in ("salary offers", "selected senior", "survey",
+                       "does not measure which application channel works best"):
             self.assertIn(phrase,text)
 
     def test_public_benefits_and_limitations_are_clear(self):

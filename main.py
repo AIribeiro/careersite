@@ -136,7 +136,7 @@ TITLES = {
     "advisory-decision": "AI Investment Decision Advisor | Jair Ribeiro",
     "advisory-leadership": "Executive AI Leadership Workshop | Jair Ribeiro",
     "advisory-renewal": "AI Portfolio Renewal Advisor | Jair Ribeiro",
-    "advisory-market-signals": "AI & Data Market Intelligence for Executive Decision-Making | Jair Ribeiro",
+    "advisory-market-signals": "Swedish AI & Data Market Review | Jobseekers & Business Leaders | Jair Ribeiro",
     "advisory-market-demo": "Historical Market Observatory | Jair Ribeiro",
     "privacy": "Privacy & Data | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",
@@ -377,7 +377,29 @@ else:
     # breakpoints as the shared CSS when Spaceship serves a 980px masked frame.
     responsive_document = support_masked_mobile_media(page_document)
     shared_styles = support_masked_mobile_media(CSS + IMAGE_CSS + pathway_css)
-    if PAGE == "advisory-market-demo":
+    if PAGE == "advisory-market-signals":
+        # Video is a native Streamlit iframe because st.html sanitizes embedded
+        # iframes. Splitting only at a closed-section marker keeps the public
+        # service navigation, footer and reader-access routes unchanged.
+        from page_advisory_market_signals import (
+            MARKET_REVIEW_VIDEO_EMBED_URL,
+            split_market_landing_at_video,
+        )
+        reading, remainder = split_market_landing_at_video(responsive_document)
+        # Each st.html call is parsed independently. Close and reopen the
+        # scoped <main> around the native iframe so the second half retains
+        # the same mobile breakpoints, typography, footer and navigation.
+        st.html(shared_styles + '<div class="site">' + reading + '</main></div>')
+        with st.container(key="market_video_player"):
+            st.iframe(
+                MARKET_REVIEW_VIDEO_EMBED_URL,
+                width="stretch", height=650,
+                alt="Swedish AI and Data Market Review: 58-second faceless research video",
+                tab_index=0,
+            )
+        st.html('<div class="site"><main class="site advisory-page ms-landing">' +
+                remainder + '</div>')
+    elif PAGE == "advisory-market-demo":
         from page_advisory_market_demo import (
             split_public_market_demo_at_download,
             render_public_market_demo_download,

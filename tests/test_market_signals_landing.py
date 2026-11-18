@@ -109,85 +109,73 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertNotIn("Market signals connected to leadership decisions.",self.page)
         self.assertNotIn("What readers receive",self.page)
 
-    def test_executive_target_and_decision_value_are_explicit(self):
-        for phrase in (
-            "Swedish AI &amp; Data Market Review",
-            "For CEOs, CFOs, CHROs",
-            "Recruit, develop internally or seek external expertise?",
-            "Which AI investments deserve the next budget?",
-            "Bring a stronger case to the leadership table",
-            "Market Observatory",
-            "Complete AI &amp; Data Market Review",
-            "Executive Decision Briefs and source register",
-        ):
-            self.assertIn(phrase,self.page)
+    def test_both_audiences_are_explicit(self):
+        for value in ("Swedish AI &amp; Data Market Review",
+                      "Plan AI investment and hiring decisions.",
+                      "Make a more focused search for AI or Data work.",
+                      "Complete AI &amp; Data Market Review",
+                      "Executive Decision Briefs and source register",
+                      "Market Observatory"):
+            self.assertIn(value,self.page)
 
-    def test_executive_value_precedes_scope_caveats(self):
+    def test_video_is_early_and_the_intro_is_direct(self):
         html=MARKET_SIGNALS_LANDING_HTML
-        hero=html.split('<section class="ms-hero"',1)[1].split('</section>',1)[0]
-        intro=html.split('<section class="ms-section ms-section--white" id="ms-findings"',1)[1].split('<div class="ms-proofs">',1)[0]
-        for phrase in (
-            "Two free reports on Sweden’s AI &amp; Data market",
-            "job titles",
-            "Looking for AI or Data work in Sweden",
-            "For business leaders · Free report",
-            "Looking for work? Read the free report",
-            "Both reports are in English and free",
-        ):
-            self.assertIn(phrase,hero)
-        for defensive in ("cannot", "not a market forecast", "comprehensive AI recruitment census", "limited evidence", "where its limits lie"):
-            self.assertNotIn(defensive,hero.lower())
-            self.assertNotIn(defensive,intro.lower())
-        self.assertIn("Research sources and how to use the findings.",html)
-        self.assertIn("exact replication is not assured",html)
+        self.assertIn("Understand the Swedish AI &amp; Data market.",html)
+        self.assertIn("Five market signals worth understanding.",html)
+        self.assertLess(html.index('id="ms-video"'),html.index('id="ms-perspectives"'))
+        self.assertLess(html.index('id="ms-perspectives"'),html.index('id="ms-findings"'))
+        self.assertIn("43",html)
+        self.assertIn("Jobseeker Edition",html)
+        self.assertIn("Executive Edition",html)
         self.assertIn("switched to SNI 2025",html)
-        self.assertIn("Brainville",html)
-        self.assertIn("not a market forecast",html)
 
-    def test_public_jobseeker_experience_is_clear_and_inclusive(self):
+    def test_jobseeker_still_has_a_clear_offer(self):
         html=MARKET_SIGNALS_LANDING_HTML
-        self.assertIn('id="ms-jobseeker-benefits"',html)
-        for phrase in (
-            "new to the field",
-            "changing careers",
-            "returning to work",
-            "För dig som söker jobb inom AI och data i Sverige",
-            "Rapporten är på engelska",
-            "Four-week plan",
-            "Read the free Jobseeker Edition and download the PDF",
-            "Jobseeker report · Free account",
-            "not every entry-level opening",
-        ):
-            self.assertIn(phrase,html)
+        for text in ("returning to work","För dig som söker jobb inom AI och data i Sverige",
+                     "Rapporten är på engelska","four-week plan",
+                     "Read the Jobseeker Edition · Free","not every entry-level opening",
+                     "Jobseeker report · Free account"):
+            self.assertIn(text,html)
         self.assertIn("perspective=jobseeker",html)
-        self.assertIn("market_signals_final_jobseeker",html)
         self.assertNotIn("guaranteed job",html.lower())
 
-    def test_executive_headlines_use_measured_claims_not_promotional_promises(self):
-        expected=[
-            "Swedish AI &amp; Data Market Review",
-            "What the Swedish market figures show",
-            "AI adoption is widespread. Business value is the next question.",
-            "Senior AI &amp; Data leadership: examine the roles behind the numbers.",
-            "Consulting activity and available capacity rose together.",
-            "Recruitment demand extends beyond job advertisements.",
-            "Explore the June–August research sample.",
-            "Research sources and how to use the findings.",
-            "Interpret each measure in its proper context.",
-            "Use the November research for your next decision.",
-        ]
-        for heading in expected:
-            self.assertIn(heading,self.page)
-        for obsolete in [
-            "Make sense of Sweden's AI",
-            "Three findings you can explore",
-            "One report you can try",
-            "Start with your question, not a headline",
-            "Bring a better question",
-            "TRY THE RESEARCH",
-            "You should be able to check every figure",
-        ]:
-            self.assertNotIn(obsolete,self.page)
+    def test_headlines_are_source_led_not_promotional(self):
+        for title in ("Swedish AI &amp; Data Market Review",
+                      "The numbers are only the beginning.",
+                      "Two editions. One evidence base.",
+                      "Five market signals worth understanding.",
+                      "AI adoption is widespread. Business value is the next question.",
+                      "Senior AI &amp; Data leadership: examine the roles behind the numbers.",
+                      "Consulting activity and available capacity rose together.",
+                      "Recruitment demand extends beyond job advertisements.",
+                      "Explore the June–August research sample.",
+                      "Research sources and how to use the findings.",
+                      "Choose your edition and start reading."):
+            self.assertIn(title,self.page)
+
+    def test_native_video_mount_and_reduced_repetition(self):
+        from page_advisory_market_signals import (
+            MARKET_REVIEW_VIDEO_ID,MARKET_REVIEW_VIDEO_EMBED_URL,
+            MARKET_VIDEO_SPLIT,split_market_landing_at_video,
+        )
+        self.assertEqual(MARKET_REVIEW_VIDEO_ID,"55e1d1dff94641d2a3f6e915cef8fd3d")
+        self.assertEqual(MARKET_REVIEW_VIDEO_EMBED_URL,
+                         "https://app.heygen.com/embeds/"+MARKET_REVIEW_VIDEO_ID)
+        self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(MARKET_VIDEO_SPLIT),1)
+        intro,remainder=split_market_landing_at_video(MARKET_SIGNALS_LANDING_HTML)
+        self.assertTrue(intro.rstrip().endswith("</section>"))
+        self.assertTrue(remainder.lstrip().startswith("<section"))
+        main=(ROOT/"main.py").read_text(encoding="utf-8")
+        self.assertIn('if PAGE == "advisory-market-signals":',main)
+        self.assertIn("split_market_landing_at_video(responsive_document)",main)
+        self.assertIn("st.iframe(",main)
+        self.assertIn('key="market_video_player"',main)
+        self.assertIn("app.heygen.com/share/"+MARKET_REVIEW_VIDEO_ID, self.page)
+        self.assertNotIn("Signature=",self.page)
+        self.assertNotIn('id="ms-jobseeker-benefits"',self.page)
+        self.assertNotIn('aria-labelledby="ms-decisions-title"',self.page)
+        self.assertIn("Explore the eight Observatory sections",self.page)
+        self.assertIn("See original sources, definitions and research limitations",self.page)
 
     def test_high_value_examples_are_exact_dated_executive_edition_scope(self):
         for phrase in (
@@ -215,7 +203,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
         # the evidence introduction and original executive PDF description do.
         self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(expected),1)
         self.assertEqual(self.page.count(expected),1)
-        self.assertIn("Two ways to use the research",MARKET_SIGNALS_LANDING_HTML)
+        self.assertIn("Two editions. One evidence base.",MARKET_SIGNALS_LANDING_HTML)
         self.assertIn("Jobseeker Edition",MARKET_SIGNALS_LANDING_HTML)
         for obsolete in (
             "Executive Edition 2.0</h2>",

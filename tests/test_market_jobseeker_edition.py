@@ -113,10 +113,10 @@ class JobseekerMarketReviewTests(unittest.TestCase):
     def test_public_benefits_and_limitations_are_clear(self):
         source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
         landing=source.split('MARKET_SIGNALS_LANDING_HTML = """',1)[1].split('"""',1)[0]
-        self.assertIn('id="ms-jobseeker-benefits"',landing)
-        self.assertIn("Five practical steps for your AI or Data job search",landing)
-        self.assertIn("changing careers",landing)
-        self.assertIn("senior AI/Data adverts",landing)
+        self.assertIn('id="ms-perspectives"',landing)
+        self.assertIn("Make a more focused search for AI or Data work.",landing)
+        self.assertIn("returning to work",landing)
+        self.assertIn("selected senior titles",landing)
         self.assertIn("market_signals_jobseeker_cta",landing)
         self.assertIn("Rapporten är på engelska",landing)
         self.assertNotIn("guaranteed job",landing.lower())

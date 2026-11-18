@@ -149,7 +149,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
                       "Consulting activity and available capacity rose together.",
                       "Recruitment demand extends beyond job advertisements.",
                       "Explore the June–August research sample.",
-                      "Where the numbers come from.",
+                      "Research sources and how to use the findings.",
                       "Choose your edition and start reading."):
             self.assertIn(title,self.page)
 
@@ -179,7 +179,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_high_value_examples_are_exact_dated_executive_edition_scope(self):
         for phrase in (
-            "published on 17 November",
+            "published 17 November",
             "published observations",
             "evidence series · 5 publishers",
             "executive decision perspectives",

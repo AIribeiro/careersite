@@ -19,23 +19,35 @@ from market_publication_design import (
 )
 
 EDITION = "sweden-ai-data-market-review-2026-11-v2-0-2"
-TITLE = "Swedish AI & Data Job Market Review"
-SUBTITLE = "A candidate's reading of the November 2026 market evidence"
+TITLE = "Swedish AI & Data Market Review"
+SUBTITLE = "Jobseeker Edition | Career decisions based on November 2026 evidence"
+JOBSEEKER_ISSUE = "18 November 2026"
 INTRO = (
-    "The market can look busy without making the right next role easier to find. "
-    "AI use is widespread, general business confidence strengthened, and some "
-    "consulting-platform activity increased. None of those measures counts open "
-    "AI leadership positions or guarantees a hiring rebound. This edition "
-    "shows how applicants can read the signals, widen their search intelligently "
-    "and decide where to spend their next month of effort."
+    "Sweden's AI market produces plenty of headlines, but less evidence about "
+    "which opportunities fit your next career move. This edition distinguishes "
+    "a narrow sample of senior AI/Data advertisements from broader labour-market "
+    "figures and turns five research readings into questions you can test in "
+    "your own job search. Decide where to look, what to demonstrate and when "
+    "to revise your approach."
 )
 VALUE = (
-    "Use this report to challenge three common shortcuts: treating AI adoption as "
-    "a hiring forecast, treating one advertised job-title sample as the whole "
-    "opportunity market, and treating positive confidence indicators as an offer "
-    "on the way. The goal is a more deliberate job search, not a prediction of "
-    "when an individual will be hired."
+    "Five candidate perspectives and a practical 30-day decision framework "
+    "help you test discovery channels, examine adjacent titles, present "
+    "credible career evidence and assess geographic or contract options. "
+    "This is a dated research snapshot, not a live vacancy database, "
+    "salary benchmark or forecast of an individual's hiring prospects."
 )
+LIMITS = (
+    "The selected JobTech figures cover senior advertisement titles only, "
+    "not all AI/Data work or unique positions. The SCB national vacancies "
+    "and non-advertised recruitment figures cover the whole economy, "
+    "not a measured hidden AI job market. AI adoption, the barriers reported "
+    "by a subset of non-adopters, business confidence and consulting-platform "
+    "listings do not measure role-specific hiring demand. This report cannot "
+    "establish salaries, an individual's fit, successful application channels "
+    "or the probability or date of an offer."
+)
+
 STYLE = """
 <style>
 .ms-js-lead{background:#f8f6f1;border-top:3px solid #a97755;
@@ -277,6 +289,29 @@ FINDINGS = (
     },
 )
 
+EXPECTED_NUMBERS = {
+    "scb_lor_2026q2_total": 159500,
+    "scb_lor_2026q2_advertised": 127500,
+    "scb_lor_2026q2_other_channels": 32100,
+    "jobtech_v1_sep_se": 20,
+    "jobtech_v1_oct_se": 29,
+    "jobtech_v1_oct_sto": 13,
+    "jobtech_v1_oct_vgr": 5,
+    "scb_2026_ai_10plus": 49,
+    "scb_2026_ai_250plus": 85,
+    "scb_2026_analytics_internal": 33,
+    "scb_2026_ai_expertise_barrier": 62,
+    "scb_2026_ai_privacy_barrier": 43,
+    "scb_2026_ai_data_quality_barrier": 34,
+    "ki_2026_10_business_confidence": 110.7,
+    "ki_2026_10_staffing_past_net": 2,
+    "ki_2026_10_staffing_future_net": 7,
+    "scb_lor_2026q2_vgr_per100": 3.2,
+    "scb_lor_2026q2_national_per100": 2.9,
+    "brainville_202610_assignments_yoy": 10.7,
+    "brainville_202610_consultants_yoy": 18.5,
+}
+
 CANDIDATE_AGENDA = (
     ("01 / Define target mandates", "Candidate", "Days 1-3",
      "Write the problems, responsibilities and acceptable constraints for each role family before selecting job titles."),
@@ -322,6 +357,12 @@ def validate_jobseeker_edition(points: list[dict], editorial: dict, edition_slug
     available = {p["code"] for p in points}
     if len(available) != len(points):
         raise ValueError("Duplicate jobseeker evidence identifiers.")
+    # A static research narrative quotes numbers; never allow it to silently
+    # disagree with a later revision of the underlying signed-off source rows.
+    idx = {p["code"]: p for p in points}
+    for code, expected in EXPECTED_NUMBERS.items():
+        if code not in idx or abs(float(idx[code]["value"]) - expected) > 1e-7:
+            raise ValueError("Published evidence drift: manual review needed for " + code)
     for finding in FINDINGS:
         if not set(finding["codes"]).issubset(available):
             raise ValueError("Jobseeker reading cites evidence outside the published manifest.")
@@ -344,7 +385,7 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "assessment":INTRO,
         "question":"What can a candidate change this month without assuming a hiring forecast?",
         "edition":"JOBSEEKER EDITION 1.0 / SWEDEN",
-        "issue":editorial["issue_date"],
+        "issue":JOBSEEKER_ISSUE,
         "metrics":[
             (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',
              "Whole-economy vacancies","Sweden | Q2 2026 | SCB estimate"),
@@ -362,11 +403,13 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
     story.append(Spacer(1,14))
     story.append(P("How to interpret the figures", "h2", sty=sty))
     story.append(P(
-        "This is an independently written candidate perspective over the same "
-        "signed-off 17 November 2026 evidence used by the Executive Edition 2.0.2. "
-        "There are no additional observations or AI-specific vacancy estimates. "
-        "Vacancies are not filled jobs, advertised titles are not all AI-related roles, "
-        "and reported AI use does not imply a recruitment plan.", "body",sty=sty))
+        "Jobseeker Edition 1.0 was prepared on 18 November 2026 from the "
+        "signed-off 17 November research snapshot of Executive Edition 2.0.2. "
+        "All measured indicators retain their population and dates. Candidate "
+        "actions are editorial options to test, not proven career outcomes.",
+        "body",sty=sty))
+    story.append(P("What the evidence cannot establish", "h2",sty=sty))
+    story.append(P(LIMITS,"body_small",sty=sty))
     story.append(metric_cards([
         (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',"Vacant jobs, all occupations","SCB, Q2 2026"),
         (f'{int(float(idx["scb_lor_2026q2_other_channels"]["value"])):,}',"Other recruitment channels","SCB, Q2 2026"),
@@ -502,9 +545,13 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
     st.html(
         '<section class="ms-js-lead"><div class="eyebrow">Candidate edition / '+
         html_escape(editorial["issue_date"])+'</div><h3>'+
-        html_escape(TITLE)+'</h3><p>'+html_escape(INTRO)+
+        html_escape(TITLE)+'</h3><p><strong>'+html_escape(SUBTITLE)+
+        '</strong></p><p>'+html_escape(INTRO)+
         '</p><p>'+html_escape(VALUE)+'</p></section>'
     )
+    with st.expander("Evidence scope — what the figures cannot tell you",expanded=False):
+        st.write(LIMITS)
+    st.caption("Jobseeker Edition 1.0 · Prepared 18 November 2026 · Evidence snapshot 17 November 2026")
     st.markdown("#### Download the Jobseeker Edition")
     st.caption(
         "Complete candidate-focused A4 report with five analyses, a 30-day "

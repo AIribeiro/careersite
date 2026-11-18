@@ -23,26 +23,26 @@ TITLE = "Swedish AI & Data Market Review"
 SUBTITLE = "Jobseeker Edition | Finding AI and Data work in Sweden"
 JOBSEEKER_ISSUE = "18 November 2026"
 INTRO = (
-    "Looking for work in AI or Data in Sweden? This guide brings together Swedish"
-    "labour-market figures, AI adoption research and a small sample of senior job"
-    "advertisements. It helps you decide where to look, how to describe your skills"
-    "and which job options fit your situation. The numbers provide useful background,"
+    "Looking for work in AI or Data in Sweden? This guide brings together Swedish "
+    "labour-market figures, AI adoption research and a small sample of senior job "
+    "advertisements. It helps you decide where to look, how to describe your skills "
+    "and which job options fit your situation. The numbers provide useful background, "
     "not a list of available jobs."
 )
 VALUE = (
-    "Whether you are new to the field, moving into a different role or have years of"
-    "experience, you can use the five topics and four-week plan to make your search"
-    "more focused. Explore related job titles, prepare examples from your work or"
-    "studies, compare locations and working arrangements, and track which applications"
-    "or conversations lead somewhere. The selected JobTech figures are for senior"
+    "Whether you are new to the field, moving into a different role or have years of "
+    "experience, you can use the five topics and four-week plan to make your search "
+    "more focused. Explore related job titles, prepare examples from your work or "
+    "studies, compare locations and working arrangements, and track which applications "
+    "or conversations lead somewhere. The selected JobTech figures are for senior "
     "titles only; they do not represent all jobs or entry-level opportunities."
 )
 LIMITS = (
-    "This report uses evidence available in November 2026. It is not a live jobs board"
-    "or salary guide. The JobTech sample contains selected senior AI and Data job"
-    "advertisements, not every role. SCB's national vacancy figures cover all types of"
-    "work, not only AI and Data. Business surveys and consulting listings cannot tell"
-    "you whether a particular employer is hiring, what a role pays or when you might"
+    "This report uses evidence available in November 2026. It is not a live jobs board "
+    "or salary guide. The JobTech sample contains selected senior AI and Data job "
+    "advertisements, not every role. SCB's national vacancy figures cover all types of "
+    "work, not only AI and Data. Business surveys and consulting listings cannot tell "
+    "you whether a particular employer is hiring, what a role pays or when you might "
     "receive an offer."
 )
 
@@ -77,34 +77,34 @@ FINDINGS = (
         "key": "visible_market",
         "title": "Looking for work? Use more than job ads",
         "signal": (
-            "Statistics Sweden estimated 159,500 vacant jobs across the whole Swedish economy"
-            "in Q2 2026. About 127,500 were advertised; for approximately 32,100, employers"
-            "looked for applicants through other channels. The figures are rounded survey"
-            "estimates. They do not count only AI and Data jobs or show how many people were"
+            "Statistics Sweden estimated 159,500 vacant jobs across the whole Swedish economy "
+            "in Q2 2026. About 127,500 were advertised; for approximately 32,100, employers "
+            "looked for applicants through other channels. The figures are rounded survey "
+            "estimates. They do not count only AI and Data jobs or show how many people were "
             "hired."
         ),
         "reading": (
-            "Job sites are a useful place to start, but some recruitment takes place through"
-            "other channels. The national figures do not show whether networking works better"
-            "for AI and Data candidates. Try three realistic routes: apply to suitable"
-            "advertised jobs, speak with people you already know professionally, and contact a"
-            "few employers whose work interests you. Judge each route by the relevant replies"
+            "Job sites are a useful place to start, but some recruitment takes place through "
+            "other channels. The national figures do not show whether networking works better "
+            "for AI and Data candidates. Try three realistic routes: apply to suitable "
+            "advertised jobs, speak with people you already know professionally, and contact a "
+            "few employers whose work interests you. Judge each route by the relevant replies "
             "you receive."
         ),
         "action": (
-            "Keep a weekly list of jobs you applied for, useful conversations and employers"
-            "you contacted. Note the date, whether the role suits your skills, and what"
-            "happened next. After four weeks, see which activities led to real responses."
+            "Keep a weekly list of jobs you applied for, useful conversations and employers "
+            "you contacted. Note the date, whether the role suits your skills, and what "
+            "happened next. After four weeks, see which activities led to real responses. "
             "Quality matters more than sending the most applications."
         ),
         "alternative": (
-            "Many vacancies filled through other recruitment channels may be in occupations"
-            "unrelated to AI or Data. Some employers advertise and recruit through contacts at"
-            "the same time. The survey cannot tell you which method works best for your"
+            "Many vacancies filled through other recruitment channels may be in occupations "
+            "unrelated to AI or Data. Some employers advertise and recruit through contacts at "
+            "the same time. The survey cannot tell you which method works best for your "
             "background."
         ),
         "watch": (
-            "Check new SCB vacancy figures when they are published. For your own search, pay"
+            "Check new SCB vacancy figures when they are published. For your own search, pay "
             "more attention to genuine replies and interviews than national totals."
         ),
         "codes": ("scb_lor_2026q2_total", "scb_lor_2026q2_advertised",
@@ -114,34 +114,34 @@ FINDINGS = (
         "key": "role_discovery",
         "title": "Look beyond jobs with 'AI' or 'Data' in the title",
         "signal": (
-            "A small, retrospectively assembled JobTech sample found 20 advertisements for"
-            "selected senior AI and Data titles across Sweden in September 2026, and 29 in"
-            "October. Of the October advertisements, 13 were indexed in Stockholm and five in"
-            "Västra Götaland. These are advertisements, not confirmed unique vacancies, and"
-            "the sample covers only selected senior job titles. Historical API records may"
+            "A small, retrospectively assembled JobTech sample found 20 advertisements for "
+            "selected senior AI and Data titles across Sweden in September 2026, and 29 in "
+            "October. Of the October advertisements, 13 were indexed in Stockholm and five in "
+            "Västra Götaland. These are advertisements, not confirmed unique vacancies, and "
+            "the sample covers only selected senior job titles. Historical API records may "
             "change."
         ),
         "reading": (
-            "Employers sometimes give related work different job titles. A role in analytics,"
-            "digital services, operations, product development or process improvement may"
-            "involve useful AI and Data skills even when the title does not say so. Read the"
-            "responsibilities and requirements before deciding to apply. The JobTech sample"
-            "focuses on senior jobs, so it tells us little about entry-level openings,"
+            "Employers sometimes give related work different job titles. A role in analytics, "
+            "digital services, operations, product development or process improvement may "
+            "involve useful AI and Data skills even when the title does not say so. Read the "
+            "responsibilities and requirements before deciding to apply. The JobTech sample "
+            "focuses on senior jobs, so it tells us little about entry-level openings, "
             "internships or every possible Data role."
         ),
         "action": (
-            "Choose two or three kinds of work you could do. Write down related job titles and"
-            "the skills each requires, then search for those titles as well as 'AI' and"
-            "'Data'. Compare job descriptions and check location, language, work eligibility"
+            "Choose two or three kinds of work you could do. Write down related job titles and "
+            "the skills each requires, then search for those titles as well as 'AI' and "
+            "'Data'. Compare job descriptions and check location, language, work eligibility "
             "and experience requirements before applying."
         ),
         "alternative": (
-            "A wider search will also show jobs that are too technical, too senior or outside"
-            "your interests. Some advertised roles may appear more than once in databases."
+            "A wider search will also show jobs that are too technical, too senior or outside "
+            "your interests. Some advertised roles may appear more than once in databases. "
             "Looking beyond a title helps only when the actual work fits your background."
         ),
         "watch": (
-            "Review complete months and actual job descriptions before assuming demand is"
+            "Review complete months and actual job descriptions before assuming demand is "
             "increasing. The figures for 1–15 November 2026 cover only half a month."
         ),
         "codes": ("jobtech_v1_sep_se", "jobtech_v1_oct_se",
@@ -151,35 +151,35 @@ FINDINGS = (
         "key": "capability_proof",
         "title": "Show what you can do with data and AI",
         "signal": (
-            "In SCB's 2026 survey, 49% of enterprises with at least ten employees reported"
-            "using AI, compared with 85% of large enterprises. Separately, 33% reported having"
-            "staff who analysed data in-house. Among businesses that considered AI but did not"
-            "adopt it, 62% mentioned a lack of expertise, 43% privacy or data-protection"
-            "concerns and 34% problems accessing or using data. Businesses could report more"
+            "In SCB's 2026 survey, 49% of enterprises with at least ten employees reported "
+            "using AI, compared with 85% of large enterprises. Separately, 33% reported having "
+            "staff who analysed data in-house. Among businesses that considered AI but did not "
+            "adopt it, 62% mentioned a lack of expertise, 43% privacy or data-protection "
+            "concerns and 34% problems accessing or using data. Businesses could report more "
             "than one barrier."
         ),
         "reading": (
-            "These survey answers do not tell us how many AI jobs are open. They do show some"
-            "issues employers may need to manage, including skills, data quality and safe use."
-            "When you describe your experience, give a real example of a problem you worked on"
-            "and what you contributed. If you are starting out, examples from courses,"
-            "internships, volunteering or personal projects can show what you have learned;"
+            "These survey answers do not tell us how many AI jobs are open. They do show some "
+            "issues employers may need to manage, including skills, data quality and safe use. "
+            "When you describe your experience, give a real example of a problem you worked on "
+            "and what you contributed. If you are starting out, examples from courses, "
+            "internships, volunteering or personal projects can show what you have learned; "
             "label them accurately and do not claim workplace results you cannot verify."
         ),
         "action": (
-            "Prepare two short examples from work, studies or projects. For each, explain the"
-            "problem, what you did, which tools or methods you used and what you observed or"
-            "learned. If you can verify an outcome, mention it. Use one example in your CV or"
+            "Prepare two short examples from work, studies or projects. For each, explain the "
+            "problem, what you did, which tools or methods you used and what you observed or "
+            "learned. If you can verify an outcome, mention it. Use one example in your CV or "
             "profile and practise explaining it clearly in an interview."
         ),
         "alternative": (
-            "Not every employer needs its own AI team, and a business may have good reasons"
-            "not to use AI for a particular task. The survey cannot tell us what skills a"
+            "Not every employer needs its own AI team, and a business may have good reasons "
+            "not to use AI for a particular task. The survey cannot tell us what skills a "
             "specific vacancy requires."
         ),
         "watch": (
-            "Compare your examples with the requirements in real job advertisements and the"
-            "questions employers ask. Keep learning priorities tied to the kind of work you"
+            "Compare your examples with the requirements in real job advertisements and the "
+            "questions employers ask. Keep learning priorities tied to the kind of work you "
             "want."
         ),
         "codes": ("scb_2026_ai_10plus", "scb_2026_ai_250plus",
@@ -190,34 +190,34 @@ FINDINGS = (
         "key": "timing_geography",
         "title": "Check where jobs are—and what employers require",
         "signal": (
-            "Konjunkturinstitutet reported a business-confidence index of 110.7 in October"
-            "2026, compared with a normal benchmark of 100. Its survey balances for past and"
-            "expected staffing changes were 2 and 7, respectively; these are not numbers of"
-            "people hired. In Q2 2026, SCB estimated 3.2 vacancies per 100 jobs in Västra"
+            "Konjunkturinstitutet reported a business-confidence index of 110.7 in October "
+            "2026, compared with a normal benchmark of 100. Its survey balances for past and "
+            "expected staffing changes were 2 and 7, respectively; these are not numbers of "
+            "people hired. In Q2 2026, SCB estimated 3.2 vacancies per 100 jobs in Västra "
             "Götaland and 2.9 nationally, across all types of work."
         ),
         "reading": (
-            "Business optimism does not guarantee more jobs in your field. Nor does a higher"
-            "overall vacancy rate mean AI or Data jobs will be easier to find in one region."
-            "Before investing time in an application, check where the work must be done, how"
-            "often you need to be on site, whether Swedish is required and whether you meet"
-            "the eligibility conditions. Compare actual roles rather than ranking locations by"
+            "Business optimism does not guarantee more jobs in your field. Nor does a higher "
+            "overall vacancy rate mean AI or Data jobs will be easier to find in one region. "
+            "Before investing time in an application, check where the work must be done, how "
+            "often you need to be on site, whether Swedish is required and whether you meet "
+            "the eligibility conditions. Compare actual roles rather than ranking locations by "
             "national statistics."
         ),
         "action": (
-            "Make three lists: jobs you can travel to, jobs elsewhere in Sweden that allow"
-            "hybrid work, and genuinely remote jobs. Check the employer's location and"
-            "language requirements in each advertisement. Keep a small list of companies to"
+            "Make three lists: jobs you can travel to, jobs elsewhere in Sweden that allow "
+            "hybrid work, and genuinely remote jobs. Check the employer's location and "
+            "language requirements in each advertisement. Keep a small list of companies to "
             "follow for relevant openings."
         ),
         "alternative": (
-            "Some businesses hire while the economy is quiet; others delay recruitment when"
-            "confidence is positive. Regional vacancy rates include many occupations outside"
+            "Some businesses hire while the economy is quiet; others delay recruitment when "
+            "confidence is positive. Regional vacancy rates include many occupations outside "
             "AI and Data."
         ),
         "watch": (
-            "Follow confirmed openings and the next published staffing and vacancy figures."
-            "Keep survey expectations separate from real job advertisements and employer"
+            "Follow confirmed openings and the next published staffing and vacancy figures. "
+            "Keep survey expectations separate from real job advertisements and employer "
             "responses."
         ),
         "codes": ("ki_2026_10_business_confidence",
@@ -230,34 +230,34 @@ FINDINGS = (
         "key": "employment_model",
         "title": "Compare permanent jobs and contract work",
         "signal": (
-            "In October 2026, Brainville reported 10.7% more consulting assignments listed on"
-            "its Swedish platform than a year earlier. The number of consultants shown as"
-            "available rose 18.5% over the same period. Brainville covers many kinds of"
-            "consulting work, not only AI and Data; these figures do not measure national AI"
+            "In October 2026, Brainville reported 10.7% more consulting assignments listed on "
+            "its Swedish platform than a year earlier. The number of consultants shown as "
+            "available rose 18.5% over the same period. Brainville covers many kinds of "
+            "consulting work, not only AI and Data; these figures do not measure national AI "
             "job openings, pay or competition."
         ),
         "reading": (
-            "A permanent job, a fixed-term role and independent contract work offer different"
-            "conditions. Consulting may suit some experienced specialists, but platform totals"
-            "do not show that a suitable assignment is available to you. If you are entering"
-            "the field, structured training and support in a regular role may matter more."
+            "A permanent job, a fixed-term role and independent contract work offer different "
+            "conditions. Consulting may suit some experienced specialists, but platform totals "
+            "do not show that a suitable assignment is available to you. If you are entering "
+            "the field, structured training and support in a regular role may matter more. "
             "Choose what fits your skills, financial needs and circumstances."
         ),
         "action": (
-            "Compare permanent and fixed-term roles on pay, learning opportunities, location,"
-            "working hours and job security. If you also consider consulting, check the"
-            "assignment length, expected work, payment terms and any tax or insurance"
-            "requirements. Track relevant offers and discussions rather than total marketplace"
+            "Compare permanent and fixed-term roles on pay, learning opportunities, location, "
+            "working hours and job security. If you also consider consulting, check the "
+            "assignment length, expected work, payment terms and any tax or insurance "
+            "requirements. Track relevant offers and discussions rather than total marketplace "
             "listings."
         ),
         "alternative": (
-            "Changes in Brainville's listings may reflect which companies and consultants use"
-            "the platform, or shifts in unrelated fields. Growth on one platform does not show"
+            "Changes in Brainville's listings may reflect which companies and consultants use "
+            "the platform, or shifts in unrelated fields. Growth on one platform does not show "
             "a wider AI contracting trend."
         ),
         "watch": (
-            "Look for assignments or jobs that genuinely match your skills. Check their"
-            "conditions and talk with employers or clients before drawing conclusions about"
+            "Look for assignments or jobs that genuinely match your skills. Check their "
+            "conditions and talk with employers or clients before drawing conclusions about "
             "the market."
         ),
         "codes": ("brainville_202610_assignments_yoy",

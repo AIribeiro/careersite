@@ -113,10 +113,10 @@ class JobseekerMarketReviewTests(unittest.TestCase):
     def test_public_benefits_and_limitations_are_clear(self):
         source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
         landing=source.split('MARKET_SIGNALS_LANDING_HTML = """',1)[1].split('"""',1)[0]
-        self.assertIn('id="ms-jobseeker-benefits"',landing)
-        self.assertIn("Five practical steps for your AI or Data job search",landing)
+        self.assertIn('id="ms-perspectives"',landing)
+        self.assertIn("five job-search questions and a four-week plan",landing)
         self.assertIn("changing careers",landing)
-        self.assertIn("senior AI/Data adverts",landing)
+        self.assertIn("selected senior titles",landing)
         self.assertIn("market_signals_jobseeker_cta",landing)
         self.assertIn("Rapporten är på engelska",landing)
         self.assertNotIn("guaranteed job",landing.lower())
@@ -166,7 +166,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
     def test_public_candidate_copy_does_not_claim_a_complete_ai_job_market(self):
         source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
         self.assertIn("not every entry-level opening",source)
-        self.assertIn("JobTech covers selected senior titles only",source)
+        self.assertIn("The JobTech sample covers selected senior titles",source)
         self.assertIn("market_review_link_preference",source)
 
     def test_only_published_member_path_can_render_or_download(self):

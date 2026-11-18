@@ -127,12 +127,12 @@ class MarketSignalsLandingTests(unittest.TestCase):
         hero=html.split('<section class="ms-hero"',1)[1].split('</section>',1)[0]
         intro=html.split('<section class="ms-section ms-section--white" id="ms-findings"',1)[1].split('<div class="ms-proofs">',1)[0]
         for phrase in (
-            "One Swedish AI &amp; Data evidence base.",
-            "executive decisions",
-            "job market for candidates",
-            "Executive edition · Free registration",
-            "Jobseeker edition · Free registration",
-            "Both November editions are available to registered readers",
+            "Two free reports on Sweden’s AI &amp; Data market",
+            "job titles",
+            "Looking for AI or Data work in Sweden",
+            "For business leaders · Free report",
+            "Looking for work? Read the free report",
+            "Both reports are in English and free",
         ):
             self.assertIn(phrase,hero)
         for defensive in ("cannot", "not a market forecast", "comprehensive AI recruitment census", "limited evidence", "where its limits lie"):
@@ -144,10 +144,29 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertIn("Brainville",html)
         self.assertIn("not a market forecast",html)
 
+    def test_public_jobseeker_experience_is_clear_and_inclusive(self):
+        html=MARKET_SIGNALS_LANDING_HTML
+        self.assertIn('id="ms-jobseeker-benefits"',html)
+        for phrase in (
+            "new to the field",
+            "changing careers",
+            "returning to work",
+            "För dig som söker jobb inom AI och data i Sverige",
+            "Rapporten är på engelska",
+            "Four-week plan",
+            "Read the free Jobseeker Edition and download the PDF",
+            "Jobseeker report · Free account",
+            "not every entry-level opening",
+        ):
+            self.assertIn(phrase,html)
+        self.assertIn("perspective=jobseeker",html)
+        self.assertIn("market_signals_final_jobseeker",html)
+        self.assertNotIn("guaranteed job",html.lower())
+
     def test_executive_headlines_use_measured_claims_not_promotional_promises(self):
         expected=[
             "Swedish AI &amp; Data Market Review",
-            "What the market evidence tells leaders",
+            "What the Swedish market figures show",
             "AI adoption is widespread. Business value is the next question.",
             "Senior AI &amp; Data leadership: examine the roles behind the numbers.",
             "Consulting activity and available capacity rose together.",
@@ -172,7 +191,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_high_value_examples_are_exact_dated_executive_edition_scope(self):
         for phrase in (
-            "Published 17 November 2026",
+            "published on 17 November",
             "published observations",
             "evidence series · 5 publishers",
             "executive decision perspectives",
@@ -196,7 +215,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
         # the evidence introduction and original executive PDF description do.
         self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(expected),2)
         self.assertEqual(self.page.count(expected),2)
-        self.assertIn("Two November Editions",MARKET_SIGNALS_LANDING_HTML)
+        self.assertIn("Two ways to use the research",MARKET_SIGNALS_LANDING_HTML)
         self.assertIn("Jobseeker Edition",MARKET_SIGNALS_LANDING_HTML)
         for obsolete in (
             "Executive Edition 2.0</h2>",

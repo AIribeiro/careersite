@@ -34,6 +34,7 @@ The report is a **candidate decision guide built from a bounded 2026 market-rese
 9. Added a **fail-closed numeric contract** for 20 specific figures quoted in the candidate narrative. If an underlying published value changes, the report now stops rather than silently producing a contradiction between prose and its evidence register.
 10. Clarified jobseeker scope at the public service choice, PDF description and reader page. Improved preference handling for a candidate-directed deep link in a returning member session.
 11. Added regression tests for numeric drift, candidate publication date, source limits, URL-to-edition handling and the rendered PDF.
+12. Corrected the Advisory registration entry for this service: the description now covers both editions, and the signup field says **Email address**, not **Professional email**, since the validator accepts personal addresses and jobseekers may not have company email accounts.
 
 ## Risks not repaired by rewriting
 

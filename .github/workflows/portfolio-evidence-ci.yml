@@ -9,6 +9,8 @@ on:
       - "src/home_pathways.py"
       - "src/portfolio_operating_evidence.py"
       - "src/site_cv.py"
+      - "src/career_facts.py"
+      - "tests/test_cv_branded_urls.py"
       - "src/site_meta.py"
       - "src/site_styles.py"
       - "tests/test_evidence_grid_responsive.py"
@@ -26,6 +28,8 @@ on:
       - "src/home_pathways.py"
       - "src/portfolio_operating_evidence.py"
       - "src/site_cv.py"
+      - "src/career_facts.py"
+      - "tests/test_cv_branded_urls.py"
       - "src/site_meta.py"
       - "src/site_styles.py"
       - "tests/test_evidence_grid_responsive.py"
@@ -65,6 +69,7 @@ jobs:
             tests/test_home_pathways.py \
             tests/test_core_portfolio_navigation.py \
             tests/test_governance_feature.py \
+            tests/test_cv_branded_urls.py \
             tests/test_evidence_grid_responsive.py
       - name: Confirm generated CV still fits two pages
         run: |

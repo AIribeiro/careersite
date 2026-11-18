@@ -377,7 +377,25 @@ else:
     # breakpoints as the shared CSS when Spaceship serves a 980px masked frame.
     responsive_document = support_masked_mobile_media(page_document)
     shared_styles = support_masked_mobile_media(CSS + IMAGE_CSS + pathway_css)
-    if PAGE == "advisory-market-demo":
+    if PAGE == "advisory-market-signals":
+        # Video is a native Streamlit iframe because st.html sanitizes embedded
+        # iframes. Splitting only at a closed-section marker keeps the public
+        # service navigation, footer and reader-access routes unchanged.
+        from page_advisory_market_signals import (
+            MARKET_REVIEW_VIDEO_EMBED_URL,
+            split_market_landing_at_video,
+        )
+        reading, remainder = split_market_landing_at_video(responsive_document)
+        st.html(shared_styles + '<div class="site">' + reading + '</div>')
+        with st.container(key="market_video_player"):
+            st.iframe(
+                MARKET_REVIEW_VIDEO_EMBED_URL,
+                width="stretch", height=650,
+                alt="Swedish AI and Data Market Review: 58-second faceless research video",
+                tab_index=0,
+            )
+        st.html('<div class="site">' + remainder + '</div>')
+    elif PAGE == "advisory-market-demo":
         from page_advisory_market_demo import (
             split_public_market_demo_at_download,
             render_public_market_demo_download,

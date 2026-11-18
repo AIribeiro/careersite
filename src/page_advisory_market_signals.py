@@ -335,7 +335,7 @@ MARKET_SIGNALS_LANDING_HTML = """
   <h2 id="ms-video-title">The numbers are only the beginning.</h2>
   <p>This faceless film introduces AI adoption, recruitment and consulting-market evidence, then asks what leaders should do with it.</p>
   <p class="ms-film-note">The film presents the executive viewpoint. The separate Jobseeker Edition uses the same research to help people decide where to look, how to show their skills and how to plan a job search.</p>
-  <a class="ms-film-link" href="https://app.heygen.com/videos/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_external">Watch on HeyGen if the player is unavailable</a>
+  <a class="ms-film-link" href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_external">Watch on HeyGen if the player is unavailable</a>
   <p class="ms-film-meta">58 seconds · English narration and subtitles · No autoplay</p>
  </div><aside class="ms-film-aside"><small>November 2026</small><strong>58s</strong><p>Evidence-led briefing</p></aside></div>
 </div></section>
@@ -539,7 +539,7 @@ MARKET_SIGNALS_LANDING_HTML = """
 # Actual public visibility must be enabled in HeyGen's Share settings.
 MARKET_REVIEW_VIDEO_ID = "55e1d1dff94641d2a3f6e915cef8fd3d"
 MARKET_REVIEW_VIDEO_EMBED_URL = (
-    "https://app.heygen.com/share/" + MARKET_REVIEW_VIDEO_ID
+    "https://app.heygen.com/embeds/" + MARKET_REVIEW_VIDEO_ID
 )
 MARKET_VIDEO_SPLIT = "<!-- MARKET_SIGNALS_VIDEO_PLAYER -->"
 

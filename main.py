@@ -390,14 +390,42 @@ else:
         # scoped <main> around the native iframe so the second half retains
         # the same mobile breakpoints, typography, footer and navigation.
         st.html(shared_styles + '<div class="site">' + reading + '</main></div>')
-        with st.container(key="market_video_player"):
-            # Streamlit Cloud may run a version without st.iframe/alt.
-            # The stable Components v1 API supports the same video URL.
-            from streamlit.components.v1 import iframe as render_video_iframe
-            render_video_iframe(
-                MARKET_REVIEW_VIDEO_EMBED_URL,
-                width=470, height=650, scrolling=False,
+        with st.container(key="market_video_compact"):
+            # A small supporting video after the reports and published evidence.
+            # Native columns keep the explanatory copy beside the player on
+            # desktop, and stack them on phones. No autoplay or empty hero.
+            overview, player = st.columns(
+                [2.0, 0.72], gap="large", vertical_alignment="center",
             )
+            with overview:
+                st.html(
+                    '<div class="site advisory-page ms-landing">'
+                    '<div class="ms-inline-film-copy">'
+                    '<p class="ms-overline">Optional video / November 2026</p>'
+                    '<h2>A short look at the market evidence.</h2>'
+                    '<p>This 58-second briefing introduces figures on AI adoption, '
+                    'recruitment and consulting activity in Sweden. It is a starting '
+                    'point, not a substitute for the complete research.</p>'
+                    '<p><strong>For business leaders:</strong> consider the investment, '
+                    'workforce and capability decisions behind the numbers. '
+                    '<strong>Looking for work?</strong> The Jobseeker Edition uses '
+                    'the same research to help you explore roles, show your skills '
+                    'and plan your search.</p>'
+                    '<a class="ms-film-link" '
+                    'href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" '
+                    'target="_blank" rel="noopener noreferrer">'
+                    'Watch on HeyGen if the player is unavailable</a>'
+                    '<p class="ms-film-meta">58 seconds · English narration and '
+                    'captions · Playback only when selected</p>'
+                    '</div></div>'
+                )
+            with player:
+                # Components v1 works on the deployed Streamlit release.
+                from streamlit.components.v1 import iframe as render_video_iframe
+                render_video_iframe(
+                    MARKET_REVIEW_VIDEO_EMBED_URL,
+                    width=230, height=408, scrolling=False,
+                )
         st.html('<div class="site"><main class="site advisory-page ms-landing">' +
                 remainder + '</div>')
     elif PAGE == "advisory-market-demo":

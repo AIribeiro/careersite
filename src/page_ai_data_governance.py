@@ -56,7 +56,7 @@ def ai_data_governance() -> str:
 <div class="metric"><strong>Respond</strong><p>Who can intervene and when reassessment is required.</p></div>
 </div></div></section>
 
-<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Research &amp; published perspective</p><h2>The thinking behind the practice.</h2></div><p>My Responsible AI research and external writing examine how ownership, proportionate controls, human oversight and trust support enterprise use. Research informs the approach; the cases above describe delivered work.</p></div>
+<section class="section soft" id="governance-research"><div class="container"><div class="head"><div><p class="eyebrow">Research &amp; published perspective</p><h2>The thinking behind the practice.</h2></div><p>My Responsible AI research and external writing examine how ownership, proportionate controls, human oversight and trust support enterprise use. Research informs the approach; the cases above describe delivered work.</p></div>
 <div class="actions"><a class="btn dark" href="{DFM_GOVERNANCE_URL}" target="_blank" rel="noopener" data-hq-event="article_governance_evidence">Read: AI Governance Is Not About Control. It Is About Scale. ↗</a></div>
 </div></section>
 {portfolio_next_navigation("ai-data-governance")}

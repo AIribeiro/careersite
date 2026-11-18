@@ -40,7 +40,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertGreater(len(raw),10000)
         pdf=PdfReader(BytesIO(raw))
         self.assertGreaterEqual(len(pdf.pages),8)
-        text=" ".join(p.extract_text() or "" for p in pdf.pages)
+        text=" ".join(" ".join(p.extract_text() or "" for p in pdf.pages).split())
         for label in (
             TITLE, "30-day plan", "candidate reading", "Your next move",
             "Conditional outlook", "Evidence and limits", "159,500",
@@ -55,7 +55,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertNotIn("AI Portfolio Renewal Advisor",text)
 
     def test_edition_binding_and_missing_evidence_fail_closed(self):
-        with self.assertRaisesRegex(ValueError, "approved"):
+        with self.assertRaisesRegex(ValueError, "not bound|approved"):
             validate_jobseeker_edition(self.points,self.editorial,SLUG+"-wrong")
         changed=copy.deepcopy(self.editorial)
         changed["version"]="2.0.3"

@@ -14,6 +14,7 @@ import re
 from site_components import footer, nav
 from thinking_core import THINKING_CSS
 from briefing_reader_preview_video import render_briefing_video_preview
+from briefing_infographic_engine import source_fingerprint as briefing_source_fingerprint
 
 
 PREVIEW_CSS = r"""<style>
@@ -239,7 +240,9 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
         '<p>Detailed reasoning, practical decisions and the original executive infographic.</p>'
     )
     access_base = f"?page=briefing&amp;article={slug}&amp;access=1"
-    video_html = render_briefing_video_preview(str(article.slug or ""))
+    video_html = render_briefing_video_preview(
+        str(article.slug or ""), source_fingerprint=briefing_source_fingerprint(article)
+    )
     # Only editions with validated approved media use the full editorial width.
     # Others retain their existing two-column public preview layout.
     wide_class = " briefing-preview--wide" if video_html else ""

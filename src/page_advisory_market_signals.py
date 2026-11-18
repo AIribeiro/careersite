@@ -397,9 +397,9 @@ MARKET_SIGNALS_LANDING_HTML = """
 
 <section class="ms-section ms-section--paper" id="ms-perspectives" aria-labelledby="ms-perspectives-title"><div class="container">
   <div class="ms-section-head">
-    <p class="ms-overline">Two perspectives / One evidence base</p>
+    <p class="ms-overline">Two free reports / One evidence base</p>
     <h2 id="ms-perspectives-title">Which report is right for you?</h2>
-    <p class="ms-section-intro">Both use the same 43 observations, with different questions and next steps. Choose the perspective that fits what you need to decide.</p>
+    <p class="ms-section-intro">Both use the same 43 observations, with different questions and next steps. For people starting out, changing careers, returning to work or leading a business, choose the perspective that fits your next decision.</p>
   </div>
   <div class="ms-perspectives">
     <article class="ms-perspective" aria-labelledby="ms-executive-report-title">
@@ -508,7 +508,7 @@ MARKET_SIGNALS_LANDING_HTML = """
     <div class="ms-access-overview">
       <article><span>01 / The reports</span><h3>Executive Edition and Jobseeker Edition</h3><p>Five focused analyses in each report, written for different readers and using the same checked facts.</p></article>
       <article><span>02 / Use the findings</span><h3>Practical next steps</h3><p>Three conditional outlook scenarios and executive decision briefs, or five job-search questions and a four-week plan.</p></article>
-      <article><span>03 / Verify the evidence</span><h3>Market Observatory and source records</h3><p>Original sources, research dates, methods and historical records, including a downloadable evidence register.</p></article>
+      <article><span>03 / Verify the evidence</span><h3>Market Observatory and source records</h3><p>Original sources, research dates, methods and historical records, including alternative explanations and a downloadable evidence register.</p></article>
     </div>
     <div class="ms-research-index">
       <details class="ms-research-details">
@@ -539,7 +539,7 @@ MARKET_SIGNALS_LANDING_HTML = """
     <p class="ms-section-intro">Choose the full report for your perspective. Both are included with free registration and draw on the same November evidence.</p>
   </div>
   <div class="ms-formats">
-    <article class="ms-format"><small>FOR BUSINESS LEADERS / EXECUTIVE EDITION 2.0.2</small>
+    <article class="ms-format"><small>FOR BUSINESS LEADERS / Executive Edition 2.0.2</small>
       <h3>Complete AI &amp; Data Market Review</h3>
       <p>The full executive research PDF, five decision perspectives, three conditional outlook scenarios and a management action agenda. Focused Executive Decision Briefs and source register are also available.</p>
       <div class="ms-format-bottom">17 November 2026 · Complete PDF · Five briefs · Sources</div>
@@ -557,7 +557,7 @@ MARKET_SIGNALS_LANDING_HTML = """
   <div class="ms-section-head">
     <div><p class="ms-overline">Sources and methods</p>
       <h2 id="ms-standards-title">Research sources and how to use the findings.</h2></div>
-    <p class="ms-section-intro">The report shows who published each figure, when it was measured and what it covers. Check these details before using a number to plan a job search or business decision.</p>
+    <p class="ms-section-intro">The source register shows who published each figure, when it was measured and what it covers. Check these details before using a number to plan a job search or business decision.</p>
   </div>
   <details class="ms-methods-details"><summary>Read the source notes and interpretation boundaries</summary>
   <div class="ms-standard">

@@ -405,12 +405,12 @@ MARKET_SIGNALS_LANDING_HTML = """
       <p class="ms-proof-source"><a href="https://www.scb.se/hitta-statistik/statistik-efter-amne/forskning-och-det-digitala-samhallet/det-digitala-samhallet/it-anvandning-i-foretag/pong/statistiknyhet/it-anvandning-i-foretag-2026/" target="_blank" rel="noopener noreferrer">Source: Statistics Sweden (SCB), 2026 survey</a></p>
     </article>
     <article class="ms-proof">
-      <span class="ms-label">02 / Senior leadership advertisements</span>
-      <h3>Senior AI &amp; Data leadership: examine the roles behind the numbers.</h3>
-      <div class="ms-number">29</div>
-      <p>Our defined JobTech sample recorded 29 advertisements for selected senior AI and Data/Analytics titles in Sweden in October 2026. Use this focused view alongside recruitment channels and leadership roles advertised under other job titles.</p>
-      <div class="ms-proof-question"><strong>For professionals</strong>Read responsibilities beyond the job title; this figure is not the size of Sweden’s AI/Data market. <strong>For employers</strong>Define the accountability before recruiting.</div>
-      <p class="ms-proof-source"><a href="https://historical.api.jobtechdev.se/search" target="_blank" rel="noopener noreferrer">Source: Arbetsförmedlingen JobTech, selected titles</a> · October 2026 · <a href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" target="_blank" rel="noopener noreferrer">Method and reproduction limits</a></p>
+      <span class="ms-label">02 / Data and analytics capability</span>
+      <h3>Internal analytics capability is a separate measure from AI adoption.</h3>
+      <div class="ms-number">33<span>%</span></div>
+      <p>In SCB's 2026 survey, 33% of Swedish enterprises with at least 10 employees reported personnel conducting data analytics in-house. This measure describes how businesses organise analysis, not the number of Data Analyst or AI vacancies.</p>
+      <div class="ms-proof-question"><strong>For professionals</strong>Show how your analytical work improves a real task or decision. <strong>For employers</strong>Decide which analytical capabilities must be maintained internally.</div>
+      <p class="ms-proof-source"><a href="https://www.scb.se/hitta-statistik/statistik-efter-amne/forskning-och-det-digitala-samhallet/det-digitala-samhallet/it-anvandning-i-foretag/pong/statistiknyhet/it-anvandning-i-foretag-2026/" target="_blank" rel="noopener noreferrer">Source: Statistics Sweden (SCB), IT use in enterprises 2026</a></p>
     </article>
     <article class="ms-proof">
       <span class="ms-label">03 / Consulting market activity</span>
@@ -450,6 +450,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <p class="ms-proof-source">JobTech · June–August 2026 · Sample prepared November 2026</p>
     </article>
   </div>
+  <p class="ms-note">The selected JobTech title basket recorded 29 senior AI/Data advertisements in October 2026. This narrow leadership sample remains available in the Observatory and source register; it is not the headline measure of AI and Data careers in Sweden.</p>
   <p class="ms-note">Source dates, populations and methods are documented below and in the full report. Each indicator is interpreted within its original scope.</p>
 </div></section>
 

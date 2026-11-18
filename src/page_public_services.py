@@ -5,12 +5,76 @@ and the privileged owner/CMS account. No email is sent by these page renderers.
 """
 from __future__ import annotations
 
+import json
+import re
+from datetime import datetime, timezone
+from urllib import request as url_request
+
+import streamlit as st
+
 from site_assets import ADVISORY_EMAIL, EMAIL, PRIVACY_EMAIL, READERS_EMAIL
 from site_media import IMAGE_DIR
 from site_components import footer, nav
-import streamlit as st
-
+from site_analytics import ANALYTICS_URL
+from site_analytics_public import public_analytics_rpc_headers
 from advisory_service_visibility import public_service_cta, service_enabled, viewer_is_admin
+
+
+_ADVISORY_DEFAULT_ORDER = (
+    "advisory-decision",
+    "advisory-rollout",
+    "advisory-scorecard",
+    "advisory-leadership",
+    "advisory-renewal",
+    "advisory-market-signals",
+)
+
+
+@st.cache_data(ttl=3900, max_entries=4, show_spinner=False)
+def _advisory_order_for_hour(utc_hour: str) -> tuple[str, ...]:
+    """Retrieve aggregate service popularity once per hour, never visitor data.
+
+    The UTC hour argument makes a new visit in the next hour refresh the cache.
+    Supabase resolves ties by increasingly broad Europe/Stockholm periods.
+    """
+    endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/careersite_advisory_service_order_v1"
+    req = url_request.Request(
+        endpoint,
+        data=b"{}",
+        method="POST",
+        headers=public_analytics_rpc_headers(),
+    )
+    with url_request.urlopen(req, timeout=3) as response:
+        ranked_pages = json.load(response)
+    if (
+        not isinstance(ranked_pages, list)
+        or len(ranked_pages) != len(_ADVISORY_DEFAULT_ORDER)
+        or any(not isinstance(page, str) for page in ranked_pages)
+        or set(ranked_pages) != set(_ADVISORY_DEFAULT_ORDER)
+    ):
+        raise ValueError("Unexpected Advisory popularity response.")
+    return tuple(ranked_pages)
+
+
+def _ordered_advisory_cards(cards: dict[str, str]) -> str:
+    """Keep only enabled cards; update displayed numbers after ranking."""
+    try:
+        utc_hour = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H")
+        ranked_pages = _advisory_order_for_hour(utc_hour)
+    except (OSError, ValueError, RuntimeError):
+        # Analytics outages must not prevent public Advisory discovery.
+        ranked_pages = _ADVISORY_DEFAULT_ORDER
+
+    visible = [cards[page] for page in ranked_pages if cards.get(page)]
+    total = len(visible)
+    return "".join(
+        re.sub(
+            r'(?<=<span class="advisory-ready-number">)\\d{2} / 06(?=</span>)',
+            f"{position:02d} / {total:02d}",
+            card,
+        )
+        for position, card in enumerate(visible, 1)
+    )
 
 
 SERVICES_CSS = """
@@ -372,7 +436,14 @@ def advisory() -> str:
      </div>
    </article>
 ''' if service_enabled("market-signals", admin=is_admin) else ""
-    ready_cards = "".join((decision_card, rollout_card, scorecard_card, workshop_card, renewal_card, market_card))
+    ready_cards = _ordered_advisory_cards({
+        "advisory-decision": decision_card,
+        "advisory-rollout": rollout_card,
+        "advisory-scorecard": scorecard_card,
+        "advisory-leadership": workshop_card,
+        "advisory-renewal": renewal_card,
+        "advisory-market-signals": market_card,
+    })
     return f'''{SERVICES_CSS}{nav("advisory")}
 <main class="advisory-page">
 <section class="advisory-hero" aria-labelledby="advisory-title">

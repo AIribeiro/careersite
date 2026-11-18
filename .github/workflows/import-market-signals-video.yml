@@ -1,0 +1,51 @@
+name: One-time import of approved Market Review video
+on:
+  push:
+    branches:
+      - feature/market-signals-video-editorial-20261118
+    paths:
+      - .github/workflows/import-market-signals-video.yml
+permissions:
+  contents: write
+jobs:
+  import-approved-video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download verified HeyGen publication video
+        env:
+          SOURCE_VIDEO_URL: "https://files2.heygen.ai/aws_pacific/avatar_tmp/380033fae29c43758a9c9a826d45b815/v614690955d15453d98e003e1cd2aabdc/55e1d1dff94641d2a3f6e915cef8fd3d.mp4?Expires=1795589561&Signature=hF1fW7eeNmek9A9ym0MrbwSV1wSp8QvUFBBzklwgcZB7bx8shamW0AdKhivVbajT8dGPh6byWSOuRr15fiYhkiWx9UYdzjMPJzNHum66r91w1n0vF~OaRruavsro6hTt5bCVmlNthbvEY~JYb8gOLRsfSMb7VlXCYO12et4FWb~HhZhqfe0bkCqsVZ0iNRJ97OraZHaRuUjCs1-44jqLk2S1Nm~9aWi-4V9HZ6jUTzza4VP64cGV~h5bDYdETkJJtMg3BMmpgTWdNmnIOEKR2cm0ifQ3FK0K5e9RTc0hbjcSLKh0FfkjjXZOg16FIRf0ne4rI4Ca3hXgqt30SFVgrg__&Key-Pair-Id=K3TSZ3KU01LY58"
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p static/market-signals
+          curl --retry 3 --retry-delay 2 --fail --location --silent --show-error "$SOURCE_VIDEO_URL" -o /tmp/market-source.mp4
+          python - <<'PY'
+          import json,subprocess
+          r=json.loads(subprocess.check_output(["ffprobe","-v","error","-show_entries","format=duration:stream=width,height,codec_type","-of","json","/tmp/market-source.mp4"]))
+          d=float(r["format"]["duration"]);v=next(s for s in r["streams"] if s["codec_type"]=="video")
+          assert 57.0<d<59.0,(d,v)
+          assert v["height"]>v["width"],v
+          print("Verified source video",round(d,2),v["width"],v["height"])
+          PY
+      - name: Prepare fast-loading local static assets
+        run: |
+          set -euo pipefail
+          ffmpeg -hide_banner -loglevel error -y -i /tmp/market-source.mp4 \
+             -c:v libx264 -preset medium -crf 22 -pix_fmt yuv420p \
+             -c:a aac -b:a 96k -movflags +faststart \
+             static/market-signals/market-review-november-2026.mp4
+          ffmpeg -hide_banner -loglevel error -y -ss 8 -i /tmp/market-source.mp4 \
+             -frames:v 1 -q:v 4 static/market-signals/market-review-poster.jpg
+          test "$(stat -c %s static/market-signals/market-review-november-2026.mp4)" -gt 500000
+          test "$(stat -c %s static/market-signals/market-review-november-2026.mp4)" -lt 12000000
+      - name: Commit the original user's approved video derivative only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/market-signals/market-review-november-2026.mp4 static/market-signals/market-review-poster.jpg
+          git commit -m "Add approved 58-second Market Review video as local fast-start media"
+          git push origin HEAD:feature/market-signals-video-editorial-20261118

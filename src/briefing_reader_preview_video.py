@@ -101,10 +101,12 @@ def _url(slug: str, name: str, digest: str) -> str:
         f"{slug}/{name}?v={digest[:12]}"
     )
 
-def render_briefing_video_preview(slug: str) -> str:
-    """One inline, non-autoplay player only when all approved assets validate."""
+def render_briefing_video_preview(slug: str, *, source_fingerprint: str | None = None) -> str:
+    """One inline player, only for owner-approved, source-matching local assets."""
     manifest = _approved_manifest(slug)
     if manifest is None:
+        return ""
+    if source_fingerprint is not None and source_fingerprint != manifest["article_fingerprint"]:
         return ""
     if (public_preview_media_path(slug, "preview.mp4") is None
         or public_preview_media_path(slug, "poster.jpg") is None):

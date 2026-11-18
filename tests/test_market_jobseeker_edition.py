@@ -53,7 +53,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertGreaterEqual(len(pdf.pages),8)
         text=" ".join(" ".join(p.extract_text() or "" for p in pdf.pages).split())
         for label in (
-            TITLE, "four-week job-search plan", "Understanding your job market",
+            TITLE, "four-week job-search plan", "Your career in the AI economy",
             "Try this next", "What might happen next", "Sources and important limitations", "159,500",
             "49", "29", "32,100", "62%", "September",
             "Detailed source methods and limitations", "Complete list of checked observations",
@@ -82,7 +82,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertIn("Job vacancy",content)
         self.assertIn("four-week",content.lower())
         src=(ROOT/"src/market_jobseeker_edition.py").read_text(encoding="utf-8")
-        self.assertIn("New to these market figures?",src)
+        self.assertIn("What the research reveals",src)
         for term in ("portfolio_private_search","salary forecast","guaranteed interview"):
             self.assertNotIn(term.lower(),src.lower())
 
@@ -177,7 +177,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertLess(part.find("load_published_editorial("),part.find("render_jobseeker_intelligence("))
         module=(ROOT/"src/market_jobseeker_edition.py").read_text(encoding="utf-8")
         self.assertIn("validate_jobseeker_edition(points, editorial, edition_slug)",module)
-        self.assertIn('on_click=record_event,args=(token,"pdf_review","jobseeker",edition_slug)',module)
+        self.assertIn('on_click=record_event, args=(token, "pdf_review", "jobseeker", edition_slug)',module)
         for disallowed in ("private_career","job_market_forecast","job_search_applications",
                            "portfolio_private_search"):
             self.assertNotIn(disallowed,module)

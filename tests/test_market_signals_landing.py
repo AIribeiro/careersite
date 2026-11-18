@@ -194,7 +194,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
     def test_both_report_cards_have_equal_priority_and_copy_length(self):
         import re
         html=MARKET_SIGNALS_LANDING_HTML
-        cards=re.findall(r'<article class="ms-perspective">([\\s\\S]*?)</article>',html)
+        cards=re.findall(r'<article class="ms-perspective">([\s\S]*?)</article>',html)
         self.assertEqual(len(cards),2)
         paragraphs=[]
         for card in cards:

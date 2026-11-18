@@ -179,7 +179,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_high_value_examples_are_exact_dated_executive_edition_scope(self):
         for phrase in (
-            "published 17 November",
+            "published on 17 November",
             "published observations",
             "evidence series · 5 publishers",
             "executive decision perspectives",

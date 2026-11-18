@@ -39,6 +39,16 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertTrue(raw.startswith(b"%PDF"))
         self.assertGreater(len(raw),10000)
         pdf=PdfReader(BytesIO(raw))
+        self.assertIn("Jobseeker Edition",str(pdf.metadata.title))
+        self.assertNotIn("Job Market Review",str(pdf.metadata.title))
+        overview_pages=[
+            (page.extract_text() or "") for page in pdf.pages
+            if "Five candidate decision perspectives" in (page.extract_text() or "")
+        ]
+        self.assertEqual(len(overview_pages),1)
+        for item in FINDINGS:
+            self.assertIn(item["title"].lower(),
+                          " ".join(overview_pages[0].lower().split()))
         self.assertGreaterEqual(len(pdf.pages),8)
         text=" ".join(" ".join(p.extract_text() or "" for p in pdf.pages).split())
         for label in (

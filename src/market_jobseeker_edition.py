@@ -19,9 +19,10 @@ from market_publication_design import (
 )
 
 EDITION = "sweden-ai-data-market-review-2026-11-v2-0-2"
-TITLE = "Swedish AI & Data Market Review"
-SUBTITLE = "Jobseeker Edition | AI and Data careers in a changing Swedish market"
+TITLE = "Sweden AI & Data Careers"
+SUBTITLE = "The November 2026 evidence, and what it means for your next move"
 JOBSEEKER_ISSUE = "18 November 2026"
+JOBSEEKER_RELEASE = "1.1"
 INTRO = (
     "AI is becoming part of more kinds of work in Sweden: technical development, "
     "data analysis, governance and everyday business operations. That creates "
@@ -77,6 +78,14 @@ STYLE = """
 .ms-js-disclaimer{font-size:12px;color:#667786;line-height:1.6}
 @media(max-width:700px){.ms-js-pathways,.ms-js-metrics{grid-template-columns:1fr}.ms-js-lead,.ms-js-topic{padding:19px}
  .ms-js-lead p,.ms-js-topic p{font-size:14px}}
+.ms-js-bars{display:grid;gap:11px;margin:22px 0}
+.ms-js-bars>div{display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr) 40px;gap:12px;align-items:center;font-size:13px;color:#31495b}
+.ms-js-bars b{display:block;height:12px;background:#a77757;border-radius:2px}
+.ms-js-bars em{font-style:normal;font-weight:700}
+.ms-js-channel{display:flex;height:16px;margin:18px 0 10px;border-radius:3px;overflow:hidden}
+.ms-js-channel-ads{background:#16374d;width:79.9%}
+.ms-js-channel-other{background:#b58b68;width:20.1%}
+@media(max-width:700px){.ms-js-bars>div{grid-template-columns:minmax(0,115px) minmax(0,1fr) 34px;gap:8px;font-size:11px}}
 </style>
 """
 
@@ -386,21 +395,21 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "stamp":"JAIR RIBEIRO  /  INDEPENDENT MARKET INTELLIGENCE",
         "question_label":"THE JOB SEARCH QUESTION",
         "assessment":INTRO,
-        "question":"Where can you look next, and how can you show your skills?",
-        "edition":"JOBSEEKER EDITION 1.0 / SWEDEN",
+        "question":"How can you find a relevant path through Sweden’s AI and Data market?",
+        "edition":"JOBSEEKER EDITION 1.1 / SWEDEN",
         "issue":JOBSEEKER_ISSUE,
         "metrics":[
-            (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',
-             "Vacancies, all job types","Sweden | Q2 2026 | SCB estimate"),
-            (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),
-             "Selected senior AI/Data ads","October 2026 | JobTech title basket"),
             (_value(idx["scb_2026_ai_10plus"]),
-             "Enterprises reporting AI use","2026 | Swedish firms with 10+ staff"),
+             "Enterprises reporting AI use","2026 | SCB | 10+ employees"),
+            (_value(idx["scb_2026_analytics_internal"]),
+             "With in-house analytics personnel","2026 | SCB | 10+ employees"),
+            (_value(idx["scb_2026_ai_expertise_barrier"]),
+             "Citing insufficient expertise","2026 | SCB | AI non-adopting subgroup"),
         ],
     }
     story=[]
-    section(story,"01 / Understanding your job market",
-            "What the Swedish job market can tell you", INTRO, sty=sty)
+    section(story,"01 / Your career in the AI economy",
+            "A wider view of AI and Data careers", INTRO, sty=sty)
     story.append(panel("What you can use this report for",
         "Plan your search with evidence and realistic expectations", VALUE, sty=sty))
     story.append(Spacer(1,14))
@@ -425,9 +434,9 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         story.append(P(term+": "+meaning,"body_compact",sty=sty))
     story.append(Spacer(1,10))
     story.append(metric_cards([
-        (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',"Vacancies across all types of work","SCB, Q2 2026"),
-        (f'{int(float(idx["scb_lor_2026q2_other_channels"]["value"])):,}',"Vacancies recruited without adverts","SCB, Q2 2026"),
-        (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),"Selected senior AI/Data ads","JobTech, October 2026"),
+        (_value(idx["scb_2026_ai_10plus"]),"Enterprises using AI","SCB 2026; 10+ employees"),
+        (_value(idx["scb_2026_analytics_internal"]),"In-house analytics personnel","SCB 2026; 10+ employees"),
+        (_value(idx["scb_2026_ai_expertise_barrier"]),"Lack of expertise reported","SCB 2026; non-adopting subgroup"),
     ],sty=sty))
     story.append(Spacer(1,17))
     # A five-part preview is one reading unit: never leave one item orphaned
@@ -476,7 +485,7 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "SCB 2026: only enterprises that considered AI but did not adopt it. "
         "Multiple answers allowed; these are not vacancy counts.", "caption",sty=sty))
     story.append(Spacer(1,12))
-    section(story,"03 / Finding opportunities",
+    section(story,"03 / Recruitment routes and selected advertisements",
         "Why job advertisements show only part of the picture",
         "Official vacancy figures cover every occupation. JobTech covers selected "
         "senior AI/Data advertisements; neither shows who was actually hired.",sty=sty)
@@ -490,6 +499,7 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "explains why component estimates may not sum exactly to the total.",
         "caption",sty=sty))
     story.append(Spacer(1,13))
+    story.append(P("A limited senior-role sample, not an AI jobs market total", "h2",sty=sty))
     story.append(bars([
         ("September senior titles",float(idx["jobtech_v1_sep_se"]["value"])),
         ("October senior titles",float(idx["jobtech_v1_oct_se"]["value"])),
@@ -585,7 +595,7 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
     story.append(P("Independent research by Jair Ribeiro | jairribeiro.com",
                    "caption",sty=sty))
     return assemble(story,cover,
-       "Jair Ribeiro | Swedish AI & Data Market Review | Jobseeker Edition 1.0",
+       "Jair Ribeiro | Swedish AI & Data Market Review | Jobseeker Edition 1.1",
        min_bytes=10000,
        interior_kicker="MARKET SIGNALS / JOBSEEKER RESEARCH",
        interior_footer="Independent market research")
@@ -593,117 +603,133 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
 
 def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
                                   edition_slug: str, token: str, record_event) -> None:
-    """Member-only reader experience sharing the existing published release."""
+    """Evidence-first member report: broad career pathways precede niche JobTech data."""
     validate_jobseeker_edition(points, editorial, edition_slug)
+    idx = {x["code"]: x for x in points}
     st.html(STYLE)
     st.html(
-        '<section class="ms-js-lead"><div class="eyebrow">Jobseeker edition / '+
-        html_escape(JOBSEEKER_ISSUE)+'</div><h3>'+
-        html_escape(TITLE)+'</h3><p><strong>'+html_escape(SUBTITLE)+
-        '</strong></p><p>'+html_escape(INTRO)+
-        '</p><p>'+html_escape(VALUE)+'</p></section>'
+        '<section class="ms-js-lead"><div class="eyebrow">NOVEMBER 2026 / JOBSEEKER EDITION 1.1</div>'
+        '<h3>' + html_escape(TITLE) + '</h3>'
+        '<p><strong>' + html_escape(SUBTITLE) + '</strong></p>'
+        '<p>' + html_escape(INTRO) + '</p>'
+        '<p>' + html_escape(VALUE) + '</p></section>'
     )
-    with st.expander("What these figures cover",expanded=False):
-        st.write(LIMITS)
-    st.caption("Jobseeker Edition 1.0 · Prepared 18 November 2026 · Evidence snapshot 17 November 2026")
-    st.markdown("#### Download your free jobseeker report")
-    st.caption(
-        "The report covers career pathways, enterprise AI use, capability "
-        "barriers, five evidence-based topics, a four-week plan and sources. "
-        "Your free account includes both report editions."
-    )
-    pdf=jobseeker_market_pdf(points,editorial,edition_slug)
-    st.download_button(
-        "Download the jobseeker report · PDF",
-        data=pdf,mime="application/pdf",
-        file_name="Jair_Ribeiro_Swedish_AI_Data_Job_Market_Review_2026-11.pdf",
-        type="primary",use_container_width=True,key="market_jobseeker_complete_pdf",
-        on_click=record_event,args=(token,"pdf_review","jobseeker",edition_slug)
-    )
-    idx={x["code"]:x for x in points}
-    with st.expander("New to these market figures? Five terms explained",expanded=False):
-        for term, meaning in READING_HELP:
-            st.markdown("**"+term+"** — "+meaning)
-    st.markdown("#### Five questions to guide your search")
-    for question, action in DECISION_MAP:
-        with st.expander(question,expanded=False):
-            st.write(action)
-    st.markdown("#### Three ways your experience can connect to AI and Data")
-    st.html(
-        '<div class="ms-js-pathways">'
-        '<article><span>01 / BUILD</span><h4>Develop systems</h4>'
-        '<p>Explore data engineering, analysis, software and AI development '
-        'roles by checking real technical requirements.</p></article>'
-        '<article><span>02 / OPERATE</span><h4>Make work dependable</h4>'
-        '<p>Consider data quality, governance, privacy and operational '
-        'responsibility where these match your experience.</p></article>'
-        '<article><span>03 / APPLY</span><h4>Use AI in your profession</h4>'
-        '<p>Look for meaningful AI work within existing business and '
-        'professional roles, not only in titles containing AI.</p></article>'
-        '</div><p class="ms-js-disclaimer">These pathways are a way to explore '
-        'work, not vacancy rankings or measured hiring demand.</p>'
-    )
-    st.markdown("#### What Swedish enterprise research shows")
+    st.markdown("#### What the research reveals")
     st.html(
         '<div class="ms-js-metrics">'
-        '<div><strong>49%</strong><span>Enterprises (10+ employees) using AI</span></div>'
-        '<div><strong>33%</strong><span>Enterprises with analytics personnel</span></div>'
-        '<div><strong>62%</strong><span>Non-adopting subgroup citing missing expertise</span></div>'
-        '</div><p class="ms-js-disclaimer">Statistics Sweden 2026. '
-        'Different survey groups; none of these figures counts job openings.</p>'
+        '<div><strong>49%</strong><span>Swedish enterprises with 10+ staff using AI (SCB 2026)</span></div>'
+        '<div><strong>33%</strong><span>Enterprises with in-house data analytics personnel (SCB 2026)</span></div>'
+        '<div><strong>62%</strong><span>AI non-adopters citing insufficient expertise (SCB 2026)</span></div>'
+        '</div><p class="ms-js-disclaimer">The first two figures cover enterprises with 10+ employees; '
+        'the third covers only firms that considered AI but did not adopt it. '
+        'They describe business practices and obstacles, not job openings.</p>'
     )
-    st.markdown("#### Five topics to help your job search")
-    choice=st.selectbox("Which topic would you like to explore?",
-        [x["key"] for x in FINDINGS],
-        format_func=lambda key:next(x["title"] for x in FINDINGS if x["key"]==key),
-        key="market_jobseeker_theme")
-    item=next(x for x in FINDINGS if x["key"]==choice)
+    st.markdown("#### Three ways to explore your next professional move")
     st.html(
-        '<article class="ms-js-topic"><span class="eyebrow">Jobseeker topic</span>'
-        '<h3>'+html_escape(item["title"])+'</h3>'
-        '<h4>What the figures show</h4><p>'+
-        html_escape(item["signal"])+'</p>'
-        '<h4>How this may help</h4><p>'+
-        html_escape(item["reading"])+'</p>'
-        '<h4>Another explanation</h4><p>'+
-        html_escape(item["alternative"])+'</p>'
-        '<h4>What to check next</h4><p>'+
-        html_escape(item["watch"])+'</p></article>'
+        '<div class="ms-js-pathways">'
+        '<article><span>01 / BUILD</span><h4>Develop systems and applications</h4>'
+        '<p>Look into data engineering, software, applied AI, analytical and '
+        'machine-learning work. Compare qualifications and hands-on responsibilities.</p></article>'
+        '<article><span>02 / OPERATE</span><h4>Make data and AI dependable</h4>'
+        '<p>Consider data stewardship, governance, privacy, risk and operational '
+        'ownership where they connect with your demonstrated experience.</p></article>'
+        '<article><span>03 / APPLY</span><h4>Bring AI into an existing profession</h4>'
+        '<p>Explore analytics and AI responsibilities in finance, product, marketing, '
+        'manufacturing and other fields without assuming the title contains AI.</p></article>'
+        '</div><p class="ms-js-disclaimer">Career-pathway examples are not '
+        'a ranking of demand or a count of vacancies.</p>'
     )
-    st.html('<section class="ms-js-action"><strong>WHAT YOU CAN TRY NEXT</strong>'
-        '<p>'+html_escape(item["action"])+'</p></section>')
-    with st.expander("Check the original observations and methods",expanded=False):
-        for code in item["codes"]:
-            p=idx[code]
-            st.html(
-                '<div class="ms-js-detail"><strong>'+
-                html_escape(p["metric_label"])+' · '+html_escape(_value(p))+
-                '</strong><br>'+html_escape(p["period_label"])+
-                ' · '+html_escape(p["population_note"])+
-                '<br><a href="'+html_escape(_safe_url(p["source_url"]),quote=True)+
-                '" target="_blank" rel="noopener noreferrer">'+
-                html_escape(p["source_title"])+
-                '</a><br>Method: '+html_escape(p["methodology"])+
-                '<br>Limit: '+html_escape(p["caveat"])+
-                '</div>'
+    st.markdown("#### Why these capabilities matter")
+    st.html(
+        '<div class="ms-js-topic"><h3>What some Swedish businesses report as obstacles</h3>'
+        '<p>In SCB’s 2026 survey, enterprises that considered AI but decided not to '
+        'adopt it cited insufficient expertise (62%), privacy or data protection '
+        '(43%) and data access or quality (34%). Several answers were possible. '
+        'These findings identify business problems, not an employer hiring plan.</p>'
+        '<div class="ms-js-bars">'
+        '<div><span>Insufficient expertise</span><b style="width:62%"></b><em>62%</em></div>'
+        '<div><span>Privacy and data protection</span><b style="width:43%"></b><em>43%</em></div>'
+        '<div><span>Data access or quality</span><b style="width:34%"></b><em>34%</em></div>'
+        '</div><p>Use this as a prompt to document the problems you can solve. '
+        'A real project example is stronger evidence than an untested list of AI skills.</p>'
+        '</div>'
+    )
+    st.markdown("#### Recruitment beyond the advertised job")
+    st.html(
+        '<div class="ms-js-topic"><h3>A wider search deserves more than one channel</h3>'
+        '<p>Statistics Sweden estimated 159,500 vacancies across the entire economy '
+        'in Q2 2026: approximately 127,500 through advertisements and 32,100 '
+        'through other recruitment channels. These are rounded survey estimates '
+        'for all occupations, not AI and Data alone.</p>'
+        '<div class="ms-js-channel"><div class="ms-js-channel-ads"></div>'
+        '<div class="ms-js-channel-other"></div></div>'
+        '<p class="ms-js-disclaimer">Advertised: about 80% · Other channels: about 20% '
+        'of the reported components. This is not a measured channel split for AI/Data jobs.</p>'
+        '<p>Review suitable vacancies, professional contacts and direct employer '
+        'approaches, then track which produce relevant replies for your situation.</p>'
+        '</div>'
+    )
+    with st.expander("The selected senior AI/Data advertisement sample — scope and method",
+                     expanded=False):
+        st.write(
+            "The October JobTech title-basket contained 29 selected senior AI/Data "
+            "advertisements, compared with 20 in September. The classification "
+            "covers only specified senior titles. It does not measure junior, "
+            "mid-career or full technical demand; these counts cannot support a "
+            "national AI/Data vacancy estimate or a reliable growth claim."
+        )
+        for code in ("jobtech_v1_sep_se", "jobtech_v1_oct_se",
+                     "jobtech_v1_oct_sto", "jobtech_v1_oct_vgr"):
+            p = idx[code]
+            st.caption(
+                f'{p["metric_label"]}: {_value(p)} · {p["period_label"]} · '
+                f'{p["population_note"]}'
             )
-    st.markdown("#### Your four-week job-search plan")
+    st.markdown("#### Five career questions informed by the evidence")
+    # Lead with broadly relevant business capability and recruitment evidence.
+    for key in ("capability_proof", "visible_market", "timing_geography",
+                "employment_model", "role_discovery"):
+        item = next(x for x in FINDINGS if x["key"] == key)
+        with st.expander(item["title"], expanded=False):
+            st.write(item["signal"])
+            st.markdown("**What it means for your search**")
+            st.write(item["reading"])
+            st.markdown("**What to try next**")
+            st.write(item["action"])
+            with st.expander("Sources and alternative explanations", expanded=False):
+                st.write(item["alternative"])
+                for code in item["codes"]:
+                    p = idx[code]
+                    st.markdown(
+                        "**" + html_escape(p["metric_label"]) + "** · " +
+                        html_escape(_value(p)) + " · " +
+                        html_escape(p["period_label"])
+                    )
+                    st.caption(p["population_note"] + " · " + p["caveat"])
+                    st.link_button("Original publisher", _safe_url(p["source_url"]))
+    st.markdown("#### Your four-week career review")
     for label, owner, timing, action in CANDIDATE_AGENDA:
-        with st.expander(label+" · "+timing,expanded=False):
+        with st.expander(label + " · " + timing, expanded=False):
             st.write(action)
-    st.markdown("#### Three possible job-market situations")
-    for scenario in SCENARIOS:
-        with st.expander(scenario["period"],expanded=False):
-            st.write(scenario["reading"])
-            st.caption("Keep an eye on: "+scenario["trigger"])
-            st.write("What you could do: "+scenario["response"])
-    with st.expander("Source details and limitations",expanded=False):
+    with st.expander("Research scope, sources and evidence register", expanded=False):
+        st.write(LIMITS)
         for caveat in editorial["coverage_cautions"]:
-            st.markdown("**"+caveat["title"]+"**")
+            st.markdown("**" + caveat["title"] + "**")
             st.write(caveat["text"])
         st.write(editorial["methodology_note"])
+    st.markdown("#### Download the complete report")
     st.caption(
-        "Research and job-search guidance by Jair Ribeiro, based on the same "
-        "November 2026 data as Executive Edition 2.0.2. This is not a "
-        "list of live vacancies or a prediction of an offer."
+        "Premium A4 publication with career pathways, enterprise AI figures, "
+        "recruitment channels, five decision analyses, the four-week plan and "
+        "the original evidence register. Free with your reader account."
     )
+    pdf = jobseeker_market_pdf(points, editorial, edition_slug)
+    st.download_button(
+        "Download Sweden AI & Data Careers · November 2026 PDF",
+        data=pdf, mime="application/pdf",
+        file_name="Jair_Ribeiro_Sweden_AI_Data_Careers_2026-11.pdf",
+        type="primary", use_container_width=True,
+        key="market_jobseeker_complete_pdf",
+        on_click=record_event, args=(token, "pdf_review", "jobseeker", edition_slug)
+    )
+    st.caption("Jobseeker Edition 1.1 · 18 November 2026 · Research snapshot: 17 November 2026")

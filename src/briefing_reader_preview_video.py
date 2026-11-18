@@ -163,21 +163,35 @@ GITHUB_MEDIA_ROOT = (
     "static/briefing-videos"
 )
 
-# The agent-governance MP4 is published once into a dedicated public
-# Supabase Storage bucket from hash-verified Git binary chunks. Unlike the
-# ephemeral Streamlit static folder, Storage serves a durable single MP4
-# with CDN support and browser byte ranges. The fixed-edge URL performs
-# a one-time, source-validated import when this object is still missing.
-_AGENT_VIDEO_SLUG = "when-an-ai-agent-stops-who-finishes-the-work"
-_AGENT_VIDEO_EDGE = (
-    "https://rnqweoxtynelfirffmlr.supabase.co/functions/v1/"
-    "agent-briefing-video-delivery"
+# Fixed public media origin. The storage object is original, approved H.264/AAC
+# bytes, with a versioned filename. No ephemeral Streamlit write or proxy 307
+# is required for the browser to play or seek the MP4.
+_PUBLIC_VIDEO_STORAGE = (
+    "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/"
+    "portfolio-public-videos/executive-briefings/"
 )
 
 
+def _validated_public_video_url(slug: str, manifest: dict) -> str | None:
+    """Only an exact, SHA-derived, public media location is permitted."""
+    web = manifest.get("web", {})
+    if not isinstance(web, dict):
+        return None
+    digest = web.get("sha256", "")
+    if not _DIGEST.fullmatch(str(digest)):
+        return None
+    expected = (
+        f"{_PUBLIC_VIDEO_STORAGE}{slug}/preview-v1-{digest[:8]}.mp4"
+    )
+    return expected if web.get("public_url") == expected else None
+
+
 def _url(slug: str, name: str, digest: str) -> str:
-    if slug == _AGENT_VIDEO_SLUG and name == "preview.mp4":
-        return f"{_AGENT_VIDEO_EDGE}?v={digest[:12]}"
+    manifest = _approved_manifest(slug)
+    if name == "preview.mp4" and manifest:
+        published = _validated_public_video_url(slug, manifest)
+        if published:
+            return published
     return (
         f"{STATIC_MEDIA_ORIGIN}/app/static/briefing-videos/"
         f"{slug}/{name}?v={digest[:12]}"
@@ -190,15 +204,18 @@ def render_briefing_video_preview(slug: str, *, source_fingerprint: str | None =
         return ""
     if source_fingerprint is not None and source_fingerprint != manifest["article_fingerprint"]:
         return ""
-    if (public_preview_media_path(slug, "preview.mp4") is None
-        or public_preview_media_path(slug, "poster.jpg") is None):
+    # A verified, source-locked public object does not depend on creating
+    # preview.mp4 in the Streamlit container (which may be read-only).
+    durable = _validated_public_video_url(slug, manifest)
+    if (public_preview_media_path(slug, "poster.jpg") is None
+        or (not durable and public_preview_media_path(slug, "preview.mp4") is None)):
         return ""
-    video = _url(slug, "preview.mp4", manifest["web"]["sha256"])
+    video = durable or _url(slug, "preview.mp4", manifest["web"]["sha256"])
     poster = _url(slug, "poster.jpg", manifest["poster"]["sha256"])
-    # A reassembled exact MP4 has no GitHub raw single-file fallback.
+    # No broken GitHub fallback when the approved binary is stored externally.
     backup = (
         f"{GITHUB_MEDIA_ROOT}/{slug}/preview.mp4"
-        if manifest["web"].get("git_binary_available", True) else None
+        if not durable and manifest["web"].get("git_binary_available", True) else None
     )
     total = int(round(manifest["duration_seconds"]))
     label = f"{total // 60} min {total % 60:02d} sec"

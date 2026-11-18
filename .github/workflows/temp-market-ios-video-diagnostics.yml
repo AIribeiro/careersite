@@ -65,7 +65,7 @@ jobs:
                 video.scroll_into_view_if_needed()
                 video.click(timeout=8000,force=True)
                 try:
-                  result=video.evaluate("""async v => {let attempted;try{await v.play();attempted='resolved'}catch(e){attempted=e.name+':'+e.message}return {attempted,readyState:v.readyState,networkState:v.networkState,error:v.error?.code,duration:v.duration,currentTime:v.currentTime,videoWidth:v.videoWidth,src:v.currentSrc,paused:v.paused}}""")
+                  result=video.evaluate("""async v => {let attempted;try{attempted=await Promise.race([v.play().then(()=> 'resolved').catch(e=>e.name+':'+e.message),new Promise(ok=>setTimeout(()=>ok('pending-after-5s'),5000))])}catch(e){attempted=e.name+':'+e.message}return {attempted,readyState:v.readyState,networkState:v.networkState,error:v.error?.code,duration:v.duration,currentTime:v.currentTime,videoWidth:v.videoWidth,src:v.currentSrc,paused:v.paused}}""")
                 except Exception as exc:
                   result={"playException":str(exc)[:220]}
                 page.wait_for_timeout(3500)

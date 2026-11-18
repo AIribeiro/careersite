@@ -906,5 +906,91 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site a.about-next-card:hover{transform:none}
 }
 
+/* Evidence cards: three balanced columns when space permits, never an empty
+   third cell in the two-column viewport. Scoped to the new evidence sections. */
+.site #leadership-in-practice,
+.site #operating-evidence,
+.site #governance-evidence,
+.site #governance-research{
+  padding-block:clamp(46px,5vw,68px);
+}
+.site #leadership-in-practice .head,
+.site #operating-evidence .head,
+.site #governance-evidence .head,
+.site #governance-research .head{
+  gap:clamp(16px,2.8vw,36px);
+  align-items:start;
+  margin-bottom:24px;
+}
+.site #leadership-in-practice .head h2,
+.site #operating-evidence .head h2,
+.site #governance-evidence .head h2,
+.site #governance-research .head h2{
+  font-size:clamp(32px,3.7vw,48px);
+  line-height:1.08;
+}
+.site .evidence-cards-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+  align-items:stretch;
+}
+.site .evidence-cards-grid>.card{
+  min-width:0;
+  min-height:0;
+  padding:clamp(20px,2.35vw,27px);
+}
+.site .evidence-cards-grid>.card h3{
+  margin:16px 0 11px;
+  font-size:clamp(21px,2.25vw,26px);
+}
+.site .evidence-cards-grid>.card p:last-child{margin-bottom:0}
+@media(min-width:800px) and (max-width:980px){
+  .site .evidence-cards-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(min-width:701px) and (max-width:799px){
+  .site .evidence-cards-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .site .evidence-cards-grid>.card:last-child{grid-column:1/-1}
+}
+@media(max-width:700px){
+  .site .evidence-cards-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+  .site .evidence-cards-grid>.card:last-child{grid-column:auto}
+}
+
+/* Shared Where to next: use the available width on tablet instead of three
+   tall, nearly empty full-width cards. Preserve the standard destinations. */
+.site .about-next.portfolio-next{padding-block:clamp(45px,5vw,67px)}
+.site .portfolio-next .about-next-header{margin-bottom:24px;gap:clamp(16px,3vw,36px)}
+.site .portfolio-next .about-next-header h2{font-size:clamp(32px,3.8vw,48px)}
+.site .portfolio-next .about-next-grid{gap:14px}
+.site .portfolio-next a.about-next-card{min-height:224px;padding:22px 20px 19px}
+.site .portfolio-next .about-next-card-head{margin-bottom:14px}
+.site .portfolio-next .about-next-card-title{font-size:clamp(22px,2.35vw,29px)}
+.site .portfolio-next .about-next-card-description{margin:10px 0 17px;line-height:1.52}
+.site .portfolio-next .about-next-contact{margin-top:22px}
+@media(min-width:740px) and (max-width:900px){
+  .site .portfolio-next .about-next-header{
+    grid-template-columns:minmax(0,1fr) minmax(0,.8fr);
+    align-items:start;
+  }
+  .site .portfolio-next .about-next-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+@media(min-width:601px) and (max-width:739px){
+  .site .portfolio-next .about-next-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .site .portfolio-next .about-next-grid>a.about-next-card:last-child{
+    grid-column:1/-1;
+  }
+  .site .portfolio-next a.about-next-card{min-height:0}
+}
+@media(max-width:600px){
+  .site .portfolio-next .about-next-grid{grid-template-columns:minmax(0,1fr)}
+  .site .portfolio-next a.about-next-card{min-height:0;padding:19px}
+  .site .portfolio-next .about-next-header{grid-template-columns:minmax(0,1fr)}
+}
+
 </style>
 """

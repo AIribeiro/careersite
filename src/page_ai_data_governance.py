@@ -27,7 +27,7 @@ def ai_data_governance() -> str:
 
 <section class="section white" id="governance-evidence"><div class="container">
 <div class="head"><div><p class="eyebrow">Evidence from my work</p><h2>Governance deliverables, not just principles.</h2></div><p>Examples from enterprise AI and Data roles. Outcomes are stated at the stage actually reached.</p></div>
-<div class="grid3">
+<div class="grid3 evidence-cards-grid">
 <article class="card"><span class="org">Portfolio and decision rights</span><h3>Make the next decision explicit.</h3><p>For an emerging AI &amp; Data CoE, I developed lifecycle criteria, Keep / Kill / Scale evaluation, RACI materials and scale-readiness considerations for an 80+ opportunity portfolio. The deliverable was a decision foundation, not a claim that every stage gate was fully operational.</p></article>
 <article class="card"><span class="org">Data stewardship foundations</span><h3>Give data responsibility a starting point.</h3><p>I connected a seven-pillar maturity assessment with data ownership and stewardship priorities, producing a 2026–2027 roadmap. Early foundation work is distinct from a completed enterprise-wide data-governance rollout.</p></article>
 <article class="card"><span class="org">AI in commercial work</span><h3>Connect controls to real workflows.</h3><p>In business-facing AI initiatives across warranty, sales and aftermarket, I worked with product, Digital &amp; IT, legal and compliance stakeholders on feasibility, human oversight and operating responsibility.</p></article>
@@ -56,7 +56,7 @@ def ai_data_governance() -> str:
 <div class="metric"><strong>Respond</strong><p>Who can intervene and when reassessment is required.</p></div>
 </div></div></section>
 
-<section class="section soft"><div class="container"><div class="head"><div><p class="eyebrow">Research &amp; published perspective</p><h2>The thinking behind the practice.</h2></div><p>My Responsible AI research and external writing examine how ownership, proportionate controls, human oversight and trust support enterprise use. Research informs the approach; the cases above describe delivered work.</p></div>
+<section class="section soft" id="governance-research"><div class="container"><div class="head"><div><p class="eyebrow">Research &amp; published perspective</p><h2>The thinking behind the practice.</h2></div><p>My Responsible AI research and external writing examine how ownership, proportionate controls, human oversight and trust support enterprise use. Research informs the approach; the cases above describe delivered work.</p></div>
 <div class="actions"><a class="btn dark" href="{DFM_GOVERNANCE_URL}" target="_blank" rel="noopener" data-hq-event="article_governance_evidence">Read: AI Governance Is Not About Control. It Is About Scale. ↗</a></div>
 </div></section>
 {portfolio_next_navigation("ai-data-governance")}

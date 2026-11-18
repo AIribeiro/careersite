@@ -43,7 +43,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertNotIn("Job Market Review",str(pdf.metadata.title))
         overview_pages=[
             " ".join((page.extract_text() or "").split()) for page in pdf.pages
-            if "Five candidate decision perspectives" in
+            if "Five ways to plan your job search" in
                " ".join((page.extract_text() or "").split())
         ]
         self.assertEqual(len(overview_pages),1)
@@ -53,10 +53,10 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertGreaterEqual(len(pdf.pages),8)
         text=" ".join(" ".join(p.extract_text() or "" for p in pdf.pages).split())
         for label in (
-            TITLE, "30-day plan", "candidate reading", "Your next move",
-            "Conditional outlook", "Evidence and limits", "159,500",
+            TITLE, "four-week job-search plan", "Understanding your job market",
+            "Try this next", "What might happen next", "Sources and important limitations", "159,500",
             "49", "29", "32,100", "62%", "September",
-            "Methods and source-family limits", "Signed-off observation register",
+            "Detailed source methods and limitations", "Complete list of checked observations",
             "Population:", "Published:", "Verified:",
         ):
             self.assertIn(label.lower(),text.lower())
@@ -65,37 +65,57 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertNotIn("jair.ribeiro@outlook.it",text)
         self.assertNotIn("AI Portfolio Renewal Advisor",text)
 
-    def test_candidate_value_proposition_is_measurable_as_personal_work_not_market_result(self):
-        from market_jobseeker_edition import DECISION_MAP, INTRO, VALUE
-        self.assertEqual(len(DECISION_MAP), 5)
-        for phrase in ("where to spend search effort", "not a vacancy database"):
-            self.assertIn(phrase, VALUE)
-        self.assertIn("experienced AI and Data professionals", INTRO)
-        all_actions=" ".join(x[1] for x in DECISION_MAP).lower()
-        for word in ("advert", "eligibility", "contribution", "remote", "time-limited"):
-            self.assertIn(word,all_actions)
+    def test_accessible_copy_in_both_member_reader_and_download(self):
+        from market_jobseeker_edition import INTRO, VALUE, FINDINGS, READING_HELP
+        self.assertIn("Looking for work",INTRO)
+        self.assertIn("starting",VALUE.lower())
+        self.assertEqual(len(READING_HELP),5)
+        self.assertTrue(any("courses" in item["reading"] for item in FINDINGS))
+        self.assertTrue(any("entry-level" in item["reading"] for item in FINDINGS))
+        pdf=PdfReader(BytesIO(jobseeker_market_pdf(self.points,self.editorial,SLUG)))
+        content=" ".join((p.extract_text() or "") for p in pdf.pages)
+        self.assertIn("Five common terms explained",content)
+        self.assertIn("Job vacancy",content)
+        self.assertIn("four-week",content.lower())
+        src=(ROOT/"src/market_jobseeker_edition.py").read_text(encoding="utf-8")
+        self.assertIn("New to these market figures?",src)
+        for term in ("portfolio_private_search","salary forecast","guaranteed interview"):
+            self.assertNotIn(term.lower(),src.lower())
 
-    def test_candidate_pdf_contains_five_decision_map_actions_and_market_limits(self):
+    def test_five_search_questions_remain_useful_to_nonexecutives(self):
+        from market_jobseeker_edition import DECISION_MAP, INTRO, VALUE
+        self.assertEqual(len(DECISION_MAP),5)
+        self.assertIn("Looking for work",INTRO)
+        self.assertIn("new to the field",VALUE)
+        all_questions=" ".join(x[0] for x in DECISION_MAP)
+        all_actions=" ".join(x[1] for x in DECISION_MAP).lower()
+        for phrase in ("Where should I look?", "Which roles fit my skills?",
+                       "How can I show what I can do?"):
+            self.assertIn(phrase,all_questions)
+        for phrase in ("studies","language","contract","employers"):
+            self.assertIn(phrase,all_actions)
+
+    def test_pdf_contains_five_practical_questions_and_research_limits(self):
         from market_jobseeker_edition import DECISION_MAP
-        data=jobseeker_market_pdf(self.points,self.editorial,SLUG)
-        text=" ".join(" ".join(p.extract_text() or "" for p in PdfReader(BytesIO(data)).pages).split()).lower()
-        self.assertIn("your five practical decisions at a glance",text)
+        pdf=PdfReader(BytesIO(jobseeker_market_pdf(self.points,self.editorial,SLUG)))
+        text=" ".join(" ".join((page.extract_text() or "").split()) for page in pdf.pages).lower()
+        self.assertIn("five questions for your job search",text)
         for question,_ in DECISION_MAP:
             self.assertIn(question.lower(),text)
-        for term in ("not proven channel rankings", "not ai-specific openings",
-                     "not evidence of sustained growth",
-                     "do not measure recruiter response rates"):
-            self.assertIn(term,text)
+        for phrase in ("salary offers", "not only ai and data jobs",
+                       "selected senior", "survey"):
+            self.assertIn(phrase,text)
 
-    def test_public_landing_makes_jobseeker_benefit_and_limitation_visible(self):
+    def test_public_benefits_and_limitations_are_clear(self):
         source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
         landing=source.split('MARKET_SIGNALS_LANDING_HTML = """',1)[1].split('"""',1)[0]
         self.assertIn('id="ms-jobseeker-benefits"',landing)
-        self.assertIn("Five decisions to make your search more deliberate",landing)
-        self.assertIn("Best suited to experienced professionals",landing)
-        self.assertIn("does not rank employers",landing)
+        self.assertIn("Five practical steps for your AI or Data job search",landing)
+        self.assertIn("changing careers",landing)
+        self.assertIn("senior AI/Data adverts",landing)
         self.assertIn("market_signals_jobseeker_cta",landing)
-        self.assertNotIn("market_signals_jobseeker_value_cta",landing)
+        self.assertIn("Rapporten är på engelska",landing)
+        self.assertNotIn("guaranteed job",landing.lower())
 
     def test_edition_binding_and_missing_evidence_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "not bound|approved"):
@@ -125,13 +145,13 @@ class JobseekerMarketReviewTests(unittest.TestCase):
     def test_candidate_pdf_identifies_its_own_date_and_limits(self):
         from market_jobseeker_edition import JOBSEEKER_ISSUE, LIMITS
         self.assertEqual(JOBSEEKER_ISSUE,"18 November 2026")
-        self.assertIn("not a measured hidden ai job market",LIMITS.lower())
-        self.assertIn("salaries",LIMITS.lower())
+        self.assertIn("not only ai and data",LIMITS.lower())
+        self.assertIn("what a role pays",LIMITS.lower())
         data=jobseeker_market_pdf(self.points,self.editorial,SLUG)
         text=" ".join(" ".join((p.extract_text() or "") for p in PdfReader(BytesIO(data)).pages).split())
         self.assertIn(JOBSEEKER_ISSUE,text)
-        self.assertIn("What the evidence cannot establish",text)
-        self.assertIn("THE CANDIDATE QUESTION",text)
+        self.assertIn("What these numbers do not cover",text)
+        self.assertIn("THE JOB SEARCH QUESTION",text)
 
     def test_member_signup_does_not_require_corporate_email_for_candidates(self):
         portal=(ROOT/"src/page_advisory_portal.py").read_text(encoding="utf-8")
@@ -141,8 +161,8 @@ class JobseekerMarketReviewTests(unittest.TestCase):
 
     def test_public_candidate_copy_does_not_claim_a_complete_ai_job_market(self):
         source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
-        self.assertIn("does not estimate all AI jobs",source)
-        self.assertIn("a selected sample of senior AI/Data titles",source)
+        self.assertIn("not every entry-level opening",source)
+        self.assertIn("JobTech covers selected senior titles only",source)
         self.assertIn("market_review_link_preference",source)
 
     def test_only_published_member_path_can_render_or_download(self):
@@ -161,10 +181,10 @@ class JobseekerMarketReviewTests(unittest.TestCase):
     def test_public_landing_has_two_clear_edition_routes_and_no_open_pdf(self):
         source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
         landing=source.split('MARKET_SIGNALS_LANDING_HTML = """',1)[1].split('"""',1)[0]
-        self.assertIn("Executive edition",landing)
-        self.assertIn("Jobseeker edition",landing)
+        self.assertIn("Executive Edition",landing)
+        self.assertIn("Jobseeker Edition",landing)
         self.assertIn("perspective=jobseeker",landing)
-        self.assertIn("Two editions",landing)
+        self.assertIn("Two free reports",landing)
         self.assertIn("A4 PDF",landing)
         self.assertNotIn("jair.ribeiro@outlook.it",landing)
         self.assertIn("portfolio_next_navigation",source)

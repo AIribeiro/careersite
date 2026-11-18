@@ -41,6 +41,7 @@ def test_new_video_player_is_accessible_and_shows_canonical_duration():
 
 def test_unknown_slug_and_path_traversal_fail_closed():
     assert render_briefing_video_preview("not-a-published-video") == ""
+    assert render_briefing_video_preview(AGENT_SLUG, source_fingerprint="0"*64) == ""
     assert render_briefing_video_preview("../etc") == ""
     assert public_preview_media_path(AGENT_SLUG, "../preview.mp4") is None
     assert public_preview_media_path(AGENT_SLUG, "video-manifest.json") is None
@@ -59,7 +60,10 @@ def test_new_video_precedes_editorial_opening_without_unlock_bypass():
             "actual change and assigning a business owner who can recover the work.</p>"
         )
     )
-    html = render_public_briefing_preview(article, "18 Nov 2026")
+    from unittest.mock import patch
+    with patch("briefing_reader_preview.briefing_source_fingerprint",
+               return_value="ab5355f0dc78cf28a4806c1794db57c1d6814a9fd5a70e5a363204d7ae6117cd"):
+        html = render_public_briefing_preview(article, "18 Nov 2026")
     video = html.index('<section class="briefing-preview-video"')
     decision = html.index('<div class="briefing-preview-decision">')
     access = html.index('<section class="briefing-unlock"')

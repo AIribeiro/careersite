@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "slug": "scaling-ai-across-the-enterprise-reuse-and-change",
+  "status": "approved",
+  "approved_by_owner": true,
+  "revision": "legacy-approved-existing-media-no-change",
+  "article_fingerprint": "2d59372df5413034b3df65ff6cd432db5543dafae3ab1f3014a85171cb018320",
+  "title": "Scaling AI Across the Enterprise: What Should Be Reused, and What Must Change?",
+  "duration_seconds": 104.8,
+  "web": {
+    "file": "preview.mp4",
+    "sha256": "137931fe989d415c246522c56bc42b883e3d4eec32c3a972a3b92d7637d417b9",
+    "width": 1920,
+    "height": 1080
+  },
+  "poster": {
+    "file": "poster.jpg",
+    "sha256": "17f503e0cde04d77a57bef7647c86cb93344bad01fd1cbaed7427162ad44136e"
+  },
+  "provenance": "Existing previously approved scaling-AI player; original video and poster bytes remain unchanged."
+}

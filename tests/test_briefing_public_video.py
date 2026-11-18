@@ -68,7 +68,10 @@ def test_video_appears_before_editorial_opening_and_member_access():
             "outcome even if the AI model is unchanged.</p>"
         ),
     )
-    html = render_public_briefing_preview(article, "18 Nov 2026")
+    from unittest.mock import patch
+    with patch("briefing_reader_preview.briefing_source_fingerprint",
+               return_value="2d59372df5413034b3df65ff6cd432db5543dafae3ab1f3014a85171cb018320"):
+        html = render_public_briefing_preview(article, "18 Nov 2026")
     body_at = html.index('<section class="briefing-preview-body"')
     grid_at = html.index('<div class="briefing-preview-grid">')
     article_at = html.index('<article class="briefing-preview-copy">')

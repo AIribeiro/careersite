@@ -1,0 +1,56 @@
+name: Temporary branded Market Video end-to-end verification
+on:
+  push:
+    branches: [qa/go-market-video-playback-20261118]
+    paths: [.github/workflows/temp-go-market-video-live.yml]
+permissions: {contents: read}
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Install headless Chrome
+        run: |
+          python -m pip install --quiet playwright==1.58.0
+          python -m playwright install chromium
+      - name: Play video inside the actual go.jairribeiro.com masked frame
+        run: |
+          python - <<'PY'
+          import json,time
+          from playwright.sync_api import sync_playwright
+          url="https://go.jairribeiro.com/?source=internal_qa&role=smoke"
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True,args=["--autoplay-policy=no-user-gesture-required"])
+              page=browser.new_page(viewport={"width":390,"height":844},is_mobile=True,has_touch=True)
+              responses=[];failed=[]
+              page.on("response",lambda r: responses.append({"url":r.url,"status":r.status,"type":r.headers.get("content-type")}) if "market-review-november-2026.mp4" in r.url else None)
+              page.on("requestfailed",lambda r: failed.append((r.url[:120],r.failure)) if "market-review-" in r.url else None)
+              page.goto(url,wait_until="domcontentloaded",timeout=40000)
+              frame=None
+              for attempt in range(24):
+                  for candidate in page.frames:
+                      try:
+                          if candidate.locator(".ms-video-player").count() > 0:
+                              frame=candidate
+                              break
+                      except Exception:
+                          continue
+                  if frame:break
+                  page.wait_for_timeout(2400)
+              if not frame:
+                  print("NO_VIDEO",page.url,[(x.url,x.locator('body').count()) for x in page.frames],flush=True)
+                  raise AssertionError("Live masked domain did not display the video element")
+              v=frame.locator(".ms-video-player")
+              v.scroll_into_view_if_needed()
+              try:v.click(force=True,timeout=5000)
+              except Exception as exc:print("CLICK_WARN",str(exc)[:150])
+              started=v.evaluate("""async v=>await Promise.race([v.play().then(()=> 'resolved').catch(e=>e.name+':'+e.message),new Promise(r=>setTimeout(()=>r('pending-after-6s'),6000))])""")
+              page.wait_for_timeout(3100)
+              metrics=v.evaluate("""v=>({readyState:v.readyState,networkState:v.networkState,error:v.error?.code,duration:v.duration,currentTime:v.currentTime,videoWidth:v.videoWidth,paused:v.paused,currentSrc:v.currentSrc})""")
+              print("LIVE_MASKED_PLAYBACK",json.dumps({"start":started,"metrics":metrics,"responses":responses,"failed":failed}),flush=True)
+              assert metrics["error"] is None,metrics
+              assert metrics["duration"]>57 and metrics["videoWidth"]>=500,metrics
+              assert metrics["currentTime"]>0.6,metrics
+              assert any(r["status"] in (200,206) and "video/mp4" in (r["type"] or "") for r in responses),responses
+              browser.close()
+          PY

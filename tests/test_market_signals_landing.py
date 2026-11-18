@@ -123,10 +123,9 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertIn("Understand the Swedish AI &amp; Data market.",html)
         self.assertIn("Five market signals worth understanding.",html)
         self.assertLess(html.index('id="ms-perspectives"'),html.index('id="ms-findings"'))
-        self.assertLess(html.index('id="ms-findings"'),html.index("<!-- MARKET_SIGNALS_VIDEO_PLAYER -->"))
-        self.assertLess(html.index("<!-- MARKET_SIGNALS_VIDEO_PLAYER -->"),
+        self.assertLess(html.index('id="ms-findings"'),html.index('id="ms-video"'))
+        self.assertLess(html.index('id="ms-video"'),
                         html.index('aria-labelledby="ms-materials-title"'))
-        self.assertNotIn('id="ms-video"',html)
         self.assertIn("43",html)
         self.assertIn("Jobseeker Edition",html)
         self.assertIn("Executive Edition",html)
@@ -155,36 +154,32 @@ class MarketSignalsLandingTests(unittest.TestCase):
                       "Choose your edition and start reading."):
             self.assertIn(title,self.page)
 
-    def test_native_video_mount_and_reduced_repetition(self):
-        from page_advisory_market_signals import (
-            MARKET_REVIEW_VIDEO_ID,MARKET_REVIEW_VIDEO_EMBED_URL,
-            MARKET_VIDEO_SPLIT,split_market_landing_at_video,
-        )
-        self.assertEqual(MARKET_REVIEW_VIDEO_ID,"55e1d1dff94641d2a3f6e915cef8fd3d")
-        self.assertEqual(MARKET_REVIEW_VIDEO_EMBED_URL,
-                         "https://app.heygen.com/embeds/"+MARKET_REVIEW_VIDEO_ID)
-        self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(MARKET_VIDEO_SPLIT),1)
-        intro,remainder=split_market_landing_at_video(MARKET_SIGNALS_LANDING_HTML)
-        self.assertTrue(intro.rstrip().endswith("</section>"))
-        self.assertTrue(remainder.lstrip().startswith("<section"))
+    def test_video_is_intrinsically_responsive_and_locally_served(self):
+        from pathlib import Path
+        html=MARKET_SIGNALS_LANDING_HTML
         main=(ROOT/"main.py").read_text(encoding="utf-8")
-        self.assertIn('if PAGE == "advisory-market-signals":',main)
-        self.assertIn("split_market_landing_at_video(responsive_document)",main)
-        self.assertIn("from streamlit.components.v1 import iframe as render_video_iframe",main)
-        self.assertIn('key="market_video_compact"',main)
-        self.assertIn("st.columns(",main)
-        self.assertIn("width=230, height=408",main)
-        self.assertNotIn("width=470, height=650",main)
-        self.assertNotIn("st.iframe(",main)
-        self.assertIn("A short look at the market evidence.",main)
-        self.assertIn("The Jobseeker Edition uses",main)
         css=MARKET_SIGNALS_LANDING_CSS
-        self.assertIn(".st-key-market_video_compact iframe",css)
-        self.assertIn("max-width:250px",css)
-        self.assertIn("max-width:215px",css)
-        self.assertNotIn(".st-key-market_video_player",css)
-        self.assertNotIn(".ms-section--film",css)
-        self.assertIn("app.heygen.com/share/"+MARKET_REVIEW_VIDEO_ID, main)
+        self.assertIn('id="ms-video"',html)
+        self.assertEqual(html.count('class="ms-video-player"'),1)
+        self.assertIn('controls playsinline preload="none"',html)
+        self.assertIn('poster="/app/static/market-signals/market-review-poster.jpg"',html)
+        self.assertIn('src="/app/static/market-signals/market-review-november-2026.mp4"',html)
+        self.assertNotIn("MARKET_SIGNALS_VIDEO_PLAYER",html)
+        self.assertNotIn("split_market_landing_at_video",main)
+        self.assertNotIn('key="market_video_compact"',main)
+        self.assertIn("st.html(shared_styles + '<div",main)
+        self.assertIn(".site.ms-landing .ms-video-layout",css)
+        self.assertIn("html[data-jr-masked-mobile",css)
+        self.assertIn("(max-device-width:760px)",css)
+        self.assertIn("app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d",html)
+        video=ROOT/"static/market-signals/market-review-november-2026.mp4"
+        poster=ROOT/"static/market-signals/market-review-poster.jpg"
+        self.assertTrue(video.is_file())
+        self.assertTrue(poster.is_file())
+        self.assertGreater(video.stat().st_size,500_000)
+        self.assertLess(video.stat().st_size,12_000_000)
+        self.assertEqual(video.open("rb").read(8)[4:8],b"ftyp")
+        self.assertEqual(poster.open("rb").read(3),bytes((255,216,255)))
         self.assertNotIn("Signature=",self.page)
         self.assertNotIn('id="ms-jobseeker-benefits"',self.page)
         self.assertNotIn('aria-labelledby="ms-decisions-title"',self.page)

@@ -363,7 +363,7 @@ MARKET_SIGNALS_LANDING_HTML = """
         <div><strong>5</strong><span>topics in each report</span></div>
         <div><strong>6</strong><span>evidence series · 5 publishers</span></div>
       </div>
-      <p class="ms-edition-note">The Executive Edition was published on 17 November 2026; the Jobseeker Edition was prepared on 18 November. Both use the same checked source data and explain its limits.</p>
+      <p class="ms-edition-note">The Executive Edition was published on 17 November 2026; the Jobseeker Edition was prepared on 18 November 2026. Both use the same checked source data and explain its limits.</p>
     </aside>
   </div>
 </div></section>
@@ -575,7 +575,7 @@ MARKET_SIGNALS_LANDING_HTML = """
         <li><strong>Konjunkturinstitutet</strong>Swedish business confidence, recent staffing and future employment intentions; the measures are not actual hires.</li>
         <li><strong>European Commission</strong>Sweden's Digital Decade roadmap, policy priorities and planned budgets; not AI-only investment or company ROI.</li>
       </ul>
-      <p class="ms-note">Additional skills, management pay and other unapproved measures are not published until their sources and definitions have been checked.</p>
+      <p class="ms-note">Additional skills and salary measures are being checked; they are not published in the current edition until their sources and definitions have been verified.</p>
     </div>
     <aside class="ms-quality">
       <h3>Interpret each measure in its proper context.</h3>

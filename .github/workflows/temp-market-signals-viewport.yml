@@ -1,0 +1,74 @@
+name: Temporary premium Market Signals viewport review
+on:
+  push:
+    branches:
+      - feature/market-signals-video-editorial-20261118
+    paths:
+      - .github/workflows/temp-market-signals-viewport.yml
+permissions:
+  contents: read
+jobs:
+  viewport-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install headless Chromium for responsive verification
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Render approved landing for mobile, tablet and desktop
+        shell: bash
+        run: |
+          python - <<'PY'
+          import ast,base64,json,re
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+          src=Path("src/page_advisory_market_signals.py").read_text()
+          tree=ast.parse(src)
+          values={}
+          for stmt in tree.body:
+              if isinstance(stmt,ast.Assign):
+                  for target in stmt.targets:
+                      if isinstance(target,ast.Name) and target.id in ("MARKET_SIGNALS_LANDING_CSS","MARKET_SIGNALS_LANDING_HTML"):
+                          values[target.id]=ast.literal_eval(stmt.value)
+          assert len(values)==2,values.keys()
+          html=values["MARKET_SIGNALS_LANDING_HTML"]
+          poster=base64.b64encode(Path("static/market-signals/market-review-poster.jpg").read_bytes()).decode()
+          html=html.replace('/app/static/market-signals/market-review-poster.jpg','data:image/jpeg;base64,'+poster)
+          preview='<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;font-family:Arial,sans-serif}</style>'+values["MARKET_SIGNALS_LANDING_CSS"]+'</head><body>'+html+'</body></html>'
+          Path("preview.html").write_text(preview)
+          Path("visual-report").mkdir(exist_ok=True)
+          results=[]
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True)
+              for name,w,h in (("desktop",1440,900),("tablet",834,1112),("phone",390,844),("smallphone",360,740)):
+                  page=browser.new_page(viewport={"width":w,"height":h},device_scale_factor=1)
+                  page.set_content(preview,wait_until="domcontentloaded")
+                  page.wait_for_timeout(250)
+                  result=page.evaluate("""() => {
+                    const cards=[...document.querySelectorAll('.ms-perspective')];
+                    const buttons=cards.map(x=>x.querySelector('.ms-actions a').getBoundingClientRect());
+                    return {scrollWidth:document.documentElement.scrollWidth,
+                      viewport:innerWidth,cardHeights:cards.map(x=>x.getBoundingClientRect().height),
+                      buttonBottoms:buttons.map(x=>x.bottom),
+                      videoWidth:document.querySelector('.ms-video-player').getBoundingClientRect().width,
+                      videoHeight:document.querySelector('.ms-video-player').getBoundingClientRect().height};
+                    }""")
+                  print(name,result)
+                  results.append({"viewport":name,**result})
+                  assert result["scrollWidth"]<=w+2,(name,"horizontal overflow",result)
+                  assert abs(result["cardHeights"][0]-result["cardHeights"][1])<2,(name,"unbalanced heights",result)
+                  if w>=760:
+                      assert abs(result["buttonBottoms"][0]-result["buttonBottoms"][1])<3,(name,"uneven CTAs",result)
+                  assert result["videoWidth"]<=345,(name,"portrait video too wide",result)
+                  page.screenshot(path=f"visual-report/{name}.png",full_page=True)
+                  page.close()
+              browser.close()
+          Path("visual-report/results.json").write_text(json.dumps(results,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-signals-premium-viewports
+          path: visual-report/

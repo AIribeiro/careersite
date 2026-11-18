@@ -346,7 +346,7 @@ MARKET_SIGNALS_LANDING_HTML = """
     <article><h3>05 / Which work model</h3><p>Evaluate permanent versus interim roles without inferring specialist demand from broad data.</p></article>
   </div>
   <div class="ms-actions">
-    <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_jobseeker_value_cta">Read and download the Jobseeker Edition · Free registration</a>
+    <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_jobseeker_cta">Read and download the Jobseeker Edition · Free registration</a>
   </div>
   <p class="ms-note">Best suited to experienced professionals exploring AI, Data &amp; Analytics, governance and related business leadership mandates. It does not rank employers, reveal hidden vacancies or forecast interview or offer chances.</p>
 </div></section>

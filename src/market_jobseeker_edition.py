@@ -325,6 +325,14 @@ SCENARIOS = (
 )
 
 
+READING_HELP = (
+    ("Job vacancy", "A position an employer is trying to fill; this does not mean someone was hired."),
+    ("Selected job-ad sample", "A small group of adverts matching chosen senior job titles, not every AI or Data role."),
+    ("Survey estimate", "A figure from survey responses, rather than a count of every employer or worker."),
+    ("Business confidence", "How businesses describe conditions and expectations, not a list of companies hiring."),
+    ("Consulting marketplace", "A site listing contract assignments and consultants, not the whole labour market."),
+)
+
 def validate_jobseeker_edition(points: list[dict], editorial: dict, edition_slug: str) -> dict:
     """Fail closed rather than accidentally attaching the 2026 POV to a newer edition."""
     validate_editorial(editorial, points, edition_slug)
@@ -386,6 +394,10 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "body",sty=sty))
     story.append(P("What these numbers do not cover", "h2",sty=sty))
     story.append(P(LIMITS,"body_small",sty=sty))
+    story.append(P("Five common terms explained","h2",sty=sty))
+    for term, meaning in READING_HELP:
+        story.append(P(term+": "+meaning,"body_compact",sty=sty))
+    story.append(Spacer(1,10))
     story.append(metric_cards([
         (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',"Vacancies across all types of work","SCB, Q2 2026"),
         (f'{int(float(idx["scb_lor_2026q2_other_channels"]["value"])):,}',"Vacancies recruited without adverts","SCB, Q2 2026"),
@@ -521,13 +533,13 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
     validate_jobseeker_edition(points, editorial, edition_slug)
     st.html(STYLE)
     st.html(
-        '<section class="ms-js-lead"><div class="eyebrow">Candidate edition / '+
+        '<section class="ms-js-lead"><div class="eyebrow">Jobseeker edition / '+
         html_escape(editorial["issue_date"])+'</div><h3>'+
         html_escape(TITLE)+'</h3><p><strong>'+html_escape(SUBTITLE)+
         '</strong></p><p>'+html_escape(INTRO)+
         '</p><p>'+html_escape(VALUE)+'</p></section>'
     )
-    with st.expander("Evidence scope — what the figures cannot tell you",expanded=False):
+    with st.expander("What these figures cover",expanded=False):
         st.write(LIMITS)
     st.caption("Jobseeker Edition 1.0 · Prepared 18 November 2026 · Evidence snapshot 17 November 2026")
     st.markdown("#### Download your free jobseeker report")
@@ -545,6 +557,9 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
         on_click=record_event,args=(token,"pdf_review","jobseeker",edition_slug)
     )
     idx={x["code"]:x for x in points}
+    with st.expander("New to these market figures? Five terms explained",expanded=False):
+        for term, meaning in READING_HELP:
+            st.markdown("**"+term+"** — "+meaning)
     st.markdown("#### Five topics to help your job search")
     choice=st.selectbox("Which topic would you like to explore?",
         [x["key"] for x in FINDINGS],
@@ -552,18 +567,18 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
         key="market_jobseeker_theme")
     item=next(x for x in FINDINGS if x["key"]==choice)
     st.html(
-        '<article class="ms-js-topic"><span class="eyebrow">Candidate perspective</span>'
+        '<article class="ms-js-topic"><span class="eyebrow">Jobseeker topic</span>'
         '<h3>'+html_escape(item["title"])+'</h3>'
-        '<h4>What the published evidence shows</h4><p>'+
+        '<h4>What the figures show</h4><p>'+
         html_escape(item["signal"])+'</p>'
-        '<h4>What it means for your search</h4><p>'+
+        '<h4>How this may help</h4><p>'+
         html_escape(item["reading"])+'</p>'
-        '<h4>Alternative explanation</h4><p>'+
+        '<h4>Another explanation</h4><p>'+
         html_escape(item["alternative"])+'</p>'
-        '<h4>When to reconsider</h4><p>'+
+        '<h4>What to check next</h4><p>'+
         html_escape(item["watch"])+'</p></article>'
     )
-    st.html('<section class="ms-js-action"><strong>THE NEXT PRACTICAL STEP</strong>'
+    st.html('<section class="ms-js-action"><strong>WHAT YOU CAN TRY NEXT</strong>'
         '<p>'+html_escape(item["action"])+'</p></section>')
     with st.expander("Check the original observations and methods",expanded=False):
         for code in item["codes"]:
@@ -588,8 +603,8 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
     for scenario in SCENARIOS:
         with st.expander(scenario["period"],expanded=False):
             st.write(scenario["reading"])
-            st.caption("What to monitor: "+scenario["trigger"])
-            st.write("Your response: "+scenario["response"])
+            st.caption("Keep an eye on: "+scenario["trigger"])
+            st.write("What you could do: "+scenario["response"])
     with st.expander("Source details and limitations",expanded=False):
         for caveat in editorial["coverage_cautions"]:
             st.markdown("**"+caveat["title"]+"**")

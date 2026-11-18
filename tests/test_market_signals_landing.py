@@ -184,7 +184,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertIn("max-width:215px",css)
         self.assertNotIn(".st-key-market_video_player",css)
         self.assertNotIn(".ms-section--film",css)
-        self.assertIn("app.heygen.com/share/"+MARKET_REVIEW_VIDEO_ID, self.page)
+        self.assertIn("app.heygen.com/share/"+MARKET_REVIEW_VIDEO_ID, main)
         self.assertNotIn("Signature=",self.page)
         self.assertNotIn('id="ms-jobseeker-benefits"',self.page)
         self.assertNotIn('aria-labelledby="ms-decisions-title"',self.page)

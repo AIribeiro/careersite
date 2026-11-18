@@ -551,27 +551,6 @@ MARKET_SIGNALS_LANDING_HTML = """
 </main>
 """
 
-# A stable HeyGen share route is used instead of an expiring, signed MP4 URL.
-# Actual public visibility must be enabled in HeyGen's Share settings.
-MARKET_REVIEW_VIDEO_ID = "55e1d1dff94641d2a3f6e915cef8fd3d"
-MARKET_REVIEW_VIDEO_EMBED_URL = (
-    "https://app.heygen.com/embeds/" + MARKET_REVIEW_VIDEO_ID
-)
-MARKET_VIDEO_SPLIT = "<!-- MARKET_SIGNALS_VIDEO_PLAYER -->"
-
-
-def split_market_landing_at_video(document: str) -> tuple[str, str]:
-    """Keep native video playback between complete Streamlit HTML fragments."""
-    if document.count(MARKET_VIDEO_SPLIT) != 1:
-        raise ValueError("Exactly one Market Review video mount is required")
-    intro, remainder = document.split(MARKET_VIDEO_SPLIT, 1)
-    if not intro.rstrip().endswith("</section>"):
-        raise ValueError("Market video mount must follow a closed section")
-    if not remainder.lstrip().startswith("<section"):
-        raise ValueError("Market video mount must precede a complete section")
-    return intro, remainder
-
-
 def advisory_market_signals() -> str:
     """Public two-audience Market Review landing; no privileged API reads."""
     return (

@@ -279,35 +279,28 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-trust-strip span{color:#C9D8E5;font-size:12px;line-height:1.7}
 .site.ms-landing .ms-trust-strip strong{color:#F0C39F;font-size:20px}
 .site.ms-landing .ms-issue-line{color:#B8C8D5;font-size:11px}
-/* Supporting video: compact and below the main reports and market findings. */
-.st-key-market_video_compact{
-  width:100%;max-width:none;background:#F7F5F0;
-  border-top:1px solid #D8D0C5;border-bottom:1px solid #D8D0C5;
-  padding:clamp(16px,2.5vw,31px) clamp(16px,4vw,49px)!important;
+/* Local video and copy share the same mobile-scaled .site layout. */
+.site.ms-landing .ms-section--video{background:#F7F5F0;border-top:1px solid #DDD6CC;border-bottom:1px solid #DDD6CC;padding:clamp(25px,3.8vw,45px) 0}
+.site.ms-landing .ms-video-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(175px,215px);gap:clamp(22px,4.5vw,64px);align-items:center}
+.site.ms-landing .ms-video-layout > *{min-width:0}
+.site.ms-landing .ms-video-copy{max-width:710px}
+.site.ms-landing .ms-video-copy .ms-overline{color:#986449;font-size:10px;letter-spacing:.15em}
+.site.ms-landing .ms-video-copy h2{margin:11px 0 15px;font:500 clamp(25px,2.9vw,36px)/1.18 Georgia,serif;letter-spacing:-.02em;color:#1D374A}
+.site.ms-landing .ms-video-copy p{font-size:14px;line-height:1.65;color:#536679;margin:10px 0}
+.site.ms-landing .ms-video-copy .ms-film-link{display:inline-block;margin-top:9px;font-weight:750;font-size:13px;color:#305D7A!important;text-decoration:underline;text-underline-offset:4px}
+.site.ms-landing .ms-video-copy .ms-film-meta{font-size:11px;color:#687989}
+.site.ms-landing .ms-video-figure{width:100%;max-width:215px;margin:0 auto}
+.site.ms-landing .ms-video-player{display:block;aspect-ratio:512 / 910;width:100%;height:auto;background:#102437;border:1px solid #CDC6BC;border-radius:6px}
+.site.ms-landing .ms-video-figure figcaption{text-align:center;color:#687989;font-size:11px;line-height:1.55;margin-top:9px}
+@media(max-width:760px),(max-device-width:760px){
+ .site.ms-landing .ms-video-layout{grid-template-columns:minmax(0,1fr);gap:18px}
+ .site.ms-landing .ms-video-copy h2{font-size:28px}
+ .site.ms-landing .ms-video-copy p{font-size:14px}
+ .site.ms-landing .ms-video-figure{width:min(100%,224px);max-width:224px}
+ .site.ms-landing .ms-section--video{padding:25px 0 31px}
 }
-.st-key-market_video_compact [data-testid="stHorizontalBlock"]{
-  align-items:center;gap:clamp(18px,3.8vw,48px)
-}
-.st-key-market_video_compact [data-testid="stColumn"]{min-width:0}
-.st-key-market_video_compact [data-testid="stIframe"]{max-width:250px;margin:0 auto}
-.st-key-market_video_compact iframe{
-  display:block;width:100%;max-width:250px;
-  border:1px solid #D7CFC4;border-radius:6px;background:#102437
-}
-.site.ms-landing .ms-inline-film-copy{max-width:740px;padding:6px 0}
-.site.ms-landing .ms-inline-film-copy .ms-overline{font-size:10px;letter-spacing:.15em;color:#8D5A3C}
-.site.ms-landing .ms-inline-film-copy h2{
-  margin:9px 0 12px;font:500 clamp(25px,3.2vw,37px)/1.16 Georgia,serif;
-  letter-spacing:-.022em;color:#1C3548
-}
-.site.ms-landing .ms-inline-film-copy p{
-  font-size:14px;line-height:1.7;color:#526477;margin:9px 0
-}
-.site.ms-landing .ms-inline-film-copy .ms-film-link{
-  display:inline-block;margin-top:9px;font-size:13px;font-weight:750;
-  color:#305D7A!important;text-decoration:underline;text-underline-offset:4px
-}
-.site.ms-landing .ms-inline-film-copy .ms-film-meta{font-size:11px;color:#667688}
+html[data-jr-masked-mobile="true"] .site.ms-landing .ms-video-layout{grid-template-columns:minmax(0,1fr)}
+html[data-jr-masked-mobile="true"] .site.ms-landing .ms-video-figure{max-width:224px}
 .site.ms-landing .ms-research-details{background:#1E3B52;border:1px solid #526F84}
 .site.ms-landing .ms-research-details summary{cursor:pointer;color:#F8F9FA;font-weight:750;font-size:14px;line-height:1.6;padding:20px}
 .site.ms-landing .ms-research-details summary:focus-visible{outline:3px solid #EBC29A}
@@ -315,16 +308,6 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-research-details--light{background:#FFFEFC;border-color:#DBD3C7}
 .site.ms-landing .ms-research-details--light summary{color:#1A3449}
 .site.ms-landing .ms-research-details--light .ms-standard{padding:20px}
-@media(max-width:760px),(max-device-width:760px){
-  .st-key-market_video_compact [data-testid="stHorizontalBlock"]{flex-direction:column;gap:12px;align-items:stretch}
-  .st-key-market_video_compact [data-testid="stColumn"]{width:100%!important;flex:0 0 100%!important}
-  .st-key-market_video_compact [data-testid="stIframe"]{max-width:215px;margin:0 auto}
-  .st-key-market_video_compact iframe{max-width:215px}
-  .site.ms-landing .ms-inline-film-copy h2{font-size:29px}
-  .site.ms-landing .ms-inline-film-copy p{font-size:13px}
-  .site.ms-landing .ms-research-details .ms-workspace{padding:12px}
-  .site.ms-landing .ms-research-details--light .ms-standard{padding:12px}
-}
 </style>
 """
 
@@ -441,7 +424,25 @@ MARKET_SIGNALS_LANDING_HTML = """
   <p class="ms-note">Source dates, populations and methods are documented below and in the full report. Each indicator is interpreted within its original scope.</p>
 </div></section>
 
-<!-- MARKET_SIGNALS_VIDEO_PLAYER -->
+<section class="ms-section ms-section--video" id="ms-video" aria-labelledby="ms-video-title"><div class="container">
+ <div class="ms-video-layout">
+  <div class="ms-video-copy">
+   <p class="ms-overline">Optional video / November 2026</p>
+   <h2 id="ms-video-title">A short look at the market evidence.</h2>
+   <p>This 58-second briefing introduces figures on AI adoption, recruitment and consulting activity in Sweden. It is a starting point, not a substitute for the complete research.</p>
+   <p><strong>For business leaders:</strong> consider investment, workforce and capability decisions. <strong>Looking for work?</strong> The Jobseeker Edition helps you explore roles, show your skills and plan your search using the same evidence.</p>
+   <a class="ms-film-link" href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_external">Watch on HeyGen if the video is unavailable</a>
+   <p class="ms-film-meta">58 seconds · English narration and captions · Plays only when selected</p>
+  </div>
+  <figure class="ms-video-figure">
+   <video class="ms-video-player" controls playsinline preload="none" poster="/app/static/market-signals/market-review-poster.jpg" aria-label="Swedish AI and Data Market Review, 58-second research explainer">
+    <source src="/app/static/market-signals/market-review-november-2026.mp4" type="video/mp4">
+    <a href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer">Watch the research video on HeyGen</a>.
+   </video>
+   <figcaption>58-second evidence overview</figcaption>
+  </figure>
+ </div>
+</div></section>
 
 <section class="ms-section ms-section--white" aria-labelledby="ms-materials-title"><div class="container">
   <div class="ms-section-head">
@@ -549,27 +550,6 @@ MARKET_SIGNALS_LANDING_HTML = """
 </div></section>
 </main>
 """
-
-# A stable HeyGen share route is used instead of an expiring, signed MP4 URL.
-# Actual public visibility must be enabled in HeyGen's Share settings.
-MARKET_REVIEW_VIDEO_ID = "55e1d1dff94641d2a3f6e915cef8fd3d"
-MARKET_REVIEW_VIDEO_EMBED_URL = (
-    "https://app.heygen.com/embeds/" + MARKET_REVIEW_VIDEO_ID
-)
-MARKET_VIDEO_SPLIT = "<!-- MARKET_SIGNALS_VIDEO_PLAYER -->"
-
-
-def split_market_landing_at_video(document: str) -> tuple[str, str]:
-    """Keep native video playback between complete Streamlit HTML fragments."""
-    if document.count(MARKET_VIDEO_SPLIT) != 1:
-        raise ValueError("Exactly one Market Review video mount is required")
-    intro, remainder = document.split(MARKET_VIDEO_SPLIT, 1)
-    if not intro.rstrip().endswith("</section>"):
-        raise ValueError("Market video mount must follow a closed section")
-    if not remainder.lstrip().startswith("<section"):
-        raise ValueError("Market video mount must precede a complete section")
-    return intro, remainder
-
 
 def advisory_market_signals() -> str:
     """Public two-audience Market Review landing; no privileged API reads."""

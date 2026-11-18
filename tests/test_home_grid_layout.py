@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+"""Homepage stays scannable and retains the approved navigation and references."""
 from pathlib import Path
 import unittest
 
@@ -7,58 +6,30 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class HomeGridLayoutTests(unittest.TestCase):
-    def test_home_uses_distinct_grids_for_focus_cases_and_references(self) -> None:
+    def test_home_uses_one_featured_case_and_three_short_supporting_cards(self):
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
+        evidence = (ROOT / "src/portfolio_operating_evidence.py").read_text(encoding="utf-8")
+        self.assertIn("{home_evidence()}", home)
+        self.assertIn('id="leadership-in-practice"', evidence)
+        section = evidence.split('def home_evidence()', 1)[1].split('def impact_evidence()', 1)[0]
+        self.assertEqual(section.count('<article class="card"'), 4)
+        self.assertIn("Customer Interview Analyzer", section)
+        self.assertIn("was not scaled", section)
+        self.assertIn('href="?page=impact#customer-interview-analyzer"', section)
+        self.assertNotIn("claim of a fully scaled operating model", section)
 
-        focus = home.split('<p class="eyebrow">Leadership focus</p>', 1)[1]
-        focus = focus.split('<p class="eyebrow">Selected experience</p>', 1)[0]
-        self.assertIn('<div class="grid3 home-focus-grid">', focus)
-        self.assertEqual(focus.count('<article class="card">'), 3)
-        self.assertIn("Enterprise AI strategy &amp; scaling", focus)
-        self.assertIn("Data &amp; Analytics leadership", focus)
-        self.assertIn("Governance &amp; operating model", focus)
-        self.assertIn("View selected experience →", focus)
-        self.assertIn("Governance evidence →", focus)
-        self.assertIn("Credentials &amp; verification →", focus)
-
-        cases = home.split('<p class="eyebrow">Selected experience</p>', 1)[1]
-        cases = cases.split('{framework_teaser()}', 1)[0]
-        self.assertIn(
-            '<div class="thoughts home-case-grid">',
-            cases,
-        )
-        self.assertEqual(cases.count('<article class="card">'), 3)
-
-        hero = home.split('<section class="hero">', 1)[1]
-        hero = hero.split('<section class="section white">', 1)[0]
-        self.assertIn("Explore my leadership experience →", hero)
-        self.assertIn("AI &amp; Data Governance →", hero)
-        self.assertIn("Download CV ↓", hero)
-        self.assertNotIn("Contact me", hero)
-
-        journey = home.split('data-analytics-section="home-choose-your-path"', 1)[1]
-        journey = journey.split('<p class="eyebrow">Leadership focus</p>', 1)[0]
-        self.assertEqual(journey.count('class="journey-card"'), 3)
-        for destination in ("impact", "ai-data-governance", "thinking"):
-            self.assertIn(f'href="?page={destination}"', journey)
-        for event in ("journey_home_impact", "journey_home_governance",
-                      "journey_home_thinking"):
-            self.assertIn(f'data-hq-event="{event}"', journey)
-        self.assertIn("What I’ve led", journey)
-        self.assertIn("How I make AI work", journey)
-        self.assertIn("How I think", journey)
-
-        self.assertNotIn('<p class="eyebrow">Recurring questions</p>', home)
-
-        # Endorsements support the leadership evidence, rather than competing
-        # with Home's introduction and the three entry-point cards.
-        self.assertNotIn("Comments from people I worked with.", home)
-        self.assertNotIn('data-hq-event="reference_', home)
+    def test_navigation_and_closing_contact_are_preserved(self):
+        home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
         impact = (ROOT / "src/page_impact.py").read_text(encoding="utf-8")
-        references = impact.split('id="leadership-references"', 1)[1]
-        references = references.split('{journey_next("impact")}', 1)[0]
-        self.assertIn('<div class="principles">', references)
-        self.assertEqual(references.count('<article class="principle">'), 2)
+        self.assertIn("{home_pathways()}", home)
+        self.assertIn("{home_whats_new()}", home)
+        self.assertIn("{home_featured_article(instant=True)}", home)
+        for destination in ("impact", "ai-data-governance"):
+            self.assertIn(f'href="?page={destination}"', home)
+        self.assertIn("Download CV ↓", home)
+        self.assertIn('id="leadership-references"', impact)
+        self.assertEqual(impact.count('<article class="principle">'), 2)
+        self.assertIn('{portfolio_next_navigation("impact")}', impact)
 
 
 if __name__ == "__main__":

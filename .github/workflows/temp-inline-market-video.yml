@@ -1,0 +1,86 @@
+name: Temporary Market Review inline-video mobile browser check
+on:
+  push:
+    branches: [fix/market-video-true-responsive-mobile-20261118]
+    paths:
+      - ".github/workflows/temp-inline-market-video.yml"
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Streamlit and Chromium
+        run: |
+          python -m pip install --quiet streamlit==1.64.0 playwright==1.58.0
+          python -m playwright install chromium
+      - name: Start the real Streamlit HTML sanitizer with published static media
+        shell: bash
+        run: |
+          cat > test_market_video_local.py <<'PY'
+          import ast
+          from pathlib import Path
+          import streamlit as st
+          values={}
+          tree=ast.parse(Path("src/page_advisory_market_signals.py").read_text())
+          for node in tree.body:
+              if isinstance(node,ast.Assign):
+                  for target in node.targets:
+                      if isinstance(target,ast.Name) and target.id in ("MARKET_SIGNALS_LANDING_CSS","MARKET_SIGNALS_LANDING_HTML"):
+                          values[target.id]=ast.literal_eval(node.value)
+          st.html(values["MARKET_SIGNALS_LANDING_CSS"] + values["MARKET_SIGNALS_LANDING_HTML"])
+          PY
+          streamlit run test_market_video_local.py --server.headless true --server.port 8501 --server.enableStaticServing true >/tmp/video-qa.log 2>&1 &
+          for attempt in $(seq 1 40); do curl --fail --silent http://127.0.0.1:8501/_stcore/health >/dev/null && break; sleep 2; done
+          curl --fail --silent http://127.0.0.1:8501/_stcore/health
+      - name: Check DOM video, local media and responsive geometry in a real browser
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+          Path("video-qa").mkdir(exist_ok=True)
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True)
+              for label,w,h in (("desktop",1440,900),("iphone",390,844),("smallphone",360,740)):
+                  page=browser.new_page(viewport={"width":w,"height":h})
+                  page.goto("http://127.0.0.1:8501",wait_until="domcontentloaded",timeout=30000)
+                  page.locator(".ms-video-player").wait_for(state="attached",timeout=25000)
+                  data=page.evaluate("""() => {
+                    let video=document.querySelector('.ms-video-player');
+                    let card=document.querySelector('.ms-video-layout');
+                    let text=document.querySelector('.ms-video-copy');
+                    let vr=video.getBoundingClientRect(),tr=text.getBoundingClientRect(),cr=card.getBoundingClientRect();
+                    return { count:document.querySelectorAll('.ms-video-player').length,
+                      videoWidth:vr.width,videoHeight:vr.height,videoLeft:vr.left,
+                      textWidth:tr.width,textBottom:tr.bottom,videoTop:vr.top,
+                      cardWidth:cr.width,documentWidth:document.documentElement.scrollWidth,
+                      viewport:window.innerWidth, layout:getComputedStyle(card).gridTemplateColumns,
+                      controls:video.controls,preload:video.preload };
+                  }""")
+                  print(label, json.dumps(data),flush=True)
+                  assert data["count"]==1
+                  assert data["videoWidth"]>=160 and data["videoWidth"]<=240
+                  assert data["controls"] is True
+                  assert data["preload"]=="none"
+                  assert data["documentWidth"]<=w+3,(label,"overflow",data)
+                  if w<600: assert data["videoTop"]>=data["textBottom"]-2,(label,"not stacked",data)
+                  else: assert data["videoTop"]<data["textBottom"],(label,"not side by side",data)
+                  page.screenshot(path=f"video-qa/{label}.png",full_page=True)
+                  for name in ("market-review-november-2026.mp4","market-review-poster.jpg"):
+                      resp=page.request.get(f"http://127.0.0.1:8501/app/static/market-signals/{name}")
+                      print(name,resp.status,resp.headers.get("content-type"),flush=True)
+                      assert resp.status==200,(name,resp.status)
+                  page.close()
+              browser.close()
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-video-mobile-browser-evidence
+          path: video-qa/

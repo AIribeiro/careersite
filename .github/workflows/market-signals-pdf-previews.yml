@@ -51,7 +51,7 @@ jobs:
               ],
               "jobseeker": [
                   ("jobseeker-adoption-capabilities", "Business AI adoption and hiring are different measures", "Obstacles reported by some AI non-adopters"),
-                  ("jobseeker-skills-proof", "Make your skills visible through real examples", "How this could help your search"),
+                  ("jobseeker-four-week-plan", "Turn the research into a simple four-week plan", "WEEK / TASK"),
               ],
           }
           out=Path("static/market-signals/previews")

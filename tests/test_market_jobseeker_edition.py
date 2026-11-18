@@ -67,8 +67,8 @@ class JobseekerMarketReviewTests(unittest.TestCase):
 
     def test_accessible_copy_in_both_member_reader_and_download(self):
         from market_jobseeker_edition import INTRO, VALUE, FINDINGS, READING_HELP
-        self.assertIn("Looking for work",INTRO)
-        self.assertIn("new to the field",VALUE.lower())
+        self.assertIn("more kinds of work",INTRO)
+        self.assertIn("changing specialty",VALUE.lower())
         self.assertEqual(len(READING_HELP),5)
         self.assertTrue(any("courses" in item["reading"] for item in FINDINGS))
         self.assertTrue(any("entry-level" in item["reading"] for item in FINDINGS))
@@ -89,8 +89,8 @@ class JobseekerMarketReviewTests(unittest.TestCase):
     def test_five_search_questions_remain_useful_to_nonexecutives(self):
         from market_jobseeker_edition import DECISION_MAP, INTRO, VALUE
         self.assertEqual(len(DECISION_MAP),5)
-        self.assertIn("Looking for work",INTRO)
-        self.assertIn("new to the field",VALUE)
+        self.assertIn("more kinds of work",INTRO)
+        self.assertIn("changing specialty",VALUE)
         all_questions=" ".join(x[0] for x in DECISION_MAP)
         all_actions=" ".join(x[1] for x in DECISION_MAP).lower()
         for phrase in ("Where should I look?", "Which roles fit my skills?",
@@ -114,8 +114,8 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
         landing=source.split('MARKET_SIGNALS_LANDING_HTML = """',1)[1].split('"""',1)[0]
         self.assertIn('id="ms-perspectives"',landing)
-        self.assertIn("Make a more focused search for AI or Data work.",landing)
-        self.assertIn("returning to work",landing)
+        self.assertIn("Understand how AI and Data connect to your career.",landing)
+        self.assertIn("entry-level analysis",landing)
         self.assertIn("selected senior titles",landing)
         self.assertIn("market_signals_jobseeker_cta",landing)
         self.assertIn("Rapporten är på engelska",landing)
@@ -149,8 +149,8 @@ class JobseekerMarketReviewTests(unittest.TestCase):
     def test_candidate_pdf_identifies_its_own_date_and_limits(self):
         from market_jobseeker_edition import JOBSEEKER_ISSUE, LIMITS
         self.assertEqual(JOBSEEKER_ISSUE,"18 November 2026")
-        self.assertIn("not only ai and data",LIMITS.lower())
-        self.assertIn("what a role pays",LIMITS.lower())
+        self.assertIn("all occupations",LIMITS.lower())
+        self.assertIn("salary guide",LIMITS.lower())
         data=jobseeker_market_pdf(self.points,self.editorial,SLUG)
         text=" ".join(" ".join((p.extract_text() or "") for p in PdfReader(BytesIO(data)).pages).split())
         self.assertIn(JOBSEEKER_ISSUE,text)

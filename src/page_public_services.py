@@ -69,7 +69,7 @@ def _ordered_advisory_cards(cards: dict[str, str]) -> str:
     total = len(visible)
     return "".join(
         re.sub(
-            r'(?<=<span class="advisory-ready-number">)\\d{2} / 06(?=</span>)',
+            r'(?<=<span class="advisory-ready-number">)\d{2} / 06(?=</span>)',
             f"{position:02d} / {total:02d}",
             card,
         )

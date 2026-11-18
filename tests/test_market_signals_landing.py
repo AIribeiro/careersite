@@ -112,10 +112,10 @@ class MarketSignalsLandingTests(unittest.TestCase):
     def test_executive_target_and_decision_value_are_explicit(self):
         for phrase in (
             "Swedish AI &amp; Data Market Review",
-            "For CEOs, CFOs, CHROs",
-            "Recruit, develop internally or seek external expertise?",
-            "Which AI investments deserve the next budget?",
-            "Bring a stronger case to the leadership table",
+            "FOR BUSINESS LEADERS",
+            "Compare internal skills and external support.",
+            "Make clearer AI investment and hiring decisions.",
+            "Use five decision briefs and three scenarios.",
             "Market Observatory",
             "Complete AI &amp; Data Market Review",
             "Executive Decision Briefs and source register",
@@ -127,12 +127,11 @@ class MarketSignalsLandingTests(unittest.TestCase):
         hero=html.split('<section class="ms-hero"',1)[1].split('</section>',1)[0]
         intro=html.split('<section class="ms-section ms-section--white" id="ms-findings"',1)[1].split('<div class="ms-proofs">',1)[0]
         for phrase in (
-            "Two free reports on Sweden’s AI &amp; Data market",
-            "job titles",
-            "Looking for AI or Data work in Sweden",
-            "For business leaders · Free report",
-            "Looking for work? Read the free report",
-            "Both reports are in English and free",
+            "One set of market evidence. Two ways to put it to work.",
+            "your next AI or Data role",
+            "Choose your free report",
+            "Watch the 58-second overview",
+            "Both November reports are in English",
         ):
             self.assertIn(phrase,hero)
         for defensive in ("cannot", "not a market forecast", "comprehensive AI recruitment census", "limited evidence", "where its limits lie"):
@@ -146,15 +145,15 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_public_jobseeker_experience_is_clear_and_inclusive(self):
         html=MARKET_SIGNALS_LANDING_HTML
-        self.assertIn('id="ms-jobseeker-benefits"',html)
+        self.assertIn('id="ms-perspectives"',html)
         for phrase in (
-            "new to the field",
+            "starting out",
             "changing careers",
             "returning to work",
             "För dig som söker jobb inom AI och data i Sverige",
             "Rapporten är på engelska",
-            "Four-week plan",
-            "Read the free Jobseeker Edition and download the PDF",
+            "four-week plan",
+            "Read the Jobseeker Edition · Free",
             "Jobseeker report · Free account",
             "not every entry-level opening",
         ):
@@ -162,6 +161,58 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertIn("perspective=jobseeker",html)
         self.assertIn("market_signals_final_jobseeker",html)
         self.assertNotIn("guaranteed job",html.lower())
+
+    def test_uploaded_video_has_a_local_faststart_player_and_poster(self):
+        from pathlib import Path
+        video = ROOT / "static/market-signals/market-review-november-2026.mp4"
+        poster = ROOT / "static/market-signals/market-review-poster.jpg"
+        self.assertTrue(video.is_file(),"Market Review MP4 must be shipped with app")
+        self.assertTrue(poster.is_file(),"Video poster must be shipped with app")
+        self.assertGreater(video.stat().st_size,500_000)
+        self.assertLess(video.stat().st_size,12_000_000)
+        self.assertEqual(video.read_bytes()[4:8],b"ftyp")
+        self.assertTrue(poster.read_bytes().startswith(bytes([0xFF,0xD8,0xFF])))
+        html=MARKET_SIGNALS_LANDING_HTML
+        self.assertIn('id="ms-video"',html)
+        self.assertIn('class="ms-video-player" controls preload="none" playsinline',html)
+        self.assertIn('/app/static/market-signals/market-review-november-2026.mp4',html)
+        self.assertIn('/app/static/market-signals/market-review-poster.jpg',html)
+        self.assertIn("English narration and on-screen captions",html)
+        config=(ROOT/".streamlit/config.toml").read_text()
+        self.assertIn("enableStaticServing = true",config)
+
+    def test_premium_reading_flow_and_parity_of_both_report_cards(self):
+        html=MARKET_SIGNALS_LANDING_HTML
+        ordered=(
+            'class="ms-hero"',
+            'id="ms-video"',
+            'id="ms-perspectives"',
+            'id="ms-findings"',
+            'id="ms-inside"',
+            'aria-labelledby="ms-materials-title"',
+            'aria-labelledby="ms-standards-title"',
+            'class="ms-lastcta"',
+        )
+        found=[html.index(mark) for mark in ordered]
+        self.assertEqual(found,sorted(found))
+        import re
+        cards=re.findall(r'<article class="ms-perspective"[^>]*>[\\s\\S]*?</article>',html)
+        self.assertEqual(len(cards),2)
+        words=[]
+        for card in cards:
+            self.assertEqual(card.count("<li>"),3)
+            self.assertEqual(card.count('class="ms-button"'),1)
+            words.append(len(re.findall(r"\\b[\\w–-]+\\b",re.sub(r"<[^>]+>"," ",card))))
+        self.assertLessEqual(abs(words[0]-words[1]),14,
+                             f"Executive and jobseeker cards have unequal copy density: {words}")
+        css=MARKET_SIGNALS_LANDING_CSS
+        self.assertIn(".ms-perspective {display:flex;flex-direction:column",css)
+        self.assertIn(".ms-perspective .ms-actions {margin-top:auto",css)
+        self.assertIn(".ms-video-grid",css)
+        self.assertIn(".ms-video-figure {max-width:min(100%,320px)}",css)
+        self.assertEqual(html.count('class="ms-perspective"'),2)
+        self.assertNotIn('id="ms-jobseeker-benefits"',html)
+        self.assertNotIn("Reorder the sections",html)
 
     def test_executive_headlines_use_measured_claims_not_promotional_promises(self):
         expected=[
@@ -174,7 +225,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
             "Explore the June–August research sample.",
             "Research sources and how to use the findings.",
             "Interpret each measure in its proper context.",
-            "Use the November research for your next decision.",
+            "Explore the report that answers your next question.",
         ]
         for heading in expected:
             self.assertIn(heading,self.page)
@@ -215,7 +266,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
         # the evidence introduction and original executive PDF description do.
         self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(expected),1)
         self.assertEqual(self.page.count(expected),1)
-        self.assertIn("Two ways to use the research",MARKET_SIGNALS_LANDING_HTML)
+        self.assertIn("Which report is right for you?",MARKET_SIGNALS_LANDING_HTML)
         self.assertIn("Jobseeker Edition",MARKET_SIGNALS_LANDING_HTML)
         for obsolete in (
             "Executive Edition 2.0</h2>",

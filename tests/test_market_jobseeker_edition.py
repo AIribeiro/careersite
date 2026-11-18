@@ -65,6 +65,38 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertNotIn("jair.ribeiro@outlook.it",text)
         self.assertNotIn("AI Portfolio Renewal Advisor",text)
 
+    def test_candidate_value_proposition_is_measurable_as_personal_work_not_market_result(self):
+        from market_jobseeker_edition import DECISION_MAP, INTRO, VALUE
+        self.assertEqual(len(DECISION_MAP), 5)
+        for phrase in ("where to spend search effort", "not a vacancy database"):
+            self.assertIn(phrase, VALUE)
+        self.assertIn("experienced AI and Data professionals", INTRO)
+        all_actions=" ".join(x[1] for x in DECISION_MAP).lower()
+        for word in ("advert", "eligibility", "contribution", "remote", "time-limited"):
+            self.assertIn(word,all_actions)
+
+    def test_candidate_pdf_contains_five_decision_map_actions_and_market_limits(self):
+        from market_jobseeker_edition import DECISION_MAP
+        data=jobseeker_market_pdf(self.points,self.editorial,SLUG)
+        text=" ".join(" ".join(p.extract_text() or "" for p in PdfReader(BytesIO(data)).pages).split()).lower()
+        self.assertIn("your five practical decisions at a glance",text)
+        for question,_ in DECISION_MAP:
+            self.assertIn(question.lower(),text)
+        for term in ("not proven channel rankings", "not ai-specific openings",
+                     "not evidence of sustained growth",
+                     "do not measure recruiter response rates"):
+            self.assertIn(term,text)
+
+    def test_public_landing_makes_jobseeker_benefit_and_limitation_visible(self):
+        source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
+        landing=source.split('MARKET_SIGNALS_LANDING_HTML = """',1)[1].split('"""',1)[0]
+        self.assertIn('id="ms-jobseeker-benefits"',landing)
+        self.assertIn("Five decisions to make your search more deliberate",landing)
+        self.assertIn("Best suited to experienced professionals",landing)
+        self.assertIn("does not rank employers",landing)
+        self.assertIn("market_signals_jobseeker_cta",landing)
+        self.assertNotIn("market_signals_jobseeker_value_cta",landing)
+
     def test_edition_binding_and_missing_evidence_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "not bound|approved"):
             validate_jobseeker_edition(self.points,self.editorial,SLUG+"-wrong")

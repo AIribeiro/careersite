@@ -66,17 +66,23 @@ def test_video_appears_before_editorial_opening_and_member_access():
         ),
     )
     html = render_public_briefing_preview(article, "18 Nov 2026")
-    video_at = html.index('<section class="briefing-preview-video"')
     body_at = html.index('<section class="briefing-preview-body"')
-    opening_at = html.index('<div class="briefing-preview-grid">')
+    grid_at = html.index('<div class="briefing-preview-grid">')
+    article_at = html.index('<article class="briefing-preview-copy">')
+    video_at = html.index('<section class="briefing-preview-video"')
+    decision_at = html.index('<div class="briefing-preview-decision">')
+    aside_at = html.index('<aside class="briefing-preview-aside">')
     unlock_at = html.index('<section class="briefing-unlock"')
-    # The media must be a full-width sibling ABOVE the paper body, not a
-    # child of its centered .container. The inner wrapper owns video alignment.
-    assert video_at < body_at < opening_at < unlock_at
+    # Video must be inside the left article column, immediately ahead of its
+    # decision content. No full-width navy panel or promotional copy.
+    assert body_at < grid_at < article_at < video_at < decision_at < aside_at < unlock_at
     assert html.count('<section class="briefing-preview-video"') == 1
-    assert '<div class="briefing-preview-video-inner">' in html
-    assert '.site .briefing-preview-video{width:100%;box-sizing:border-box;' in html
-    assert '.site .briefing-preview-video-inner{box-sizing:border-box;width:100%;max-width:1120px;' in html
+    assert '<div class="briefing-preview-video-inner">' not in html
+    assert '.site .briefing-preview-video{width:100%;max-width:100%;' in html
+    assert 'padding:0;background:transparent;' in html
+    assert 'max-width:1120px;' not in html
+    assert 'One AI success. Two different outcomes.</h2>' not in html
+    assert 'Watch the executive explainer' in html
     assert '@media(max-width:600px)' in html
     assert "What leaders need to decide" in html
     assert "From the published edition" not in html

@@ -78,15 +78,83 @@ def _matches_approved_sha(path: str, expected: str) -> bool:
     except (OSError, ValueError):
         return False
 
+def _assemble_verified_video(slug: str, manifest: dict, target: Path) -> bool:
+    """Recreate the approved MP4, never transcode; checks each original byte chunk.
+
+    This is a release-transport fallback for repos whose connected publisher
+    limits request size. Only active for manifests explicitly listing chunks.
+    Static video response is the reconstructed exact original H.264/AAC MP4.
+    """
+    import os
+    import tempfile
+    import shutil
+
+    web = manifest["web"]
+    chunks = web.get("chunks")
+    if not isinstance(chunks, list) or not (2 <= len(chunks) <= 32):
+        return False
+    size_expected = web.get("size_bytes")
+    if not isinstance(size_expected, int) or size_expected < 10000:
+        return False
+    directory = MEDIA_ROOT / slug
+    total = 0
+    sources = []
+    try:
+        for i, item in enumerate(chunks):
+            expected_name = "preview.mp4.part" + f"{i:02d}"
+            if (not isinstance(item, dict)
+                or item.get("file") != expected_name
+                or not _DIGEST.fullmatch(str(item.get("sha256", "")))
+                or type(item.get("size_bytes")) is not int
+                or not 0 < item["size_bytes"] <= 1024 * 1024):
+                return False
+            chunk = directory / expected_name
+            if not chunk.is_file() or chunk.stat().st_size != item["size_bytes"]:
+                return False
+            if not _matches_approved_sha(str(chunk), item["sha256"]):
+                return False
+            sources.append(chunk)
+            total += item["size_bytes"]
+        if total != size_expected:
+            return False
+        # Use the same filesystem for atomic replacement; no truncated player.
+        with tempfile.NamedTemporaryFile(
+            mode="wb", prefix=".assembling-", suffix=".tmp", dir=directory,
+            delete=False
+        ) as tmp:
+            tmp_path = Path(tmp.name)
+            for chunk in sources:
+                with chunk.open("rb") as part:
+                    shutil.copyfileobj(part, tmp, length=256 * 1024)
+            tmp.flush()
+            os.fsync(tmp.fileno())
+        if (tmp_path.stat().st_size != size_expected
+            or not _matches_approved_sha(str(tmp_path), web["sha256"])):
+            tmp_path.unlink(missing_ok=True)
+            return False
+        os.replace(tmp_path, target)
+        _matches_approved_sha.cache_clear()
+        return _matches_approved_sha(str(target), web["sha256"])
+    except (OSError, ValueError, TypeError):
+        return False
+    finally:
+        if "tmp_path" in locals():
+            tmp_path.unlink(missing_ok=True)
+
+
 def public_preview_media_path(slug: str, asset_name: str) -> Path | None:
-    """Only allow two approved media basenames in an audited slug folder."""
+    """Only vetted, source-locked approved media paths; fail closed on mismatch."""
     part = _ALLOWED_ASSETS.get(asset_name)
     manifest = _approved_manifest(slug)
     if not part or not manifest:
         return None
     expected = manifest[part]["sha256"]
     candidate = MEDIA_ROOT / slug / asset_name
-    return candidate if _matches_approved_sha(str(candidate), expected) else None
+    if _matches_approved_sha(str(candidate), expected):
+        return candidate
+    if asset_name == "preview.mp4" and _assemble_verified_video(slug, manifest, candidate):
+        return candidate
+    return None
 
 # The static handler (not the intercepted legacy ASGI route) serves real MP4.
 STATIC_MEDIA_ORIGIN = "https://jairribeiro-ai.streamlit.app"

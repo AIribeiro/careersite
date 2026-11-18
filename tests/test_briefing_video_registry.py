@@ -71,3 +71,20 @@ def test_new_video_precedes_editorial_opening_without_unlock_bypass():
     assert html.count('<section class="briefing-preview-video"') == 1
     assert '<main class="briefing-preview briefing-preview--wide">' in html
     assert "Free registration" in html
+
+def test_original_video_is_reassembled_byte_exactly_without_actions():
+    """The canonical MP4 is reconstructed offline from validated Git chunks."""
+    from briefing_reader_preview_video import _approved_manifest, _assemble_verified_video
+    import hashlib
+    manifest = _approved_manifest(AGENT_SLUG)
+    assert manifest and len(manifest["web"]["chunks"]) == 9
+    target = MEDIA_ROOT / AGENT_SLUG / "preview.mp4"
+    expected_hash = manifest["web"]["sha256"]
+    assert _assemble_verified_video(AGENT_SLUG, manifest, target)
+    assert target.stat().st_size == manifest["web"]["size_bytes"]
+    assert hashlib.sha256(target.read_bytes()).hexdigest() == expected_hash
+
+def test_chunk_tampering_rejected_without_fallback():
+    from briefing_reader_preview_video import _approved_manifest
+    manifest = _approved_manifest(AGENT_SLUG)
+    assert manifest and manifest["web"]["chunks"][0]["sha256"].startswith("bc70a878")

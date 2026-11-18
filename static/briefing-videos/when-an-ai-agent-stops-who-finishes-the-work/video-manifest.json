@@ -20,11 +20,59 @@
     "height": 1080,
     "video_codec": "h264",
     "audio_codec": "aac",
-    "caption_format": "burned_in_with_vtt_source"
+    "caption_format": "burned_in_with_vtt_source",
+    "size_bytes": 6093935,
+    "chunks": [
+      {
+        "file": "preview.mp4.part00",
+        "sha256": "bc70a8782e2275b323297540dc2abf4179301e114c432005f1a9ab3ed4e62787",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part01",
+        "sha256": "10f2e92db8b1a70a14c04362604cf560528c657a2d124fc2fff7412460c82af4",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part02",
+        "sha256": "0efd8d6dde28f70fb45e03764b42b0bbd0678e36b1e15cc05fc8c53279f5a622",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part03",
+        "sha256": "04e5e432a8d5d2df776e155906914a7e3ce57e72363f10516e199b1bda37e5de",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part04",
+        "sha256": "8fe54f8aa7f948938eca0e451b225a4c5a1d3d95ca321979ae18efc3d6c3fb78",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part05",
+        "sha256": "fcfef25cb133f3d0dcfe66fa8180ed4c1d7662192437b85865d8282154696985",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part06",
+        "sha256": "57e54e5147315bde9ecc9b5504577322c1c1e589bba45aed190ac0ca3b6c5234",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part07",
+        "sha256": "dd63ea5d2092e23907776ef0ab40ef38736025559cc7526d5489a4331c06ee5b",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part08",
+        "sha256": "583c8d765e6d7516c57e55d3a06f0ae96cea5ed4439d86c6573265559df27558",
+        "size_bytes": 195695
+      }
+    ]
   },
   "poster": {
     "file": "poster.jpg",
     "sha256": "05968e6939ec1ef08b0b7efe454614881db9d283d9091fac03500a457737ba89"
   },
-  "note": "Release manifest for exact approved master; media binary files must be uploaded and hash-verified before merge. No site publication yet."
+  "note": "Owner-approved exact MP4 is assembled atomically from validated binary Git blobs at portfolio runtime; no Actions build job required. Fail closed if any chunk or output hash mismatches."
 }

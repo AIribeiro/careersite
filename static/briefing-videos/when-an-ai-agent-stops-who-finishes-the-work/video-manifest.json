@@ -68,7 +68,8 @@
         "sha256": "583c8d765e6d7516c57e55d3a06f0ae96cea5ed4439d86c6573265559df27558",
         "size_bytes": 195695
       }
-    ]
+    ],
+    "git_binary_available": false
   },
   "poster": {
     "file": "poster.jpg",

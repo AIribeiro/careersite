@@ -82,7 +82,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
     def test_candidate_pdf_identifies_its_own_date_and_limits(self):
         from market_jobseeker_edition import JOBSEEKER_ISSUE, LIMITS
         self.assertEqual(JOBSEEKER_ISSUE,"18 November 2026")
-        self.assertIn("not a vacancy",LIMITS.lower().replace("live vacancy","vacancy"))
+        self.assertIn("not a measured hidden ai job market",LIMITS.lower())
         self.assertIn("salary",LIMITS.lower())
         data=jobseeker_market_pdf(self.points,self.editorial,SLUG)
         text=" ".join((p.extract_text() or "") for p in PdfReader(BytesIO(data)).pages)

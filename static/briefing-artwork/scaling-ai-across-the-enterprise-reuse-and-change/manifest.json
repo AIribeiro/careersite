@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "slug": "scaling-ai-across-the-enterprise-reuse-and-change",
+  "revision": "v1",
+  "article_fingerprint": "2d59372df5413034b3df65ff6cd432db5543dafae3ab1f3014a85171cb018320",
+  "heading": "Scaling AI Across the Enterprise: What Should Be Reused, and What Must Change?",
+  "deck": "An AI solution that works in one team may not deliver the same results across an enterprise. Scaling requires more than extending access: leaders must decide what can be standardized, what needs local adaptation, who owns the outcome, and what evidence justifies expansion.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "365ec00bd2d78a867f2bf2c27178726943be77f785a5c78528344027a0a06c37",
+    "width": 1800,
+    "height": 2550
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "31e52b566aa7e307e519ab71be60b841e962fb9e861fd9f9581ba000310bb8ab",
+    "width": 1080,
+    "height": 3080
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "c2b8fd9ebaf52424a12a0974778360b747fcac5f462baa739f6532e64fee576f",
+    "pages": 1
+  }
+}

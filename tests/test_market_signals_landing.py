@@ -112,7 +112,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
     def test_both_audiences_are_explicit(self):
         for value in ("Swedish AI &amp; Data Market Review",
                       "Plan AI investment and hiring decisions.",
-                      "Make a more focused search for AI or Data work.",
+                      "Understand how AI and Data connect to your career.",
                       "Complete AI &amp; Data Market Review",
                       "Executive Decision Briefs and source register",
                       "Market Observatory"):
@@ -120,7 +120,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_video_is_secondary_below_both_reports_and_findings(self):
         html=MARKET_SIGNALS_LANDING_HTML
-        self.assertIn("Understand the Swedish AI &amp; Data market.",html)
+        self.assertIn("What Sweden’s AI and Data figures mean",html)
         self.assertIn("Five market signals worth understanding.",html)
         self.assertLess(html.index('id="ms-perspectives"'),html.index('id="ms-findings"'))
         self.assertLess(html.index('id="ms-findings"'),html.index('id="ms-video"'))
@@ -133,7 +133,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_jobseeker_still_has_a_clear_offer(self):
         html=MARKET_SIGNALS_LANDING_HTML
-        for text in ("returning to work","För dig som söker jobb inom AI och data i Sverige",
+        for text in ("entry-level analysis","För dig som söker jobb inom AI och data i Sverige",
                      "Rapporten är på engelska","four-week plan",
                      "Read the Jobseeker Edition · Free","not every entry-level opening",
                      "Jobseeker report · Free account"):

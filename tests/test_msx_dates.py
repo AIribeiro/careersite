@@ -13,7 +13,7 @@ def test_msx_public_dates_are_september_2026_across_portfolio_and_cv() -> None:
     workflow = (ROOT / ".github/workflows/build-cv.yml").read_text(encoding="utf-8")
 
     assert 'MSX_PUBLIC_DATES = "Dec 2025 - Sep 2026"' in facts
-    assert 'MSX_PUBLIC_TIMELINE = "Dec 2025–Sep 2026"' in facts
+    assert 'MSX_PUBLIC_TIMELINE = "2025–2026"' in facts
     assert "MSX_PUBLIC_DATES" in home
     assert "MSX_PUBLIC_DATES" in impact
     assert "MSX_PUBLIC_DATES" in canonical_cv

@@ -992,5 +992,53 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .portfolio-next .about-next-header{grid-template-columns:minmax(0,1fr)}
 }
 
+/* Contact direct routes: avoid an orphan third card and unused grid cell.
+   Scoped to Contact; do not change other portfolio grids. */
+.site #contact-pathways{
+  padding-block:clamp(46px,5vw,70px);
+}
+.site #contact-pathways .head{
+  margin-bottom:24px;
+  gap:clamp(18px,3vw,38px);
+  align-items:start;
+}
+.site #contact-pathways .head h2{
+  font-size:clamp(34px,4vw,50px);
+}
+.site #contact-pathways .contact-pathways-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+  align-items:stretch;
+}
+.site #contact-pathways .contact-pathways-grid>.card{
+  min-width:0;
+  padding:clamp(21px,2.3vw,28px);
+}
+.site #contact-pathways .contact-pathways-grid>.card h3{
+  margin:18px 0 10px;
+  font-size:clamp(22px,2.4vw,27px);
+}
+.site #contact-pathways .contact-pathways-grid>.card p:last-child{
+  margin-bottom:0;
+}
+@media(min-width:701px) and (max-width:849px){
+  .site #contact-pathways .contact-pathways-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .site #contact-pathways .contact-pathways-grid>.card:last-child{
+    grid-column:1/-1;
+  }
+}
+@media(max-width:700px){
+  .site #contact-pathways .contact-pathways-grid{
+    grid-template-columns:minmax(0,1fr);
+    gap:12px;
+  }
+  .site #contact-pathways .contact-pathways-grid>.card:last-child{
+    grid-column:auto;
+  }
+}
+
 </style>
 """

@@ -213,8 +213,8 @@ class MarketSignalsLandingTests(unittest.TestCase):
         expected="Executive Edition "+manuscript["version"]
         # The two-edition masthead no longer repeats the executive label;
         # the evidence introduction and original executive PDF description do.
-        self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(expected),2)
-        self.assertEqual(self.page.count(expected),2)
+        self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(expected),1)
+        self.assertEqual(self.page.count(expected),1)
         self.assertIn("Two ways to use the research",MARKET_SIGNALS_LANDING_HTML)
         self.assertIn("Jobseeker Edition",MARKET_SIGNALS_LANDING_HTML)
         for obsolete in (

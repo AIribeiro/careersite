@@ -491,7 +491,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <div class="ms-format-bottom">17 November 2026 · Full executive research PDF · Sources</div></article>
     <article class="ms-format"><small>03 / DOWNLOAD A4 PDF</small>
       <h3>AI &amp; Data Careers — Jobseeker Edition</h3>
-      <p>A complete candidate-focused report exploring AI and Data career pathways, enterprise AI use, capability barriers, recruitment channels, five practical career decisions and a four-week search plan. Every figure retains its source, date and population; no unsupported vacancy totals or career rankings.</p>
+      <p>Jobseeker Edition 1.1 · November 2026. Explore AI and Data careers across technical development, data management, governance and established professions. Read the SCB adoption and capability findings, recruitment-channel evidence, career decisions and practical four-week plan. The selected senior JobTech series appears only as a bounded historical sample.</p>
       <div class="ms-format-bottom">18 November 2026 · Candidate-focused research PDF · Sources</div></article>
     <article class="ms-format"><small>04 / USE IN A MEETING</small>
       <h3>Executive Decision Briefs and source register</h3>

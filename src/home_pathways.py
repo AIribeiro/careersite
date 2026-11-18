@@ -87,7 +87,12 @@ ICON_PATHS = {
 
 @st.cache_data(ttl=3900, max_entries=4, show_spinner=False)
 def _pathway_rank_for_hour(utc_hour: str) -> tuple[str, ...]:
-    """Fetch four aggregate-only Home content family rankings once per hour."""
+    """Fetch hourly Home content rankings, including the automatic outlier rule.
+
+    Supabase temporarily moves a dominant lifetime-traffic group to position
+    four (>=3x runner-up and >=100 visits ahead). The regular ranking returns
+    once either threshold is no longer met. No visitor details leave Supabase.
+    """
     req = url_request.Request(
         f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/careersite_home_pathway_order_v1",
         data=b"{}",

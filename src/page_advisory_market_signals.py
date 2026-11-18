@@ -202,6 +202,12 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-path .ms-path-caption {margin:16px 0 0;color:#C4D1DC;font-size:11px;line-height:1.65}
 .site.ms-landing .ms-formats {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .site.ms-landing .ms-perspectives {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.site.ms-landing .ms-candidate-value{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.site.ms-landing .ms-candidate-value article{background:#fffefa;border-top:2px solid #b17b58;
+ padding:20px 16px 19px;min-width:0}
+.site.ms-landing .ms-candidate-value h3{font-size:14px;line-height:1.45;font-weight:800;
+ color:#1b354a;margin:0 0 9px}
+.site.ms-landing .ms-candidate-value p{font-size:12px;line-height:1.65;color:#536579;margin:0}
 .site.ms-landing .ms-perspective {background:#fffefa;border:1px solid #ddd6cc;border-top:3px solid #b17b58;padding:clamp(22px,3vw,34px)}
 .site.ms-landing .ms-perspective h3 {font:500 clamp(23px,2.6vw,33px)/1.2 Georgia,serif;color:#193449;margin:12px 0}
 .site.ms-landing .ms-perspective p {font-size:14px;line-height:1.72;color:#4d6072}
@@ -240,7 +246,7 @@ MARKET_SIGNALS_LANDING_CSS = """
 @media(max-width:760px),(max-device-width:760px) {
  .site.ms-landing .ms-hero {padding:50px 0}
  .site.ms-landing .ms-hero h1 {font-size:clamp(36px,8.5vw,52px);line-height:1.11}
- .site.ms-landing .ms-proofs,.site.ms-landing .ms-decision-list,.site.ms-landing .ms-formats,.site.ms-landing .ms-perspectives {grid-template-columns:minmax(0,1fr)}
+ .site.ms-landing .ms-proofs,.site.ms-landing .ms-decision-list,.site.ms-landing .ms-formats,.site.ms-landing .ms-perspectives,.site.ms-landing .ms-candidate-value {grid-template-columns:minmax(0,1fr)}
  .site.ms-landing .ms-proof {min-height:0}
  .site.ms-landing .ms-dashboard-list {grid-template-columns:minmax(0,1fr)}
  .site.ms-landing .ms-edition-counts {gap:5px}
@@ -319,11 +325,30 @@ MARKET_SIGNALS_LANDING_HTML = """
     <article class="ms-perspective">
       <span class="ms-label">02 / AI and Data professionals seeking work</span>
       <h3>Understand the market behind your next career move.</h3>
-      <p>Understand what the published figures reveal about recruitment channels and what they cannot say about AI vacancies. Test adjacent job titles, strengthen your career evidence and evaluate regional or contract options. Includes five candidate perspectives, a 30-day decision framework and a separate sourced A4 PDF.</p>
+      <p>For experienced AI and Data professionals considering a move in Sweden. See how to test where you search, which responsibilities fit, how to demonstrate your contribution and when geography or interim assignments deserve attention. Includes five candidate decisions, a 30-day plan and a separate sourced PDF.</p>
       <div class="ms-actions"><a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self">Read the jobseeker edition</a></div>
     </article>
   </div>
   <p class="ms-note">A dated November 2026 research snapshot, not a vacancy board or salary survey. The candidate edition focuses its advertised-role analysis on a selected sample of senior AI/Data titles and does not estimate all AI jobs or individual hiring outcomes.</p>
+</div></section>
+
+<section class="ms-section ms-section--white" id="ms-jobseeker-benefits" aria-labelledby="ms-jobseeker-benefits-title"><div class="container">
+  <div class="ms-section-head">
+    <div><p class="ms-overline">Jobseeker edition / Your next 30 days</p>
+    <h2 id="ms-jobseeker-benefits-title">Five decisions to make your search more deliberate.</h2></div>
+    <p class="ms-section-intro">A research-based way to decide where to invest time, test assumptions and assess progress. The market figures provide context; your own eligible roles and responses determine what works for you.</p>
+  </div>
+  <div class="ms-candidate-value">
+    <article><h3>01 / Where to look</h3><p>Compare advertised roles with relevant professional and direct employer conversations.</p></article>
+    <article><h3>02 / Which roles fit</h3><p>Search responsibilities beyond AI titles, then verify mandate, level and requirements.</p></article>
+    <article><h3>03 / What to demonstrate</h3><p>Show your contribution to outcomes, data quality, adoption and business decisions.</p></article>
+    <article><h3>04 / How far to search</h3><p>Test onsite, hybrid and genuinely remote options against your constraints.</p></article>
+    <article><h3>05 / Which work model</h3><p>Evaluate permanent versus interim roles without inferring specialist demand from broad data.</p></article>
+  </div>
+  <div class="ms-actions">
+    <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_jobseeker_value_cta">Read and download the Jobseeker Edition · Free registration</a>
+  </div>
+  <p class="ms-note">Best suited to experienced professionals exploring AI, Data &amp; Analytics, governance and related business leadership mandates. It does not rank employers, reveal hidden vacancies or forecast interview or offer chances.</p>
 </div></section>
 
 <section class="ms-section ms-section--white" id="ms-findings" aria-labelledby="ms-findings-title"><div class="container">
@@ -461,7 +486,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <div class="ms-format-bottom">17 November 2026 · Full executive research PDF · Sources</div></article>
     <article class="ms-format"><small>03 / DOWNLOAD A4 PDF</small>
       <h3>Market Review — Jobseeker Edition</h3>
-      <p>Jobseeker Edition 1.0, prepared 18 November 2026, interprets the same signed-off 17 November observations. Five decision perspectives, a suggested 30-day search plan, conditional scenarios and a source register support more deliberate career choices, without claiming to map every AI vacancy.</p>
+      <p>Jobseeker Edition 1.0, prepared 18 November 2026, uses the signed-off 17 November data. Five candidate decisions, a practical 30-day search plan, three conditional scenarios and a complete evidence register help experienced professionals assess their own approach. It is not a vacancy or salary database.</p>
       <div class="ms-format-bottom">18 November 2026 · Candidate-focused research PDF · Sources</div></article>
     <article class="ms-format"><small>04 / USE IN A MEETING</small>
       <h3>Executive Decision Briefs and source register</h3>

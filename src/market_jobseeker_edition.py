@@ -344,9 +344,9 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "edition":"JOBSEEKER EDITION 1.0 / SWEDEN",
         "issue":editorial["issue_date"],
         "metrics":[
-            (_value(idx["scb_lor_2026q2_total"]),
+            (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',
              "Whole-economy vacancies","Sweden | Q2 2026 | SCB estimate"),
-            (_value(idx["jobtech_v1_oct_se"]),
+            (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),
              "Selected senior AI/Data adverts","October 2026 | JobTech title basket"),
             (_value(idx["scb_2026_ai_10plus"]),
              "Enterprises reporting AI use","2026 | Swedish firms with 10+ staff"),
@@ -366,9 +366,9 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "Vacancies are not filled jobs, advertised titles are not all AI-related roles, "
         "and reported AI use does not imply a recruitment plan.", "body",sty=sty))
     story.append(metric_cards([
-        (_value(idx["scb_lor_2026q2_total"]),"Vacant jobs, all occupations","SCB, Q2 2026"),
-        (_value(idx["scb_lor_2026q2_other_channels"]),"Other recruitment channels","SCB, Q2 2026"),
-        (_value(idx["jobtech_v1_oct_se"]),"Selected senior AI/Data adverts","JobTech, October 2026"),
+        (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',"Vacant jobs, all occupations","SCB, Q2 2026"),
+        (f'{int(float(idx["scb_lor_2026q2_other_channels"]["value"])):,}',"Other recruitment channels","SCB, Q2 2026"),
+        (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),"Selected senior AI/Data adverts","JobTech, October 2026"),
     ],sty=sty))
     story.append(Spacer(1,17))
     story.append(P("Five candidate decision perspectives", "h2",sty=sty))

@@ -136,7 +136,7 @@ TITLES = {
     "advisory-decision": "AI Investment Decision Advisor | Jair Ribeiro",
     "advisory-leadership": "Executive AI Leadership Workshop | Jair Ribeiro",
     "advisory-renewal": "AI Portfolio Renewal Advisor | Jair Ribeiro",
-    "advisory-market-signals": "AI & Data Market Intelligence for Executive Decision-Making | Jair Ribeiro",
+    "advisory-market-signals": "Swedish AI & Data Market Review | Jobseekers & Business Leaders | Jair Ribeiro",
     "advisory-market-demo": "Historical Market Observatory | Jair Ribeiro",
     "privacy": "Privacy & Data | Jair Ribeiro",
     "ai-data-governance": "AI & Data Governance Leadership | Jair Ribeiro",

@@ -163,7 +163,21 @@ GITHUB_MEDIA_ROOT = (
     "static/briefing-videos"
 )
 
+# The agent-governance MP4 is published once into a dedicated public
+# Supabase Storage bucket from hash-verified Git binary chunks. Unlike the
+# ephemeral Streamlit static folder, Storage serves a durable single MP4
+# with CDN support and browser byte ranges. The fixed-edge URL performs
+# a one-time, source-validated import when this object is still missing.
+_AGENT_VIDEO_SLUG = "when-an-ai-agent-stops-who-finishes-the-work"
+_AGENT_VIDEO_EDGE = (
+    "https://rnqweoxtynelfirffmlr.supabase.co/functions/v1/"
+    "agent-briefing-video-delivery"
+)
+
+
 def _url(slug: str, name: str, digest: str) -> str:
+    if slug == _AGENT_VIDEO_SLUG and name == "preview.mp4":
+        return f"{_AGENT_VIDEO_EDGE}?v={digest[:12]}"
     return (
         f"{STATIC_MEDIA_ORIGIN}/app/static/briefing-videos/"
         f"{slug}/{name}?v={digest[:12]}"

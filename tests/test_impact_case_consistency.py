@@ -15,7 +15,7 @@ class ImpactCaseConsistencyTests(unittest.TestCase):
         self.assertIn("not rolled out at scale", case)
         for employer in ("Volvo Group", "MSX International", "Kimberly-Clark"):
             self.assertNotIn(employer, case)
-        self.assertLess(case.index("Customer interviews"), case.index("80+ AI opportunities"))
+        self.assertLess(case.index('id="customer-interview-analyzer"'), case.index("80+ AI opportunities"))
 
     def test_career_history_remains_a_separate_bounded_section(self):
         impact = (ROOT / "src/page_impact.py").read_text(encoding="utf-8")

@@ -191,6 +191,22 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertIn("Explore the eight Observatory sections",self.page)
         self.assertIn("See original sources, definitions and research limitations",self.page)
 
+    def test_both_report_cards_have_equal_priority_and_copy_length(self):
+        import re
+        html=MARKET_SIGNALS_LANDING_HTML
+        cards=re.findall(r'<article class="ms-perspective">([\\s\\S]*?)</article>',html)
+        self.assertEqual(len(cards),2)
+        paragraphs=[]
+        for card in cards:
+            match=re.search(r'<p>([^<]+)</p>',card)
+            self.assertIsNotNone(match)
+            paragraphs.append(len(match.group(1).split()))
+            self.assertEqual(card.count('class="ms-button'),1)
+        self.assertLessEqual(abs(paragraphs[0]-paragraphs[1]),7)
+        css=MARKET_SIGNALS_LANDING_CSS
+        self.assertIn("display:flex;flex-direction:column;min-width:0",css)
+        self.assertIn(".ms-perspective .ms-actions {margin-top:auto",css)
+
     def test_high_value_examples_are_exact_dated_executive_edition_scope(self):
         for phrase in (
             "published on 17 November",

@@ -437,70 +437,69 @@ MARKET_SIGNALS_LANDING_HTML = """
 
 <!-- Executive applications are now included in the Executive Edition choice card to avoid repeating advice. -->
 
+
 <section class="ms-section ms-section--ink" id="ms-inside" aria-labelledby="ms-workspace-title"><div class="container">
   <div class="ms-section-head">
-    <div><p class="ms-overline" style="color:#E6B48B">Research workspace</p>
-      <h2 id="ms-workspace-title">Explore the data behind both reports.</h2></div>
-    <p class="ms-section-intro">Both reports use the same research. Members can read either edition and explore the original figures, historical records and sources in the Market Observatory.</p>
+    <p class="ms-overline" style="color:#E6B48B">What you receive / Free account</p>
+    <h2 id="ms-workspace-title">Two complete reports, and the evidence behind them.</h2>
+    <p class="ms-section-intro">Read online, download the PDF for your perspective and explore the Market Observatory to see where the figures come from.</p>
   </div>
-  <div class="ms-workspace">
-    <div class="ms-dashboard-list" aria-label="Market Signals dashboard sections">
-      <article><span>01 / OVERVIEW</span><h3>Executive evidence overview</h3><p>Start with selected findings and see the dates and groups they cover.</p></article>
-      <article><span>02 / LEADERSHIP ADVERTS</span><h3>AI &amp; Data leadership advertisements</h3><p>Follow a defined set of senior job advertisements by complete month and region.</p></article>
-      <article><span>03 / AI IN BUSINESS</span><h3>Enterprise AI adoption &amp; capabilities</h3><p>Explore SCB figures on AI use, analytics and barriers, with their different survey groups kept separate.</p></article>
-      <article><span>04 / UNDER REVIEW</span><h3>Skills and management pay — under review</h3><p>Additional skills and salary measures are being checked; they are not published in the current edition.</p></article>
-      <article><span>05 / CONSULTING</span><h3>Consulting and sector context</h3><p>See Brainville's October consulting figures. Further sector indicators are awaiting review.</p></article>
-      <article><span>06 / EXPLANATIONS</span><h3>Interpretation and evidence limits</h3><p>See what published figures suggest, what else might explain them and where comparisons stop.</p></article>
-      <article><span>07 / HISTORY</span><h3>Comparable historical observations</h3><p>Compare completed periods within the same measure; partial months are shown separately.</p></article>
-      <article><span>08 / ORIGINAL RECORDS</span><h3>Sources and measurement methods</h3><p>Check original links, dates, survey groups and limitations, and export the source list.</p></article>
+  <div class="ms-workspace ms-workspace--compact">
+    <div class="ms-access-overview">
+      <article><span>01 / The reports</span><h3>Executive Edition and Jobseeker Edition</h3><p>Five focused analyses in each report, written for different readers and using the same checked facts.</p></article>
+      <article><span>02 / Use the findings</span><h3>Practical next steps</h3><p>Three conditional outlook scenarios and executive decision briefs, or five job-search questions and a four-week plan.</p></article>
+      <article><span>03 / Verify the evidence</span><h3>Market Observatory and source records</h3><p>Original sources, research dates, methods and historical records, including a downloadable evidence register.</p></article>
     </div>
-    <aside class="ms-path">
-      <p class="ms-overline" style="color:#EDB994">Analytical approach</p>
-      <h3>From market evidence to a management decision.</h3>
-      <ol>
-        <li><strong>Define the decision.</strong>What are you trying to decide about investment, capability or people?</li>
-        <li><strong>Establish the evidence base.</strong>Check the figure, its date and the group it actually describes.</li>
-        <li><strong>Examine alternative explanations.</strong>Compare the strongest interpretations before committing.</li>
-        <li><strong>Set a review point.</strong>Record the decision, the remaining questions and what new evidence would change it.</li>
-      </ol>
-      <p class="ms-path-caption">Monthly archive: November 2026 is the complete published edition. June–October 2026 show retrospective leadership-advertisement records only, not full monthly reports.</p>
-      <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_dashboard_cta">Open Market Signals</a></div>
-    </aside>
+    <div class="ms-research-index">
+      <details class="ms-research-details">
+        <summary>Explore the eight research areas</summary>
+        <div class="ms-dashboard-list" aria-label="Market Signals dashboard sections">
+          <article><span>01 / OVERVIEW</span><h3>Executive evidence overview</h3><p>Selected findings, research periods and the groups they describe.</p></article>
+          <article><span>02 / LEADERSHIP ADVERTS</span><h3>AI &amp; Data leadership advertisements</h3><p>Selected senior job advertisements by full month and region.</p></article>
+          <article><span>03 / AI IN BUSINESS</span><h3>Enterprise AI adoption &amp; capabilities</h3><p>Reported business AI use, analytics and barriers.</p></article>
+          <article><span>04 / UNDER REVIEW</span><h3>Skills and management pay — under review</h3><p>Additional skills and salary measures are not published in the current edition.</p></article>
+          <article><span>05 / CONSULTING</span><h3>Consulting and sector context</h3><p>Brainville activity; Further sector indicators are awaiting review.</p></article>
+          <article><span>06 / EXPLANATIONS</span><h3>Interpretation and evidence limits</h3><p>Alternative explanations, methods and comparison boundaries.</p></article>
+          <article><span>07 / HISTORY</span><h3>Comparable historical observations</h3><p>Completed periods, with partial months shown separately.</p></article>
+          <article><span>08 / ORIGINAL RECORDS</span><h3>Sources and measurement methods</h3><p>Original links, population definitions and source list.</p></article>
+        </div>
+      </details>
+      <p class="ms-research-small">June–October 2026 show retrospective leadership-advertisement records only, not full monthly reports.</p>
+      <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_dashboard_cta">Open Market Observatory</a></div>
+    </div>
   </div>
 </div></section>
+
+
 
 <section class="ms-section ms-section--white" aria-labelledby="ms-materials-title"><div class="container">
   <div class="ms-section-head">
-    <div><p class="ms-overline">Published research / Member access</p>
-      <h2 id="ms-materials-title">Read online or download the report that fits you.</h2></div>
-    <p class="ms-section-intro">Read the Jobseeker or Executive Edition online, download its complete PDF and check the source records.</p>
+    <p class="ms-overline">Published materials / Downloadable PDFs</p>
+    <h2 id="ms-materials-title">Take the research into your next discussion.</h2>
+    <p class="ms-section-intro">Choose the full report for your perspective. Both are included with free registration and draw on the same November evidence.</p>
   </div>
   <div class="ms-formats">
-    <article class="ms-format"><small>01 / EXPLORE ONLINE</small>
-      <h3>Executive analysis and Market Observatory</h3>
-      <p>Start with five executive decision perspectives, then explore the eight Market Observatory sections, historical records and original research sources.</p>
-      <div class="ms-format-bottom">Interactive views · Historical records · Source details</div></article>
-    <article class="ms-format"><small>02 / DOWNLOAD A4 PDF</small>
+    <article class="ms-format"><small>FOR BUSINESS LEADERS / EXECUTIVE EDITION 2.0.2</small>
       <h3>Complete AI &amp; Data Market Review</h3>
-      <p>Executive Edition 2.0.2 examines enterprise AI use, observed recruitment and staffing signals, organisational capabilities, consulting choices and regional recruitment considerations. It includes five substantive analyses, scenarios, a leadership decision agenda and an appendix tracing all 43 approved observations.</p>
-      <div class="ms-format-bottom">17 November 2026 · Full executive research PDF · Sources</div></article>
-    <article class="ms-format"><small>03 / DOWNLOAD A4 PDF</small>
-      <h3>Market Review — Jobseeker Edition</h3>
-      <p>Jobseeker Edition 1.0, prepared 18 November 2026, interprets the same signed-off 17 November observations. Five decision perspectives, a suggested 30-day search plan, conditional scenarios and a source register support more deliberate career choices, without claiming to map every AI vacancy.</p>
-      <div class="ms-format-bottom">18 November 2026 · Candidate-focused research PDF · Sources</div></article>
-    <article class="ms-format"><small>04 / USE IN A MEETING</small>
-      <h3>Executive Decision Briefs and source register</h3>
-      <p>Choose one of five executive decision perspectives. Each PDF contains a complete analysis, alternative explanations, recommended action, review conditions and supporting source records. A downloadable evidence CSV is also available.</p>
-      <div class="ms-format-bottom">Five decision perspectives · Decision brief PDF · Source CSV</div></article>
+      <p>The full executive research PDF, five decision perspectives, three conditional outlook scenarios and a management action agenda. Focused Executive Decision Briefs and source register are also available.</p>
+      <div class="ms-format-bottom">17 November 2026 · Complete PDF · Five briefs · Sources</div>
+    </article>
+    <article class="ms-format"><small>FOR PEOPLE LOOKING FOR WORK / JOBSEEKER EDITION 1.0</small>
+      <h3>Swedish AI &amp; Data Jobseeker Review</h3>
+      <p>The full jobseeker research PDF, five practical search questions, three possible market conditions and a four-week job-search plan. A source register with the original figures is included.</p>
+      <div class="ms-format-bottom">18 November 2026 · Complete PDF · Four-week plan · Sources</div>
+    </article>
   </div>
 </div></section>
 
-<section class="ms-section ms-section--paper" aria-labelledby="ms-standards-title"><div class="container">
+
+<section class="ms-section ms-section--paper ms-methods-section" aria-labelledby="ms-standards-title"><div class="container">
   <div class="ms-section-head">
     <div><p class="ms-overline">Sources and methods</p>
       <h2 id="ms-standards-title">Research sources and how to use the findings.</h2></div>
     <p class="ms-section-intro">The report shows who published each figure, when it was measured and what it covers. Check these details before using a number to plan a job search or business decision.</p>
   </div>
+  <details class="ms-methods-details"><summary>Read the source notes and interpretation boundaries</summary>
   <div class="ms-standard">
     <div>
       <ul class="ms-source-list">
@@ -521,13 +520,14 @@ MARKET_SIGNALS_LANDING_HTML = """
       <p class="ms-small">The three outlook scenarios describe conditions to monitor, not a market forecast. The report distinguishes observed data from editorial judgement and records the evidence that could change an assessment.</p>
     </aside>
   </div>
+</details>
 </div></section>
 
 <section class="ms-lastcta" aria-labelledby="ms-cta-title"><div class="container">
   <div class="ms-cta-grid">
     <div>
       <p class="ms-overline" style="color:#E9B88E">Research access</p>
-      <h2 id="ms-cta-title">Use the November research for your next decision.</h2>
+      <h2 id="ms-cta-title">Explore the report that answers your next question.</h2>
       <p>Looking for work? Use the Jobseeker Edition to find related roles, show your skills and plan a four-week search. Business leaders can use the Executive Edition to review AI investment and workforce decisions. Both have a free PDF.</p>
       <div class="ms-actions">
         <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_final_jobseeker">Jobseeker report · Free account</a>

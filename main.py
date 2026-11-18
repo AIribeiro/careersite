@@ -391,11 +391,12 @@ else:
         # the same mobile breakpoints, typography, footer and navigation.
         st.html(shared_styles + '<div class="site">' + reading + '</main></div>')
         with st.container(key="market_video_player"):
-            st.iframe(
+            # Streamlit Cloud may run a version without st.iframe/alt.
+            # The stable Components v1 API supports the same video URL.
+            from streamlit.components.v1 import iframe as render_video_iframe
+            render_video_iframe(
                 MARKET_REVIEW_VIDEO_EMBED_URL,
-                width="stretch", height=650,
-                alt="Swedish AI and Data Market Review: 58-second faceless research video",
-                tab_index=0,
+                width=470, height=650, scrolling=False,
             )
         st.html('<div class="site"><main class="site advisory-page ms-landing">' +
                 remainder + '</div>')

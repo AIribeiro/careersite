@@ -274,6 +274,32 @@ MARKET_SIGNALS_LANDING_CSS = """
 @media(prefers-reduced-motion:reduce) {
  .site.ms-landing .ms-button {transition:none}
 }
+
+.site.ms-landing .ms-trust-strip{display:flex;flex-wrap:wrap;gap:clamp(12px,3vw,34px);border-top:1px solid #536578;padding-top:18px;margin-top:21px}
+.site.ms-landing .ms-trust-strip span{color:#C9D8E5;font-size:12px;line-height:1.7}
+.site.ms-landing .ms-trust-strip strong{color:#F0C39F;font-size:20px}
+.site.ms-landing .ms-issue-line{color:#B8C8D5;font-size:11px}
+.site.ms-landing .ms-section--film{background:#142C40;color:#F8F7F2;padding:clamp(39px,5vw,59px) 0 20px}
+.site.ms-landing .ms-film-layout{display:grid;grid-template-columns:minmax(0,1fr) 185px;align-items:center;gap:clamp(18px,4vw,65px)}
+.site.ms-landing .ms-film-layout h2{font:500 clamp(29px,3.7vw,46px)/1.16 Georgia,serif;color:#fff;margin:14px 0}
+.site.ms-landing .ms-film-layout p{color:#D4E1EA;font-size:15px;line-height:1.75;max-width:825px}
+.site.ms-landing .ms-film-note{color:#E7BC99!important}
+.site.ms-landing .ms-film-link{color:#F2CBA9!important;text-decoration:underline;font-size:13px;font-weight:750}
+.site.ms-landing .ms-film-meta{color:#B5C8D6!important;font-size:11px!important}
+.site.ms-landing .ms-film-aside{background:#213C52;border:1px solid #547087;border-top:3px solid #B57D58;padding:20px}
+.site.ms-landing .ms-film-aside small{font-size:11px;color:#E8B48C;text-transform:uppercase}
+.site.ms-landing .ms-film-aside strong{display:block;font:500 45px Georgia,serif;color:white;margin:13px 0}
+.site.ms-landing .ms-research-details{background:#1E3B52;border:1px solid #526F84}
+.site.ms-landing .ms-research-details summary{cursor:pointer;color:#F8F9FA;font-weight:750;font-size:14px;line-height:1.6;padding:20px}
+.site.ms-landing .ms-research-details summary:focus-visible{outline:3px solid #EBC29A}
+.site.ms-landing .ms-research-details .ms-workspace{padding:18px}
+.site.ms-landing .ms-research-details--light{background:#FFFEFC;border-color:#DBD3C7}
+.site.ms-landing .ms-research-details--light summary{color:#1A3449}
+.site.ms-landing .ms-research-details--light .ms-standard{padding:20px}
+.st-key-market_video_player{background:#142C40;padding:0 clamp(14px,7vw,130px) clamp(35px,5vw,54px)!important}
+.st-key-market_video_player [data-testid="stIframe"]{max-width:470px;margin:0 auto}
+.st-key-market_video_player iframe{width:100%;max-width:470px;border:1px solid #627A8C;border-radius:8px;background:#102437}
+@media(max-width:760px),(max-device-width:760px){.site.ms-landing .ms-film-layout{grid-template-columns:minmax(0,1fr)}.site.ms-landing .ms-film-aside{display:none}.site.ms-landing .ms-research-details .ms-workspace{padding:12px}.site.ms-landing .ms-research-details--light .ms-standard{padding:12px}}
 </style>
 """
 
@@ -284,34 +310,35 @@ MARKET_SIGNALS_LANDING_HTML = """
     <div>
       <p class="ms-overline">Sweden / AI &amp; Data market research</p>
       <h1 id="ms-title">Swedish AI &amp; Data Market Review</h1>
-      <p class="ms-hero-lead">Two free reports on Sweden’s AI &amp; Data market: one for people looking for work and one for business leaders.</p>
-      <p class="ms-hero-context">Looking for AI or Data work in Sweden? Whether you are starting out, changing direction or already experienced, the Jobseeker Edition helps you search beyond job titles, explain your skills and plan your next four weeks. The Executive Edition helps business leaders examine investment and workforce decisions.</p>
+      <p class="ms-hero-lead">Understand the Swedish AI &amp; Data market. Decide what to do next.</p>
+      <p class="ms-hero-context">One evidence base, two practical reports: guidance for people looking for AI or Data work, and research for leaders planning investment, workforce and business capabilities.</p>
       <div class="ms-actions">
-        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_register">For business leaders · Free report</a>
-        <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_jobseeker_cta">Looking for work? Read the free report</a>
+        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_register">For business leaders · Executive Edition</a>
+        <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_jobseeker_cta">Looking for work? Jobseeker Edition</a>
       </div>
       <p class="ms-hero-meta">Both reports are in English and free after creating an account, with separate PDFs to download. The June–August historical sample is open without registration.</p>
     </div>
-    <aside class="ms-edition" aria-label="Published research edition">
-      <small>November 2026 / Jobseekers and business leaders</small>
-      <h2>Swedish AI &amp; Data Market Review<br>Two ways to use the research</h2>
-      <p>The Executive Edition was published on 17 November and the Jobseeker Edition was prepared on 18 November 2026. Both use 43 reviewed observations from six evidence series and five publishing organisations, with guidance written for different readers.</p>
-      <div class="ms-edition-counts">
-        <div><strong>43</strong><span>published observations</span></div>
-        <div><strong>5</strong><span>topics in each report</span></div>
-        <div><strong>6</strong><span>evidence series · 5 publishers</span></div>
-      </div>
-      <p class="ms-edition-note">For jobseekers: where to look, how to show your skills and which roles suit you. For business leaders: investment, staffing and capability decisions.</p>
-    </aside>
+
   </div>
 </div></section>
 
+<section class="ms-section ms-section--film" id="ms-video" aria-labelledby="ms-video-title"><div class="container">
+ <div class="ms-film-layout"><div>
+  <p class="ms-overline">The November research / 58-second introduction</p>
+  <h2 id="ms-video-title">The numbers are only the beginning.</h2>
+  <p>This faceless film introduces AI adoption, recruitment and consulting-market evidence, then asks what leaders should do with it.</p>
+  <p class="ms-film-note">The film presents the executive viewpoint. The separate Jobseeker Edition uses the same research to help people decide where to look, how to show their skills and how to plan a job search.</p>
+  <a class="ms-film-link" href="https://app.heygen.com/videos/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_external">Watch on HeyGen if the player is unavailable</a>
+  <p class="ms-film-meta">58 seconds · English narration and subtitles · No autoplay</p>
+ </div><aside class="ms-film-aside"><small>November 2026</small><strong>58s</strong><p>Evidence-led briefing</p></aside></div>
+</div></section>
+<!-- MARKET_SIGNALS_VIDEO_PLAYER -->
 
 <section class="ms-section ms-section--paper" id="ms-perspectives" aria-labelledby="ms-perspectives-title"><div class="container">
   <div class="ms-section-head">
     <div><p class="ms-overline">Two free reports / Same checked figures</p>
-      <h2 id="ms-perspectives-title">Which report is right for you?</h2></div>
-    <p class="ms-section-intro">Both versions explain the November evidence in different ways. Choose practical job-search advice or research for business and hiring decisions.</p>
+      <h2 id="ms-perspectives-title">Two editions. One evidence base.</h2></div>
+    <p class="ms-section-intro">Choose the edition that answers your question. Each offers its own guidance and downloadable PDF, based on the same checked November figures.</p>
   </div>
   <div class="ms-perspectives">
     <article class="ms-perspective">
@@ -330,30 +357,11 @@ MARKET_SIGNALS_LANDING_HTML = """
   <p class="ms-note">För dig som söker jobb inom AI och data i Sverige: Här hittar du marknadsfakta, konkreta råd och en plan för jobbsökningen. Rapporten är på engelska och gratis efter registrering. The November 2026 research is a dated snapshot, not live job listings or a salary survey; JobTech covers selected senior titles only.</p>
 </div></section>
 
-<section class="ms-section ms-section--white" id="ms-jobseeker-benefits" aria-labelledby="ms-jobseeker-benefits-title"><div class="container">
-  <div class="ms-section-head">
-    <div><p class="ms-overline">Jobseeker Edition / Four-week plan</p>
-      <h2 id="ms-jobseeker-benefits-title">Five practical steps for your AI or Data job search.</h2></div>
-    <p class="ms-section-intro">Whether you are new to the field, changing careers or already experienced, use this report to look for suitable work and test what gets a response. It is research for planning your search, not a prediction of your next offer.</p>
-  </div>
-  <div class="ms-candidate-value">
-    <article><h3>01 / Where to look</h3><p>Try suitable job ads, people in your field and a few relevant employers. See which leads to real replies.</p></article>
-    <article><h3>02 / Which roles fit</h3><p>Read the tasks, not just job titles. Check required skills, experience level and language before applying.</p></article>
-    <article><h3>03 / How to show your skills</h3><p>Prepare real examples from work, studies, internships or projects. Explain what you did and learned.</p></article>
-    <article><h3>04 / Where you can work</h3><p>Compare nearby, hybrid and genuinely remote jobs against travel, language and eligibility rules.</p></article>
-    <article><h3>05 / What type of job suits you</h3><p>Consider permanent or fixed-term jobs, and contract work where suitable. Compare pay, support and stability.</p></article>
-  </div>
-  <div class="ms-actions">
-    <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_jobseeker_cta">Read the free Jobseeker Edition and download the PDF</a>
-  </div>
-  <p class="ms-note">The report is in English and available with free registration. The selected JobTech sample covers senior AI/Data adverts; the national vacancy figures cover every kind of job. Neither represents a live list of all openings.</p>
-</div></section>
-
 <section class="ms-section ms-section--white" id="ms-findings" aria-labelledby="ms-findings-title"><div class="container">
   <div class="ms-section-head">
     <div><p class="ms-overline">November 2026 / Published observations</p>
-      <h2 id="ms-findings-title">What the Swedish market figures show.</h2></div>
-    <p class="ms-section-intro">The statistics cover different groups and periods. Choose the Executive Edition for business decisions or the Jobseeker Edition for ways to use this evidence in your own search.</p>
+      <h2 id="ms-findings-title">Five market signals worth understanding.</h2></div>
+    <p class="ms-section-intro">These published indicators cover different groups and periods. Each complete report explains what they can mean and where their limits lie.</p>
   </div>
   <div class="ms-proofs">
     <article class="ms-proof">
@@ -413,64 +421,10 @@ MARKET_SIGNALS_LANDING_HTML = """
   <p class="ms-note">Source dates, populations and methods are documented below and in the full report. Each indicator is interpreted within its original scope.</p>
 </div></section>
 
-<section class="ms-section ms-section--paper" aria-labelledby="ms-decisions-title"><div class="container">
-  <div class="ms-section-head">
-    <div><p class="ms-overline">Executive applications</p>
-      <h2 id="ms-decisions-title">Put the research to work in your next decision.</h2></div>
-    <p class="ms-section-intro">For CEOs, CFOs, CHROs, CIOs, AI and Data executives: use market context to examine investment priorities, capability needs, recruitment choices and responsibility for results.</p>
-  </div>
-  <div class="ms-decision-list">
-    <article class="ms-usecase"><span class="ms-label">Capability sourcing</span>
-      <h3>Recruit, develop internally or seek external expertise?</h3>
-      <p>Compare workforce signals and consulting activity against your delivery needs. Decide which capabilities to retain internally and where temporary expertise makes sense.</p></article>
-    <article class="ms-usecase"><span class="ms-label">Business value</span>
-      <h3>Which AI investments deserve the next budget?</h3>
-      <p>Use adoption and capability evidence to challenge funding assumptions, then assess actual outcomes, data readiness and ownership in your organisation.</p></article>
-    <article class="ms-usecase"><span class="ms-label">Recruitment decisions</span>
-      <h3>What does the labour market tell us about hiring?</h3>
-      <p>Compare selected leadership advertisements with broader vacancy evidence and recruitment channels before committing to a hiring plan.</p></article>
-    <article class="ms-usecase"><span class="ms-label">Management discussion</span>
-      <h3>Bring a stronger case to the leadership table</h3>
-      <p>Use documented findings, alternative interpretations and clear review conditions to support a focused management discussion.</p></article>
-  </div>
-</div></section>
-
-<section class="ms-section ms-section--ink" id="ms-inside" aria-labelledby="ms-workspace-title"><div class="container">
-  <div class="ms-section-head">
-    <div><p class="ms-overline" style="color:#E6B48B">Research workspace</p>
-      <h2 id="ms-workspace-title">Explore the data behind both reports.</h2></div>
-    <p class="ms-section-intro">Both reports use the same research. Members can read either edition and explore the original figures, historical records and sources in the Market Observatory.</p>
-  </div>
-  <div class="ms-workspace">
-    <div class="ms-dashboard-list" aria-label="Market Signals dashboard sections">
-      <article><span>01 / OVERVIEW</span><h3>Executive evidence overview</h3><p>Start with selected findings and see the dates and groups they cover.</p></article>
-      <article><span>02 / LEADERSHIP ADVERTS</span><h3>AI &amp; Data leadership advertisements</h3><p>Follow a defined set of senior job advertisements by complete month and region.</p></article>
-      <article><span>03 / AI IN BUSINESS</span><h3>Enterprise AI adoption &amp; capabilities</h3><p>Explore SCB figures on AI use, analytics and barriers, with their different survey groups kept separate.</p></article>
-      <article><span>04 / UNDER REVIEW</span><h3>Skills and management pay — under review</h3><p>Additional skills and salary measures are being checked; they are not published in the current edition.</p></article>
-      <article><span>05 / CONSULTING</span><h3>Consulting and sector context</h3><p>See Brainville's October consulting figures. Further sector indicators are awaiting review.</p></article>
-      <article><span>06 / EXPLANATIONS</span><h3>Interpretation and evidence limits</h3><p>See what published figures suggest, what else might explain them and where comparisons stop.</p></article>
-      <article><span>07 / HISTORY</span><h3>Comparable historical observations</h3><p>Compare completed periods within the same measure; partial months are shown separately.</p></article>
-      <article><span>08 / ORIGINAL RECORDS</span><h3>Sources and measurement methods</h3><p>Check original links, dates, survey groups and limitations, and export the source list.</p></article>
-    </div>
-    <aside class="ms-path">
-      <p class="ms-overline" style="color:#EDB994">Analytical approach</p>
-      <h3>From market evidence to a management decision.</h3>
-      <ol>
-        <li><strong>Define the decision.</strong>What are you trying to decide about investment, capability or people?</li>
-        <li><strong>Establish the evidence base.</strong>Check the figure, its date and the group it actually describes.</li>
-        <li><strong>Examine alternative explanations.</strong>Compare the strongest interpretations before committing.</li>
-        <li><strong>Set a review point.</strong>Record the decision, the remaining questions and what new evidence would change it.</li>
-      </ol>
-      <p class="ms-path-caption">Monthly archive: November 2026 is the complete published edition. June–October 2026 show retrospective leadership-advertisement records only, not full monthly reports.</p>
-      <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_dashboard_cta">Open Market Signals</a></div>
-    </aside>
-  </div>
-</div></section>
-
 <section class="ms-section ms-section--white" aria-labelledby="ms-materials-title"><div class="container">
   <div class="ms-section-head">
     <div><p class="ms-overline">Published research / Member access</p>
-      <h2 id="ms-materials-title">Read online or download the report that fits you.</h2></div>
+      <h2 id="ms-materials-title">Choose what to read or download.</h2></div>
     <p class="ms-section-intro">Read the Jobseeker or Executive Edition online, download its complete PDF and check the source records.</p>
   </div>
   <div class="ms-formats">
@@ -493,13 +447,45 @@ MARKET_SIGNALS_LANDING_HTML = """
   </div>
 </div></section>
 
+<section class="ms-section ms-section--ink" id="ms-inside" aria-labelledby="ms-workspace-title"><div class="container">
+  <div class="ms-section-head">
+    <div><p class="ms-overline" style="color:#E6B48B">Research workspace</p>
+      <h2 id="ms-workspace-title">Explore the data behind both reports.</h2></div>
+    <p class="ms-section-intro">Both reports use the same research. Members can read either edition and explore the original figures, historical records and sources in the Market Observatory.</p>
+  </div>
+  <details class="ms-research-details"><summary>Explore the eight Observatory sections and research method</summary><div class="ms-workspace">
+    <div class="ms-dashboard-list" aria-label="Market Signals dashboard sections">
+      <article><span>01 / OVERVIEW</span><h3>Executive evidence overview</h3><p>Start with selected findings and see the dates and groups they cover.</p></article>
+      <article><span>02 / LEADERSHIP ADVERTS</span><h3>AI &amp; Data leadership advertisements</h3><p>Follow a defined set of senior job advertisements by complete month and region.</p></article>
+      <article><span>03 / AI IN BUSINESS</span><h3>Enterprise AI adoption &amp; capabilities</h3><p>Explore SCB figures on AI use, analytics and barriers, with their different survey groups kept separate.</p></article>
+      <article><span>04 / UNDER REVIEW</span><h3>Skills and management pay — under review</h3><p>Additional skills and salary measures are being checked; they are not published in the current edition.</p></article>
+      <article><span>05 / CONSULTING</span><h3>Consulting and sector context</h3><p>See Brainville's October consulting figures. Further sector indicators are awaiting review.</p></article>
+      <article><span>06 / EXPLANATIONS</span><h3>Interpretation and evidence limits</h3><p>See what published figures suggest, what else might explain them and where comparisons stop.</p></article>
+      <article><span>07 / HISTORY</span><h3>Comparable historical observations</h3><p>Compare completed periods within the same measure; partial months are shown separately.</p></article>
+      <article><span>08 / ORIGINAL RECORDS</span><h3>Sources and measurement methods</h3><p>Check original links, dates, survey groups and limitations, and export the source list.</p></article>
+    </div>
+    <aside class="ms-path">
+      <p class="ms-overline" style="color:#EDB994">Analytical approach</p>
+      <h3>From market evidence to a management decision.</h3>
+      <ol>
+        <li><strong>Define the decision.</strong>What are you trying to decide about investment, capability or people?</li>
+        <li><strong>Establish the evidence base.</strong>Check the figure, its date and the group it actually describes.</li>
+        <li><strong>Examine alternative explanations.</strong>Compare the strongest interpretations before committing.</li>
+        <li><strong>Set a review point.</strong>Record the decision, the remaining questions and what new evidence would change it.</li>
+      </ol>
+      <p class="ms-path-caption">Monthly archive: November 2026 is the complete published edition. June–October 2026 show retrospective leadership-advertisement records only, not full monthly reports.</p>
+      <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_dashboard_cta">Open Market Signals</a></div>
+    </aside>
+  </div></details>
+</div></section>
+
 <section class="ms-section ms-section--paper" aria-labelledby="ms-standards-title"><div class="container">
   <div class="ms-section-head">
     <div><p class="ms-overline">Sources and methods</p>
       <h2 id="ms-standards-title">Research sources and how to use the findings.</h2></div>
     <p class="ms-section-intro">The report shows who published each figure, when it was measured and what it covers. Check these details before using a number to plan a job search or business decision.</p>
   </div>
-  <div class="ms-standard">
+  <details class="ms-research-details ms-research-details--light"><summary>See original sources, definitions and research limitations</summary><div class="ms-standard">
     <div>
       <ul class="ms-source-list">
         <li><strong>Statistics Sweden (SCB)</strong>National survey figures on AI use, data analysis and non-adoption barriers. The 2026 survey expanded industry coverage and switched to SNI 2025; comparisons with earlier years require a like-for-like population check.</li>
@@ -518,14 +504,14 @@ MARKET_SIGNALS_LANDING_HTML = """
       <p><strong>Consulting expertise</strong>Brainville measures activity on its platform. Confirm relevant skills, availability and rates for your specific requirement.</p>
       <p class="ms-small">The three outlook scenarios describe conditions to monitor, not a market forecast. The report distinguishes observed data from editorial judgement and records the evidence that could change an assessment.</p>
     </aside>
-  </div>
+  </div></details>
 </div></section>
 
 <section class="ms-lastcta" aria-labelledby="ms-cta-title"><div class="container">
   <div class="ms-cta-grid">
     <div>
       <p class="ms-overline" style="color:#E9B88E">Research access</p>
-      <h2 id="ms-cta-title">Use the November research for your next decision.</h2>
+      <h2 id="ms-cta-title">Choose your edition and start reading.</h2>
       <p>Looking for work? Use the Jobseeker Edition to find related roles, show your skills and plan a four-week search. Business leaders can use the Executive Edition to review AI investment and workforce decisions. Both have a free PDF.</p>
       <div class="ms-actions">
         <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_final_jobseeker">Jobseeker report · Free account</a>
@@ -539,7 +525,6 @@ MARKET_SIGNALS_LANDING_HTML = """
     </aside>
   </div>
 </div></section>
-
 </main>
 """
 

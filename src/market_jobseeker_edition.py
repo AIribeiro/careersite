@@ -598,7 +598,7 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
     st.html(STYLE)
     st.html(
         '<section class="ms-js-lead"><div class="eyebrow">Jobseeker edition / '+
-        html_escape(editorial["issue_date"])+'</div><h3>'+
+        html_escape(JOBSEEKER_ISSUE)+'</div><h3>'+
         html_escape(TITLE)+'</h3><p><strong>'+html_escape(SUBTITLE)+
         '</strong></p><p>'+html_escape(INTRO)+
         '</p><p>'+html_escape(VALUE)+'</p></section>'

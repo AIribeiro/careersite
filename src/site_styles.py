@@ -910,19 +910,22 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
    third cell in the two-column viewport. Scoped to the new evidence sections. */
 .site #leadership-in-practice,
 .site #operating-evidence,
-.site #governance-evidence{
+.site #governance-evidence,
+.site #governance-research{
   padding-block:clamp(46px,5vw,68px);
 }
 .site #leadership-in-practice .head,
 .site #operating-evidence .head,
-.site #governance-evidence .head{
+.site #governance-evidence .head,
+.site #governance-research .head{
   gap:clamp(16px,2.8vw,36px);
   align-items:start;
   margin-bottom:24px;
 }
 .site #leadership-in-practice .head h2,
 .site #operating-evidence .head h2,
-.site #governance-evidence .head h2{
+.site #governance-evidence .head h2,
+.site #governance-research .head h2{
   font-size:clamp(32px,3.7vw,48px);
   line-height:1.08;
 }

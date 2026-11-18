@@ -72,6 +72,32 @@ class AdvisoryRegistrationTests(unittest.TestCase):
         self.assertNotIn("Professional email *", labels)
 
 
+    def test_authenticated_login_explicitly_clears_stale_form(self):
+        """The old form must vanish before rendering an authenticated shell."""
+        from unittest.mock import patch
+        from page_advisory_portal import _finish_advisory_authentication
+        actions = []
+
+        class LoginSurface:
+            def empty(self):
+                actions.append("clear old sign-in form")
+
+        with patch("page_advisory_portal.st.session_state", {"advisory_auth_mode": "Sign in to advisory"}), \
+             patch("page_advisory_portal.st.rerun", side_effect=lambda: actions.append("rerun")):
+            _finish_advisory_authentication(LoginSurface())
+        self.assertEqual(actions, ["clear old sign-in form", "rerun"])
+
+    def test_advisory_signin_uses_stable_replaceable_auth_surface(self):
+        source = self.source("src/page_advisory_portal.py")
+        self.assertIn("auth_surface = st.empty()", source)
+        self.assertIn("with auth_surface.container():", source)
+        self.assertIn("_advisory_login(auth_surface)", source)
+        self.assertIn("_finish_advisory_authentication(auth_surface)", source)
+        self.assertLess(
+            source.index("auth_surface.empty()", source.index("def _finish_advisory_authentication")),
+            source.index("st.rerun()", source.index("def _finish_advisory_authentication")),
+        )
+
     def test_password_setup_widget_is_first_step_after_email_confirmation(self):
         from streamlit.testing.v1 import AppTest
         app = AppTest.from_file(

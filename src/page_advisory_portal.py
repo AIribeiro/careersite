@@ -353,7 +353,6 @@ def _finish_advisory_authentication(auth_surface=None) -> None:
     Explicitly clearing the stable auth placeholder prevents a stale sign-in
     surface being retained above the authenticated account shell.
     """
-    st.session_state.pop("advisory_auth_mode", None)
     if auth_surface is not None:
         auth_surface.empty()
     st.rerun()

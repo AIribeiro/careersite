@@ -201,17 +201,22 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-path li strong {display:block;color:#fff;font-size:13px;margin-bottom:3px}
 .site.ms-landing .ms-path .ms-path-caption {margin:16px 0 0;color:#C4D1DC;font-size:11px;line-height:1.65}
 .site.ms-landing .ms-formats {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.site.ms-landing .ms-perspectives {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.site.ms-landing .ms-perspectives {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;align-items:stretch;gap:18px}
 .site.ms-landing .ms-candidate-value{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
 .site.ms-landing .ms-candidate-value article{background:#fffefa;border-top:2px solid #b17b58;padding:23px 19px;min-width:0}
 .site.ms-landing .ms-candidate-value h3{font-size:15px;line-height:1.4;font-weight:800;color:#1b354a;margin:0 0 10px}
 .site.ms-landing .ms-candidate-value p{font-size:14px;line-height:1.72;color:#536579;margin:0}
-.site.ms-landing .ms-perspective {background:#fffefa;border:1px solid #ddd6cc;border-top:3px solid #b17b58;padding:clamp(22px,3vw,34px)}
+.site.ms-landing .ms-perspective {display:flex;flex-direction:column;min-width:0;background:#fffefa;border:1px solid #ddd6cc;border-top:3px solid #b17b58;padding:clamp(22px,3vw,34px)}
+.site.ms-landing .ms-perspective-benefits {margin:6px 0 12px;padding:0;list-style:none}
+.site.ms-landing .ms-perspective-benefits li {border-top:1px solid #E3DCD3;padding:9px 0;font-size:13px;line-height:1.65;color:#415669}
+.site.ms-landing .ms-perspective-benefits li::before {content:"";display:inline-block;width:6px;height:6px;background:#AE7552;border-radius:50%;margin:0 10px 2px 1px}
+.st-key-market_video_player [data-testid="stVideo"] {max-width:390px;margin:0 auto;aspect-ratio:512/910}
+.st-key-market_video_player video {max-height:660px;object-fit:contain}
 .site.ms-landing .ms-perspective h3 {font:500 clamp(23px,2.6vw,33px)/1.2 Georgia,serif;color:#193449;margin:12px 0}
 .site.ms-landing .ms-perspective p {font-size:14px;line-height:1.72;color:#4d6072}
-.site.ms-landing .ms-perspective .ms-actions {margin-top:20px}
-.site.ms-landing .ms-perspective .ms-button--outline {background:#1c3549;border-color:#1c3549;color:#fff!important}
-.site.ms-landing .ms-perspective .ms-button--outline:hover {background:#29475f}
+.site.ms-landing .ms-perspective .ms-actions {margin-top:auto;padding-top:22px}
+.site.ms-landing .ms-perspective .ms-button,.site.ms-landing .ms-perspective .ms-button--outline {width:100%;background:#1c3549;border-color:#1c3549;color:#fff!important}
+.site.ms-landing .ms-perspective .ms-button:hover,.site.ms-landing .ms-perspective .ms-button--outline:hover {background:#29475f}
 .site.ms-landing .ms-format {background:#fffefa;border:1px solid #DBD6CD;padding:27px;min-width:0;display:flex;flex-direction:column}
 .site.ms-landing .ms-format small {font-weight:800;color:#9F6A49;font-size:10px;letter-spacing:.14em;text-transform:uppercase}
 .site.ms-landing .ms-format h3 {font:500 27px/1.2 Georgia,serif;color:#20384C;margin:16px 0}
@@ -286,6 +291,9 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-film-note{color:#E7BC99!important}
 .site.ms-landing .ms-film-link{color:#F2CBA9!important;text-decoration:underline;font-size:13px;font-weight:750}
 .site.ms-landing .ms-film-meta{color:#B5C8D6!important;font-size:11px!important}
+.st-key-market_video_player {background:#142C40;padding:0 clamp(16px,7vw,130px) clamp(36px,5vw,54px)!important}
+.st-key-market_video_player [data-testid="stVideo"] {max-width:390px;margin:0 auto}
+.st-key-market_video_player video {width:100%;max-width:390px;border:1px solid #637789;border-radius:8px}
 .site.ms-landing .ms-film-aside{background:#213C52;border:1px solid #547087;border-top:3px solid #B57D58;padding:20px}
 .site.ms-landing .ms-film-aside small{font-size:11px;color:#E8B48C;text-transform:uppercase}
 .site.ms-landing .ms-film-aside strong{display:block;font:500 45px Georgia,serif;color:white;margin:13px 0}
@@ -335,7 +343,7 @@ MARKET_SIGNALS_LANDING_HTML = """
   <h2 id="ms-video-title">The numbers are only the beginning.</h2>
   <p>This faceless film introduces AI adoption, recruitment and consulting-market evidence, then asks what leaders should do with it.</p>
   <p class="ms-film-note">The film presents the executive viewpoint. The separate Jobseeker Edition uses the same research to help people decide where to look, how to show their skills and how to plan a job search.</p>
-  <a class="ms-film-link" href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_external">Watch on HeyGen if the player is unavailable</a>
+  <a class="ms-film-link" href="/app/static/market-signals/market-review-november-2026.mp4" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_external">Open the video directly</a>
   <p class="ms-film-meta">58 seconds · English narration and subtitles · No autoplay</p>
  </div><aside class="ms-film-aside"><small>November 2026</small><strong>58s</strong><p>Evidence-led briefing</p></aside></div>
 </div></section>
@@ -351,13 +359,23 @@ MARKET_SIGNALS_LANDING_HTML = """
     <article class="ms-perspective">
       <span class="ms-label">01 / Employers and business leaders</span>
       <h3>Plan AI investment and hiring decisions.</h3>
-      <p>Understand what the Swedish market figures mean for AI investment, workforce needs, internal skills and external support. Includes five analyses, scenarios, an action plan and a complete PDF.</p>
+      <p>Use Swedish market evidence to examine investment, workforce needs and business capabilities. The Executive Edition turns the findings into five practical decision perspectives.</p>
+      <ul class="ms-perspective-benefits">
+        <li>Review which AI investments deserve attention.</li>
+        <li>Compare internal skills and external expertise.</li>
+        <li>Use three scenarios and five decision briefs.</li>
+      </ul>
       <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self">Read the Executive Edition · Free</a></div>
     </article>
     <article class="ms-perspective">
       <span class="ms-label">02 / People looking for work in Sweden</span>
       <h3>Make a more focused search for AI or Data work.</h3>
-      <p>For people entering the field, returning to work, switching roles or already experienced. Find related job titles, prepare examples of your skills, compare locations and working arrangements, and follow a simple four-week plan. Includes five topics and a separate PDF. The job-ad sample covers senior roles, not every entry-level opening.</p>
+      <p>Use Swedish market evidence to explore suitable roles, show your skills and review work options. The Jobseeker Edition turns the findings into five practical search questions.</p>
+      <ul class="ms-perspective-benefits">
+        <li>Explore work beyond familiar job titles.</li>
+        <li>Compare locations and employment arrangements.</li>
+        <li>Use a practical four-week job-search plan.</li>
+      </ul>
       <div class="ms-actions"><a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self">Read the Jobseeker Edition · Free</a></div>
     </article>
   </div>

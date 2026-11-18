@@ -339,6 +339,8 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
     cover={
         "title":TITLE,
         "subtitle":SUBTITLE,
+        "stamp":"JAIR RIBEIRO  /  INDEPENDENT MARKET INTELLIGENCE",
+        "question_label":"THE CANDIDATE QUESTION",
         "assessment":INTRO,
         "question":"What can a candidate change this month without assuming a hiring forecast?",
         "edition":"JOBSEEKER EDITION 1.0 / SWEDEN",
@@ -487,7 +489,9 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
                    "caption",sty=sty))
     return assemble(story,cover,
        "Jair Ribeiro | Swedish AI & Data Job Market Review | Candidate Edition 1.0",
-       min_bytes=10000)
+       min_bytes=10000,
+       interior_kicker="MARKET SIGNALS / JOBSEEKER RESEARCH",
+       interior_footer="Independent market research")
 
 
 def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],

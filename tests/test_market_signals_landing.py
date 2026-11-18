@@ -196,13 +196,13 @@ class MarketSignalsLandingTests(unittest.TestCase):
         found=[html.index(mark) for mark in ordered]
         self.assertEqual(found,sorted(found))
         import re
-        cards=re.findall(r'<article class="ms-perspective"[^>]*>[\\s\\S]*?</article>',html)
+        cards=re.findall(r'<article class="ms-perspective"[^>]*>[\s\S]*?</article>',html)
         self.assertEqual(len(cards),2)
         words=[]
         for card in cards:
             self.assertEqual(card.count("<li>"),3)
             self.assertEqual(card.count('class="ms-button"'),1)
-            words.append(len(re.findall(r"\\b[\\w–-]+\\b",re.sub(r"<[^>]+>"," ",card))))
+            words.append(len(re.findall(r"\b[\w–-]+\b",re.sub(r"<[^>]+>"," ",card))))
         self.assertLessEqual(abs(words[0]-words[1]),14,
                              f"Executive and jobseeker cards have unequal copy density: {words}")
         css=MARKET_SIGNALS_LANDING_CSS

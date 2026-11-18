@@ -14,9 +14,9 @@ SOCIAL_IMAGE = "https://jairribeiro-ai.streamlit.app/app/static/jair-ribeiro-soc
 # public metadata. Individual publication pages retain their own SEO fields.
 HOME_TITLE = "Jair Ribeiro | Enterprise AI & Data Leadership"
 HOME_DESCRIPTION = (
-    "Jair Ribeiro explores how leaders turn enterprise AI and data strategy "
-    "into business results. Executive briefings, governance perspectives "
-    "and practical insights on AI adoption."
+    "Jair Ribeiro's enterprise AI and Data experience: a working GenAI "
+    "customer interview prototype, portfolio decisions, governance "
+    "foundations and adoption work, with outcomes stated clearly."
 )
 HOME_KEYWORDS = (
     "Jair Ribeiro, Enterprise AI, AI Strategy, AI Governance, AI Adoption, "
@@ -26,7 +26,7 @@ HOME_KEYWORDS = (
 
 DESCRIPTIONS = {
     "home": HOME_DESCRIPTION,
-    "impact": "Selected enterprise AI and Data experience showing responsibilities, trade-offs, cross-functional work and what changed.",
+    "impact": "Selected enterprise AI cases: a GenAI customer interview prototype, AI portfolio priorities, workforce enablement and decision foundations, with clear outcomes.",
     "thinking": "Articles by Jair Ribeiro on enterprise AI and data leadership, governance, adoption, portfolio decisions, operating models and business value.",
     "briefings": "Executive AI Briefings by Jair Ribeiro: plain-language explanations of AI capabilities, enterprise operating choices, ownership and business value.",
     "about": "The professional story of Jair Ribeiro: from enterprise technology foundations into business-facing AI, Data and Analytics leadership across international organizations.",
@@ -41,7 +41,7 @@ DESCRIPTIONS = {
     "enterprise": "Enterprise AI & Data experience across strategy, portfolio, operating models, governance, adoption and technical judgment.",
     "transformation": "AI transformation and adoption experience connecting experimentation with capability building, workflow change, governance and scale-readiness.",
     "governance": "AI governance and operating-model experience across decision rights, lifecycle ownership, Responsible AI, data trust and scale-readiness.",
-    "ai-data-governance": "AI & Data governance across Responsible AI, operating models, decision rights, data accountability, lifecycle governance, evidence and responsible scale.",
+    "ai-data-governance": "Enterprise AI governance through ownership, stage decisions, data stewardship and human oversight, separating delivered work from research and recommendations.",
     "consulting": "Business-driven AI and consulting experience connecting problem framing and executive dialogue with enterprise operating reality.",
 }
 

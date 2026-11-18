@@ -36,6 +36,9 @@ def test_preview_player_is_accessible_and_not_autoplaying():
     assert 'type="video/mp4"' in html
     assert "/briefing-preview-video/" not in html
     assert "Open video separately" in html
+    # The specificity must beat .briefing-preview-copy p typography in the reader.
+    assert ".site .briefing-preview-copy .briefing-video-credit" in html
+    assert 'font:400 10px/1.6 Georgia,"Times New Roman",serif' in html
     assert "briefing-preview-video-title" in html
 
 

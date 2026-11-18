@@ -282,6 +282,9 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-formats {gap:20px}
 .site.ms-landing .ms-format {padding:clamp(23px,3vw,34px)}
 .site.ms-landing .ms-format h3 {font-size:clamp(23px,2.4vw,30px)}
+.site.ms-landing .ms-format .ms-actions {margin-top:auto;padding-top:16px}
+.site.ms-landing .ms-format .ms-button {width:100%;background:#1b374d;border-color:#1b374d;color:#fff!important}
+.site.ms-landing .ms-format .ms-button:hover {background:#2f506a}
 .site.ms-landing .ms-methods-details {border:1px solid #D3C8B9;padding:clamp(18px,3vw,27px);background:#FBF9F4}
 .site.ms-landing .ms-methods-details summary {font-size:15px;color:#18374B;font-weight:850;cursor:pointer;line-height:1.55}
 .site.ms-landing .ms-methods-details[open] summary {margin-bottom:25px;padding-bottom:17px;border-bottom:1px solid #D3C8B9}
@@ -443,7 +446,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <h3>AI adoption is widespread. Business value is the next question.</h3>
       <div class="ms-number">49<span>%</span></div>
       <p>of Swedish enterprises with at least 10 employees reported using AI in SCB's 2026 survey, rising to <strong>85%</strong> among enterprises with 250 or more employees. The next management test is the effect on cost, quality, service and risk.</p>
-      <div class="ms-proof-question"><strong>Executive consideration</strong>What has improved in cost, service, quality or risk since people started using AI?</div>
+      <div class="ms-proof-question"><strong>Question to consider</strong>What would demonstrate that AI is improving a real piece of work?</div>
       <p class="ms-proof-source"><a href="https://www.scb.se/hitta-statistik/statistik-efter-amne/forskning-och-det-digitala-samhallet/det-digitala-samhallet/it-anvandning-i-foretag/pong/statistiknyhet/it-anvandning-i-foretag-2026/" target="_blank" rel="noopener noreferrer">Source: Statistics Sweden (SCB), 2026 survey</a></p>
     </article>
     <article class="ms-proof">
@@ -451,7 +454,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <h3>Senior AI &amp; Data leadership: examine the roles behind the numbers.</h3>
       <div class="ms-number">29</div>
       <p>Our defined JobTech sample recorded 29 advertisements for selected senior AI and Data/Analytics titles in Sweden in October 2026. Use this focused view alongside recruitment channels and leadership roles advertised under other job titles.</p>
-      <div class="ms-proof-question"><strong>Executive consideration</strong>Before recruiting, have you agreed what this leader needs to own and deliver?</div>
+      <div class="ms-proof-question"><strong>Question to consider</strong>What responsibilities might sit behind different AI and Data job titles?</div>
       <p class="ms-proof-source"><a href="https://historical.api.jobtechdev.se/search" target="_blank" rel="noopener noreferrer">Source: Arbetsförmedlingen JobTech, selected titles</a> · October 2026 · <a href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" target="_blank" rel="noopener noreferrer">Method and reproduction limits</a></p>
     </article>
     <article class="ms-proof">
@@ -462,7 +465,7 @@ MARKET_SIGNALS_LANDING_HTML = """
         <div>+18.5<span>%</span><small>Available consultants · YoY</small></div>
       </div>
       <p>Brainville reported increases in listed assignments and available consultants in its Swedish marketplace in October 2026, compared with a year earlier. The figures cover consulting disciplines broadly. For a sourcing decision, check the specific expertise, rates and accountability your organisation needs.</p>
-      <div class="ms-proof-question"><strong>Executive consideration</strong>What should your team learn to do itself, and where would outside expertise really help?</div>
+      <div class="ms-proof-question"><strong>Question to consider</strong>When is it better to develop skills, recruit or bring in specialist support?</div>
       <p class="ms-proof-source"><a href="https://www.brainville.com/sv/Blog/Post/1923" target="_blank" rel="noopener noreferrer">Source: Brainville, October 2026 market report</a></p>
     </article>
     <article class="ms-proof">
@@ -470,7 +473,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <h3>Recruitment demand extends beyond job advertisements.</h3>
       <div class="ms-number">159,500</div>
       <p>SCB estimated 159,500 vacancies across the Swedish economy in Q2 2026. About 127,500 were advertised; for another 32,100, employers sought candidates through other channels. These economy-wide estimates show why recruitment planning needs a wider view than published job advertisements.</p>
-      <div class="ms-proof-question"><strong>Executive consideration</strong>Are we choosing the right mix of external recruiting, internal development and specialist support?</div>
+      <div class="ms-proof-question"><strong>Question to consider</strong>What other recruiting channels should employers and candidates examine?</div>
       <p class="ms-proof-source"><a href="https://www.scb.se/hitta-statistik/statistik-efter-amne/arbetsmarknad/efterfragan-pa-arbetskraft/lediga-jobb-och-rekryteringsbehov/pong/statistiknyhet/lediga-jobb-och-rekryteringsbehov-2a-kvartalet-2026/" target="_blank" rel="noopener noreferrer">Source: SCB Recruitment Needs and Vacancies, Q2 2026</a></p>
     </article>
     <article class="ms-proof">
@@ -478,17 +481,17 @@ MARKET_SIGNALS_LANDING_HTML = """
       <h3>Business confidence is stronger than recent staffing activity.</h3>
       <div class="ms-number">110.7</div>
       <p>Konjunkturinstitutet recorded a business confidence indicator of 110.7 in October 2026. The net balance for employment over the previous three months was 2, compared with 7 for the next three months' expectations. Track these separate indicators when setting hiring commitments.</p>
-      <div class="ms-proof-question"><strong>Executive consideration</strong>Which commitments should we make now, and what hiring evidence should trigger the next phase?</div>
+      <div class="ms-proof-question"><strong>Question to consider</strong>What evidence of actual hiring would change a workforce or career plan?</div>
       <p class="ms-proof-source"><a href="https://www.konj.se/publikationer/konjunkturbarometern/2026-10-29-stort-fall-i-hushallens-stamningslage/" target="_blank" rel="noopener noreferrer">Source: Konjunkturinstitutet, October 2026</a></p>
     </article>
     <article class="ms-proof ms-proof--demo">
       <span class="ms-label">06 / Historical research sample</span>
       <h3>Explore the June–August research sample.</h3>
-      <p>Download a five-page sample covering selected senior AI and Data job advertisements from June to August 2026. It includes monthly and regional figures, a chart, source records and an executive interpretation.</p>
+      <p>Download a five-page sample covering selected senior AI and Data job advertisements from June to August 2026. It includes monthly and regional figures, a chart, source records and an explanation of what those selected job advertisements show.</p>
       <p>The sample was prepared in November using historical JobTech records. The complete November edition adds enterprise adoption, workforce, business conditions, consulting activity and five executive decision perspectives.</p>
       <a class="ms-demo-link" href="?page=advisory-market-demo" target="_self"
          data-hq-event="market_signals_public_demo">Explore and download the sample</a>
-      <div class="ms-proof-question"><strong>What the analysis includes</strong>How we explain a number, consider other explanations and turn it into a useful question for leaders.</div>
+      <div class="ms-proof-question"><strong>What the analysis includes</strong>How we explain a number, consider other explanations and frame a practical question for readers.</div>
       <p class="ms-proof-source">JobTech · June–August 2026 · Sample prepared November 2026</p>
     </article>
   </div>
@@ -543,11 +546,13 @@ MARKET_SIGNALS_LANDING_HTML = """
       <h3>Complete AI &amp; Data Market Review</h3>
       <p>The full executive research PDF, five decision perspectives, three conditional outlook scenarios and a management action agenda. Focused Executive Decision Briefs and source register are also available.</p>
       <div class="ms-format-bottom">17 November 2026 · Complete PDF · Five briefs · Sources</div>
+      <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=executive" target="_self" data-hq-event="market_signals_materials_executive">Access executive PDF</a></div>
     </article>
     <article class="ms-format"><small>FOR PEOPLE LOOKING FOR WORK / JOBSEEKER EDITION 1.0</small>
       <h3>Swedish AI &amp; Data Jobseeker Review</h3>
       <p>The full jobseeker research PDF, five practical search questions, three possible market conditions and a four-week job-search plan. A source register with the original figures is included.</p>
       <div class="ms-format-bottom">18 November 2026 · Complete PDF · Four-week plan · Sources</div>
+      <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_materials_jobseeker">Access jobseeker PDF</a></div>
     </article>
   </div>
 </div></section>

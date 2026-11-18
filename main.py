@@ -70,13 +70,10 @@ PAGE = st.query_params.get("page", "home")
 if isinstance(PAGE, list):
     PAGE = PAGE[0] if PAGE else "home"
 PAGE = str(PAGE).lower().strip()
-# Retired Presence page: keep incoming bookmarks working and preserve attribution.
-LEGACY_PRESENCE_LINK = PAGE == "presence"
-LEGACY_CREDENTIALS_LINK = PAGE == "certifications"
+# Preserve standalone credentials and speaking routes, including CV deep links.
+# Only obsolete role-lens bookmarks are remapped to the current experience page.
 LEGACY_LENS_LINK = PAGE in {"enterprise", "transformation", "governance", "consulting"}
-if LEGACY_PRESENCE_LINK or LEGACY_CREDENTIALS_LINK:
-    PAGE = "about"
-elif LEGACY_LENS_LINK:
+if LEGACY_LENS_LINK:
     PAGE = "impact"
 
 # Preserve historical ?page=admin bookmarks, but use one canonical Analytics
@@ -85,7 +82,7 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "contact", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-decision", "advisory-leadership", "advisory-renewal", "advisory-market-signals", "advisory-market-demo", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
+PUBLIC_VALID = {"home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "presence", "contact", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-decision", "advisory-leadership", "advisory-renewal", "advisory-market-signals", "advisory-market-demo", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -128,6 +125,8 @@ TITLES = {
     "briefing": "Executive AI Briefing | Jair Ribeiro",
     "readers": "Premium Reader Library | Jair Ribeiro",
     "about": "About | Jair Ribeiro",
+    "certifications": "AI, Data & Leadership Certifications | Jair Ribeiro",
+    "presence": "Speaking & Publications | Jair Ribeiro",
     "contact": "Contact | Jair Ribeiro",
     "advisory": "Executive AI & Data Advisory | Jair Ribeiro",
     "advisory-access": "Executive Advisory Account | Jair Ribeiro",
@@ -187,8 +186,6 @@ if isinstance(st.session_state.get("reader_native_session"), dict):
 if LEGACY_ADMIN_LINK:
     st.query_params["page"] = "analytics"
     st.query_params["workspace"] = "cms"
-if LEGACY_PRESENCE_LINK or LEGACY_CREDENTIALS_LINK:
-    st.query_params["page"] = "about"
 if LEGACY_LENS_LINK:
     st.query_params["page"] = "impact"
 
@@ -294,6 +291,12 @@ else:
     elif PAGE == "about":
         from page_about import about
         render_page = about
+    elif PAGE == "certifications":
+        from page_certifications import certifications
+        render_page = certifications
+    elif PAGE == "presence":
+        from page_presence import presence
+        render_page = presence
     elif PAGE == "contact":
         from page_contact import contact
         render_page = contact

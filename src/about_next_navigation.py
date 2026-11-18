@@ -50,6 +50,12 @@ _CARDS = {
     "about": ("The personal journey", "Who I am",
               "The places, cultures and experiences that have shaped my work with people.",
               "Explore my story"),
+    "certifications": ("AI, Data & Leadership Credentials", "Selected certifications",
+                       "Verified learning across enterprise AI, governance, data and leadership.",
+                       "Explore credentials"),
+    "presence": ("Speaking & Publications", "Published and public contributions",
+                 "Selected events, interviews, publications and externally documented work.",
+                 "Explore contributions"),
     "advisory-market-demo": (
         "Public research sample", "Historical evidence review",
         "Read the June–August 2026 leadership-advertisement sample, including sources and limitations.",
@@ -73,6 +79,8 @@ _PAGE_ROUTES = {
     "ai-data-governance": ("impact", "briefings", "about"),
     "thinking": ("impact", "ai-data-governance", "about"),
     "contact": ("impact", "ai-data-governance", "thinking"),
+    "certifications": ("impact", "presence", "about"),
+    "presence": ("impact", "certifications", "thinking"),
     "advisory-market-signals": (
         "advisory-market-demo", "advisory-access&view=market-signals", "advisory"
     ),
@@ -103,6 +111,14 @@ _PAGE_COPY = {
         "A little more context before we connect.",
         "If you would like to explore the work first, these three destinations "
         "offer a practical view of my experience, approach and published perspectives.",
+    ),
+    "certifications": (
+        "Beyond the credential record.",
+        "Explore the enterprise AI work, public contributions and career experience behind the learning.",
+    ),
+    "presence": (
+        "Beyond the stage and publications.",
+        "Explore the work, verified credentials and written perspectives behind these contributions.",
     ),
     "advisory-market-signals": (
         "Continue with the research.",

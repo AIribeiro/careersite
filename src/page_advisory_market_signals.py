@@ -309,6 +309,9 @@ html[data-jr-masked-mobile="true"] .site.ms-landing .ms-video-figure{max-width:2
 .site.ms-landing .ms-research-details--light summary{color:#1A3449}
 .site.ms-landing .ms-research-details--light .ms-standard{padding:20px}
 .site.ms-landing .ms-careers-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.site.ms-landing .ms-career-card{background:#fffefa;border:1px solid #e0d9cf;padding:clamp(20px,2vw,30px);min-width:0}
+.site.ms-landing .ms-career-card h3{font:500 clamp(22px,2.2vw,27px)/1.22 Georgia,serif;color:#173147}
+.site.ms-landing .ms-career-card p{line-height:1.7;color:#405366}
 .site.ms-landing .ms-career-insight{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:28px 0 16px}
 .site.ms-landing .ms-career-insight>div{background:#f8f5ef;border-top:3px solid #b78b6a;padding:24px;min-width:0}
 .site.ms-landing .ms-career-insight strong{display:block;font:500 clamp(30px,4vw,47px)/1.1 Georgia,serif;color:#173147;margin:10px 0}
@@ -359,7 +362,7 @@ MARKET_SIGNALS_LANDING_HTML = """
     <article class="ms-perspective">
       <span class="ms-label">02 / People looking for work in Sweden</span>
       <h3>Understand how AI and Data connect to your career.</h3>
-      <p>For graduates, technical specialists, analysts, business professionals and experienced leaders. Explore how AI is spreading across work, the capabilities companies report needing, and what today’s recruitment figures can actually tell you. Compare career pathways, build evidence of your skills and plan your next move with the full report and source-backed PDF.</p>
+      <p>Explore how AI affects careers from entry-level analysis to senior leadership. Examine professional pathways, business capability gaps and recruitment evidence. Compare actual employer requirements, show your skills with concrete examples and use the four-week plan and source-backed PDF.</p>
       <div class="ms-actions"><a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self">Read the Jobseeker Edition · Free</a></div>
     </article>
   </div>
@@ -373,9 +376,9 @@ MARKET_SIGNALS_LANDING_HTML = """
     <p class="ms-section-intro">Our job-seeker edition looks beyond senior leadership advertisements. AI-related opportunities can involve building systems, keeping them dependable or using AI inside an existing profession. These pathways organise your exploration; they are not measured vacancy rankings.</p>
   </div>
   <div class="ms-perspectives ms-careers-grid">
-    <article class="ms-perspective"><span class="ms-label">01 / Build</span><h3>Develop data and AI systems.</h3><p>Explore software, data engineering, analysis, applied AI and related technical work. Check actual tools, qualifications and delivery responsibilities in the roles you consider.</p></article>
-    <article class="ms-perspective"><span class="ms-label">02 / Operate</span><h3>Help organisations use AI reliably.</h3><p>Consider data quality, privacy, governance, risk and day-to-day support. SCB reports capability barriers, but these findings do not quantify vacancies for any specialty.</p></article>
-    <article class="ms-perspective"><span class="ms-label">03 / Apply</span><h3>Bring AI into a profession you know.</h3><p>Look for relevant responsibilities in operations, finance, product, marketing and other established functions. The actual work matters more than whether AI appears in the title.</p></article>
+    <article class="ms-career-card"><span class="ms-label">01 / Build</span><h3>Develop data and AI systems.</h3><p>Explore software, data engineering, analysis, applied AI and related technical work. Check actual tools, qualifications and delivery responsibilities in the roles you consider.</p></article>
+    <article class="ms-career-card"><span class="ms-label">02 / Operate</span><h3>Help organisations use AI reliably.</h3><p>Consider data quality, privacy, governance, risk and day-to-day support. SCB reports capability barriers, but these findings do not quantify vacancies for any specialty.</p></article>
+    <article class="ms-career-card"><span class="ms-label">03 / Apply</span><h3>Bring AI into a profession you know.</h3><p>Look for relevant responsibilities in operations, finance, product, marketing and other established functions. The actual work matters more than whether AI appears in the title.</p></article>
   </div>
   <div class="ms-career-insight">
     <div><span class="ms-label">SCB / Enterprise AI use / 2026</span><strong>49%</strong><p>of Swedish enterprises with at least ten employees reported AI use.</p></div>

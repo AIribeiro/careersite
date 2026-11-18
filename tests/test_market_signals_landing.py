@@ -160,7 +160,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
         )
         self.assertEqual(MARKET_REVIEW_VIDEO_ID,"55e1d1dff94641d2a3f6e915cef8fd3d")
         self.assertEqual(MARKET_REVIEW_VIDEO_EMBED_URL,
-                         "https://app.heygen.com/share/"+MARKET_REVIEW_VIDEO_ID)
+                         "https://app.heygen.com/embeds/"+MARKET_REVIEW_VIDEO_ID)
         self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(MARKET_VIDEO_SPLIT),1)
         intro,remainder=split_market_landing_at_video(MARKET_SIGNALS_LANDING_HTML)
         self.assertTrue(intro.rstrip().endswith("</section>"))
@@ -170,7 +170,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertIn("split_market_landing_at_video(responsive_document)",main)
         self.assertIn("st.iframe(",main)
         self.assertIn('key="market_video_player"',main)
-        self.assertIn("app.heygen.com/videos/"+MARKET_REVIEW_VIDEO_ID, self.page)
+        self.assertIn("app.heygen.com/share/"+MARKET_REVIEW_VIDEO_ID, self.page)
         self.assertNotIn("Signature=",self.page)
         self.assertNotIn('id="ms-jobseeker-benefits"',self.page)
         self.assertNotIn('aria-labelledby="ms-decisions-title"',self.page)

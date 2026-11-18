@@ -206,10 +206,10 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-candidate-value article{background:#fffefa;border-top:2px solid #b17b58;padding:23px 19px;min-width:0}
 .site.ms-landing .ms-candidate-value h3{font-size:15px;line-height:1.4;font-weight:800;color:#1b354a;margin:0 0 10px}
 .site.ms-landing .ms-candidate-value p{font-size:14px;line-height:1.72;color:#536579;margin:0}
-.site.ms-landing .ms-perspective {background:#fffefa;border:1px solid #ddd6cc;border-top:3px solid #b17b58;padding:clamp(22px,3vw,34px)}
+.site.ms-landing .ms-perspective {background:#fffefa;border:1px solid #ddd6cc;border-top:3px solid #b17b58;padding:clamp(22px,3vw,34px);display:flex;flex-direction:column;min-width:0}
 .site.ms-landing .ms-perspective h3 {font:500 clamp(23px,2.6vw,33px)/1.2 Georgia,serif;color:#193449;margin:12px 0}
 .site.ms-landing .ms-perspective p {font-size:14px;line-height:1.72;color:#4d6072}
-.site.ms-landing .ms-perspective .ms-actions {margin-top:20px}
+.site.ms-landing .ms-perspective .ms-actions {margin-top:auto;padding-top:20px}
 .site.ms-landing .ms-perspective .ms-button--outline {background:#1c3549;border-color:#1c3549;color:#fff!important}
 .site.ms-landing .ms-perspective .ms-button--outline:hover {background:#29475f}
 .site.ms-landing .ms-format {background:#fffefa;border:1px solid #DBD6CD;padding:27px;min-width:0;display:flex;flex-direction:column}
@@ -279,16 +279,35 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-trust-strip span{color:#C9D8E5;font-size:12px;line-height:1.7}
 .site.ms-landing .ms-trust-strip strong{color:#F0C39F;font-size:20px}
 .site.ms-landing .ms-issue-line{color:#B8C8D5;font-size:11px}
-.site.ms-landing .ms-section--film{background:#142C40;color:#F8F7F2;padding:clamp(39px,5vw,59px) 0 20px}
-.site.ms-landing .ms-film-layout{display:grid;grid-template-columns:minmax(0,1fr) 185px;align-items:center;gap:clamp(18px,4vw,65px)}
-.site.ms-landing .ms-film-layout h2{font:500 clamp(29px,3.7vw,46px)/1.16 Georgia,serif;color:#fff;margin:14px 0}
-.site.ms-landing .ms-film-layout p{color:#D4E1EA;font-size:15px;line-height:1.75;max-width:825px}
-.site.ms-landing .ms-film-note{color:#E7BC99!important}
-.site.ms-landing .ms-film-link{color:#F2CBA9!important;text-decoration:underline;font-size:13px;font-weight:750}
-.site.ms-landing .ms-film-meta{color:#B5C8D6!important;font-size:11px!important}
-.site.ms-landing .ms-film-aside{background:#213C52;border:1px solid #547087;border-top:3px solid #B57D58;padding:20px}
-.site.ms-landing .ms-film-aside small{font-size:11px;color:#E8B48C;text-transform:uppercase}
-.site.ms-landing .ms-film-aside strong{display:block;font:500 45px Georgia,serif;color:white;margin:13px 0}
+/* Supporting video: compact and below the main reports and market findings. */
+.st-key-market_video_compact{
+  width:100%;max-width:none;background:#F7F5F0;
+  border-top:1px solid #D8D0C5;border-bottom:1px solid #D8D0C5;
+  padding:clamp(16px,2.5vw,31px) clamp(16px,4vw,49px)!important;
+}
+.st-key-market_video_compact [data-testid="stHorizontalBlock"]{
+  align-items:center;gap:clamp(18px,3.8vw,48px)
+}
+.st-key-market_video_compact [data-testid="stColumn"]{min-width:0}
+.st-key-market_video_compact [data-testid="stIframe"]{max-width:250px;margin:0 auto}
+.st-key-market_video_compact iframe{
+  display:block;width:100%;max-width:250px;
+  border:1px solid #D7CFC4;border-radius:6px;background:#102437
+}
+.site.ms-landing .ms-inline-film-copy{max-width:740px;padding:6px 0}
+.site.ms-landing .ms-inline-film-copy .ms-overline{font-size:10px;letter-spacing:.15em;color:#8D5A3C}
+.site.ms-landing .ms-inline-film-copy h2{
+  margin:9px 0 12px;font:500 clamp(25px,3.2vw,37px)/1.16 Georgia,serif;
+  letter-spacing:-.022em;color:#1C3548
+}
+.site.ms-landing .ms-inline-film-copy p{
+  font-size:14px;line-height:1.7;color:#526477;margin:9px 0
+}
+.site.ms-landing .ms-inline-film-copy .ms-film-link{
+  display:inline-block;margin-top:9px;font-size:13px;font-weight:750;
+  color:#305D7A!important;text-decoration:underline;text-underline-offset:4px
+}
+.site.ms-landing .ms-inline-film-copy .ms-film-meta{font-size:11px;color:#667688}
 .site.ms-landing .ms-research-details{background:#1E3B52;border:1px solid #526F84}
 .site.ms-landing .ms-research-details summary{cursor:pointer;color:#F8F9FA;font-weight:750;font-size:14px;line-height:1.6;padding:20px}
 .site.ms-landing .ms-research-details summary:focus-visible{outline:3px solid #EBC29A}
@@ -296,10 +315,16 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-research-details--light{background:#FFFEFC;border-color:#DBD3C7}
 .site.ms-landing .ms-research-details--light summary{color:#1A3449}
 .site.ms-landing .ms-research-details--light .ms-standard{padding:20px}
-.st-key-market_video_player{background:#142C40;padding:0 clamp(14px,7vw,130px) clamp(35px,5vw,54px)!important}
-.st-key-market_video_player [data-testid="stIframe"]{max-width:470px;margin:0 auto}
-.st-key-market_video_player iframe{width:100%;max-width:470px;border:1px solid #627A8C;border-radius:8px;background:#102437}
-@media(max-width:760px),(max-device-width:760px){.site.ms-landing .ms-film-layout{grid-template-columns:minmax(0,1fr)}.site.ms-landing .ms-film-aside{display:none}.site.ms-landing .ms-research-details .ms-workspace{padding:12px}.site.ms-landing .ms-research-details--light .ms-standard{padding:12px}}
+@media(max-width:760px),(max-device-width:760px){
+  .st-key-market_video_compact [data-testid="stHorizontalBlock"]{flex-direction:column;gap:12px;align-items:stretch}
+  .st-key-market_video_compact [data-testid="stColumn"]{width:100%!important;flex:0 0 100%!important}
+  .st-key-market_video_compact [data-testid="stIframe"]{max-width:215px;margin:0 auto}
+  .st-key-market_video_compact iframe{max-width:215px}
+  .site.ms-landing .ms-inline-film-copy h2{font-size:29px}
+  .site.ms-landing .ms-inline-film-copy p{font-size:13px}
+  .site.ms-landing .ms-research-details .ms-workspace{padding:12px}
+  .site.ms-landing .ms-research-details--light .ms-standard{padding:12px}
+}
 </style>
 """
 
@@ -329,18 +354,6 @@ MARKET_SIGNALS_LANDING_HTML = """
   </div>
 </div></section>
 
-<section class="ms-section ms-section--film" id="ms-video" aria-labelledby="ms-video-title"><div class="container">
- <div class="ms-film-layout"><div>
-  <p class="ms-overline">The November research / 58-second introduction</p>
-  <h2 id="ms-video-title">The numbers are only the beginning.</h2>
-  <p>This faceless film introduces AI adoption, recruitment and consulting-market evidence, then asks what leaders should do with it.</p>
-  <p class="ms-film-note">The film presents the executive viewpoint. The separate Jobseeker Edition uses the same research to help people decide where to look, how to show their skills and how to plan a job search.</p>
-  <a class="ms-film-link" href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_external">Watch on HeyGen if the player is unavailable</a>
-  <p class="ms-film-meta">58 seconds · English narration and subtitles · No autoplay</p>
- </div><aside class="ms-film-aside"><small>November 2026</small><strong>58s</strong><p>Evidence-led briefing</p></aside></div>
-</div></section>
-<!-- MARKET_SIGNALS_VIDEO_PLAYER -->
-
 <section class="ms-section ms-section--paper" id="ms-perspectives" aria-labelledby="ms-perspectives-title"><div class="container">
   <div class="ms-section-head">
     <div><p class="ms-overline">Two free reports / Same checked figures</p>
@@ -351,17 +364,17 @@ MARKET_SIGNALS_LANDING_HTML = """
     <article class="ms-perspective">
       <span class="ms-label">01 / Employers and business leaders</span>
       <h3>Plan AI investment and hiring decisions.</h3>
-      <p>Understand what the Swedish market figures mean for AI investment, workforce needs, internal skills and external support. Includes five analyses, scenarios, an action plan and a complete PDF.</p>
+      <p>Explore what market evidence means for AI investment, hiring, internal skills and external support. Read five decision analyses, three conditional scenarios and a practical management agenda, then download the complete PDF and source register.</p>
       <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self">Read the Executive Edition · Free</a></div>
     </article>
     <article class="ms-perspective">
       <span class="ms-label">02 / People looking for work in Sweden</span>
       <h3>Make a more focused search for AI or Data work.</h3>
-      <p>For people entering the field, returning to work, switching roles or already experienced. Find related job titles, prepare examples of your skills, compare locations and working arrangements, and follow a simple four-week plan. Includes five topics and a separate PDF. The job-ad sample covers senior roles, not every entry-level opening.</p>
+      <p>Explore where to search, how to describe your skills and which working arrangements suit you, including when returning to work. Read five job-search topics, possible market conditions and a practical four-week plan, then download the complete PDF and source register.</p>
       <div class="ms-actions"><a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self">Read the Jobseeker Edition · Free</a></div>
     </article>
   </div>
-  <p class="ms-note">För dig som söker jobb inom AI och data i Sverige: Här hittar du marknadsfakta, konkreta råd och en plan för jobbsökningen. Rapporten är på engelska och gratis efter registrering. The November 2026 research is a dated snapshot, not live job listings or a salary survey; JobTech covers selected senior titles only.</p>
+  <p class="ms-note">För dig som söker jobb inom AI och data i Sverige: Här hittar du marknadsfakta, konkreta råd och en plan för jobbsökningen. Rapporten är på engelska och gratis efter registrering. The November 2026 research is a dated snapshot, not live job listings or a salary survey. JobTech covers selected senior titles only—not every entry-level opening.</p>
 </div></section>
 
 <section class="ms-section ms-section--white" id="ms-findings" aria-labelledby="ms-findings-title"><div class="container">
@@ -427,6 +440,8 @@ MARKET_SIGNALS_LANDING_HTML = """
   </div>
   <p class="ms-note">Source dates, populations and methods are documented below and in the full report. Each indicator is interpreted within its original scope.</p>
 </div></section>
+
+<!-- MARKET_SIGNALS_VIDEO_PLAYER -->
 
 <section class="ms-section ms-section--white" aria-labelledby="ms-materials-title"><div class="container">
   <div class="ms-section-head">

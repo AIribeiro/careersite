@@ -83,9 +83,9 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         from market_jobseeker_edition import JOBSEEKER_ISSUE, LIMITS
         self.assertEqual(JOBSEEKER_ISSUE,"18 November 2026")
         self.assertIn("not a measured hidden ai job market",LIMITS.lower())
-        self.assertIn("salary",LIMITS.lower())
+        self.assertIn("salaries",LIMITS.lower())
         data=jobseeker_market_pdf(self.points,self.editorial,SLUG)
-        text=" ".join((p.extract_text() or "") for p in PdfReader(BytesIO(data)).pages)
+        text=" ".join(" ".join((p.extract_text() or "") for p in PdfReader(BytesIO(data)).pages).split())
         self.assertIn(JOBSEEKER_ISSUE,text)
         self.assertIn("What the evidence cannot establish",text)
         self.assertIn("THE CANDIDATE QUESTION",text)

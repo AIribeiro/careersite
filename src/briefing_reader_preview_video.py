@@ -181,7 +181,11 @@ def render_briefing_video_preview(slug: str, *, source_fingerprint: str | None =
         return ""
     video = _url(slug, "preview.mp4", manifest["web"]["sha256"])
     poster = _url(slug, "poster.jpg", manifest["poster"]["sha256"])
-    backup = f"{GITHUB_MEDIA_ROOT}/{slug}/preview.mp4"
+    # A reassembled exact MP4 has no GitHub raw single-file fallback.
+    backup = (
+        f"{GITHUB_MEDIA_ROOT}/{slug}/preview.mp4"
+        if manifest["web"].get("git_binary_available", True) else None
+    )
     total = int(round(manifest["duration_seconds"]))
     label = f"{total // 60} min {total % 60:02d} sec"
     title = escape(str(manifest.get("title") or "Executive AI Briefing"), quote=True)
@@ -196,7 +200,7 @@ def render_briefing_video_preview(slug: str, *, source_fingerprint: str | None =
         + 'aria-label="' + title + ': executive explainer narrated by Jair Ribeiro" '
         + 'poster="' + poster + '">'
         + '<source src="' + video + '" type="video/mp4">'
-        + '<source src="' + backup + '" type="video/mp4">'
+        + ('<source src="' + backup + '" type="video/mp4">' if backup else '')
         + '<p class="briefing-video-fallback">Your browser cannot play the embedded video. '
         + '<a href="' + video + '" target="_blank" rel="noopener">Open the video in a new tab</a>.</p>'
         + '</video></div>'

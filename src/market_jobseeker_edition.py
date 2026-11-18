@@ -20,22 +20,23 @@ from market_publication_design import (
 
 EDITION = "sweden-ai-data-market-review-2026-11-v2-0-2"
 TITLE = "Swedish AI & Data Market Review"
-SUBTITLE = "Jobseeker Edition | Career decisions based on November 2026 evidence"
+SUBTITLE = "Jobseeker Edition | A market reading for experienced AI & Data professionals"
 JOBSEEKER_ISSUE = "18 November 2026"
 INTRO = (
     "Sweden's AI market produces plenty of headlines, but less evidence about "
     "which opportunities fit your next career move. This edition distinguishes "
     "a narrow sample of senior AI/Data advertisements from broader labour-market "
-    "figures and turns five research readings into questions you can test in "
-    "your own job search. Decide where to look, what to demonstrate and when "
-    "to revise your approach."
+    "figures. It helps experienced AI and Data professionals decide where to "
+    "look, how to explain their contribution, which constraints to check and "
+    "when to revise a search. These are decisions to test, not predictions."
 )
 VALUE = (
-    "Five candidate perspectives and a practical 30-day decision framework "
-    "help you test discovery channels, examine adjacent titles, present "
-    "credible career evidence and assess geographic or contract options. "
-    "This is a dated research snapshot, not a live vacancy database, "
-    "salary benchmark or forecast of an individual's hiring prospects."
+    "Use five evidence-based perspectives and a practical 30-day plan to decide "
+    "where to spend search effort: advertised jobs versus professional conversations, "
+    "adjacent responsibilities versus familiar titles, credible career examples, "
+    "geographic reach and permanent versus interim options. The result is a "
+    "repeatable way to assess your own search, not a vacancy database, salary "
+    "benchmark or forecast of an individual's hiring prospects."
 )
 LIMITS = (
     "The selected JobTech figures cover senior advertisement titles only, "
@@ -312,6 +313,15 @@ EXPECTED_NUMBERS = {
     "brainville_202610_consultants_yoy": 18.5,
 }
 
+# One-page decision map; recommendations to test, not measured hiring outcomes.
+DECISION_MAP = (
+    ("Where should I search?", "Compare eligible adverts, relevant professional introductions and targeted employer conversations. Measure qualified replies in each channel."),
+    ("Which roles actually fit?", "Screen leadership titles and adjacent business mandates for decision rights, outcomes, location, language and eligibility."),
+    ("How should I present myself?", "Prepare two or three examples with the problem, your own contribution, operating dependencies and a verifiable result or learning."),
+    ("Should I widen geography?", "Separate genuinely remote, realistic hybrid and onsite roles. Confirm required work location and language before applying."),
+    ("Should I consider contracts?", "Compare permanent and time-limited opportunities using the same scope, sponsor, expected results and financial tests."),
+)
+
 CANDIDATE_AGENDA = (
     ("01 / Define target mandates", "Candidate", "Days 1-3",
      "Write the problems, responsibilities and acceptable constraints for each role family before selecting job titles."),
@@ -423,7 +433,18 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         preview.append(P(f"{i:02d} / {x['title']}","body_compact",sty=sty))
     story.append(KeepTogether(preview))
     story.append(Spacer(1,12))
-    story.append(CondPageBreak(235))
+    story.append(CondPageBreak(290))
+    story.append(P("Your five practical decisions at a glance","h2",sty=sty))
+    story.append(decision_table([
+        (question,"Candidate","Next 30 days",action)
+        for question,action in DECISION_MAP
+    ],sty=sty))
+    story.append(Spacer(1,12))
+    story.append(P(
+        "These are candidate-controlled experiments, not proven channel rankings. "
+        "The published series do not measure recruiter response rates, job offer "
+        "probabilities, salary levels or the complete AI/Data vacancy market.",
+        "caption",sty=sty))
 
     section(story,"02 / The discovery problem",
         "Why a job-board search can misread demand",
@@ -570,7 +591,11 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
         on_click=record_event,args=(token,"pdf_review","jobseeker",edition_slug)
     )
     idx={x["code"]:x for x in points}
-    st.markdown("#### Five candidate decisions")
+    st.markdown("#### What you can decide with this report")
+    for question, action in DECISION_MAP:
+        with st.expander(question,expanded=False):
+            st.write(action)
+    st.markdown("#### Five candidate evidence perspectives")
     choice=st.selectbox("Explore a jobseeker perspective",
         [x["key"] for x in FINDINGS],
         format_func=lambda key:next(x["title"] for x in FINDINGS if x["key"]==key),

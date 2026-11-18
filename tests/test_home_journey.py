@@ -49,8 +49,8 @@ class HomeJourneyTests(unittest.TestCase):
 
     def test_contextual_paths_from_content_pages(self) -> None:
         for source, marker in (
-            ("src/page_impact.py", 'journey_next("impact")'),
-            ("src/page_ai_data_governance.py", 'journey_next("governance")'),
+            ("src/page_impact.py", 'portfolio_next_navigation("impact")'),
+            ("src/page_ai_data_governance.py", 'portfolio_next_navigation("ai-data-governance")'),
             ("src/thinking_landing.py", 'journey_next("thinking")'),
             ("src/site_cms.py", 'journey_next("article")'),
             ("src/page_thinking.py", "journey_next('article')"),

@@ -254,7 +254,7 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-video-shell {background:#ECE9E2;border:7px solid #E6E2D9;box-shadow:0 19px 44px rgba(17,35,51,.15);width:100%;overflow:hidden}
 .site.ms-landing .ms-video-player {display:block;width:100%;max-width:100%;aspect-ratio:512/910;height:auto;object-fit:contain;background:#F5F2EB}
 .site.ms-landing .ms-video-figure figcaption {font-size:11px;line-height:1.6;text-align:center;color:#5C6C7C;margin-top:13px}
-.site.ms-landing .ms-perspectives {align-items:stretch;gap:20px}
+.site.ms-landing .ms-perspectives {align-items:stretch;grid-auto-rows:1fr;gap:20px}
 .site.ms-landing .ms-perspective {display:flex;flex-direction:column;min-width:0;min-height:380px;padding:clamp(22px,3vw,33px)}
 .site.ms-landing .ms-perspective h3 {font-size:clamp(26px,2.6vw,33px);max-width:26ch}
 .site.ms-landing .ms-perspective p {margin:0 0 10px;line-height:1.7}

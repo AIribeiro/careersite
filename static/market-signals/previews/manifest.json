@@ -1,0 +1,51 @@
+{
+  "edition_slug": "sweden-ai-data-market-review-2026-11-v2-0-2",
+  "render_method": "PyMuPDF full-page, no crops or overlays",
+  "source": "Same PDF generators and official-value verified test fixture used in production quality checks",
+  "images": [
+    {
+      "edition": "executive",
+      "file": "static/market-signals/previews/executive-ai-investment.png",
+      "page_number": 5,
+      "pages_in_document": 23,
+      "page_heading": "AI adoption is not a business case for the next investment",
+      "sha256": "f5a2b887ac00532a9e74a1cd5b3af8eca74cc0dc9081c84bf6d6aea68c4f2c03",
+      "pdf_sha256": "e493d050fe57614174b7989de8bd7c1981dfb8dd881b788171cc529d82719ec1",
+      "width": 1102,
+      "height": 1558
+    },
+    {
+      "edition": "executive",
+      "file": "static/market-signals/previews/executive-capability.png",
+      "page_number": 8,
+      "pages_in_document": 23,
+      "page_heading": "The capability gap is a management question before it is a technology question",
+      "sha256": "b4df57acc6ec8cc8d2f07ba29d111d814d1db9a61910e030ac3c5d66d6418a4a",
+      "pdf_sha256": "e493d050fe57614174b7989de8bd7c1981dfb8dd881b788171cc529d82719ec1",
+      "width": 1102,
+      "height": 1558
+    },
+    {
+      "edition": "jobseeker",
+      "file": "static/market-signals/previews/jobseeker-adoption-capabilities.png",
+      "page_number": 4,
+      "pages_in_document": 21,
+      "page_heading": "Business AI adoption and hiring are different measures",
+      "sha256": "2a2a584f928e6333e9da26ccd0d14856abc3ed1215fed99d26154858bea3a92e",
+      "pdf_sha256": "3dccf8972d0c4db22dcd3772d534126c417cd1e2e32b4e53118aa213ab9dfb72",
+      "width": 1102,
+      "height": 1558
+    },
+    {
+      "edition": "jobseeker",
+      "file": "static/market-signals/previews/jobseeker-four-week-plan.png",
+      "page_number": 11,
+      "pages_in_document": 21,
+      "page_heading": "Turn the research into a simple four-week plan",
+      "sha256": "2bdbad69a4b175378fe19c5177b6392ae1c9b558a2d34418e4d025cc4705cf5e",
+      "pdf_sha256": "3dccf8972d0c4db22dcd3772d534126c417cd1e2e32b4e53118aa213ab9dfb72",
+      "width": 1102,
+      "height": 1558
+    }
+  ]
+}

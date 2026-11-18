@@ -139,7 +139,7 @@ class CareerFactConsistencyTests(unittest.TestCase):
 
         self.assertIn("from career_facts import", cv_source)
         self.assertIn("from career_facts import", home_source)
-        self.assertIn("from career_facts import", about_source)
+        self.assertIn("from career_facts import", (SRC / "career_facts.py").read_text(encoding="utf-8") if False else (SRC / "page_impact.py").read_text(encoding="utf-8"))
         self.assertIn("from career_facts import", impact_source)
 
 

@@ -206,10 +206,10 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-candidate-value article{background:#fffefa;border-top:2px solid #b17b58;padding:23px 19px;min-width:0}
 .site.ms-landing .ms-candidate-value h3{font-size:15px;line-height:1.4;font-weight:800;color:#1b354a;margin:0 0 10px}
 .site.ms-landing .ms-candidate-value p{font-size:14px;line-height:1.72;color:#536579;margin:0}
-.site.ms-landing .ms-perspective {background:#fffefa;border:1px solid #ddd6cc;border-top:3px solid #b17b58;padding:clamp(22px,3vw,34px)}
+.site.ms-landing .ms-perspective {background:#fffefa;border:1px solid #ddd6cc;border-top:3px solid #b17b58;padding:clamp(22px,3vw,34px);display:flex;flex-direction:column;min-width:0}
 .site.ms-landing .ms-perspective h3 {font:500 clamp(23px,2.6vw,33px)/1.2 Georgia,serif;color:#193449;margin:12px 0}
 .site.ms-landing .ms-perspective p {font-size:14px;line-height:1.72;color:#4d6072}
-.site.ms-landing .ms-perspective .ms-actions {margin-top:20px}
+.site.ms-landing .ms-perspective .ms-actions {margin-top:auto;padding-top:20px}
 .site.ms-landing .ms-perspective .ms-button--outline {background:#1c3549;border-color:#1c3549;color:#fff!important}
 .site.ms-landing .ms-perspective .ms-button--outline:hover {background:#29475f}
 .site.ms-landing .ms-format {background:#fffefa;border:1px solid #DBD6CD;padding:27px;min-width:0;display:flex;flex-direction:column}
@@ -364,17 +364,17 @@ MARKET_SIGNALS_LANDING_HTML = """
     <article class="ms-perspective">
       <span class="ms-label">01 / Employers and business leaders</span>
       <h3>Plan AI investment and hiring decisions.</h3>
-      <p>Understand what the Swedish market figures mean for AI investment, workforce needs, internal skills and external support. Includes five analyses, scenarios, an action plan and a complete PDF.</p>
+      <p>Explore what market evidence means for AI investment, hiring, internal skills and external support. Read five decision analyses, three conditional scenarios and a practical management agenda, then download the complete PDF and source register.</p>
       <div class="ms-actions"><a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self">Read the Executive Edition · Free</a></div>
     </article>
     <article class="ms-perspective">
       <span class="ms-label">02 / People looking for work in Sweden</span>
       <h3>Make a more focused search for AI or Data work.</h3>
-      <p>For people entering the field, returning to work, switching roles or already experienced. Find related job titles, prepare examples of your skills, compare locations and working arrangements, and follow a simple four-week plan. Includes five topics and a separate PDF. The job-ad sample covers senior roles, not every entry-level opening.</p>
+      <p>Explore where to search, how to describe your skills and which working arrangements suit you. Read five job-search topics, possible market conditions and a practical four-week plan, then download the complete PDF and source register.</p>
       <div class="ms-actions"><a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self">Read the Jobseeker Edition · Free</a></div>
     </article>
   </div>
-  <p class="ms-note">För dig som söker jobb inom AI och data i Sverige: Här hittar du marknadsfakta, konkreta råd och en plan för jobbsökningen. Rapporten är på engelska och gratis efter registrering. The November 2026 research is a dated snapshot, not live job listings or a salary survey; JobTech covers selected senior titles only.</p>
+  <p class="ms-note">För dig som söker jobb inom AI och data i Sverige: Här hittar du marknadsfakta, konkreta råd och en plan för jobbsökningen. Rapporten är på engelska och gratis efter registrering. The November 2026 research is a dated snapshot, not live job listings or a salary survey. JobTech covers selected senior titles, not every entry-level opening.</p>
 </div></section>
 
 <section class="ms-section ms-section--white" id="ms-findings" aria-labelledby="ms-findings-title"><div class="container">

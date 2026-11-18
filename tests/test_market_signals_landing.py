@@ -118,12 +118,15 @@ class MarketSignalsLandingTests(unittest.TestCase):
                       "Market Observatory"):
             self.assertIn(value,self.page)
 
-    def test_video_is_early_and_the_intro_is_direct(self):
+    def test_video_is_secondary_below_both_reports_and_findings(self):
         html=MARKET_SIGNALS_LANDING_HTML
         self.assertIn("Understand the Swedish AI &amp; Data market.",html)
         self.assertIn("Five market signals worth understanding.",html)
-        self.assertLess(html.index('id="ms-video"'),html.index('id="ms-perspectives"'))
         self.assertLess(html.index('id="ms-perspectives"'),html.index('id="ms-findings"'))
+        self.assertLess(html.index('id="ms-findings"'),html.index("<!-- MARKET_SIGNALS_VIDEO_PLAYER -->"))
+        self.assertLess(html.index("<!-- MARKET_SIGNALS_VIDEO_PLAYER -->"),
+                        html.index('aria-labelledby="ms-materials-title"'))
+        self.assertNotIn('id="ms-video"',html)
         self.assertIn("43",html)
         self.assertIn("Jobseeker Edition",html)
         self.assertIn("Executive Edition",html)
@@ -141,7 +144,6 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_headlines_are_source_led_not_promotional(self):
         for title in ("Swedish AI &amp; Data Market Review",
-                      "The numbers are only the beginning.",
                       "Two editions. One evidence base.",
                       "Five market signals worth understanding.",
                       "AI adoption is widespread. Business value is the next question.",
@@ -168,8 +170,20 @@ class MarketSignalsLandingTests(unittest.TestCase):
         main=(ROOT/"main.py").read_text(encoding="utf-8")
         self.assertIn('if PAGE == "advisory-market-signals":',main)
         self.assertIn("split_market_landing_at_video(responsive_document)",main)
-        self.assertIn("st.iframe(",main)
-        self.assertIn('key="market_video_player"',main)
+        self.assertIn("from streamlit.components.v1 import iframe as render_video_iframe",main)
+        self.assertIn('key="market_video_compact"',main)
+        self.assertIn("st.columns(",main)
+        self.assertIn("width=230, height=408",main)
+        self.assertNotIn("width=470, height=650",main)
+        self.assertNotIn("st.iframe(",main)
+        self.assertIn("A short look at the market evidence.",main)
+        self.assertIn("The Jobseeker Edition uses",main)
+        css=MARKET_SIGNALS_LANDING_CSS
+        self.assertIn(".st-key-market_video_compact iframe",css)
+        self.assertIn("max-width:250px",css)
+        self.assertIn("max-width:215px",css)
+        self.assertNotIn(".st-key-market_video_player",css)
+        self.assertNotIn(".ms-section--film",css)
         self.assertIn("app.heygen.com/share/"+MARKET_REVIEW_VIDEO_ID, self.page)
         self.assertNotIn("Signature=",self.page)
         self.assertNotIn('id="ms-jobseeker-benefits"',self.page)

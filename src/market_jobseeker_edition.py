@@ -357,54 +357,54 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "title":TITLE,
         "subtitle":SUBTITLE,
         "stamp":"JAIR RIBEIRO  /  INDEPENDENT MARKET INTELLIGENCE",
-        "question_label":"THE CANDIDATE QUESTION",
+        "question_label":"THE JOB SEARCH QUESTION",
         "assessment":INTRO,
         "question":"Where can you look next, and how can you show your skills?",
         "edition":"JOBSEEKER EDITION 1.0 / SWEDEN",
         "issue":JOBSEEKER_ISSUE,
         "metrics":[
             (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',
-             "Whole-economy vacancies","Sweden | Q2 2026 | SCB estimate"),
+             "Vacancies, all job types","Sweden | Q2 2026 | SCB estimate"),
             (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),
-             "Selected senior AI/Data adverts","October 2026 | JobTech title basket"),
+             "Selected senior AI/Data ads","October 2026 | JobTech title basket"),
             (_value(idx["scb_2026_ai_10plus"]),
              "Enterprises reporting AI use","2026 | Swedish firms with 10+ staff"),
         ],
     }
     story=[]
-    section(story,"01 / The candidate reading",
-            "A busy market is not the same as an easy job search", INTRO, sty=sty)
-    story.append(panel("What this report is for",
-        "A better search strategy, not an offer prediction", VALUE, sty=sty))
+    section(story,"01 / Understanding your job market",
+            "What the Swedish job market can tell you", INTRO, sty=sty)
+    story.append(panel("What you can use this report for",
+        "Plan your search with evidence and realistic expectations", VALUE, sty=sty))
     story.append(Spacer(1,14))
-    story.append(P("How to interpret the figures", "h2", sty=sty))
+    story.append(P("A quick guide to the numbers", "h2", sty=sty))
     story.append(P(
-        "Jobseeker Edition 1.0 was prepared on 18 November 2026 from the "
-        "signed-off 17 November research snapshot of Executive Edition 2.0.2. "
-        "All measured indicators retain their population and dates. Candidate "
-        "actions are editorial options to test, not proven career outcomes.",
+        "This jobseeker guide was prepared on 18 November 2026 using the same "
+        "research reviewed for the Executive Edition on 17 November. Each "
+        "number comes from a particular survey or selected set of adverts. "
+        "The suggestions are ideas to test, not proven ways to secure an interview.",
         "body",sty=sty))
-    story.append(P("What the evidence cannot establish", "h2",sty=sty))
+    story.append(P("What these numbers do not cover", "h2",sty=sty))
     story.append(P(LIMITS,"body_small",sty=sty))
     story.append(metric_cards([
-        (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',"Vacant jobs, all occupations","SCB, Q2 2026"),
-        (f'{int(float(idx["scb_lor_2026q2_other_channels"]["value"])):,}',"Other recruitment channels","SCB, Q2 2026"),
-        (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),"Selected senior AI/Data adverts","JobTech, October 2026"),
+        (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',"Vacancies across all types of work","SCB, Q2 2026"),
+        (f'{int(float(idx["scb_lor_2026q2_other_channels"]["value"])):,}',"Vacancies recruited without adverts","SCB, Q2 2026"),
+        (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),"Selected senior AI/Data ads","JobTech, October 2026"),
     ],sty=sty))
     story.append(Spacer(1,17))
     # A five-part preview is one reading unit: never leave one item orphaned
     # at the foot of the page while the other four start the next page.
-    preview=[P("Five candidate decision perspectives","h2",sty=sty)]
+    preview=[P("Five ways to plan your job search","h2",sty=sty)]
     for i,x in enumerate(FINDINGS,1):
         preview.append(P(f"{i:02d} / {x['title']}","body_compact",sty=sty))
     story.append(KeepTogether(preview))
     story.append(Spacer(1,12))
     story.append(CondPageBreak(235))
 
-    section(story,"02 / The discovery problem",
-        "Why a job-board search can misread demand",
-        "National vacancies, selected senior title advertisements and "
-        "actual appointments are different measures.",sty=sty)
+    section(story,"02 / Finding opportunities",
+        "Why job advertisements show only part of the picture",
+        "Official vacancy figures cover every occupation. JobTech covers selected "
+        "senior AI/Data advertisements; neither shows who was actually hired.",sty=sty)
     story.append(bars([
         ("Advertised",float(idx["scb_lor_2026q2_advertised"]["value"])),
         ("Other channels",float(idx["scb_lor_2026q2_other_channels"]["value"])),
@@ -424,72 +424,71 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "with retrospectively revised API data. No national specialist-hiring "
         "trend can be established from this comparison.", "caption",sty=sty))
     story.append(Spacer(1,13))
-    story.append(panel("A candidate's test",
-        "Separate the channels and track useful responses",
-        "The market data cannot tell you where your next interview will come "
-        "from. A personal response ledger can. Test search channels for four "
-        "weeks, looking for qualified conversations and relevant roles.",
+    story.append(panel("Try this for four weeks",
+        "Keep track of where relevant replies come from",
+        "National statistics cannot predict where your next interview will come "
+        "from. Keep a short record of applications, professional conversations "
+        "and direct approaches. See which lead to useful replies.",
         dark=True,sty=sty))
 
     for i,x in enumerate(FINDINGS,1):
         story.append(CondPageBreak(270))
         section(story,f"{i+2:02d} / Candidate perspective",
                 x["title"],x["signal"],sty=sty)
-        story.append(P("What this means for a job search","h2",sty=sty))
+        story.append(P("How this could help your search","h2",sty=sty))
         story.append(P(x["reading"],"body",sty=sty))
-        story.append(panel("Your next move",
-            "A practical candidate action",x["action"],dark=True,sty=sty))
+        story.append(panel("Try this next",
+            "A practical step you can take",x["action"],dark=True,sty=sty))
         story.append(Spacer(1,12))
-        story.append(P("Another explanation to consider","h2",sty=sty))
+        story.append(P("What else could explain the figures?","h2",sty=sty))
         story.append(P(x["alternative"],"body_compact",sty=sty))
-        story.append(P("What should change your interpretation?","h2",sty=sty))
+        story.append(P("What to check next","h2",sty=sty))
         story.append(P(x["watch"],"body_compact",sty=sty))
         story.append(P("Evidence IDs: "+", ".join(x["codes"]),
                       "caption",sty=sty))
         story.append(Spacer(1,10))
 
     story.append(PageBreak())
-    section(story,"08 / Your 30-day plan",
-            "Use market evidence to improve search decisions",
-            "A structured candidate activity plan, not an automated career "
-            "assessment or a guarantee of an interview.",sty=sty)
+    section(story,"08 / Your four-week job-search plan",
+            "Turn the research into a simple four-week plan",
+            "Start with a few tasks each week. See which ones help you find suitable "
+            "work, and adapt the plan to your circumstances.",sty=sty)
     story.append(decision_table(list(CANDIDATE_AGENDA),sty=sty))
     story.append(Spacer(1,17))
-    story.append(P("A useful personal scorecard","h2",sty=sty))
+    story.append(P("How to see whether your search is working","h2",sty=sty))
     story.append(P(
-        "Record eligible roles reviewed, targeted applications, relevant "
-        "professional conversations, substantive employer replies, screening "
-        "calls and interviews. Add the reason a role was excluded. These are "
-        "your own operating measures; this report does not collect them.",
+        "Each week, count jobs you considered, suitable applications, conversations, "
+        "employer replies and interviews. Note why you ruled out a job. "
+        "This record is yours; the report does not collect your search activity.",
         "body",sty=sty))
-    story.append(panel("Interview preparation",
-        "Three questions worth asking",
-        "Which business outcome would this position own in six months? "
-        "What decision rights, staff and budget support the mandate? "
-        "What evidence would convince the hiring team that the role is working?",
+    story.append(panel("Before an interview",
+        "Three useful questions to ask an employer",
+        "What would you like the person in this job to achieve in six months? "
+        "What training, tools and people will help them succeed? "
+        "How will you know they are doing the job well?",
         sty=sty))
 
     story.append(Spacer(1,12))
     story.append(CondPageBreak(230))
-    section(story,"09 / Conditional outlook",
-        "What could change the search conditions",
-        "These are scenarios with observable triggers, not probability estimates "
-        "or predictions of an individual hiring date.",sty=sty)
+    section(story,"09 / What might happen next",
+        "Possible changes in hiring conditions",
+        "These are possible situations to watch, not predictions of when "
+        "you will find work.",sty=sty)
     for item in SCENARIOS:
         story.append(KeepTogether([
             P(item["period"],"h2",sty=sty),
             P(item["reading"],"body_compact",sty=sty),
-            panel("Review trigger","Evidence and candidate response",
+            panel("What to watch","What the new evidence could mean for you",
                   "Trigger: "+item["trigger"]+" Candidate response: "+item["response"],sty=sty),
             Spacer(1,12),
         ]))
 
     story.append(PageBreak())
-    section(story,"10 / Evidence and limits",
-        "Trace the same November evidence to its sources",
-        "This edition uses exactly the same approved observations, release "
-        "dates and source methods as the executive report. Jobseeker "
-        "recommendations are editorial judgments, not measured employment outcomes.",
+    section(story,"10 / Sources and important limitations",
+        "Where the figures come from",
+        "This guide uses the same approved observations, source dates and "
+        "methods as the executive report. The job-search suggestions "
+        "are practical interpretations, not measured hiring results.",
         sty=sty)
     for item in editorial["coverage_cautions"]:
         story.append(KeepTogether([
@@ -497,13 +496,13 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
             P(item["text"],"body_small",sty=sty),
         ]))
     story.append(Spacer(1,12))
-    story.append(P("Full methodological note","h2",sty=sty))
+    story.append(P("How the research was prepared","h2",sty=sty))
     story.append(P(editorial["methodology_note"],"body_small",sty=sty))
     story.append(CondPageBreak(170))
-    story.append(P("Methods and source-family limits","h2",sty=sty))
+    story.append(P("Detailed source methods and limitations","h2",sty=sty))
     story.append(source_family_methods(points,sty=sty))
     story.append(Spacer(1,16))
-    story.append(P("Signed-off observation register","h2",sty=sty))
+    story.append(P("Complete list of checked observations","h2",sty=sty))
     story.append(sources_table(points,_value,sty=sty,
                  include_provenance=True,compact_provenance=True))
     story.append(Spacer(1,8))
@@ -531,23 +530,23 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
     with st.expander("Evidence scope — what the figures cannot tell you",expanded=False):
         st.write(LIMITS)
     st.caption("Jobseeker Edition 1.0 · Prepared 18 November 2026 · Evidence snapshot 17 November 2026")
-    st.markdown("#### Download the Jobseeker Edition")
+    st.markdown("#### Download your free jobseeker report")
     st.caption(
-        "Complete candidate-focused A4 report with five analyses, a 30-day "
-        "search plan, three conditional scenarios and the same traceable "
-        "source register as the Executive Edition. Free for registered readers."
+        "The full A4 PDF includes five job-search topics, a four-week plan, "
+        "three possible market situations and source references. "
+        "Your free account includes both report editions."
     )
     pdf=jobseeker_market_pdf(points,editorial,edition_slug)
     st.download_button(
-        "Download complete Jobseeker Market Review · PDF",
+        "Download the jobseeker report · PDF",
         data=pdf,mime="application/pdf",
         file_name="Jair_Ribeiro_Swedish_AI_Data_Job_Market_Review_2026-11.pdf",
         type="primary",use_container_width=True,key="market_jobseeker_complete_pdf",
         on_click=record_event,args=(token,"pdf_review","jobseeker",edition_slug)
     )
     idx={x["code"]:x for x in points}
-    st.markdown("#### Five candidate decisions")
-    choice=st.selectbox("Explore a jobseeker perspective",
+    st.markdown("#### Five topics to help your job search")
+    choice=st.selectbox("Which topic would you like to explore?",
         [x["key"] for x in FINDINGS],
         format_func=lambda key:next(x["title"] for x in FINDINGS if x["key"]==key),
         key="market_jobseeker_theme")
@@ -581,24 +580,23 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
                 '<br>Limit: '+html_escape(p["caveat"])+
                 '</div>'
             )
-    st.markdown("#### Your 30-day candidate agenda")
+    st.markdown("#### Your four-week job-search plan")
     for label, owner, timing, action in CANDIDATE_AGENDA:
         with st.expander(label+" · "+timing,expanded=False):
             st.write(action)
-    st.markdown("#### Three possible market conditions")
+    st.markdown("#### Three possible job-market situations")
     for scenario in SCENARIOS:
         with st.expander(scenario["period"],expanded=False):
             st.write(scenario["reading"])
             st.caption("What to monitor: "+scenario["trigger"])
             st.write("Your response: "+scenario["response"])
-    with st.expander("Methodology and evidence boundaries",expanded=False):
+    with st.expander("Source details and limitations",expanded=False):
         for caveat in editorial["coverage_cautions"]:
             st.markdown("**"+caveat["title"]+"**")
             st.write(caveat["text"])
         st.write(editorial["methodology_note"])
     st.caption(
-        "Independent candidate-oriented interpretation by Jair Ribeiro. "
-        "Same signed-off November data as Executive Edition 2.0.2. "
-        "Not individual recruitment advice, a vacancy census, an employer "
-        "recommendation or a hiring forecast."
+        "Research and job-search guidance by Jair Ribeiro, based on the same "
+        "November 2026 data as Executive Edition 2.0.2. This is not a "
+        "list of live vacancies or a prediction of an offer."
     )

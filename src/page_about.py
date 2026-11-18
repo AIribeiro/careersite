@@ -137,7 +137,7 @@ def about() -> str:
 <article class="card"><span class="org">Books</span><h3>Writing for a wider audience</h3><p>Books and longer pieces let me follow an idea further, including what technology means for families and everyday life.</p><p><a href="https://books.google.com/books/about/The_Last_Human_Question.html?id=ZfG40QEACAAJ" target="_blank" rel="noopener noreferrer">The Last Human Question ↗</a> · <a href="https://www.goodreads.com/book/show/57115956-ai-robotics-and-coding" target="_blank" rel="noopener noreferrer">AI, Robotics and Coding ↗</a></p></article>
 <article class="card"><span class="org">Ongoing publications</span><h3>AI decisions, week by week</h3><p>Through Executive AI Briefings and Weekly AI, I examine what AI developments mean for the people making business decisions, from governance and adoption to emerging capabilities.</p><p><a href="?page=briefings" target="_self">Executive AI Briefings ↗</a> · <a href="?page=thinking" target="_self">Weekly AI &amp; Thinking ↗</a></p></article>
 </div>
-<div class="actions" id="credentials-evidence">{cv}<a class="btn dark" href="https://www.linkedin.com/in/jairribeiro/details/certifications/" target="_blank" rel="noopener" data-hq-event="about_certifications">Credentials on LinkedIn ↗</a></div>
+<div class="actions" id="credentials-evidence">{cv}<a class="btn dark" href="?page=certifications" target="_self" data-hq-event="about_certifications">Certifications &amp; credentials →</a><a class="btn dark" href="?page=presence" target="_self" data-hq-event="about_presence">Speaking &amp; publications →</a></div>
 </div></section>
 
 <section class="section soft" id="beyond-work"><div class="container">

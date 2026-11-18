@@ -46,7 +46,8 @@ class PublicationClaimsTests(unittest.TestCase):
             with self.subTest(code=code):
                 self.assertEqual(float(self.by_code[code]["value"]),float(value))
                 self.assertIn(str(value),self.html)
-        self.assertIn("Published 17 November 2026",self.html)
+        self.assertIn("Executive Edition was published on 17 November",self.html)
+        self.assertIn("Jobseeker Edition was prepared on 18 November 2026",self.html)
         self.assertIn("<strong>43</strong>",self.html)
         self.assertIn("<strong>5</strong>",self.html)
         self.assertIn("<strong>6</strong>",self.html)

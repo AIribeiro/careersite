@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "page:presence",
+      "type": "New page",
+      "title": "Speaking & Publications",
+      "description": "Selected speaking, publications and externally documented contributions across enterprise AI, Data, responsible adoption and governance.",
+      "date": "2026-11-18T20:33:29+01:00",
+      "href": "?page=presence",
+      "cta": "Explore the service"
+    },
+    {
       "key": "page:advisory-market-signals",
       "type": "Executive research",
       "title": "Sweden’s AI & Data Market: Evidence for Executive Decisions",

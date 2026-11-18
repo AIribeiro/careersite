@@ -249,6 +249,24 @@ MARKET_SIGNALS_LANDING_CSS = """
  .site.ms-landing .ms-actions .ms-button {width:100%}
  .site.ms-landing .ms-usecase {min-height:0}
 }
+/* The masked go.jairribeiro.com frame can expose a 980px layout viewport
+   while the mobile adapter has already sized .site to the phone. Keeping the
+   adapter's zoom then blows up the headline and fragments words. Reset zoom
+   only for this landing, only after the adapter marks a masked mobile frame.
+   Leave the shared mobile fallback and other pages untouched. */
+@media screen and (min-width:760px) and (max-device-width:700px) {
+ html[data-jr-masked-mobile="true"] .site.ms-landing {zoom:1!important}
+ html[data-jr-masked-mobile="true"] .site.ms-landing .container {
+   width:calc(100% - 32px);max-width:100%
+ }
+ html[data-jr-masked-mobile="true"] .site.ms-landing .ms-hero h1 {
+   font-size:36px;line-height:1.12;overflow-wrap:normal
+ }
+ html[data-jr-masked-mobile="true"] .site.ms-landing .ms-section h2,
+ html[data-jr-masked-mobile="true"] .site.ms-landing .ms-lastcta h2 {
+   font-size:32px;line-height:1.16
+ }
+}
 @media(prefers-reduced-motion:reduce) {
  .site.ms-landing .ms-button {transition:none}
 }

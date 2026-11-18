@@ -188,10 +188,14 @@ def _validated_public_video_url(slug: str, manifest: dict) -> str | None:
 
 def _url(slug: str, name: str, digest: str) -> str:
     manifest = _approved_manifest(slug)
-    if name == "preview.mp4" and manifest:
-        published = _validated_public_video_url(slug, manifest)
-        if published:
-            return published
+    if manifest and _validated_public_video_url(slug, manifest):
+        if name == "preview.mp4":
+            return manifest["web"]["public_url"]
+        if name == "poster.jpg":
+            # Streamlit Community Cloud currently redirects this poster's
+            # /app/static URL to sign-in (HTTP 303). Use the approved public
+            # GitHub asset (HTTP 200 image/jpeg) instead.
+            return f"{GITHUB_MEDIA_ROOT}/{slug}/poster.jpg?v={digest[:12]}"
     return (
         f"{STATIC_MEDIA_ORIGIN}/app/static/briefing-videos/"
         f"{slug}/{name}?v={digest[:12]}"

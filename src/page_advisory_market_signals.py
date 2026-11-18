@@ -450,7 +450,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       <p class="ms-proof-source">JobTech · June–August 2026 · Sample prepared November 2026</p>
     </article>
   </div>
-  <p class="ms-note">The selected JobTech title basket recorded 29 senior AI/Data advertisements in October 2026. This narrow leadership sample remains available in the Observatory and source register; it is not the headline measure of AI and Data careers in Sweden.</p>
+  <p class="ms-note">The selected JobTech title basket recorded 29 senior AI/Data advertisements in October 2026. This narrow leadership sample remains available in the Observatory and source register; it is not the headline measure of AI and Data careers in Sweden. <a href="https://historical.api.jobtechdev.se/search" target="_blank" rel="noopener noreferrer">Original JobTech historical source</a> · <a href="https://github.com/AIribeiro/careersite/blob/main/docs/market_signals/JOBTECH_V1_REPRODUCTION.md" target="_blank" rel="noopener noreferrer">Selection method</a>.</p>
   <p class="ms-note">Source dates, populations and methods are documented below and in the full report. Each indicator is interpreted within its original scope.</p>
 </div></section>
 

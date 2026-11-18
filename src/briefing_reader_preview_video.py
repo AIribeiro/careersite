@@ -18,17 +18,16 @@ MEDIA_SHA256 = {
 }
 
 PREVIEW_VIDEO_CSS = """<style>
-.site .briefing-preview-video{width:100%;box-sizing:border-box;margin:0;padding:clamp(32px,5vw,65px) 0;background:#0d2234;color:#fff;border-top:1px solid #35546a;border-bottom:1px solid #35546a}
-.site .briefing-preview-video-inner{box-sizing:border-box;width:100%;max-width:1120px;margin:0 auto;padding:0 clamp(18px,3.2vw,38px)}
-.site .briefing-preview-video .eyebrow{color:#55d0d7!important;letter-spacing:.13em;font-size:10px;font-weight:800}
-.site .briefing-preview-video h2{color:#fff;font:500 clamp(25px,3.3vw,38px)/1.16 Georgia,serif;letter-spacing:-.02em;margin:11px 0 12px}
-.site .briefing-preview-video .briefing-video-description{max-width:780px;color:#cbd6df;font:400 clamp(13px,1.5vw,15px)/1.7 Arial,sans-serif;margin:0 0 22px}
-.site .briefing-preview-video-player{aspect-ratio:16/9;width:100%;overflow:hidden;background:#061522;border:1px solid rgba(255,255,255,.18)}
+/* Inline editorial video. The surrounding article column sets its width. */
+.site .briefing-preview-video{width:100%;max-width:100%;box-sizing:border-box;margin:0 0 clamp(25px,3vw,38px);padding:0;background:transparent;color:#173348;border:0;box-shadow:none}
+.site .briefing-preview-video .eyebrow{display:block;margin:0 0 12px;color:#a05c36!important;font:850 10px/1.5 Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase}
+.site .briefing-preview-video-player{aspect-ratio:16/9;width:100%;overflow:hidden;background:#061522;border:1px solid #d6d1c8}
 .site .briefing-preview-video-player video{display:block;width:100%;height:100%;object-fit:contain;background:#061522}
-.site .briefing-video-credit{margin:12px 0 0;color:#b5c6d2;font:600 11px/1.65 Arial,sans-serif}
+.site .briefing-video-credit{margin:9px 0 0;color:#55636d;font:500 11px/1.55 Arial,sans-serif}
 .site .briefing-video-fallback{color:#fff;font-size:12px}
 .site .briefing-video-fallback a{color:#eac3a3!important}
-@media(max-width:600px){.site .briefing-preview-video{padding:32px 0 38px}.site .briefing-preview-video-inner{padding:0 16px}.site .briefing-preview-video .briefing-video-description{margin-bottom:15px}}
+.site .briefing-video-credit a{color:#975630!important;text-decoration:underline!important}
+@media(max-width:600px){.site .briefing-preview-video{margin-bottom:27px}.site .briefing-preview-video .eyebrow{margin-bottom:9px}}
 </style>"""
 
 
@@ -77,7 +76,7 @@ def _backup_url() -> str:
 
 
 def render_briefing_video_preview(slug: str) -> str:
-    """Full-width, no-autoplay native video placed before the member CTA."""
+    """Compact, no-autoplay video placed inside the editorial text column."""
     if (public_preview_media_path(slug, "preview.mp4") is None or
             public_preview_media_path(slug, "poster.jpg") is None):
         return ""
@@ -85,12 +84,7 @@ def render_briefing_video_preview(slug: str) -> str:
         PREVIEW_VIDEO_CSS
         + '<section class="briefing-preview-video" data-analytics-section="briefing-public-video" '
           'aria-labelledby="briefing-preview-video-title">'
-        '<div class="briefing-preview-video-inner">'
-        '<span class="eyebrow">Executive explainer · 1 min 45 sec</span>'
-        '<h2 id="briefing-preview-video-title">One AI success. Two different outcomes.</h2>'
-        '<p class="briefing-video-description">Why the same AI solution can improve work in one team '
-        'while creating new delays in another. This short briefing introduces the decisions '
-        'leaders need to make before expanding across the enterprise.</p>'
+        '<span class="eyebrow" id="briefing-preview-video-title">Watch the executive explainer · 1 min 45 sec</span>'
         '<div class="briefing-preview-video-player">'
         '<video controls playsinline preload="metadata" width="1920" height="1080" '
         'aria-label="Scaling AI Across the Enterprise: executive explainer narrated by Jair Ribeiro" '
@@ -100,9 +94,7 @@ def render_briefing_video_preview(slug: str) -> str:
         '<p class="briefing-video-fallback">Your browser cannot play the embedded video. '
         '<a href="' + _url("preview.mp4") + '" target="_blank" rel="noopener">Open the video in a new tab</a>.</p>'
         '</video></div>'
-        '<p class="briefing-video-credit">Narrated by Jair Ribeiro · English subtitles included · '
-        'Full decision framework in the briefing below · '
-        '<a href="' + _url("preview.mp4") + '" target="_blank" rel="noopener" '
-        'style="color:#eac3a3;text-decoration:underline">Open video separately</a></p>'
-        '</div></section>'
+        '<p class="briefing-video-credit">Narrated by Jair Ribeiro · Captions included · '
+        '<a href="' + _url("preview.mp4") + '" target="_blank" rel="noopener">Open video separately</a></p>'
+        '</section>'
     )

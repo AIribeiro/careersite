@@ -1,0 +1,61 @@
+name: Temporary market-video CDN and WebKit playback proof
+on:
+  push:
+    branches: [fix/market-video-ios-playback-20261118]
+    paths: [.github/workflows/temp-market-video-cdn-proof.yml]
+permissions: {contents: read}
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - name: Probe durable video URLs, MIME, byte ranges
+        run: |
+          python - <<'PY'
+          import requests
+          urls={
+            "jsdelivr-main":"https://cdn.jsdelivr.net/gh/AIribeiro/careersite@main/static/market-signals/market-review-november-2026.mp4",
+            "jsdelivr-sha":"https://cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f2223462c7bd42f77ccfa73911d83/static/market-signals/market-review-november-2026.mp4",
+            "github-raw":"https://raw.githubusercontent.com/AIribeiro/careersite/main/static/market-signals/market-review-november-2026.mp4",
+            "github-direct":"https://github.com/AIribeiro/careersite/raw/refs/heads/main/static/market-signals/market-review-november-2026.mp4",
+            "github-pages":"https://airibeiro.github.io/careersite/static/market-signals/market-review-november-2026.mp4",
+          }
+          for key,url in urls.items():
+            try:
+              r=requests.get(url,headers={"Range":"bytes=0-1"},timeout=16,stream=True)
+              b=next(r.iter_content(16),b"")
+              print("MEDIA",key,r.status_code,r.headers.get("Content-Type"),r.headers.get("Content-Range"),r.headers.get("Accept-Ranges"),r.url,b.hex(),flush=True)
+              r.close()
+            except Exception as e:print("ERROR",key,str(e)[:160],flush=True)
+          PY
+      - name: Install WebKit and Chromium for actual decoded-frame test
+        run: |
+          python -m pip install --quiet playwright==1.58.0
+          python -m playwright install chromium webkit --with-deps
+      - name: Play the MP4 from each media host and check that time advances
+        run: |
+          python - <<'PY'
+          import json
+          from playwright.sync_api import sync_playwright
+          urls={
+            "jsdelivr":"https://cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f2223462c7bd42f77ccfa73911d83/static/market-signals/market-review-november-2026.mp4",
+            "github":"https://raw.githubusercontent.com/AIribeiro/careersite/main/static/market-signals/market-review-november-2026.mp4",
+          }
+          with sync_playwright() as p:
+            for engine in ("chromium","webkit"):
+              browser=getattr(p,engine).launch(headless=True,args=["--autoplay-policy=no-user-gesture-required"] if engine=="chromium" else [])
+              ctx=browser.new_context(viewport={"width":390,"height":844},is_mobile=True,has_touch=True)
+              for name,url in urls.items():
+                page=ctx.new_page()
+                page.set_content("<!doctype html><html><body><video id='v' controls playsinline preload='metadata' width='215' src='"+url+"'></video></body></html>")
+                video=page.locator("#v")
+                try:
+                  video.click(timeout=5000,force=True)
+                  attempted=video.evaluate("""async v=>await Promise.race([v.play().then(()=> 'resolved').catch(e=>e.name+':'+e.message),new Promise(r=>setTimeout(()=>r('pending-after-7s'),7000))])""")
+                  page.wait_for_timeout(3500)
+                  m=video.evaluate("""v=>({readyState:v.readyState,networkState:v.networkState,error:v.error?.code,currentTime:v.currentTime,duration:v.duration,videoWidth:v.videoWidth,paused:v.paused,src:v.currentSrc})""")
+                  print("PLAYBACK",engine,name,"attempt",attempted,"metrics",json.dumps(m),flush=True)
+                except Exception as exc:print("FAIL",engine,name,str(exc)[:350],flush=True)
+                page.close()
+              ctx.close();browser.close()
+          PY

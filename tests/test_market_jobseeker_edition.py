@@ -90,6 +90,12 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertIn("What the evidence cannot establish",text)
         self.assertIn("THE CANDIDATE QUESTION",text)
 
+    def test_member_signup_does_not_require_corporate_email_for_candidates(self):
+        portal=(ROOT/"src/page_advisory_portal.py").read_text(encoding="utf-8")
+        self.assertIn('"Email address *" if requested_service == "market-signals"',portal)
+        self.assertIn("Registration accepts a personal or work email address",portal)
+        self.assertIn("Executive or Jobseeker Edition",portal)
+
     def test_public_candidate_copy_does_not_claim_a_complete_ai_job_market(self):
         source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
         self.assertIn("does not estimate all AI jobs",source)

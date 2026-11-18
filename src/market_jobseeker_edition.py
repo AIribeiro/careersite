@@ -425,7 +425,8 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
     story.append(decision_table([
         (question,"Jobseeker","Over four weeks",action)
         for question,action in DECISION_MAP
-    ],sty=sty))
+    ],sty=sty,header_left="YOUR QUESTION",header_right="WHAT TO TRY",
+       show_context=False))
     story.append(Spacer(1,12))
     story.append(P(
         "Try these steps and review what happens. The research does not "
@@ -465,7 +466,7 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
 
     for i,x in enumerate(FINDINGS,1):
         story.append(CondPageBreak(270))
-        section(story,f"{i+2:02d} / Candidate perspective",
+        section(story,f"{i+2:02d} / Job search topic",
                 x["title"],x["signal"],sty=sty)
         story.append(P("How this could help your search","h2",sty=sty))
         story.append(P(x["reading"],"body",sty=sty))
@@ -485,7 +486,8 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
             "Turn the research into a simple four-week plan",
             "Start with a few tasks each week. See which ones help you find suitable "
             "work, and adapt the plan to your circumstances.",sty=sty)
-    story.append(decision_table(list(CANDIDATE_AGENDA),sty=sty))
+    story.append(decision_table(list(CANDIDATE_AGENDA),sty=sty,
+        header_left="WEEK / TASK",header_right="YOUR NEXT STEP"))
     story.append(Spacer(1,17))
     story.append(P("How to see whether your search is working","h2",sty=sty))
     story.append(P(
@@ -511,7 +513,7 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
             P(item["period"],"h2",sty=sty),
             P(item["reading"],"body_compact",sty=sty),
             panel("What to watch","What the new evidence could mean for you",
-                  "Trigger: "+item["trigger"]+" Candidate response: "+item["response"],sty=sty),
+                  "Check: "+item["trigger"]+" What you can do: "+item["response"],sty=sty),
             Spacer(1,12),
         ]))
 

@@ -192,9 +192,12 @@ class MarketSignalsLandingTests(unittest.TestCase):
         import json
         manuscript=json.loads((ROOT/"docs/market_signals/november_2026_executive_v2.json").read_text(encoding="utf-8"))
         expected="Executive Edition "+manuscript["version"]
-        # Publication card, evidence introduction and full-report description; the CTA uses action language.
-        self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(expected),3)
-        self.assertEqual(self.page.count(expected),3)
+        # The two-edition masthead no longer repeats the executive label;
+        # the evidence introduction and original executive PDF description do.
+        self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(expected),2)
+        self.assertEqual(self.page.count(expected),2)
+        self.assertIn("Two November Editions",MARKET_SIGNALS_LANDING_HTML)
+        self.assertIn("Jobseeker Edition",MARKET_SIGNALS_LANDING_HTML)
         for obsolete in (
             "Executive Edition 2.0</h2>",
             "in Executive Edition 2.0. No single",

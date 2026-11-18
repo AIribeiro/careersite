@@ -371,7 +371,7 @@ Explore the complete workshop, method and privacy boundaries</a>
 before registering.</p>
 </section>""")
     elif requested_service == "market-signals":
-        st.html("""<section class="advisory-portal-intro"><h2>AI &amp; Data Market Signals</h2><p>Register free or sign in to explore curated Sweden-focused AI, Data and Analytics intelligence. Your Advisory account unlocks source-linked dashboards, executive interpretation and downloadable decision briefs. No individual approval is required.</p><p>Figures include their observation periods and limitations; the service does not disclose personal career or interview analytics.</p></section>""")
+        st.html("""<section class="advisory-portal-intro"><h2>Swedish AI &amp; Data Market Review</h2><p>Register free or sign in to choose the Executive or Jobseeker Edition. Both include original source references, an online reading and a separate downloadable research PDF. Your account also provides access to the five executive decision briefs.</p><p>Registration accepts a personal or work email address. This research does not use your private job applications, interview history or career forecast.</p></section>""")
     elif self_service:
         st.html("""<section class="advisory-portal-intro"><h2>Free AI Investment Decision Advisor</h2><p>Create or sign into your Executive Advisory account to assess one AI opportunity, review your recommendation and download a private executive decision brief. This self-service tool does not require separate advisory approval.</p></section>""")
     else:
@@ -425,7 +425,7 @@ Your account also provides free access to the Executive AI Reader Library.</p>
         with st.form("advisory_initial_registration"):
             first = st.text_input("First name *", max_chars=80, placeholder="First name")
             email = st.text_input(
-                "Professional email *", max_chars=254,
+                "Email address *" if requested_service == "market-signals" else "Professional email *", max_chars=254,
                 placeholder="you@organization.com",
             )
             accepted = st.checkbox("I have read the Privacy & Data notice.")

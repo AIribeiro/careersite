@@ -39,6 +39,17 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         self.assertTrue(raw.startswith(b"%PDF"))
         self.assertGreater(len(raw),10000)
         pdf=PdfReader(BytesIO(raw))
+        self.assertIn("Jobseeker Edition",str(pdf.metadata.title))
+        self.assertNotIn("Job Market Review",str(pdf.metadata.title))
+        overview_pages=[
+            " ".join((page.extract_text() or "").split()) for page in pdf.pages
+            if "Five candidate decision perspectives" in
+               " ".join((page.extract_text() or "").split())
+        ]
+        self.assertEqual(len(overview_pages),1)
+        for item in FINDINGS:
+            self.assertIn(item["title"].lower(),
+                          " ".join(overview_pages[0].lower().split()))
         self.assertGreaterEqual(len(pdf.pages),8)
         text=" ".join(" ".join(p.extract_text() or "" for p in pdf.pages).split())
         for label in (
@@ -64,6 +75,43 @@ class JobseekerMarketReviewTests(unittest.TestCase):
         missing=[p for p in self.points if p["code"]!="scb_lor_2026q2_total"]
         with self.assertRaises(ValueError):
             jobseeker_market_pdf(missing,self.editorial,SLUG)
+
+    def test_static_candidate_claims_fail_closed_if_an_approved_value_drifts(self):
+        import copy
+        from market_jobseeker_edition import EXPECTED_NUMBERS
+        self.assertEqual(EXPECTED_NUMBERS["scb_lor_2026q2_total"], 159500)
+        self.assertEqual(EXPECTED_NUMBERS["jobtech_v1_oct_se"], 29)
+        self.assertEqual(EXPECTED_NUMBERS["scb_2026_ai_expertise_barrier"], 62)
+        changed=copy.deepcopy(self.points)
+        for item in changed:
+            if item["code"]=="jobtech_v1_oct_se":
+                item["value"]=30
+                break
+        with self.assertRaisesRegex(ValueError, "Published evidence drift"):
+            jobseeker_market_pdf(changed,self.editorial,SLUG)
+
+    def test_candidate_pdf_identifies_its_own_date_and_limits(self):
+        from market_jobseeker_edition import JOBSEEKER_ISSUE, LIMITS
+        self.assertEqual(JOBSEEKER_ISSUE,"18 November 2026")
+        self.assertIn("not a measured hidden ai job market",LIMITS.lower())
+        self.assertIn("salaries",LIMITS.lower())
+        data=jobseeker_market_pdf(self.points,self.editorial,SLUG)
+        text=" ".join(" ".join((p.extract_text() or "") for p in PdfReader(BytesIO(data)).pages).split())
+        self.assertIn(JOBSEEKER_ISSUE,text)
+        self.assertIn("What the evidence cannot establish",text)
+        self.assertIn("THE CANDIDATE QUESTION",text)
+
+    def test_member_signup_does_not_require_corporate_email_for_candidates(self):
+        portal=(ROOT/"src/page_advisory_portal.py").read_text(encoding="utf-8")
+        self.assertIn('"Email address *" if requested_service == "market-signals"',portal)
+        self.assertIn("Registration accepts a personal or work email address",portal)
+        self.assertIn("Executive or Jobseeker Edition",portal)
+
+    def test_public_candidate_copy_does_not_claim_a_complete_ai_job_market(self):
+        source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")
+        self.assertIn("does not estimate all AI jobs",source)
+        self.assertIn("a selected sample of senior AI/Data titles",source)
+        self.assertIn("market_review_link_preference",source)
 
     def test_only_published_member_path_can_render_or_download(self):
         source=(ROOT/"src/page_advisory_market_signals.py").read_text(encoding="utf-8")

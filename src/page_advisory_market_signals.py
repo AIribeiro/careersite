@@ -290,7 +290,7 @@ MARKET_SIGNALS_LANDING_HTML = """
     </div>
     <aside class="ms-edition" aria-label="Published research edition">
       <small>November 2026 / Two research perspectives</small>
-      <h2>AI &amp; Data Market Review<br>Executive Edition 2.0.2</h2>
+      <h2>Swedish AI &amp; Data Market Review<br>Two November Editions</h2>
       <p>Published 17 November 2026. The Executive Edition and the new Jobseeker Edition use 43 reviewed observations from six evidence series and five publishing organisations. Each draws a different set of decisions from the same evidence.</p>
       <div class="ms-edition-counts">
         <div><strong>43</strong><span>published observations</span></div>
@@ -319,11 +319,11 @@ MARKET_SIGNALS_LANDING_HTML = """
     <article class="ms-perspective">
       <span class="ms-label">02 / AI and Data professionals seeking work</span>
       <h3>Understand the market behind your next career move.</h3>
-      <p>A candidate's reading of what advertisements miss, how roles are described, which capabilities employers may need and how timing, geography and contracts affect a search. Includes five candidate analyses, a 30-day plan and a separate Jobseeker Edition PDF.</p>
+      <p>Understand what the published figures reveal about recruitment channels and what they cannot say about AI vacancies. Test adjacent job titles, strengthen your career evidence and evaluate regional or contract options. Includes five candidate perspectives, a 30-day decision framework and a separate sourced A4 PDF.</p>
       <div class="ms-actions"><a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self">Read the jobseeker edition</a></div>
     </article>
   </div>
-  <p class="ms-note">Neither edition predicts individual hiring outcomes. The jobseeker analysis does not convert broad vacancies or consulting figures into AI-specific job counts.</p>
+  <p class="ms-note">A dated November 2026 research snapshot, not a vacancy board or salary survey. The candidate edition focuses its advertised-role analysis on a selected sample of senior AI/Data titles and does not estimate all AI jobs or individual hiring outcomes.</p>
 </div></section>
 
 <section class="ms-section ms-section--white" id="ms-findings" aria-labelledby="ms-findings-title"><div class="container">
@@ -460,8 +460,8 @@ MARKET_SIGNALS_LANDING_HTML = """
       <p>Executive Edition 2.0.2 examines enterprise AI use, observed recruitment and staffing signals, organisational capabilities, consulting choices and regional recruitment considerations. It includes five substantive analyses, scenarios, a leadership decision agenda and an appendix tracing all 43 approved observations.</p>
       <div class="ms-format-bottom">17 November 2026 · Full executive research PDF · Sources</div></article>
     <article class="ms-format"><small>03 / DOWNLOAD A4 PDF</small>
-      <h3>Swedish AI &amp; Data Job Market Review</h3>
-      <p>Jobseeker Edition 1.0 interprets the same published observations for candidates. Five analyses, a 30-day job-search agenda, conditional scenarios and a complete source register help readers evaluate where to look and how to position their experience.</p>
+      <h3>Market Review — Jobseeker Edition</h3>
+      <p>Jobseeker Edition 1.0, prepared 18 November 2026, interprets the same signed-off 17 November observations. Five decision perspectives, a suggested 30-day search plan, conditional scenarios and a source register support more deliberate career choices, without claiming to map every AI vacancy.</p>
       <div class="ms-format-bottom">18 November 2026 · Candidate-focused research PDF · Sources</div></article>
     <article class="ms-format"><small>04 / USE IN A MEETING</small>
       <h3>Executive Decision Briefs and source register</h3>
@@ -1002,8 +1002,17 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                         "Two separate readings of the same signed-off November "
                         "evidence. Your membership includes both complete PDFs."
                     )
-                    if "market_review_perspective" not in st.session_state:
-                        preferred = str(st.query_params.get("perspective", "")).lower()
+                    preferred = str(st.query_params.get("perspective", "")).lower()
+                    previously_applied = st.session_state.get("market_review_link_preference")
+                    # Respect a newly supplied deep link even when this user has
+                    # already switched edition in the current Streamlit session.
+                    if preferred in ("jobseeker", "executive") and preferred != previously_applied:
+                        st.session_state["market_review_perspective"] = (
+                            "Jobseeker / AI & Data professional"
+                            if preferred == "jobseeker" else "Executive / Business leader"
+                        )
+                        st.session_state["market_review_link_preference"] = preferred
+                    elif "market_review_perspective" not in st.session_state:
                         st.session_state["market_review_perspective"] = (
                             "Jobseeker / AI & Data professional"
                             if preferred == "jobseeker" else "Executive / Business leader"

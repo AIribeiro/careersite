@@ -19,23 +19,35 @@ from market_publication_design import (
 )
 
 EDITION = "sweden-ai-data-market-review-2026-11-v2-0-2"
-TITLE = "Swedish AI & Data Job Market Review"
-SUBTITLE = "A candidate's reading of the November 2026 market evidence"
+TITLE = "Swedish AI & Data Market Review"
+SUBTITLE = "Jobseeker Edition | Career decisions based on November 2026 evidence"
+JOBSEEKER_ISSUE = "18 November 2026"
 INTRO = (
-    "The market can look busy without making the right next role easier to find. "
-    "AI use is widespread, general business confidence strengthened, and some "
-    "consulting-platform activity increased. None of those measures counts open "
-    "AI leadership positions or guarantees a hiring rebound. This edition "
-    "shows how applicants can read the signals, widen their search intelligently "
-    "and decide where to spend their next month of effort."
+    "Sweden's AI market produces plenty of headlines, but less evidence about "
+    "which opportunities fit your next career move. This edition distinguishes "
+    "a narrow sample of senior AI/Data advertisements from broader labour-market "
+    "figures and turns five research readings into questions you can test in "
+    "your own job search. Decide where to look, what to demonstrate and when "
+    "to revise your approach."
 )
 VALUE = (
-    "Use this report to challenge three common shortcuts: treating AI adoption as "
-    "a hiring forecast, treating one advertised job-title sample as the whole "
-    "opportunity market, and treating positive confidence indicators as an offer "
-    "on the way. The goal is a more deliberate job search, not a prediction of "
-    "when an individual will be hired."
+    "Five candidate perspectives and a practical 30-day decision framework "
+    "help you test discovery channels, examine adjacent titles, present "
+    "credible career evidence and assess geographic or contract options. "
+    "This is a dated research snapshot, not a live vacancy database, "
+    "salary benchmark or forecast of an individual's hiring prospects."
 )
+LIMITS = (
+    "The selected JobTech figures cover senior advertisement titles only, "
+    "not all AI/Data work or unique positions. The SCB national vacancies "
+    "and non-advertised recruitment figures cover the whole economy, "
+    "not a measured hidden AI job market. AI adoption, the barriers reported "
+    "by a subset of non-adopters, business confidence and consulting-platform "
+    "listings do not measure role-specific hiring demand. This report cannot "
+    "establish salaries, an individual's fit, successful application channels "
+    "or the probability or date of an offer."
+)
+
 STYLE = """
 <style>
 .ms-js-lead{background:#f8f6f1;border-top:3px solid #a97755;
@@ -67,20 +79,20 @@ FINDINGS = (
         "key": "visible_market",
         "title": "A job advertisement is one hiring channel, not the market",
         "signal": (
-            "Statistics Sweden estimated 159,500 vacancies throughout the "
-            "Swedish economy in Q2 2026. Around 127,500 were advertised, while "
-            "employers sought candidates through other channels for approximately "
-            "32,100. These are all-occupation survey estimates, not completed "
-            "hires or AI-specific vacancies."
+            "Statistics Sweden estimated 159,500 vacant jobs across the entire Swedish "
+            "economy in Q2 2026, including about 127,500 advertised vacancies and 32,100 "
+            "for which employers tried other recruitment methods. The components differ "
+            "from the total because of survey rounding. They are economy-wide estimates, "
+            "not AI-specific openings or completed hires."
         ),
         "reading": (
-            "Applicants who rely only on job boards could miss some recruitment "
-            "activity. That does not prove that an informal introduction will "
-            "lead to an offer, nor does it quantify hidden AI jobs. It does "
-            "justify maintaining distinct channels: relevant advertisements, "
-            "warm professional conversations and carefully chosen direct "
-            "approaches to established employers. Track each channel's response "
-            "rather than assuming one is superior."
+            "Some Swedish vacancies involve recruitment outside published "
+            "advertisements, but the national survey does not measure a hidden AI job "
+            "market or which channel produces interviews. Rather than assuming that "
+            "networking outperforms applying, test suitable advertised roles, relevant "
+            "existing relationships and a limited number of targeted company "
+            "conversations as separate channels. Evaluate the qualified responses you "
+            "actually receive."
         ),
         "action": (
             "Create a simple weekly search ledger with three columns: advertised "
@@ -109,20 +121,21 @@ FINDINGS = (
         "key": "role_discovery",
         "title": "Search for the responsibility, not only the AI title",
         "signal": (
-            "The defined JobTech series counted 20 selected senior AI/Data "
-            "leadership-title advertisements in September and 29 in October "
-            "2026 across Sweden. In October, 13 were indexed in Stockholm and "
-            "five in Västra Götaland. This sample reflects 30 search seeds and "
-            "a headline-based classifier; it is not a census of AI employment."
+            "The retrospectively reconstructed, title-classified JobTech sample records "
+            "20 selected senior AI/Data advertisements in September and 29 in October "
+            "2026 nationwide. It includes 13 in Stockholm and five in Västra Götaland in "
+            "October. A 30-seed title basket can miss relevant positions, includes "
+            "advertisements rather than confirmed distinct vacancies, and may change "
+            "with retrospective API revisions."
         ),
         "reading": (
-            "A small count for 'Head of AI' or similar titles may say more "
-            "about naming conventions than the total demand for people who "
-            "can lead AI and Data work. Relevant responsibility may sit under "
-            "digital, analytics, operations, process, product or business "
-            "leadership titles. Search by ownership and deliverables as well "
-            "as by job title. A wider search must still respect language, "
-            "location, seniority and any formal eligibility requirements."
+            "A small title basket cannot establish total AI/Data hiring demand, and the "
+            "September-to-October difference is not evidence of sustained growth. An "
+            "employer may describe AI responsibility under operations, digital, "
+            "analytics, process, product or other management headings. Search by job "
+            "content as well as title and verify decision rights, team scope and "
+            "operating outcomes. Reject roles that conflict with your language, "
+            "eligibility, location or level constraints."
         ),
         "action": (
             "Build three search baskets: explicit AI/Data leadership titles; "
@@ -150,22 +163,22 @@ FINDINGS = (
         "key": "capability_proof",
         "title": "Show the operating capability behind the AI vocabulary",
         "signal": (
-            "In SCB's 2026 survey, 49% of Swedish enterprises with at least "
-            "ten employees reported AI use and 85% of large enterprises did. "
-            "A different measurement found that 33% had internal personnel "
-            "conducting data analytics. Among the narrower group of firms "
-            "that considered AI but did not adopt it, 62% cited insufficient "
-            "expertise, 43% privacy or data-protection concerns and 34% "
-            "data access or quality difficulties."
+            "SCB's 2026 enterprise survey recorded AI use in 49% of enterprises with at "
+            "least ten employees and 85% of large firms. Separately, 33% had staff "
+            "conducting data analytics in-house. Among the narrower group of firms that "
+            "considered AI but did not adopt it, 62% cited insufficient expertise, 43% "
+            "privacy or data-protection concerns and 34% data-access or quality "
+            "problems. These barriers can overlap and the categories cannot be added "
+            "together."
         ),
         "reading": (
-            "These figures do not measure unmet hiring demand or make the "
-            "categories directly comparable. They illustrate why employers "
-            "may need more than software familiarity: people who can define "
-            "a useful workflow, work with data owners, address risks and "
-            "demonstrate a measurable change. A candidate can communicate "
-            "that capability through specific work and judgment, without "
-            "claiming national shortages or inventing quantified results."
+            "The SCB measures cover distinct populations and do not estimate employer "
+            "demand for AI roles. They do identify some of the operating problems "
+            "companies encounter. For a candidate, it is reasonable to test whether "
+            "evidence of workflow change, data ownership, governance judgment and "
+            "measurable outcomes matters more than a list of AI tools. Show only "
+            "verifiable contributions and ask each hiring team what the role must "
+            "actually deliver."
         ),
         "action": (
             "Rewrite two or three career examples in the same evidence sequence: "
@@ -202,13 +215,13 @@ FINDINGS = (
             "and 2.9 nationally in Q2 2026, across the entire economy."
         ),
         "reading": (
-            "A strengthening confidence indicator may coexist with cautious "
-            "headcount decisions. Regional overall vacancies do not describe "
-            "AI leadership availability, and the regional-to-national difference "
-            "is not a statistically established advantage without uncertainty "
-            "analysis. Candidates should distinguish where a role is physically "
-            "based, where work can actually be performed, and where a broader "
-            "national search might be realistic."
+            "The 110.7 indicator is a business-confidence index with a normal benchmark "
+            "of 100; the staffing figures 2 and 7 are survey net balances, not hires or "
+            "numbers of vacancies. Strong sentiment can coexist with cautious "
+            "recruitment. Economy-wide vacancy ratios of 3.2 in Västra Götaland and 2.9 "
+            "nationally are not proof of a better AI job market in one region without "
+            "uncertainty analysis. Compare actual role locations and remote "
+            "arrangements, not headline ratios."
         ),
         "action": (
             "Classify target roles as local onsite, national hybrid or "
@@ -238,21 +251,20 @@ FINDINGS = (
         "key": "employment_model",
         "title": "Test permanent, interim and consulting routes separately",
         "signal": (
-            "Brainville reported a 10.7% year-on-year increase in Swedish "
-            "listed consulting assignments and an 18.5% increase in "
-            "available consultants in October 2026. Its marketplace covers "
-            "many consulting disciplines and participation can change; "
-            "these are not measures of AI-specialist openings, rates "
-            "or national consultant availability."
+            "Brainville reported 10.7% year-on-year growth in Swedish listed consulting "
+            "assignments during October 2026, while available consultants on its "
+            "marketplace grew 18.5% year on year. These are activity measures within one "
+            "marketplace spanning many consulting disciplines. They cannot be applied to "
+            "national AI candidate supply, pay rates or confirmed openings."
         ),
         "reading": (
-            "A growing marketplace can provide a reason to examine contract "
-            "work, but it cannot tell an individual whether an appropriate "
-            "assignment exists or whether competition has eased. Permanent "
-            "and fixed-term mandates should be assessed against the same "
-            "core needs: scope, accountable sponsor, realistic outcomes, "
-            "contract terms and continuity. An employer may seek a "
-            "time-limited specialist where a permanent function is not yet funded."
+            "Consultant availability increased faster than assignment listings on "
+            "Brainville, but that does not quantify national AI consultant competition "
+            "or the chance of securing a relevant contract. For the right person, "
+            "temporary mandates are one possible search path alongside permanent "
+            "employment. Compare sponsor, responsibilities, timescale, onsite "
+            "expectations, financial terms, knowledge transfer and continuity before "
+            "choosing."
         ),
         "action": (
             "Create separate versions of your professional proposition for "
@@ -276,6 +288,29 @@ FINDINGS = (
                   "brainville_202610_consultants_yoy"),
     },
 )
+
+EXPECTED_NUMBERS = {
+    "scb_lor_2026q2_total": 159500,
+    "scb_lor_2026q2_advertised": 127500,
+    "scb_lor_2026q2_other_channels": 32100,
+    "jobtech_v1_sep_se": 20,
+    "jobtech_v1_oct_se": 29,
+    "jobtech_v1_oct_sto": 13,
+    "jobtech_v1_oct_vgr": 5,
+    "scb_2026_ai_10plus": 49,
+    "scb_2026_ai_250plus": 85,
+    "scb_2026_analytics_internal": 33,
+    "scb_2026_ai_expertise_barrier": 62,
+    "scb_2026_ai_privacy_barrier": 43,
+    "scb_2026_ai_data_quality_barrier": 34,
+    "ki_2026_10_business_confidence": 110.7,
+    "ki_2026_10_staffing_past_net": 2,
+    "ki_2026_10_staffing_future_net": 7,
+    "scb_lor_2026q2_vgr_per100": 3.2,
+    "scb_lor_2026q2_national_per100": 2.9,
+    "brainville_202610_assignments_yoy": 10.7,
+    "brainville_202610_consultants_yoy": 18.5,
+}
 
 CANDIDATE_AGENDA = (
     ("01 / Define target mandates", "Candidate", "Days 1-3",
@@ -322,6 +357,12 @@ def validate_jobseeker_edition(points: list[dict], editorial: dict, edition_slug
     available = {p["code"] for p in points}
     if len(available) != len(points):
         raise ValueError("Duplicate jobseeker evidence identifiers.")
+    # A static research narrative quotes numbers; never allow it to silently
+    # disagree with a later revision of the underlying signed-off source rows.
+    idx = {p["code"]: p for p in points}
+    for code, expected in EXPECTED_NUMBERS.items():
+        if code not in idx or abs(float(idx[code]["value"]) - expected) > 1e-7:
+            raise ValueError("Published evidence drift: manual review needed for " + code)
     for finding in FINDINGS:
         if not set(finding["codes"]).issubset(available):
             raise ValueError("Jobseeker reading cites evidence outside the published manifest.")
@@ -344,7 +385,7 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "assessment":INTRO,
         "question":"What can a candidate change this month without assuming a hiring forecast?",
         "edition":"JOBSEEKER EDITION 1.0 / SWEDEN",
-        "issue":editorial["issue_date"],
+        "issue":JOBSEEKER_ISSUE,
         "metrics":[
             (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',
              "Whole-economy vacancies","Sweden | Q2 2026 | SCB estimate"),
@@ -362,20 +403,25 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
     story.append(Spacer(1,14))
     story.append(P("How to interpret the figures", "h2", sty=sty))
     story.append(P(
-        "This is an independently written candidate perspective over the same "
-        "signed-off 17 November 2026 evidence used by the Executive Edition 2.0.2. "
-        "There are no additional observations or AI-specific vacancy estimates. "
-        "Vacancies are not filled jobs, advertised titles are not all AI-related roles, "
-        "and reported AI use does not imply a recruitment plan.", "body",sty=sty))
+        "Jobseeker Edition 1.0 was prepared on 18 November 2026 from the "
+        "signed-off 17 November research snapshot of Executive Edition 2.0.2. "
+        "All measured indicators retain their population and dates. Candidate "
+        "actions are editorial options to test, not proven career outcomes.",
+        "body",sty=sty))
+    story.append(P("What the evidence cannot establish", "h2",sty=sty))
+    story.append(P(LIMITS,"body_small",sty=sty))
     story.append(metric_cards([
         (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',"Vacant jobs, all occupations","SCB, Q2 2026"),
         (f'{int(float(idx["scb_lor_2026q2_other_channels"]["value"])):,}',"Other recruitment channels","SCB, Q2 2026"),
         (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),"Selected senior AI/Data adverts","JobTech, October 2026"),
     ],sty=sty))
     story.append(Spacer(1,17))
-    story.append(P("Five candidate decision perspectives", "h2",sty=sty))
+    # A five-part preview is one reading unit: never leave one item orphaned
+    # at the foot of the page while the other four start the next page.
+    preview=[P("Five candidate decision perspectives","h2",sty=sty)]
     for i,x in enumerate(FINDINGS,1):
-        story.append(P(f"{i:02d} / {x['title']}","body_compact",sty=sty))
+        preview.append(P(f"{i:02d} / {x['title']}","body_compact",sty=sty))
+    story.append(KeepTogether(preview))
     story.append(Spacer(1,12))
     story.append(CondPageBreak(235))
 
@@ -488,7 +534,7 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
     story.append(P("Independent research by Jair Ribeiro | jairribeiro.com",
                    "caption",sty=sty))
     return assemble(story,cover,
-       "Jair Ribeiro | Swedish AI & Data Job Market Review | Candidate Edition 1.0",
+       "Jair Ribeiro | Swedish AI & Data Market Review | Jobseeker Edition 1.0",
        min_bytes=10000,
        interior_kicker="MARKET SIGNALS / JOBSEEKER RESEARCH",
        interior_footer="Independent market research")
@@ -502,9 +548,13 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
     st.html(
         '<section class="ms-js-lead"><div class="eyebrow">Candidate edition / '+
         html_escape(editorial["issue_date"])+'</div><h3>'+
-        html_escape(TITLE)+'</h3><p>'+html_escape(INTRO)+
+        html_escape(TITLE)+'</h3><p><strong>'+html_escape(SUBTITLE)+
+        '</strong></p><p>'+html_escape(INTRO)+
         '</p><p>'+html_escape(VALUE)+'</p></section>'
     )
+    with st.expander("Evidence scope — what the figures cannot tell you",expanded=False):
+        st.write(LIMITS)
+    st.caption("Jobseeker Edition 1.0 · Prepared 18 November 2026 · Evidence snapshot 17 November 2026")
     st.markdown("#### Download the Jobseeker Edition")
     st.caption(
         "Complete candidate-focused A4 report with five analyses, a 30-day "

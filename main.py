@@ -186,8 +186,6 @@ if isinstance(st.session_state.get("reader_native_session"), dict):
 if LEGACY_ADMIN_LINK:
     st.query_params["page"] = "analytics"
     st.query_params["workspace"] = "cms"
-if LEGACY_PRESENCE_LINK or LEGACY_CREDENTIALS_LINK:
-    st.query_params["page"] = "about"
 if LEGACY_LENS_LINK:
     st.query_params["page"] = "impact"
 

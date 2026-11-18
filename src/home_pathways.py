@@ -5,8 +5,16 @@ from embedded SVG data, because Streamlit sanitizes inline SVG markup.
 """
 from __future__ import annotations
 
+import json
+from datetime import datetime, timezone
 from html import escape
 from typing import NamedTuple
+from urllib import request as url_request
+
+import streamlit as st
+
+from site_analytics import ANALYTICS_URL
+from site_analytics_public import public_analytics_rpc_headers
 
 
 class Pathway(NamedTuple):
@@ -77,10 +85,43 @@ ICON_PATHS = {
 }
 
 
+@st.cache_data(ttl=3900, max_entries=4, show_spinner=False)
+def _pathway_rank_for_hour(utc_hour: str) -> tuple[str, ...]:
+    """Fetch four aggregate-only Home content family rankings once per hour."""
+    req = url_request.Request(
+        f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/careersite_home_pathway_order_v1",
+        data=b"{}",
+        method="POST",
+        headers=public_analytics_rpc_headers(),
+    )
+    with url_request.urlopen(req, timeout=3) as response:
+        ordered_keys = json.load(response)
+    expected = {path.key for path in PATHWAYS}
+    if (
+        not isinstance(ordered_keys, list)
+        or len(ordered_keys) != len(PATHWAYS)
+        or any(not isinstance(key, str) for key in ordered_keys)
+        or set(ordered_keys) != expected
+    ):
+        raise ValueError("Unexpected Home content ranking response.")
+    return tuple(ordered_keys)
+
+
+def _ordered_pathways() -> tuple[Pathway, ...]:
+    """Always keep a usable Home page if analytics is temporarily unavailable."""
+    try:
+        utc_hour = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H")
+        order = _pathway_rank_for_hour(utc_hour)
+    except (OSError, ValueError, RuntimeError):
+        return PATHWAYS
+    by_key = {path.key: path for path in PATHWAYS}
+    return tuple(by_key[key] for key in order)
+
+
 def home_pathways() -> str:
-    """Return the self-contained, clickable four-way Home editorial index."""
+    """Return the clickable four-way Home editorial index, popularity-ranked."""
     cards = []
-    for path in PATHWAYS:
+    for position, path in enumerate(_ordered_pathways(), start=1):
         cards.append(
             f'<a class="journey-card home-pathway-card home-pathway-card--{path.key}" '
             f'href="?page={escape(path.route, quote=True)}" target="_self" '
@@ -88,7 +129,7 @@ def home_pathways() -> str:
             f'aria-label="{escape(path.cta, quote=True)}">'
             '<div class="home-pathway-top">'
             '<span class="home-pathway-icon" aria-hidden="true"></span>'
-            f'<span class="home-pathway-number" aria-hidden="true">{path.number}</span>'
+            f'<span class="home-pathway-number" aria-hidden="true">{position:02d}</span>'
             '</div>'
             '<div class="home-pathway-body">'
             f'<span class="journey-step">{escape(path.label)}</span>'

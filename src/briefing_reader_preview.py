@@ -240,8 +240,9 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
     )
     access_base = f"?page=briefing&amp;article={slug}&amp;access=1"
     video_html = render_briefing_video_preview(str(article.slug or ""))
-    # Keep the wider editorial layout exclusive to the scaling-AI edition.
-    wide_class = " briefing-preview--wide" if str(article.slug or "") == "scaling-ai-across-the-enterprise-reuse-and-change" else ""
+    # Only editions with validated approved media use the full editorial width.
+    # Others retain their existing two-column public preview layout.
+    wide_class = " briefing-preview--wide" if video_html else ""
     return (
         THINKING_CSS + PREVIEW_CSS + nav("thinking")
         + f'<main class="briefing-preview{wide_class}">'

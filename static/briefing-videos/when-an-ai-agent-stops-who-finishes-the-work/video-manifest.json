@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "slug": "when-an-ai-agent-stops-who-finishes-the-work",
+  "status": "approved",
+  "approved_by_owner": true,
+  "revision": "v1-owner-approved-20261118",
+  "article_fingerprint": "ab5355f0dc78cf28a4806c1794db57c1d6814a9fd5a70e5a363204d7ae6117cd",
+  "infographic_release_fingerprint": "ab5355f0dc78cf28a4806c1794db57c1d6814a9fd5a70e5a363204d7ae6117cd",
+  "script_sha256": "213427ea6f7e928724bf0e8a59e1cbb0068c72a7bd7bd860e42c2211ed377270",
+  "title": "When an AI Agent Stops, Who Finishes the Work?",
+  "duration_seconds": 101.088005,
+  "voice": {
+    "name": "Jair Ribeiro",
+    "audio_sha256": "0218d9a96bae5783f7323f91587876090b539a133bf426e32e4ab1a71b9d9635"
+  },
+  "web": {
+    "file": "preview.mp4",
+    "sha256": "d0fbd81bbbec75630e3aa41b6d852639f1c49ef5e67a96ff70417f5d1995bf41",
+    "width": 1920,
+    "height": 1080,
+    "video_codec": "h264",
+    "audio_codec": "aac",
+    "caption_format": "burned_in_with_vtt_source"
+  },
+  "poster": {
+    "file": "poster.jpg",
+    "sha256": "05968e6939ec1ef08b0b7efe454614881db9d283d9091fac03500a457737ba89"
+  },
+  "note": "Release manifest for exact approved master; media binary files must be uploaded and hash-verified before merge. No site publication yet."
+}

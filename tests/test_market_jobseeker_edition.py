@@ -72,7 +72,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
             self.assertIn(phrase, VALUE)
         self.assertIn("experienced AI and Data professionals", INTRO)
         all_actions=" ".join(x[1] for x in DECISION_MAP).lower()
-        for word in ("advert", "eligibility", "contribution", "remote", "contract"):
+        for word in ("advert", "eligibility", "contribution", "remote", "time-limited"):
             self.assertIn(word,all_actions)
 
     def test_candidate_pdf_contains_five_decision_map_actions_and_market_limits(self):

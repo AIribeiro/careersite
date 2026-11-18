@@ -149,6 +149,8 @@ def cover_callback(spec: dict):
     question=clean(spec.get("question") or "")
     edition=clean(spec.get("edition") or "")
     issue=clean(spec.get("issue") or "")
+    stamp=clean(spec.get("stamp") or STAMP)
+    question_label=clean(spec.get("question_label") or "THE EXECUTIVE QUESTION")
     metrics=list(spec.get("metrics") or [])
     if len(metrics)!=3 or any(len(x)!=3 for x in metrics):
         raise ValueError("Publication cover needs three verified metric summaries.")
@@ -166,7 +168,7 @@ def cover_callback(spec: dict):
         c.setStrokeColor(COPPER);c.setLineWidth(3)
         c.line(LEFT,H-66,LEFT+40,H-66)
         c.setFont("Helvetica-Bold",8.1);c.setFillColor(WHITE)
-        c.drawString(LEFT,H-43,STAMP)
+        c.drawString(LEFT,H-43,stamp)
         c.setFont("Helvetica",8.1);c.setFillColor(colors.HexColor("#D9C7B8"))
         c.drawRightString(W-RIGHT,H-43,edition.upper())
         c.setFont("Helvetica-Bold",9);c.setFillColor(BRASS)
@@ -193,7 +195,7 @@ def cover_callback(spec: dict):
         if question and y2>=320:
             qtop=min(y2-22,335)
             c.setFont("Helvetica-Bold",7.4);c.setFillColor(BRASS)
-            c.drawString(LEFT,qtop,"THE EXECUTIVE QUESTION")
+            c.drawString(LEFT,qtop,question_label)
             question_style=ParagraphStyle("mp_cover_question",
                 fontName="Times-Roman",fontSize=15.3,leading=19.4,
                 textColor=WHITE)
@@ -229,7 +231,8 @@ def cover_callback(spec: dict):
     return draw
 
 
-def interior_callback(kicker="MARKET SIGNALS / EXECUTIVE RESEARCH"):
+def interior_callback(kicker="MARKET SIGNALS / EXECUTIVE RESEARCH",
+                      footer_label="Independent executive research"):
     def draw(c,doc):
         c.saveState()
         c.setFillColor(PALE);c.rect(0,0,W,H,stroke=0,fill=1)
@@ -241,7 +244,7 @@ def interior_callback(kicker="MARKET SIGNALS / EXECUTIVE RESEARCH"):
         c.drawRightString(W-RIGHT,H-13*mm,kicker[:49])
         c.setStrokeColor(LINE);c.line(LEFT,17.2*mm,W-RIGHT,17.2*mm)
         c.setFillColor(SLATE);c.setFont("Helvetica",7.7)
-        c.drawString(LEFT,11.8*mm,"Independent executive research  |  jairribeiro.com")
+        c.drawString(LEFT,11.8*mm,footer_label+"  |  jairribeiro.com")
         c.drawRightString(W-RIGHT,11.8*mm,f"{doc.page:02d}")
         c.restoreState()
     return draw
@@ -269,13 +272,15 @@ def new_publication(title,author="Jair Ribeiro | Enterprise AI & Data"):
     return output,doc
 
 
-def assemble(story,cover,title,*,min_bytes=4000):
+def assemble(story,cover,title,*,min_bytes=4000,
+             interior_kicker="MARKET SIGNALS / EXECUTIVE RESEARCH",
+             interior_footer="Independent executive research"):
     output,doc=new_publication(title)
     # Cover is completely vector-drawn: no content flow can partially occupy
     # it or leave orphan text while the first content page is laid out.
     content=[Spacer(1,4),PageBreak(),*story]
     doc.build(content,onFirstPage=cover_callback(cover),
-              onLaterPages=interior_callback())
+              onLaterPages=interior_callback(interior_kicker,interior_footer))
     blob=output.getvalue()
     if not blob.startswith(b"%PDF") or len(blob)<min_bytes:
         raise ValueError("Market Signals PDF generation failed.")

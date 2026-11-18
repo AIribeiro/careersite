@@ -1,0 +1,578 @@
+"""Jobseeker reading of the signed-off Swedish AI & Data Market Review.
+
+This is a separate editorial product over the *same* November evidence manifest.
+No candidate profiles, private career-intelligence tables, personal forecasts,
+new survey observations or privileged API endpoints are involved.
+"""
+from __future__ import annotations
+
+from html import escape as html_escape
+from io import BytesIO
+
+from reportlab.platypus import KeepTogether, Spacer, PageBreak, CondPageBreak
+from reportlab.lib.pagesizes import A4
+
+from market_intelligence_v2 import validate_editorial, _value, _safe_url
+from market_publication_design import (
+    P, assemble, bars, decision_table, metric_cards, panel, section,
+    source_family_methods, sources_table, styles,
+)
+
+EDITION = "sweden-ai-data-market-review-2026-11-v2-0-2"
+TITLE = "Swedish AI & Data Job Market Review"
+SUBTITLE = "A candidate's reading of the November 2026 market evidence"
+INTRO = (
+    "The market can look busy without making the right next role easier to find. "
+    "AI use is widespread, general business confidence strengthened, and some "
+    "consulting-platform activity increased. None of those measures counts open "
+    "AI leadership positions or guarantees a hiring rebound. This edition "
+    "shows how applicants can read the signals, widen their search intelligently "
+    "and decide where to spend their next month of effort."
+)
+VALUE = (
+    "Use this report to challenge three common shortcuts: treating AI adoption as "
+    "a hiring forecast, treating one advertised job-title sample as the whole "
+    "opportunity market, and treating positive confidence indicators as an offer "
+    "on the way. The goal is a more deliberate job search, not a prediction of "
+    "when an individual will be hired."
+)
+STYLE = """
+<style>
+.ms-js-lead{background:#f8f6f1;border-top:3px solid #a97755;
+ padding:clamp(20px,3vw,39px);margin:18px 0 25px;color:#173147}
+.ms-js-lead .eyebrow,.ms-js-topic .eyebrow{font-size:11px;letter-spacing:.11em;
+ font-weight:800;color:#946243;text-transform:uppercase}
+.ms-js-lead h3,.ms-js-topic h3{font:500 clamp(27px,3.9vw,40px)/1.15 Georgia,serif;
+ color:#142c41;margin:10px 0 15px}
+.ms-js-lead p,.ms-js-topic p{font-size:15px;line-height:1.78;color:#354b5e}
+.ms-js-topic{background:#fffefa;border:1px solid #dfd8cc;
+ padding:clamp(20px,3vw,32px);margin:17px 0 22px}
+.ms-js-topic h4{font-size:12px;font-weight:800;text-transform:uppercase;
+ letter-spacing:.055em;color:#975f40;margin:18px 0 5px}
+.ms-js-detail{border-bottom:1px solid #e1ddd4;padding:13px 0;
+ font-size:13px;line-height:1.6;color:#4c6072}
+.ms-js-detail strong{color:#1b344c}
+.ms-js-action{background:#1b344a;color:#f9f7f1;padding:23px;margin:17px 0 21px}
+.ms-js-action strong{color:#e6b18b}
+.ms-js-action p{color:#e7ecf1;font-size:14px;line-height:1.7}
+@media(max-width:700px){.ms-js-lead,.ms-js-topic{padding:19px}
+ .ms-js-lead p,.ms-js-topic p{font-size:14px}}
+</style>
+"""
+
+# Each finding is a genuinely candidate-oriented editorial judgment. All
+# references must occur in the already-authorised executive edition manifest.
+FINDINGS = (
+    {
+        "key": "visible_market",
+        "title": "A job advertisement is one hiring channel, not the market",
+        "signal": (
+            "Statistics Sweden estimated 159,500 vacancies throughout the "
+            "Swedish economy in Q2 2026. Around 127,500 were advertised, while "
+            "employers sought candidates through other channels for approximately "
+            "32,100. These are all-occupation survey estimates, not completed "
+            "hires or AI-specific vacancies."
+        ),
+        "reading": (
+            "Applicants who rely only on job boards could miss some recruitment "
+            "activity. That does not prove that an informal introduction will "
+            "lead to an offer, nor does it quantify hidden AI jobs. It does "
+            "justify maintaining distinct channels: relevant advertisements, "
+            "warm professional conversations and carefully chosen direct "
+            "approaches to established employers. Track each channel's response "
+            "rather than assuming one is superior."
+        ),
+        "action": (
+            "Create a simple weekly search ledger with three columns: advertised "
+            "roles, professional introductions and targeted company conversations. "
+            "Record role fit, eligibility, outreach date, substantive reply, "
+            "next step and interview. Compare qualified conversations, not just "
+            "application volume. Keep the approach personal and relevant; avoid "
+            "indiscriminate messaging."
+        ),
+        "alternative": (
+            "The non-advertised national vacancies could be concentrated in "
+            "occupations with little relevance to AI or Data professionals. "
+            "Some advertised roles recruit through several channels. "
+            "The survey does not tell us which channel works best for an "
+            "individual or for a particular seniority level."
+        ),
+        "watch": (
+            "Revisit the next comparable SCB vacancy release and actual responses "
+            "to your outreach. Do not add SCB's national counts to a curated "
+            "JobTech job-title series; they measure different things."
+        ),
+        "codes": ("scb_lor_2026q2_total", "scb_lor_2026q2_advertised",
+                  "scb_lor_2026q2_other_channels"),
+    },
+    {
+        "key": "role_discovery",
+        "title": "Search for the responsibility, not only the AI title",
+        "signal": (
+            "The defined JobTech series counted 20 selected senior AI/Data "
+            "leadership-title advertisements in September and 29 in October "
+            "2026 across Sweden. In October, 13 were indexed in Stockholm and "
+            "five in Västra Götaland. This sample reflects 30 search seeds and "
+            "a headline-based classifier; it is not a census of AI employment."
+        ),
+        "reading": (
+            "A small count for 'Head of AI' or similar titles may say more "
+            "about naming conventions than the total demand for people who "
+            "can lead AI and Data work. Relevant responsibility may sit under "
+            "digital, analytics, operations, process, product or business "
+            "leadership titles. Search by ownership and deliverables as well "
+            "as by job title. A wider search must still respect language, "
+            "location, seniority and any formal eligibility requirements."
+        ),
+        "action": (
+            "Build three search baskets: explicit AI/Data leadership titles; "
+            "adjacent business or digital roles with clear AI accountability; "
+            "and interim or advisory mandates. Keep a written inclusion rule "
+            "for each. Review roles for decision rights, team scope, adoption "
+            "responsibility and business outcomes before applying."
+        ),
+        "alternative": (
+            "Some adjacent jobs are primarily engineering, sales, delivery or "
+            "general IT and will not fit a leadership candidate. A title "
+            "basket may also be distorted by duplicate postings or API "
+            "revisions. Broadening keywords without reviewing role content "
+            "can waste time."
+        ),
+        "watch": (
+            "Compare several complete JobTech months and broader employer role "
+            "descriptions before calling a trend. The November 1-15 figures "
+            "are incomplete and must not be compared with a full month."
+        ),
+        "codes": ("jobtech_v1_sep_se", "jobtech_v1_oct_se",
+                  "jobtech_v1_oct_sto", "jobtech_v1_oct_vgr"),
+    },
+    {
+        "key": "capability_proof",
+        "title": "Show the operating capability behind the AI vocabulary",
+        "signal": (
+            "In SCB's 2026 survey, 49% of Swedish enterprises with at least "
+            "ten employees reported AI use and 85% of large enterprises did. "
+            "A different measurement found that 33% had internal personnel "
+            "conducting data analytics. Among the narrower group of firms "
+            "that considered AI but did not adopt it, 62% cited insufficient "
+            "expertise, 43% privacy or data-protection concerns and 34% "
+            "data access or quality difficulties."
+        ),
+        "reading": (
+            "These figures do not measure unmet hiring demand or make the "
+            "categories directly comparable. They illustrate why employers "
+            "may need more than software familiarity: people who can define "
+            "a useful workflow, work with data owners, address risks and "
+            "demonstrate a measurable change. A candidate can communicate "
+            "that capability through specific work and judgment, without "
+            "claiming national shortages or inventing quantified results."
+        ),
+        "action": (
+            "Rewrite two or three career examples in the same evidence sequence: "
+            "business problem, your decision or contribution, operating "
+            "dependencies, verifiable outcome and what you would change "
+            "next time. Prepare a 30-second version for introductions and "
+            "a longer one for interviews. Keep project involvement separate "
+            "from measurable production impact."
+        ),
+        "alternative": (
+            "Some businesses use external analytics teams appropriately, "
+            "and firms that reject AI for data or privacy reasons may be "
+            "making sound decisions. Neither the existence of internal "
+            "analysts nor AI use itself certifies organisational maturity."
+        ),
+        "watch": (
+            "Check individual job descriptions and interview questions for "
+            "actual accountability and prerequisites. Do not extrapolate "
+            "a national skills shortage from the non-adopter subgroup."
+        ),
+        "codes": ("scb_2026_ai_10plus", "scb_2026_ai_250plus",
+                  "scb_2026_analytics_internal", "scb_2026_ai_expertise_barrier",
+                  "scb_2026_ai_privacy_barrier", "scb_2026_ai_data_quality_barrier"),
+    },
+    {
+        "key": "timing_geography",
+        "title": "Use confidence and geography as search conditions",
+        "signal": (
+            "Konjunkturinstitutet's October 2026 total-business confidence "
+            "indicator stood at 110.7. The net balance for employment "
+            "changes in the previous three months was 2, versus 7 for "
+            "the next three months' expectations. SCB estimated 3.2 "
+            "vacancies per 100 employment positions in Västra Götaland "
+            "and 2.9 nationally in Q2 2026, across the entire economy."
+        ),
+        "reading": (
+            "A strengthening confidence indicator may coexist with cautious "
+            "headcount decisions. Regional overall vacancies do not describe "
+            "AI leadership availability, and the regional-to-national difference "
+            "is not a statistically established advantage without uncertainty "
+            "analysis. Candidates should distinguish where a role is physically "
+            "based, where work can actually be performed, and where a broader "
+            "national search might be realistic."
+        ),
+        "action": (
+            "Classify target roles as local onsite, national hybrid or "
+            "genuinely remote. Confirm actual location, Swedish-language "
+            "requirements and work eligibility before spending time on an "
+            "application. Maintain a small employer watchlist and monitor "
+            "their funded mandates rather than interpreting a confidence "
+            "index as an imminent vacancy."
+        ),
+        "alternative": (
+            "Some employers can hire even when broader staffing remains soft, "
+            "while others defer roles despite favourable sentiment. "
+            "Regional vacancy rates include occupations unrelated to the "
+            "candidate's specialty and cannot rank personal offer prospects."
+        ),
+        "watch": (
+            "Review the next KI employment-intentions reading and complete "
+            "SCB vacancy data, separating measured hiring from expectations."
+        ),
+        "codes": ("ki_2026_10_business_confidence",
+                  "ki_2026_10_staffing_past_net",
+                  "ki_2026_10_staffing_future_net",
+                  "scb_lor_2026q2_vgr_per100",
+                  "scb_lor_2026q2_national_per100"),
+    },
+    {
+        "key": "employment_model",
+        "title": "Test permanent, interim and consulting routes separately",
+        "signal": (
+            "Brainville reported a 10.7% year-on-year increase in Swedish "
+            "listed consulting assignments and an 18.5% increase in "
+            "available consultants in October 2026. Its marketplace covers "
+            "many consulting disciplines and participation can change; "
+            "these are not measures of AI-specialist openings, rates "
+            "or national consultant availability."
+        ),
+        "reading": (
+            "A growing marketplace can provide a reason to examine contract "
+            "work, but it cannot tell an individual whether an appropriate "
+            "assignment exists or whether competition has eased. Permanent "
+            "and fixed-term mandates should be assessed against the same "
+            "core needs: scope, accountable sponsor, realistic outcomes, "
+            "contract terms and continuity. An employer may seek a "
+            "time-limited specialist where a permanent function is not yet funded."
+        ),
+        "action": (
+            "Create separate versions of your professional proposition for "
+            "permanent and interim opportunities. For contracts, establish "
+            "duration, onsite presence, expected deliverables, procurement "
+            "route, insurance or legal requirements and effective compensation. "
+            "Track genuine responses, not platform listing totals."
+        ),
+        "alternative": (
+            "The platform's growth may reflect changing participation or "
+            "more supply in unrelated disciplines. A permanent role may be "
+            "a better fit for ongoing accountability, while a contract can "
+            "offer useful access but different financial and legal risks."
+        ),
+        "watch": (
+            "Monitor directly relevant assignments, contract conditions "
+            "and actual employer conversations; do not infer AI rates or "
+            "candidate competition from aggregate Brainville percentages."
+        ),
+        "codes": ("brainville_202610_assignments_yoy",
+                  "brainville_202610_consultants_yoy"),
+    },
+)
+
+CANDIDATE_AGENDA = (
+    ("01 / Define target mandates", "Candidate", "Days 1-3",
+     "Write the problems, responsibilities and acceptable constraints for each role family before selecting job titles."),
+    ("02 / Build three discovery channels", "Candidate", "Week 1",
+     "Separate suitable advertisements, relevant professional conversations and targeted employer outreach; track them independently."),
+    ("03 / Prepare credible evidence", "Candidate", "Week 2",
+     "Document two or three achievements with the problem, your role, operational dependencies and defensible results."),
+    ("04 / Test regional reach", "Candidate", "Weeks 2-3",
+     "Compare local, national hybrid and verified remote options; screen language, eligibility and onsite requirements."),
+    ("05 / Evaluate employment model", "Candidate", "Week 3",
+     "Compare permanent roles with fixed-term contracts on scope, sponsor, income, duration and professional fit."),
+    ("06 / Reassess with observed results", "Candidate", "Day 30",
+     "Measure substantive replies, relevant interviews, role quality and newly verified market evidence before changing strategy."),
+)
+
+SCENARIOS = (
+    {
+        "period":"Late November-December 2026",
+        "reading":"Business confidence is firmer than recent staffing activity. Expect mixed employer behaviour, not a guaranteed year-end hiring wave.",
+        "trigger":"A comparable SCB recruitment release and KI employment readings show stronger actual vacancy and staffing measures.",
+        "response":"Keep targeted conversations active; prioritize roles with a confirmed owner and funding, while maintaining a wider opportunity pipeline.",
+    },
+    {
+        "period":"January-March 2027",
+        "reading":"New-year plans may open recruitment decisions, but an automatic seasonal rebound is not established by this research.",
+        "trigger":"Completed month data, verified vacancies and employer-specific recruitment steps corroborate an increase.",
+        "response":"Enter the period with a clear capability proposition and warm contacts; change effort only when relevant opportunities materialize.",
+    },
+    {
+        "period":"If hiring remains subdued",
+        "reading":"Employers may put AI responsibilities in existing roles, use interim help or postpone permanent appointments.",
+        "trigger":"Staffing remains flat despite positive business expectations and the relevant role pipeline does not widen.",
+        "response":"Broaden suitable adjacent responsibilities, assess interim options and refine examples of operating value without relaxing hard eligibility or role-fit constraints.",
+    },
+)
+
+
+def validate_jobseeker_edition(points: list[dict], editorial: dict, edition_slug: str) -> dict:
+    """Fail closed rather than accidentally attaching the 2026 POV to a newer edition."""
+    validate_editorial(editorial, points, edition_slug)
+    if edition_slug != EDITION or str(editorial["version"]) != "2.0.2":
+        raise ValueError("Jobseeker reading has not been approved for this edition.")
+    available = {p["code"] for p in points}
+    if len(available) != len(points):
+        raise ValueError("Duplicate jobseeker evidence identifiers.")
+    for finding in FINDINGS:
+        if not set(finding["codes"]).issubset(available):
+            raise ValueError("Jobseeker reading cites evidence outside the published manifest.")
+        for code in finding["codes"]:
+            item=next(x for x in points if x["code"] == code)
+            _safe_url(item["source_url"])
+    return editorial
+
+
+def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str) -> bytes:
+    """Full A4 candidate edition with the existing publication design and source register."""
+    validate_jobseeker_edition(points, editorial, edition_slug)
+    idx={p["code"]:p for p in points}
+    sty=styles()
+    cover={
+        "title":TITLE,
+        "subtitle":SUBTITLE,
+        "stamp":"JAIR RIBEIRO  /  INDEPENDENT MARKET INTELLIGENCE",
+        "question_label":"THE CANDIDATE QUESTION",
+        "assessment":INTRO,
+        "question":"What can a candidate change this month without assuming a hiring forecast?",
+        "edition":"JOBSEEKER EDITION 1.0 / SWEDEN",
+        "issue":editorial["issue_date"],
+        "metrics":[
+            (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',
+             "Whole-economy vacancies","Sweden | Q2 2026 | SCB estimate"),
+            (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),
+             "Selected senior AI/Data adverts","October 2026 | JobTech title basket"),
+            (_value(idx["scb_2026_ai_10plus"]),
+             "Enterprises reporting AI use","2026 | Swedish firms with 10+ staff"),
+        ],
+    }
+    story=[]
+    section(story,"01 / The candidate reading",
+            "A busy market is not the same as an easy job search", INTRO, sty=sty)
+    story.append(panel("What this report is for",
+        "A better search strategy, not an offer prediction", VALUE, sty=sty))
+    story.append(Spacer(1,14))
+    story.append(P("How to interpret the figures", "h2", sty=sty))
+    story.append(P(
+        "This is an independently written candidate perspective over the same "
+        "signed-off 17 November 2026 evidence used by the Executive Edition 2.0.2. "
+        "There are no additional observations or AI-specific vacancy estimates. "
+        "Vacancies are not filled jobs, advertised titles are not all AI-related roles, "
+        "and reported AI use does not imply a recruitment plan.", "body",sty=sty))
+    story.append(metric_cards([
+        (f'{int(float(idx["scb_lor_2026q2_total"]["value"])):,}',"Vacant jobs, all occupations","SCB, Q2 2026"),
+        (f'{int(float(idx["scb_lor_2026q2_other_channels"]["value"])):,}',"Other recruitment channels","SCB, Q2 2026"),
+        (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),"Selected senior AI/Data adverts","JobTech, October 2026"),
+    ],sty=sty))
+    story.append(Spacer(1,17))
+    story.append(P("Five candidate decision perspectives", "h2",sty=sty))
+    for i,x in enumerate(FINDINGS,1):
+        story.append(P(f"{i:02d} / {x['title']}","body_compact",sty=sty))
+    story.append(Spacer(1,12))
+    story.append(CondPageBreak(235))
+
+    section(story,"02 / The discovery problem",
+        "Why a job-board search can misread demand",
+        "National vacancies, selected senior title advertisements and "
+        "actual appointments are different measures.",sty=sty)
+    story.append(bars([
+        ("Advertised",float(idx["scb_lor_2026q2_advertised"]["value"])),
+        ("Other channels",float(idx["scb_lor_2026q2_other_channels"]["value"])),
+    ],sty=sty))
+    story.append(P(
+        "SCB estimates for the entire economy, Q2 2026. These are vacancies "
+        "and recruitment channels, not AI-related completed hires. Rounding "
+        "explains why component estimates may not sum exactly to the total.",
+        "caption",sty=sty))
+    story.append(Spacer(1,13))
+    story.append(bars([
+        ("September senior titles",float(idx["jobtech_v1_sep_se"]["value"])),
+        ("October senior titles",float(idx["jobtech_v1_oct_se"]["value"])),
+    ],sty=sty))
+    story.append(P(
+        "Only a selected JobTech senior AI/Data title basket, complete months "
+        "with retrospectively revised API data. No national specialist-hiring "
+        "trend can be established from this comparison.", "caption",sty=sty))
+    story.append(Spacer(1,13))
+    story.append(panel("A candidate's test",
+        "Separate the channels and track useful responses",
+        "The market data cannot tell you where your next interview will come "
+        "from. A personal response ledger can. Test search channels for four "
+        "weeks, looking for qualified conversations and relevant roles.",
+        dark=True,sty=sty))
+
+    for i,x in enumerate(FINDINGS,1):
+        story.append(CondPageBreak(270))
+        section(story,f"{i+2:02d} / Candidate perspective",
+                x["title"],x["signal"],sty=sty)
+        story.append(P("What this means for a job search","h2",sty=sty))
+        story.append(P(x["reading"],"body",sty=sty))
+        story.append(panel("Your next move",
+            "A practical candidate action",x["action"],dark=True,sty=sty))
+        story.append(Spacer(1,12))
+        story.append(P("Another explanation to consider","h2",sty=sty))
+        story.append(P(x["alternative"],"body_compact",sty=sty))
+        story.append(P("What should change your interpretation?","h2",sty=sty))
+        story.append(P(x["watch"],"body_compact",sty=sty))
+        story.append(P("Evidence IDs: "+", ".join(x["codes"]),
+                      "caption",sty=sty))
+        story.append(Spacer(1,10))
+
+    story.append(PageBreak())
+    section(story,"08 / Your 30-day plan",
+            "Use market evidence to improve search decisions",
+            "A structured candidate activity plan, not an automated career "
+            "assessment or a guarantee of an interview.",sty=sty)
+    story.append(decision_table(list(CANDIDATE_AGENDA),sty=sty))
+    story.append(Spacer(1,17))
+    story.append(P("A useful personal scorecard","h2",sty=sty))
+    story.append(P(
+        "Record eligible roles reviewed, targeted applications, relevant "
+        "professional conversations, substantive employer replies, screening "
+        "calls and interviews. Add the reason a role was excluded. These are "
+        "your own operating measures; this report does not collect them.",
+        "body",sty=sty))
+    story.append(panel("Interview preparation",
+        "Three questions worth asking",
+        "Which business outcome would this position own in six months? "
+        "What decision rights, staff and budget support the mandate? "
+        "What evidence would convince the hiring team that the role is working?",
+        sty=sty))
+
+    story.append(Spacer(1,12))
+    story.append(CondPageBreak(230))
+    section(story,"09 / Conditional outlook",
+        "What could change the search conditions",
+        "These are scenarios with observable triggers, not probability estimates "
+        "or predictions of an individual hiring date.",sty=sty)
+    for item in SCENARIOS:
+        story.append(KeepTogether([
+            P(item["period"],"h2",sty=sty),
+            P(item["reading"],"body_compact",sty=sty),
+            panel("Review trigger","Evidence and candidate response",
+                  "Trigger: "+item["trigger"]+" Candidate response: "+item["response"],sty=sty),
+            Spacer(1,12),
+        ]))
+
+    story.append(PageBreak())
+    section(story,"10 / Evidence and limits",
+        "Trace the same November evidence to its sources",
+        "This edition uses exactly the same approved observations, release "
+        "dates and source methods as the executive report. Jobseeker "
+        "recommendations are editorial judgments, not measured employment outcomes.",
+        sty=sty)
+    for item in editorial["coverage_cautions"]:
+        story.append(KeepTogether([
+            P(item["title"],"h2",sty=sty),
+            P(item["text"],"body_small",sty=sty),
+        ]))
+    story.append(Spacer(1,12))
+    story.append(P("Full methodological note","h2",sty=sty))
+    story.append(P(editorial["methodology_note"],"body_small",sty=sty))
+    story.append(CondPageBreak(170))
+    story.append(P("Methods and source-family limits","h2",sty=sty))
+    story.append(source_family_methods(points,sty=sty))
+    story.append(Spacer(1,16))
+    story.append(P("Signed-off observation register","h2",sty=sty))
+    story.append(sources_table(points,_value,sty=sty,
+                 include_provenance=True,compact_provenance=True))
+    story.append(Spacer(1,8))
+    story.append(P("Independent research by Jair Ribeiro | jairribeiro.com",
+                   "caption",sty=sty))
+    return assemble(story,cover,
+       "Jair Ribeiro | Swedish AI & Data Job Market Review | Candidate Edition 1.0",
+       min_bytes=10000,
+       interior_kicker="MARKET SIGNALS / JOBSEEKER RESEARCH",
+       interior_footer="Independent market research")
+
+
+def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
+                                  edition_slug: str, token: str, record_event) -> None:
+    """Member-only reader experience sharing the existing published release."""
+    validate_jobseeker_edition(points, editorial, edition_slug)
+    st.html(STYLE)
+    st.html(
+        '<section class="ms-js-lead"><div class="eyebrow">Candidate edition / '+
+        html_escape(editorial["issue_date"])+'</div><h3>'+
+        html_escape(TITLE)+'</h3><p>'+html_escape(INTRO)+
+        '</p><p>'+html_escape(VALUE)+'</p></section>'
+    )
+    st.markdown("#### Download the Jobseeker Edition")
+    st.caption(
+        "Complete candidate-focused A4 report with five analyses, a 30-day "
+        "search plan, three conditional scenarios and the same traceable "
+        "source register as the Executive Edition. Free for registered readers."
+    )
+    pdf=jobseeker_market_pdf(points,editorial,edition_slug)
+    st.download_button(
+        "Download complete Jobseeker Market Review · PDF",
+        data=pdf,mime="application/pdf",
+        file_name="Jair_Ribeiro_Swedish_AI_Data_Job_Market_Review_2026-11.pdf",
+        type="primary",use_container_width=True,key="market_jobseeker_complete_pdf",
+        on_click=record_event,args=(token,"pdf_review","jobseeker",edition_slug)
+    )
+    idx={x["code"]:x for x in points}
+    st.markdown("#### Five candidate decisions")
+    choice=st.selectbox("Explore a jobseeker perspective",
+        [x["key"] for x in FINDINGS],
+        format_func=lambda key:next(x["title"] for x in FINDINGS if x["key"]==key),
+        key="market_jobseeker_theme")
+    item=next(x for x in FINDINGS if x["key"]==choice)
+    st.html(
+        '<article class="ms-js-topic"><span class="eyebrow">Candidate perspective</span>'
+        '<h3>'+html_escape(item["title"])+'</h3>'
+        '<h4>What the published evidence shows</h4><p>'+
+        html_escape(item["signal"])+'</p>'
+        '<h4>What it means for your search</h4><p>'+
+        html_escape(item["reading"])+'</p>'
+        '<h4>Alternative explanation</h4><p>'+
+        html_escape(item["alternative"])+'</p>'
+        '<h4>When to reconsider</h4><p>'+
+        html_escape(item["watch"])+'</p></article>'
+    )
+    st.html('<section class="ms-js-action"><strong>THE NEXT PRACTICAL STEP</strong>'
+        '<p>'+html_escape(item["action"])+'</p></section>')
+    with st.expander("Check the original observations and methods",expanded=False):
+        for code in item["codes"]:
+            p=idx[code]
+            st.html(
+                '<div class="ms-js-detail"><strong>'+
+                html_escape(p["metric_label"])+' · '+html_escape(_value(p))+
+                '</strong><br>'+html_escape(p["period_label"])+
+                ' · '+html_escape(p["population_note"])+
+                '<br><a href="'+html_escape(_safe_url(p["source_url"]),quote=True)+
+                '" target="_blank" rel="noopener noreferrer">'+
+                html_escape(p["source_title"])+
+                '</a><br>Method: '+html_escape(p["methodology"])+
+                '<br>Limit: '+html_escape(p["caveat"])+
+                '</div>'
+            )
+    st.markdown("#### Your 30-day candidate agenda")
+    for label, owner, timing, action in CANDIDATE_AGENDA:
+        with st.expander(label+" · "+timing,expanded=False):
+            st.write(action)
+    st.markdown("#### Three possible market conditions")
+    for scenario in SCENARIOS:
+        with st.expander(scenario["period"],expanded=False):
+            st.write(scenario["reading"])
+            st.caption("What to monitor: "+scenario["trigger"])
+            st.write("Your response: "+scenario["response"])
+    with st.expander("Methodology and evidence boundaries",expanded=False):
+        for caveat in editorial["coverage_cautions"]:
+            st.markdown("**"+caveat["title"]+"**")
+            st.write(caveat["text"])
+        st.write(editorial["methodology_note"])
+    st.caption(
+        "Independent candidate-oriented interpretation by Jair Ribeiro. "
+        "Same signed-off November data as Executive Edition 2.0.2. "
+        "Not individual recruitment advice, a vacancy census, an employer "
+        "recommendation or a hiring forecast."
+    )

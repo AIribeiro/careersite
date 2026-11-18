@@ -38,6 +38,6 @@ SELECTED_CREDENTIALS = (
     "Responsible Generative AI",
 )
 
-CERTIFICATIONS_URL = "https://jairribeiro-ai.streamlit.app/?page=certifications&utm_source=cv"
-PRESENCE_URL = "https://jairribeiro-ai.streamlit.app/?page=presence&utm_source=cv"
-PORTFOLIO_CV_URL = "https://jairribeiro-ai.streamlit.app/?source=cv"
+CERTIFICATIONS_URL = "https://jairribeiro.com/?page=certifications&utm_source=cv"
+PRESENCE_URL = "https://jairribeiro.com/?page=presence&utm_source=cv"
+PORTFOLIO_CV_URL = "https://jairribeiro.com/?source=cv"

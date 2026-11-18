@@ -386,7 +386,10 @@ else:
             split_market_landing_at_video,
         )
         reading, remainder = split_market_landing_at_video(responsive_document)
-        st.html(shared_styles + '<div class="site">' + reading + '</div>')
+        # Each st.html call is parsed independently. Close and reopen the
+        # scoped <main> around the native iframe so the second half retains
+        # the same mobile breakpoints, typography, footer and navigation.
+        st.html(shared_styles + '<div class="site">' + reading + '</main></div>')
         with st.container(key="market_video_player"):
             st.iframe(
                 MARKET_REVIEW_VIDEO_EMBED_URL,
@@ -394,7 +397,8 @@ else:
                 alt="Swedish AI and Data Market Review: 58-second faceless research video",
                 tab_index=0,
             )
-        st.html('<div class="site">' + remainder + '</div>')
+        st.html('<div class="site"><main class="site advisory-page ms-landing">' +
+                remainder + '</div>')
     elif PAGE == "advisory-market-demo":
         from page_advisory_market_demo import (
             split_public_market_demo_at_download,

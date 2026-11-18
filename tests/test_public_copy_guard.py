@@ -59,7 +59,7 @@ class PublicCopyGuardTests(unittest.TestCase):
         self.assertIn("100+ AI learning sessions", evidence)
         self.assertIn("80+ AI opportunities", evidence)
         self.assertIn("2026–2027", i)
-        self.assertIn("2026–2027", a)
+        self.assertIn("2025–2026", a)
         self.assertIn("LinkedIn profile", i)
         self.assertNotIn("1,500+ practitioners", h)
         self.assertNotIn("130,000+ interactions", h)

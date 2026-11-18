@@ -154,16 +154,16 @@ class MarketSignalsLandingTests(unittest.TestCase):
                       "Choose your edition and start reading."):
             self.assertIn(title,self.page)
 
-    def test_video_is_intrinsically_responsive_and_locally_served(self):
+    def test_video_is_intrinsically_responsive_and_served_by_ranged_mp4_origin(self):
         from pathlib import Path
         html=MARKET_SIGNALS_LANDING_HTML
         main=(ROOT/"main.py").read_text(encoding="utf-8")
         css=MARKET_SIGNALS_LANDING_CSS
         self.assertIn('id="ms-video"',html)
         self.assertEqual(html.count('class="ms-video-player"'),1)
-        self.assertIn('controls playsinline preload="none"',html)
-        self.assertIn('poster="/app/static/market-signals/market-review-poster.jpg"',html)
-        self.assertIn('src="/app/static/market-signals/market-review-november-2026.mp4"',html)
+        self.assertIn('controls playsinline webkit-playsinline preload="metadata"',html)
+        self.assertIn('poster="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f2223462c7bd42f77ccfa73911d83/static/market-signals/market-review-poster.jpg"',html)
+        self.assertIn('src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f2223462c7bd42f77ccfa73911d83/static/market-signals/market-review-november-2026.mp4"',html)
         self.assertNotIn("MARKET_SIGNALS_VIDEO_PLAYER",html)
         self.assertNotIn("split_market_landing_at_video",main)
         self.assertNotIn('key="market_video_compact"',main)
@@ -180,6 +180,12 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertLess(video.stat().st_size,12_000_000)
         self.assertEqual(video.open("rb").read(8)[4:8],b"ftyp")
         self.assertEqual(poster.open("rb").read(3),bytes((255,216,255)))
+        self.assertNotIn("/app/static/market-signals/",html)
+        self.assertIn("cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f",html)
+        self.assertNotIn("autoplay",html.split('class="ms-video-player"',1)[1].split('</video>',1)[0])
+        # The current production Streamlit static path returned text/html
+        # instead of video bytes to iOS. The pinned CDN supports 206 partial
+        # content with Content-Type video/mp4 and is independently verified.
         self.assertNotIn("Signature=",self.page)
         self.assertNotIn('id="ms-jobseeker-benefits"',self.page)
         self.assertNotIn('aria-labelledby="ms-decisions-title"',self.page)

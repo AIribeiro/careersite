@@ -529,7 +529,8 @@ MARKET_SIGNALS_LANDING_HTML = """
       <h2 id="ms-cta-title">Use the November research for your next decision.</h2>
       <p>Looking for work? Use the Jobseeker Edition to find related roles, show your skills and plan a four-week search. Business leaders can use the Executive Edition to review AI investment and workforce decisions. Both have a free PDF.</p>
       <div class="ms-actions">
-        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals" target="_self" data-hq-event="market_signals_final_register">Read and download the report · Free registration</a>
+        <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_final_jobseeker">Jobseeker report · Free account</a>
+        <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=executive" target="_self" data-hq-event="market_signals_final_register">Executive report · Free account</a>
         <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;signin=1" target="_self" data-hq-event="market_signals_final_signin">Already registered? Sign in</a>
       </div>
     </div>
@@ -1021,10 +1022,10 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                     render_jobseeker_intelligence,
                 )
                 if str(release.get("slug") or "") == JOBSEEKER_EDITION:
-                    st.markdown("### Choose your research perspective")
+                    st.markdown("### Which report would you like to read?")
                     st.caption(
-                        "Two separate readings of the same signed-off November "
-                        "evidence. Your membership includes both complete PDFs."
+                        "Both reports use the same checked November 2026 research. "
+                        "Your free account includes both downloadable PDFs."
                     )
                     preferred = str(st.query_params.get("perspective", "")).lower()
                     previously_applied = st.session_state.get("market_review_link_preference")
@@ -1042,9 +1043,14 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                             if preferred == "jobseeker" else "Executive / Business leader"
                         )
                     perspective = st.radio(
-                        "Research edition",
+                        "Choose a report",
                         ("Executive / Business leader",
                          "Jobseeker / AI & Data professional"),
+                        format_func=lambda value: (
+                            "Looking for work — Jobseeker Edition"
+                            if value.startswith("Jobseeker")
+                            else "For employers and leaders — Executive Edition"
+                        ),
                         horizontal=True,key="market_review_perspective",
                     )
                     if perspective.startswith("Jobseeker"):

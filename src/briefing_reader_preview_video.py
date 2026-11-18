@@ -23,7 +23,7 @@ PREVIEW_VIDEO_CSS = """<style>
 .site .briefing-preview-video .eyebrow{display:block;margin:0 0 12px;color:#a05c36!important;font:850 10px/1.5 Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase}
 .site .briefing-preview-video-player{aspect-ratio:16/9;width:100%;overflow:hidden;background:#061522;border:1px solid #d6d1c8}
 .site .briefing-preview-video-player video{display:block;width:100%;height:100%;object-fit:contain;background:#061522}
-.site .briefing-video-credit{margin:9px 0 0;color:#55636d;font:500 11px/1.55 Arial,sans-serif}
+.site .briefing-preview-copy .briefing-video-credit{margin:8px 0 0;color:#65717a;font:400 10px/1.6 Georgia,"Times New Roman",serif;letter-spacing:.02em}
 .site .briefing-video-fallback{color:#fff;font-size:12px}
 .site .briefing-video-fallback a{color:#eac3a3!important}
 .site .briefing-video-credit a{color:#975630!important;text-decoration:underline!important}

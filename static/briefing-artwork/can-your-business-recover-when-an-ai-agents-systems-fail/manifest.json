@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "slug": "can-your-business-recover-when-an-ai-agents-systems-fail",
-  "revision": 1,
+  "revision": "v1",
   "article_fingerprint": "070f1921d257497db85d92bbc01efcd4a8cac17bd7f553f37255777d6f59e154",
   "heading": "Can Your Business Recover When an AI Agent's Systems Fail?",
   "deck": "Before approving autonomous actions, business leaders need evidence that interrupted services, uncertain transactions and supplier failures can be contained without losing control of customer outcomes.",

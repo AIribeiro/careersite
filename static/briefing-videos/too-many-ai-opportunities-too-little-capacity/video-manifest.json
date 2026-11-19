@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "slug": "too-many-ai-opportunities-too-little-capacity",
+  "status": "approved",
+  "approved_by_owner": true,
+  "revision": "v1-owner-approved-20261119",
+  "article_fingerprint": "19455e796e8dbe964fa0b65974993cdafc8323abd4a4ec78fd73122219b50dfa",
+  "infographic_release_fingerprint": "19455e796e8dbe964fa0b65974993cdafc8323abd4a4ec78fd73122219b50dfa",
+  "script_sha256": "8f1f388c75fe90a8c62f4aa077587d1e662b52041bb7eb437f11619e696fb2d2",
+  "title": "Too Many AI Opportunities. Too Little Capacity.",
+  "duration_seconds": 96.730998,
+  "voice": {
+    "name": "Jair Ribeiro",
+    "voice_id": "244dad1f09ba4ca7980e30707c1e2b06",
+    "audio_sha256": "9461357361834ad4e40fd56ee3e41b73a439e51df9468c284ad38b8d99499ac7"
+  },
+  "web": {
+    "file": "preview.mp4",
+    "sha256": "52d029afd4fa42d16c9dc637a7326b92ee53e055a1d7a6439c3aaa9e9b1413eb",
+    "width": 1920,
+    "height": 1080,
+    "video_codec": "h264",
+    "audio_codec": "aac",
+    "caption_format": "burned_in_with_vtt_source",
+    "captions_file": "captions.vtt",
+    "size_bytes": 6619480,
+    "chunks": [
+      {
+        "file": "preview.mp4.part00",
+        "sha256": "ca9b28fe35be07422a0748a715dec2c2b15d05f445034a65a9a8d85bed73debc",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part01",
+        "sha256": "e98b9581e16d98e19dd65a58abf6ec05263d43def54f0c28d07f1f60d3680b41",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part02",
+        "sha256": "d22fb8bc827f2249e930129109f27960e569c7b1fd008842beee1c2cbbf3d27f",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part03",
+        "sha256": "f7f583ed1e1fb96649c30825e857d8cc0b58682804a7f2b53a2a9c4bf3339538",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part04",
+        "sha256": "673b6e7d05e30782deb0bcfa3627ad25565ff0d1152b2f3ebf831f2d4ae0baa8",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part05",
+        "sha256": "b74c01bb97b3e9266edda0e574e2c135d8955c0dafc54d9913fc3ef51afa750f",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part06",
+        "sha256": "9596812af54f258fe4b0cc4150497d691b11bad230f9af8d1bfc377041cde36b",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part07",
+        "sha256": "b0b0f48b4f2cf78f6a24aafa3c9768f81fd43a4c033eefb0d98242dd228529f9",
+        "size_bytes": 737280
+      },
+      {
+        "file": "preview.mp4.part08",
+        "sha256": "75a37d359eba902bda9b21cf5ef0ebbe28c81fa39106250960304a12b6bebb78",
+        "size_bytes": 721240
+      }
+    ],
+    "git_binary_available": false,
+    "public_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/executive-briefings/too-many-ai-opportunities-too-little-capacity/preview-v1-52d029af.mp4",
+    "delivery": "supabase-public-storage"
+  },
+  "poster": {
+    "file": "poster.jpg",
+    "sha256": "92bbaf6579abcf04bacac28008ddf2519460038ed6ce5116a2c8d23eafd576f2"
+  },
+  "note": "Owner-approved exact review master, published to immutable public storage. Original SHA256 52d029af..., MD5 0cdeb1eb0b47a2a3b145946e652d9313 (matches object ETag); remote 200 video/mp4 and three 206 byte-range checks verified 2026-11-19. Public GitHub poster HEAD 200 image/jpeg. No runtime chunk assembly."
+}

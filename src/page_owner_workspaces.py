@@ -423,97 +423,20 @@ def _current_stage_groups(prediction: dict, plans: dict | None) -> tuple[list[di
 
 
 def render_owner_stage_dashboard(session: dict) -> None:
-    """Owner-only stage/MTO board: fresh owner forecast plus current meeting evidence."""
-    from page_hiring_prediction_v2 import (
-        STAGE_NAMES, fetch_hiring_prediction_v2, _verified_meetings_by_process,
-    )
-    from hiring_opportunity_comparison import opportunity_comparison_html
+    """The active-stage board reads the canonical opportunity ledger, not forecast ranks."""
+    from page_live_hiring_stages import render_live_stage_board
 
     token = str(session.get("access_token") or "")
-    st.subheader("Hiring stages & meetings to offer")
-    st.caption(
-        "Every open or unresolved process in the latest stage-model shortlist. "
-        "Meeting totals are conditional estimates, not probabilities of receiving an offer."
-    )
     if not token:
-        st.warning("Sign in as the portfolio owner to see hiring stages and MTO.")
+        st.warning("Owner authorization is required for current hiring stages.")
         return
-    try:
-        # This must be a fresh owner-authorized forecast read, not the last
-        # scheduled daily snapshot. Snapshots belong to historical reporting;
-        # they can retain a superseded closed/reconciled classification after
-        # the live recruiting data has already been corrected.
-        prediction = fetch_hiring_prediction_v2(token)
-    except (RuntimeError, ValueError, TimeoutError, PermissionError, KeyError):
-        st.warning(
-            "The live hiring-stage forecast is unavailable. A stored daily "
-            "snapshot is not shown as current hiring evidence."
-        )
-        return
-
-    counts = details = plans = None
-    try:
-        counts, details, plans = _verified_meetings_by_process(token, with_details=True)
-    except (RuntimeError, TimeoutError, ValueError, PermissionError):
-        st.warning(
-            "Live meeting/outcome records are unavailable. The forecast is current, "
-            "but recently closed opportunities and attendance counts cannot be verified."
-        )
-
-    progressed, applied = _current_stage_groups(prediction, plans)
-    # Exact requisition deep links from the private salary board focus one process.
-    focus = str(st.query_params.get("process", "")).strip().casefold()
+    focus = str(st.query_params.get("process", "") or "").strip().casefold()
     if focus:
-        matching = [p for p in progressed + applied
-                    if str(p.get("process_key") or "").strip().casefold() == focus]
-        if matching:
-            st.caption("Focused hiring process · " + str(matching[0].get("employer") or focus))
-            if st.button("Show all hiring processes", key="owner_stage_clear_focus"):
-                st.query_params.pop("process", None)
-                st.rerun()
-            progressed = [p for p in progressed if p in matching]
-            applied = [p for p in applied if p in matching]
-        else:
-            st.warning("This exact requisition is not present in the live stage forecast; no stage was inferred.")
-            if st.button("Show all current stages", key="owner_stage_clear_missing_focus"):
-                st.query_params.pop("process", None)
-                st.rerun()
-    assessment_day = str(prediction.get("as_of") or "Unknown")
-    today = datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
-    st.caption(
-        f"Live stage assessment: {assessment_day} · Meeting attendance and employer outcomes: "
-        + ("latest owner records" if plans is not None else "unavailable")
-        + ". A scheduled interview is not a held meeting."
-    )
-    if assessment_day < today:
-        st.warning(
-            "The live stage assessment date predates today. Current outcomes are checked "
-            "separately when the recruiting ledger is available."
-        )
-
-    if progressed:
-        st.markdown(
-            opportunity_comparison_html(progressed, STAGE_NAMES, counts, details, plans),
-            unsafe_allow_html=True,
-        )
-    else:
-        st.info("No open or unresolved recruiter-engaged process is documented in the latest shortlist.")
-    if applied:
-        with st.expander(f"Earlier-stage applications · {len(applied)}", expanded=False):
-            st.caption(
-                "Applications without a verified employer conversation. "
-                "MTO is a role-based planning range until actual interviews are recorded."
-            )
-            st.markdown(
-                opportunity_comparison_html(applied, STAGE_NAMES, counts, details, plans),
-                unsafe_allow_html=True,
-            )
-    st.caption(
-        "MTO = estimated total candidate meetings to a possible offer. "
-        "Held = distinct attended meetings; Remaining = estimated further meetings. "
-        "Interviewer decision authority and any employer-confirmed sequence take precedence "
-        "over the role baseline. Hover over the MTO figures for the rationale and confidence."
-    )
+        st.caption("Exact requisition filter active.")
+        if st.button("Show all hiring processes", key="owner_stage_clear_focus"):
+            st.query_params.pop("process", None)
+            st.rerun()
+    render_live_stage_board(token, focus)
 
 
 def render_owner_hiring_home(session: dict) -> None:

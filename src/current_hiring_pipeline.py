@@ -14,39 +14,22 @@ from site_cms import _request_json, _rest_url
 
 
 def fetch_current_pipeline(token: str) -> dict:
+    """One owner-gated RPC: private priority/map tables are never read via REST."""
     if not token:
         raise ValueError("Owner access required")
-    paths = {
-        "opportunities": (
-            "careersite_recruiting_opportunities?"
-            "select=id,employer,role_title,application_date,outcome,updated_at"
-            "&order=updated_at.desc&limit=150"
-        ),
-        "priorities": (
-            "careersite_application_priority_reviews?"
-            "select=opportunity_id,rank_position,reviewed_on,priority_band,"
-            "priority_score,pipeline_state,next_action,evidence_note"
-            "&order=reviewed_on.desc,rank_position.asc&limit=200"
-        ),
-        "statuses": (
-            "careersite_followup_process_status?"
-            "select=source_type,source_ref,status,status_on,status_note"
-            "&source_type=eq.managed&limit=150"
-        ),
-        "strategic": (
-            "job_search_employer_opportunity_map?"
-            "select=id,employer,priority,access_status,activity_status,"
-            "hiring_signal,contact_name,next_action,updated_at"
-            "&order=updated_at.desc&limit=100"
-        ),
-    }
-    result = {}
-    for key, path in paths.items():
-        value = _request_json("GET", _rest_url(path), token=token, timeout=15)
-        if not isinstance(value, list):
-            raise RuntimeError(f"Current hiring source unavailable: {key}")
-        result[key] = value
-    return result
+    response = _request_json(
+        "POST",
+        _rest_url("rpc/careersite_owner_current_hiring_pipeline_v1"),
+        token=token,
+        payload={},
+        timeout=20,
+    )
+    if not isinstance(response, dict) or not all(
+        isinstance(response.get(key), list)
+        for key in ("opportunities", "priorities", "statuses", "strategic")
+    ):
+        raise RuntimeError("Current owner-only hiring summary is unavailable")
+    return response
 
 
 STAGE_LABELS = {

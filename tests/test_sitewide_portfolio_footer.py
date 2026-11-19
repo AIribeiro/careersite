@@ -9,6 +9,7 @@ from about_next_navigation import _PAGE_COPY, portfolio_next_navigation
 from site_portfolio_continuation import inject_portfolio_continuation
 from site_native_shell import native_footer
 from site_reader_shell import reader_footer
+from site_styles import CSS
 
 
 class _CardLinks(HTMLParser):
@@ -54,6 +55,25 @@ class SitewideFooterTests(unittest.TestCase):
                 self.assertEqual(len(set(destinations)), 3)
                 self.assertNotIn(page, destinations)
                 self.assertTrue(all(a.get("target") == "_self" for a in parser.links))
+
+    def test_compact_footer_is_full_width_and_responsive_in_every_shell(self):
+        # The public, native and reader shells share one canonical stylesheet.
+        self.assertIn("/* Portfolio-wide continuation footer", CSS)
+        footer_css = CSS.split("/* Portfolio-wide continuation footer", 1)[1].split(
+            "/* End shared portfolio continuation footer. */", 1
+        )[0]
+        self.assertIn(".site .portfolio-next>.container{", footer_css)
+        self.assertIn("max-width:none;", footer_css)
+        self.assertIn("grid-template-columns:repeat(3,minmax(0,1fr));", footer_css)
+        self.assertIn("@media(min-width:721px)", footer_css)
+        self.assertIn("@media(min-width:541px) and (max-width:720px)", footer_css)
+        self.assertIn("@media(max-width:540px)", footer_css)
+        self.assertIn("@media(min-device-width:541px) and (max-device-width:720px)", footer_css)
+        self.assertNotIn("min-height:224px", footer_css)
+        native = native_footer("analytics")
+        self.assertIn("/* Portfolio-wide continuation footer", native)
+        self.assertIn("(max-device-width:540px)", native)
+        self.assertIn("grid-template-columns:repeat(3,minmax(0,1fr));", native)
 
     def test_service_availability_never_leaks_hidden_links(self):
         with (

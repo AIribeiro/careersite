@@ -133,6 +133,7 @@ def render_stage_evidence(sources: dict, meetings: list[dict] | None,
     main = [r for r in rows if r["band"] == "P1"]
     lower = [r for r in rows if r["band"] != "P1"]
     st.subheader("Hiring stages & meetings to offer")
+    st.caption("Status view: live recruiting ledger · release 2026-11-19.2")
     st.caption(
         "Current owner records, not the historical forecast shortlist. "
         "MTO is a role-based planning range conditional on further selection, "

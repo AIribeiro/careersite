@@ -14,6 +14,7 @@ import streamlit as st
 from site_cms import _request_json, _rest_url
 from hiring_opportunity_comparison import opportunity_comparison_html, opportunity_evidence_score
 from hiring_stage_inference import resolve_stage
+from current_hiring_pipeline import fetch_current_pipeline, render_current_pipeline
 
 VERSION = "hiring-v2-stage-review-v1"  # Accepted historical stage model
 CURRENT_VERSION = "hiring-v4-stage-review-market-live-v1"
@@ -367,57 +368,85 @@ def render_hiring_prediction_v2(data: dict) -> dict:
         except (RuntimeError, TimeoutError, ValueError, PermissionError):
             st.caption("Meeting ledger unavailable; counts are not inferred from interview stages.")
 
-    live = _live_opportunities(data, employer_plans)
-    if live:
-        top = live[0]
-        top_plan = employer_plans.get(str(top.get("process_key") or "").strip().casefold(), {})
-        current_label = top_plan.get("pending_stage_label") or _stage_title(top.get("stage"))
-        st.markdown(f"**Strongest verified route:** {top['employer']} — "
-                    f"{top['role']} ({current_label.lower()}).")
-        upcoming = top_plan.get("pending_stage_date") if top_plan.get("pending_stage_state") == "scheduled" else top.get("next_interview")
-        if upcoming:
-            st.caption(f"Next confirmed interview: {_pretty_date(upcoming)}. "
-                       "A scheduled interview is not counted as completed.")
+    # Current owner records take precedence over model-generated historical ranks.
+    if owner_token:
+        try:
+            current_pipeline = fetch_current_pipeline(owner_token)
+            render_current_pipeline(current_pipeline)
+            newest_review = max(
+                (str(item.get("reviewed_on") or "")
+                 for item in current_pipeline.get("priorities", [])),
+                default="",
+            )
+            model_latest = max(
+                (str(item.get("last_progress") or "")
+                 for item in data.get("top_processes", [])),
+                default="",
+            )
+            if newest_review and model_latest and newest_review > model_latest:
+                st.warning(
+                    "The forecast's timing and credibility scores may lag the newer "
+                    "recruiting evidence shown above. Treat the current opportunity "
+                    "records as authoritative for status and progression."
+                )
+        except (RuntimeError, TimeoutError, ValueError, PermissionError) as exc:
+            st.warning("The current recruiting records are temporarily unavailable. "
+                       "Historical model comparisons are retained below.")
     else:
-        st.info("No confirmed active interview or human-response process is available.")
+        st.caption("Owner sign-in is required for the current recruiting pipeline.")
 
-    relevant = [
-        p for p in live if opportunity_evidence_score(p) is not None
-        and opportunity_evidence_score(p) >= 10
-    ][:7]
-    if relevant:
-        st.markdown(
-            opportunity_comparison_html(relevant, STAGE_NAMES, meeting_counts, meeting_details, employer_plans),
-            unsafe_allow_html=True,
-        )
-        st.caption("Held = documented attended meetings (cancelled or scheduled meetings excluded). "
-                   "MTO = estimated total meetings to an offer, not meetings remaining; "
-                   "ranges use role seniority, verified interviewer authority and confirmed hiring steps.")
-        st.caption("Higher scores mean stronger documented progression. "
-                   "Scores reflect stage, role fit, evidence recency and finalized "
-                   "interview reviews; they are not offer probabilities.")
-        with st.expander("How MTO is estimated for every new hiring process", expanded=False):
+    with st.expander("Historical model-stage comparison · not a live status register", expanded=False):
+        live = _live_opportunities(data, employer_plans)
+        if live:
+            top = live[0]
+            top_plan = employer_plans.get(str(top.get("process_key") or "").strip().casefold(), {})
+            current_label = top_plan.get("pending_stage_label") or _stage_title(top.get("stage"))
+            st.markdown(f"**Strongest verified route:** {top['employer']} — "
+                        f"{top['role']} ({current_label.lower()}).")
+            upcoming = top_plan.get("pending_stage_date") if top_plan.get("pending_stage_state") == "scheduled" else top.get("next_interview")
+            if upcoming:
+                st.caption(f"Next confirmed interview: {_pretty_date(upcoming)}. "
+                           "A scheduled interview is not counted as completed.")
+        else:
+            st.info("No confirmed active interview or human-response process is available.")
+
+        relevant = [
+            p for p in live if opportunity_evidence_score(p) is not None
+            and opportunity_evidence_score(p) >= 10
+        ][:7]
+        if relevant:
             st.markdown(
-                "**The engine is generic, not employer-coded.** A new vacancy starts "
-                "with a broad role-based meeting range (contract 2–3, senior functional "
-                "leader 3–5, manager/lead 3–4, executive 4–6, general hire 2–4). "
-                "These are transparent planning assumptions, **not calibrated market averages**."
+                opportunity_comparison_html(relevant, STAGE_NAMES, meeting_counts, meeting_details, employer_plans),
+                unsafe_allow_html=True,
             )
-            st.markdown(
-                "Each recorded, distinct **attended** interview is counted once. "
-                "Interviewer decision authority changes what may remain: recruiter "
-                "screening is early; hiring manager and stakeholder panels signal progress; "
-                "an accountable functional executive may be the final substantive conversation. "
-                "The executive title alone never proves formal final approval."
-            )
-            st.markdown(
-                "Employer-confirmed role-specific stage counts take precedence when documented. "
-                "A confirmed next interview sets a minimum of one further meeting. "
-                "Cancelled meetings, assessments, follow-ups and unverified calendar entries "
-                "never advance the count. New evidence updates the estimate automatically; "
-                "the title tooltip shows the reasoning, confidence and remaining range. "
-                "**MTO measures meetings conditional on continued selection, not offer probability.**"
-            )
+            st.caption("Held = documented attended meetings (cancelled or scheduled meetings excluded). "
+                       "MTO = estimated total meetings to an offer, not meetings remaining; "
+                       "ranges use role seniority, verified interviewer authority and confirmed hiring steps.")
+            st.caption("Higher scores mean stronger documented progression. "
+                       "Scores reflect stage, role fit, evidence recency and finalized "
+                       "interview reviews; they are not offer probabilities.")
+            with st.expander("How MTO is estimated for every new hiring process", expanded=False):
+                st.markdown(
+                    "**The engine is generic, not employer-coded.** A new vacancy starts "
+                    "with a broad role-based meeting range (contract 2–3, senior functional "
+                    "leader 3–5, manager/lead 3–4, executive 4–6, general hire 2–4). "
+                    "These are transparent planning assumptions, **not calibrated market averages**."
+                )
+                st.markdown(
+                    "Each recorded, distinct **attended** interview is counted once. "
+                    "Interviewer decision authority changes what may remain: recruiter "
+                    "screening is early; hiring manager and stakeholder panels signal progress; "
+                    "an accountable functional executive may be the final substantive conversation. "
+                    "The executive title alone never proves formal final approval."
+                )
+                st.markdown(
+                    "Employer-confirmed role-specific stage counts take precedence when documented. "
+                    "A confirmed next interview sets a minimum of one further meeting. "
+                    "Cancelled meetings, assessments, follow-ups and unverified calendar entries "
+                    "never advance the count. New evidence updates the estimate automatically; "
+                    "the title tooltip shows the reasoning, confidence and remaining range. "
+                    "**MTO measures meetings conditional on continued selection, not offer probability.**"
+                )
 
     st.markdown("**Post-interview assessment impact**")
     st.caption("Assessment quality and employer progression are separate signals. "

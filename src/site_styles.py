@@ -957,40 +957,145 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .evidence-cards-grid>.card:last-child{grid-column:auto}
 }
 
-/* Shared Where to next: use the available width on tablet instead of three
-   tall, nearly empty full-width cards. Preserve the standard destinations. */
-.site .about-next.portfolio-next{padding-block:clamp(45px,5vw,67px)}
-.site .portfolio-next .about-next-header{margin-bottom:24px;gap:clamp(16px,3vw,36px)}
-.site .portfolio-next .about-next-header h2{font-size:clamp(32px,3.8vw,48px)}
-.site .portfolio-next .about-next-grid{gap:14px}
-.site .portfolio-next a.about-next-card{min-height:224px;padding:22px 20px 19px}
-.site .portfolio-next .about-next-card-head{margin-bottom:14px}
-.site .portfolio-next .about-next-card-title{font-size:clamp(22px,2.35vw,29px)}
-.site .portfolio-next .about-next-card-description{margin:10px 0 17px;line-height:1.52}
-.site .portfolio-next .about-next-contact{margin-top:22px}
-@media(min-width:740px) and (max-width:900px){
+/* Portfolio-wide continuation footer: compact, edge-to-edge within page gutters.
+   Keep exactly three contextual destinations and use the same rules on native
+   Streamlit account pages, which copy this shared CSS after the base styles. */
+.site .about-next.portfolio-next{
+  padding:clamp(27px,3.1vw,42px) 0 clamp(25px,3vw,39px);
+}
+.site .portfolio-next>.container{
+  width:calc(100% - clamp(30px,5vw,88px));
+  max-width:none;
+  margin-inline:auto;
+}
+.site .portfolio-next .about-next-header{
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);
+  align-items:end;
+  gap:clamp(14px,3vw,52px);
+  margin-bottom:19px;
+}
+.site .portfolio-next .about-next-header .eyebrow{
+  margin-bottom:7px;
+  font-size:9px;
+}
+.site .portfolio-next .about-next-header h2{
+  max-width:none;
+  font-size:clamp(26px,2.6vw,36px);
+  line-height:1.11;
+}
+.site .portfolio-next .about-next-header>p{
+  max-width:650px;
+  font-size:13px;
+  line-height:1.5;
+}
+.site .portfolio-next .about-next-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:stretch;
+  gap:clamp(10px,1.25vw,16px);
+}
+.site .portfolio-next a.about-next-card{
+  min-height:0;
+  padding:17px clamp(14px,1.6vw,23px) 14px;
+  border-radius:6px;
+}
+.site .portfolio-next a.about-next-card::before{
+  width:65px;
+  height:2px;
+}
+.site .portfolio-next .about-next-card-head{
+  margin-bottom:9px;
+  gap:10px;
+}
+.site .portfolio-next .about-next-card-category{
+  font-size:9px;
+  line-height:1.35;
+}
+.site .portfolio-next .about-next-card-number{
+  font-size:20px;
+}
+.site .portfolio-next .about-next-card-title{
+  font-size:clamp(19px,1.8vw,24px);
+  line-height:1.16;
+}
+.site .portfolio-next .about-next-card-description{
+  margin:8px 0 13px;
+  font-size:12px;
+  line-height:1.5;
+}
+.site .portfolio-next .about-next-card-action{
+  gap:10px;
+  padding-top:10px;
+  font-size:11px;
+}
+.site .portfolio-next .about-next-card-arrow{
+  width:24px;
+  height:24px;
+  font-size:15px;
+}
+.site .portfolio-next .about-next-contact{
+  margin-top:16px;
+  padding-top:13px;
+  gap:10px 20px;
+  font-size:12px;
+}
+@media(max-width:820px){
   .site .portfolio-next .about-next-header{
-    grid-template-columns:minmax(0,1fr) minmax(0,.8fr);
-    align-items:start;
+    grid-template-columns:minmax(0,1fr);
+    gap:7px;
   }
+  .site .portfolio-next .about-next-header h2{
+    font-size:clamp(25px,3.8vw,32px);
+  }
+}
+@media(min-width:721px){
   .site .portfolio-next .about-next-grid{
     grid-template-columns:repeat(3,minmax(0,1fr));
   }
 }
-@media(min-width:601px) and (max-width:739px){
+@media(min-width:541px) and (max-width:720px){
   .site .portfolio-next .about-next-grid{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
   .site .portfolio-next .about-next-grid>a.about-next-card:last-child{
     grid-column:1/-1;
   }
-  .site .portfolio-next a.about-next-card{min-height:0}
 }
-@media(max-width:600px){
-  .site .portfolio-next .about-next-grid{grid-template-columns:minmax(0,1fr)}
-  .site .portfolio-next a.about-next-card{min-height:0;padding:19px}
-  .site .portfolio-next .about-next-header{grid-template-columns:minmax(0,1fr)}
+@media(max-width:540px){
+  .site .about-next.portfolio-next{padding:26px 0 25px}
+  .site .portfolio-next>.container{width:calc(100% - 28px)}
+  .site .portfolio-next .about-next-header{margin-bottom:14px}
+  .site .portfolio-next .about-next-header h2{font-size:26px}
+  .site .portfolio-next .about-next-header>p{font-size:12px}
+  .site .portfolio-next .about-next-grid{
+    grid-template-columns:minmax(0,1fr);
+    gap:9px;
+  }
+  .site .portfolio-next a.about-next-card{
+    min-height:0;
+    padding:14px 15px 12px;
+  }
+  .site .portfolio-next .about-next-card-head{margin-bottom:5px}
+  .site .portfolio-next .about-next-card-title{font-size:20px}
+  .site .portfolio-next .about-next-card-description{
+    margin:6px 0 10px;
+    font-size:11px;
+    line-height:1.4;
+  }
+  .site .portfolio-next .about-next-card-action{padding-top:8px}
+  .site .portfolio-next .about-next-contact{
+    align-items:flex-start;
+    flex-direction:column;
+    margin-top:13px;
+    padding-top:12px;
+  }
 }
+@media(prefers-reduced-motion:reduce){
+  .site .portfolio-next a.about-next-card{transition:none}
+}
+
+/* End shared portfolio continuation footer. */
 
 /* Contact direct routes: avoid an orphan third card and unused grid cell.
    Scoped to Contact; do not change other portfolio grids. */

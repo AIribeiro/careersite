@@ -809,6 +809,11 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       if (!el) return;
 
       const raw = String(el.dataset.hqEvent || '').toLowerCase();
+      // Count an evidence deep-dive when it is opened, not when a reader
+      // closes it again. Native details toggles after the capture listener.
+      // This is engagement intent, not proof of contact or hiring interest.
+      if (raw.startsWith('impact_case_') && el.tagName === 'SUMMARY' &&
+          el.parentElement?.tagName === 'DETAILS' && el.parentElement.open) return;
       // Record route intent *before* Streamlit navigates. This is distinct
       // from a destination page_view: a click is not proof of an arrival.
       try {{

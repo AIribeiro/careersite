@@ -113,4 +113,6 @@ def test_case_interactions_use_existing_private_first_party_cta_measurement():
     # CTA telemetry records a toggle click; it is not claimed as a verified open.
     assert "win.__jairAnalyticsSend('cta_click', ctaDescriptor)" in analytics
     assert "cta_click" in analytics
+    assert "raw.startsWith('impact_case_')" in analytics
+    assert "el.parentElement.open) return;" in analytics
     assert "data-hq-event" in impact_evidence()

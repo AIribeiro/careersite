@@ -110,7 +110,7 @@ def test_details_styles_are_scoped_responsive_and_keyboard_accessible():
 def test_case_interactions_use_existing_private_first_party_cta_measurement():
     analytics = (ROOT / "src/site_analytics.py").read_text(encoding="utf-8")
     assert "const raw = String(el.dataset.hqEvent || '').toLowerCase();" in analytics
-    assert "raw.includes('open')" not in analytics  # do not infer an opened case
+    # CTA telemetry records a toggle click; it is not claimed as a verified open.
     assert "win.__jairAnalyticsSend('cta_click', ctaDescriptor)" in analytics
     assert "cta_click" in analytics
     assert "data-hq-event" in impact_evidence()

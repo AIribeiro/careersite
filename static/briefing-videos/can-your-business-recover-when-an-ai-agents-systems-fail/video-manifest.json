@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "slug": "can-your-business-recover-when-an-ai-agents-systems-fail",
+  "status": "approved",
+  "approved_by_owner": true,
+  "article_fingerprint": "070f1921d257497db85d92bbc01efcd4a8cac17bd7f553f37255777d6f59e154",
+  "title": "Can Your Business Recover When an AI Agent's Systems Fail?",
+  "duration_seconds": 73.684807,
+  "web": {
+    "file": "preview.mp4",
+    "sha256": "6629e2bf31c95e42649ab6cb4b3c6a4de10193987c416262b88cd4cc6ca9bdff",
+    "size_bytes": 2566134,
+    "delivery": "supabase-public-storage",
+    "public_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/executive-briefings/can-your-business-recover-when-an-ai-agents-systems-fail/preview-v1-6629e2bf.mp4",
+    "git_binary_available": false
+  },
+  "poster": {
+    "file": "poster.jpg",
+    "sha256": "dd1b03f775b65d86874c86f5aae952b64faee60d8ec34a51795d49e3673c3725"
+  }
+}

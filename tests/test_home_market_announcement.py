@@ -50,8 +50,14 @@ class ExecutiveHomeAnnouncementTests(unittest.TestCase):
         self.assertIs(demo["promote_home"],False)
 
     def test_home_markup_clearly_explains_offer_and_links_to_main_service(self):
+        # Verify this announcement as it appeared at its release. Current
+        # Home may correctly promote a newer publication or portfolio page.
         with patch.object(news,"_credential_items",return_value=()):
-            markup=news.home_whats_new()
+            original = news.latest_local_release(
+                datetime(2026,11,17,12,0,tzinfo=timezone.utc)
+            )
+            with patch.object(news,"latest_local_release",return_value=original):
+                markup=news.home_whats_new()
         self.assertIn(escape(TITLE),markup)
         self.assertIn("recruitment demand",markup)
         self.assertIn("three outlook scenarios",markup)

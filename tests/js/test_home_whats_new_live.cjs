@@ -5,6 +5,14 @@ const assert = require('node:assert/strict');
 // Run the actual script emitted by inject_live_home_update(), with a small
 // mocked DOM and two published CMS records. No external services are called.
 const html = fs.readFileSync(0, 'utf8');
+// The local published release advances during November; a fixed November 18
+// mock eventually becomes older than the site's first frame. Keep the new
+// fixture newer than that actual baseline without changing production code.
+const baselineLiteral = html.match(/const localPublished = Date\.parse\(("[^"]+")\);/);
+assert.ok(baselineLiteral, 'Injected script must declare the local release time');
+const localTime = Date.parse(JSON.parse(baselineLiteral[1]));
+assert.ok(Number.isFinite(localTime), 'Local release timestamp must be valid');
+const publishedAt = new Date(Math.max(localTime, Date.parse('2026-11-18T12:40:21Z')) + 3600000).toISOString();
 const match = html.match(/<script>([\s\S]*?)<\/script>/);
 assert.ok(match, 'Injected live feed script must exist');
 const elements = {
@@ -42,7 +50,7 @@ globalThis.fetch = async (url, opts) => {
     {
       title: 'AI Adoption Is Not One Problem: Four Leadership Responses',
       slug: 'ai-adoption-four-leadership-responses',
-      kind: 'Executive Briefing', published_at: '2026-11-18T12:40:21.959975+00:00',
+      kind: 'Executive Briefing', published_at: publishedAt,
       subtitle: 'Four separate leadership decisions.'
     }
   ];}};
@@ -53,7 +61,7 @@ globalThis.setInterval = (callback, ms) => {intervalMs = ms; refreshInterval = c
 globalThis.AbortController = class {signal = {}; abort() {}};
 // Clock is fixed so future CMS issues can be tested against a published
 // November 17 market research edition, irrespective of CI wall-clock time.
-Date.now = () => Date.parse('2026-11-19T09:00:00+00:00');
+Date.now = () => Date.parse(publishedAt) + 3600000;
 vm.runInThisContext(match[1]);
 setImmediate(async () => {
   try {

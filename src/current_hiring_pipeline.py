@@ -55,7 +55,17 @@ def current_rows(sources: dict) -> list[dict]:
     }
     seen = set()
     rows = []
-    for review in sources["priorities"]:
+    # The RPC is a current snapshot with potential historical reviews.
+    # Resolve each requisition against its latest review, not row-return order.
+    latest_first = sorted(
+        sources["priorities"],
+        key=lambda item: (
+            str(item.get("reviewed_on") or ""),
+            -int(item.get("rank_position") or 9999),
+        ),
+        reverse=True,
+    )
+    for review in latest_first:
         key = str(review.get("opportunity_id"))
         if key in seen:
             continue

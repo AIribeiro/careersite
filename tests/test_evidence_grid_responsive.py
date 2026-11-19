@@ -32,16 +32,23 @@ def test_tablet_grids_do_not_leave_a_blank_right_hand_cell() -> None:
     assert ".site .evidence-cards-grid{grid-template-columns:minmax(0,1fr);gap:12px}" in css
 
 
-def test_shared_next_navigation_uses_tablet_width_and_remains_standard() -> None:
+def test_shared_next_navigation_uses_current_tablet_and_masked_frame_breakpoints() -> None:
+    # The compact three-column footer was updated after this test originally
+    # assumed the retired 740-900px breakpoint. Preserve the actual live
+    # desktop / tablet / masked-frame contract rather than reintroducing the
+    # earlier cramped layout merely to satisfy a stale expectation.
     css = _read("src/site_styles.py")
     nav = _read("src/about_next_navigation.py")
-    assert "@media(min-width:740px) and (max-width:900px)" in css
+    assert "@media(min-width:721px)" in css
     assert ".site .portfolio-next .about-next-grid{" in css
     assert "grid-template-columns:repeat(3,minmax(0,1fr));" in css
-    assert "@media(min-width:601px) and (max-width:739px)" in css
+    assert "@media(min-width:541px) and (max-width:720px)" in css
+    assert "@media(min-device-width:541px) and (max-device-width:720px)" in css
     assert ".site .portfolio-next .about-next-grid>a.about-next-card:last-child{" in css
     assert "grid-column:1/-1;" in css
-    assert ".site .portfolio-next a.about-next-card{min-height:0;padding:19px}" in css
+    assert "@media(max-width:540px)" in css
+    assert ".site .portfolio-next a.about-next-card{" in css
+    assert "min-height:0;" in css
     assert "Continue exploring the portfolio" in nav
     assert 'class="about-next portfolio-next"' in nav
 

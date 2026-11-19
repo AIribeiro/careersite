@@ -5,8 +5,9 @@ No networking interaction is promoted to an interview, vacancy or offer.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from html import escape
+from zoneinfo import ZoneInfo
 
 import streamlit as st
 
@@ -26,7 +27,7 @@ def fetch_current_pipeline(token: str) -> dict:
     )
     if not isinstance(response, dict) or not all(
         isinstance(response.get(key), list)
-        for key in ("opportunities", "priorities", "statuses", "strategic")
+        for key in ("opportunities", "priorities", "statuses", "strategic", "unreviewed_active", "sync_runs")
     ):
         raise RuntimeError("Current owner-only hiring summary is unavailable")
     return response
@@ -49,10 +50,10 @@ STAGE_LABELS = {
 def current_rows(sources: dict) -> list[dict]:
     """Select the newest review per exact requisition; exclude dormant and closed."""
     opportunities = {str(row.get("id")): row for row in sources["opportunities"]}
-    statuses = {
-        str(row.get("source_ref")): row for row in sources["statuses"]
-        if row.get("source_type") == "managed"
-    }
+    statuses = {}
+    for item in sorted(sources["statuses"], key=lambda x: str(x.get("updated_at") or ""), reverse=True):
+        if item.get("source_type") == "managed":
+            statuses.setdefault(str(item.get("source_ref")), item)
     seen = set()
     rows = []
     # The RPC is a current snapshot with potential historical reviews.
@@ -60,7 +61,7 @@ def current_rows(sources: dict) -> list[dict]:
     latest_first = sorted(
         sources["priorities"],
         key=lambda item: (
-            str(item.get("reviewed_on") or ""),
+            str(item.get("reviewed_at") or item.get("reviewed_on") or ""),
             -int(item.get("rank_position") or 9999),
         ),
         reverse=True,
@@ -91,7 +92,15 @@ def current_rows(sources: dict) -> list[dict]:
             stage = "Recruiter replied · no interview confirmed"
         if status.get("status") == "recruiter_replied" and stage_key == "video_assessment_completed":
             stage = "Video assessment completed · recruiter responded"
+        review_timestamp = _parse_timestamp(review.get("reviewed_at") or review.get("reviewed_on"))
+        status_timestamp = _parse_timestamp(status.get("updated_at"))
+        review_lags_response = bool(
+            review_timestamp and status_timestamp and status_timestamp > review_timestamp
+        )
         rows.append({
+            "rank_needs_review": review_lags_response,
+            "reviewed_at": review.get("reviewed_at") or review.get("reviewed_on"),
+            "status_updated_at": status.get("updated_at"),
             "id": key,
             "employer": str(op.get("employer") or ""),
             "role": str(op.get("role_title") or ""),

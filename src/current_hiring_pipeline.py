@@ -204,6 +204,8 @@ def _short(value: object, size: int = 185) -> str:
 def _row_html(row: dict) -> str:
     when = _safe(row.get("event_date"))
     meta = ("Recorded " + when) if when else "Date unverified"
+    if row.get("rank_needs_review"):
+        meta += " · Priority review older than recruiter update"
     return (
         '<div class="current-pipeline__row">'
         '<div><div class="current-pipeline__name">' + _safe(row["employer"]) +
@@ -232,10 +234,28 @@ def render_current_pipeline(sources: dict) -> bool:
     strategic = strategic_rows(sources)
     st.subheader("Current opportunities and conversations")
     st.caption(
-        "Live owner-only Supabase records. Stages follow recorded employer evidence; "
-        "priority is a planning judgement, not an offer probability. "
-        "Exploratory contacts do not count as applications or interviews."
+        "Owner-only Supabase records. Status is based on stored evidence; "
+        "P1/P2/P3 is a human priority assessment, not an offer probability. "
+        "Executive networking is not an application or interview."
     )
+    health = freshness_status(sources)
+    st.caption(
+        "Database read: " + _stockholm_time(health["generated_at"]) +
+        " · Last stored recruiting change: " +
+        _stockholm_time(health["latest_source_change"])
+    )
+    if health["last_mailbox_check"]:
+        st.caption("Last recorded mailbox check: " +
+                   _stockholm_time(health["last_mailbox_check"]) +
+                   " · Database refresh does not scan new emails.")
+    else:
+        st.caption("Mailbox verification: no recorded check yet.")
+    if health["source_check_stale"]:
+        st.warning("Mailbox verification is missing, partial or older than 36 hours. "
+                   "Recorded statuses may be accurate, but are not confirmed current.")
+    elif health["source_check_partial"]:
+        st.warning("A mailbox check was partial or failed; inspect the source-sync record.")
+
     if strategic:
         st.markdown("**Strategic conversations · no advertised vacancy confirmed**")
         for entry in strategic:
@@ -261,6 +281,19 @@ def render_current_pipeline(sources: dict) -> bool:
     if other:
         with st.expander(f"Other monitored applications · {len(other)}"):
             _render_rows(other)
-    if not rows and not strategic:
+    unreviewed = sources.get("unreviewed_active") or []
+    if unreviewed:
+        with st.expander(f"New opportunities awaiting priority assessment · {len(unreviewed)}"):
+            for item in unreviewed:
+                st.markdown("**" + _safe(item.get("employer")) + "** · " +
+                            _safe(item.get("role_title")) +
+                            " — recorded active; no confirmed interview or priority rank.")
+    needs_review = [row for row in rows if row.get("rank_needs_review")]
+    if needs_review:
+        st.caption(
+            f"{len(needs_review)} priority assessment(s) predate newer status evidence; "
+            "stages reflect new status, but priority ranks need review."
+        )
+    if not rows and not strategic and not unreviewed:
         st.info("No recent, evidence-backed active opportunity was found in the current review.")
-    return bool(rows or strategic)
+    return bool(rows or strategic or unreviewed)

@@ -19,7 +19,7 @@ def home_evidence() -> str:
 
 def impact_evidence() -> str:
     return '''<section class="section paper" id="operating-evidence" data-analytics-section="leadership-operating-evidence"><div class="container">
-<div class="head"><div><p class="eyebrow">Selected work</p><h2>What I led and what changed.</h2></div><p>Short cases from international enterprise roles. Employer details are omitted where the operating lesson matters more than the name.</p></div>
+<div class="head" style="display:block;max-width:940px;margin-bottom:32px"><p class="eyebrow">Selected work</p><h2>What I led and what changed.</h2><p style="margin:17px 0 0;max-width:890px">These are selected examples, not an exhaustive record of my work. They show where my leadership helped move AI and Data work forward—by testing new approaches, improving investment decisions or building the foundations for adoption. Each case explains my contribution, what changed and where the outcome had limits.</p></div>
 <article class="card" id="customer-interview-analyzer" style="margin-bottom:18px"><span class="org">01 · GenAI product development · Global industrial enterprise</span><h3>Turning customer interviews into product insight.</h3>
 <p><strong>Problem.</strong> Product teams ran hundreds of customer interviews, sometimes lasting two hours, with comparable time needed to review each recording manually.</p>
 <p><strong>My role.</strong> I led development of a working GenAI prototype with business and technical colleagues. It transcribed and translated interviews, summarized conversations and extracted structured feedback for product owners. We tested multilingual processing and assessed quality, cost and what enterprise use would require.</p>

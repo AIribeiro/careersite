@@ -8,7 +8,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from page_live_hiring_stages import stage_display_rows, meeting_summary
+from page_live_hiring_stages import stage_display_rows, meeting_summary, stage_board_html
 from page_followup_manager import (
     stale_correspondence, guard_send_checkpoint, new_live_engagements,
 )
@@ -56,6 +56,34 @@ def snapshot() -> dict:
 
 
 class LiveHiringStageTests(unittest.TestCase):
+    def test_stage_board_is_responsive_card_grid_not_native_data_table(self):
+        rows = stage_display_rows(snapshot(), [])
+        html = stage_board_html(rows)
+        self.assertIn("Where current opportunities stand", html)
+        self.assertIn('class="hiring-board__item"', html)
+        self.assertIn("@media(max-width:920px)", html)
+        self.assertIn("@media(max-width:670px)", html)
+        self.assertNotIn("LeoVegas", html)
+        self.assertNotIn("<table", html)
+        self.assertNotIn("probability of receiving", html)
+
+    def test_stage_card_escapes_employer_and_role_inputs(self):
+        rows = stage_display_rows(snapshot(), [])
+        rows[0]["employer"] = '<img src=x onerror=alert(1)>'
+        rows[0]["role"] = "<script>bad()</script>"
+        html = stage_board_html(rows)
+        self.assertIn("&lt;img", html)
+        self.assertIn("&lt;script&gt;", html)
+        self.assertNotIn("<img", html)
+        self.assertNotIn("<script>bad", html)
+
+    def test_unknown_attendance_not_rendered_as_no_meetings(self):
+        rows = stage_display_rows(snapshot(), None)
+        html = stage_board_html(rows)
+        self.assertIn("Meeting ledger unavailable", html)
+        self.assertIn("Unverified", html)
+        self.assertNotIn("None held", html)
+
     def test_canonical_records_override_old_model_and_exclude_rejected(self):
         rows = stage_display_rows(snapshot(), [])
         self.assertEqual([x["employer"] for x in rows],

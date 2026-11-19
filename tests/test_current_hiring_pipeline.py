@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from datetime import datetime, timezone
 import sys
 import unittest
 from unittest.mock import patch
@@ -9,7 +10,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from current_hiring_pipeline import (
-    current_rows, strategic_rows, fetch_current_pipeline, _row_html,
+    current_rows, strategic_rows, fetch_current_pipeline, freshness_status, _row_html,
 )
 
 
@@ -37,10 +38,16 @@ def fixtures():
         ],
         "statuses": [
             {"source_type": "managed", "source_ref": "46", "status": "recruiter_replied",
+             "updated_at": "2026-11-19T08:00:00Z",
              "status_on": "2026-11-19", "status_note": "Profile looks good; no meeting"},
             {"source_type": "managed", "source_ref": "47", "status": "recruiter_replied",
+             "updated_at": "2026-11-18T17:20:00Z",
              "status_on": "2026-11-18", "status_note": "Video acknowledged"},
         ],
+        "unreviewed_active": [],
+        "sync_runs": [],
+        "generated_at": "2026-11-19T12:00:00Z",
+        "source_watermarks": {"opportunities": "2026-11-19T08:00:00Z"},
         "strategic": [
             {"employer": "Nexer Insight",
              "access_status": "direct_executive_conversation",
@@ -65,7 +72,8 @@ class CurrentHiringPipelineTests(unittest.TestCase):
     def test_ignored_followups_do_not_reactivate_closed_processes(self):
         sources = fixtures()
         sources["statuses"].append(
-            {"source_type": "managed", "source_ref": "47", "status": "ignored"}
+            {"source_type": "managed", "source_ref": "47", "status": "ignored",
+             "updated_at": "2026-11-19T18:00:00Z"}
         )
         self.assertEqual([x["employer"] for x in current_rows(sources)], ["Agile"])
 
@@ -78,6 +86,26 @@ class CurrentHiringPipelineTests(unittest.TestCase):
             self.assertEqual(call.call_args.kwargs["token"], "owner-token")
         with self.assertRaises(ValueError):
             fetch_current_pipeline("")
+
+    def test_source_checks_never_equate_to_database_reads(self):
+        sources = fixtures()
+        now = datetime(2026, 11, 19, 12, tzinfo=timezone.utc)
+        health = freshness_status(sources, now)
+        self.assertTrue(health["source_check_stale"])
+        self.assertIsNone(health["last_mailbox_check"])
+        sources["sync_runs"] = [
+            {"source_name": "gmail", "check_status": "checked",
+             "checked_at": "2026-11-19T08:00:00+00:00"},
+            {"source_name": "outlook", "check_status": "checked",
+             "checked_at": "2026-11-19T08:00:00+00:00"},
+        ]
+        self.assertFalse(freshness_status(sources, now)["source_check_stale"])
+
+    def test_priority_review_is_flagged_after_new_recruiter_evidence(self):
+        sources = fixtures()
+        sources["priorities"][1]["reviewed_at"] = "2026-11-18T10:00:00Z"
+        agile = next(x for x in current_rows(sources) if x["employer"] == "Agile")
+        self.assertTrue(agile["rank_needs_review"])
 
     def test_user_supplied_html_is_escaped(self):
         row = current_rows(fixtures())[0]

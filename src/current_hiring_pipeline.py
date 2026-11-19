@@ -297,3 +297,39 @@ def render_current_pipeline(sources: dict) -> bool:
     if not rows and not strategic and not unreviewed:
         st.info("No recent, evidence-backed active opportunity was found in the current review.")
     return bool(rows or strategic or unreviewed)
+
+
+
+@st.fragment(run_every="5m")
+def render_current_pipeline_auto(token: str, model_latest: str = "") -> None:
+    """Read-through every five minutes while open and when the owner clicks refresh."""
+    st.button(
+        "Check Supabase now",
+        key="hiring_live_manual_refresh",
+        help="Reload stored recruiting records. This does not scan Gmail, Outlook or LinkedIn.",
+    )
+    try:
+        sources = fetch_current_pipeline(token)
+    except (RuntimeError, TimeoutError, ValueError, PermissionError):
+        st.error("Live hiring data could not be retrieved. Cached statuses are not shown as current.")
+        return
+
+    render_current_pipeline(sources)
+    last_priority = max(
+        (str(x.get("reviewed_on") or "") for x in sources.get("priorities", [])),
+        default="",
+    )
+    last_source = max(
+        (str(value or "")[:10]
+         for value in (sources.get("source_watermarks") or {}).values()),
+        default="",
+    )
+    if model_latest and max(last_priority, last_source) > str(model_latest)[:10]:
+        st.info(
+            "The separate forecast model may not yet account for newer employer evidence. "
+            "Its timing and credibility figures are provisional."
+        )
+    st.caption(
+        "Auto-checks Supabase every 5 minutes while this page remains open, "
+        "and also on reopening or manual refresh."
+    )

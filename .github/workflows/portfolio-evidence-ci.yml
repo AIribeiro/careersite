@@ -27,6 +27,7 @@ on:
       - "tests/test_home_grid_layout.py"
       - "tests/test_home_case_order.py"
       - "tests/test_impact_case_consistency.py"
+      - "tests/test_operating_evidence_release.py"
       - "tests/test_public_copy_guard.py"
       - "tests/test_career_consistency.py"
       - ".github/workflows/portfolio-evidence-ci.yml"
@@ -56,6 +57,7 @@ on:
       - "tests/test_home_grid_layout.py"
       - "tests/test_home_case_order.py"
       - "tests/test_impact_case_consistency.py"
+      - "tests/test_operating_evidence_release.py"
       - "tests/test_public_copy_guard.py"
       - "tests/test_career_consistency.py"
       - ".github/workflows/portfolio-evidence-ci.yml"
@@ -83,6 +85,7 @@ jobs:
             tests/test_home_grid_layout.py \
             tests/test_home_case_order.py \
             tests/test_impact_case_consistency.py \
+            tests/test_operating_evidence_release.py \
             tests/test_public_copy_guard.py \
             tests/test_career_consistency.py \
             tests/test_msx_dates.py \

@@ -1062,6 +1062,15 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
     grid-column:1/-1;
   }
 }
+/* A masked branded frame can report desktop layout width on a small tablet. */
+@media(min-device-width:541px) and (max-device-width:720px){
+  .site .portfolio-next .about-next-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .site .portfolio-next .about-next-grid>a.about-next-card:last-child{
+    grid-column:1/-1;
+  }
+}
 @media(max-width:540px){
   .site .about-next.portfolio-next{padding:26px 0 25px}
   .site .portfolio-next>.container{width:calc(100% - 28px)}

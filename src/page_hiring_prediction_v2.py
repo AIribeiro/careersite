@@ -14,7 +14,7 @@ import streamlit as st
 from site_cms import _request_json, _rest_url
 from hiring_opportunity_comparison import opportunity_comparison_html, opportunity_evidence_score
 from hiring_stage_inference import resolve_stage
-from current_hiring_pipeline import fetch_current_pipeline, render_current_pipeline
+from current_hiring_pipeline import render_current_pipeline_auto
 
 VERSION = "hiring-v2-stage-review-v1"  # Accepted historical stage model
 CURRENT_VERSION = "hiring-v4-stage-review-market-live-v1"
@@ -368,32 +368,16 @@ def render_hiring_prediction_v2(data: dict) -> dict:
         except (RuntimeError, TimeoutError, ValueError, PermissionError):
             st.caption("Meeting ledger unavailable; counts are not inferred from interview stages.")
 
-    # Current owner records take precedence over model-generated historical ranks.
+    # This fragment refreshes independently. The forecast above is a separate,
+    # potentially lagging planning model; it is never presented as the live register.
     if owner_token:
-        try:
-            current_pipeline = fetch_current_pipeline(owner_token)
-            render_current_pipeline(current_pipeline)
-            newest_review = max(
-                (str(item.get("reviewed_on") or "")
-                 for item in current_pipeline.get("priorities", [])),
-                default="",
-            )
-            model_latest = max(
-                (str(item.get("last_progress") or "")
-                 for item in data.get("top_processes", [])),
-                default="",
-            )
-            if newest_review and model_latest and newest_review > model_latest:
-                st.warning(
-                    "The forecast's timing and credibility scores may lag the newer "
-                    "recruiting evidence shown above. Treat the current opportunity "
-                    "records as authoritative for status and progression."
-                )
-        except (RuntimeError, TimeoutError, ValueError, PermissionError) as exc:
-            st.warning("The current recruiting records are temporarily unavailable. "
-                       "Historical model comparisons are retained below.")
+        model_latest = max(
+            (str(p.get("last_progress") or "") for p in data.get("top_processes", [])),
+            default="",
+        )
+        render_current_pipeline_auto(owner_token, model_latest)
     else:
-        st.caption("Owner sign-in is required for the current recruiting pipeline.")
+        st.caption("Owner sign-in is required to inspect the current recruiting pipeline.")
 
     with st.expander("Historical model-stage comparison · not a live status register", expanded=False):
         live = _live_opportunities(data, employer_plans)

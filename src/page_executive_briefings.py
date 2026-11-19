@@ -1184,6 +1184,10 @@ def executive_briefing_article(
         if match:
             roi_inline_visual = match.group(0)
             body_html = body_html[:match.start()] + body_html[match.end():]
+    from briefing_infographic_engine import source_fingerprint
+    from briefing_reader_preview_video import render_briefing_video_preview
+
+    video = render_briefing_video_preview(article.slug, source_fingerprint=source_fingerprint(article))
     full_article = (
         '<details class="briefing-reader-detail" data-analytics-section="briefing-reader-full-article">'
         '<summary>Read the full reasoning, application example and source references</summary>'
@@ -1194,7 +1198,7 @@ def executive_briefing_article(
         '<div class="briefing-full-content-head"><span class="briefings-index">The full briefing</span>'
         '<h2>Reasoning, examples and practical considerations</h2>'
         '<p>The complete published perspective, with the reasoning and operational considerations behind the decision.</p></div>'
-        f'<div class="article-body briefing-reader-research">{body_html}{tags}{source}</div>'
+        f'{video}<div class="article-body briefing-reader-research">{body_html}{tags}{source}</div>'
         '</article>'
     )
     summary_text = (

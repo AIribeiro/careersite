@@ -5,7 +5,7 @@ outbound email occurs when this page is opened.
 """
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 import re
 
 import streamlit as st
@@ -20,7 +20,7 @@ ACTION_NAMES = {
     "hold": "Hold / review",
 }
 ACTION_ORDER = {"follow_up_now": 0, "upcoming": 1, "wait": 2, "hold": 3}
-EXCLUDED_OUTCOMES = {"rejected", "cancelled", "canceled", "withdrawn"}
+EXCLUDED_OUTCOMES = {"rejected", "cancelled", "canceled", "withdrawn", "closed", "hired", "offer_accepted"}
 
 
 def _is_eligible(row: dict, engaged_ids: set[int]) -> bool:
@@ -29,6 +29,48 @@ def _is_eligible(row: dict, engaged_ids: set[int]) -> bool:
         int(row.get("opportunity_id") or 0) in engaged_ids
         and str(row.get("outcome") or "unknown").strip().lower() not in EXCLUDED_OUTCOMES
     )
+
+
+def stale_correspondence(row: dict, now: datetime | None = None) -> bool:
+    """Never authorize a send recommendation on a stale mailbox check."""
+    when = row.get("source_checked_at")
+    if not when:
+        return True
+    try:
+        checked = datetime.fromisoformat(str(when).replace("Z", "+00:00"))
+        if checked.tzinfo is None:
+            checked = checked.replace(tzinfo=timezone.utc)
+        now = now or datetime.now(timezone.utc)
+        return checked < now - timedelta(hours=36)
+    except (TypeError, ValueError, OverflowError):
+        return True
+
+
+def guard_send_checkpoint(row: dict, now: datetime | None = None) -> dict:
+    """Downgrade a stale proposed send to evidence review; preserve due date."""
+    if row.get("action") != "follow_up_now" or not stale_correspondence(row, now):
+        return row
+    return {
+        **row, "action": "hold", "needs_source_check": True,
+        "decision_reason": (
+            "Follow-up checkpoint passed, but correspondence verification is stale. "
+            "Recheck Outlook/Gmail before any new message."
+        ),
+    }
+
+
+def new_live_engagements(sources: dict, tracked_ids: set[int]) -> list[dict]:
+    """Show the newest engaged opportunities absent from the legacy follow-up register."""
+    from current_hiring_pipeline import current_rows
+    match = (
+        "Recruiter replied", "Video assessment completed",
+        "Introduction scheduled", "Recruiter qualified",
+        "Representation authorized",
+    )
+    return [
+        r for r in current_rows(sources)
+        if int(r["id"]) not in tracked_ids and r["stage"].startswith(match)
+    ]
 
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -202,16 +244,18 @@ def _draft(row: dict, token: str) -> None:
             st.rerun()
 
 
+@st.fragment(run_every="5m")
 def render_followup_manager(session: dict) -> None:
     token = str(session["access_token"])
     st.title("Live hiring follow-up manager")
     st.caption(
         "Owner-only · positive human recruiter/hiring-team contact or interview required · "
         "Swedish business-day timing · manual email delivery. "
-        "Snapshot-driven: opening this page does not sync Outlook or Gmail."
+        "Live Supabase reads every five minutes while open. "
+        "Opening this page does not sync Outlook or Gmail."
     )
-    if st.button("Refresh decisions", key="followup_refresh"):
-        st.rerun()
+    st.button("Refresh decisions", key="followup_refresh",
+              help="Re-read saved Supabase statuses; no email is sent or scanned.")
     from page_followup_application_coverage import (
         fetch_engaged, render_application_coverage,
     )
@@ -225,6 +269,33 @@ def render_followup_manager(session: dict) -> None:
         int(r["opportunity_id"])
         for r in engaged if r.get("source_type") == "managed" and r.get("opportunity_id")
     }
+    try:
+        from current_hiring_pipeline import fetch_current_pipeline, strategic_rows, freshness_status
+        latest = fetch_current_pipeline(token)
+        added = new_live_engagements(latest, engaged_ids)
+        strategic = strategic_rows(latest)
+        health = freshness_status(latest)
+        if health["source_check_stale"]:
+            st.warning("Mailbox verification is missing or overdue. These are stored "
+                       "Supabase events, not freshly checked mail.")
+        if added:
+            st.markdown(f"**Recent recruiting contacts not yet in the follow-up register · {len(added)}**")
+            for item in added:
+                st.caption(
+                    f"{item['employer']} · {item['role']} — {item['stage']}. "
+                    f"Next: {item.get('next_action') or 'Verify the next employer milestone'}"
+                )
+            st.caption("These contacts require process review, not automatic follow-up emails.")
+        if strategic:
+            st.markdown("**Exploratory executive relationships · not applications**")
+            for item in strategic:
+                st.caption(
+                    f"{item.get('employer')} · {item.get('contact_name') or 'Contact'}"
+                    " — potential introductory discussion; no verified hiring process."
+                )
+    except (RuntimeError, TimeoutError, ValueError, PermissionError):
+        st.warning("The current opportunity overlay is unavailable. "
+                   "Legacy follow-up rows below may omit recent recruiter activity.")
     from page_followup_history import (
         fetch_history_all, fetch_recruiter_contacts_all, contacts_panel,
     )
@@ -250,6 +321,7 @@ def render_followup_manager(session: dict) -> None:
                 ),
                 "is_archived": bool(engaged_by_id[int(r["opportunity_id"])].get("is_archived")),
                 "manual_status": engaged_by_id[int(r["opportunity_id"])].get("manual_status", "tracking"),
+                "engagement_basis": engaged_by_id[int(r["opportunity_id"])].get("engagement_basis"),
             }
             for r in records if _is_eligible(r, engaged_ids)
         ],
@@ -259,6 +331,9 @@ def render_followup_manager(session: dict) -> None:
             r.get("due_date") or "9999-12-31",
         ),
     )
+    tracked = [
+        guard_send_checkpoint(row) for row in tracked
+    ]
     active_tracked = [r for r in tracked if not r.get("is_archived")]
     counts = {key: sum(r.get("action") == key for r in active_tracked) for key in ACTION_NAMES}
     cols = st.columns(4)
@@ -268,7 +343,8 @@ def render_followup_manager(session: dict) -> None:
     active_engaged = [r for r in engaged if not r.get("is_archived")]
     confirmed = sum(str(r.get("outcome") or "").strip().lower() == "in_progress" for r in active_tracked)
     unresolved = len(active_tracked) - confirmed
-    app_only = sum(not r.get("interview_date") for r in active_tracked)
+    app_only = sum(not r.get("interview_date") or r.get("engagement_basis") == "recruiter_screening_completed"
+                   for r in active_tracked)
     st.caption(
         f"{len(active_engaged)} engaged hiring processes · {len(active_tracked)} in the managed "
         f"interview/contact register · {len(active_engaged) - len(active_tracked)} additional "
@@ -336,10 +412,14 @@ def render_followup_manager(session: dict) -> None:
                     "subsequent recorded recruiter reply. Further chasing is on hold."
                 )
             if row.get("interview_date"):
-                st.caption(
-                    f"Last verified interview: {_day(row['interview_date'])} "
-                    f"· Round {row.get('stage') or '?'}"
-                )
+                if proof.get("engagement_basis") == "recruiter_screening_completed":
+                    st.caption(f"Last verified recruiter screening: {_day(row['interview_date'])}"
+                               " · not a client or hiring-manager interview")
+                else:
+                    st.caption(
+                        f"Last verified interview: {_day(row['interview_date'])} "
+                        f"· Round {row.get('stage') or '?'}"
+                    )
             elif row.get("application_date"):
                 st.caption("Application: " + _day(row["application_date"]) + " · no completed interview recorded")
             else:

@@ -248,6 +248,7 @@ def _draft(row: dict, token: str) -> None:
 def render_followup_manager(session: dict) -> None:
     token = str(session["access_token"])
     st.title("Live hiring follow-up manager")
+    st.caption("Follow-up evidence view · release 2026-11-19.2")
     st.caption(
         "Owner-only · positive human recruiter/hiring-team contact or interview required · "
         "Swedish business-day timing · manual email delivery. "

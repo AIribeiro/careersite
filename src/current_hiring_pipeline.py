@@ -147,6 +147,51 @@ background:rgba(130,150,170,.035);align-items:start}
 """
 
 
+def _parse_timestamp(value: object) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed
+    except (ValueError, TypeError):
+        return None
+
+
+def _stockholm_time(value: object) -> str:
+    dt = _parse_timestamp(value)
+    if not dt:
+        return "Unknown"
+    return dt.astimezone(ZoneInfo("Europe/Stockholm")).strftime("%d %b %Y %H:%M %Z")
+
+
+def freshness_status(sources: dict, now: datetime | None = None) -> dict:
+    """Database reads, changed records and external checks are separate clocks."""
+    now = now or datetime.now(timezone.utc)
+    snapshots = sources.get("source_watermarks") or {}
+    latest = max(
+        (dt for dt in (_parse_timestamp(x) for x in snapshots.values()) if dt),
+        default=None,
+    )
+    checks = [x for x in (sources.get("sync_runs") or [])
+              if x.get("source_name") in ("gmail", "outlook")]
+    last_mailbox_check = max(
+        (t for t in (_parse_timestamp(x.get("checked_at")) for x in checks) if t),
+        default=None,
+    )
+    both_checked = {x.get("source_name") for x in checks
+                    if x.get("check_status") == "checked"
+                    and (_parse_timestamp(x.get("checked_at")) or datetime.min.replace(tzinfo=timezone.utc))
+                    >= now - timedelta(hours=36)}
+    return {
+        "generated_at": sources.get("generated_at"),
+        "latest_source_change": latest,
+        "last_mailbox_check": last_mailbox_check,
+        "source_check_stale": both_checked != {"gmail", "outlook"},
+        "source_check_partial": any(x.get("check_status") != "checked" for x in checks),
+        "unreviewed": len(sources.get("unreviewed_active") or []),
+    }
+
+
 def _safe(value: object) -> str:
     return escape(str(value or ""), quote=True)
 

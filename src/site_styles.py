@@ -957,6 +957,62 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .evidence-cards-grid>.card:last-child{grid-column:auto}
 }
 
+/* AI Leadership: progressive evidence, no new page or Home layout changes.
+   Native details/summary remains usable without JavaScript and on masked mobile. */
+.site #operating-evidence .evidence-context-links{
+  display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;
+  margin-top:20px;padding-top:15px;border-top:1px solid var(--line);
+}
+.site #operating-evidence .evidence-context-links>span{
+  color:var(--muted);font:700 10px/1.5 Arial,sans-serif;
+  letter-spacing:.08em;text-transform:uppercase;white-space:nowrap
+}
+.site #operating-evidence .evidence-context-links>a{
+  color:var(--ink)!important;text-decoration:none;
+  border-bottom:1px solid rgba(154,96,58,.58);
+  font:650 12px/1.55 Arial,sans-serif;padding:4px 0;
+  overflow-wrap:anywhere
+}
+.site #operating-evidence .evidence-context-links>a:hover{color:var(--copper)!important}
+.site #operating-evidence .card[id]{scroll-margin-top:24px}
+.site #operating-evidence .evidence-deep-dive{
+  border-top:1px solid var(--line);margin-top:20px;padding-top:13px;
+}
+.site #operating-evidence .evidence-deep-dive>summary{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  cursor:pointer;list-style:none;color:var(--ink);
+  font:700 12px/1.5 Arial,sans-serif;
+  padding:5px 0;min-height:36px;overflow-wrap:anywhere;
+}
+.site #operating-evidence .evidence-deep-dive>summary::-webkit-details-marker{display:none}
+.site #operating-evidence .evidence-deep-dive>summary::after{
+  content:"+";flex:none;color:var(--copper);font:600 19px/1 Arial,sans-serif
+}
+.site #operating-evidence .evidence-deep-dive[open]>summary::after{content:"−"}
+.site #operating-evidence .evidence-deep-dive>summary:focus-visible,
+.site #operating-evidence .evidence-context-links>a:focus-visible{
+  outline:2px solid var(--copper);outline-offset:3px;border-radius:2px
+}
+.site #operating-evidence .evidence-deep-dive-body{
+  padding:12px 0 1px;overflow-wrap:anywhere
+}
+.site #operating-evidence .evidence-deep-dive-body p{
+  margin:0 0 12px;font-size:13px;line-height:1.62;color:var(--muted)
+}
+.site #operating-evidence .evidence-deep-dive-body p strong{color:var(--ink)}
+.site #operating-evidence .evidence-deep-dive-body .evidence-illustration{
+  border-left:2px solid var(--copper);padding-left:12px
+}
+.site #operating-evidence .evidence-deep-dive-body .evidence-boundary{
+  color:var(--muted);font-size:12px
+}
+@media(max-width:700px){
+  .site #operating-evidence .evidence-context-links{gap:6px 14px}
+  .site #operating-evidence .evidence-context-links>span{flex-basis:100%}
+  .site #operating-evidence .evidence-deep-dive>summary{min-height:44px}
+  .site #operating-evidence .evidence-deep-dive-body p{font-size:13px;line-height:1.58}
+}
+
 /* Portfolio-wide continuation footer: compact, edge-to-edge within page gutters.
    Keep exactly three contextual destinations and use the same rules on native
    Streamlit account pages, which copy this shared CSS after the base styles. */

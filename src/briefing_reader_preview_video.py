@@ -38,7 +38,6 @@ _SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 _DIGEST = re.compile(r"[a-f0-9]{64}\Z")
 _ALLOWED_ASSETS = {"preview.mp4": "web", "poster.jpg": "poster"}
 
-@lru_cache(maxsize=64)
 def _approved_manifest(slug: str) -> dict | None:
     if not isinstance(slug, str) or not _SLUG.fullmatch(slug):
         return None

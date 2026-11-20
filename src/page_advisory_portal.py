@@ -367,36 +367,64 @@ def _advisory_login(auth_surface=None) -> None:
     # Anonymous and regular visitors cannot discover a hidden service via a URL.
     if requested_service in ("requests", "decision", "scorecard", "rollout", "workshop", "renewal", "market-signals") and not service_enabled(requested_service):
         requested_service = ""
-    self_service = requested_service == "decision"
     if requested_service == "workshop":
         st.html("""<section class="advisory-portal-intro advisory-workshop-intro">
-<h2>Your private AI Leadership Workshop starts here.</h2>
-<p>Use one verified account to examine seven leadership dimensions, challenge
-two realistic executive dilemmas and save a decision brief with three proposed
-actions and accountable roles. There is no payment or individual approval.</p>
+<h2>Register free to start your AI Leadership Workshop.</h2>
+<p>Verify your email to continue into the 21-question leadership assessment,
+work through two executive dilemmas and save a downloadable decision record.
+This self-service workshop needs no payment or separate approval.</p>
 <div class="advisory-workshop-reasons">
- <div><strong>21 guided questions</strong><span>Evidence of current leadership practice, not ambition alone.</span></div>
- <div><strong>Executive decision record</strong><span>Clear priorities, evidence gaps, owners and a downloadable PDF.</span></div>
- <div><strong>Private by default</strong><span>Team participants choose whether to share their answers.</span></div>
+ <div><strong>21 guided questions</strong><span>Evidence of leadership practice across seven dimensions.</span></div>
+ <div><strong>Decision record and PDF</strong><span>Review gaps, next actions and accountable roles.</span></div>
+ <div><strong>Private by default</strong><span>Participants choose whether to share their answers.</span></div>
 </div>
-<p class="advisory-workshop-trust">Developed from practical enterprise AI,
-data governance and organizational adoption experience.
-Answers are self-reported, not independently audited.
-<a href="?page=advisory-leadership" target="_self">
-Explore the complete workshop, method and privacy boundaries</a>
-before registering.</p>
+<p class="advisory-workshop-trust">Answers are self-reported, not independently audited.
+<a href="?page=advisory-leadership" target="_self">Review the method and privacy boundaries</a>.</p>
 </section>""")
     elif requested_service == "market-signals":
-        st.html("""<section class="advisory-portal-intro"><h2>Swedish AI &amp; Data Market Review</h2><p>Register free or sign in to choose the Executive or Jobseeker Edition. Both include original source references, an online reading and a separate downloadable research PDF. Your account also provides access to the five executive decision briefs.</p><p>Registration accepts a personal or work email address. This research does not use your private job applications, interview history or career forecast.</p></section>""")
-    elif self_service:
-        st.html("""<section class="advisory-portal-intro"><h2>Free AI Investment Decision Advisor</h2><p>Create or sign into your Executive Advisory account to assess one AI opportunity, review your recommendation and download a private executive decision brief. This self-service tool does not require separate advisory approval.</p></section>""")
+        st.html("""<section class="advisory-portal-intro">
+<h2>Register free to read the complete Swedish AI &amp; Data Market Reviews.</h2>
+<p>After email verification, choose the Executive or Jobseeker Edition, read the
+full research and download the relevant PDF and source references.
+The same account also opens five executive decision briefs.</p>
+<p>Personal or work email accepted. The reports do not use private applications,
+interview history or career forecasts.</p>
+</section>""")
+    elif requested_service == "decision":
+        st.html("""<section class="advisory-portal-intro">
+<h2>Register free to start your AI Investment Decision Advisor.</h2>
+<p>Verify your email to continue to the self-service assessment for one AI
+opportunity, review the decision recommendation and download your private
+executive brief. No payment or individual service approval is required.</p>
+</section>""")
+    elif requested_service == "renewal":
+        st.html("""<section class="advisory-portal-intro">
+<h2>Register free to use the AI Portfolio Renewal Advisor.</h2>
+<p>Verify your email, then compare one existing AI initiative with a credible
+alternative and download your decision record. This self-service tool is
+complimentary and does not require separate approval.</p>
+</section>""")
+    elif requested_service == "rollout":
+        st.html("""<section class="advisory-portal-intro">
+<h2>Register free to request Rollout Readiness Advisor access.</h2>
+<p>Create your account to submit a request for individual review. Access to
+the readiness assessment is granted only after approval; registration alone
+does not unlock this service or guarantee a meeting.</p>
+</section>""")
+    elif requested_service == "scorecard":
+        st.html("""<section class="advisory-portal-intro">
+<h2>Register free to request an AI Portfolio Scorecard review.</h2>
+<p>Create your account to explain your portfolio decision and request access.
+Scorecard work is reserved for individually approved Advisory engagements;
+free registration does not automatically unlock it.</p>
+</section>""")
     else:
         st.html("""<section class="advisory-portal-intro">
-<h2>Bring a specific AI or data leadership decision.</h2>
-<p>Register free to submit a decision or challenge for individual review.
-I consider a limited number of focused pro-bono discussions where an external
-perspective may help. Registration does not guarantee a meeting.
-Your account also provides free access to the Executive AI Reader Library.</p>
+<h2>Register free to submit an Advisory request.</h2>
+<p>Have a specific enterprise AI or Data decision? Create a free account,
+describe your challenge and submit it for individual review.
+Personal discussions are selective; registration does not guarantee a meeting.</p>
+<p>Your verified account also gives access to the Executive AI Reader Library.</p>
 </section>""")
     returning = st.radio(
         "Advisory account", ["Register free", "Sign in to advisory"],
@@ -445,10 +473,12 @@ Your account also provides free access to the Executive AI Reader Library.</p>
                 "Email address *" if requested_service == "market-signals" else "Professional email *", max_chars=254,
                 placeholder="you@organization.com",
             )
-            submit = st.form_submit_button("Email my verification link", type="primary")
+            submit = st.form_submit_button("Send verification link · Continue registration", type="primary")
         st.caption(
-            "Free registration · No payment details · No newsletter sign-up · "
-            "Personal advisory requests are reviewed individually."
+            "Free account · No payment details · No automatic editorial emails. "
+            + ("Personal Advisory requests and restricted services are reviewed individually."
+               if requested_service not in ("decision", "workshop", "renewal", "market-signals")
+               else "Self-service access follows email verification.")
         )
         st.caption(f"Review the [Privacy & Data notice]({PRIVACY_NOTICE_URL}).")
         if submit:

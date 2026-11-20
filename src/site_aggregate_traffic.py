@@ -159,7 +159,7 @@ def monthly_content_rollup() -> tuple[list[dict], list[dict]]:
         "article_interactions,cta_clicks,cv_downloads,audio_starts,audio_completions"
         "&order=month.asc",
         "careersite_analytics_lifetime_content_public_v1?select=content_kind,content,views"
-        "&content_kind=eq.article&order=views.desc&limit=5",
+        "&order=views.desc&limit=1000",
     )
     output = []
     for source in sources:
@@ -214,7 +214,7 @@ def render_monthly_optin_trend() -> None:
             st.altair_chart(chart, use_container_width=True)
             if articles:
                 labels = []
-                for article in articles[:3]:
+                for article in [item for item in articles if item.get("content_kind") == "article"][:3]:
                     slug = str(article.get("content") or "").strip()
                     views = max(0, int(article.get("views") or 0))
                     if slug and views:

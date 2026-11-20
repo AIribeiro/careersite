@@ -40,11 +40,9 @@ class PublicRuntimeFastPathTests(unittest.TestCase):
         self.assertIn(
             "if CMS_ARTICLE_META is not None or ARTICLE_META is not None:", source
         )
-        self.assertLess(
-            source.index("if CMS_ARTICLE_META is not None or ARTICLE_META is not None:"),
-            source.index("inject_article_analytics(PAGE"),
-        )
         self.assertIn('inject_analytics(PAGE, source="streamlit")', source)
+        self.assertNotIn("inject_article_analytics(PAGE", source)
+        self.assertNotIn("mount_behavior_telemetry(PAGE", source)
 
     def test_base_analytics_keeps_catalogue_article_clicks(self):
         source = (

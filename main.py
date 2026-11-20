@@ -186,6 +186,12 @@ if LEGACY_ADMIN_LINK:
 if LEGACY_LENS_LINK:
     st.query_params["page"] = "impact"
 
+# Basic aggregate server-side page loads do not depend on optional statistics.
+# Never count the private owner workspace. Widget reruns are deduplicated.
+if PAGE in PUBLIC_VALID:
+    from site_aggregate_traffic import record_page_load
+    record_page_load(PAGE, str(ARTICLE_QUERY or ""))
+
 if PAGE == "readers":
     # Native forms and downloads travel through Streamlit's supported widget
     # channel. Community Cloud currently returns 500 on the separate Starlette

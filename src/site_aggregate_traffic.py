@@ -91,7 +91,7 @@ def basic_page_load_report(window: str) -> dict:
             result = json.load(response)
     except (error.HTTPError, error.URLError, TimeoutError, OSError) as exc:
         raise RuntimeError("Anonymous page-load totals are temporarily unavailable") from exc
-    if not isinstance(result, dict) or result.get("available") is not True:
+    if not isinstance(result, dict) or type(result.get("available")) is not bool:
         raise RuntimeError("Anonymous page-load totals returned an invalid response")
     return result
 

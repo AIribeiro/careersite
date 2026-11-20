@@ -7,14 +7,15 @@ from __future__ import annotations
 
 
 def home_evidence() -> str:
+    """Four equal, compact Home case links to the corresponding Impact anchors."""
     return '''<section class="section white" id="leadership-in-practice" data-analytics-section="home-operating-evidence"><div class="container">
-<div class="head"><div><p class="eyebrow">Leadership in practice</p><h2>What I helped build, test and put in place.</h2></div><p>Four examples from enterprise AI work, with the outcomes and limits made clear.</p></div>
-<article class="card" style="margin-bottom:16px"><span class="org">Featured · Generative AI product development</span><h3>Customer Interview Analyzer</h3><p>I led a working GenAI prototype to transcribe, translate and summarize lengthy customer interviews and surface feedback for product teams. It proved technical feasibility, but was not scaled: the organization was not yet ready to operate it.</p><p><a href="?page=impact#customer-interview-analyzer" target="_self" data-hq-event="home_evidence_customer_interviews">Read the case →</a></p></article>
-<div class="grid3 evidence-cards-grid"><article class="card"><span class="org">Portfolio decisions</span><h3>80+ AI opportunities</h3><p>Consolidated an AI inventory and developed prioritization, lifecycle and ownership criteria for investment discussions.</p></article>
-<article class="card"><span class="org">Workforce enablement</span><h3>Practical AI learning</h3><p>Delivered AI learning sessions and structured prompt-engineering education; training was not counted as measured adoption.</p></article>
-<article class="card"><span class="org">Governance foundations</span><h3>Ownership and readiness</h3><p>Developed CoE governance, decision-rights and scale-readiness materials—not a claim of a fully scaled operating model.</p></article></div>
-<div class="actions"><a class="btn dark" href="?page=impact" target="_self" data-hq-event="home_evidence_cases">Explore leadership evidence →</a><a class="btn text" href="?page=ai-data-governance" target="_self" data-hq-event="home_evidence_governance">Governance approach →</a></div>
-</div></section>'''
+<div class="head"><div><p class="eyebrow">Leadership in practice</p><h2>What I helped build, test and put in place.</h2></div><p>Four selected examples from enterprise AI and Data work, with outcomes and limits made clear.</p></div>
+<div class="home-evidence-grid">
+<article class="card"><a class="home-evidence-card-link" href="?page=impact#customer-interview-analyzer" target="_self" data-hq-event="home_evidence_customer_interviews"><span class="org">01 · GenAI product development</span><h3>Customer Interview Analyzer</h3><p>I led a working multilingual GenAI prototype for customer-interview analysis. Technically feasible, but it was not scaled.</p><span class="home-evidence-card-cta">Read example →</span></a></article>
+<article class="card"><a class="home-evidence-card-link" href="?page=impact#ai-portfolio-decisions" target="_self" data-hq-event="home_evidence_portfolio"><span class="org">02 · Portfolio decisions</span><h3>80+ AI opportunities</h3><p>Consolidated the AI inventory and built prioritization, lifecycle and ownership criteria for investment discussions.</p><span class="home-evidence-card-cta">Read example →</span></a></article>
+<article class="card"><a class="home-evidence-card-link" href="?page=impact#ai-adoption-learning" target="_self" data-hq-event="home_evidence_learning"><span class="org">03 · Workforce enablement</span><h3>Practical AI learning</h3><p>Delivered 100+ AI learning sessions and prompt-engineering guidance. Training was not counted as measured adoption.</p><span class="home-evidence-card-cta">Read example →</span></a></article>
+<article class="card"><a class="home-evidence-card-link" href="?page=impact#operational-governance" target="_self" data-hq-event="home_evidence_operations"><span class="org">04 · Operating accountability</span><h3>Analytics capacity governance</h3><p>Reviewed workspace requests and monitored shared Power BI capacity with central Digital &amp; IT specialists.</p><span class="home-evidence-card-cta">Read example →</span></a></article>
+</div></div></section>'''
 
 
 def impact_evidence() -> str:

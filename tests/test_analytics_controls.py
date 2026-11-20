@@ -53,19 +53,17 @@ class AnalyticsControlTests(unittest.TestCase):
         dashboard = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
 
         for token in (
-            "engagement_ping",
-            "device_type",
-            "browser_family",
-            "os_family",
-            "language",
-            "timezone",
-            "viewport_width",
-            "screen_width",
-            "connection_type",
-            "session_elapsed_ms",
-            "engaged_ms",
+            "jair_statistics_choice_v1", "CONSENT_GATE_JS",
+            "tracking_version: 6", "utm_campaign", "session_id",
         ):
             self.assertIn(token, client)
+        payload = client.split("const payload = {{", 1)[1].split("}};", 1)[0]
+        for removed in (
+            "device_type:", "browser_family:", "os_family:", "language:",
+            "timezone:", "viewport_width:", "screen_width:",
+            "session_elapsed_ms:", "engaged_ms:", "hover_ms:",
+        ):
+            self.assertNotIn(removed, payload)
 
         for label in (
             "Career site intelligence",
@@ -100,7 +98,8 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertIn("test", client)
         self.assertIn("st.vega_lite_chart", dashboard)
         self.assertNotIn("st.dataframe", dashboard)
-        self.assertNotIn("localStorage", client)
+        self.assertIn("localStorage", client)
+        self.assertIn("if (choice() !== 'yes')", client)
         self.assertIn("def _page_rows", dashboard)
         self.assertIn('data.get("pages", [])', dashboard)
 

@@ -42,6 +42,19 @@ class AdvisoryRegistrationTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     _validate_intake(invalid)
 
+    def test_privacy_notice_links_use_branded_domain(self):
+        from page_advisory_portal import PRIVACY_NOTICE_URL
+        self.assertEqual(
+            PRIVACY_NOTICE_URL,
+            "https://jairribeiro.com/?page=privacy",
+        )
+        source = self.source("src/page_advisory_portal.py")
+        self.assertNotIn("](?page=privacy)", source)
+        self.assertEqual(
+            source.count("[Privacy & Data notice]({PRIVACY_NOTICE_URL})"),
+            3,
+        )
+
     def test_registration_widget_tree(self):
         from streamlit.testing.v1 import AppTest
         app = AppTest.from_file(

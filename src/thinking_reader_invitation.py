@@ -43,11 +43,10 @@ def reader_invitation() -> str:
       <div class="container">
         <span class="thinking-reader-kicker">Premium Reader Library · Free registration</span>
         <div class="thinking-reader-intro">
-          <h2 id="thinking-reader-heading">Read the reasoning behind the decision.</h2>
-          <p>The public summaries explain the question. Complete editions examine the
-          evidence, assumptions, trade-offs and accountability behind it.
-          Register free to read the analysis and revisit the material that is
-          relevant to your own decisions.</p>
+          <h2 id="thinking-reader-heading">Register free to continue beyond the public previews.</h2>
+          <p>Read the public summaries without an account. When you want the full
+          decision reasoning, practical framework or supporting references,
+          create a free reader account and continue with the complete edition.</p>
         </div>
         <div class="thinking-reader-benefits">
           <article class="thinking-reader-benefit">
@@ -78,7 +77,7 @@ def reader_invitation() -> str:
           Save relevant briefings and revisit available infographic PDFs.
           No payment details are required; editorial emails are optional.</p>
           <div class="thinking-reader-actions">
-            <a href="?page=readers" target="_self" data-hq-event="thinking_premium_reader_access">Open the library · Free</a>
+            <a href="?page=readers" target="_self" data-hq-event="thinking_premium_reader_access">Register free · Open the full library</a>
             <a href="?page=briefings" target="_self" data-hq-event="thinking_premium_reader_explore">Browse the briefings</a>
           </div>
         </div>

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Privacy-conscious first-party behavioral analytics for the public career site.
+"""Opt-in first-party portfolio measurement for the public site.
 
 The browser sends a deliberately small event taxonomy plus coarse session context
 to Supabase. There are no analytics cookies, persistent visitor identifiers,
@@ -26,30 +26,9 @@ ANALYTICS_PUBLISHABLE_KEY = os.getenv(
 ANALYTICS_TABLE = "careersite_analytics_events"
 
 ALLOWED_EVENTS = (
-    "page_view",
-    "impact_view",
-    "lens_view",
-    "cv_download",
-    "email_click",
-    "linkedin_click",
-    "article_click",
-    "engagement_ping",
-    "element_impression",
-    "article_card_click",
-    "cta_click",
-    "navigation_click",
-    "section_view",
-    "performance_metric",
-    "section_attention",
-    "element_attention",
-    "cta_hesitation",
-    "scroll_abandonment",
-    "ux_signal",
-    "first_interaction",
-    "behavior_summary",
-    "audio_start",
-    "audio_progress",
-    "audio_complete",
+    "page_view", "impact_view", "lens_view", "article_view",
+    "cv_download", "email_click", "linkedin_click",
+    "article_click", "article_card_click", "cta_click", "navigation_click",
 )
 LENS_PAGES = ("enterprise", "transformation", "governance", "consulting")
 RECOMMENDED_ATTRIBUTION_SOURCES = (
@@ -125,6 +104,72 @@ ENTRY_DOMAIN_JS = r"""
 """
 
 
+CONSENT_GATE_JS = r"""
+  // Statistics are optional. No analytics data or browser identifiers before opt-in.
+  const preferenceKey = 'jair_statistics_choice_v1';
+  const privacyUrl = 'https://jairribeiro.com/?page=privacy';
+  const choice = () => {
+    try { return win.localStorage.getItem(preferenceKey); } catch (_) { return null; }
+  };
+  const clearOldAnalytics = () => {
+    try {
+      for (const key of Object.keys(win.sessionStorage)) {
+        if (key.startsWith('jair_hq_') || key.startsWith('jair_article_')) {
+          win.sessionStorage.removeItem(key);
+        }
+      }
+    } catch (_) {}
+  };
+  const boxId = 'jair-statistics-consent';
+  const showStatisticsChoice = () => {
+    if (!doc.body || doc.getElementById(boxId)) return;
+    const box = doc.createElement('aside');
+    box.id = boxId;
+    box.setAttribute('role', 'region');
+    box.setAttribute('aria-label', 'Website statistics choice');
+    box.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;max-width:590px;z-index:2147483000;padding:17px 19px;background:#fffdfa;color:#172d42;border:1px solid #c9bbaa;box-shadow:0 12px 36px rgba(10,24,40,.19);font:14px/1.5 Arial,sans-serif';
+    box.innerHTML = '<strong style="display:block;margin-bottom:5px">Optional website statistics</strong>' +
+      '<span>May I count which pages and links visitors open? Optional analytics uses temporary browser storage. It does not subscribe you to emails. <a href="' + privacyUrl + '" style="color:#174a71;text-decoration:underline">Privacy notice</a>.</span>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:9px;margin-top:13px">' +
+      '<button type="button" data-stats-choice="no" style="cursor:pointer;background:#fff;border:1px solid #223a52;color:#172d42;padding:9px 13px;font-weight:bold;min-width:150px">Essential only</button>' +
+      '<button type="button" data-stats-choice="yes" style="cursor:pointer;background:#223a52;border:1px solid #223a52;color:#fff;padding:9px 13px;font-weight:bold;min-width:150px">Allow statistics</button></div>';
+    box.addEventListener('click', event => {
+      const button = event.target.closest('[data-stats-choice]');
+      if (!button) return;
+      try { win.localStorage.setItem(preferenceKey, button.dataset.statsChoice); }
+      catch (_) {
+        box.querySelector('span').textContent = 'Your browser could not save the preference. Optional statistics remain off.';
+        return;
+      }
+      if (button.dataset.statsChoice !== 'yes') clearOldAnalytics();
+      win.location.reload();
+    });
+    doc.body.appendChild(box);
+  };
+  if (!win.__jairStatisticsPreferenceBound) {
+    win.__jairStatisticsPreferenceBound = true;
+    doc.addEventListener('click', event => {
+      if (event.target.closest('[data-jair-privacy-settings]')) {
+        const box = doc.getElementById(boxId);
+        if (box) box.remove();
+        showStatisticsChoice();
+      }
+    });
+  }
+  if (choice() !== 'yes') {
+    win.__jairAnalyticsSend = () => Promise.resolve(false);
+    clearOldAnalytics();
+    if (choice() === null) {
+      if (doc.readyState === 'loading') {
+        doc.addEventListener('DOMContentLoaded', showStatisticsChoice, { once: true });
+      } else showStatisticsChoice();
+    }
+    return;
+  }
+  const oldChoiceBox = doc.getElementById(boxId);
+  if (oldChoiceBox) oldChoiceBox.remove();
+"""
+
 def inject_analytics(page: str, source: str = "streamlit") -> None:
     """Inject the shared privacy-conscious analytics client into the browser."""
     if source not in {"streamlit", "lovable"}:
@@ -141,6 +186,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   const page = {json.dumps(page)};
   const allowed = new Set({json.dumps(list(ALLOWED_EVENTS))});
   const lenses = new Set({json.dumps(list(LENS_PAGES))});
+{CONSENT_GATE_JS}
 {ENTRY_DOMAIN_JS}
 
   // A Streamlit route change keeps the parent document alive. An article
@@ -564,7 +610,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   win.__jairAnalyticsEnsureFreshSession = ensureFreshSession;
 
   win.__jairAnalyticsSend = (eventName, extra = {{}}) => {{
-    if (!allowed.has(eventName)) return;
+    if (choice() !== 'yes' || !allowed.has(eventName)) return Promise.resolve(false);
     if (ensureFreshSession()) {{
       // The document may stay mounted while the tab is idle. Reset its local
       // attribution as well as storage so background telemetry cannot reuse

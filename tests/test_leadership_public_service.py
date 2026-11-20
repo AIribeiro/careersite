@@ -71,7 +71,7 @@ class LeadershipPublicExperienceTests(unittest.TestCase):
         self.assertIn('requested_service == "workshop"', portal)
         self.assertIn("21 guided questions", portal)
         self.assertIn('?page=advisory-leadership', portal)
-        self.assertIn('Email my verification link', portal)
+        self.assertIn('Send verification link · Continue registration', portal)
         self.assertIn('_advisory_account(session, user, profile)', portal)
         self.assertIn('render_private_leadership_workshop(session, user)', portal)
         self.assertIn('Privacy & Data notice', portal)

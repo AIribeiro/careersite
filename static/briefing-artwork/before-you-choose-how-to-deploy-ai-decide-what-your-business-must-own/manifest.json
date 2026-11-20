@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "slug": "before-you-choose-how-to-deploy-ai-decide-what-your-business-must-own",
+  "revision": "v1",
+  "article_fingerprint": "dac3bc9e93f334f79e51c8b42eabc0800782fb861d0350b0ef17b4aab448c98a",
+  "heading": "Before You Choose How to Deploy AI, Decide What Your Business Must Own",
+  "deck": "An executive guide to choosing between copilots, APIs, cloud platforms, private infrastructure and custom models—based on business value, control, operating responsibility and long-term cost.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "25f0927f0fa6f3cf2ac9cabf92952e13f4a50e14f01a66910582170f4d455a95",
+    "width": 1600,
+    "height": 1900
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "7336583985575508b327fff58df31adcb85b268cc62c942690ae7459a4d32738",
+    "width": 1080,
+    "height": 2720
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "34679e14c1c0fdf57ec4f7d6c8cbfa10d785675f1da702d83a9547e590bf3035",
+    "pages": 1
+  }
+}

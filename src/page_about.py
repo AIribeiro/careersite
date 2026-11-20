@@ -49,10 +49,54 @@ LANGUAGE_CAPABILITIES = (
 )
 
 
+# Crisp inline SVG flags avoid external requests, missing glyphs and inconsistent
+# platform emoji rendering. Flags are visual shorthand; language labels remain
+# explicit because a country flag is not a definition of a language.
+LANGUAGE_FLAG_ART = {
+    "PT": (
+        '<rect width="48" height="32" fill="#199A4B"/>'
+        '<path d="M24 3 45 16 24 29 3 16Z" fill="#F5D348"/>'
+        '<circle cx="24" cy="16" r="8.2" fill="#244B9B"/>'
+        '<path d="M16.4 14.4c4.5-1.2 10.8-.7 15.3 2.6" fill="none" stroke="#fff" stroke-width="1.6"/>'
+    ),
+    "IT": (
+        '<rect width="16" height="32" fill="#15945B"/>'
+        '<rect x="16" width="16" height="32" fill="#fff"/>'
+        '<rect x="32" width="16" height="32" fill="#CB3642"/>'
+    ),
+    "EN": (
+        '<rect width="48" height="32" fill="#17427C"/>'
+        '<path d="M-4-3 52 35M52-3-4 35" stroke="#fff" stroke-width="8"/>'
+        '<path d="M-4-3 52 35M52-3-4 35" stroke="#C83244" stroke-width="3.6"/>'
+        '<path d="M24 0V32M0 16H48" stroke="#fff" stroke-width="11"/>'
+        '<path d="M24 0V32M0 16H48" stroke="#C83244" stroke-width="6"/>'
+    ),
+    "ES": (
+        '<rect width="48" height="32" fill="#AD2838"/>'
+        '<rect y="8" width="48" height="16" fill="#F7C73B"/>'
+        '<path d="M14 12h6v7c0 3-6 3-6 0z" fill="#BA3039" stroke="#fff" stroke-width=".7"/>'
+        '<path d="M17 9v3M14 10h6" stroke="#AA3037" stroke-width="1.5"/>'
+    ),
+    "PL": (
+        '<rect width="48" height="16" fill="#fff"/>'
+        '<rect y="16" width="48" height="16" fill="#D23650"/>'
+    ),
+    "SV": (
+        '<rect width="48" height="32" fill="#21679A"/>'
+        '<rect x="15" width="6" height="32" fill="#F4CA45"/>'
+        '<rect y="13" width="48" height="6" fill="#F4CA45"/>'
+    ),
+}
+
+
 def _language_tile(name: str, proficiency: str, code: str) -> str:
+    flag = LANGUAGE_FLAG_ART[code]
     return (
         '<div class="about-language-tile">'
-        f'<span class="about-language-mark" aria-hidden="true">{escape(code)}</span>'
+        '<span class="about-language-mark" aria-hidden="true">'
+        '<svg class="about-language-flag" viewBox="0 0 48 32" '
+        'xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
+        f'{flag}</svg></span>'
         '<span class="about-language-detail">'
         f'<strong>{escape(name)}</strong>'
         f'<span>{escape(proficiency)}</span>'
@@ -76,8 +120,11 @@ def _languages_section() -> str:
         'aria-labelledby="languages-leadership-title">'
         '<div class="container about-languages-layout">'
         '<div class="about-languages-story">'
+        '<div class="about-languages-intro">'
         '<p class="eyebrow">International leadership</p>'
         '<h2 id="languages-leadership-title">Communicating across cultures.</h2>'
+        '</div>'
+        '<div class="about-languages-copy">'
         '<p>Living and working across countries has made speaking several '
         'languages a practical part of how I lead. It helps me listen for '
         'nuance, build relationships and make space for perspectives that '
@@ -89,7 +136,7 @@ def _languages_section() -> str:
         '<span>What this adds to my work</span>'
         '<strong>Trust, clarity and influence across cultural and '
         'organizational boundaries.</strong>'
-        '</div></div>'
+        '</div></div></div>'
         '<div class="about-languages-profile" aria-label="Languages and proficiency">'
         '<p class="about-language-group-label">Professional communication</p>'
         '<div class="about-language-grid">' + professional + '</div>'

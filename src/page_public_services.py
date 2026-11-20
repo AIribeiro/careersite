@@ -585,77 +585,46 @@ def advisory() -> str:
 </main>{footer()}'''
 
 def privacy() -> str:
-    """Public privacy notice for portfolio visitors and registered readers."""
+    """Concise GDPR notice: describe actual processing without excessive promises."""
     return f'''{SERVICES_CSS}{nav("privacy")}
 <main class="privacy-page">
 <section class="privacy-hero"><div class="container">
- <p class="service-eyebrow">Transparency / Reader trust</p>
+ <p class="service-eyebrow">Privacy / Reader trust</p>
  <h1>Privacy &amp; data.</h1>
- <p>What information this portfolio handles, why it is used, and how to make a request. Access to the Premium Reader library does not require agreeing to marketing messages.</p>
- <p class="privacy-effective">Last updated: 15 November 2026</p>
+ <p>A short explanation of what this website handles, why, and how to contact me. Registration does not sign you up for editorial emails.</p>
+ <p class="privacy-effective">Last updated: 20 November 2026</p>
 </div></section>
 <div class="container privacy-body">
  <nav class="privacy-toc" aria-label="Privacy notice sections">
   <strong>In this notice</strong>
-  <a href="#privacy-controller">Who is responsible</a>
-  <a href="#privacy-collection">Information collected</a>
-  <a href="#privacy-purpose">Purposes and legal grounds</a>
-  <a href="#privacy-providers">Providers and transfers</a>
-  <a href="#privacy-storage">Storage and retention</a>
+  <a href="#privacy-controller">Responsible contact</a>
+  <a href="#privacy-collection">Information and purposes</a>
+  <a href="#privacy-providers">Service providers</a>
+  <a href="#privacy-storage">Statistics and retention</a>
   <a href="#privacy-rights">Your rights</a>
-  <a href="#privacy-contact">Contact</a>
  </nav>
  <div class="privacy-content">
   <section id="privacy-controller"><h2>Who is responsible</h2>
-   <p>This professional portfolio, its Premium Reader service and its separate Advisory registration are operated by Jair Ribeiro, based in Gothenburg, Sweden. For requests about personal information processed through this site, contact <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>.</p>
+   <p>Jair Ribeiro, based in Gothenburg, Sweden, operates this professional portfolio, Reader Library and Advisory services. For privacy requests, email <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>.</p>
   </section>
-  <section id="privacy-collection"><h2>What information may be collected</h2>
-   <ul>
-    <li><strong>Website visits:</strong> page views, on-site interactions, source or campaign attribution, approximate session duration, broad browser or device characteristics and related operational information.</li>
-    <li><strong>Premium Reader accounts:</strong> the name and email you provide, verification and account status, optional profile or editorial interests, subscription preference, and records needed to show your reading or PDF-download history.</li>
-    <li><strong>Advisory accounts:</strong> first name, verified professional email and confirmation of the privacy notice are requested at registration. Last name and optional professional profile details may be added later. Your role or title, organization and business decision are requested only where needed for a specific advisory service, such as an individually reviewed personal request. If you submit an advisory request, the service stores its stated objective, context, requested next step, private conversation, response history, request stage and follow-up dates. Account and engagement status support the dedicated service. Advisory registration also grants Reader library access; Reader registration does not automatically create Advisory access.</li>
-    <li><strong>Minimal onboarding outcomes:</strong> after an actual first full publication opening, first saved Advisory assessment or first personal advisory request, the service may store one account-linked milestone with its server-created time and the elapsed time since that membership was registered. It does not store what you read, your assessment answers, your business question, IP address or device details in these milestones. This lets me evaluate whether registration leads to a useful first action, not follow your browsing activity. Milestones are not used to decide eligibility for access or personal advisory.</li>
-    <li><strong>Optional Advisory service feedback:</strong> when you choose to rate an interaction, the site stores the relevant service and stage, a 1–5 rating, any optional comments, your separate choice about follow-up, and the account and submission time. Feedback is used privately to understand decision usefulness and improve the service; it is never required to access recommendations or downloads.</li>
-    <li><strong>Executive AI Leadership Workshops:</strong> free registered members can store individual or leadership-team workshop titles, organizational context, structured self-assessment answers, selected discussion responses, reports and decision records. Team invitations record an email address, acceptance or decline, completion state and a separate choice to share individual answers with the workshop organizer. Answers remain private to each participant by default; the organizer can access individual responses only where the participant has explicitly enabled sharing. Team comparisons require at least three shared completed responses and are not described as anonymous. Invitees can decline, withdraw or change their sharing preference. Organizers may remove a participant, and workshop owners may delete the workshop and its associated response records. No workshop registration or invitation is an editorial-email opt-in.</li>
-    <li><strong>Approved AI Portfolio Scorecard workspaces:</strong> for clients individually approved for this pro-bono Advisory service, the system stores initiative names, business roles, evidence scores, capacity and cost estimates, control conditions, decision records, workspace revisions, and approval and access audit events. The advisor can review workspace information during the engagement. Clients may view only their own active, authorized workspace; registration alone does not provide access. Do not enter confidential business data, personal records or protected information without a separate handling agreement.</li>
-    <li><strong>Self-service AI investment decision assessments:</strong> verified Advisory members may store a high-level AI use-case name, up to 500 characters of optional context, guided selections on the opportunity, self-reported readiness and risk, generated decision history, and optional usefulness and clarity ratings. The service is free and does not require individual advisory approval. Entries are readable through the authenticated member account. Do not include confidential material.</li>
-    <li><strong>Approved rollout readiness assessments:</strong> for individually approved clients, the system stores high-level use-case descriptions, responses to 18 readiness questions, assessment history, the resulting executive decision brief and access audit events. Reports reflect self-reported information and are not independently verified.</li>
-    <li><strong>Voluntary advisory satisfaction feedback:</strong> 1–5 ratings and optional comments or suggestions recorded against a requested service and interaction stage. A rating is never required for the recommendation, report or continued access; low ratings may be reviewed privately and contact takes place only where requested.</li>
-    <li><strong>Correspondence:</strong> the email address and information you choose to share when contacting me, including advisory and privacy requests.</li>
-    <li><strong>Service security:</strong> technical events and connection details that may be processed by hosting or authentication providers to operate and protect the service.</li>
-   </ul>
-   <p>No payment details are requested for free Reader Library registration, and reader contact details are not sold. Avoid placing confidential or sensitive personal information in an initial inquiry.</p>
+  <section id="privacy-collection"><h2>Information and why it is used</h2>
+   <p>When you register, I process your name, email address, authentication and account records to provide access. Download and saved-content records support your library. Professional profile fields are optional unless needed for a service you request.</p>
+   <p>If you request Advisory support, submit an assessment, or join a workshop, I process the information and correspondence you choose to provide to deliver that service. Some collaborative workshops let participants choose whether to share their responses with the organizer; the relevant sharing choice is presented in the workshop.</p>
+   <p>The legal grounds are providing requested services or taking steps you request before an agreement (GDPR Article 6(1)(b)); legitimate interests in securing the site and responding to inquiries (Article 6(1)(f)); consent for optional editorial emails and website statistics (Article 6(1)(a)); and legal obligations where applicable (Article 6(1)(c)). You can use the site without opting in to editorial emails or statistics. Providing an email address is required for registered access.</p>
+   <p>Please do not submit sensitive personal details or confidential business material unless suitable handling arrangements have been agreed.</p>
   </section>
-  <section id="privacy-purpose"><h2>Why information is used</h2>
-   <ul>
-    <li><strong>Reader and Advisory account access:</strong> to establish and maintain a requested account, verify identity and deliver access to content you requested. The legal basis is the provision of a requested service and, where applicable, the legitimate interest in keeping your account secure.</li>
-    <li><strong>Service measurement:</strong> to understand which pages and publications are useful, how visitors reach them and where the website needs attention. First-party site measurement is carried out for the legitimate interest of maintaining and improving the portfolio, subject to applicable rights. A limited, account-linked first-value measure records only the first qualifying Reader or Advisory milestone and elapsed registration-to-action time; optional topic selection is not stored in the professional profile.</li>
-    <li><strong>Advisory context and correspondence:</strong> to retain the business context you choose to share, review your request, maintain the private response thread, record agreed next steps and manage an actual advisory relationship where one develops. The legal basis is legitimate interest in responding and, when relevant, steps requested before a possible agreement.</li>
-    <li><strong>Optional satisfaction feedback:</strong> to evaluate the clarity, usefulness and quality of Advisory services, identify problems and address concerns where you have agreed to follow-up. Leaving feedback is optional and does not subscribe you to marketing.</li>
-    <li><strong>Approved Scorecard workspaces:</strong> to provide the on-demand evaluation tool, record its individual approval, preserve work between sessions, and control or revoke access. These records are associated with the agreed pro-bono Advisory request and handled to provide that requested service and maintain accountable access.</li>
-    <li><strong>Self-service investment decision support:</strong> to provide the requested free assessment and private report history; optional feedback helps evaluate whether recommendations are clear and useful. The verdict is calculated from the submitted answers and is not an external verification or automated authorization.</li>
-    <li><strong>Rollout decision support and service feedback:</strong> to provide an individually requested Advisory assessment, control its access, and measure whether users find the service clear and useful. Voluntary service feedback is processed for quality improvement and authorized follow-up. No satisfaction rating is used to alter the decision verdict or eligibility.</li>
-    <li><strong>Optional editorial emails:</strong> based on your separate, optional consent. You can withdraw that choice through your reader preferences or by contacting <a href="mailto:{READERS_EMAIL}">{READERS_EMAIL}</a>.</li>
-    <li><strong>Security and legal duties:</strong> where necessary for legitimate security interests or to comply with legal obligations.</li>
-   </ul>
-   <p>Creating a reader account does not itself subscribe you to editorial messages. Site activity is not used to make decisions with legal or comparably significant effects about you.</p>
+  <section id="privacy-providers"><h2>Service providers</h2>
+   <p>The website uses Streamlit hosting, an EU-region Supabase database and authentication service, and transactional email and domain providers. These providers process information needed to operate the relevant services. External links, including LinkedIn, are governed by their own privacy notices.</p>
+   <p>Some providers or subprocessors may process information outside the European Economic Area. For details of relevant destinations and transfer safeguards, contact <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>.</p>
   </section>
-  <section id="privacy-providers"><h2>Service providers and external destinations</h2>
-   <p>The portfolio is hosted through Streamlit, and the Premium Reader and Advisory account services and first-party reporting use Supabase. Authentication and verification messages depend on the configured authentication email service. These providers may handle information needed to operate the relevant function under their own contractual and technical arrangements.</p>
-   <p>Links to LinkedIn and other external websites take you to services with their own privacy practices. A branded or masked domain may also involve the domain or forwarding provider. Depending on the provider and configuration, personal data may be processed outside Sweden or the European Economic Area; you can request details of the arrangements relevant to your data through <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>.</p>
+  <section id="privacy-storage"><h2>Statistics, cookies and retention</h2>
+   <p>Optional first-party website statistics count visits, content opened and selected link actions. They run only after you select <strong>Allow statistics</strong>. The site saves your statistics choice in browser storage and uses temporary session storage for opted-in measurement. Essential login and security cookies may also be used. No advertising tracking is intended.</p>
+   <p><button type="button" data-jair-privacy-settings style="background:#203b54;color:#fff;border:0;padding:11px 15px;font-weight:700;cursor:pointer">Change statistics choice</button></p>
+   <p>Raw website analytics are scheduled for deletion after 90 days; longer-term reports may retain aggregated counts. Account information and saved service work are kept while the account or requested service is active, and reviewed for deletion on closure or a verified deletion request, subject to applicable security or legal requirements. Correspondence is kept for the inquiry and any resulting relationship, then reviewed for deletion.</p>
   </section>
-  <section id="privacy-storage"><h2>Session data, cookies and retention</h2>
-   <p>The first-party portfolio analytics uses browser session storage for short-lived visit and attribution context rather than an analytics cookie intended to identify you across visits. Account access and hosting can use technically necessary cookies, security tokens and server-side records. When supported by the hosting domain and browser, Reader and Advisory use Secure, HttpOnly session cookies that can keep a verified account signed in for up to 60 days, subject to Supabase session expiry and revocation. Signing out clears the member session through the account's secure cookie endpoint. These functional cookies are not advertising trackers. The site's first-party analytics is not an advertising tracking service.</p>
-   <p>Reader, Advisory account, approved Scorecard, investment decision assessments, rollout assessment, first-use milestones, voluntary satisfaction feedback and reading records are held while needed for the respective services and to support access, correction or deletion requests, subject to applicable legal or security needs. Correspondence is kept as needed to handle the inquiry or any resulting relationship. Voluntary feedback and its review record are held while needed for service quality and feedback follow-up, subject to correction or deletion requests. Measurement and security records are retained according to their operational purpose and applicable service settings; there is not one universal retention period for every record. You can ask about the status or removal of your information.</p>
-  </section>
-  <section id="privacy-rights"><h2>Your choices and rights</h2>
-   <p>Subject to applicable conditions, you may request access, correction, erasure, restriction, portability or object to certain processing. Where processing relies on consent, you may withdraw that consent without affecting earlier lawful processing.</p>
-   <p>You may use the reader account area to update your editorial email choice, and the advisory account area to update professional context. To request data access, correction, export or account deletion, email <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>. Identity verification may be needed before releasing or deleting account data.</p>
-   <p>You may also lodge a complaint with the Swedish Authority for Privacy Protection (<a href="https://www.imy.se/en/individuals/data-protection/your-rights-as-a-data-subject/" target="_blank" rel="noopener noreferrer">Integritetsskyddsmyndigheten, IMY</a>) or another competent data-protection authority.</p>
-  </section>
-  <section id="privacy-contact"><h2>Questions or a data request?</h2>
-   <div class="privacy-contact"><strong>Privacy and personal-data requests</strong><a href="mailto:{PRIVACY_EMAIL}" data-hq-event="privacy_email">{PRIVACY_EMAIL}</a><span>For reader access questions, use <a href="mailto:{READERS_EMAIL}">{READERS_EMAIL}</a>.</span></div>
-   <p>When the service or its data practices change materially, this notice will be updated with a revised date.</p>
+  <section id="privacy-rights"><h2>Your rights</h2>
+   <p>Under applicable conditions, you may request access, correction, deletion, restriction, portability, or object to certain processing. You can withdraw optional consent at any time without affecting earlier lawful processing. Identity verification may be needed before disclosing or deleting account information.</p>
+   <p>Email <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a> for requests. Reader access support: <a href="mailto:{READERS_EMAIL}">{READERS_EMAIL}</a>. You can also complain to Sweden's <a href="https://www.imy.se/en/" target="_blank" rel="noopener noreferrer">Integritetsskyddsmyndigheten (IMY)</a>.</p>
   </section>
  </div>
 </div>

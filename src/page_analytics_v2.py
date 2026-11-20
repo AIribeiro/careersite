@@ -102,6 +102,7 @@ def _render_public_analytics() -> None:
             st.query_params["page"] = "home"
             st.rerun()
     st.caption("Public portfolio engagement: visits, article reads, content reach and reader journeys.")
+    st.caption("Since 20 November 2026, new visits require optional statistics consent. Earlier counts used broader measurement; compare periods with care.")
     st.divider()
 
     if section == "overview":

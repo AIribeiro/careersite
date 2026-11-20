@@ -55,19 +55,20 @@ PREVIEW_CSS = r"""<style>
 .site .briefing-preview-aside ul{list-style:none;margin:17px 0 0;padding:0;border-top:1px solid #cfc3b4}
 .site .briefing-preview-aside li{padding:12px 0;border-bottom:1px solid #cfc3b4;color:#253948;font:700 12px/1.55 Arial,sans-serif}
 .site .briefing-preview-aside li:before{content:"→";color:#a05c36;font-weight:900;margin-right:9px}
-.site .briefing-unlock {margin-top:clamp(45px,6vw,82px);background:#112c40;color:#fff;padding:clamp(30px,4vw,50px);border:1px solid rgba(221,163,120,.5);box-shadow:0 20px 55px rgba(14,30,45,.12)}
-.site .briefing-unlock-inner {display:grid;grid-template-columns:minmax(0,1.2fr) minmax(240px,.8fr);gap:36px;align-items:center}
+.site .briefing-unlock {margin-top:clamp(32px,4.5vw,56px);background:#112c40;color:#fff;padding:clamp(27px,3.4vw,40px);border:1px solid rgba(221,163,120,.5);box-shadow:0 20px 55px rgba(14,30,45,.12)}
+.site .briefing-unlock-inner {display:grid;grid-template-columns:minmax(0,1.2fr) minmax(240px,.8fr);gap:clamp(16px,2.8vw,30px);align-items:center}
 .site .briefing-unlock .eyebrow {color:#edc29d!important}
-.site .briefing-unlock h2 {color:#fff;font:400 clamp(31px,3.7vw,48px)/1.12 Georgia,serif;letter-spacing:-.03em;margin:12px 0 16px}
-.site .briefing-unlock p {max-width:635px;color:#c7d2db;font:400 15px/1.7 Arial,sans-serif;margin:0}
-.site .briefing-unlock-benefits {display:grid;gap:12px;margin:0;padding:0;list-style:none}
-.site .briefing-unlock-benefits li {display:flex;gap:11px;font:750 13px/1.55 Arial,sans-serif;color:#e6edf0;align-items:start}
+.site .briefing-unlock h2 {color:#fff;font:400 clamp(29px,3.2vw,42px)/1.13 Georgia,serif;letter-spacing:-.03em;margin:9px 0 12px}
+.site .briefing-unlock p {max-width:635px;color:#c7d2db;font:400 14px/1.57 Arial,sans-serif;margin:0}
+.site .briefing-unlock-benefits {display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.site .briefing-unlock-benefits li {display:flex;gap:11px;font:700 13px/1.46 Arial,sans-serif;color:#e6edf0;align-items:start}
 .site .briefing-unlock-benefits li:before {content:"✓";color:#f0bf96;font-size:15px}
-.site .briefing-unlock-actions {display:flex;flex-wrap:wrap;align-items:center;gap:15px 25px;margin-top:29px}
-.site .briefing-unlock-primary {display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:13px 22px;background:#e8b78e;color:#102536!important;text-decoration:none!important;font:850 12px/1.35 Arial,sans-serif}
-.site .briefing-unlock-primary:hover {background:#f6d9bd}
+.site .briefing-unlock-actions {display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;margin-top:22px}
+.site .briefing-unlock-primary {display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:13px 24px;background:#f0c39f;color:#102536!important;text-decoration:none!important;font:800 14px/1.35 Arial,sans-serif;border:1px solid #f6d3b4}
+.site .briefing-unlock-primary:hover {background:#f8ddc7}
+.site .briefing-unlock-primary:focus-visible,.site .briefing-unlock-secondary:focus-visible{outline:3px solid #f5bf90;outline-offset:3px}
 .site .briefing-unlock-secondary {display:inline-flex;align-items:center;min-height:44px;border-bottom:1px solid #d1a786;color:#fff!important;text-decoration:none!important;font:750 12px/1.35 Arial,sans-serif}
-.site .briefing-unlock-note {color:#b5c5cf!important;margin-top:18px!important;font-size:11px!important}
+.site .briefing-unlock-note {color:#b5c5cf!important;margin-top:15px!important;font-size:12px!important}
 @media(max-width:810px) {
  .site .briefing-preview-grid,.site .briefing-unlock-inner{grid-template-columns:minmax(0,1fr)}
  .site .briefing-preview-aside{max-width:none}

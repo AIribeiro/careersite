@@ -310,7 +310,6 @@ def _request_email(first_name: str, email: str, subscribe: bool, returning: bool
         data["advisory_intake_v1"] = True
         for field, limit in fields.items():
             data["advisory_" + field] = str(advisory_intake.get(field) or "").strip()[:limit]
-        data["advisory_privacy_notice_ack"] = advisory_intake.get("privacy_notice_ack") is True
     _request_json("POST", url, payload={
         "email": email, "create_user": not returning, "data": data,
     }, timeout=12)
@@ -343,8 +342,7 @@ def _consume_query_verification() -> None:
         # membership, even when the user has not yet set a password.
         if destination == "advisory-access":
             meta = user.get("user_metadata") if isinstance(user.get("user_metadata"), dict) else {}
-            if (meta.get("advisory_intake_v1") is True
-                    and meta.get("advisory_privacy_notice_ack") is True):
+            if meta.get("advisory_intake_v1") is True:
                 try:
                     session = st.session_state.get("reader_native_session")
                     _request_json(

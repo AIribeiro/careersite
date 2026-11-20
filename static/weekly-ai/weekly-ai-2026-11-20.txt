@@ -1,0 +1,15 @@
+This is Weekly AI, covering November sixteenth through twentieth, twenty twenty-six.
+
+Four developments this week point to one enterprise leadership question: can we demonstrate that AI agents are working within their authority, and delivering results worth the cost?
+
+First, Microsoft announced an AI Transparency Initiative with more than forty organizations. The goal is to make agents' actions independently verifiable, even when businesses use different models and providers.
+
+Next, SnapLogic published a survey of one thousand IT decision-makers. Fifty-four percent reported abandoning agentic AI projects because the business value was unclear. This is a vendor-sponsored, self-reported finding, not a verified failure rate.
+
+In the United States, Reuters reported that two senators warned the White House about AI-enabled cyber threats outpacing defenses.
+
+And on Friday, Reuters reported European Central Bank President Christine Lagarde's concern about AI-amplified cyber threats to finance.
+
+For me, these stories belong in the same management discussion. Before expanding an agent's authority, I would ask who owns the workflow, what independent evidence records its actions, what outcome justifies its cost, and how we can intervene or recover.
+
+You'll find the source links and the full one-minute perspective on my A I and Data Portfolio.

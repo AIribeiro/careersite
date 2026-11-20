@@ -66,5 +66,12 @@ def test_language_tiles_are_responsive_and_need_no_external_icons():
     assert "@media(max-width:1010px)" in CSS
     assert "@media(max-width:590px)" in CSS
     assert "@media(max-width:360px)" in CSS
-    assert "<svg" not in _languages_section()
-    assert "<img" not in _languages_section()
+    section = _languages_section()
+    assert section.count('<svg class="about-language-flag"') == 6
+    assert section.count('aria-hidden="true" focusable="false"') == 6
+    assert "<img" not in section
+    assert "http://" not in section.replace('xmlns="http://www.w3.org/2000/svg"', "")
+    assert "https://" not in section
+    assert "grid-template-columns:repeat(4,minmax(0,1fr))" in CSS
+    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in CSS
+    assert "max-width:none" in CSS

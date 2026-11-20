@@ -12,6 +12,7 @@ from urllib.parse import quote
 from briefing_reader_preview import PREVIEW_CSS, opening_paragraphs, next_edition_sections
 from premium_article_editorial import public_intro_preview_paragraphs
 from site_components import footer, nav
+from reader_access_invitation import reader_access_invitation
 from thinking_core import THINKING_CSS
 
 
@@ -77,23 +78,9 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         '<strong>Inside the complete article</strong>' + inside
         + '<p>Free registration gives you the complete article.</p>'
         '</aside></div>'
-        '<section class="briefing-unlock" data-analytics-section="article-reader-free-access">'
-        '<div class="briefing-unlock-inner"><div><p class="eyebrow">'
-        'Executive AI Reader Library · Free registration</p>'
-        '<h2>Read the full analysis.</h2>'
-        '<p>Examine the evidence, assumptions and practical implications behind '
-        'this perspective, including its references. One free reader account '
-        'also opens Executive AI Briefings and the latest Weekly AI edition.</p></div>'
-        '<ul class="briefing-unlock-benefits">'
-        '<li>Read the full article, including supporting arguments and references</li>'
-        '<li>Access complete Executive AI Briefings with the same account</li>'
-        '<li>Return to the latest Weekly AI edition and previous articles</li>'
-        '</ul></div><div class="briefing-unlock-actions">'
-        f'<a class="briefing-unlock-primary" href="{destination}" target="_self" '
-        'data-hq-event="article_unlock_register">Read full article · Free</a>'
-        f'<a class="briefing-unlock-secondary" href="{destination}&amp;signin=1" target="_self" '
-        'data-hq-event="article_unlock_signin">Already registered? Sign in</a>'
-        '</div><p class="briefing-unlock-note">'
-        'Registration is free. No payment details or newsletter subscription required.'
-        '</p></section></div></section></main>' + footer()
+        + reader_access_invitation("article", destination,
+            section="article-reader-free-access",
+            register_event="article_unlock_register",
+            signin_event="article_unlock_signin")
+        + '</div></section></main>' + footer()
     )

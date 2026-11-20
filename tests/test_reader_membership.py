@@ -132,8 +132,8 @@ class ReaderMembershipContractTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, shell)
         self.assertNotIn("Your executive reading library.", shell)
-        self.assertIn("Read the full analysis and decision frameworks.", native)
-        self.assertIn("save relevant briefings", native)
+        self.assertIn("Register free to read the complete editions.", native)
+        self.assertIn("Revisit saved", native)
         self.assertIn("download available infographics", native)
         self.assertIn("Editorial emails only if you choose them.", native)
         self.assertIn("value=False, disabled=returning", native)

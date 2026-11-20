@@ -43,9 +43,11 @@ class ArticleAnalyticsTests(unittest.TestCase):
         main = (ROOT / "main.py").read_text(encoding="utf-8")
         guard = (ROOT / "src/site_share_guard.py").read_text(encoding="utf-8")
 
-        self.assertNotIn("inject_article_analytics(PAGE", main)
+        self.assertIn("inject_article_analytics(PAGE", main)
+        self.assertIn("jair_statistics_choice_v1", (ROOT / "src/site_article_analytics.py").read_text())
         self.assertIn("inject_share_guard", main)
         self.assertIn("page_analytics_v2", main)
+        self.assertLess(main.index("inject_article_analytics(PAGE"), main.index("inject_share_guard()"))
         self.assertLess(main.index("inject_share_guard()"), main.index("inject_analytics(PAGE"))
         self.assertIn("article_share_", guard)
         self.assertIn("stopImmediatePropagation", guard)

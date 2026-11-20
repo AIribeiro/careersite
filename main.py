@@ -195,7 +195,17 @@ if PAGE in PUBLIC_VALID:
     role_tag = str(st.query_params.get("role", "")).lower().strip()
     known_test = ((source_tag == "application" and role_tag == "test")
                   or (source_tag == "internal_qa" and role_tag in {"smoke", "test"}))
-    if not known_test:
+    # Use transient request metadata only to reject recognisable automated
+    # clients; never send or store user-agent strings in the aggregate counter.
+    try:
+        request_agent = str(st.context.headers.get("user-agent", "")).lower()
+    except (AttributeError, KeyError, RuntimeError):
+        request_agent = ""
+    recognisable_bot = any(token in request_agent for token in (
+        "headlesschrome", "playwright", "selenium", "puppeteer",
+        "python-requests", "python-urllib", "curl/", "wget/",
+    ))
+    if not (known_test or recognisable_bot):
         record_page_load(PAGE, str(ARTICLE_QUERY or ""))
 
 if PAGE == "readers":

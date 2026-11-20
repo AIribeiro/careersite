@@ -103,7 +103,9 @@ class BriefingPublicPreviewTests(unittest.TestCase):
         )
         self.assertIn("access=1&amp;signin=1", html)
         self.assertIn("No payment details", html)
-        self.assertIn("editorial emails are optional", html)
+        self.assertIn("Editorial emails only if you opt in", html)
+        self.assertIn("Register free to read the full briefing.", html)
+        self.assertIn("Register free · Continue reading", html)
 
     def test_cms_does_not_render_full_article_to_anonymous_visitor(self):
         # The real CMS renderer must branch BEFORE rendering the full article;

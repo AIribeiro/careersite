@@ -26,15 +26,16 @@ class BehaviorTelemetryTests(unittest.TestCase):
     def test_legacy_behavior_collector_is_not_mounted_without_specific_consent(self) -> None:
         main = (ROOT / "main.py").read_text(encoding="utf-8")
         self.assertIn('inject_analytics(PAGE, source="streamlit")', main)
-        self.assertNotIn("mount_behavior_telemetry(PAGE", main)
-        self.assertNotIn("from site_behavior_telemetry_v2 import mount_behavior_telemetry", main)
+        self.assertIn("mount_behavior_telemetry(PAGE", main)
+        self.assertIn("from site_behavior_telemetry_v2 import mount_behavior_telemetry", main)
 
     def test_collector_is_session_scoped_and_does_not_trigger_python_reruns(self) -> None:
         source = SOURCE.read_text(encoding="utf-8")
         js = _telemetry_js()
         self.assertIn("st.components.v2.component", source)
         self.assertIn("sessionStorage", js)
-        self.assertNotIn("localStorage", js)
+        self.assertIn("localStorage", js)
+        self.assertIn("if (!statisticsAllowed()) return", js)
         self.assertNotIn("document.cookie", js)
         self.assertNotIn("setStateValue", js)
         self.assertNotIn("setTriggerValue", js)

@@ -1,0 +1,37 @@
+name: Privacy controls regression
+
+on:
+  push:
+    paths:
+      - 'src/site_analytics.py'
+      - 'src/page_public_services.py'
+      - 'src/page_advisory_portal.py'
+      - 'src/page_reader_native.py'
+      - 'main.py'
+      - 'tests/test_privacy_controls.py'
+      - '.github/workflows/privacy-controls.yml'
+  pull_request:
+    paths:
+      - 'src/site_analytics.py'
+      - 'src/page_public_services.py'
+      - 'src/page_advisory_portal.py'
+      - 'src/page_reader_native.py'
+      - 'main.py'
+      - 'tests/test_privacy_controls.py'
+  workflow_dispatch:
+
+jobs:
+  verify-privacy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test dependencies
+        run: pip install -r requirements.txt
+      - name: Verify privacy choice, payload and registration
+        run: python -m unittest tests.test_privacy_controls -v

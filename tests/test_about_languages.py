@@ -59,19 +59,25 @@ def test_six_proficiency_tiles_and_leadership_message():
     assert section.count('class="about-language-mark"') == 6
 
 
-def test_language_tiles_are_responsive_and_need_no_external_icons():
+def test_language_tiles_have_six_css_rendered_flags_and_tablet_full_width():
+    section = _languages_section()
     assert ".site .about-languages-layout" in CSS
     assert ".site .about-language-grid" in CSS
     assert ".site .about-language-tile" in CSS
-    assert "@media(max-width:1010px)" in CSS
-    assert "@media(max-width:590px)" in CSS
+    assert "width:calc(100% - clamp(28px,5vw,96px));" in CSS
+    assert "grid-template-columns:repeat(4,minmax(0,1fr));" in CSS
+    assert "@media(max-width:780px)" in CSS
+    assert "@media(max-width:540px)" in CSS
     assert "@media(max-width:360px)" in CSS
-    section = _languages_section()
-    assert section.count('<svg class="about-language-flag"') == 6
-    assert section.count('aria-hidden="true" focusable="false"') == 6
+    assert section.count('class="about-language-flag about-language-flag--') == 6
+    for flag in ("br", "it", "gb", "es", "pl", "se"):
+        assert f'about-language-flag--{flag}' in section
+        assert f".site .about-language-flag--{flag}" in CSS
+    # Critical Safari/Streamlit regression: no inline SVG that can be stripped
+    # and leave empty gradient boxes. No external imagery or emoji fonts either.
+    assert "<svg" not in section
     assert "<img" not in section
-    assert "http://" not in section.replace('xmlns="http://www.w3.org/2000/svg"', "")
-    assert "https://" not in section
-    assert "grid-template-columns:repeat(4,minmax(0,1fr))" in CSS
-    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in CSS
-    assert "max-width:none" in CSS
+    assert "http://" not in section and "https://" not in section
+    assert "background:transparent;" in CSS
+    assert ".site .about-language-flag--br::before" in CSS
+    assert ".site .about-language-flag--se::after" in CSS

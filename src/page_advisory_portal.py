@@ -25,6 +25,9 @@ from page_reader_native import (
 from reader_membership import EMAIL, _utc_now
 from site_assets import ADVISORY_EMAIL, PRIVACY_EMAIL
 from site_cms import _request_json, _rest_url
+from site_campaign_links import PUBLIC_SITE
+
+PRIVACY_NOTICE_URL = f"{PUBLIC_SITE}/?page=privacy"
 
 ADVISORY_CSS = """
 <style>
@@ -447,7 +450,7 @@ Your account also provides free access to the Executive AI Reader Library.</p>
             "Free registration · No payment details · No newsletter sign-up · "
             "Personal advisory requests are reviewed individually."
         )
-        st.caption("Review the [Privacy & Data notice](?page=privacy).")
+        st.caption(f"Review the [Privacy & Data notice]({PRIVACY_NOTICE_URL}).")
         if submit:
             address = str(email).strip().lower()
             try:
@@ -478,7 +481,7 @@ Your account also provides free access to the Executive AI Reader Library.</p>
         st.info("Check your inbox and follow the verification link to set your password. "
                 "No sign-in link or verification code is needed.")
     st.caption("Registration does not subscribe you to editorial emails.")
-    st.markdown(f"Questions: [{ADVISORY_EMAIL}](mailto:{ADVISORY_EMAIL}) · [Privacy & Data notice](?page=privacy)")
+    st.markdown(f"Questions: [{ADVISORY_EMAIL}](mailto:{ADVISORY_EMAIL}) · [Privacy & Data notice]({PRIVACY_NOTICE_URL})")
 
 
 def _advisory_enroll(session: dict, user: dict) -> None:
@@ -524,7 +527,7 @@ requests are assessed individually.</p>
             st.error(str(exc))
         except (RuntimeError, TimeoutError, KeyError):
             st.error("Account creation failed. Please retry or contact advisory support.")
-    st.caption(f"Questions: {ADVISORY_EMAIL} · [Privacy & Data notice](?page=privacy)")
+    st.caption(f"Questions: {ADVISORY_EMAIL} · [Privacy & Data notice]({PRIVACY_NOTICE_URL})")
 
 
 def _advisory_account(session: dict, user: dict, profile: dict) -> None:

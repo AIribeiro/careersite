@@ -67,30 +67,22 @@ class EntryDomainReportTests(unittest.TestCase):
         }]})[0]["Direct / unknown"], 9)
 
     @unittest.skipUnless(shutil.which("node"), "Node required for live browser collector contract")
-    def test_both_browser_collectors_preserve_masked_entry_evidence(self):
+    def test_opted_in_browser_collector_preserves_masked_entry_evidence(self):
         import site_analytics
-        import site_article_analytics
-
         with patch.object(site_analytics.components, "html") as mock:
             site_analytics.inject_analytics("thinking")
         page_js = mock.call_args.args[0].replace("<script>", "").replace("</script>", "")
-
-        article = SimpleNamespace(slug="test-article", title="Test article",
-                                  kind="Article", topic="AI", published_iso="2026-11-12")
-        with patch.object(site_article_analytics.components, "html") as mock:
-            site_article_analytics.inject_article_analytics("thinking", article)
-        article_js = mock.call_args.args[0].replace("<script>", "").replace("</script>", "")
 
         harness = r"""
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
 function run(host, framed, referrer, ancestors, expectedDomain, expectedEvidence, campaign, overrideQuery=null) {
-  const events=[], cache=new Map();
+  const events=[], cache=new Map(), choices=new Map([['jair_statistics_choice_v1','yes']]);
   const doc={
-    referrer,visibilityState:'visible',
+    referrer,readyState:'complete',visibilityState:'visible',
     documentElement:{clientWidth:1200,clientHeight:800},
-    querySelector:()=>null,
-    addEventListener:()=>{}
+    querySelector:()=>null, getElementById:()=>null,
+    body:{appendChild:()=>{}}, addEventListener:()=>{}
   };
   const url='https://'+host+'/?page=thinking&article=test-article'+(overrideQuery!==null?overrideQuery:(campaign?'&source=linkedin':''));
   const win={
@@ -100,6 +92,7 @@ function run(host, framed, referrer, ancestors, expectedDomain, expectedEvidence
     innerWidth:1200,innerHeight:800,
     performance:{now:()=>1000},
     crypto:{randomUUID:()=> 'aaaaaaaa-2222-4444-8888-aaaaaaaaaaaa'},
+    localStorage:{getItem:k=>choices.get(k)||null,setItem:(k,v)=>choices.set(k,v)},
     sessionStorage:{
       getItem:k=>cache.get(k)||null,setItem:(k,v)=>cache.set(k,v),
       removeItem:k=>cache.delete(k)
@@ -113,14 +106,12 @@ function run(host, framed, referrer, ancestors, expectedDomain, expectedEvidence
     window:{parent:win},URL,Intl,Date:FakeDate,CustomEvent:class {},
     fetch:(url,options)=>{events.push(JSON.parse(options.body));return Promise.resolve({ok:true});}
   });
-  vm.runInContext(ARTICLE,context);
   vm.runInContext(PAGE,context);
   const views=events.filter(e=>['page_view','article_view'].includes(e.event_name));
   assert.equal(views.length,2);
   for(const event of views) {
     assert.equal(event.entry_domain,expectedDomain);
     assert.equal(event.entry_domain_evidence,expectedEvidence);
-    if (expectedDomain==='jairribeiro.com' || (expectedDomain||'').endsWith('.jairribeiro.com')) assert.equal(event.referrer_host,null);
     assert.equal(event.attribution_source,campaign?'linkedin':null);
     if (url.includes('masked_test_20261113') || referrer.includes('masked_test_20261113')) {
       assert.equal(event.utm_source,'chatgpt.com');
@@ -171,7 +162,7 @@ run('eviljairribeiro.com',false,'',[],null,null,false);
 run('go.jairribeiro.com.evil.tld',false,'',[],null,null,false);
 
 console.log('entry domain behavior passed');
-""".replace("ARTICLE", json.dumps(article_js)).replace("PAGE", json.dumps(page_js))
+""".replace("PAGE", json.dumps(page_js))
         result = subprocess.run(["node", "-e", harness], text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 

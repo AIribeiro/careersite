@@ -635,10 +635,9 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       event_name: eventName,
       page: String(context.page || 'home').slice(0, 64),
       lens: extra.lens ? String(extra.lens).slice(0, 64) : null,
-      target: extra.target ? String(extra.target).slice(0, 500) : null,
+      target: extra.target ? String(extra.target).slice(0, 160) : null,
       source: context.source,
       session_id: sessionId,
-      referrer_host: referrerHost(),
       entry_domain: entryContext.domain,
       entry_domain_evidence: entryContext.evidence,
       attribution_source: attribution.source,
@@ -646,39 +645,13 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       utm_source: attribution.utm_source,
       utm_medium: attribution.utm_medium || null,
       utm_campaign: attribution.utm_campaign,
-      utm_content: attribution.utm_content || null,
-      session_elapsed_ms: Math.round(elapsedMs),
-      engaged_ms: Math.round(Math.min(86400000, Math.max(0, engagedMs))),
-      ...clientContext(),
       article_slug: extra.article_slug ? safeText(extra.article_slug, 160) :
-        (win.__jairArticleContext ? win.__jairArticleContext.slug : null),
-      content_kind: win.__jairArticleContext ? 'article' : 'page',
-      tracking_version: 5,
-      // Coarse browser automation signal; no IP, full user agent or durable ID.
-      // Production smoke is explicitly tagged as internal_qa/smoke instead.
-      browser_automation: Boolean(win.navigator && win.navigator.webdriver === true),
-      page_engaged_ms: Math.round(pageEngagedMs),
-      scroll_depth: scrollDepth(),
+        (win.__jairArticleContext ? win.__jairArticleContext.slug :
+          (params.get('article') || null)),
+      content_kind: (win.__jairArticleContext || params.get('article')) ? 'article' : 'page',
       element_kind: extra.element_kind ? safeText(extra.element_kind, 32) : null,
       element_key: extra.element_key ? safeText(extra.element_key, 160) : null,
-      element_label: extra.element_label ? safeText(extra.element_label, 240) : null,
-      element_placement: extra.element_placement ? safeText(extra.element_placement, 160) : null,
-      section_key: extra.section_key ? safeText(extra.section_key, 160) : null,
-      section_label: extra.section_label ? safeText(extra.section_label, 240) : null,
-      metric_name: extra.metric_name ? safeText(extra.metric_name, 32) : null,
-      metric_value: extra.metric_value == null ? null : Math.max(0, Math.min(10000000, Number(extra.metric_value) || 0)),
-      attention_ms: extra.attention_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.attention_ms) || 0))),
-      hover_ms: extra.hover_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.hover_ms) || 0))),
-      hesitation_ms: extra.hesitation_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.hesitation_ms) || 0))),
-      latency_ms: extra.latency_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.latency_ms) || 0))),
-      exposure_count: extra.exposure_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.exposure_count) || 0))),
-      interaction_type: extra.interaction_type ? safeText(extra.interaction_type, 32) : null,
-      focus_loss_count: extra.focus_loss_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.focus_loss_count) || 0))),
-      resize_count: extra.resize_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.resize_count) || 0))),
-      orientation_change_count: extra.orientation_change_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.orientation_change_count) || 0))),
-      max_scroll_velocity: extra.max_scroll_velocity == null ? null : Math.max(0, Math.min(1000000, Number(extra.max_scroll_velocity) || 0)),
-      max_reverse_scroll_velocity: extra.max_reverse_scroll_velocity == null ? null : Math.max(0, Math.min(1000000, Number(extra.max_reverse_scroll_velocity) || 0)),
-      error_type: extra.error_type ? safeText(extra.error_type, 64) : null,
+      tracking_version: 6,
     }};
 
     // Most analytics callers are fire-and-forget. Audio listening needs to
@@ -717,6 +690,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     if (lenses.has(win.__jairAnalyticsContext.page)) {{
       win.__jairAnalyticsSend('lens_view', {{ lens: win.__jairAnalyticsContext.page }});
     }}
+    if (params.get('article')) win.__jairAnalyticsSend('article_view', {{ article_slug: params.get('article') }});
     win.__jairAnalyticsLastDocumentView = viewSignature;
     win.sessionStorage.setItem('jair_hq_last_view_v1', JSON.stringify({{ signature: viewSignature, at: now }}));
   }}

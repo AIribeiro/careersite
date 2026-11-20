@@ -2,12 +2,11 @@ from __future__ import annotations
 
 """Opt-in first-party portfolio measurement for the public site.
 
-The browser sends a deliberately small event taxonomy plus coarse session context
-to Supabase. There are no analytics cookies, persistent visitor identifiers,
-heatmaps, recordings, raw IP fields, or raw user-agent fields in the
-application-owned dataset. A random session UUID, attribution, and engagement
-state live only in sessionStorage so a single tab visit can be reconstructed
-without creating a durable cross-session visitor profile.
+Before a visitor accepts optional statistics, the collector does not store an
+analytics identifier or send activity events. After opt-in, it records only
+page views, publication views and intentional actions with coarse attribution.
+A temporary session ID lives in sessionStorage; no IP address, full user agent,
+detailed device fingerprint or behavioral timing is sent in event payloads.
 """
 
 import json
@@ -131,7 +130,7 @@ CONSENT_GATE_JS = r"""
     box.innerHTML = '<strong style="display:block;margin-bottom:5px">Optional website statistics</strong>' +
       '<span>May I count which pages and links visitors open? Optional analytics uses temporary browser storage. It does not subscribe you to emails. <a href="' + privacyUrl + '" style="color:#174a71;text-decoration:underline">Privacy notice</a>.</span>' +
       '<div style="display:flex;flex-wrap:wrap;gap:9px;margin-top:13px">' +
-      '<button type="button" data-stats-choice="no" style="cursor:pointer;background:#fff;border:1px solid #223a52;color:#172d42;padding:9px 13px;font-weight:bold;min-width:150px">Essential only</button>' +
+      '<button type="button" data-stats-choice="no" style="cursor:pointer;background:#223a52;border:1px solid #223a52;color:#fff;padding:9px 13px;font-weight:bold;min-width:150px">Essential only</button>' +
       '<button type="button" data-stats-choice="yes" style="cursor:pointer;background:#223a52;border:1px solid #223a52;color:#fff;padding:9px 13px;font-weight:bold;min-width:150px">Allow statistics</button></div>';
     box.addEventListener('click', event => {
       const button = event.target.closest('[data-stats-choice]');
@@ -645,6 +644,8 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       utm_source: attribution.utm_source,
       utm_medium: attribution.utm_medium || null,
       utm_campaign: attribution.utm_campaign,
+      utm_content: attribution.utm_content || null,
+      browser_automation: Boolean(win.navigator && win.navigator.webdriver === true),
       article_slug: extra.article_slug ? safeText(extra.article_slug, 160) :
         (win.__jairArticleContext ? win.__jairArticleContext.slug :
           (params.get('article') || null)),

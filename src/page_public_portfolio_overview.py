@@ -281,7 +281,7 @@ def render_public_portfolio_overview() -> None:
         "attention. Site sessions are deduplicated browser sessions, not unique "
         "people; repeat content views count."
     )
-    st.caption("Measurement changed on 20 November 2026: new activity is counted only after visitors allow optional statistics. Earlier periods used broader tracking, so comparisons across this change are not like-for-like.")
+    st.caption("Measurement changed on 20 November 2026: detailed reading, sessions and interaction analytics now require statistics consent, while basic server-side page-load totals cover all visits. Earlier periods used broader tracking, so comparisons across this change are not like-for-like.")
     initialize_editorial_reporting_period(st.session_state)
     window = st.selectbox(
         "Reporting period",

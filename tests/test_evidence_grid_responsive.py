@@ -11,7 +11,9 @@ def _read(relative: str) -> str:
 def test_all_three_evidence_sections_have_scoped_responsive_grid() -> None:
     evidence = _read("src/portfolio_operating_evidence.py")
     governance = _read("src/page_ai_data_governance.py")
-    assert evidence.count('class="grid3 evidence-cards-grid"') == 2
+    assert evidence.count('class="grid3 evidence-cards-grid"') == 1
+    assert 'class="home-evidence-grid"' in evidence
+    assert evidence.count('class="home-evidence-card-link"') == 4
     assert governance.count('class="grid3 evidence-cards-grid"') == 1
     for section in ("leadership-in-practice", "operating-evidence", "governance-evidence"):
         assert f'id="{section}"' in evidence + governance

@@ -86,8 +86,8 @@ class WeeklyAudioAnalyticsTests(unittest.TestCase):
         shared = (ROOT / "src" / "site_analytics.py").read_text()
         main = (ROOT / "main.py").read_text()
         for event in ["audio_start", "audio_progress", "audio_complete"]:
-            self.assertNotIn(f'"{event}"', shared)
-        self.assertNotIn("inject_weekly_audio_telemetry()", main)
+            self.assertIn(f'"{event}"', shared)
+        self.assertIn("inject_weekly_audio_telemetry()", main)
         # Historical audio reporting remains available for past events.
         self.assertIn("careersite_weekly_audio_analytics_v1", (ROOT / "src" / "page_weekly_ai_analytics.py").read_text())
 

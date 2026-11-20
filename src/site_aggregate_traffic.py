@@ -100,6 +100,9 @@ def render_basic_page_loads(window: str) -> None:
     """Compact premium-style public metric, distinct from consented views."""
     try:
         data = basic_page_load_report(window)
+        if data.get("available") is False:
+            st.caption("Server-side page-load measurement began on 20 November 2026; the selected period predates its start.")
+            return
         all_count = max(0, int(data.get("all_page_loads", 0)))
         privacy = max(0, int(data.get("privacy_page_loads", 0)))
         other = max(0, int(data.get("non_privacy_page_loads", 0)))

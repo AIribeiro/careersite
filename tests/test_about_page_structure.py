@@ -75,6 +75,6 @@ def test_language_styles_are_scoped_and_responsive():
     site_styles = (ROOT / "src" / "site_styles.py").read_text(encoding="utf-8")
     assert ".site .about-languages-section" in site_styles
     assert ".site .about-languages-layout" in site_styles
-    assert "@media(max-width:950px)" in site_styles
-    assert "@media(max-width:580px)" in site_styles
+    assert "@media(max-width:1010px)" in site_styles
+    assert "@media(max-width:590px)" in site_styles
     assert ".site .about-language-mark" in site_styles

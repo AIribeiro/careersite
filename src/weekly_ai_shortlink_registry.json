@@ -103,6 +103,26 @@
         "Reuters",
         "Reuters"
       ]
+    },
+    {
+      "iso_year": 2026,
+      "iso_week": 47,
+      "slug": "weekly-ai-2026-11-20",
+      "distribution_mode": "friday_wrap",
+      "story_keys": [
+        "microsoft_ai_transparency_initiative",
+        "snaplogic_agent_value_readiness_survey",
+        "us_senators_ai_cyber_defense_warning",
+        "ecb_lagarde_ai_cyber_financial_risk"
+      ],
+      "edition_title": "AI Agents Need Evidence, Not Just Permission",
+      "cover_subtitle": "Friday perspective · one minute",
+      "publisher_names": [
+        "Microsoft",
+        "SnapLogic",
+        "Reuters",
+        "Reuters"
+      ]
     }
   ]
 }

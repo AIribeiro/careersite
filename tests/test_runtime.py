@@ -219,30 +219,9 @@ class RuntimeSmokeTests(unittest.TestCase):
         self.assertEqual(
             set(ALLOWED_EVENTS),
             {
-                "page_view",
-                "impact_view",
-                "lens_view",
-                "cv_download",
-                "email_click",
-                "linkedin_click",
-                "article_click",
-                "engagement_ping",
-                "element_impression",
-                "article_card_click",
-                "cta_click",
-                "navigation_click",
-                "section_view",
-                "performance_metric",
-                "section_attention",
-                "element_attention",
-                "cta_hesitation",
-                "scroll_abandonment",
-                "ux_signal",
-                "first_interaction",
-                "behavior_summary",
-                "audio_start",
-                "audio_progress",
-                "audio_complete",
+                "page_view", "impact_view", "lens_view", "article_view",
+                "cv_download", "email_click", "linkedin_click", "article_click",
+                "article_card_click", "cta_click", "navigation_click",
             },
         )
         self.assertEqual(set(LENS_PAGES), {"enterprise", "transformation", "governance", "consulting"})
@@ -253,7 +232,8 @@ class RuntimeSmokeTests(unittest.TestCase):
         dashboard = (ROOT / "src/page_analytics.py").read_text(encoding="utf-8")
 
         self.assertIn("sessionStorage", analytics)
-        self.assertNotIn("localStorage", analytics)
+        self.assertIn("localStorage", analytics)
+        self.assertIn("jair_statistics_choice_v1", analytics)
         self.assertNotIn("document.cookie", analytics)
         self.assertNotIn("user_agent", analytics)
         self.assertIn("params.get('source')", analytics)

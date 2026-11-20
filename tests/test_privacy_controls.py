@@ -90,7 +90,7 @@ assert.equal(browserAccesses, 0);
 assert.equal(sends, 0);
 console.log('Independent collectors default off');
 """.replace("ARTICLE", json.dumps(article_js)).replace("AUDIO", json.dumps(audio_js))
-        result = subprocess.run(["node", "-e", harness], capture_output=True,
+        result = subprocess.run(["node", "-"], input=harness, capture_output=True,
                                 text=True, timeout=20)
         self.assertEqual(result.returncode, 0, result.stderr)
 
@@ -159,7 +159,7 @@ assert.equal(events.filter(x=>x.event_name==='page_view').length,1,'opt-out did 
 assert.equal(events.at(-1).event_name,'audio_complete','opt-out cannot transmit more events');
 console.log('Privacy controls verified');
 """.replace("SCRIPT", json.dumps(script))
-        result = subprocess.run(["node", "-e", harness], capture_output=True, text=True, timeout=20)
+        result = subprocess.run(["node", "-"], input=harness, capture_output=True, text=True, timeout=20)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Privacy controls verified", result.stdout)
 

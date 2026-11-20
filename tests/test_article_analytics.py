@@ -35,7 +35,8 @@ class ArticleAnalyticsTests(unittest.TestCase):
         self.assertIn("jair_hq_engaged_v3", source)
         self.assertIn("jair_hq_last_active_v3", source)
         self.assertIn("__jairArticleScheduleFirstHeartbeat", source)
-        self.assertNotIn("localStorage", source)
+        self.assertIn("localStorage", source)
+        self.assertIn("if (!statisticsAllowed()) return", source)
         self.assertNotIn("document.cookie", source)
         self.assertNotIn("user_agent", source)
 

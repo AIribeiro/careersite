@@ -256,8 +256,9 @@ def render_public_portfolio_overview() -> None:
         _recent_content_report.clear()
         _fast_portfolio_overview.clear()
         _editorial_reporting_activity.clear()
-        from site_aggregate_traffic import basic_page_load_report
+        from site_aggregate_traffic import basic_page_load_report, monthly_content_rollup
         basic_page_load_report.clear()
+        monthly_content_rollup.clear()
         fetch_intelligence.clear()
         from portfolio_reader_kpi import reader_registration_totals
         reader_registration_totals.clear()
@@ -431,8 +432,9 @@ def render_public_portfolio_overview() -> None:
 
     # This independent daily counter includes visitors who declined optional
     # statistics; it is intentionally not compared with opted-in view totals.
-    from site_aggregate_traffic import render_basic_page_loads
+    from site_aggregate_traffic import render_basic_page_loads, render_monthly_optin_trend
     render_basic_page_loads(str(window))
+    render_monthly_optin_trend()
 
     # Registration is a distinct user lifecycle event—not another visit or
     # content view. Use the SAME reporting-window selector and calendar

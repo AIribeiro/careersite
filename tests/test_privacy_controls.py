@@ -1,4 +1,4 @@
-"""Privacy controls: default-off statistics, minimal payload and no forced read attestation."""
+"""Privacy-first analytics: opt-in rich reporting, aggregate-only basic traffic."""
 from __future__ import annotations
 
 import ast
@@ -27,12 +27,28 @@ class PrivacyControlsTests(unittest.TestCase):
         self.assertNotIn('st.checkbox("I have read the Privacy & Data notice.")', source)
         self.assertNotIn('"privacy_notice_ack": True', source)
 
-    def test_legacy_optional_collectors_are_not_mounted(self):
+    def test_optional_collectors_mounted_and_individually_consent_gated(self):
         main = (ROOT / "main.py").read_text()
         self.assertIn('inject_analytics(PAGE, source="streamlit")', main)
-        self.assertNotIn("mount_behavior_telemetry(PAGE", main)
-        self.assertNotIn("inject_article_analytics(PAGE", main)
-        self.assertNotIn("inject_weekly_audio_telemetry()", main)
+        self.assertIn("mount_behavior_telemetry(PAGE", main)
+        self.assertIn("inject_article_analytics(PAGE", main)
+        self.assertIn("inject_weekly_audio_telemetry()", main)
+        for module in ("site_article_analytics.py", "site_behavior_telemetry_v2.py",
+                       "site_weekly_audio_telemetry.py"):
+            source = (ROOT / "src" / module).read_text()
+            self.assertIn("jair_statistics_choice_v1", source, module)
+            self.assertIn("if (!statisticsAllowed()) return", source, module)
+            self.assertIn("const statisticsAllowed =", source, module)
+
+    def test_server_counter_is_separate_from_opt_in_browser_tracking(self):
+        server = (ROOT / "src/site_aggregate_traffic.py").read_text()
+        self.assertIn("careersite_aggregate_page_load_v1", server)
+        self.assertIn("PUBLIC_PAGES", server)
+        self.assertNotIn("user_agent", server)
+        self.assertNotIn("request.headers", server)
+        self.assertNotIn("session_id", server)
+        self.assertNotIn("ip_address", server)
+        self.assertIn("record_page_load(PAGE", (ROOT / "main.py").read_text())
 
     def test_notice_is_concise_and_supports_changing_choice(self):
         notice = (ROOT / "src/page_public_services.py").read_text().split("def privacy() -> str:", 1)[1]
@@ -43,7 +59,7 @@ class PrivacyControlsTests(unittest.TestCase):
         self.assertNotIn("answer records remain private", notice.lower())
 
     @unittest.skipUnless(shutil.which("node"), "Node is required for browser execution")
-    def test_browser_is_default_off_and_opted_in_events_are_minimal(self):
+    def test_browser_is_default_off_and_opted_in_rich_events_are_constrained(self):
         import site_analytics
         with patch.object(site_analytics.components, "html") as html:
             site_analytics.inject_analytics("home")
@@ -87,14 +103,24 @@ choice.set('jair_statistics_choice_v1','yes');
 vm.runInContext(SCRIPT,sandbox);
 assert.equal(events.filter(x=>x.event_name==='page_view').length,1);
 const view=events.find(x=>x.event_name==='page_view');
-for (const field of ['device_type','browser_family','hover_ms','attention_ms',
-                      'session_elapsed_ms','page_engaged_ms','scroll_depth','referrer_host']) {
+for (const field of ['device_type','browser_family','os_family',
+                      'session_elapsed_ms','page_engaged_ms','scroll_depth']) {
+  assert.equal(Object.hasOwn(view,field),true,field+' must be available after consent');
+}
+for (const field of ['viewport_width','screen_width','hardware_concurrency',
+                      'device_memory_gb','timezone','referrer_host']) {
   assert.equal(Object.hasOwn(view,field),false,field+' should not be collected');
 }
+win.__jairAnalyticsSend('section_attention', {section_key:'hero',attention_ms:15000});
+assert.equal(events.at(-1).event_name,'section_attention');
+assert.equal(events.at(-1).attention_ms,15000);
+win.__jairAnalyticsSend('audio_complete', {element_key:'ended',attention_ms:80000});
+assert.equal(events.at(-1).event_name,'audio_complete');
 choice.set('jair_statistics_choice_v1','no');
 vm.runInContext(SCRIPT,sandbox);
 win.__jairAnalyticsSend('page_view');
 assert.equal(events.filter(x=>x.event_name==='page_view').length,1,'opt-out did not stop tracking');
+assert.equal(events.at(-1).event_name,'audio_complete','opt-out cannot transmit more events');
 console.log('Privacy controls verified');
 """.replace("SCRIPT", json.dumps(script))
         result = subprocess.run(["node", "-e", harness], capture_output=True, text=True, timeout=20)

@@ -6,17 +6,33 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class HomeGridLayoutTests(unittest.TestCase):
-    def test_home_uses_one_featured_case_and_three_short_supporting_cards(self):
+    def test_home_shows_four_equal_compact_linked_cases(self):
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")
         evidence = (ROOT / "src/portfolio_operating_evidence.py").read_text(encoding="utf-8")
+        styles = (ROOT / "src/site_styles.py").read_text(encoding="utf-8")
         self.assertIn("{home_evidence()}", home)
-        self.assertIn('id="leadership-in-practice"', evidence)
-        section = evidence.split('def home_evidence()', 1)[1].split('def impact_evidence()', 1)[0]
-        self.assertEqual(section.count('<article class="card"'), 4)
-        self.assertIn("Customer Interview Analyzer", section)
-        self.assertIn("was not scaled", section)
-        self.assertIn('href="?page=impact#customer-interview-analyzer"', section)
-        self.assertIn("not a claim of a fully scaled operating model", section)
+        section = evidence.split("def home_evidence()", 1)[1].split("def impact_evidence()", 1)[0]
+        self.assertIn('id="leadership-in-practice"', section)
+        self.assertEqual(section.count('<article class="card">'), 4)
+        self.assertEqual(section.count('class="home-evidence-card-link"'), 4)
+        self.assertEqual(section.count('Read example →'), 4)
+        self.assertNotIn('evidence-featured-case', section)
+        cases = {
+            "customer-interview-analyzer": "Customer Interview Analyzer",
+            "ai-portfolio-decisions": "80+ AI opportunities",
+            "ai-adoption-learning": "Practical AI learning",
+            "operational-governance": "Analytics capacity governance",
+        }
+        impact_section = evidence.split("def impact_evidence()", 1)[1]
+        for anchor, title in cases.items():
+            self.assertIn(f'href="?page=impact#{anchor}"', section)
+            self.assertIn(title, section)
+            self.assertIn(f'id="{anchor}"', impact_section)
+        self.assertIn("not scaled", section)
+        self.assertIn("not counted as measured adoption", section)
+        self.assertIn("grid-template-columns:repeat(2,minmax(0,1fr))", styles)
+        self.assertIn("min-height:148px", styles)
+        self.assertIn(".site #leadership-in-practice .home-evidence-grid", styles)
 
     def test_navigation_and_closing_contact_are_preserved(self):
         home = (ROOT / "src/page_home.py").read_text(encoding="utf-8")

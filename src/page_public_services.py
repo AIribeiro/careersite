@@ -614,8 +614,8 @@ def privacy() -> str:
    <p>Please do not submit sensitive personal details or confidential business material unless suitable handling arrangements have been agreed.</p>
   </section>
   <section id="privacy-providers"><h2>Service providers</h2>
-   <p>The website uses Streamlit hosting, an EU-region Supabase database and authentication service, and transactional email and domain providers. These providers process information needed to operate the relevant services. External links, including LinkedIn, are governed by their own privacy notices.</p>
-   <p>Some providers or subprocessors may process information outside the European Economic Area. For details of relevant destinations and transfer safeguards, contact <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>.</p>
+   <p>The website runs on Streamlit Community Cloud, which hosts apps in the United States. The Supabase database is in an EU region. Authentication, domain and transactional email services and their subprocessors may process information needed for those functions. External links, including LinkedIn, have separate privacy practices.</p>
+   <p>Some processing may take place outside the European Economic Area. Supabase describes international transfers and its contractual safeguards in its <a href="https://supabase.com/legal/customer-resources/data-processing-addendum" target="_blank" rel="noopener noreferrer">data-processing agreement</a>. Other provider arrangements may differ. For details relevant to your information, contact <a href="mailto:{PRIVACY_EMAIL}">{PRIVACY_EMAIL}</a>.</p>
   </section>
   <section id="privacy-storage"><h2>Statistics, cookies and retention</h2>
    <p>Optional first-party website statistics count visits, content opened and selected link actions. They run only after you select <strong>Allow statistics</strong>. The site saves your statistics choice in browser storage and uses temporary session storage for opted-in measurement. Essential login and security cookies may also be used. No advertising tracking is intended.</p>

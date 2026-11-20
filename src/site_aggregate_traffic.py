@@ -138,7 +138,7 @@ def render_basic_page_loads(window: str) -> None:
  <div><p class="pa-basic-eyebrow">Server-side measurement · {period}</p>
  <h3>Page loads, without optional statistics</h3>
  <p>Daily aggregate counts, starting 20 November 2026. No visitor IDs or browsing histories in this counter.
- Repeated loads count; these are not unique visitors.</p></div>
+ Collection began during the afternoon of 20 November; earlier activity is unavailable. Repeated loads count; these are not unique visitors.</p></div>
  <div class="pa-basic-stats">
   <div><strong class="pa-basic-value">{other:,}</strong><span class="pa-basic-label">Excluding Privacy</span></div>
   <div><strong class="pa-basic-value">{privacy:,}</strong><span class="pa-basic-label">Privacy</span></div>

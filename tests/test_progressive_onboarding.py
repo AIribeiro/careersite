@@ -74,7 +74,8 @@ class ProgressiveOnboardingTests(unittest.TestCase):
         self.assertIn("_signup_context(user)", source)
         self.assertIn("_password_authenticated(session)", source)
         self.assertIn("_validate_registration_intake({\"first_name\": first})", source)
-        self.assertIn("if not accepted:", source)
+        self.assertNotIn("if not accepted:", source)
+        self.assertIn("PRIVACY_NOTICE_URL", source)
         self.assertIn("role, organization", (ROOT / "src/page_advisory_client_journey.py")
                       .read_text(encoding="utf-8"))
 

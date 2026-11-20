@@ -655,26 +655,69 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 }
 .site .about-language-grid{
   display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:11px;align-items:stretch;
+  gap:10px;align-items:stretch;
 }
 .site .about-language-grid--secondary{
   grid-template-columns:repeat(2,minmax(0,1fr));
 }
 .site .about-language-tile{
   display:flex;align-items:center;gap:12px;min-width:0;
-  min-height:76px;padding:12px 15px;
+  min-height:67px;padding:10px 12px;
   background:#fffefa;border:1px solid #e7dfd5;border-radius:8px;
 }
 .site .about-language-mark{
-  display:inline-flex;align-items:center;justify-content:center;
-  flex:0 0 57px;width:57px;height:47px;border-radius:9px;
-  background:linear-gradient(145deg,#fbf8f3,#f1e9de);
-  border:1px solid #e7ddd1;
+  position:relative;display:flex;align-items:center;justify-content:center;
+  flex:0 0 50px;width:50px;height:37px;background:transparent;
+  border:0;border-radius:0;
 }
 .site .about-language-flag{
-  display:block;width:43px;height:auto;aspect-ratio:3/2;
-  overflow:hidden;border-radius:4px;
-  box-shadow:0 1px 4px rgba(28,37,44,.2);
+  position:relative;display:block;flex:none;
+  width:45px;height:30px;overflow:hidden;
+  border:1px solid rgba(28,37,44,.16);border-radius:3px;
+  box-shadow:0 1px 4px rgba(28,37,44,.16);
+}
+.site .about-language-flag--br{background:#168b48}
+.site .about-language-flag--br::before{
+  content:"";position:absolute;inset:3px;
+  background:#f9d342;clip-path:polygon(50% 5%,97% 50%,50% 95%,3% 50%);
+}
+.site .about-language-flag--br::after{
+  content:"";position:absolute;width:16px;height:16px;
+  top:6px;left:13px;border-radius:50%;background:#244b9b;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);
+}
+.site .about-language-flag--it{
+  background:linear-gradient(to right,#128e55 0 33.333%,#fff 33.333% 66.667%,#ce2b37 66.667% 100%);
+}
+.site .about-language-flag--gb{
+  background:
+    linear-gradient(90deg,transparent 43%,#c8102e 43% 57%,transparent 57%),
+    linear-gradient(0deg,transparent 40%,#c8102e 40% 60%,transparent 60%),
+    linear-gradient(90deg,transparent 35%,#fff 35% 65%,transparent 65%),
+    linear-gradient(0deg,transparent 28%,#fff 28% 72%,transparent 72%),
+    linear-gradient(33deg,transparent 44%,#c8102e 44% 49%,#fff 49% 55%,#c8102e 55% 60%,transparent 60%),
+    linear-gradient(-33deg,transparent 44%,#c8102e 44% 49%,#fff 49% 55%,#c8102e 55% 60%,transparent 60%),
+    #012169;
+}
+.site .about-language-flag--es{
+  background:linear-gradient(to bottom,#aa2837 0 25%,#f5c641 25% 75%,#aa2837 75% 100%);
+}
+.site .about-language-flag--es::after{
+  content:"";position:absolute;left:12px;top:10px;
+  width:7px;height:10px;background:#b33339;
+  border:1px solid #f8e4a7;border-radius:1px;
+}
+.site .about-language-flag--pl{
+  background:linear-gradient(to bottom,#fff 0 50%,#dc3656 50% 100%);
+}
+.site .about-language-flag--se{background:#21679a}
+.site .about-language-flag--se::before{
+  content:"";position:absolute;left:13px;top:0;
+  width:6px;height:100%;background:#f5c945;
+}
+.site .about-language-flag--se::after{
+  content:"";position:absolute;left:0;top:12px;
+  width:100%;height:6px;background:#f5c945;
 }
 .site .about-language-detail{
   display:flex;flex-direction:column;gap:5px;min-width:0;
@@ -688,19 +731,17 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
 .site .about-language-grid--secondary .about-language-tile{
   background:#faf8f4;border-color:#e9e4dc;
 }
-.site .about-language-grid--secondary .about-language-mark{
-  background:linear-gradient(145deg,#f8f6f0,#eeebe5);
-  border-color:#e4dfd6;
-}
 @media(max-width:1010px){
   .site .about-languages-story{
     grid-template-columns:minmax(0,1fr);gap:12px;
   }
   .site .about-languages-intro h2{max-width:950px}
   .site .about-languages-copy>p{max-width:950px}
+}
+@media(max-width:780px){
   .site .about-language-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media(max-width:590px){
+@media(max-width:540px){
   .site .about-languages-section{padding:35px 0 42px}
   .site .about-languages-layout{width:calc(100% - 32px);gap:20px}
   .site .about-languages-intro h2{font-size:clamp(32px,8vw,43px)}
@@ -710,8 +751,8 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
     grid-template-columns:minmax(0,1fr);gap:9px;
   }
   .site .about-language-tile{min-height:67px;padding:10px 12px}
-  .site .about-language-mark{flex-basis:50px;width:50px;height:43px}
-  .site .about-language-flag{width:39px}
+  .site .about-language-mark{flex-basis:47px;width:47px;height:35px}
+  .site .about-language-flag{width:42px;height:28px}
 }
 @media(max-width:360px){
   .site .about-language-detail strong{font-size:13px}

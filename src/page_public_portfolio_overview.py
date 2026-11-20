@@ -26,13 +26,56 @@ from thinking_weekly_brief import edition_label, is_weekly_brief
 
 @st.cache_data(ttl=300, show_spinner=False)
 def _lifetime_content_report() -> dict:
-    """Fetch lightweight all-time view totals, not the expensive full report.
+    """Keep lifetime cards from shrinking when 90-day raw events are deleted.
 
-    Site-wide and per-publication denominators share the canonical view
-    definition used by the selected-period content-intelligence report.
+    Retained month-level aggregates are refreshed daily and contain no
+    visitor/session identifiers. Live raw totals remain a floor for today.
+    These are count estimates until the next archive refresh, not exact
+    intraday lifetime measurements.
     """
     payload = {"p_token": _dashboard_payload("all")["p_token"]}
-    return _fetch_rpc("careersite_lifetime_views_v1", payload)
+    result = _fetch_rpc("careersite_lifetime_views_v1", payload)
+    try:
+        from site_aggregate_traffic import monthly_content_rollup
+        months, archived_content = monthly_content_rollup()
+        if not months:
+            return result
+        archived_pages = sum(max(0, int(x.get("page_views") or 0)) for x in months)
+        archived_articles = sum(max(0, int(x.get("article_views") or 0)) for x in months)
+        quality = dict(result.get("quality") or {})
+        quality["site_views"] = max(
+            int(quality.get("site_views") or 0), archived_pages + archived_articles
+        )
+        quality["article_views"] = max(
+            int(quality.get("article_views") or 0), archived_articles
+        )
+        current = {
+            str(row.get("content")): dict(row)
+            for row in result.get("performance", [])
+            if isinstance(row, dict) and row.get("kind") == "article" and row.get("content")
+        }
+        for row in archived_content:
+            if row.get("content_kind") != "article":
+                continue
+            slug = str(row.get("content") or "")
+            if not slug:
+                continue
+            views = max(0, int(row.get("views") or 0))
+            if slug in current:
+                current[slug]["views"] = max(int(current[slug].get("views") or 0), views)
+            else:
+                current[slug] = {
+                    "kind": "article", "content": slug, "views": views, "sessions": 0
+                }
+        return {
+            **result, "quality": quality,
+            "performance": sorted(
+                current.values(),
+                key=lambda row: (-int(row.get("views") or 0), str(row.get("content") or "")),
+            ),
+        }
+    except (RuntimeError, ValueError, TypeError, OverflowError):
+        return result
 
 
 def lifetime_caption(total: int | None, measure: str) -> str:
@@ -312,7 +355,7 @@ def render_public_portfolio_overview() -> None:
     rows_reconcile = regular_views + weekly_views + briefing_views == article_views
     lifetime_views = lifetime_articles = lifetime_weekly = lifetime_briefings = None
     try:
-        lifetime_report = report if str(window) == "all" else _lifetime_content_report()
+        lifetime_report = _lifetime_content_report()
         lifetime_quality = lifetime_report.get("quality") or {}
         if lifetime_quality.get("site_views") is not None:
             lifetime_views = max(0, int(lifetime_quality["site_views"]))

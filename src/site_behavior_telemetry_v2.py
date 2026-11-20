@@ -14,6 +14,12 @@ BEHAVIOR_TELEMETRY_JS = r"""
 export default function({ data }) {
   const win = window;
   const doc = document;
+  const statisticsAllowed = () => {
+    try { return win.localStorage.getItem('jair_statistics_choice_v1') === 'yes'; }
+    catch (_) { return false; }
+  };
+  // Exit before DOM observation, browser storage, listeners or analytics sends.
+  if (!statisticsAllowed()) return;
   const page = String(data?.page || 'home').slice(0, 64);
   const articleSlug = String(data?.article_slug || '').slice(0, 160);
 
@@ -74,7 +80,7 @@ export default function({ data }) {
   const sessionId = () => win.sessionStorage.getItem('jair_hq_session_v1') || '';
 
   const send = (eventName, extra = {}) => {
-    if (!win.__jairAnalyticsSend) return false;
+    if (!statisticsAllowed() || !win.__jairAnalyticsSend) return false;
     win.__jairAnalyticsSend(eventName, extra);
     return true;
   };

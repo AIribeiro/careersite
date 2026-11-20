@@ -427,6 +427,11 @@ def render_public_portfolio_overview() -> None:
         card["period_label"] = REPORTING_WINDOW_LABELS.get(str(window), "Selected period")
     st.html(portfolio_metric_grid(cards))
 
+    # This independent daily counter includes visitors who declined optional
+    # statistics; it is intentionally not compared with opted-in view totals.
+    from site_aggregate_traffic import render_basic_page_loads
+    render_basic_page_loads(str(window))
+
     # Registration is a distinct user lifecycle event—not another visit or
     # content view. Use the SAME reporting-window selector and calendar
     # boundaries as the five analytics cards.

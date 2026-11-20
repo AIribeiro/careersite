@@ -6,6 +6,7 @@ from urllib.parse import quote
 
 from briefing_reader_preview import PREVIEW_CSS, opening_paragraphs
 from site_components import footer, nav
+from reader_access_invitation import reader_access_invitation
 from thinking_core import THINKING_CSS
 from thinking_weekly_brief import WEEKLY_CSS, edition_week, _headline
 
@@ -52,24 +53,9 @@ def render_current_week_public_preview(article) -> str:
         'leadership implications. Listen to the narrated version when available.</p>'
         '<p>This edition opens to everyone once the next Weekly AI edition is published.</p>'
         '</aside></div>'
-        '<section class="briefing-unlock" data-analytics-section="weekly-ai-reader-free-access">'
-        '<div class="briefing-unlock-inner"><div><p class="eyebrow">'
-        'Premium Reader · Complimentary access</p>'
-        '<h2>Read the complete latest perspective.</h2>'
-        '<p>Use the same free account for Weekly AI, Executive AI Briefings '
-        'and early access to new Articles. Editorial emails are optional.</p></div>'
-        '<ul class="briefing-unlock-benefits">'
-        '<li>Read the full latest Weekly AI edition</li>'
-        '<li>Access the narration when available</li>'
-        '<li>Previous editions remain open to everyone</li>'
-        '</ul></div>'
-        '<div class="briefing-unlock-actions">'
-        '<a class="briefing-unlock-primary" href="' + target + '" target="_self" '
-        'data-hq-event="weekly_ai_premium_access">Read full Weekly AI · Free</a>'
-        '<a class="briefing-unlock-secondary" href="' + target + '&amp;signin=1" '
-        'target="_self" data-hq-event="weekly_ai_premium_signin">'
-        'Already registered? Sign in</a>'
-        '</div><p class="briefing-unlock-note">'
-        'No payment details. This edition opens publicly when the next issue is published.</p>'
-        '</section></div></section></main>' + footer()
+        + reader_access_invitation("weekly_ai", target,
+            section="weekly-ai-reader-free-access",
+            register_event="weekly_ai_premium_access",
+            signin_event="weekly_ai_premium_signin")
+        + '</div></section></main>' + footer()
     )

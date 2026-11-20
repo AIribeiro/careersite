@@ -470,7 +470,7 @@ Personal discussions are selective; registration does not guarantee a meeting.</
         with st.form("advisory_initial_registration"):
             first = st.text_input("First name *", max_chars=80, placeholder="First name")
             email = st.text_input(
-                "Email address *" if requested_service == "market-signals" else "Professional email *", max_chars=254,
+                "Email address *", max_chars=254,
                 placeholder="you@organization.com",
             )
             submit = st.form_submit_button("Send verification link · Continue registration", type="primary")
@@ -485,7 +485,7 @@ Personal discussions are selective; registration does not guarantee a meeting.</
             address = str(email).strip().lower()
             try:
                 if not EMAIL.fullmatch(address):
-                    raise ValueError("Enter a valid professional email address.")
+                    raise ValueError("Enter a valid email address.")
                 details = _validate_registration_intake({"first_name": first})
                 _request_email(
                     first.strip(), address, False, False,

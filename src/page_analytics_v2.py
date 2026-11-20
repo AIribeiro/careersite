@@ -108,7 +108,7 @@ def _render_public_analytics() -> None:
         render_public_portfolio_overview()
         return
 
-    st.caption("Since 20 November 2026, new visits require optional statistics consent. Earlier counts used broader measurement; compare periods with care.")
+    st.caption("Since 20 November 2026, detailed session and engagement statistics require opt-in. Separate basic server-side page-load counts do not; earlier detailed figures used broader collection, so compare periods with care.")
     st.title("Portfolio performance")
     st.caption("Understand which content earns qualified attention and what visitors do next. "
                "A recorded visit is not a person or a recruiter identification.")

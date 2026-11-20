@@ -23,14 +23,11 @@ def _telemetry_js() -> str:
 
 
 class BehaviorTelemetryTests(unittest.TestCase):
-    def test_v2_collector_is_wired_after_base_analytics(self) -> None:
+    def test_legacy_behavior_collector_is_not_mounted_without_specific_consent(self) -> None:
         main = (ROOT / "main.py").read_text(encoding="utf-8")
-        self.assertIn("from site_behavior_telemetry_v2 import mount_behavior_telemetry", main)
-        self.assertIn("mount_behavior_telemetry(PAGE, CMS_ARTICLE_META or ARTICLE_META)", main)
-        self.assertLess(
-            main.index('inject_analytics(PAGE, source="streamlit")'),
-            main.index("mount_behavior_telemetry(PAGE, CMS_ARTICLE_META or ARTICLE_META)"),
-        )
+        self.assertIn('inject_analytics(PAGE, source="streamlit")', main)
+        self.assertNotIn("mount_behavior_telemetry(PAGE", main)
+        self.assertNotIn("from site_behavior_telemetry_v2 import mount_behavior_telemetry", main)
 
     def test_collector_is_session_scoped_and_does_not_trigger_python_reruns(self) -> None:
         source = SOURCE.read_text(encoding="utf-8")

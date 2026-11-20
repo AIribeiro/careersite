@@ -134,10 +134,10 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertNotIn("Your executive reading library.", shell)
         self.assertIn("Read the full analysis and decision frameworks.", native)
         self.assertIn("save relevant briefings", native)
-        self.assertIn("revisit available infographic PDFs", native)
-        self.assertIn("Editorial updates only with your consent.", native)
+        self.assertIn("download available infographics", native)
+        self.assertIn("Editorial emails only if you choose them.", native)
         self.assertIn("value=False, disabled=returning", native)
-        self.assertIn("Email my registration link · Free", native)
+        self.assertIn("Send verification link · Continue reading", native)
         self.assertIn("Email me a sign-in link", native)
         self.assertIn('href="#reader-access"', shell)
         self.assertIn('id="reader-access"', native)
@@ -188,7 +188,7 @@ class ReaderMembershipContractTests(unittest.TestCase):
         self.assertIn("render_briefing_access_dialog", self.source("main.py"))
         self.assertIn('"access"', self.source("src/page_reader_native.py"))
         self.assertIn('render_public_briefing_preview', self.source("src/site_cms.py"))
-        self.assertIn('access the full briefing · free', self.source("src/briefing_reader_preview.py").lower())
+        self.assertIn('reader_access_invitation("briefing"', self.source("src/briefing_reader_preview.py"))
 
 
     def test_reader_catalog_is_owner_only(self):

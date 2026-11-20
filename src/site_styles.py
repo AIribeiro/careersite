@@ -597,119 +597,125 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .about-family-photo img{object-fit:contain}
 }
 
-/* About: multilingual leadership. Text-only monograms are browser-safe. */
-.site .about-languages-section{padding:clamp(64px,6vw,88px) 0;background:linear-gradient(135deg,#f5f0e9,#eee8df);border-block:1px solid #e0d6cb}
-.site .about-languages-layout{display:grid;grid-template-columns:minmax(0,.93fr) minmax(0,1.07fr);gap:clamp(34px,6vw,86px);align-items:center}
-.site .about-languages-story{min-width:0;max-width:550px}
-.site .about-languages-story .eyebrow{color:#a26643;letter-spacing:.15em;margin:0 0 17px}
-.site .about-languages-story h2{margin:0 0 24px;font:500 clamp(36px,4.4vw,56px)/1.07 Georgia,serif;color:#1d3042;letter-spacing:-.036em;text-wrap:balance}
-.site .about-languages-story>p:not(.eyebrow){margin:0 0 17px;color:#505d68;font-size:clamp(14px,1.3vw,16px);line-height:1.78}
-.site .about-languages-takeaway{margin-top:29px;padding:18px 0 0 20px;border-top:1px solid #d8cec3;border-left:3px solid #ae7855}
-.site .about-languages-takeaway span{display:block;color:#986442;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.13em}
-.site .about-languages-takeaway strong{display:block;margin-top:9px;max-width:475px;color:#263b4b;font-size:14px;font-weight:650;line-height:1.58}
-.site .about-languages-profile{min-width:0;padding:clamp(22px,3vw,34px);background:rgba(255,253,248,.9);border:1px solid #e0d6c9;border-radius:12px;box-shadow:0 19px 45px rgba(35,40,46,.06)}
-.site .about-language-group-label{margin:0 0 15px;color:#9f6747;font-size:10px;font-weight:850;letter-spacing:.13em;text-transform:uppercase}
-.site .about-language-group-label--secondary{margin-top:25px;padding-top:21px;border-top:1px solid #e9e1d7;color:#7a817f}
-.site .about-language-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
-.site .about-language-tile{display:flex;align-items:center;gap:12px;min-width:0;min-height:78px;padding:13px 15px;border:1px solid #e5dbce;border-radius:8px;background:#fffefa}
-.site .about-language-mark{display:flex;align-items:center;justify-content:center;flex:0 0 43px;width:43px;height:43px;border:1px solid #e8d7c5;border-radius:9px;color:#95613f;background:linear-gradient(145deg,#faf0e6,#f4e8db);font:800 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;letter-spacing:.055em}
-.site .about-language-detail{display:flex;flex-direction:column;gap:5px;min-width:0}
-.site .about-language-detail strong{color:#20364a;font-size:14px;font-weight:750;line-height:1.3}
-.site .about-language-detail>span{color:#68747d;font-size:11px;line-height:1.4}
-.site .about-language-grid--secondary .about-language-tile{background:#faf8f4;border-color:#e9e4dc}
-.site .about-language-grid--secondary .about-language-mark{color:#73808b;background:#efeee9;border-color:#e0dfd8}
-@media(max-width:950px){.site .about-languages-layout{grid-template-columns:minmax(0,1fr);gap:29px}.site .about-languages-story{max-width:750px}.site .about-languages-profile{max-width:780px;width:100%}}
-@media(max-width:580px){.site .about-languages-section{padding:55px 0 62px}.site .about-languages-story h2{font-size:clamp(34px,9vw,45px)}.site .about-languages-profile{padding:20px 16px}.site .about-language-grid{grid-template-columns:minmax(0,1fr);gap:9px}.site .about-language-tile{min-height:66px;padding:10px 12px}.site .about-language-mark{width:39px;height:39px;flex-basis:39px}.site .about-language-group-label--secondary{margin-top:20px;padding-top:18px}}
-
-/* About language and leadership highlight */
+/* About: full-width multilingual leadership, restrained flag emblems.
+   Country flags are only visual shorthand; language text stays explicit. */
 .site .about-languages-section{
-  padding:clamp(56px,6.5vw,88px) 0;
-  background:radial-gradient(ellipse at 7% 0%,rgba(191,128,86,.09),transparent 47%),linear-gradient(125deg,#f7f2eb,#f0eae3);
+  padding:clamp(39px,4.3vw,57px) 0;
+  background:radial-gradient(ellipse at 5% 0%,rgba(191,128,86,.08),transparent 45%),linear-gradient(125deg,#f7f2eb,#f0eae3);
   border-block:1px solid #e2d7ca;
 }
 .site .about-languages-layout{
-  display:grid;grid-template-columns:minmax(0,.90fr) minmax(0,1.10fr);
-  align-items:center;gap:clamp(30px,5vw,75px);
+  width:calc(100% - clamp(28px,5vw,96px));
+  max-width:none;margin-inline:auto;display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:clamp(20px,2.6vw,31px);
 }
-.site .about-languages-story{min-width:0}
-.site .about-languages-story .eyebrow{color:#9d6241;letter-spacing:.17em;margin:0 0 19px}
-.site .about-languages-story h2{
-  max-width:560px;margin:0 0 25px;color:#1d3041;
-  font:500 clamp(38px,4.3vw,56px)/1.08 Georgia,serif;
-  letter-spacing:-.038em;text-wrap:balance;
+.site .about-languages-story{
+  display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
+  gap:clamp(22px,4vw,72px);align-items:start;min-width:0;
 }
-.site .about-languages-story>p:not(.eyebrow){
-  max-width:550px;color:#4e5c68;margin:0 0 16px;
-  font-size:clamp(15px,1.32vw,17px);line-height:1.72;
+.site .about-languages-intro,.site .about-languages-copy{min-width:0}
+.site .about-languages-intro .eyebrow{
+  color:#9d6241;letter-spacing:.17em;margin:0 0 12px;
+}
+.site .about-languages-intro h2{
+  margin:0;color:#1d3041;max-width:740px;
+  font:500 clamp(35px,3.8vw,54px)/1.09 Georgia,serif;
+  letter-spacing:-.037em;text-wrap:balance;
+}
+.site .about-languages-copy>p{
+  max-width:900px;color:#4e5c68;margin:0 0 11px;
+  font-size:clamp(14px,1.1vw,16px);line-height:1.57;
 }
 .site .about-languages-takeaway{
-  display:flex;flex-direction:column;gap:8px;
-  max-width:530px;margin-top:27px;padding:18px 0 0 20px;
-  border-top:1px solid #d8cbbd;border-left:3px solid #b27751;
+  display:flex;flex-direction:column;gap:5px;
+  max-width:900px;margin-top:12px;padding:12px 0 0 15px;
+  border-top:1px solid #d8cbbd;border-left:2px solid #b27751;
 }
 .site .about-languages-takeaway>span{
-  color:#a06442;font-size:10px;font-weight:850;
+  color:#a06442;font-size:9px;font-weight:850;
   letter-spacing:.12em;text-transform:uppercase;
 }
 .site .about-languages-takeaway>strong{
-  color:#24394b;font-size:15px;line-height:1.6;font-weight:700;
+  color:#24394b;font-size:13px;line-height:1.45;font-weight:700;
 }
 .site .about-languages-profile{
-  min-width:0;padding:clamp(23px,2.9vw,35px);
-  background:rgba(255,253,249,.9);border:1px solid #ded4c9;
-  border-radius:11px;box-shadow:0 18px 42px rgba(36,44,51,.06);
+  width:100%;max-width:none;min-width:0;
+  padding:clamp(17px,2.2vw,29px);
+  background:rgba(255,253,249,.93);
+  border:1px solid #ded4c9;border-radius:11px;
+  box-shadow:0 15px 34px rgba(36,44,51,.045);
 }
 .site .about-language-group-label{
-  margin:0 0 14px;color:#9d6747;font-size:10px;
-  font-weight:850;letter-spacing:.14em;text-transform:uppercase;
+  margin:0 0 12px;color:#9d6747;
+  font-size:10px;font-weight:850;letter-spacing:.14em;text-transform:uppercase;
 }
 .site .about-language-group-label--secondary{
-  margin-top:24px;padding-top:22px;border-top:1px solid #e8dfd6;
+  margin-top:18px;padding-top:17px;border-top:1px solid #e8dfd6;
 }
 .site .about-language-grid{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:11px;align-items:stretch;
+}
+.site .about-language-grid--secondary{
+  grid-template-columns:repeat(2,minmax(0,1fr));
 }
 .site .about-language-tile{
   display:flex;align-items:center;gap:12px;min-width:0;
-  min-height:77px;padding:13px;background:#fffefa;border:1px solid #e9e1d9;
+  min-height:76px;padding:12px 15px;
+  background:#fffefa;border:1px solid #e7dfd5;border-radius:8px;
 }
 .site .about-language-mark{
   display:inline-flex;align-items:center;justify-content:center;
-  flex:0 0 42px;width:42px;height:42px;border-radius:9px;
-  background:#f4e8dc;border:1px solid #ead8c9;color:#945e3e;
-  font:800 12px/1 Arial,sans-serif;letter-spacing:.08em;
+  flex:0 0 57px;width:57px;height:47px;border-radius:9px;
+  background:linear-gradient(145deg,#fbf8f3,#f1e9de);
+  border:1px solid #e7ddd1;
+}
+.site .about-language-flag{
+  display:block;width:43px;height:auto;aspect-ratio:3/2;
+  overflow:hidden;border-radius:4px;
+  box-shadow:0 1px 4px rgba(28,37,44,.2);
 }
 .site .about-language-detail{
   display:flex;flex-direction:column;gap:5px;min-width:0;
 }
 .site .about-language-detail strong{
-  color:#233447;font-size:14px;line-height:1.2;
+  color:#233447;font-size:14px;line-height:1.25;font-weight:750;
 }
 .site .about-language-detail>span{
   color:#69737d;font-size:11px;line-height:1.35;
 }
+.site .about-language-grid--secondary .about-language-tile{
+  background:#faf8f4;border-color:#e9e4dc;
+}
 .site .about-language-grid--secondary .about-language-mark{
-  color:#70777d;background:#efede8;border-color:#e0dcd5;
+  background:linear-gradient(145deg,#f8f6f0,#eeebe5);
+  border-color:#e4dfd6;
 }
 @media(max-width:1010px){
-  .site .about-languages-layout{grid-template-columns:minmax(0,1fr);gap:29px}
-  .site .about-languages-story h2{max-width:820px}
-  .site .about-languages-story>p:not(.eyebrow){max-width:820px}
-  .site .about-languages-profile{max-width:850px}
+  .site .about-languages-story{
+    grid-template-columns:minmax(0,1fr);gap:12px;
+  }
+  .site .about-languages-intro h2{max-width:950px}
+  .site .about-languages-copy>p{max-width:950px}
+  .site .about-language-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:590px){
-  .site .about-languages-section{padding:50px 0 59px}
-  .site .about-languages-story h2{font-size:clamp(35px,8vw,45px)}
-  .site .about-languages-profile{padding:20px 16px}
-  .site .about-language-grid{gap:8px}
-  .site .about-language-tile{min-height:78px;gap:9px;padding:11px 9px}
-  .site .about-language-mark{flex-basis:34px;width:34px;height:34px;font-size:10px}
-  .site .about-language-detail strong{font-size:12px}
-  .site .about-language-detail>span{font-size:10px}
+  .site .about-languages-section{padding:35px 0 42px}
+  .site .about-languages-layout{width:calc(100% - 32px);gap:20px}
+  .site .about-languages-intro h2{font-size:clamp(32px,8vw,43px)}
+  .site .about-languages-copy>p{font-size:14px;line-height:1.55}
+  .site .about-languages-profile{padding:18px 14px}
+  .site .about-language-grid,.site .about-language-grid--secondary{
+    grid-template-columns:minmax(0,1fr);gap:9px;
+  }
+  .site .about-language-tile{min-height:67px;padding:10px 12px}
+  .site .about-language-mark{flex-basis:50px;width:50px;height:43px}
+  .site .about-language-flag{width:39px}
 }
 @media(max-width:360px){
-  .site .about-language-grid{grid-template-columns:minmax(0,1fr)}
-  .site .about-language-tile{min-height:65px}
+  .site .about-language-detail strong{font-size:13px}
+  .site .about-language-detail>span{font-size:11px}
 }
 
 /* About closing navigation — purposeful next step, not another site directory. */

@@ -190,7 +190,13 @@ if LEGACY_LENS_LINK:
 # Never count the private owner workspace. Widget reruns are deduplicated.
 if PAGE in PUBLIC_VALID:
     from site_aggregate_traffic import record_page_load
-    record_page_load(PAGE, str(ARTICLE_QUERY or ""))
+    # Explicitly tagged internal test runs must not distort public page loads.
+    source_tag = str(st.query_params.get("source", "")).lower().strip()
+    role_tag = str(st.query_params.get("role", "")).lower().strip()
+    known_test = ((source_tag == "application" and role_tag == "test")
+                  or (source_tag == "internal_qa" and role_tag in {"smoke", "test"}))
+    if not known_test:
+        record_page_load(PAGE, str(ARTICLE_QUERY or ""))
 
 if PAGE == "readers":
     # Native forms and downloads travel through Streamlit's supported widget

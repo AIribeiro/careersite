@@ -185,15 +185,36 @@ def _validated_public_video_url(slug: str, manifest: dict) -> str | None:
     return expected if web.get("public_url") == expected else None
 
 
+def _validated_public_poster_url(slug: str, manifest: dict) -> str | None:
+    """Accept only source-locked, immutable public Storage poster URLs."""
+    poster = manifest.get("poster", {})
+    if not isinstance(poster, dict):
+        return None
+    digest = poster.get("sha256", "")
+    if not _DIGEST.fullmatch(str(digest)):
+        return None
+    expected = (
+        "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/"
+        f"careersite-article-images/executive-briefings/{slug}/"
+        f"poster-v1-{digest[:8]}.jpg"
+    )
+    return (
+        expected if poster.get("delivery") == "supabase-public-storage"
+        and poster.get("public_url") == expected else None
+    )
+
+
 def _url(slug: str, name: str, digest: str) -> str:
     manifest = _approved_manifest(slug)
     if manifest and _validated_public_video_url(slug, manifest):
         if name == "preview.mp4":
             return manifest["web"]["public_url"]
         if name == "poster.jpg":
-            # Streamlit Community Cloud currently redirects this poster's
-            # /app/static URL to sign-in (HTTP 303). Use the approved public
-            # GitHub asset (HTTP 200 image/jpeg) instead.
+            # Prefer a SHA-bound public Storage poster where explicitly listed.
+            # Legacy videos retain their verified public GitHub poster.
+            remote_poster = _validated_public_poster_url(slug, manifest)
+            if remote_poster:
+                return remote_poster
             return f"{GITHUB_MEDIA_ROOT}/{slug}/poster.jpg?v={digest[:12]}"
     return (
         f"{STATIC_MEDIA_ORIGIN}/app/static/briefing-videos/"
@@ -210,7 +231,8 @@ def render_briefing_video_preview(slug: str, *, source_fingerprint: str | None =
     # A verified, source-locked public object does not depend on creating
     # preview.mp4 in the Streamlit container (which may be read-only).
     durable = _validated_public_video_url(slug, manifest)
-    if (public_preview_media_path(slug, "poster.jpg") is None
+    if ((not _validated_public_poster_url(slug, manifest)
+         and public_preview_media_path(slug, "poster.jpg") is None)
         or (not durable and public_preview_media_path(slug, "preview.mp4") is None)):
         return ""
     video = durable or _url(slug, "preview.mp4", manifest["web"]["sha256"])

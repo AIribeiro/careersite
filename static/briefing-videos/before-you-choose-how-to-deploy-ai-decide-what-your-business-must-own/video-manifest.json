@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "slug": "before-you-choose-how-to-deploy-ai-decide-what-your-business-must-own",
+  "status": "approved",
+  "approved_by_owner": true,
+  "revision": "v1-owner-approved-20261120",
+  "article_fingerprint": "dac3bc9e93f334f79e51c8b42eabc0800782fb861d0350b0ef17b4aab448c98a",
+  "infographic_release_fingerprint": "dac3bc9e93f334f79e51c8b42eabc0800782fb861d0350b0ef17b4aab448c98a",
+  "script_sha256": "52941fbb7118e2eb410ec716b20b7c7fd325d77d567d526de21000efeb84bae6",
+  "title": "Before You Choose How to Deploy AI, Decide What Your Business Must Own",
+  "duration_seconds": 102.847007,
+  "voice": {
+    "name": "Jair Ribeiro",
+    "voice_id": "244dad1f09ba4ca7980e30707c1e2b06",
+    "audio_sha256": "e0d2383b4b388fb98b899db2e2c8b7b4404d301738635f78a22f4e8516485048"
+  },
+  "web": {
+    "file": "preview.mp4",
+    "sha256": "38e181f508792fb4d4ffcb3a45488018a7b038564f6a266a1289dc16465ecc15",
+    "size_bytes": 7743735,
+    "width": 1920,
+    "height": 1080,
+    "video_codec": "h264",
+    "audio_codec": "aac",
+    "caption_format": "burned_in_with_srt_vtt_source",
+    "git_binary_available": false,
+    "delivery": "supabase-public-storage",
+    "public_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/executive-briefings/before-you-choose-how-to-deploy-ai-decide-what-your-business-must-own/preview-v1-38e181f5.mp4"
+  },
+  "poster": {
+    "file": "poster.jpg",
+    "sha256": "38e29c73be17aa0b40dc10ba60f02a91e3733465a8e23d007d6cde3ef4c3670b",
+    "size_bytes": 289935,
+    "delivery": "supabase-public-storage",
+    "public_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/executive-briefings/before-you-choose-how-to-deploy-ai-decide-what-your-business-must-own/poster-v1-38e29c73.jpg"
+  },
+  "linkedin": {
+    "file": "linkedin-1080x1350.mp4",
+    "sha256": "292cbe45bcf0a129969f8b0e973c826ffef14f7584235b24c6a9c19e35f0fc5d",
+    "status": "approved_not_published",
+    "distribution": "manual_only"
+  },
+  "note": "Exact owner-approved 20 Nov 2026. Public video and poster independently SHA-verified in persistent storage. One public player for this slug. No automated LinkedIn post."
+}

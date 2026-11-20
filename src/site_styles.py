@@ -957,6 +957,71 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .evidence-cards-grid>.card:last-child{grid-column:auto}
 }
 
+/* Home leadership evidence: compact equal-weight 2x2, with each whole card
+   linking directly to its corresponding anchored AI Leadership case. */
+.site #leadership-in-practice{padding-block:clamp(32px,3.8vw,48px)}
+.site #leadership-in-practice>.container{
+  width:calc(100% - clamp(28px,5vw,88px));max-width:none;
+}
+.site #leadership-in-practice .head{
+  display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);
+  align-items:end;gap:clamp(18px,3vw,48px);margin-bottom:18px;
+}
+.site #leadership-in-practice .head .eyebrow{margin-bottom:9px}
+.site #leadership-in-practice .head h2{
+  font-size:clamp(28px,3vw,39px);line-height:1.1;max-width:690px;
+}
+.site #leadership-in-practice .head>p{
+  margin:0;max-width:470px;font-size:13px;line-height:1.48;
+}
+.site #leadership-in-practice .home-evidence-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;align-items:stretch;
+}
+.site #leadership-in-practice .home-evidence-grid>.card{
+  padding:0;min-width:0;min-height:0;
+}
+.site #leadership-in-practice a.home-evidence-card-link{
+  display:flex;flex-direction:column;min-width:0;height:100%;
+  min-height:148px;padding:17px clamp(18px,2vw,26px) 15px;
+  text-decoration:none!important;color:var(--ink)!important;
+  transition:background-color .18s ease,border-color .18s ease;
+}
+.site #leadership-in-practice a.home-evidence-card-link:hover{
+  background:var(--paper);
+}
+.site #leadership-in-practice a.home-evidence-card-link:focus-visible{
+  outline:2px solid var(--copper);outline-offset:-3px;
+}
+.site #leadership-in-practice .home-evidence-card-link h3{
+  margin:9px 0 6px;font-size:clamp(21px,1.9vw,25px);line-height:1.14;
+}
+.site #leadership-in-practice .home-evidence-card-link p{
+  flex:1;margin:0 0 9px;font-size:12.5px;line-height:1.45;
+}
+.site #leadership-in-practice .home-evidence-card-cta{
+  align-self:flex-start;color:var(--copper);
+  font-size:11px;font-weight:750;line-height:1.4;
+}
+@media(max-width:700px){
+  .site #leadership-in-practice{padding-block:30px}
+  .site #leadership-in-practice .head{display:block;margin-bottom:16px}
+  .site #leadership-in-practice .head h2{font-size:clamp(27px,7vw,34px)}
+  .site #leadership-in-practice .head>p{margin-top:10px;font-size:12px}
+  .site #leadership-in-practice .home-evidence-grid{
+    grid-template-columns:minmax(0,1fr);gap:10px;
+  }
+  .site #leadership-in-practice a.home-evidence-card-link{
+    min-height:0;padding:16px 17px 14px;
+  }
+  .site #leadership-in-practice .home-evidence-card-link h3{
+    margin:8px 0 6px;font-size:22px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .site #leadership-in-practice a.home-evidence-card-link{transition:none}
+}
+
 /* AI Leadership: progressive evidence, no new page or Home layout changes.
    Native details/summary remains usable without JavaScript and on masked mobile. */
 .site #operating-evidence .evidence-context-links{

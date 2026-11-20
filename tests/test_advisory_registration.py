@@ -50,10 +50,11 @@ class AdvisoryRegistrationTests(unittest.TestCase):
         )
         source = self.source("src/page_advisory_portal.py")
         self.assertNotIn("](?page=privacy)", source)
-        self.assertEqual(
+        self.assertGreaterEqual(
             source.count("[Privacy & Data notice]({PRIVACY_NOTICE_URL})"),
             3,
         )
+        self.assertNotIn('st.checkbox("I have read the Privacy & Data notice.")', source)
 
     def test_registration_widget_tree(self):
         from streamlit.testing.v1 import AppTest
@@ -67,7 +68,7 @@ class AdvisoryRegistrationTests(unittest.TestCase):
         self.assertEqual(labels, ["First name *", "Professional email *"])
         self.assertFalse(app.text_area)
         self.assertFalse(app.selectbox)
-        self.assertTrue(any("Privacy & Data" in x.label for x in app.checkbox))
+        self.assertFalse(app.checkbox, "Privacy notice is information, not consent")
         self.assertTrue(any("Email my verification link" in x.label for x in app.button))
 
     def test_returning_advisory_sign_in_does_not_demand_registration(self):

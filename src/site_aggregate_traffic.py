@@ -148,3 +148,79 @@ def render_basic_page_loads(window: str) -> None:
 """)
     if window == "last_hour":
         st.caption("This basic counter has daily resolution, so Today is shown instead of Last hour.")
+
+
+@st.cache_data(ttl=300, max_entries=2, show_spinner=False)
+def monthly_content_rollup() -> tuple[list[dict], list[dict]]:
+    """Read retained MONTHLY totals and public-content ranks, never raw sessions."""
+    base = ANALYTICS_URL.rstrip("/") + "/rest/v1/"
+    sources = (
+        "careersite_analytics_monthly_public_v1?select=month,page_views,article_views,"
+        "article_interactions,cta_clicks,cv_downloads,audio_starts,audio_completions"
+        "&order=month.asc",
+        "careersite_analytics_lifetime_content_public_v1?select=content_kind,content,views"
+        "&content_kind=eq.article&order=views.desc&limit=5",
+    )
+    output = []
+    for source in sources:
+        req = request.Request(base + source, headers=public_analytics_rpc_headers(), method="GET")
+        try:
+            with request.urlopen(req, timeout=6) as response:
+                rows = json.load(response)
+        except (error.HTTPError, error.URLError, TimeoutError, OSError) as exc:
+            raise RuntimeError("Monthly aggregate trend is temporarily unavailable") from exc
+        if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
+            raise RuntimeError("Monthly aggregate reporting returned an unexpected format")
+        output.append(rows)
+    return output[0], output[1]
+
+
+def render_monthly_optin_trend() -> None:
+    """Optional compact visual, with retained counts rather than a raw data table."""
+    with st.expander("Long-term readership · monthly history", expanded=False):
+        st.caption(
+            "Monthly retained view counts, not unique people. Before 20 Nov 2026 the "
+            "tracking rules were broader; after that date detailed statistics require opt-in. "
+            "The series is therefore not directly comparable across the change."
+        )
+        try:
+            months, articles = monthly_content_rollup()
+            data = []
+            for row in months:
+                month = str(row.get("month") or "")[:7]
+                if len(month) != 7:
+                    continue
+                data.extend([
+                    {"Month": month, "Type": "Portfolio pages",
+                     "Views": max(0, int(row.get("page_views") or 0))},
+                    {"Month": month, "Type": "Articles & briefings",
+                     "Views": max(0, int(row.get("article_views") or 0))},
+                ])
+            if not data:
+                st.caption("No monthly summary is available yet.")
+                return
+            import altair as alt
+            chart = (
+                alt.Chart(alt.Data(values=data))
+                .mark_bar(cornerRadiusTopLeft=3, cornerRadiusTopRight=3)
+                .encode(
+                    x=alt.X("Month:O", title=None, sort=sorted({x["Month"] for x in data})),
+                    y=alt.Y("Views:Q", title="Recorded views", stack="zero"),
+                    color=alt.Color("Type:N", title=None),
+                    tooltip=["Month:N", "Type:N", "Views:Q"],
+                )
+                .properties(height=200)
+            )
+            st.altair_chart(chart, use_container_width=True)
+            if articles:
+                labels = []
+                for article in articles[:3]:
+                    slug = str(article.get("content") or "").strip()
+                    views = max(0, int(article.get("views") or 0))
+                    if slug and views:
+                        labels.append(f"{slug.replace('-', ' ').title()} ({views:,})")
+                if labels:
+                    st.caption("Historically most opened publications: " + " · ".join(labels))
+            st.caption("Monthly totals are retained after 90-day raw-event deletion.")
+        except (RuntimeError, TypeError, ValueError, OverflowError):
+            st.caption("Retained monthly trends are temporarily unavailable.")

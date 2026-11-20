@@ -42,9 +42,6 @@ except KeyError:
         def inject_article_metadata(article: object) -> None:
             return None
 from site_analytics import inject_analytics
-from site_article_analytics import inject_article_analytics
-from site_behavior_telemetry_v2 import mount_behavior_telemetry
-from site_weekly_audio_telemetry import inject_weekly_audio_telemetry
 from site_share_guard import inject_share_guard
 from site_shortlinks import expand_shortlink
 from thinking_articles import resolve_article
@@ -455,19 +452,13 @@ else:
         from home_whats_new import inject_live_home_update
         inject_live_home_update()
 
-    # Bind article interactions before the generic analytics listener. The
-    # share guard then prevents social-share controls from being misclassified
-    # as contact or generic article-click conversions.
-    # Only an actual article reader needs the secondary session, heartbeat,
-    # share guard and click listener. Catalogue clicks are captured by the
-    # lightweight base analytics client with the destination article slug.
+    # Privacy-first: one consent-gated collector. The independent article,
+    # behavior, and audio collectors previously accessed sessionStorage and
+    # submitted detailed events before a visitor had chosen statistics.
+    # Article views are identified from the canonical ?article= route.
     if CMS_ARTICLE_META is not None or ARTICLE_META is not None:
-        inject_article_analytics(PAGE, CMS_ARTICLE_META or ARTICLE_META, source="streamlit")
         inject_share_guard()
     inject_analytics(PAGE, source="streamlit")
-    mount_behavior_telemetry(PAGE, CMS_ARTICLE_META or ARTICLE_META)
-    if PAGE == "thinking" and CMS_ARTICLE_META is not None and CMS_ARTICLE_META.slug.startswith("weekly-ai-"):
-        inject_weekly_audio_telemetry()
 
 
 # Slow-only, privacy-preserving diagnostics. No article content or visitors.

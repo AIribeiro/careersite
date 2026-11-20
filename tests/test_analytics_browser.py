@@ -15,11 +15,11 @@ class BrowserCollectorTests(unittest.TestCase):
         self.assertIn("if (choice() !== 'yes')", source)
         self.assertIn("if (choice() !== 'yes' || !allowed.has(eventName))", source)
         self.assertIn("data-stats-choice", source)
-        self.assertIn("tracking_version: 6", source)
+        self.assertIn("tracking_version: 7", source)
         for event in ("section_attention", "cta_hesitation", "ux_signal",
                       "performance_metric", "engagement_ping"):
             taxonomy = source.split("ALLOWED_EVENTS = (", 1)[1].split(")", 1)[0]
-            self.assertNotIn('"' + event + '"', taxonomy)
+            self.assertIn('"' + event + '"', taxonomy)
 
 
 if __name__ == "__main__":

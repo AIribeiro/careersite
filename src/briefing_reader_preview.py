@@ -12,6 +12,7 @@ from html.parser import HTMLParser
 import re
 
 from site_components import footer, nav
+from reader_access_invitation import reader_access_invitation
 from thinking_core import THINKING_CSS
 from briefing_reader_preview_video import render_briefing_video_preview
 from briefing_infographic_engine import source_fingerprint as briefing_source_fingerprint
@@ -267,21 +268,9 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
         '<aside class="briefing-preview-aside">'
         '<strong>Inside the complete edition</strong>'
         + inside + '</aside></div>'
-        + '<section class="briefing-unlock" data-analytics-section="briefing-reader-free-access">'
-        '<div class="briefing-unlock-inner"><div><p class="eyebrow">Executive AI Reader Library · Free registration</p>'
-        '<h2>Examine the decision and its trade-offs.</h2>'
-        '<p>Read the supporting reasoning, decision framework and operating '
-        'considerations beyond the public preview.</p></div>'
-        '<ul class="briefing-unlock-benefits">'
-        '<li>Review the decision criteria, evidence and assumptions</li>'
-        '<li>Use the original infographic, where available, in leadership discussions</li>'
-        '<li>Access other complete briefings with the same free account</li>'
-        '</ul></div><div class="briefing-unlock-actions">'
-        f'<a class="briefing-unlock-primary" href="{access_base}" target="_self" '
-        'data-hq-event="briefing_unlock_register">Access the full briefing · Free</a>'
-        f'<a class="briefing-unlock-secondary" href="{access_base}&amp;signin=1" target="_self" '
-        'data-hq-event="briefing_unlock_signin">Already registered? Sign in</a>'
-        '</div><p class="briefing-unlock-note">'
-        'Free registration with email verification. No payment details; editorial emails are optional.'
-        '</p></section></div></section></main>' + footer()
+        + reader_access_invitation("briefing", access_base,
+          section="briefing-reader-free-access",
+          register_event="briefing_unlock_register",
+          signin_event="briefing_unlock_signin")
+        + '</div></section></main>' + footer()
     )

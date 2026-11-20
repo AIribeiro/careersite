@@ -42,6 +42,9 @@ except KeyError:
         def inject_article_metadata(article: object) -> None:
             return None
 from site_analytics import inject_analytics
+from site_article_analytics import inject_article_analytics
+from site_behavior_telemetry_v2 import mount_behavior_telemetry
+from site_weekly_audio_telemetry import inject_weekly_audio_telemetry
 from site_share_guard import inject_share_guard
 from site_shortlinks import expand_shortlink
 from thinking_articles import resolve_article
@@ -474,13 +477,16 @@ else:
         from home_whats_new import inject_live_home_update
         inject_live_home_update()
 
-    # Privacy-first: one consent-gated collector. The independent article,
-    # behavior, and audio collectors previously accessed sessionStorage and
-    # submitted detailed events before a visitor had chosen statistics.
-    # Article views are identified from the canonical ?article= route.
+    # Rich measurement is permitted only after optional statistics consent.
+    # Every independent collector checks that choice before accessing browser
+    # storage or observing the page; the shared sender checks on each event.
     if CMS_ARTICLE_META is not None or ARTICLE_META is not None:
+        inject_article_analytics(PAGE, CMS_ARTICLE_META or ARTICLE_META, source="streamlit")
         inject_share_guard()
     inject_analytics(PAGE, source="streamlit")
+    mount_behavior_telemetry(PAGE, CMS_ARTICLE_META or ARTICLE_META)
+    if PAGE == "thinking" and CMS_ARTICLE_META is not None and CMS_ARTICLE_META.slug.startswith("weekly-ai-"):
+        inject_weekly_audio_telemetry()
 
 
 # Slow-only, privacy-preserving diagnostics. No article content or visitors.

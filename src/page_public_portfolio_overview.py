@@ -256,6 +256,8 @@ def render_public_portfolio_overview() -> None:
         _recent_content_report.clear()
         _fast_portfolio_overview.clear()
         _editorial_reporting_activity.clear()
+        from site_aggregate_traffic import basic_page_load_report
+        basic_page_load_report.clear()
         fetch_intelligence.clear()
         from portfolio_reader_kpi import reader_registration_totals
         reader_registration_totals.clear()

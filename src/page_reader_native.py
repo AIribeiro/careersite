@@ -371,40 +371,38 @@ def _consume_query_verification() -> None:
 
 def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> None:
     if requested_title and resource_kind == "weekly_ai":
-        st.markdown("### Continue with the complete Weekly AI edition")
+        st.markdown("### Register free or sign in to finish this Weekly AI edition")
         st.write(
-            "Read **" + requested_title +
-            "** in full, with the implications for enterprise AI decisions and "
-            "references to the original reporting. Audio is available when published. "
-            "Registration is free."
+            "You have read the public summary. A free reader account lets you "
+            "continue with **" + requested_title +
+            "**, its original sources and business implications. "
+            "Narration is available when published."
         )
     elif requested_title and resource_kind == "article":
-        st.markdown("### Continue beyond the article preview")
+        st.markdown("### Register free or sign in to finish this article")
         st.write(
-            "Access the full perspective on **" + requested_title +
-            "**, including the evidence, business trade-offs and practical questions "
-            "behind the position. Registration is free."
+            "Continue beyond the public summary to read **" + requested_title +
+            "** in full, including the evidence, references and practical implications."
         )
     elif requested_title:
-        st.markdown("### Explore the complete executive briefing")
+        st.markdown("### Register free or sign in to read the complete briefing")
         st.write(
-            "Read **" + requested_title +
-            "** beyond the public preview, including the leadership decisions "
-            "and original infographic where available. "
-            "Registration is free."
+            "Continue beyond the public preview of **" + requested_title +
+            "** with the full decision analysis and original infographic, "
+            "where available."
         )
     else:
         st.html("""<div class="reader-join-heading">
-        <span class="reader-join-eyebrow">YOUR READER ACCESS</span>
-        <h2>Read the full analysis and decision frameworks.</h2>
-        <p>Register free for complete Executive AI Briefings, current articles
-        and the latest Weekly AI edition. Examine the evidence and trade-offs,
-        save relevant briefings and revisit available infographic PDFs.</p>
+        <span class="reader-join-eyebrow">YOUR FREE READER ACCOUNT</span>
+        <h2>Register free to read the complete editions.</h2>
+        <p>Go beyond the public previews: access Executive AI Briefings,
+        current full articles and the latest Weekly AI. Revisit saved
+        briefings and download available infographics.</p>
         </div>""")
-        st.caption(
-            "Free registration · No payment details · "
-            "Editorial updates only with your consent."
-        )
+    st.caption(
+        "Free registration · Email verification · No payment details · "
+        "Editorial emails only if you choose them."
+    )
 
     returning = st.radio(
         "Reader status", ["Register free", "I already have an account"],
@@ -450,7 +448,7 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
             value=False, disabled=returning,
         )
         sent = st.form_submit_button(
-            "Email my registration link · Free" if not returning else "Email me a sign-in link",
+            "Send verification link · Continue reading" if not returning else "Email me a sign-in link",
             type="primary",
         )
     st.caption("We will email a verification link. No newsletter subscription is required.")

@@ -130,13 +130,13 @@ def _signup_context(user: dict) -> dict | None:
     """Return a user's staged intake, never an authorization claim."""
     email = str(user.get("email") or "").strip().lower()
     staged = st.session_state.get("advisory_signup_intake")
-    if isinstance(staged, dict) and staged.get("_email") == email and staged.get("privacy_notice_ack") is True:
+    if isinstance(staged, dict) and staged.get("_email") == email:
         try:
             return _validate_registration_intake(staged)
         except ValueError:
             pass
     metadata = user.get("user_metadata") if isinstance(user.get("user_metadata"), dict) else {}
-    if metadata.get("advisory_intake_v1") is not True or metadata.get("advisory_privacy_notice_ack") is not True:
+    if metadata.get("advisory_intake_v1") is not True:
         return None
     raw = {key: metadata.get("advisory_" + key) for key in INTAKE_LIMITS}
     try:
@@ -438,13 +438,13 @@ Your account also provides free access to the Executive AI Reader Library.</p>
             "Start with your name and email. Professional details and your business "
             "decision are requested only when relevant to the service you choose."
         )
+        st.caption(f"How registration data is used: [Privacy & Data notice]({PRIVACY_NOTICE_URL}).")
         with st.form("advisory_initial_registration"):
             first = st.text_input("First name *", max_chars=80, placeholder="First name")
             email = st.text_input(
                 "Email address *" if requested_service == "market-signals" else "Professional email *", max_chars=254,
                 placeholder="you@organization.com",
             )
-            accepted = st.checkbox("I have read the Privacy & Data notice.")
             submit = st.form_submit_button("Email my verification link", type="primary")
         st.caption(
             "Free registration · No payment details · No newsletter sign-up · "
@@ -456,16 +456,14 @@ Your account also provides free access to the Executive AI Reader Library.</p>
             try:
                 if not EMAIL.fullmatch(address):
                     raise ValueError("Enter a valid professional email address.")
-                if not accepted:
-                    raise ValueError("Please read and acknowledge the privacy notice.")
                 details = _validate_registration_intake({"first_name": first})
                 _request_email(
                     first.strip(), address, False, False,
                     destination="advisory-access",
-                    advisory_intake={**details, "privacy_notice_ack": True},
+                    advisory_intake=details,
                 )
                 st.session_state["advisory_signup_intake"] = {
-                    **details, "privacy_notice_ack": True, "_email": address,
+                    **details, "_email": address,
                 }
                 st.session_state["advisory_pending_email"] = address
                 st.success(
@@ -510,14 +508,12 @@ requests are assessed individually.</p>
     suggested = str(
         metadata.get("advisory_first_name") or metadata.get("reader_first_name") or ""
     ).strip()[:80]
+    st.caption(f"How account data is used: [Privacy & Data notice]({PRIVACY_NOTICE_URL}).")
     with st.form("advisory_complete_registration"):
         first = st.text_input("First name *", value=suggested, max_chars=80)
-        accepted = st.checkbox("I have read the Privacy & Data notice.")
         submit = st.form_submit_button("Open my Advisory account", type="primary")
     if submit:
         try:
-            if not accepted:
-                raise ValueError("Please read and acknowledge the privacy notice.")
             details = _validate_registration_intake({"first_name": first})
             _register_advisory(session, user, details)
             st.session_state.pop("advisory_signup_intake", None)

@@ -39,14 +39,13 @@ class ArticleAnalyticsTests(unittest.TestCase):
         self.assertNotIn("document.cookie", source)
         self.assertNotIn("user_agent", source)
 
-    def test_runtime_orders_article_tracking_before_generic_analytics(self) -> None:
+    def test_runtime_uses_only_consent_gated_analytics(self) -> None:
         main = (ROOT / "main.py").read_text(encoding="utf-8")
         guard = (ROOT / "src/site_share_guard.py").read_text(encoding="utf-8")
 
-        self.assertIn("inject_article_analytics", main)
+        self.assertNotIn("inject_article_analytics(PAGE", main)
         self.assertIn("inject_share_guard", main)
         self.assertIn("page_analytics_v2", main)
-        self.assertLess(main.index("inject_article_analytics(PAGE"), main.index("inject_share_guard()"))
         self.assertLess(main.index("inject_share_guard()"), main.index("inject_analytics(PAGE"))
         self.assertIn("article_share_", guard)
         self.assertIn("stopImmediatePropagation", guard)

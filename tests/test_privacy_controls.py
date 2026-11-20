@@ -50,6 +50,16 @@ class PrivacyControlsTests(unittest.TestCase):
         self.assertNotIn("ip_address", server)
         self.assertIn("record_page_load(PAGE", (ROOT / "main.py").read_text())
 
+    def test_lifetime_report_uses_retained_monthly_counts(self):
+        portfolio = (ROOT / "src/page_public_portfolio_overview.py").read_text()
+        aggregate = (ROOT / "src/site_aggregate_traffic.py").read_text()
+        self.assertIn("monthly_content_rollup()", portfolio)
+        self.assertIn('quality["site_views"] = max(', portfolio)
+        self.assertIn('quality["article_views"] = max(', portfolio)
+        self.assertIn("careersite_analytics_monthly_public_v1", aggregate)
+        self.assertIn("careersite_analytics_lifetime_content_public_v1", aggregate)
+        self.assertIn("render_monthly_optin_trend()", portfolio)
+
     def test_notice_is_concise_and_supports_changing_choice(self):
         notice = (ROOT / "src/page_public_services.py").read_text().split("def privacy() -> str:", 1)[1]
         self.assertIn("data-jair-privacy-settings", notice)

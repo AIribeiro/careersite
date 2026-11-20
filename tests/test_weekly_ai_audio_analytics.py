@@ -82,13 +82,13 @@ class WeeklyAudioAnalyticsTests(unittest.TestCase):
         self.assertIn("!state.milestones[percent]", script)
         self.assertIn("!state.completed", script)
 
-    def test_events_reuse_existing_analytics_context_and_are_not_page_views(self):
+    def test_audio_tracking_is_not_mounted_in_privacy_first_runtime(self):
         shared = (ROOT / "src" / "site_analytics.py").read_text()
         main = (ROOT / "main.py").read_text()
         for event in ["audio_start", "audio_progress", "audio_complete"]:
-            self.assertIn(f'"{event}"', shared)
-        self.assertIn("win.__jairAnalyticsSend(name", (ROOT / "src" / "site_weekly_audio_telemetry.py").read_text())
-        self.assertIn("inject_weekly_audio_telemetry()", main)
+            self.assertNotIn(f'"{event}"', shared)
+        self.assertNotIn("inject_weekly_audio_telemetry()", main)
+        # Historical audio reporting remains available for past events.
         self.assertIn("careersite_weekly_audio_analytics_v1", (ROOT / "src" / "page_weekly_ai_analytics.py").read_text())
 
     def test_future_narration_has_portfolio_credit_and_first_person_leadership(self):

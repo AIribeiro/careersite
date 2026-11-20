@@ -3,10 +3,10 @@ from __future__ import annotations
 """Opt-in first-party portfolio measurement for the public site.
 
 Before a visitor accepts optional statistics, the collector does not store an
-analytics identifier or send activity events. After opt-in, it records only
-page views, publication views and intentional actions with coarse attribution.
+analytics identifier or send activity events. After opt-in, it records visits, publication engagement, optional audio and
+UX measurements with coarse attribution.
 A temporary session ID lives in sessionStorage; no IP address, full user agent,
-detailed device fingerprint or behavioral timing is sent in event payloads.
+exact device fingerprint or form contents are sent in event payloads.
 """
 
 import json
@@ -26,8 +26,12 @@ ANALYTICS_TABLE = "careersite_analytics_events"
 
 ALLOWED_EVENTS = (
     "page_view", "impact_view", "lens_view", "article_view",
-    "cv_download", "email_click", "linkedin_click",
-    "article_click", "article_card_click", "cta_click", "navigation_click",
+    "cv_download", "email_click", "linkedin_click", "article_click",
+    "engagement_ping", "element_impression", "article_card_click",
+    "cta_click", "navigation_click", "section_view", "performance_metric",
+    "section_attention", "element_attention", "cta_hesitation",
+    "scroll_abandonment", "ux_signal", "first_interaction",
+    "behavior_summary", "audio_start", "audio_progress", "audio_complete",
 )
 LENS_PAGES = ("enterprise", "transformation", "governance", "consulting")
 RECOMMENDED_ATTRIBUTION_SOURCES = (
@@ -128,7 +132,7 @@ CONSENT_GATE_JS = r"""
     box.setAttribute('aria-label', 'Website statistics choice');
     box.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;max-width:590px;z-index:2147483000;padding:17px 19px;background:#fffdfa;color:#172d42;border:1px solid #c9bbaa;box-shadow:0 12px 36px rgba(10,24,40,.19);font:14px/1.5 Arial,sans-serif';
     box.innerHTML = '<strong style="display:block;margin-bottom:5px">Optional website statistics</strong>' +
-      '<span>May I count which pages and links visitors open? Optional analytics uses temporary browser storage. It does not subscribe you to emails. <a href="' + privacyUrl + '" style="color:#174a71;text-decoration:underline">Privacy notice</a>.</span>' +
+      '<span>With permission, I measure page and article reading time, scroll depth, content and link engagement, audio listening, broad device categories and site performance. This uses temporary session storage; no form contents or advertising trackers. Refusing does not restrict access. <a href="' + privacyUrl + '" style="color:#174a71;text-decoration:underline">Privacy notice</a>.</span>' +
       '<div style="display:flex;flex-wrap:wrap;gap:9px;margin-top:13px">' +
       '<button type="button" data-stats-choice="no" style="cursor:pointer;background:#223a52;border:1px solid #223a52;color:#fff;padding:9px 13px;font-weight:bold;min-width:150px">Essential only</button>' +
       '<button type="button" data-stats-choice="yes" style="cursor:pointer;background:#223a52;border:1px solid #223a52;color:#fff;padding:9px 13px;font-weight:bold;min-width:150px">Allow statistics</button></div>';
@@ -626,7 +630,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
         win.sessionStorage.setItem(attributionKey, JSON.stringify(attribution));
       }}
     }}
-    if (isExcludedTestTraffic()) return;
+    if (isExcludedTestTraffic()) return Promise.resolve(false);
     updateEngagement();
     const context = win.__jairAnalyticsContext || {{ page: 'home', source: 'streamlit' }};
     const elapsedMs = Math.min(86400000, Math.max(0, Date.now() - startedAt));
@@ -646,13 +650,41 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       utm_campaign: attribution.utm_campaign,
       utm_content: attribution.utm_content || null,
       browser_automation: Boolean(win.navigator && win.navigator.webdriver === true),
+      // Broad categories only; no exact screen size, device memory, core count,
+      // timezone or full user-agent fingerprint is transmitted.
+      device_type: clientContext().device_type,
+      browser_family: clientContext().browser_family,
+      os_family: clientContext().os_family,
+      language: clientContext().language,
+      session_elapsed_ms: Math.round(elapsedMs),
+      engaged_ms: Math.round(Math.min(86400000, Math.max(0, engagedMs))),
+      page_engaged_ms: Math.round(pageEngagedMs),
+      scroll_depth: scrollDepth(),
       article_slug: extra.article_slug ? safeText(extra.article_slug, 160) :
         (win.__jairArticleContext ? win.__jairArticleContext.slug :
           (params.get('article') || null)),
       content_kind: (win.__jairArticleContext || params.get('article')) ? 'article' : 'page',
       element_kind: extra.element_kind ? safeText(extra.element_kind, 32) : null,
       element_key: extra.element_key ? safeText(extra.element_key, 160) : null,
-      tracking_version: 6,
+      element_label: extra.element_label ? safeText(extra.element_label, 240) : null,
+      element_placement: extra.element_placement ? safeText(extra.element_placement, 160) : null,
+      section_key: extra.section_key ? safeText(extra.section_key, 160) : null,
+      section_label: extra.section_label ? safeText(extra.section_label, 240) : null,
+      metric_name: extra.metric_name ? safeText(extra.metric_name, 32) : null,
+      metric_value: extra.metric_value == null ? null : Math.max(0, Math.min(10000000, Number(extra.metric_value) || 0)),
+      attention_ms: extra.attention_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.attention_ms) || 0))),
+      hover_ms: extra.hover_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.hover_ms) || 0))),
+      hesitation_ms: extra.hesitation_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.hesitation_ms) || 0))),
+      latency_ms: extra.latency_ms == null ? null : Math.max(0, Math.min(86400000, Math.round(Number(extra.latency_ms) || 0))),
+      exposure_count: extra.exposure_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.exposure_count) || 0))),
+      interaction_type: extra.interaction_type ? safeText(extra.interaction_type, 32) : null,
+      focus_loss_count: extra.focus_loss_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.focus_loss_count) || 0))),
+      resize_count: extra.resize_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.resize_count) || 0))),
+      orientation_change_count: extra.orientation_change_count == null ? null : Math.max(0, Math.min(10000, Math.round(Number(extra.orientation_change_count) || 0))),
+      max_scroll_velocity: extra.max_scroll_velocity == null ? null : Math.max(0, Math.min(1000000, Number(extra.max_scroll_velocity) || 0)),
+      max_reverse_scroll_velocity: extra.max_reverse_scroll_velocity == null ? null : Math.max(0, Math.min(1000000, Number(extra.max_reverse_scroll_velocity) || 0)),
+      error_type: extra.error_type ? safeText(extra.error_type, 64) : null,
+      tracking_version: 7,
     }};
 
     // Most analytics callers are fire-and-forget. Audio listening needs to
@@ -691,7 +723,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     if (lenses.has(win.__jairAnalyticsContext.page)) {{
       win.__jairAnalyticsSend('lens_view', {{ lens: win.__jairAnalyticsContext.page }});
     }}
-    if (params.get('article')) win.__jairAnalyticsSend('article_view', {{ article_slug: params.get('article') }});
+    if (params.get('article') && !win.__jairArticleAnalyticsState) win.__jairAnalyticsSend('article_view', {{ article_slug: params.get('article') }});
     win.__jairAnalyticsLastDocumentView = viewSignature;
     win.sessionStorage.setItem('jair_hq_last_view_v1', JSON.stringify({{ signature: viewSignature, at: now }}));
   }}
@@ -704,6 +736,9 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
     }}
     if (lenses.has(win.__jairAnalyticsContext.page)) {{
       win.__jairAnalyticsSend('lens_view', {{ lens: win.__jairAnalyticsContext.page }});
+    }}
+    if (params.get('article') && !win.__jairArticleAnalyticsState) {{
+      win.__jairAnalyticsSend('article_view', {{ article_slug: params.get('article') }});
     }}
   }};
 

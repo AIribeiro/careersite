@@ -59,6 +59,42 @@ class PrivacyControlsTests(unittest.TestCase):
         self.assertNotIn("answer records remain private", notice.lower())
 
     @unittest.skipUnless(shutil.which("node"), "Node is required for browser execution")
+    def test_article_and_audio_do_not_access_storage_before_consent(self):
+        from types import SimpleNamespace
+        import site_article_analytics
+        import site_weekly_audio_telemetry
+        article = SimpleNamespace(slug="public-test", title="Public test", kind="Article")
+        with patch.object(site_article_analytics.components, "html") as html:
+            site_article_analytics.inject_article_analytics("thinking", article)
+        article_js = html.call_args.args[0].replace("<script>", "").replace("</script>", "")
+        with patch.object(site_weekly_audio_telemetry.components, "html") as html:
+            site_weekly_audio_telemetry.inject_weekly_audio_telemetry()
+        audio_js = html.call_args.args[0].replace("<script>", "").replace("</script>", "")
+        harness = r"""
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+let browserAccesses = 0, sends = 0;
+const win = {
+  document: {},
+  localStorage: {getItem: () => null},
+  sessionStorage: {getItem: () => {browserAccesses++; throw Error('storage');},
+                   setItem: () => {browserAccesses++; throw Error('storage');}},
+};
+const context = vm.createContext({
+  window: {parent: win}, URL,
+  fetch: () => {sends++; throw Error('network');},
+});
+vm.runInContext(ARTICLE, context);
+vm.runInContext(AUDIO, context);
+assert.equal(browserAccesses, 0);
+assert.equal(sends, 0);
+console.log('Independent collectors default off');
+""".replace("ARTICLE", json.dumps(article_js)).replace("AUDIO", json.dumps(audio_js))
+        result = subprocess.run(["node", "-e", harness], capture_output=True,
+                                text=True, timeout=20)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    @unittest.skipUnless(shutil.which("node"), "Node is required for browser execution")
     def test_browser_is_default_off_and_opted_in_rich_events_are_constrained(self):
         import site_analytics
         with patch.object(site_analytics.components, "html") as html:

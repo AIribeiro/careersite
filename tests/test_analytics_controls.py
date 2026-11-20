@@ -54,16 +54,16 @@ class AnalyticsControlTests(unittest.TestCase):
 
         for token in (
             "jair_statistics_choice_v1", "CONSENT_GATE_JS",
-            "tracking_version: 6", "utm_campaign", "session_id",
+            "tracking_version: 7", "utm_campaign", "session_id",
         ):
             self.assertIn(token, client)
         payload = client.split("const payload = {{", 1)[1].split("}};", 1)[0]
-        for removed in (
-            "device_type:", "browser_family:", "os_family:", "language:",
-            "timezone:", "viewport_width:", "screen_width:",
-            "session_elapsed_ms:", "engaged_ms:", "hover_ms:",
-        ):
-            self.assertNotIn(removed, payload)
+        for restored in ("device_type:", "browser_family:", "os_family:",
+                         "session_elapsed_ms:", "engaged_ms:", "hover_ms:"):
+            self.assertIn(restored, payload)
+        for excluded in ("timezone:", "viewport_width:", "screen_width:",
+                         "hardware_concurrency:", "device_memory_gb:"):
+            self.assertNotIn(excluded, payload)
 
         for label in (
             "Career site intelligence",

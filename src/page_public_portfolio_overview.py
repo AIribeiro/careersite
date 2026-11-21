@@ -282,7 +282,11 @@ def render_public_portfolio_overview() -> None:
         "people; repeat content views count."
     )
     st.caption("Measurement changed on 20 November 2026: detailed reading, sessions and interaction analytics now require statistics consent, while basic server-side page-load totals cover all visits. Earlier periods used broader tracking, so comparisons across this change are not like-for-like.")
-    initialize_editorial_reporting_period(st.session_state)
+    # Aggregate traffic works without browser statistics consent.
+    # Respect explicit manual reporting-window choices.
+    from analytics_reporting_period import MANUAL_KEY, WINDOW_KEY
+    if not st.session_state.get(MANUAL_KEY):
+        st.session_state[WINDOW_KEY] = "this_week"
     window = st.selectbox(
         "Reporting period",
         [name for name, _ in REPORTING_WINDOWS],
@@ -290,7 +294,7 @@ def render_public_portfolio_overview() -> None:
         key="careersite_analytics_reporting_window",
         on_change=remember_reporting_period,
         args=(st.session_state,),
-        help="Automatically selects the first period with an Article, Weekly AI or Executive Briefing read, from Last hour through This year. Portfolio visits do not count. Stockholm calendar time; weeks start Monday. Manual selections, including All, remain available.",
+        help="This week is the default because aggregate page counts are available without optional statistics. Manual choices are preserved. Stockholm calendar time; weeks start Monday.",
     )
     # Keep the manual refresh immediately beside the reporting controls,
     # before any potentially expensive report or visual is rendered.
@@ -315,6 +319,19 @@ def render_public_portfolio_overview() -> None:
     from site_content_demand import render_content_demand
     render_basic_page_loads(str(window))
     render_content_demand(str(window))
+
+    # Operational registrations are measured without browser analytics.
+    # Keep the card visible even when detailed session reporting fails.
+    from portfolio_reader_kpi import reader_registration_totals, reader_registration_kpi
+    try:
+        reader_counts = reader_registration_totals(str(window))
+    except (RuntimeError, ValueError, TimeoutError, TypeError):
+        reader_counts = None
+    st.html(reader_registration_kpi(str(window), reader_counts))
+
+    st.divider()
+    st.caption("Detailed engagement below covers opted-in sessions only. "
+               "Missing behavioral metrics are not evidence of zero interest.")
 
     try:
         # Broad windows use the fast canonical reader/page counter. Detailed
@@ -345,12 +362,6 @@ def render_public_portfolio_overview() -> None:
                 "remain unavailable, not be reported as zero."
             )
             render_monthly_optin_trend()
-            from portfolio_reader_kpi import reader_registration_totals, reader_registration_kpi
-            try:
-                registrations = reader_registration_totals(str(window))
-            except (RuntimeError, ValueError, TimeoutError, TypeError):
-                registrations = None
-            st.html(reader_registration_kpi(str(window), registrations))
             return
 
     pages = portfolio_visit_rows(report, "page")
@@ -513,16 +524,6 @@ def render_public_portfolio_overview() -> None:
     # Retained historic content trend stays below the five detailed metric cards.
     from site_aggregate_traffic import render_monthly_optin_trend
     render_monthly_optin_trend()
-
-    # Registration is a distinct user lifecycle event—not another visit or
-    # content view. Use the SAME reporting-window selector and calendar
-    # boundaries as the five analytics cards.
-    from portfolio_reader_kpi import reader_registration_totals, reader_registration_kpi
-    try:
-        reader_counts = reader_registration_totals(str(window))
-    except (RuntimeError, ValueError, TimeoutError, TypeError):
-        reader_counts = None
-    st.html(reader_registration_kpi(str(window), reader_counts))
 
     # Report the address used to enter the portfolio independently of
     # tagged marketing channels. Keep missing pre-release data unknown.

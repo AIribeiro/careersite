@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "update:c65fd1a88f99c380561a1896979ba691ba120131",
+      "type": "Portfolio updated",
+      "title": "Latest portfolio improvements",
+      "description": "Updates to the portfolio are available across its pages and services. Explore the current experience.",
+      "date": "2026-11-21T17:06:19+01:00",
+      "href": "?page=home",
+      "cta": "Explore the portfolio"
+    },
+    {
       "key": "update:a99d2a2fc1d9cd47053ba44455d6060dc1bba7fd",
       "type": "Page updated",
       "title": "Executive Advisory",

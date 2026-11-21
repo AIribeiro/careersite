@@ -1069,6 +1069,92 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site #leadership-in-practice a.home-evidence-card-link{transition:none}
 }
 
+/* AI Leadership: extended involvement as a quiet editorial list, not another
+   grid of marketing cards. Desktop 2-column; natural reading order on mobile. */
+.site #operating-evidence .additional-usecases{
+  margin-top:clamp(36px,4.2vw,60px);
+  padding-top:clamp(30px,3.8vw,48px);
+  border-top:1px solid var(--line);
+}
+.site #operating-evidence .additional-usecases-intro{
+  max-width:880px;
+  margin-bottom:clamp(23px,3vw,36px);
+}
+.site #operating-evidence .additional-usecases-intro .eyebrow{
+  margin-bottom:10px;
+}
+.site #operating-evidence .additional-usecases-intro h2{
+  margin:0;
+  max-width:850px;
+  font:500 clamp(29px,3.2vw,42px)/1.13 Georgia,serif;
+  letter-spacing:-.025em;
+  color:var(--ink);
+}
+.site #operating-evidence .additional-usecases-intro>p:last-child{
+  margin:15px 0 0;
+  max-width:820px;
+  color:var(--muted);
+  font-size:clamp(13px,1.1vw,15px);
+  line-height:1.7;
+}
+.site #operating-evidence .additional-usecases-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  column-gap:clamp(26px,5.5vw,86px);
+  row-gap:clamp(22px,3vw,33px);
+}
+.site #operating-evidence .additional-usecases-group{
+  min-width:0;
+  padding-top:16px;
+  border-top:1px solid rgba(17,21,27,.18);
+}
+.site #operating-evidence .additional-usecases-group h3{
+  margin:0 0 16px;
+  color:var(--copper);
+  font:800 11px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Arial,sans-serif;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+.site #operating-evidence .additional-usecases-group ul{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:grid;
+  gap:10px;
+}
+.site #operating-evidence .additional-usecases-group li{
+  position:relative;
+  margin:0;
+  padding-left:18px;
+  color:var(--ink);
+  font-size:14px;
+  line-height:1.5;
+}
+.site #operating-evidence .additional-usecases-group li::before{
+  content:"";
+  position:absolute;
+  left:1px;
+  top:.65em;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--copper);
+}
+@media(max-width:700px){
+  .site #operating-evidence .additional-usecases{margin-top:31px;padding-top:28px}
+  .site #operating-evidence .additional-usecases-intro h2{font-size:clamp(27px,7vw,34px)}
+  .site #operating-evidence .additional-usecases-intro>p:last-child{font-size:13px;line-height:1.65}
+  .site #operating-evidence .additional-usecases-grid{
+    grid-template-columns:minmax(0,1fr);
+    row-gap:24px;
+  }
+  .site #operating-evidence .additional-usecases-group li{font-size:13.5px}
+}
+/* Some masked-domain mobile frames report a desktop-like CSS viewport. */
+@media(max-device-width:700px){
+  .site #operating-evidence .additional-usecases-grid{grid-template-columns:minmax(0,1fr)}
+}
+
 /* AI Leadership: progressive evidence, no new page or Home layout changes.
    Native details/summary remains usable without JavaScript and on masked mobile. */
 .site #operating-evidence .evidence-context-links{

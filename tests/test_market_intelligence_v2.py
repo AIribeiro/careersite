@@ -167,7 +167,10 @@ class MarketIntelligenceV2Tests(unittest.TestCase):
         }
         latest=dict(base,edition_slug=SLUG)
         old=dict(base,edition_slug="sweden-ai-data-market-review-2026-11-v2-0-1")
-        self.assertIn("2.0.2 (latest)",archive_option_label(latest))
+        self.assertIn("2.0.2 (original 17 November snapshot)",archive_option_label(latest))
+        new=dict(base,edition_slug="sweden-ai-data-market-review-2026-11-unionen-2-1")
+        self.assertIn("2.1.0 (Unionen research update, latest)",archive_option_label(new))
+        self.assertIn("Unionen autumn 2026",archive_coverage(new))
         self.assertIn("2.0.1 (superseded)",archive_option_label(old))
         self.assertIn("JobTech, Brainville and SCB",archive_coverage(latest))
         self.assertIn("superseded",archive_coverage(old).lower())

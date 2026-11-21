@@ -46,11 +46,11 @@ class PublicationClaimsTests(unittest.TestCase):
             with self.subTest(code=code):
                 self.assertEqual(float(self.by_code[code]["value"]),float(value))
                 self.assertIn(str(value),self.html)
-        self.assertIn("Executive Edition was published on 17 November",self.html)
-        self.assertIn("Jobseeker Edition was prepared on 18 November 2026",self.html)
-        self.assertIn("<strong>43</strong>",self.html)
+        self.assertIn("17–18 November editions remain archived",self.html)
+        self.assertIn("Unionen workforce research update is dated 21 November 2026",self.html)
+        self.assertIn("<strong>53</strong>",self.html)
         self.assertIn("<strong>5</strong>",self.html)
-        self.assertIn("<strong>6</strong>",self.html)
+        self.assertIn("<strong>7</strong>",self.html)
 
     def test_claimed_deliverables_are_implemented(self):
         actual=advisory_market_signals()

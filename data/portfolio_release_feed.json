@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "update:71f3a676c3f3a692d95113bf9bfa01dd8e62f759",
+      "type": "Page updated",
+      "title": "Portfolio homepage",
+      "description": "The portfolio homepage has been updated. Explore the latest experience.",
+      "date": "2026-11-21T17:08:45+01:00",
+      "href": "?page=home",
+      "cta": "View the update"
+    },
+    {
       "key": "update:24ddaccd691de087ee554766eb5f269ebf2269ca",
       "type": "Portfolio updated",
       "title": "Latest portfolio improvements",

@@ -68,8 +68,10 @@ def archive_option_label(item: dict) -> str:
     date_label=_month_label(item["month_start"])
     if item["archive_kind"]=="published_edition":
         slug=str(item.get("edition_slug") or "")
+        if slug.endswith("-unionen-2-1"):
+            return f"{date_label} · Executive edition 2.1.0 (Unionen research update, latest)"
         if slug.endswith("-v2-0-2"):
-            return f"{date_label} · Executive edition 2.0.2 (latest)"
+            return f"{date_label} · Executive edition 2.0.2 (original 17 November snapshot)"
         if slug.endswith("-v2-0-1"):
             return f"{date_label} · Executive edition 2.0.1 (superseded)"
         if slug.endswith("-v2"):
@@ -81,9 +83,16 @@ def archive_option_label(item: dict) -> str:
 def archive_coverage(item: dict) -> str:
     if item["archive_kind"]=="published_edition":
         slug=str(item.get("edition_slug") or "")
+        if slug.endswith("-unionen-2-1"):
+            return (
+              f"Executive Edition 2.1.0 · {len(item['observations'])} approved "
+              "source observations, including selected Unionen autumn 2026 "
+              "workplace survey measures. Survey-club populations are kept "
+              "separate from SCB firms, employment counts and AI vacancies."
+            )
         if slug.endswith("-v2-0-2"):
             return (
-              f"Executive Edition 2.0.2 · {len(item['observations'])} approved "
+              f"Executive Edition 2.0.2 (historical) · {len(item['observations'])} approved "
               "source observations · five decision perspectives with explicit "
               "JobTech, Brainville and SCB evidence boundaries. Four earlier "
               "decision notes remain archived; statistical values are unchanged."

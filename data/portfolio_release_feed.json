@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "update:b5d28dab747b6dd7828061668375ec57ec2cbedf",
+      "type": "Page updated",
+      "title": "Portfolio homepage",
+      "description": "The The portfolio section has been updated. Explore its current content and experience.",
+      "date": "2026-11-21T13:13:47+01:00",
+      "href": "?page=home",
+      "cta": "View the update"
+    },
+    {
       "key": "page:presence",
       "type": "New page",
       "title": "Speaking & Publications",

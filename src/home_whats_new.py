@@ -122,8 +122,8 @@ def _static_items() -> tuple[NewsItem, ...]:
         href = str(row.get("href") or "")
         if (
             row.get("promote_home") is False
-            or href in curated_hrefs
-            or href.endswith("-demo")
+            or (str(row.get("key", "")).startswith("page:") and href in curated_hrefs)
+            or (str(row.get("key", "")).startswith("page:") and href.endswith("-demo"))
             or description in {"", "Discover the newly published portfolio page."}
         ):
             continue

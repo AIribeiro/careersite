@@ -1,8 +1,10 @@
-"""Generate public release events from newly added routes and credentials.
+"""Generate public What's New events from portfolio deployments.
 
-Invoked on a main-branch push by the release-feed workflow. Only additions
-qualify: routine edits, CI changes, updated publication copy, and private admin
-work never appear as new releases. CMS issues are tracked live on the Home page.
+Capture new pages/credentials and subsequent code, media, configuration or
+publication changes. Updates never require editing the Home page by hand.
+Internal-only commits are safely presented as a generic portfolio update,
+without exposing private content or Git commit messages. CMS publications are
+tracked independently by the Home page's public metadata refresh.
 """
 from __future__ import annotations
 
@@ -145,12 +147,166 @@ def new_release_items(previous: str, current: str, issued_at: str) -> list[dict[
     return events
 
 
+
+# Paths that are deployed or otherwise change the visitor/member experience.
+# Tests, docs and GitHub workflow edits alone are not public announcements.
+DEPLOYED_PREFIXES = (
+    "src/", "assets/", "images/", "static/", "data/", "sql/",
+    "supabase/", ".streamlit/", "deploy/",
+)
+DEPLOYED_FILES = {"main.py", "app.py", "reader_test.py"}
+IGNORE_FILES = {"data/portfolio_release_feed.json"}
+ROUTE_FILES = {
+    "main.py": "home",
+    "src/page_home.py": "home",
+    "src/page_home_featured.py": "home",
+    "src/home_whats_new.py": "home",
+    "src/home_pathways.py": "home",
+    "src/home_employer_strip.py": "home",
+    "src/page_impact.py": "impact",
+    "src/portfolio_operating_evidence.py": "impact",
+    "src/page_about.py": "about",
+    "src/page_presence.py": "presence",
+    "src/page_contact.py": "contact",
+    "src/page_certifications.py": "certifications",
+    "src/page_thinking.py": "thinking",
+    "src/page_executive_briefings.py": "briefings",
+    "src/page_reader_native.py": "readers",
+    "src/site_reader_shell.py": "readers",
+    "src/page_public_services.py": "advisory",
+    "src/page_advisory_portal.py": "advisory",
+    "src/page_advisory_scorecard.py": "advisory-scorecard",
+    "src/page_advisory_rollout.py": "advisory-rollout",
+    "src/page_advisory_renewal.py": "advisory-renewal",
+    "src/page_advisory_investment.py": "advisory-decision",
+    "src/page_advisory_leadership_public.py": "advisory-leadership",
+    "src/page_advisory_leadership_workshop.py": "advisory-leadership",
+    "src/page_advisory_market_signals.py": "advisory-market-signals",
+    "src/page_advisory_market_review.py": "advisory-market-signals",
+}
+ROUTE_LABELS = {
+    "home": "The portfolio",
+    "impact": "AI Leadership",
+    "about": "About",
+    "presence": "Speaking & Publications",
+    "contact": "Contact",
+    "certifications": "Certifications",
+    "thinking": "Thinking",
+    "briefings": "Executive AI Briefings",
+    "readers": "Reader Library",
+    "advisory": "Executive Advisory",
+    "advisory-scorecard": "AI Portfolio Scorecard",
+    "advisory-rollout": "AI Rollout Readiness",
+    "advisory-renewal": "AI Portfolio Renewal Advisor",
+    "advisory-decision": "AI Investment Decision Advisor",
+    "advisory-leadership": "AI Leadership Workshop",
+    "advisory-market-signals": "Swedish AI & Data Market Review",
+}
+
+
+def changed_public_files(previous: str, current: str) -> tuple[str, ...]:
+    """Diff all commits in a push; exclude release-feed self-updates."""
+    try:
+        names = subprocess.check_output(
+            ["git", "diff", "--name-only", "--diff-filter=ACMRT",
+             previous, current, "--"],
+            cwd=ROOT, text=True, stderr=subprocess.DEVNULL, timeout=15,
+        ).splitlines()
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError):
+        # Never use the whole repository as a fallback: it fabricates updates.
+        return ()
+    return tuple(sorted({
+        name for name in names
+        if name not in IGNORE_FILES
+        and (name in DEPLOYED_FILES or name.startswith(DEPLOYED_PREFIXES))
+    }))
+
+
+def _public_route(path: str) -> str | None:
+    if path in ROUTE_FILES:
+        return ROUTE_FILES[path]
+    # Group modules under the public service they support. Unknown backend
+    # files receive only the general portfolio label, never their private name.
+    if path.startswith("src/page_advisory_"):
+        if "market" in path:
+            return "advisory-market-signals"
+        if "scorecard" in path:
+            return "advisory-scorecard"
+        if "rollout" in path:
+            return "advisory-rollout"
+        if "renewal" in path:
+            return "advisory-renewal"
+        if "leadership" in path:
+            return "advisory-leadership"
+        if "investment" in path:
+            return "advisory-decision"
+        return "advisory"
+    if path.startswith("src/briefing_"):
+        return "briefings"
+    if path.startswith("src/weekly_ai_") or path.startswith("src/thinking_") or path.startswith("src/article_"):
+        return "thinking"
+    if path.startswith("src/page_owner_") or path.startswith("src/page_analytics"):
+        return None
+    if path.startswith("src/reader_"):
+        return "readers"
+    return None
+
+
+def changed_update_item(paths: tuple[str, ...], commit_sha: str,
+                        issued_at: str) -> dict[str, str] | None:
+    """One public, truthful release record per deployed change set."""
+    if not paths:
+        return None
+    if len(commit_sha) < 12 or not all(ch in "0123456789abcdef" for ch in commit_sha.lower()):
+        return None
+    date = datetime.fromisoformat(issued_at.replace("Z", "+00:00"))
+    if date.tzinfo is None:
+        date = date.replace(tzinfo=timezone.utc)
+    routes = {_public_route(path) for path in paths}
+    routes.discard(None)
+    if len(routes) == 1:
+        route = next(iter(routes))
+        label = ROUTE_LABELS[route]
+        title = label if route != "home" else "Portfolio homepage"
+        return {
+            "key": "update:" + commit_sha,
+            "type": "Page updated",
+            "title": title,
+            "description": f"The {label} section has been updated. Explore its current content and experience.",
+            "date": date.isoformat(),
+            "href": "?page=" + route,
+            "cta": "View the update",
+        }
+    return {
+        "key": "update:" + commit_sha,
+        "type": "Portfolio updated",
+        "title": "Latest portfolio improvements",
+        "description": (
+            "Updates to the portfolio are available across its pages and "
+            "services. Explore the current experience."
+        ),
+        "date": date.isoformat(),
+        "href": "?page=home",
+        "cta": "Explore the portfolio",
+    }
+
+
+
 def update_feed(previous: str, current: str) -> int:
     commit_date = subprocess.check_output(
         ["git", "show", "-s", "--format=%cI", current],
         cwd=ROOT, text=True, timeout=10,
     ).strip()
     new = new_release_items(previous, current, commit_date)
+    # A newly launched page/credential is already a more useful announcement.
+    # Otherwise emit a real update for EVERY deployed code or asset change,
+    # even when the route and file existed for years.
+    if not new:
+        update = changed_update_item(
+            changed_public_files(previous, current), current, commit_date
+        )
+        if update:
+            new.append(update)
     if not new:
         return 0
     feed = json.loads(FEED.read_text(encoding="utf-8"))
@@ -159,7 +315,7 @@ def update_feed(previous: str, current: str) -> int:
     additions = [item for item in new if item["key"] not in seen]
     if not additions:
         return 0
-    feed["items"] = sorted(old + additions, key=lambda item: item["date"], reverse=True)[:60]
+    feed["items"] = sorted(old + additions, key=lambda item: item["date"], reverse=True)[:80]
     FEED.write_text(json.dumps(feed, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return len(additions)
 

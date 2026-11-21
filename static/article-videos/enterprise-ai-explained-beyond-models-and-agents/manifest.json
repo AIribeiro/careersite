@@ -32,7 +32,7 @@
   "release_note": "Approved V3 media uploaded, SHA-256 matched, anonymous HEAD/full GET/range 206 verified; pending website release tests and merge.",
   "media_verification": {
     "method": "hash-checked single-use Supabase Edge transfer",
-    "verified_at": "2026-11-21T19:18:00+01:00",
+    "verified_at": "2026-11-21T19:25:20.381Z",
     "original_bytes_video": 3383041,
     "original_bytes_poster": 115329,
     "head_video_status": 200,

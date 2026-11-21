@@ -159,7 +159,7 @@ class JobseekerMarketReviewTests(unittest.TestCase):
 
     def test_member_signup_does_not_require_corporate_email_for_candidates(self):
         portal=(ROOT/"src/page_advisory_portal.py").read_text(encoding="utf-8")
-        self.assertIn('"Email address *" if requested_service == "market-signals"',portal)
+        self.assertIn('"Email address *", max_chars=254',portal)
         self.assertIn("Registration accepts a personal or work email address",portal)
         self.assertIn("Executive or Jobseeker Edition",portal)
 

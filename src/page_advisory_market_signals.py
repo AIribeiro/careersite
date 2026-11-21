@@ -347,6 +347,30 @@ html[data-jr-masked-mobile="true"] .site.ms-landing .ms-video-figure{max-width:2
  .site.ms-landing .ms-preview-page{width:100%}
  .site.ms-landing .ms-preview-page img{max-height:none}
 }
+
+.site.ms-landing .ms-section--unionen{border-top:1px solid #DFD7CB;background:#FCFAF6}
+.site.ms-landing .ms-unionen-panel{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.2fr) minmax(0,1.5fr);gap:17px;margin:30px 0 20px}
+.site.ms-landing .ms-unionen-panel>div{border:1px solid #DFD8CE;border-top:3px solid #B58C67;padding:clamp(18px,2.2vw,30px);background:#FFF}
+.site.ms-landing .ms-unionen-panel .ms-label,.site.ms-landing .ms-unionen-kicker{display:block;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#A07455;margin:0 0 17px}
+.site.ms-landing .ms-unionen-index>strong{font:500 clamp(47px,5vw,70px)/1 Georgia,serif;color:#18364B;display:block;margin:0 0 12px}
+.site.ms-landing .ms-unionen-index p{font-size:13px;line-height:1.7;color:#53677A;margin:0}
+.site.ms-landing .ms-unionen-statpair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;border-bottom:1px solid #E6DDD2;padding:5px 0 20px}
+.site.ms-landing .ms-unionen-statpair strong{display:block;font:500 clamp(32px,3.1vw,45px)/1.1 Georgia,serif;color:#18364B;margin-bottom:8px}
+.site.ms-landing .ms-unionen-statpair span{display:block;color:#4E6375;font-size:12px;line-height:1.55}
+.site.ms-landing .ms-unionen-small{font-size:11px;line-height:1.65;color:#657789;margin:17px 0 0}
+.site.ms-landing .ms-unionen-track{display:grid;grid-template-columns:minmax(0,140px) minmax(0,1fr) 37px;gap:10px;align-items:center;margin:17px 0;color:#31495C;font-size:12px}
+.site.ms-landing .ms-unionen-track>div{height:12px;background:#ECE9E4;border-radius:2px;overflow:hidden}
+.site.ms-landing .ms-unionen-track i{display:block;height:100%;background:#A97655}
+.site.ms-landing .ms-unionen-track b{font-weight:800;font-size:12px;color:#1D3A50}
+.site.ms-landing .ms-unionen-perspectives{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin:30px 0 8px}
+.site.ms-landing .ms-unionen-perspectives>div{padding:20px 0 12px;border-top:1px solid #D9CEC2}
+.site.ms-landing .ms-unionen-perspectives .ms-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#986749;font-weight:800}
+.site.ms-landing .ms-unionen-perspectives h3{font:500 clamp(22px,2.3vw,29px)/1.23 Georgia,serif;margin:12px 0;color:#1B3448}
+.site.ms-landing .ms-unionen-perspectives p{font-size:14px;line-height:1.7;color:#566979}
+.site.ms-landing .ms-unionen-caution{max-width:1100px;color:#627689;font-size:12px;line-height:1.75;margin:20px 0 0}
+.site.ms-landing .ms-unionen-caution a{color:#285A76}
+@media(max-width:1080px){.site.ms-landing .ms-unionen-panel{grid-template-columns:repeat(2,minmax(0,1fr))}.site.ms-landing .ms-unionen-employment{grid-column:1/-1}}
+@media(max-width:660px){.site.ms-landing .ms-unionen-panel,.site.ms-landing .ms-unionen-perspectives{grid-template-columns:minmax(0,1fr)}.site.ms-landing .ms-unionen-employment{grid-column:auto}.site.ms-landing .ms-unionen-track{grid-template-columns:minmax(0,115px) minmax(0,1fr) 32px;gap:8px;font-size:11px}}
 </style>
 """
 
@@ -367,10 +391,10 @@ MARKET_SIGNALS_LANDING_HTML = """
       <div class="ms-trust-strip" aria-label="November research">
         <span><strong>43</strong> published observations</span>
         <span><strong>5</strong> topics in each report</span>
-        <span><strong>6</strong> evidence series · 5 publishers</span>
+        <span><strong>7</strong> evidence series · 6 publishers</span>
         <span><strong>2</strong> research perspectives</span>
       </div>
-      <p class="ms-issue-line">The Executive Edition was published on 17 November and the Jobseeker Edition was prepared on 18 November 2026</p>
+      <p class="ms-issue-line">The 17–18 November editions remain archived. A separate Unionen workforce research update is dated 21 November 2026</p>
     </div>
 
   </div>
@@ -399,6 +423,45 @@ MARKET_SIGNALS_LANDING_HTML = """
   <p class="ms-note">För dig som söker jobb inom AI och data i Sverige: Här hittar du marknadsfakta, konkreta råd och en plan för jobbsökningen. Rapporten är på engelska och gratis efter registrering. The November 2026 research is a dated snapshot, not live job listings or a salary survey. JobTech covers selected senior titles only—not every entry-level opening.</p>
 </div></section>
 
+
+<section class="ms-section ms-section--white ms-section--unionen" id="ms-workforce-update" aria-labelledby="ms-workforce-update-title"><div class="container">
+  <div class="ms-section-head">
+    <p class="ms-overline">New research / Unionen / 18 November 2026</p>
+    <h2 id="ms-workforce-update-title">A stronger economy is not yet bringing back professional hiring at the same pace.</h2>
+    <p class="ms-section-intro">Unionen's autumn workplace survey adds an important perspective to the November Market Review. Responding union clubs report improving business prospects, but no overall rise in white-collar employment expected over the coming six months. AI is also changing the mix of roles in some workplaces. For employers and professionals, those findings deserve a closer look at the work itself, not just the job titles being advertised.</p>
+  </div>
+  <div class="ms-unionen-panel">
+    <div class="ms-unionen-index">
+      <span class="ms-label">Business outlook / Unionen survey</span>
+      <strong>56</strong>
+      <p>Above the neutral level of 50, based on workplace-club responses. Business confidence is a different measure from jobs created.</p>
+    </div>
+    <div class="ms-unionen-survey">
+      <p class="ms-unionen-kicker">Among responding Unionen workplace clubs</p>
+      <div class="ms-unionen-statpair">
+        <div><strong>83%</strong><span>reported employer AI use</span></div>
+        <div><strong>16%</strong><span>reported negotiating or planning negotiations about AI</span></div>
+      </div>
+      <p class="ms-unionen-small">Survey of private-sector workplace union clubs; these percentages are not directly comparable with SCB's enterprise AI adoption figures.</p>
+    </div>
+    <div class="ms-unionen-employment">
+      <p class="ms-unionen-kicker">Among 270 clubs at AI-adopting employers</p>
+      <div class="ms-unionen-track"><span>Changed staffing needs</span><div><i style="width:42%"></i></div><b>42%</b></div>
+      <div class="ms-unionen-track"><span>New AI, Data or IT specialist roles</span><div><i style="width:24%"></i></div><b>24%</b></div>
+      <div class="ms-unionen-track"><span>Reported redundancies linked to AI</span><div><i style="width:13%"></i></div><b>13%</b></div>
+      <p class="ms-unionen-small">Percentages describe responding clubs, not employees or vacancies; multiple answers were possible. Some firms reported several types of change.</p>
+    </div>
+  </div>
+  <div class="ms-unionen-perspectives">
+    <div><span class="ms-label">Executive Edition / Workforce and capability</span><h3>Decide which work will change, and who will own it.</h3><p>Use the findings to question staffing assumptions, employee involvement, retraining and the balance between internal expertise and external support. Unionen's sector results suggest consulting deserves attention, but do not quantify AI consulting assignments.</p></div>
+    <div><span class="ms-label">Jobseeker Edition / Professional careers</span><h3>Follow the responsibilities employers need fulfilled.</h3><p>Explore AI and Data work across technical, operational and established professional roles. The survey gives useful context about changing skills and uneven sector expectations; it does not predict vacancies or anyone's employment prospects.</p></div>
+  </div>
+  <p class="ms-unionen-caution">Source: <a href="https://www.unionen.se/filer/rapport/unionen-om-konjunkturen-hosten-2026" target="_blank" rel="noopener noreferrer">Unionen, <em>Fler ordrar. Fler och bättre jobb?</em></a>, released 18 November 2026. Fieldwork: 24 September–9 October; 468 responding clubs at 421 firms, response rate 27%. This is not a representative census of all Swedish employers. Statistical associations between AI adoption and planned reductions do not establish causation.</p>
+  <div class="ms-actions">
+    <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self">Explore the updated Jobseeker Edition</a>
+    <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=executive" target="_self">Explore the updated Executive Edition</a>
+  </div>
+</div></section>
 
 <section class="ms-section ms-section--white ms-section--previews" id="ms-report-previews" aria-labelledby="ms-preview-title"><div class="container">
   <div class="ms-section-head">
@@ -571,12 +634,12 @@ MARKET_SIGNALS_LANDING_HTML = """
       <div class="ms-format-bottom">Interactive views · Historical records · Source details</div></article>
     <article class="ms-format"><small>02 / DOWNLOAD A4 PDF</small>
       <h3>Complete AI &amp; Data Market Review</h3>
-      <p>Executive Edition 2.0.2 examines enterprise AI use, observed recruitment and staffing signals, organisational capabilities, consulting choices and regional recruitment considerations. It includes five substantive analyses, scenarios, a leadership decision agenda and an appendix tracing all 43 approved observations.</p>
-      <div class="ms-format-bottom">17 November 2026 · Full executive research PDF · Sources</div></article>
+      <p>Executive Edition 2.1.0 adds Unionen’s autumn workforce survey to the original 43 observations, with new analysis of AI adoption, employee involvement, professional staffing and sector differences. Five decision analyses, a practical leadership agenda and the complete 53-observation source register are included.</p>
+      <div class="ms-format-bottom">21 November 2026 · Executive research update · 53 source observations</div></article>
     <article class="ms-format"><small>03 / DOWNLOAD A4 PDF</small>
       <h3>AI &amp; Data Careers — Jobseeker Edition</h3>
-      <p>Jobseeker Edition 1.1 · November 2026. Explore AI and Data careers across technical development, data management, governance and established professions. Read the SCB adoption and capability findings, recruitment-channel evidence, career decisions and practical four-week plan. The selected senior JobTech series appears only as a bounded historical sample.</p>
-      <div class="ms-format-bottom">18 November 2026 · Candidate-focused research PDF · Sources</div></article>
+      <p>Jobseeker Edition 1.2 · November 2026. Explore what AI means for professional work, including new specialist roles, changes to staffing and differences between sectors. Career pathways, recruitment-channel evidence and the four-week plan remain; the narrow senior JobTech sample is still clearly labelled.</p>
+      <div class="ms-format-bottom">21 November 2026 · Jobseeker research update · Sources</div></article>
     <article class="ms-format"><small>04 / USE IN A MEETING</small>
       <h3>Executive Decision Briefs and source register</h3>
       <p>Choose one of five executive decision perspectives. Each PDF contains a complete analysis, alternative explanations, recommended action, review conditions and supporting source records. A downloadable evidence CSV is also available.</p>
@@ -630,6 +693,7 @@ MARKET_SIGNALS_LANDING_HTML = """
         <li><strong>Brainville</strong>October 2026 listing changes in a marketplace covering many consulting disciplines. Changes in platform participation and coverage can affect year-on-year comparisons. These figures describe Brainville activity rather than national or AI-specialist consultant availability.</li>
         <li><strong>SCB Recruitment Needs and Vacancies</strong>Survey estimates covering advertised and non-advertised vacancies, including uncertainty and regional comparisons.</li>
         <li><strong>Konjunkturinstitutet</strong>Swedish business confidence, recent staffing and future employment intentions; the measures are not actual hires.</li>
+        <li><strong>Unionen Branschbarometern</strong>Autumn 2026 survey of private-sector union clubs, released 18 November. Business outlook, AI workplace adoption, workforce changes and sector expectations are distinct respondent measures. The AI effects question used a 270-club subset; responses were not mutually exclusive, and no causal AI redundancy finding is asserted. <a href="https://www.unionen.se/filer/rapport/unionen-om-konjunkturen-hosten-2026" target="_blank" rel="noopener noreferrer">Read Unionen’s original publication</a>.</li>
         <li><strong>European Commission</strong>Sweden's Digital Decade roadmap, policy priorities and planned budgets; not AI-only investment or company ROI.</li>
       </ul>
       <p class="ms-note">Additional skills, management pay and other unapproved measures are not published until their sources and definitions have been checked.</p>

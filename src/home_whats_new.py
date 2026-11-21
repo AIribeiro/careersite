@@ -261,12 +261,17 @@ def inject_live_home_update() -> None:
 
     initial = latest_local_release().published_at.isoformat()
     endpoint = ANALYTICS_URL.rstrip("/") + "/rest/v1/careersite_articles"
+    market_endpoint = (
+        ANALYTICS_URL.rstrip("/")
+        + "/rest/v1/rpc/portfolio_public_market_release_timestamp_v1"
+    )
     script = """
 <script>
 (function () {
   "use strict";
   const doc = window.parent.document;
   const endpoint = %s;
+  const marketEndpoint = %s;
   const apiKey = %s;
   const localPublished = Date.parse(%s);
   let displayedAt = localPublished;
@@ -286,61 +291,99 @@ def inject_live_home_update() -> None:
     return {label: "Article", page: "thinking", action: "Read the article"};
   }
 
+  function cmsItems(rows) {
+    if (!Array.isArray(rows)) return [];
+    return rows.map(row => {
+      const published = Date.parse(row.published_at || row.created_at || "");
+      const updated = Date.parse(row.updated_at || "");
+      return {
+        source: "cms", row: row,
+        time: Math.max(Number.isFinite(published) ? published : 0,
+                       Number.isFinite(updated) ? updated : 0),
+        revised: Number.isFinite(updated) && Number.isFinite(published)
+            && updated > published + 60000,
+      };
+    }).filter(item =>
+      validSlug.test(item.row.slug || "") &&
+      typeof item.row.title === "string" && item.row.title.trim() &&
+      Number.isFinite(item.time) && item.time > 0 &&
+      item.time <= Date.now() + 60000
+    );
+  }
+
+  function marketItem(item) {
+    // The public RPC returns only a fixed set of approved release metadata.
+    // Do not follow an arbitrary destination or embed HTML from its response.
+    if (!item || Array.isArray(item) || typeof item !== "object" ||
+        item.href !== "?page=advisory-market-signals" ||
+        typeof item.title !== "string" || !item.title.trim()) return [];
+    const time = Date.parse(item.date || "");
+    if (!Number.isFinite(time) || time > Date.now() + 60000) return [];
+    return [{source: "market", row: item, time: time, revised: false}];
+  }
+
   async function refresh() {
     if (busy || doc.visibilityState === "hidden") return;
     busy = true;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
+    const headers = {"apikey": apiKey, "Accept": "application/json"};
     try {
-      const res = await fetch(endpoint + query, {
-        headers: {"apikey": apiKey, "Accept": "application/json"},
-        cache: "no-store",
-        signal: controller.signal,
-      });
-      if (!res.ok) return;
-      const rows = await res.json();
-      if (!Array.isArray(rows)) return;
-      const candidates = rows.map(row => {
-        const published = Date.parse(row.published_at || row.created_at || "");
-        const updated = Date.parse(row.updated_at || "");
-        return {
-          row: row,
-          time: Math.max(Number.isFinite(published) ? published : 0,
-                         Number.isFinite(updated) ? updated : 0),
-          revised: Number.isFinite(updated) && Number.isFinite(published)
-              && updated > published + 60000,
-        };
-      }).filter(item =>
-        validSlug.test(item.row.slug || "") &&
-        typeof item.row.title === "string" && item.row.title.trim() &&
-        Number.isFinite(item.time) && item.time <= Date.now() + 60000
-      ).sort((a, b) => b.time - a.time);
-      if (!candidates.length || candidates[0].time <= displayedAt) return;
+      // Neither feed can block the other. A failed or restricted source leaves
+      // the already-valid local release rendered without any error message.
+      const requests = await Promise.allSettled([
+        fetch(endpoint + query, {
+          headers: headers, cache: "no-store", signal: controller.signal,
+        }),
+        fetch(marketEndpoint, {
+          headers: headers, cache: "no-store", signal: controller.signal,
+        }),
+      ]);
+      const entries = [];
+      if (requests[0].status === "fulfilled" && requests[0].value.ok) {
+        try { entries.push(...cmsItems(await requests[0].value.json())); } catch (_error) {}
+      }
+      if (requests[1].status === "fulfilled" && requests[1].value.ok) {
+        try { entries.push(...marketItem(await requests[1].value.json())); } catch (_error) {}
+      }
+      entries.sort((a, b) => b.time - a.time);
+      if (!entries.length || entries[0].time <= displayedAt) return;
       const root = doc.querySelector("#home-whats-new");
       if (!root) return;
-      const latest = candidates[0].row;
-      const kind = labelFor(latest);
+      const latest = entries[0];
       const meta = root.querySelector("[data-news-meta]");
       const title = root.querySelector("[data-news-title]");
       const summary = root.querySelector("[data-news-summary]");
       const link = root.querySelector("[data-news-link]");
       if (!meta || !title || !summary || !link) return;
-      const published = new Date(candidates[0].time).toLocaleDateString("en-GB", {
+      const published = new Date(latest.time).toLocaleDateString("en-GB", {
         day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Stockholm"
       });
-      meta.textContent = (candidates[0].revised ? "Updated " + kind.label.toLowerCase() :
-                          kind.label) + " · " + published;
-      title.textContent = latest.title;
-      summary.textContent = latest.subtitle || latest.excerpt || "Newly published on the portfolio.";
-      const params = new URLSearchParams({page: kind.page, article: latest.slug});
-      link.href = "?" + params.toString();
-      link.textContent = kind.action + " →";
-      link.setAttribute("data-hq-content-slug", latest.slug);
-      link.setAttribute("data-hq-content-type", kind.page === "briefing" ? "briefing" :
-        kind.label === "Weekly AI" ? "weekly_ai" : "article");
-      displayedAt = candidates[0].time;
+      if (latest.source === "market") {
+        meta.textContent = "Market review updated · " + published;
+        title.textContent = latest.row.title;
+        summary.textContent = latest.row.description || "A new executive research edition is available.";
+        link.href = "?page=advisory-market-signals";
+        link.textContent = "Read the latest review →";
+        link.setAttribute("data-hq-content-type", "market_signals");
+        link.setAttribute("data-hq-content-slug", "");
+      } else {
+        const kind = labelFor(latest.row);
+        meta.textContent = (latest.revised ? "Updated " + kind.label.toLowerCase() :
+                            kind.label) + " · " + published;
+        title.textContent = latest.row.title;
+        summary.textContent = latest.row.subtitle || latest.row.excerpt ||
+          "Newly published on the portfolio.";
+        const params = new URLSearchParams({page: kind.page, article: latest.row.slug});
+        link.href = "?" + params.toString();
+        link.textContent = kind.action + " →";
+        link.setAttribute("data-hq-content-slug", latest.row.slug);
+        link.setAttribute("data-hq-content-type", kind.page === "briefing" ? "briefing" :
+          kind.label === "Weekly AI" ? "weekly_ai" : "article");
+      }
+      displayedAt = latest.time;
     } catch (_error) {
-      // Keep the valid first frame; never hold up Home or show a broken feed.
+      // Keep the locally verified first frame when a feed is unavailable.
     } finally {
       clearTimeout(timeout);
       busy = false;
@@ -349,12 +392,16 @@ def inject_live_home_update() -> None:
 
   refresh();
   const interval = setInterval(refresh, 120000);
-  // Returning to an open tab also checks revisions to published content.
   doc.addEventListener("visibilitychange", () => {
     if (doc.visibilityState === "visible") refresh();
   });
   window.addEventListener("pagehide", () => clearInterval(interval), {once: true});
 })();
 </script>
-""" % (json.dumps(endpoint), json.dumps(ANALYTICS_PUBLISHABLE_KEY), json.dumps(initial))
+""" % (
+        json.dumps(endpoint),
+        json.dumps(market_endpoint),
+        json.dumps(ANALYTICS_PUBLISHABLE_KEY),
+        json.dumps(initial),
+    )
     components.html(script, height=0, width=0, scrolling=False)

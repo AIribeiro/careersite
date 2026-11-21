@@ -82,6 +82,14 @@ Cases should answer, where supported:
 
 They should show judgment rather than reproduce job descriptions.
 
+### Positive, proportionate evidence framing
+
+Lead with **what Jair delivered, made possible or changed**. A working prototype, a shared portfolio decision framework, a learning program and recurring platform stewardship are meaningful results in their own right; describe them confidently at their actual maturity. Use clear first-person verbs such as **I led, built, consolidated, delivered, structured, established, coordinated** when the record supports them.
+
+Put scope qualifications where they genuinely matter, typically in one short sentence explaining prototype versus production, or a clearly marked illustrative example. Avoid repeating defensive labels like `Evidence boundary`, lists of outcomes not claimed, or phrasing that makes delivered work sound inconsequential. Do not make a case's final sentence a denial of unmeasured results unless it prevents a specific misleading impression. Clear context is preferable to legalistic disclaimers.
+
+Do not invent deployment, ROI, adoption, productivity improvement, approved investments or direct reporting responsibility. The aim is a **realistic, positive account of leadership and delivery**, not either inflated success claims or self-disqualifying caution.
+
 ## Evidence and metric attribution
 
 Evidence is used to add context, not marketing impact.

@@ -118,15 +118,15 @@ class MarketSignalsLandingTests(unittest.TestCase):
                       "Market Observatory"):
             self.assertIn(value,self.page)
 
-    def test_video_is_secondary_below_both_reports_and_findings(self):
+    def test_horizontal_video_is_between_hero_and_two_report_editions(self):
         html=MARKET_SIGNALS_LANDING_HTML
         self.assertIn("What Sweden’s AI and Data figures mean",html)
         self.assertIn("Five market signals worth understanding.",html)
+        self.assertLess(html.index('class="ms-trust-strip"'),html.index('id="ms-video"'))
+        self.assertLess(html.index('class="ms-issue-line"'),html.index('id="ms-video"'))
+        self.assertLess(html.index('id="ms-video"'),html.index('id="ms-perspectives"'))
         self.assertLess(html.index('id="ms-perspectives"'),html.index('id="ms-findings"'))
-        self.assertLess(html.index('id="ms-findings"'),html.index('id="ms-video"'))
-        self.assertLess(html.index('id="ms-video"'),
-                        html.index('aria-labelledby="ms-materials-title"'))
-        self.assertIn("43",html)
+        self.assertIn("53",html)
         self.assertIn("Jobseeker Edition",html)
         self.assertIn("Executive Edition",html)
         self.assertIn("switched to SNI 2025",html)

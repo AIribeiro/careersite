@@ -77,14 +77,14 @@ jobs:
                   page=browser.new_page(viewport={'width':width,'height':height})
                   page.goto(pathlib.Path('/tmp/market-release-video.html').as_uri())
                   page.locator('video').wait_for()
-                  page.wait_for_function("document.querySelector('video').readyState>=1",{ 'timeout':35000 })
+                  page.wait_for_function("document.querySelector('video').readyState>=1", timeout=35000)
                   meta=page.locator('video').evaluate("(v)=>({duration:v.duration,width:v.videoWidth,height:v.videoHeight,source:v.currentSrc,ready:v.readyState})")
                   assert abs(meta['duration']-95.867)<0.3,meta
                   assert (meta['width'],meta['height'])==(1920,1080),meta
                   page.locator('video').evaluate("(v)=>v.play()")
-                  page.wait_for_function("document.querySelector('video').currentTime>0.05",{ 'timeout':15000 })
+                  page.wait_for_function("document.querySelector('video').currentTime>0.05", timeout=15000)
                   page.locator('video').evaluate("(v)=>{v.currentTime=48;}")
-                  page.wait_for_function("document.querySelector('video').currentTime>=47.5",{ 'timeout':15000 })
+                  page.wait_for_function("document.querySelector('video').currentTime>=47.5", timeout=15000)
                   view=page.evaluate("({screen:innerWidth,scroll:document.documentElement.scrollWidth})")
                   assert view['scroll']<=width+2,view
                   print('BROWSER VIDEO PASS',width,'duration',round(meta['duration'],3),'play and seek passed',flush=True)

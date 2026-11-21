@@ -1123,6 +1123,15 @@ def render_private_market_signals(session: dict, user: dict) -> None:
         if not monthly_archives:
             st.error("No immutable monthly edition is available for viewing.")
             return
+        # On a new signed-off publication, land each member on the latest
+        # edition once. Subsequent historical selections remain the user's choice.
+        newest=monthly_archives[0]
+        new_slug=str(newest.get("edition_slug") or "")
+        if (newest.get("archive_kind")=="published_edition" and
+                new_slug=="sweden-ai-data-market-review-2026-11-unionen-2-1" and
+                st.session_state.get("market_signals_seen_current_slug")!=new_slug):
+            st.session_state["market_signals_monthly_vintage"]=newest
+            st.session_state["market_signals_seen_current_slug"]=new_slug
         selected_month=st.selectbox(
             "Market observatory · Monthly editions",
             monthly_archives,

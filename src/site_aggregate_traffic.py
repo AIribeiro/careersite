@@ -152,6 +152,8 @@ def render_basic_page_loads(window: str) -> None:
         all_count = max(0, int(data.get("all_page_loads", 0)))
         privacy = max(0, int(data.get("privacy_page_loads", 0)))
         other = max(0, int(data.get("non_privacy_page_loads", 0)))
+        reader_workspace = max(0, int(data.get("reader_page_loads", 0)))
+        portfolio_content = max(0, all_count - privacy - reader_workspace)
         if all_count != privacy + other:
             raise ValueError("Aggregate counts did not reconcile")
     except (RuntimeError, ValueError, TypeError, OverflowError):
@@ -182,18 +184,21 @@ def render_basic_page_loads(window: str) -> None:
 </style>
 <section class="pa-basic-traffic" aria-label="Anonymous daily page-load totals">
  <div><p class="pa-basic-eyebrow">Server-side measurement · {period}</p>
- <h3>Page loads, without optional statistics</h3>
- <p>Daily aggregate counts, starting 20 November 2026. No visitor IDs or browsing histories in this counter.
- Collection began during the afternoon of 20 November; earlier activity is unavailable. Repeated or automated loads can count; these are not unique visitors.</p></div>
+ <h3>Page activity · separate content from account traffic</h3>
+ <p>Daily counts without visitor identifiers, since 20 November.
+ Reader Library workspace loads are separated from portfolio and publication opens.
+ These are page requests, not unique visitors; repeat and automated requests can count.</p></div>
  <div class="pa-basic-stats">
-  <div><strong class="pa-basic-value">{other:,}</strong><span class="pa-basic-label">Excluding Privacy</span></div>
-  <div><strong class="pa-basic-value">{privacy:,}</strong><span class="pa-basic-label">Privacy</span></div>
-  <div><strong class="pa-basic-value">{all_count:,}</strong><span class="pa-basic-label">All page loads</span></div>
+  <div><strong class="pa-basic-value">{portfolio_content:,}</strong><span class="pa-basic-label">Portfolio &amp; content</span></div>
+  <div><strong class="pa-basic-value">{reader_workspace:,}</strong><span class="pa-basic-label">Reader workspace</span></div>
+  <div><strong class="pa-basic-value">{all_count:,}</strong><span class="pa-basic-label">All public loads</span></div>
  </div>
 </section>
 """)
+    if privacy:
+        st.caption(f"{privacy:,} Privacy-page loads are excluded from the portfolio-content figure.")
     if window == "last_hour":
-        st.caption("This basic counter has daily resolution, so Today is shown instead of Last hour.")
+        st.caption("This counter resolves by day, so the selected Last hour displays Today.")
 
 
 @st.cache_data(ttl=300, max_entries=2, show_spinner=False)

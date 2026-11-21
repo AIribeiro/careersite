@@ -68,12 +68,19 @@ def render_content_demand(window: str) -> None:
             row for row in report.get("channels", [])
             if isinstance(row, dict) and _number(row, "loads")
         ][:6]
+        broad_pages = [
+            row for row in report.get("top_pages", [])
+            if isinstance(row, dict) and row.get("page") and _number(row, "loads")
+        ][:7]
+        unknown_loads = _number(report, "unattributed_portfolio_loads")
+        channel_coverage = _number(report, "channel_coverage_loads")
     except (RuntimeError, ValueError, TypeError, OverflowError):
         st.caption("Content and source breakdown is temporarily unavailable.")
         return
 
-    top_article = max((_number(item, "loads") for item in publications), default=1)
-    top_channel = max((_number(item, "loads") for item in channels), default=1)
+    top_article = max((_number(item, "loads") for item in publications or broad_pages), default=1)
+    top_channel = max(unknown_loads, *(_number(item, "loads") for item in channels), 1)
+    publication_title = "Most-opened publications" if publications else "Most-visited portfolio pages"
     publication_items = []
     for row in publications:
         slug = str(row.get("slug") or "").strip()
@@ -91,7 +98,26 @@ def render_content_demand(window: str) -> None:
             f'<strong>{views:,}</strong></span><span class="pd-rail"><span style="width:{width}%"></span></span></a>'
         )
     if not publication_items:
-        publication_items = ['<p class="pd-empty">No publication opens recorded in this period.</p>']
+        page_names = {
+            "home": "Home", "about": "About", "impact": "Leadership Impact",
+            "briefing": "Executive Briefing", "briefings": "Briefings Library",
+            "thinking": "Thinking & Articles", "advisory": "Advisory",
+            "advisory-market-signals": "AI & Data Market Signals",
+            "ai-data-governance": "AI & Data Governance",
+            "contact": "Contact", "presence": "Speaking & Publications",
+        }
+        for row in broad_pages:
+            page = str(row.get("page") or "")
+            views = _number(row, "loads")
+            width = max(3, round(views / max(1, top_article) * 100))
+            label = escape(page_names.get(page, page.replace("-", " ").title()))
+            publication_items.append(
+                '<div class="pd-item"><span class="pd-line">'
+                f'<span class="pd-label">{label}</span><strong>{views:,}</strong></span>'
+                f'<span class="pd-rail"><span style="width:{width}%"></span></span></div>'
+            )
+        if not publication_items:
+            publication_items = ['<p class="pd-empty">No portfolio opens recorded for this period.</p>']
 
     channel_items = []
     for row in channels:
@@ -105,8 +131,20 @@ def render_content_demand(window: str) -> None:
             f'<span class="pd-rail"><span style="width:{width}%"></span></span></div>'
         )
 
+    if unknown_loads:
+        width = max(3, round(unknown_loads / max(1, top_channel) * 100))
+        channel_items.append(
+            '<div class="pd-item"><span class="pd-line">'
+            '<span class="pd-label">Source not classified</span>'
+            f'<strong>{unknown_loads:,}</strong></span>'
+            f'<span class="pd-rail"><span style="width:{width}%"></span></span></div>'
+        )
+    if not channel_items:
+        channel_items.append('<p class="pd-empty">No tagged acquisition signals in this period.</p>')
+
     recorded = f"{count:,}"
-    editorial = f"{_number(report, 'editorial_loads'):,}"
+    editorial = f"{_number(report, 'editorial_page_loads'):,}"
+    known = f"{channel_coverage:,}"
     st.html(f"""
 <style>
 .pd-wrap {{ margin:0 0 13px; font-family:Inter,Arial,sans-serif; color:#1e3143; }}
@@ -129,13 +167,14 @@ def render_content_demand(window: str) -> None:
 </style>
 <section class="pd-wrap" aria-label="Content demand and acquisition channels">
  <div class="pd-header"><strong>Which content is being opened, and where requests come from</strong>
- <small>{editorial} publication opens · {recorded} tagged-or-untagged loads excluding Reader workspace in this counter</small></div>
+ <small>{recorded} portfolio opens · {editorial} editorial-route opens</small></div>
  <div class="pd-cols">
-  <div class="pd-panel"><h3>Most-opened publications</h3>{''.join(publication_items)}</div>
-  <div class="pd-panel"><h3>Acquisition channels</h3>{''.join(channel_items)}</div>
+  <div class="pd-panel"><h3>{publication_title}</h3>{''.join(publication_items)}</div>
+  <div class="pd-panel"><h3>Acquisition sources · {known} classified at page level</h3>{''.join(channel_items)}</div>
  </div>
- <p class="pd-note">New daily aggregate begins with the 21 November 2026 release.
- Untagged does not imply direct traffic. Counts are page loads, not unique
- people or reading completions; repeat and automated loads can still occur.</p>
+ <p class="pd-note">Page totals begin 20 November 2026; detailed per-publication
+ and tagged-source breakdowns began 21 November. Earlier source information is
+ explicitly unclassified, not assumed direct. A load is not a unique person or
+ reading completion; repeated and automated requests can still be counted.</p>
 </section>
 """)

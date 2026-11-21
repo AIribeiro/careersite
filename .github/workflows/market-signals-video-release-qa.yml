@@ -113,6 +113,10 @@ jobs:
                   time.sleep(3)
               page.screenshot(path='/tmp/market-signals-live.png',full_page=True)
               if not ready:
+                  print('LIVE PAGE URL:',page.url,flush=True)
+                  print('LIVE PAGE TITLE:',page.title(),flush=True)
+                  print('VISIBLE BODY:',repr(page.locator('body').inner_text(timeout=8000)[:1400]),flush=True)
+                  print('FRAMES:',len(page.frames),flush=True)
                   raise AssertionError('Live Streamlit page did not show the Market Signals video player')
               el=page.locator('#ms-video .ms-video-player').first
               actual=el.locator('source').get_attribute('src')

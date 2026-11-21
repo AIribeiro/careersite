@@ -107,7 +107,7 @@ class HomeWhatsNewTests(unittest.TestCase):
             capture_output=True, timeout=12, check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Executive Briefing automatic homepage refresh: passed", result.stdout)
+        self.assertIn("Executive Briefing publication and revision homepage refresh: passed", result.stdout)
 
     def test_live_refresh_is_a_small_client_side_request(self) -> None:
         with patch("streamlit.components.v1.html") as html:
@@ -115,6 +115,8 @@ class HomeWhatsNewTests(unittest.TestCase):
         script = html.call_args.args[0]
         self.assertIn("status=eq.published", script)
         self.assertIn("published_at.desc.nullslast", script)
+        self.assertIn("updated_at.desc.nullslast", script)
+        self.assertIn("row.updated_at", script)
         self.assertIn("kind === \"executive briefing\"", script)
         self.assertIn("kind === \"weekly brief\"", script)
         self.assertIn("cache: \"no-store\"", script)

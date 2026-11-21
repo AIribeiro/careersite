@@ -272,7 +272,11 @@ def changed_update_item(paths: tuple[str, ...], commit_sha: str,
             "key": "update:" + commit_sha,
             "type": "Page updated",
             "title": title,
-            "description": f"The {label} section has been updated. Explore its current content and experience.",
+            "description": (
+                "The portfolio homepage has been updated. Explore the latest experience."
+                if route == "home"
+                else f"The {label} section has been updated. Explore its current content and experience."
+            ),
             "date": date.isoformat(),
             "href": "?page=" + route,
             "cta": "View the update",

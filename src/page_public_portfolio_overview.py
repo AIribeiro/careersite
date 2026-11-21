@@ -302,6 +302,8 @@ def render_public_portfolio_overview() -> None:
         from site_aggregate_traffic import basic_page_load_report, monthly_content_rollup
         basic_page_load_report.clear()
         monthly_content_rollup.clear()
+        from site_content_demand import content_load_report
+        content_load_report.clear()
         fetch_intelligence.clear()
         from portfolio_reader_kpi import reader_registration_totals
         reader_registration_totals.clear()
@@ -310,7 +312,9 @@ def render_public_portfolio_overview() -> None:
     # Show the broad, consent-independent page-load count first, directly below
     # reporting controls. It remains visible even if detailed reports fail.
     from site_aggregate_traffic import render_basic_page_loads
+    from site_content_demand import render_content_demand
     render_basic_page_loads(str(window))
+    render_content_demand(str(window))
 
     try:
         # Broad windows use the fast canonical reader/page counter. Detailed

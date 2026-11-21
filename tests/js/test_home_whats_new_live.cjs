@@ -14,6 +14,7 @@ const localTime = Date.parse(JSON.parse(baselineLiteral[1]));
 assert.ok(Number.isFinite(localTime), 'Local release timestamp must be valid');
 const publishedAt = new Date(Math.max(localTime, Date.parse('2026-11-18T12:40:21Z')) + 3600000).toISOString();
 const revisedAt = new Date(Date.parse(publishedAt) + 30 * 60000).toISOString();
+const marketAt = new Date(Date.parse(revisedAt) + 30 * 60000).toISOString();
 const match = html.match(/<script>([\s\S]*?)<\/script>/);
 assert.ok(match, 'Injected live feed script must exist');
 const elements = {
@@ -41,8 +42,22 @@ const requests = [];
 let intervalMs;
 let refreshInterval;
 globalThis.window = {parent: {document: doc, innerHeight: 850}, addEventListener() {}};
+let cmsCalls = 0;
+let marketCalls = 0;
 globalThis.fetch = async (url, opts) => {
   requests.push({url, opts});
+  if (url.includes('/rpc/portfolio_public_market_release_timestamp_v1')) {
+    const call = ++marketCalls;
+    return {ok: true, async json() {
+      return call > 2 ? {
+        type: 'Market review updated',
+        title: 'Swedish AI & Data Market Review',
+        description: 'The latest Executive and Jobseeker Editions are available.',
+        href: '?page=advisory-market-signals', date: marketAt
+      } : null;
+    }};
+  }
+  const call = ++cmsCalls;
   return {ok: true, async json() {return [
     {
       title: 'Older article', slug: 'older-article',
@@ -52,8 +67,8 @@ globalThis.fetch = async (url, opts) => {
       title: 'AI Adoption Is Not One Problem: Four Leadership Responses',
       slug: 'ai-adoption-four-leadership-responses',
       kind: 'Executive Briefing', published_at: publishedAt,
-      updated_at: requests.length > 1 ? revisedAt : publishedAt,
-      subtitle: requests.length > 1
+      updated_at: call > 1 ? revisedAt : publishedAt,
+      subtitle: call > 1
         ? 'The updated decision framework and practical considerations.'
         : 'Four separate leadership decisions.'
     }
@@ -65,11 +80,11 @@ globalThis.setInterval = (callback, ms) => {intervalMs = ms; refreshInterval = c
 globalThis.AbortController = class {signal = {}; abort() {}};
 // Clock is fixed so future CMS issues can be tested against a published
 // November 17 market research edition, irrespective of CI wall-clock time.
-Date.now = () => Date.parse(revisedAt) + 3600000;
+Date.now = () => Date.parse(marketAt) + 3600000;
 vm.runInThisContext(match[1]);
 setImmediate(async () => {
   try {
-    assert.equal(requests.length, 1, 'Must fetch immediately on page load');
+    assert.equal(requests.length, 2, 'Must check CMS and approved market metadata immediately');
     assert.equal(elements['[data-news-title]'].textContent,
       'AI Adoption Is Not One Problem: Four Leadership Responses',
       'The latest publication should be visible immediately, even when the strip is onscreen');
@@ -87,7 +102,15 @@ setImmediate(async () => {
       '?page=briefing&article=ai-adoption-four-leadership-responses');
     assert.equal(elements['[data-news-link]'].textContent, 'Read the briefing →');
     assert.equal(elements['[data-news-link]'].attrs['data-hq-content-type'], 'briefing');
-    assert.equal(requests.length, 2, 'Should refresh only when the next scheduled check runs');
+    assert.equal(requests.length, 4, 'Should check both sources on the next refresh');
+    await refreshInterval();
+    assert.equal(requests.length, 6, 'Third refresh checks both sources');
+    assert.equal(elements['[data-news-meta]'].textContent.startsWith('Market review updated · '), true);
+    assert.equal(elements['[data-news-title]'].textContent, 'Swedish AI & Data Market Review');
+    assert.equal(elements['[data-news-summary]'].textContent,
+      'The latest Executive and Jobseeker Editions are available.');
+    assert.equal(elements['[data-news-link]'].href, '?page=advisory-market-signals');
+    assert.equal(elements['[data-news-link]'].attrs['data-hq-content-type'], 'market_signals');
     assert.equal(intervalMs, 120000);
     assert.equal(typeof listeners.visibilitychange, 'function');
     process.stdout.write('Executive Briefing publication and revision homepage refresh: passed\n');

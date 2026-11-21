@@ -117,6 +117,12 @@ jobs:
                   print('LIVE PAGE TITLE:',page.title(),flush=True)
                   print('VISIBLE BODY:',repr(page.locator('body').inner_text(timeout=8000)[:1400]),flush=True)
                   print('FRAMES:',len(page.frames),flush=True)
+                  for i,frame in enumerate(page.frames):
+                      try:
+                          print('LIVE FRAME',i,'URL',frame.url,'PLAYER_COUNT',frame.locator('#ms-video .ms-video-player').count(),
+                                'TEXT',repr(frame.locator('body').inner_text(timeout=3000)[:450]),flush=True)
+                      except Exception as exc:
+                          print('LIVE FRAME ERROR',i,str(exc)[:200],flush=True)
                   raise AssertionError('Live Streamlit page did not show the Market Signals video player')
               el=page.locator('#ms-video .ms-video-player').first
               actual=el.locator('source').get_attribute('src')

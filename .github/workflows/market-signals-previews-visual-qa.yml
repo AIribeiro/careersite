@@ -38,10 +38,10 @@ jobs:
           start=html.index('<section class="ms-section ms-section--white ms-section--previews"')
           end=html.index('<section class="ms-section ms-section--white" id="ms-careers"',start)
           gallery=html[start:end]
-          assets=root/"static/market-signals/previews"
+          assets=root/"static/market-signals/previews/unionen-2026-11"
           for path in assets.glob("*.png"):
               uri="data:image/png;base64,"+base64.b64encode(path.read_bytes()).decode()
-              from_url="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@8a2e0c2adb4ce204029fb453830239d731bd4ef3/"+path.relative_to(root).as_posix()
+              from_url="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@e60b44bdb055d703960043b7b7c00f0408ef54fa/"+path.relative_to(root).as_posix()
               gallery=gallery.replace(from_url,uri)
           assert gallery.count("data:image/png;base64,")==8,"Every click-through and image must resolve"
           page='<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'

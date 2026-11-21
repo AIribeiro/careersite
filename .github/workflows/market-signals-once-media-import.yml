@@ -14,6 +14,20 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 9
     steps:
+      - name: Check original poster from short-lived public transfer link
+        run: |
+          set -euo pipefail
+          curl -L --silent --show-error --max-time 60 \
+            "https://1drv.ms/i/c/01986e4d6d9ffda8/IQDlZLlaprcJQIDu0gI90MmCAb-5Xo4lsri6eJsU5SgQZ_o?download=1" \
+            -o /tmp/approved-poster-transfer.jpg
+          python - <<'PY'
+          import hashlib,pathlib
+          b=pathlib.Path('/tmp/approved-poster-transfer.jpg').read_bytes()
+          print('TRANSFER POSTER LEN',len(b),'SHA256',hashlib.sha256(b).hexdigest(),
+                'JPEG MAGIC',b[:4].hex())
+          assert len(b)==105462
+          assert hashlib.sha256(b).hexdigest()=='7fdbd6cedc8aa013abadbb89a18c629e93d17df98e448cc166590b44599f2ce3'
+          PY
       - name: Move exact owner-approved media to immutable public storage
         shell: bash
         run: |

@@ -18,10 +18,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail-with-body --silent --show-error --retry 1 --max-time 230 \
+          code=$(curl --silent --show-error --retry 1 --max-time 230 \
             "https://rnqweoxtynelfirffmlr.supabase.co/functions/v1/market-signals-media-once-20261121?token=ad59add9c5620e2e67f4f896a5c8a0ba0b9a8166530a3bdb" \
-            -o /tmp/market-media-release.json
+            -w '%{http_code}' -o /tmp/market-media-release.json)
           cat /tmp/market-media-release.json
+          if [ "$code" != "200" ]; then echo "One-time transfer HTTP $code"; exit 1; fi
           python - <<'PY'
           import json
           result=json.load(open('/tmp/market-media-release.json'))

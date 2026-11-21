@@ -91,3 +91,47 @@ jobs:
                   page.close()
               browser.close()
           PY
+
+      - name: Verify player in deployed public Streamlit page
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import time
+          from playwright.sync_api import sync_playwright
+          url='https://jairribeiro-ai.streamlit.app/?page=advisory-market-signals&source=internal_qa&role=video_release'
+          expected='https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4'
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True,args=['--autoplay-policy=no-user-gesture-required'])
+              page=browser.new_page(viewport={'width':1440,'height':900})
+              page.goto(url,wait_until='domcontentloaded',timeout=60000)
+              ready=False
+              for n in range(20):
+                  if page.locator('#ms-video .ms-video-player').count():
+                      ready=True
+                      break
+                  print('Live site loading attempt',n+1,'URL',page.url,flush=True)
+                  time.sleep(3)
+              page.screenshot(path='/tmp/market-signals-live.png',full_page=True)
+              if not ready:
+                  raise AssertionError('Live Streamlit page did not show the Market Signals video player')
+              el=page.locator('#ms-video .ms-video-player').first
+              actual=el.locator('source').get_attribute('src')
+              assert actual==expected,(actual,expected)
+              page.wait_for_function("document.querySelector('#ms-video video').readyState>=1",timeout=35000)
+              meta=el.evaluate("(v)=>({duration:v.duration,width:v.videoWidth,height:v.videoHeight})")
+              assert abs(meta['duration']-95.867)<0.3,meta
+              assert (meta['width'],meta['height'])==(1920,1080),meta
+              el.evaluate("(v)=>v.play()")
+              page.wait_for_function("document.querySelector('#ms-video video').currentTime>0.05",timeout=15000)
+              el.evaluate("(v)=>{v.currentTime=48}")
+              page.wait_for_function("document.querySelector('#ms-video video').currentTime>=47.5",timeout=15000)
+              print('LIVE STREAMLIT PLAYER VERIFIED, source, play and seek:',page.url,flush=True)
+              browser.close()
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-signals-video-live-screen
+          path: /tmp/market-signals-live.png
+          if-no-files-found: ignore
+          retention-days: 7

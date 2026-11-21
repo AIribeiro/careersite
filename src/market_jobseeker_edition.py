@@ -364,8 +364,13 @@ READING_HELP = (
 def validate_jobseeker_edition(points: list[dict], editorial: dict, edition_slug: str) -> dict:
     """Fail closed rather than accidentally attaching the 2026 POV to a newer edition."""
     validate_editorial(editorial, points, edition_slug)
-    if edition_slug != EDITION or str(editorial["version"]) != "2.0.2":
+    from market_unionen_workforce_update import NEW_SLUG, verify_release as verify_unionen_release
+    is_previous=(edition_slug == EDITION and str(editorial["version"]) == "2.0.2")
+    is_new=(edition_slug == NEW_SLUG and str(editorial["version"]) == "2.1.0")
+    if not (is_previous or is_new):
         raise ValueError("Jobseeker reading has not been approved for this edition.")
+    if is_new:
+        verify_unionen_release(points,edition_slug)
     available = {p["code"] for p in points}
     if len(available) != len(points):
         raise ValueError("Duplicate jobseeker evidence identifiers.")
@@ -389,6 +394,8 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
     validate_jobseeker_edition(points, editorial, edition_slug)
     idx={p["code"]:p for p in points}
     sty=styles()
+    from market_unionen_workforce_update import NEW_SLUG
+    fresh=(edition_slug==NEW_SLUG)
     cover={
         "title":TITLE,
         "subtitle":SUBTITLE,
@@ -396,8 +403,8 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "question_label":"THE JOB SEARCH QUESTION",
         "assessment":INTRO,
         "question":"How can you find a relevant path through Sweden’s AI and Data market?",
-        "edition":"JOBSEEKER EDITION 1.1 / SWEDEN",
-        "issue":JOBSEEKER_ISSUE,
+        "edition":("JOBSEEKER EDITION 1.2 / SWEDEN" if fresh else "JOBSEEKER EDITION 1.1 / SWEDEN"),
+        "issue":("21 November 2026" if fresh else JOBSEEKER_ISSUE),
         "metrics":[
             (_value(idx["scb_2026_ai_10plus"]),
              "Enterprises reporting AI use","2026 | SCB | 10+ employees"),
@@ -485,6 +492,8 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
         "SCB 2026: only enterprises that considered AI but did not adopt it. "
         "Multiple answers allowed; these are not vacancy counts.", "caption",sty=sty))
     story.append(Spacer(1,12))
+    from market_unionen_workforce_update import pdf_section as unionen_pdf_section
+    unionen_pdf_section(story,points,edition_slug,sty=sty,audience="jobseeker")
     section(story,"03 / Recruitment routes and selected advertisements",
         "Why job advertisements show only part of the picture",
         "Official vacancy figures cover every occupation. JobTech covers selected "
@@ -606,9 +615,11 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
     """Evidence-first member report: broad career pathways precede niche JobTech data."""
     validate_jobseeker_edition(points, editorial, edition_slug)
     idx = {x["code"]: x for x in points}
+    from market_unionen_workforce_update import NEW_SLUG,reader_panel as unionen_reader_panel
+    is_new=(edition_slug==NEW_SLUG)
     st.html(STYLE)
     st.html(
-        '<section class="ms-js-lead"><div class="eyebrow">NOVEMBER 2026 / JOBSEEKER EDITION 1.1</div>'
+        '<section class="ms-js-lead"><div class="eyebrow">NOVEMBER 2026 / JOBSEEKER EDITION '+('1.2' if is_new else '1.1')+'</div>'
         '<h3>' + html_escape(TITLE) + '</h3>'
         '<p><strong>' + html_escape(SUBTITLE) + '</strong></p>'
         '<p>' + html_escape(INTRO) + '</p>'
@@ -624,6 +635,7 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
         'the third covers only firms that considered AI but did not adopt it. '
         'They describe business practices and obstacles, not job openings.</p>'
     )
+    unionen_reader_panel(st,points,edition_slug,"jobseeker")
     st.markdown("#### Three ways to explore your next professional move")
     st.html(
         '<div class="ms-js-pathways">'
@@ -727,9 +739,13 @@ def render_jobseeker_intelligence(st, editorial: dict, points: list[dict],
     st.download_button(
         "Download Sweden AI & Data Careers · November 2026 PDF",
         data=pdf, mime="application/pdf",
-        file_name="Jair_Ribeiro_Sweden_AI_Data_Careers_2026-11.pdf",
+        file_name=("Jair_Ribeiro_Sweden_AI_Data_Careers_2026-11_Unionen.pdf"
+                   if is_new else "Jair_Ribeiro_Sweden_AI_Data_Careers_2026-11.pdf"),
         type="primary", use_container_width=True,
         key="market_jobseeker_complete_pdf",
         on_click=record_event, args=(token, "pdf_review", "jobseeker", edition_slug)
     )
-    st.caption("Jobseeker Edition 1.1 · 18 November 2026 · Research snapshot: 17 November 2026")
+    st.caption(
+        "Jobseeker Edition 1.2 · 21 November 2026 · Unionen report released 18 November 2026"
+        if is_new else "Jobseeker Edition 1.1 · 18 November 2026 · Research snapshot: 17 November 2026"
+    )

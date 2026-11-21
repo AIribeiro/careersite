@@ -266,8 +266,13 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
          "Sweden 2026 | Firms with 10+ staff"),
         (_value(idx["scb_2026_ai_250plus"]),"Large firms using AI",
          "2026 | Enterprises with 250+ staff"),
-        (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),"Senior AI/Data adverts",
-         "October 2026 | Selected title basket"),
+        (
+          str(int(float(idx["unionen_business_outlook_index"]["value"]))),
+          "Unionen business outlook index",
+          "Autumn 2026 | Neutral=50 | Workplace clubs"
+        ) if edition_slug=="sweden-ai-data-market-review-2026-11-unionen-2-1"
+          else (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),
+                "Senior AI/Data adverts","October 2026 | Selected title basket"),
       ],
     }
     story=[]
@@ -310,9 +315,13 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
          "Swedish firms, 10+ staff | 2026"),
         (_value(idx["scb_2026_ai_250plus"]),"AI use among large firms",
          "250+ employees | 2026"),
-        (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),
-         "Selected senior AI/Data adverts",
-         "October 2026 | National basket"),
+        (
+          str(int(float(idx["unionen_business_outlook_index"]["value"]))),
+          "Unionen business outlook index",
+          "Autumn 2026 | Neutral=50 | Responding clubs"
+        ) if edition_slug=="sweden-ai-data-market-review-2026-11-unionen-2-1"
+          else (str(int(float(idx["jobtech_v1_oct_se"]["value"]))),
+                "Selected senior AI/Data adverts","October 2026 | National basket"),
     ],sty=s))
     story.append(Spacer(1,18))
     months=(("June","jobtech_v1_jun_se"),("July","jobtech_v1_jul_se"),

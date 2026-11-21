@@ -391,7 +391,7 @@ MARKET_SIGNALS_LANDING_HTML = """
       </div>
       <p class="ms-hero-meta">Both reports are in English and free with registration, with separate PDFs. The June–August historical sample remains open without an account.</p>
       <div class="ms-trust-strip" aria-label="November research">
-        <span><strong>43</strong> published observations</span>
+        <span><strong>53</strong> approved observations</span>
         <span><strong>5</strong> topics in each report</span>
         <span><strong>7</strong> evidence series · 6 publishers</span>
         <span><strong>2</strong> research perspectives</span>
@@ -653,10 +653,11 @@ MARKET_SIGNALS_LANDING_HTML = """
   <div class="ms-section-head">
     <div><p class="ms-overline" style="color:#E6B48B">Research workspace</p>
       <h2 id="ms-workspace-title">Explore the data behind both reports.</h2></div>
-    <p class="ms-section-intro">Both reports use the same research. Members can read either edition and explore the original figures, historical records and sources in the Market Observatory.</p>
+    <p class="ms-section-intro">Both reports use the same approved evidence collection. The new Unionen workforce view separates workplace-club survey findings from SCB enterprises and the narrow JobTech advertisement basket.</p>
   </div>
-  <details class="ms-research-details"><summary>Explore the eight Observatory sections and research method</summary><div class="ms-workspace">
+  <details class="ms-research-details"><summary>Explore the nine Observatory sections and research method</summary><div class="ms-workspace">
     <div class="ms-dashboard-list" aria-label="Market Signals dashboard sections">
+      <article><span>NEW / UNIONEN WORKFORCE</span><h3>AI at work: autumn 2026</h3><p>Examine the business outlook, workplace AI use, workforce effects and sector context without comparing different survey populations.</p></article>
       <article><span>01 / OVERVIEW</span><h3>Executive evidence overview</h3><p>Start with selected findings and see the dates and groups they cover.</p></article>
       <article><span>02 / LEADERSHIP ADVERTS</span><h3>AI &amp; Data leadership advertisements</h3><p>Follow a defined set of senior job advertisements by complete month and region.</p></article>
       <article><span>03 / AI IN BUSINESS</span><h3>Enterprise AI adoption &amp; capabilities</h3><p>Explore SCB figures on AI use, analytics and barriers, with their different survey groups kept separate.</p></article>

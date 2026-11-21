@@ -61,7 +61,7 @@ class UnionenMarketReleaseTests(unittest.TestCase):
     def test_different_denominators_are_disclosed(self):
         self.assertEqual(len(CLUBS),2)
         self.assertEqual(len(AI_ADOPTERS),4)
-        for phrase in ("270 clubs","SCB","association","employee weighting"):
+        for phrase in ("270-club","SCB","association","employee weighting"):
             self.assertIn(phrase.lower(),BOUNDARY.lower()+
                           " "+self.editorial["reading_note"].lower())
         self.assertNotIn("AI caused",self.editorial["cover_assessment"].lower())

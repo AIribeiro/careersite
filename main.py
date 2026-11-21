@@ -209,7 +209,18 @@ if PAGE in PUBLIC_VALID:
         "python-requests", "python-urllib", "curl/", "wget/",
     ))
     if not (known_test or recognisable_bot):
-        record_page_load(PAGE, str(ARTICLE_QUERY or ""))
+        # Only safe source classes and published content slugs reach the
+        # daily aggregate. No request header, URL or session identifier does.
+        try:
+            referrer = str(st.context.headers.get("referer", ""))
+        except (AttributeError, KeyError, RuntimeError):
+            referrer = ""
+        record_page_load(
+            PAGE, str(ARTICLE_QUERY or ""),
+            source=source_tag,
+            utm_source=str(st.query_params.get("utm_source", "")),
+            referrer=referrer,
+        )
 
 if PAGE == "readers":
     # Native forms and downloads travel through Streamlit's supported widget
@@ -487,6 +498,13 @@ else:
     mount_behavior_telemetry(PAGE, CMS_ARTICLE_META or ARTICLE_META)
     if PAGE == "thinking" and CMS_ARTICLE_META is not None and CMS_ARTICLE_META.slug.startswith("weekly-ai-"):
         inject_weekly_audio_telemetry()
+
+
+# Native Reader and Advisory forms previously never mounted the consent
+# interface or opted-in collector. Preserve one-time token safety by mounting
+# only after these routes finish their native authentication work.
+if PAGE in {"readers", "advisory-access"} and not st.query_params.get("token_hash"):
+    inject_analytics(PAGE, source="streamlit")
 
 
 # Slow-only, privacy-preserving diagnostics. No article content or visitors.

@@ -1,0 +1,112 @@
+name: Unionen Market Signals 2.1 report and PDF previews
+
+on:
+  push:
+    paths:
+      - ".github/workflows/market-signals-unionen-release.yml"
+      - "src/market_unionen_workforce_update.py"
+      - "src/market_intelligence_v2.py"
+      - "src/market_jobseeker_edition.py"
+      - "src/market_publication_design.py"
+      - "docs/market_signals/november_2026_unionen_2_1.json"
+      - "tests/test_market_unionen_update.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  source-and-pdf:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install exact publication dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.txt
+          python -m pip install --disable-pip-version-check 'PyMuPDF==1.26.7'
+      - name: Verify both new editions, immutable old facts and survey denominators
+        run: |
+          python -m py_compile src/market_unionen_workforce_update.py src/market_intelligence_v2.py src/market_jobseeker_edition.py src/page_advisory_market_observatory.py
+          python -m unittest discover -s tests -p test_market_unionen_update.py -v
+          python -m unittest discover -s tests -p test_market_jobseeker_edition.py -v
+          python -m unittest discover -s tests -p test_market_intelligence_v2.py -v
+      - name: Render exact executive and jobseeker PDF pages, inspect page geometry
+        run: |
+          python - <<'PY'
+          import sys,hashlib,json
+          from pathlib import Path
+          from PIL import Image
+          import pymupdf
+          sys.path[:0]=["src","tests"]
+          from test_market_unionen_update import verified_unionen_fixture
+          from market_unionen_workforce_update import NEW_SLUG
+          from market_intelligence_v2 import build_executive_market_pdf
+          from market_jobseeker_edition import jobseeker_market_pdf
+          points,editorial=verified_unionen_fixture()
+          docs={
+            "executive":build_executive_market_pdf(points,editorial,NEW_SLUG),
+            "jobseeker":jobseeker_market_pdf(points,editorial,NEW_SLUG),
+          }
+          phrases={
+            "executive":[
+              ("executive-unionen-workforce.png","More business activity, slower professional hiring"),
+              ("executive-ai-investment.png","AI adoption is not a business case for the next investment"),
+            ],
+            "jobseeker":[
+              ("jobseeker-unionen-workforce.png","More business activity, slower professional hiring"),
+              ("jobseeker-four-week-plan.png","Turn the research into a simple four-week plan"),
+            ],
+          }
+          root=Path("static/market-signals/previews/unionen-2026-11")
+          root.mkdir(exist_ok=True,parents=True)
+          manifest={"edition_slug":NEW_SLUG,"editorial_version":"2.1.0","date":"2026-11-21",
+                    "render":"PyMuPDF 1.85x full A4 original page, uncropped",
+                    "origin":"PDF generator + reviewed November 2026 editorial manifest, with verified publisher observations",
+                    "images":[]}
+          for audience,raw in docs.items():
+            doc=pymupdf.open(stream=raw,filetype="pdf")
+            assert len(doc)>10,(audience,len(doc))
+            for name,needle in phrases[audience]:
+              matched=[]
+              for i,page in enumerate(doc):
+                txt=" ".join(page.get_text().split())
+                if needle.casefold() in txt.casefold():matched.append((i,txt))
+              assert matched,(audience,needle)
+              # In the report's contents list the heading may appear in a preview.
+              # Select the complete research section containing substantial narrative.
+              i,txt=sorted(matched,key=lambda x:len(x[1]),reverse=True)[0]
+              page=doc[i]
+              assert abs(page.rect.width-595.28)<.6 and abs(page.rect.height-841.89)<.6
+              pix=page.get_pixmap(matrix=pymupdf.Matrix(1.85,1.85),alpha=False)
+              out=root/name
+              pix.save(out)
+              with Image.open(out) as im:
+                assert im.width==1102 and im.height==1558
+                im.verify()
+              manifest["images"].append({
+                "edition":audience,"file":out.as_posix(),"page":i+1,
+                "pages":len(doc),"heading":needle,
+                "sha256":hashlib.sha256(out.read_bytes()).hexdigest(),
+                "pdf_sha256":hashlib.sha256(raw).hexdigest(),
+                "width":pix.width,"height":pix.height
+              })
+              print("EXACT PDF PAGE",name, f"{i+1}/{len(doc)}",len(txt),"characters",out.stat().st_size,"bytes")
+          assert len(manifest["images"])==4
+          (root/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n",encoding="utf-8")
+          PY
+      - name: Publish four PDF page captures as static website assets
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add static/market-signals/previews/unionen-2026-11/
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish four November workforce report screenshots [skip ci]"
+            git push origin HEAD:main
+          fi

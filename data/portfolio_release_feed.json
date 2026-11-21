@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "update:7ec0df468596af44a14359b43c081b64cb296778",
+      "type": "Page updated",
+      "title": "Thinking",
+      "description": "The Thinking section has been updated. Explore its current content and experience.",
+      "date": "2026-11-21T20:28:59+01:00",
+      "href": "?page=thinking",
+      "cta": "View the update"
+    },
+    {
       "key": "update:ea903e1e6e8727a44ff5cd3b92defe32d247362a",
       "type": "Portfolio updated",
       "title": "Latest portfolio improvements",

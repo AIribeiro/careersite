@@ -246,6 +246,8 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
         source_family_methods, sources_table, styles,
     )
     validate_editorial(editorial,points,edition_slug)
+    from market_unionen_workforce_update import verify_release as verify_unionen_release
+    verify_unionen_release(points,edition_slug)
     idx={p["code"]:p for p in points}
     for code in ("scb_2026_ai_10plus","scb_2026_ai_250plus",
                  "scb_lor_2026q2_total","jobtech_v1_oct_se"):
@@ -341,6 +343,8 @@ def build_executive_market_pdf(points: list[dict], editorial: dict,
           "caption",sty=s))
     story.append(Spacer(1,18))
     story.append(CondPageBreak(310))
+    from market_unionen_workforce_update import pdf_section as unionen_pdf_section
+    unionen_pdf_section(story,points,edition_slug,sty=s,audience="executive")
 
     for i,t in enumerate(editorial["themes"],1):
         story.append(CondPageBreak(255))
@@ -553,6 +557,8 @@ def render_executive_intelligence(streamlit, editorial: dict,
         html_escape(editorial["what_changed"])+'</p></section>'
     )
     st.caption(editorial["reading_note"])
+    from market_unionen_workforce_update import reader_panel as unionen_reader_panel
+    unionen_reader_panel(st,points,edition_slug,"executive")
     st.markdown("#### Where the evidence can mislead")
     for risk in editorial["coverage_cautions"]:
         with st.expander(risk["title"],expanded=False):

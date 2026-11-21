@@ -64,16 +64,23 @@ def render_content_demand(window: str) -> None:
             row for row in report.get("top_content", [])
             if isinstance(row, dict) and row.get("slug") and _number(row, "loads")
         ][:6]
-        channels = [
+        all_channels = [
             row for row in report.get("channels", [])
             if isinstance(row, dict) and _number(row, "loads")
-        ][:6]
+        ][:8]
+        channels = [row for row in all_channels
+                    if str(row.get("channel")) != "untagged"][:6]
         broad_pages = [
             row for row in report.get("top_pages", [])
             if isinstance(row, dict) and row.get("page") and _number(row, "loads")
         ][:7]
-        unknown_loads = _number(report, "unattributed_portfolio_loads")
-        channel_coverage = _number(report, "channel_coverage_loads")
+        # Older page-only loads and newer untagged loads both have
+        # unknown acquisition channels. Never relabel them "direct".
+        unknown_loads = _number(report, "unattributed_portfolio_loads") + sum(
+            _number(row, "loads") for row in all_channels
+            if str(row.get("channel")) == "untagged"
+        )
+        channel_coverage = sum(_number(row, "loads") for row in channels)
     except (RuntimeError, ValueError, TypeError, OverflowError):
         st.caption("Content and source breakdown is temporarily unavailable.")
         return
@@ -140,7 +147,7 @@ def render_content_demand(window: str) -> None:
             f'<span class="pd-rail"><span style="width:{width}%"></span></span></div>'
         )
     if not channel_items:
-        channel_items.append('<p class="pd-empty">No tagged acquisition signals in this period.</p>')
+        channel_items.append('<p class="pd-empty">No known tagged sources in this period.</p>')
 
     recorded = f"{count:,}"
     editorial = f"{_number(report, 'editorial_page_loads'):,}"
@@ -170,11 +177,12 @@ def render_content_demand(window: str) -> None:
  <small>{recorded} portfolio opens · {editorial} editorial-route opens</small></div>
  <div class="pd-cols">
   <div class="pd-panel"><h3>{publication_title}</h3>{''.join(publication_items)}</div>
-  <div class="pd-panel"><h3>Acquisition sources · {known} classified at page level</h3>{''.join(channel_items)}</div>
+  <div class="pd-panel"><h3>Acquisition sources · {known} tagged opens</h3>{''.join(channel_items)}</div>
  </div>
  <p class="pd-note">Page totals begin 20 November 2026; detailed per-publication
  and tagged-source breakdowns began 21 November. Earlier source information is
- explicitly unclassified, not assumed direct. A load is not a unique person or
+ explicitly unclassified, not assumed direct. Use tagged LinkedIn and email
+ links for improved source measurement. A load is not a unique person or
  reading completion; repeated and automated requests can still be counted.</p>
 </section>
 """)

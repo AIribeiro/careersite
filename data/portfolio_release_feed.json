@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "update:fd159fbfde5b592d505d49dd194418c21e5ba1cb",
+      "type": "Page updated",
+      "title": "Portfolio homepage",
+      "description": "The portfolio homepage has been updated. Explore the latest experience.",
+      "date": "2026-11-21T16:32:04+01:00",
+      "href": "?page=home",
+      "cta": "View the update"
+    },
+    {
       "key": "update:5a46d5b807272add1a5979902f7915b1e341bbc9",
       "type": "Page updated",
       "title": "Swedish AI & Data Market Review",

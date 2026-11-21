@@ -153,7 +153,11 @@ def render_basic_page_loads(window: str) -> None:
         privacy = max(0, int(data.get("privacy_page_loads", 0)))
         other = max(0, int(data.get("non_privacy_page_loads", 0)))
         reader_workspace = max(0, int(data.get("reader_page_loads", 0)))
-        portfolio_content = max(0, all_count - privacy - reader_workspace)
+        portfolio_content = max(0, int(data.get(
+            "portfolio_page_loads",
+            all_count - privacy - reader_workspace
+            - max(0, int(data.get("advisory_access_loads", 0))),
+        )))
         if all_count != privacy + other:
             raise ValueError("Aggregate counts did not reconcile")
     except (RuntimeError, ValueError, TypeError, OverflowError):
@@ -197,6 +201,34 @@ def render_basic_page_loads(window: str) -> None:
 """)
     if privacy:
         st.caption(f"{privacy:,} Privacy-page loads are excluded from the portfolio-content figure.")
+
+    trend = data.get("daily_trend", [])
+    if isinstance(trend, list) and len(trend) > 1:
+        daily = []
+        for row in trend:
+            if not isinstance(row, dict):
+                continue
+            label = str(row.get("visit_day") or "")[:10]
+            try:
+                loads = max(0, int(row.get("portfolio") or 0))
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if len(label) == 10:
+                daily.append({"Day": label, "Portfolio opens": loads})
+        if len(daily) > 1:
+            import altair as alt
+            chart = (
+                alt.Chart(alt.Data(values=daily)).mark_bar(cornerRadiusTopLeft=3,
+                    cornerRadiusTopRight=3)
+                .encode(
+                    x=alt.X("Day:O", title=None),
+                    y=alt.Y("Portfolio opens:Q", title="Portfolio loads"),
+                    tooltip=["Day:O", "Portfolio opens:Q"],
+                ).properties(height=115)
+            )
+            st.altair_chart(chart, use_container_width=True)
+            st.caption("Daily portfolio loads · excludes Reader Library, privacy and Advisory login.")
+
     if window == "last_hour":
         st.caption("This counter resolves by day, so the selected Last hour displays Today.")
 

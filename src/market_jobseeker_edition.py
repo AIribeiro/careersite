@@ -604,7 +604,7 @@ def jobseeker_market_pdf(points: list[dict], editorial: dict, edition_slug: str)
     story.append(P("Independent research by Jair Ribeiro | jairribeiro.com",
                    "caption",sty=sty))
     return assemble(story,cover,
-       "Jair Ribeiro | Swedish AI & Data Market Review | Jobseeker Edition 1.1",
+       "Jair Ribeiro | Swedish AI & Data Market Review | Jobseeker Edition "+("1.2" if fresh else "1.1"),
        min_bytes=10000,
        interior_kicker="MARKET SIGNALS / JOBSEEKER RESEARCH",
        interior_footer="Independent market research")

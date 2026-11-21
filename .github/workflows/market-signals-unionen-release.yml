@@ -10,6 +10,7 @@ on:
       - "src/market_publication_design.py"
       - "docs/market_signals/november_2026_unionen_2_1.json"
       - "tests/test_market_unionen_update.py"
+      - "tests/test_market_intelligence_v2.py"
       - "src/page_advisory_portal.py"
       - "src/page_advisory_market_signals.py"
       - "src/page_advisory_market_observatory.py"

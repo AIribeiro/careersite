@@ -325,6 +325,34 @@ def render_public_portfolio_overview() -> None:
         st.caption(str(exc))
         return
 
+    # Do not display five misleading zero-view cards when only the
+    # consent-independent counter has observations. Zero opted-in reads
+    # are not evidence of zero readership.
+    quality_check = report.get("quality") or {}
+    consented_views = max(0, int(quality_check.get("site_views") or 0))
+    if consented_views == 0:
+        from site_aggregate_traffic import basic_page_load_report, render_monthly_optin_trend
+        try:
+            basic_counts = basic_page_load_report(str(window))
+            coarse_loads = max(0, int(basic_counts.get("all_page_loads") or 0))
+        except (RuntimeError, TypeError, ValueError, OverflowError):
+            coarse_loads = 0
+        if coarse_loads:
+            st.markdown(
+                "**Detailed engagement cannot be measured for this period.** "
+                "There are page loads, but no consented session analytics. "
+                "Reading time, unique sessions and conversion rates should "
+                "remain unavailable, not be reported as zero."
+            )
+            render_monthly_optin_trend()
+            from portfolio_reader_kpi import reader_registration_totals, reader_registration_kpi
+            try:
+                registrations = reader_registration_totals(str(window))
+            except (RuntimeError, ValueError, TimeoutError, TypeError):
+                registrations = None
+            st.html(reader_registration_kpi(str(window), registrations))
+            return
+
     pages = portfolio_visit_rows(report, "page")
     historical_routes = [row for row in pages if row["Slug"] in RETIRED_ROUTES]
     current_routes = [row for row in pages if row["Slug"] not in RETIRED_ROUTES]

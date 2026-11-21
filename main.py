@@ -215,8 +215,16 @@ if PAGE in PUBLIC_VALID:
             referrer = str(st.context.headers.get("referer", ""))
         except (AttributeError, KeyError, RuntimeError):
             referrer = ""
+        # Count article-level demand only for content that resolved to a
+        # public CMS record or an established legacy article. Unresolved
+        # query-string slugs must never appear as genuine publication opens.
+        public_content_slug = (
+            str(CMS_ARTICLE_META.slug)
+            if CMS_ARTICLE_META is not None else
+            str(ARTICLE_QUERY or "") if ARTICLE_META is not None else ""
+        )
         record_page_load(
-            PAGE, str(ARTICLE_QUERY or ""),
+            PAGE, public_content_slug,
             source=source_tag,
             utm_source=str(st.query_params.get("utm_source", "")),
             referrer=referrer,

@@ -16,24 +16,25 @@ from page_advisory_market_signals import (
 )
 
 FILES={
-  "executive-ai-investment.png":("executive",5),
-  "executive-capability.png":("executive",8),
-  "jobseeker-adoption-capabilities.png":("jobseeker",4),
-  "jobseeker-four-week-plan.png":("jobseeker",11),
+  "executive-unionen-workforce.png":("executive",6),
+  "executive-ai-investment.png":("executive",3),
+  "jobseeker-unionen-workforce.png":("jobseeker",5),
+  "jobseeker-four-week-plan.png":("jobseeker",12),
 }
-PATH=ROOT/"static/market-signals/previews"
+PATH=ROOT/"static/market-signals/previews/unionen-2026-11"
 
 
 class MarketSignalsPreviewTests(unittest.TestCase):
     def test_four_full_a4_page_captures_are_published(self):
         manifest=json.loads((PATH/"manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(len(manifest["images"]),4)
-        self.assertEqual(manifest["render_method"],"PyMuPDF full-page, no crops or overlays")
+        self.assertEqual(manifest["render"],"PyMuPDF 1.85x full A4 original page, uncropped")
+        self.assertEqual(manifest["editorial_version"],"2.1.0")
         self.assertEqual({Path(x["file"]).name for x in manifest["images"]},set(FILES))
         for entry in manifest["images"]:
             name=Path(entry["file"]).name
             with self.subTest(name=name):
-                self.assertEqual((entry["edition"],entry["page_number"]),FILES[name])
+                self.assertEqual((entry["edition"],entry["page"]),FILES[name])
                 data=(PATH/name).read_bytes()
                 self.assertTrue(data.startswith(b"\x89PNG\r\n\x1a\n"))
                 width,height=struct.unpack(">II",data[16:24])
@@ -57,13 +58,13 @@ class MarketSignalsPreviewTests(unittest.TestCase):
     def test_original_resolution_link_and_accessible_caption_for_every_image(self):
         html=MARKET_SIGNALS_LANDING_HTML
         for name in FILES:
-            src='static/market-signals/previews/'+name
+            src='static/market-signals/previews/unionen-2026-11/'+name
             self.assertEqual(html.count(src),2,(name,"expected href + img src"))
             self.assertIn('alt="Unaltered',html)
-        self.assertIn("Full-page captures",html) if "Full-page captures" in html else self.assertIn("full-page captures",html)
-        for n in ("Page 05","Page 08","Page 04","Page 11"):
+        self.assertIn("complete pages",html)
+        for n in ("Page 06","Page 03","Page 05","Page 12"):
             self.assertIn(n,html)
-        self.assertIn("open the full edition",html.lower())
+        self.assertIn("complete report",html.lower())
 
     def test_responsive_cards_preserve_uncropped_image_geometry(self):
         css=MARKET_SIGNALS_LANDING_CSS

@@ -1,7 +1,7 @@
 """Public AI leadership: selected operating evidence before career breadth.
 
-Employer-neutral cases describe bounded contributions. Employment history remains
-explicit; role dates come from the approved public career facts.
+Employer-neutral cases show substantive contributions, delivered results and realistic
+scope. Employment history and role dates come from approved public career facts.
 """
 from __future__ import annotations
 
@@ -21,20 +21,20 @@ def impact() -> str:
     return f'''{nav("impact")}<main>
 <section class="pagehero"><div class="container">
 <p class="eyebrow">AI Leadership</p>
-<h1>What I led, built and learned.</h1>
-<p>My work spans AI product development, portfolio decisions, governance and adoption. These examples show the contribution and the outcome—including where enterprise rollout did not follow.</p>
+<h1>What I led, built and changed.</h1>
+<p>My work spans AI product development, portfolio decisions, governance and adoption. I connect business needs with delivery teams, define practical decisions and help put the conditions for responsible use in place. The cases below show how that work took shape.</p>
 <div class="actions"><a class="btn primary" href="#operating-evidence" target="_self" data-hq-event="impact_hero_cases">Selected cases →</a><a class="btn ghost" href="?page=ai-data-governance" target="_self" data-hq-event="impact_hero_governance">Governance approach →</a></div>
 </div></section>
 
 {impact_evidence()}
 
 <section class="section white" id="career-experience"><div class="container">
-<div class="head"><div><p class="eyebrow">Experience by mandate</p><h2>Where the work took place.</h2></div><p>The full career chronology is available in my CV. These are selected responsibilities, not claims that every initiative was deployed.</p></div>
+<div class="head"><div><p class="eyebrow">Experience by mandate</p><h2>Where the work took place.</h2></div><p>Selected mandates and contributions across enterprise AI, Data and Analytics. My CV carries the complete career chronology.</p></div>
 <div class="grid3">
-<article class="card"><span class="org">MSX International · {MSX_PUBLIC_DATES.replace(' - ', ' – ')}</span><h3>AI &amp; Data CoE Director</h3><p>Led an emerging CoE mandate: an 80+ opportunity inventory, decision criteria, lifecycle and RACI materials, a seven-pillar assessment and a {MSX_ROADMAP.replace('-', '–')} maturity roadmap. These were delivered foundations, not a fully scaled CoE.</p></article>
+<article class="card"><span class="org">MSX International · {MSX_PUBLIC_DATES.replace(' - ', ' – ')}</span><h3>AI &amp; Data CoE Director</h3><p>Led the development of an enterprise AI &amp; Data CoE foundation: consolidated 80+ opportunities, introduced portfolio decision criteria, prepared lifecycle and RACI materials, completed a seven-pillar assessment and developed a {MSX_ROADMAP.replace('-', '–')} maturity roadmap. The work gave leaders a clearer basis for prioritization, ownership and next-stage development.</p></article>
 <article class="card"><span class="org">Volvo Group / Volvo Trucks · {VOLVO_CURRENT_DATES.replace(' - ', ' – ')}</span><h3>Data Analytics and AI Leader</h3><p>Led business-facing AI and analytics work across warranty, sales and aftermarket, including Copilot and agent initiatives, product prototypes, stakeholder engagement and adoption planning with Digital &amp; IT.</p></article>
 <article class="card"><span class="org">Kimberly-Clark · {KIMBERLY_DATES.replace(' - ', ' – ')}</span><h3>AI Strategist · EMEA</h3><p>Reported to the Chief Data &amp; Analytics Officer, helping manufacturing, supply-chain and commercial teams evaluate AI value, feasibility and readiness across functions.</p></article>
-<article class="card"><span class="org">Volvo Group · {VOLVO_SENIOR_AI_DATES.replace(' - ', ' – ')}</span><h3>Senior AI Business Expert</h3><p>Led business-requirement, product and stakeholder work in an AI &amp; ML CoE and delivered 100+ AI learning sessions. Across both Volvo AI roles, portfolio involvement covered {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects—not production deployments.</p></article>
+<article class="card"><span class="org">Volvo Group · {VOLVO_SENIOR_AI_DATES.replace(' - ', ' – ')}</span><h3>Senior AI Business Expert</h3><p>Led business requirements, product work and cross-functional coordination in an AI &amp; ML CoE, alongside 100+ practical AI learning sessions. Across both Volvo AI roles, I shaped and supported {VOLVO_AI_INITIATIVES} AI initiatives, proofs of concept and projects at different stages of maturity.</p></article>
 </div>
 <p class="muted" style="margin-top:20px;max-width:1050px;line-height:1.7"><strong>Technical foundation — and where it still matters.</strong> My career began in hands-on systems administration and senior IT engineering, followed by enterprise infrastructure, cloud services and IBM Watson solution design. That experience helps me engage directly with technical teams on architecture choices, data dependencies, feasibility, quality and cost—not just discuss AI strategy. I have also led GenAI prototype work, including testing multilingual customer-interview analysis and what it would take to operate the solution beyond a demonstration. <a href="?page=about" target="_self">Career background →</a></p>
 </div></section>

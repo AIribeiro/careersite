@@ -1,0 +1,62 @@
+{
+  "edition_slug": "sweden-ai-data-market-review-2026-11-unionen-2-1",
+  "edition_published_on": "2026-11-21",
+  "website_release_authorized": true,
+  "owner_approval": "Publish it (in response to Gate C exact website master); LinkedIn video is a separate publication",
+  "status": "website_code_committed_and_media_delivery_verified",
+  "web": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "duration_seconds": 95.867,
+    "codec": "H.264 / AAC",
+    "bytes": 9984008,
+    "sha256": "eafa2f511a328d4dc2ed45f10d2349598b822e7f1db166dce66651a62ffa326f",
+    "delivery": "supabase-public-storage",
+    "bucket": "portfolio-public-videos",
+    "object_path": "market-signals/unionen-2026-11/website-eafa2f511a32.mp4",
+    "public_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4",
+    "anonymous_head_200": true,
+    "start_mid_end_http_206": true,
+    "local_full_decode": true,
+    "original_approved_master_byte_identical": true
+  },
+  "poster": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "bytes": 105462,
+    "sha256": "7fdbd6cedc8aa013abadbb89a18c629e93d17df98e448cc166590b44599f2ce3",
+    "delivery": "supabase-public-storage",
+    "bucket": "careersite-article-images",
+    "object_path": "market-signals/unionen-2026-11/poster-7fdbd6cedc8a.jpg",
+    "public_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/market-signals/unionen-2026-11/poster-7fdbd6cedc8a.jpg",
+    "anonymous_head_200": true,
+    "public_sha256_verified": true
+  },
+  "narration": {
+    "approved_script_sha256": "b66f7b3141d1942cc1a864d72a9f4f86aae0739fb3b405375166ce08c25f7ccd",
+    "original_wav_sha256": "5c8d816f4611a2b44431ee71f2a0d206f16e5242eb57ca26a1b2e5ef67a223f4",
+    "used_existing_owner_uploaded_audio": true,
+    "new_voice_credits_used": 0
+  },
+  "website": {
+    "route": "?page=advisory-market-signals",
+    "html_video_controls": "controls playsinline preload=metadata",
+    "autoplay": false,
+    "captions": "burned in",
+    "old_58s_video": "preserved and linked as historic introduction"
+  },
+  "linkedIn": {
+    "published": false,
+    "native_4x5": "preserved as separate approved Gate C review asset"
+  },
+  "verification": {
+    "github_run": 44900407588,
+    "github_job_attempt": 2,
+    "production_desktop_playback": "not yet independently verified",
+    "safari_ios_playback": "not independently verified"
+  }
+}

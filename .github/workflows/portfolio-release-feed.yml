@@ -5,7 +5,6 @@ name: Publish portfolio release feed
 on:
   push:
     branches: [main]
-  workflow_dispatch:
 
 concurrency:
   group: portfolio-release-feed-main

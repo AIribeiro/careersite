@@ -471,8 +471,9 @@ Personal discussions are selective; registration does not guarantee a meeting.</
             first = st.text_input("First name *", max_chars=80, placeholder="First name")
             email = st.text_input(
                 "Email address *", max_chars=254,
-                placeholder="you@organization.com",
+                placeholder="you@example.com",
             )
+            st.caption("Registration accepts a personal or work email address.")
             submit = st.form_submit_button("Send verification link · Continue registration", type="primary")
         st.caption(
             "Free account · No payment details · No automatic editorial emails. "

@@ -104,38 +104,30 @@ jobs:
               browser=p.chromium.launch(headless=True,args=['--autoplay-policy=no-user-gesture-required'])
               page=browser.new_page(viewport={'width':1440,'height':900})
               page.goto(url,wait_until='domcontentloaded',timeout=60000)
-              ready=False
+              view=None
               for n in range(20):
-                  if page.locator('#ms-video .ms-video-player').count():
-                      ready=True
-                      break
-                  print('Live site loading attempt',n+1,'URL',page.url,flush=True)
+                  for fr in page.frames:
+                      if fr.locator('#ms-video .ms-video-player').count():
+                          view=fr
+                          break
+                  if view: break
+                  print('Waiting for embedded Streamlit Market Signals frame',n+1,flush=True)
                   time.sleep(3)
               page.screenshot(path='/tmp/market-signals-live.png',full_page=True)
-              if not ready:
-                  print('LIVE PAGE URL:',page.url,flush=True)
-                  print('LIVE PAGE TITLE:',page.title(),flush=True)
-                  print('VISIBLE BODY:',repr(page.locator('body').inner_text(timeout=8000)[:1400]),flush=True)
-                  print('FRAMES:',len(page.frames),flush=True)
-                  for i,frame in enumerate(page.frames):
-                      try:
-                          print('LIVE FRAME',i,'URL',frame.url,'PLAYER_COUNT',frame.locator('#ms-video .ms-video-player').count(),
-                                'TEXT',repr(frame.locator('body').inner_text(timeout=3000)[:450]),flush=True)
-                      except Exception as exc:
-                          print('LIVE FRAME ERROR',i,str(exc)[:200],flush=True)
-                  raise AssertionError('Live Streamlit page did not show the Market Signals video player')
-              el=page.locator('#ms-video .ms-video-player').first
+              assert view is not None,'Embedded Streamlit route did not render the Market Signals player'
+              print('LIVE MARKET SIGNALS FRAME URL',view.url,flush=True)
+              el=view.locator('#ms-video .ms-video-player').first
               actual=el.locator('source').get_attribute('src')
               assert actual==expected,(actual,expected)
-              page.wait_for_function("document.querySelector('#ms-video video').readyState>=1",timeout=35000)
+              view.wait_for_function("document.querySelector('#ms-video video').readyState>=1",timeout=35000)
               meta=el.evaluate("(v)=>({duration:v.duration,width:v.videoWidth,height:v.videoHeight})")
               assert abs(meta['duration']-95.867)<0.3,meta
               assert (meta['width'],meta['height'])==(1920,1080),meta
               el.evaluate("(v)=>v.play()")
-              page.wait_for_function("document.querySelector('#ms-video video').currentTime>0.05",timeout=15000)
+              view.wait_for_function("document.querySelector('#ms-video video').currentTime>0.05",timeout=15000)
               el.evaluate("(v)=>{v.currentTime=48}")
-              page.wait_for_function("document.querySelector('#ms-video video').currentTime>=47.5",timeout=15000)
-              print('LIVE STREAMLIT PLAYER VERIFIED, source, play and seek:',page.url,flush=True)
+              view.wait_for_function("document.querySelector('#ms-video video').currentTime>=47.5",timeout=15000)
+              print('LIVE STREAMLIT PLAYER VERIFIED, source, play and seek:',view.url,flush=True)
               browser.close()
           PY
       - uses: actions/upload-artifact@v4

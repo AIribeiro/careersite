@@ -7,6 +7,7 @@ on:
       - "src/page_advisory_market_signals.py"
       - "static/market-signals/video-unionen-2026-11/manifest.json"
       - "tests/test_market_signals_video_release.py"
+      - "tests/test_market_signals_video_placement.py"
       - "tests/test_market_signals_landing.py"
   workflow_dispatch:
 
@@ -27,6 +28,7 @@ jobs:
       - name: Validate publication, member links and preserved historical film
         run: |
           python -m unittest discover -s tests -p test_market_signals_video_release.py -v
+          python -m unittest discover -s tests -p test_market_signals_video_placement.py -v
           python -m unittest discover -s tests -p test_market_signals_landing.py -v
       - name: Validate exact CDN media hashes and HTTP Range
         run: |
@@ -115,6 +117,19 @@ jobs:
                   time.sleep(3)
               page.screenshot(path='/tmp/market-signals-live.png',full_page=True)
               assert view is not None,'Embedded Streamlit route did not render the Market Signals player'
+              assert view.locator('section.ms-hero').count()==1
+              assert view.locator('section#ms-video').count()==1
+              assert view.locator('section#ms-perspectives').count()==1
+              in_order=view.evaluate("""() => {
+                  const hero=document.querySelector('section.ms-hero');
+                  const vid=document.querySelector('section#ms-video');
+                  const reports=document.querySelector('section#ms-perspectives');
+                  return !!(hero&&vid&&reports&&
+                     (hero.compareDocumentPosition(vid)&Node.DOCUMENT_POSITION_FOLLOWING) &&
+                     (vid.compareDocumentPosition(reports)&Node.DOCUMENT_POSITION_FOLLOWING));
+              }""")
+              assert in_order,'Video is not located between evidence hero and both editions'
+              print('LIVE PUBLIC PLACEMENT VERIFIED hero → video → editions',flush=True)
               print('LIVE MARKET SIGNALS FRAME URL',view.url,flush=True)
               el=view.locator('#ms-video .ms-video-player').first
               actual=el.locator('source').get_attribute('src')

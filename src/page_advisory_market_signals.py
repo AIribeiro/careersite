@@ -281,26 +281,29 @@ MARKET_SIGNALS_LANDING_CSS = """
 .site.ms-landing .ms-issue-line{color:#B8C8D5;font-size:11px}
 /* Local video and copy share the same mobile-scaled .site layout. */
 .site.ms-landing .ms-section--video{background:#F7F5F0;border-top:1px solid #DDD6CC;border-bottom:1px solid #DDD6CC;padding:clamp(25px,3.8vw,45px) 0}
-.site.ms-landing .ms-video-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(175px,215px);gap:clamp(22px,4.5vw,64px);align-items:center}
+.site.ms-landing .ms-video-layout{display:grid;grid-template-columns:minmax(0,0.85fr) minmax(0,1.2fr);gap:clamp(24px,4vw,64px);align-items:center}
 .site.ms-landing .ms-video-layout > *{min-width:0}
-.site.ms-landing .ms-video-copy{max-width:710px}
+.site.ms-landing .ms-video-copy{max-width:660px}
 .site.ms-landing .ms-video-copy .ms-overline{color:#986449;font-size:10px;letter-spacing:.15em}
 .site.ms-landing .ms-video-copy h2{margin:11px 0 15px;font:500 clamp(25px,2.9vw,36px)/1.18 Georgia,serif;letter-spacing:-.02em;color:#1D374A}
 .site.ms-landing .ms-video-copy p{font-size:14px;line-height:1.65;color:#536679;margin:10px 0}
 .site.ms-landing .ms-video-copy .ms-film-link{display:inline-block;margin-top:9px;font-weight:750;font-size:13px;color:#305D7A!important;text-decoration:underline;text-underline-offset:4px}
 .site.ms-landing .ms-video-copy .ms-film-meta{font-size:11px;color:#687989}
-.site.ms-landing .ms-video-figure{width:100%;max-width:215px;margin:0 auto}
-.site.ms-landing .ms-video-player{display:block;aspect-ratio:512 / 910;width:100%;height:auto;background:#102437;border:1px solid #CDC6BC;border-radius:6px}
+.site.ms-landing .ms-video-figure{width:100%;max-width:920px;min-width:0;margin:0 auto}
+.site.ms-landing .ms-video-player{display:block;aspect-ratio:16 / 9;width:100%;height:auto;object-fit:contain;background:#102437;border:1px solid #CDC6BC;border-radius:7px}
 .site.ms-landing .ms-video-figure figcaption{text-align:center;color:#687989;font-size:11px;line-height:1.55;margin-top:9px}
-@media(max-width:760px),(max-device-width:760px){
- .site.ms-landing .ms-video-layout{grid-template-columns:minmax(0,1fr);gap:18px}
- .site.ms-landing .ms-video-copy h2{font-size:28px}
+.site.ms-landing.ms-market-video-auth{width:100%;max-width:100%;margin:10px 0 25px}
+.site.ms-landing.ms-market-video-auth .ms-section--video{padding:clamp(20px,3vw,34px) 0;border:1px solid #DDD6CC}
+.site.ms-landing.ms-market-video-auth .ms-section--video .container{width:calc(100% - clamp(26px,4vw,66px));max-width:none}
+@media(max-width:850px),(max-device-width:850px){
+ .site.ms-landing .ms-video-layout{grid-template-columns:minmax(0,1fr);gap:20px}
+ .site.ms-landing .ms-video-figure{order:-1;max-width:100%}
+ .site.ms-landing .ms-video-copy h2{font-size:clamp(24px,5vw,30px)}
  .site.ms-landing .ms-video-copy p{font-size:14px}
- .site.ms-landing .ms-video-figure{width:min(100%,224px);max-width:224px}
- .site.ms-landing .ms-section--video{padding:25px 0 31px}
+ .site.ms-landing .ms-section--video{padding:26px 0 32px}
 }
 html[data-jr-masked-mobile="true"] .site.ms-landing .ms-video-layout{grid-template-columns:minmax(0,1fr)}
-html[data-jr-masked-mobile="true"] .site.ms-landing .ms-video-figure{max-width:224px}
+html[data-jr-masked-mobile="true"] .site.ms-landing .ms-video-figure{order:-1;max-width:100%}
 .site.ms-landing .ms-research-details{background:#1E3B52;border:1px solid #526F84}
 .site.ms-landing .ms-research-details summary{cursor:pointer;color:#F8F9FA;font-weight:750;font-size:14px;line-height:1.6;padding:20px}
 .site.ms-landing .ms-research-details summary:focus-visible{outline:3px solid #EBC29A}
@@ -403,6 +406,29 @@ MARKET_SIGNALS_LANDING_HTML = """
     </div>
 
   </div>
+</div></section>
+
+<section class="ms-section ms-section--video" id="ms-video" aria-labelledby="ms-video-title"><div class="container">
+ <div class="ms-video-layout">
+  <div class="ms-video-copy">
+   <p class="ms-overline">Video briefing / 21 November 2026</p>
+   <h2 id="ms-video-title">Business optimism, cautious hiring, and the work AI is changing.</h2>
+   <p>This new 96-second video explains the latest Unionen workforce findings and the decisions behind the Swedish AI &amp; Data Market Review. It shows why a stronger business outlook, AI adoption and actual professional recruitment need to be examined separately.</p>
+   <p><strong>For business leaders:</strong> compare hiring, skills, training and external expertise against the work that needs to change. <strong>For job seekers:</strong> follow real employer needs and the skills required within existing careers, not just AI job titles.</p>
+   <a class="ms-film-link" href="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_direct">Open the November research video directly</a>
+   <p class="ms-film-meta">1 minute 36 seconds · Narration by Jair Ribeiro (AI voice) · English captions · Playback on demand</p>
+   <details class="ms-film-archive"><summary>Previous 58-second Market Signals introduction</summary>
+     <p>The earlier November 2026 overview remains available as a historical introduction. <a href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_archive">Watch the previous edition</a>.</p>
+   </details>
+  </div>
+  <figure class="ms-video-figure">
+   <video class="ms-video-player" controls playsinline webkit-playsinline preload="metadata" poster="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/market-signals/unionen-2026-11/poster-7fdbd6cedc8a.jpg" aria-label="Swedish AI and Data Market Review, Unionen autumn 2026, 96-second research video">
+    <source src="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4" type="video/mp4">
+    <a href="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4" target="_blank" rel="noopener noreferrer">Open the November research video</a>.
+   </video>
+   <figcaption>21 November 2026 · Unionen research update · Executive Edition 2.1.0 and Jobseeker Edition 1.2</figcaption>
+  </figure>
+ </div>
 </div></section>
 
 <section class="ms-section ms-section--paper" id="ms-perspectives" aria-labelledby="ms-perspectives-title"><div class="container">
@@ -607,28 +633,7 @@ MARKET_SIGNALS_LANDING_HTML = """
   <p class="ms-note">Source dates, populations and methods are documented below and in the full report. Each indicator is interpreted within its original scope.</p>
 </div></section>
 
-<section class="ms-section ms-section--video" id="ms-video" aria-labelledby="ms-video-title"><div class="container">
- <div class="ms-video-layout">
-  <div class="ms-video-copy">
-   <p class="ms-overline">Video briefing / 21 November 2026</p>
-   <h2 id="ms-video-title">Business optimism, cautious hiring, and the work AI is changing.</h2>
-   <p>This new 96-second video explains the latest Unionen workforce findings and the decisions behind the Swedish AI &amp; Data Market Review. It shows why a stronger business outlook, AI adoption and actual professional recruitment need to be examined separately.</p>
-   <p><strong>For business leaders:</strong> compare hiring, skills, training and external expertise against the work that needs to change. <strong>For job seekers:</strong> follow real employer needs and the skills required within existing careers, not just AI job titles.</p>
-   <a class="ms-film-link" href="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_direct">Open the November research video directly</a>
-   <p class="ms-film-meta">1 minute 36 seconds · Narration by Jair Ribeiro (AI voice) · English captions · Playback on demand</p>
-   <details class="ms-film-archive"><summary>Previous 58-second Market Signals introduction</summary>
-     <p>The earlier November 2026 overview remains available as a historical introduction. <a href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_archive">Watch the previous edition</a>.</p>
-   </details>
-  </div>
-  <figure class="ms-video-figure">
-   <video class="ms-video-player" controls playsinline webkit-playsinline preload="metadata" poster="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/market-signals/unionen-2026-11/poster-7fdbd6cedc8a.jpg" aria-label="Swedish AI and Data Market Review, Unionen autumn 2026, 96-second research video">
-    <source src="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4" type="video/mp4">
-    <a href="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4" target="_blank" rel="noopener noreferrer">Open the November research video</a>.
-   </video>
-   <figcaption>21 November 2026 · Unionen research update · Executive Edition 2.1.0 and Jobseeker Edition 1.2</figcaption>
-  </figure>
- </div>
-</div></section>
+
 
 <section class="ms-section ms-section--white" aria-labelledby="ms-materials-title"><div class="container">
   <div class="ms-section-head">
@@ -738,6 +743,31 @@ MARKET_SIGNALS_LANDING_HTML = """
 </div></section>
 </main>
 """
+
+def _extract_market_signals_video(html: str) -> str:
+    """One approved landscape video section shared by public and member views."""
+    marker = '<section class="ms-section ms-section--video" id="ms-video"'
+    start = html.index(marker)
+    finish = html.index("</section>", start) + len("</section>")
+    return html[start:finish]
+
+
+MARKET_SIGNALS_VIDEO_HTML = _extract_market_signals_video(MARKET_SIGNALS_LANDING_HTML)
+
+
+def render_market_signals_member_video() -> None:
+    """Render the same public-approved video between member hero and reports.
+
+    No elevated data, private voice recording, or registration controls enter
+    this public media element; member navigation remains unchanged.
+    """
+    st.html(
+        MARKET_SIGNALS_LANDING_CSS
+        + '<div class="site ms-landing ms-market-video-auth">'
+        + MARKET_SIGNALS_VIDEO_HTML
+        + '</div>'
+    )
+
 
 def advisory_market_signals() -> str:
     """Public two-audience Market Review landing; no privileged API reads."""
@@ -1115,6 +1145,7 @@ def render_private_market_signals(session: dict, user: dict) -> None:
             '<p>Evidence before interpretation. Understand the market, challenge the assumptions, '
             'and make a better capability decision.</p></section>'
         )
+        render_market_signals_member_video()
         try:
             points, briefs = _load_curated(token)
             points, briefs, release = _release_snapshot(token,points,briefs)

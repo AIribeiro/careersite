@@ -369,6 +369,8 @@ html[data-jr-masked-mobile="true"] .site.ms-landing .ms-video-figure{max-width:2
 .site.ms-landing .ms-unionen-perspectives p{font-size:14px;line-height:1.7;color:#566979}
 .site.ms-landing .ms-unionen-caution{max-width:1100px;color:#627689;font-size:12px;line-height:1.75;margin:20px 0 0}
 .site.ms-landing .ms-unionen-caution a{color:#285A76}
+.site.ms-landing .ms-section--unionen .ms-button--outline{color:#193449!important;border-color:#607B8A;background:transparent}
+.site.ms-landing .ms-section--unionen .ms-button--outline:hover{color:#fff!important;background:#193449}
 @media(max-width:1080px){.site.ms-landing .ms-unionen-panel{grid-template-columns:repeat(2,minmax(0,1fr))}.site.ms-landing .ms-unionen-employment{grid-column:1/-1}}
 @media(max-width:660px){.site.ms-landing .ms-unionen-panel,.site.ms-landing .ms-unionen-perspectives{grid-template-columns:minmax(0,1fr)}.site.ms-landing .ms-unionen-employment{grid-column:auto}.site.ms-landing .ms-unionen-track{grid-template-columns:minmax(0,115px) minmax(0,1fr) 32px;gap:8px;font-size:11px}}
 </style>

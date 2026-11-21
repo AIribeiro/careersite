@@ -10,6 +10,13 @@ on:
       - "src/market_publication_design.py"
       - "docs/market_signals/november_2026_unionen_2_1.json"
       - "tests/test_market_unionen_update.py"
+      - "src/page_advisory_portal.py"
+      - "src/page_advisory_market_signals.py"
+      - "src/page_advisory_market_observatory.py"
+      - "tests/test_market_jobseeker_edition.py"
+      - "tests/test_market_signals_landing.py"
+      - "tests/test_market_signals_claims_contract.py"
+      - "tests/test_market_observatory.py"
   workflow_dispatch:
 
 permissions:
@@ -36,6 +43,9 @@ jobs:
           python -m unittest discover -s tests -p test_market_unionen_update.py -v
           python -m unittest discover -s tests -p test_market_jobseeker_edition.py -v
           python -m unittest discover -s tests -p test_market_intelligence_v2.py -v
+          python -m unittest discover -s tests -p test_market_signals_landing.py -v
+          python -m unittest discover -s tests -p test_market_signals_claims_contract.py -v
+          python -m unittest discover -s tests -p test_market_observatory.py -v
       - name: Render exact executive and jobseeker PDF pages, inspect page geometry
         run: |
           python - <<'PY'

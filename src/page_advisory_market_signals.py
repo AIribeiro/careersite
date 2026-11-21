@@ -1142,7 +1142,8 @@ def render_private_market_signals(session: dict, user: dict) -> None:
                     EDITION as JOBSEEKER_EDITION,
                     render_jobseeker_intelligence,
                 )
-                if str(release.get("slug") or "") == JOBSEEKER_EDITION:
+                from market_unionen_workforce_update import NEW_SLUG as UNIONEN_EDITION
+                if str(release.get("slug") or "") in (JOBSEEKER_EDITION, UNIONEN_EDITION):
                     st.markdown("### Which report would you like to read?")
                     st.caption(
                         "Both reports use the same checked November 2026 research. "

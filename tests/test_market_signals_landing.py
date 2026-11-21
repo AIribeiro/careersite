@@ -162,8 +162,8 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertIn('id="ms-video"',html)
         self.assertEqual(html.count('class="ms-video-player"'),1)
         self.assertIn('controls playsinline webkit-playsinline preload="metadata"',html)
-        self.assertIn('poster="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f2223462c7bd42f77ccfa73911d83/static/market-signals/market-review-poster.jpg"',html)
-        self.assertIn('src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f2223462c7bd42f77ccfa73911d83/static/market-signals/market-review-november-2026.mp4"',html)
+        self.assertIn('poster="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/market-signals/unionen-2026-11/poster-7fdbd6cedc8a.jpg"',html)
+        self.assertIn('src="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4"',html)
         self.assertNotIn("MARKET_SIGNALS_VIDEO_PLAYER",html)
         self.assertNotIn("split_market_landing_at_video",main)
         self.assertNotIn('key="market_video_compact"',main)
@@ -181,11 +181,13 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertEqual(video.open("rb").read(8)[4:8],b"ftyp")
         self.assertEqual(poster.open("rb").read(3),bytes((255,216,255)))
         self.assertNotIn("/app/static/market-signals/",html)
-        self.assertIn("cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f",html)
+        self.assertIn("portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4",html)
+        self.assertIn("1 minute 36 seconds",html)
+        self.assertIn("Previous 58-second Market Signals introduction",html)
         self.assertNotIn("autoplay",html.split('class="ms-video-player"',1)[1].split('</video>',1)[0])
-        # The current production Streamlit static path returned text/html
-        # instead of video bytes to iOS. The pinned CDN supports 206 partial
-        # content with Content-Type video/mp4 and is independently verified.
+        # The new video is immutable public Storage with 200 video/mp4 and
+        # independently verified start, middle and end HTTP 206 byte ranges.
+        # Original 58-second file and its poster remain in the repository.
         self.assertNotIn("Signature=",self.page)
         self.assertNotIn('id="ms-jobseeker-benefits"',self.page)
         self.assertNotIn('aria-labelledby="ms-decisions-title"',self.page)

@@ -6,8 +6,13 @@ section markup. Neither viewer may receive the mobile portrait/thumbnail slot.
 from __future__ import annotations
 
 import inspect
+import sys
 import unittest
+from pathlib import Path
 from unittest.mock import patch
+
+ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT / "src"))
 
 from page_advisory_market_signals import (
     MARKET_SIGNALS_LANDING_HTML,

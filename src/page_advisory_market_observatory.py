@@ -636,6 +636,56 @@ def _ledger(points:list[dict]) -> None:
     st.caption("Historic revisions retain their publication provenance; additional source families enter only after owner editorial approval.")
 
 
+
+def _unionen_workforce(points:list[dict]) -> None:
+    """One source, two distinct survey denominators; never an AI hiring chart."""
+    from market_unionen_workforce_update import (
+        CLUBS, AI_ADOPTERS, REQUIRED, BOUNDARY, SCOPE, SOURCE_REPORT,
+    )
+    idx=_point_map(points)
+    if not set(REQUIRED).issubset(idx):
+        st.warning("The selected Unionen indicators are not present in this historic edition.")
+        return
+    _intro(
+        "A stronger business outlook is not yet stronger professional recruitment",
+        "Unionen's 18 November report adds workplace-level evidence that complements "
+        "the existing SCB, KI and JobTech measurements. Its figures describe "
+        "responding union clubs and sector expectations, not open AI/Data positions."
+    )
+    _cards([
+        ("Business outlook index",idx["unionen_business_outlook_index"],
+         "Unionen Branschbarometern, autumn 2026 · 50 is neutral"),
+        ("AI introduced at employer",idx["unionen_ai_adoption_clubs_share"],
+         "Responding workplace union clubs, not SCB enterprises"),
+        ("AI changed staffing",idx["unionen_ai_staffing_need_changed_share"],
+         "270 clubs at AI-adopting employers, multiple answers possible"),
+    ])
+    _bars(_codes(points,list(CLUBS)),{k:v[1] for k,v in CLUBS.items()},
+        title="AI introduction and workplace discussions",
+        unit="percent of responding Unionen clubs",
+        denominator="All responding Unionen clubs · distinct measures · do not compare with SCB",color=COLORS["blue"])
+    _bars(_codes(points,list(AI_ADOPTERS)),{k:v[1] for k,v in AI_ADOPTERS.items()},
+        title="Changes at employers already using AI",
+        unit="percent of responding clubs at AI adopters",
+        denominator="270-club subgroup · multiple responses permitted · cannot be added together",color=COLORS["copper"])
+    _heading("Sector expectations: relevant context, not vacancy volumes")
+    st.write(
+        "Unionen's automotive outlook index was 45, below the neutral 50. "
+        "The consulting and staffing sector reported relatively more positive "
+        "professional employment expectations. These are different sector samples "
+        "and do not establish the number of AI or Data positions available."
+    )
+    with st.expander("Causal interpretation, adjusted association and survey method",expanded=False):
+        st.write(SCOPE)
+        st.write(
+            "An adjusted association in the survey compared 30% of AI adopters "
+            "with 14% of non-adopters expecting white-collar reductions. "
+            "It is not causal evidence and is less conclusive when weighted by "
+            "employee headcount. The survey cannot measure individual career risk."
+        )
+        st.write(BOUNDARY)
+        st.link_button("Read Unionen's original report",SOURCE_REPORT)
+
 def render_market_observatory(points:list[dict], *, historical:bool=False) -> None:
     """Full edition or explicitly limited retrospective monthly source snapshot."""
     st.html(CSS)
@@ -653,14 +703,20 @@ def render_market_observatory(points:list[dict], *, historical:bool=False) -> No
             "Sweden-focused · Source-led · Professional and enterprise AI/Data signals · "
             "No personal pipeline or individual employment forecasts"
         )
-        allowed=DASHBOARDS
+        # New dated editions may add a source-specific dashboard; previous
+        # archives retain their original eight dashboards unchanged.
+        if any(p.get("source_family")=="unionen_branschbarometern" for p in points):
+            allowed={"unionen":"AI at work · Unionen autumn 2026",**DASHBOARDS}
+        else:
+            allowed=DASHBOARDS
         key="market_observatory_section"
     section=st.selectbox("Explore dashboard",list(allowed),
         format_func=lambda k:allowed[k],
         key=key,help=("Historical source views cannot fabricate later market measures."
-            if historical else "Eight decision-oriented dashboards."))
+            if historical else "Source-specific and decision-oriented evidence dashboards."))
     st.divider()
-    if section=="pulse":_executive_pulse(points)
+    if section=="unionen":_unionen_workforce(points)
+    elif section=="pulse":_executive_pulse(points)
     elif section=="demand":_demand(points)
     elif section=="adoption":_adoption(points)
     elif section=="talent":_talent(points)

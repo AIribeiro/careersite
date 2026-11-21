@@ -50,7 +50,7 @@ def _channel(source: str = "", utm_source: str = "", referrer: str = "") -> str:
     from urllib.parse import urlsplit
     tag = (utm_source or source or "").strip().lower()[:100]
     if tag:
-        if tag in {"li", "linkedin", "linkedin.com", "www.linkedin.com"} or "linkedin" in tag:
+        if tag in {"li", "linkedin", "linkedin.com", "www.linkedin.com"} or tag.startswith(("linkedin-", "linkedin_")):
             return "linkedin"
         if tag in {"chatgpt", "chatgpt.com", "openai", "openai.com"}:
             return "chatgpt"
@@ -65,11 +65,12 @@ def _channel(source: str = "", utm_source: str = "", referrer: str = "") -> str:
         host = (urlsplit(referrer).hostname or "").lower()
     except ValueError:
         host = ""
-    if host.endswith("linkedin.com"):
+    if host == "linkedin.com" or host.endswith(".linkedin.com"):
         return "linkedin"
     if host in {"chatgpt.com", "chat.openai.com"}:
         return "chatgpt"
-    if host.endswith(("google.com", "bing.com", "duckduckgo.com")):
+    if any(host == base or host.endswith("." + base)
+           for base in ("google.com", "bing.com", "duckduckgo.com")):
         return "search"
     # Untagged means unknown, NOT a proven direct visit.
     return "untagged"

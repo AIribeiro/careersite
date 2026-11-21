@@ -1,9 +1,9 @@
-"""Server-side, consent-independent page-load totals.
+"""Consent-independent server-side page-load counts with coarse content reach.
 
-Records only the date and an allowlisted page label in a daily aggregate.
-No browser-supplied identifiers, IPs, user agents, article slugs, query strings,
-referrers or behavioural paths are transmitted to the counter. This is not
-unique-visitor measurement. Detailed client analytics remains consent-gated.
+Counts route opens in daily aggregate buckets by page, public article slug and
+broad campaign channel. Does not transmit IP addresses, cookies, user agents,
+referrers, full URLs, account data or visitor/session identifiers. One count is
+a page load, never a verified visitor. Detailed behavior remains opt-in.
 """
 from __future__ import annotations
 
@@ -39,42 +39,88 @@ _WINDOW_LABELS = {
 _POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="aggregate-page-load")
 
 
-def _submit_load(page: str) -> None:
-    """Post only an allowlisted page; never send request or browser metadata."""
-    payload = json.dumps({"p_page": page}).encode("utf-8")
+_CHANNELS = frozenset({
+    "linkedin", "email", "cv", "outreach", "application",
+    "chatgpt", "search", "social", "other_tagged", "untagged",
+})
+
+
+def _channel(source: str = "", utm_source: str = "", referrer: str = "") -> str:
+    """Classify source strings without storing free-text tags or full referrers."""
+    from urllib.parse import urlsplit
+    tag = (utm_source or source or "").strip().lower()[:100]
+    if tag:
+        if tag in {"li", "linkedin", "linkedin.com", "www.linkedin.com"} or "linkedin" in tag:
+            return "linkedin"
+        if tag in {"chatgpt", "chatgpt.com", "openai", "openai.com"}:
+            return "chatgpt"
+        if tag in {"google", "bing", "search", "duckduckgo"}:
+            return "search"
+        if tag in {"email", "newsletter", "mail"}:
+            return "email"
+        if tag in {"cv", "outreach", "application", "social"}:
+            return tag
+        return "other_tagged"
+    try:
+        host = (urlsplit(referrer).hostname or "").lower()
+    except ValueError:
+        host = ""
+    if host.endswith("linkedin.com"):
+        return "linkedin"
+    if host in {"chatgpt.com", "chat.openai.com"}:
+        return "chatgpt"
+    if host.endswith(("google.com", "bing.com", "duckduckgo.com")):
+        return "search"
+    # Untagged means unknown, NOT a proven direct visit.
+    return "untagged"
+
+
+def _submit_load(page: str, content_slug: str, channel: str) -> None:
+    """Atomic Supabase RPC increments the total and its content breakdown."""
+    payload = json.dumps({
+        "p_page": page, "p_content": content_slug, "p_channel": channel,
+    }).encode("utf-8")
     req = request.Request(
-        f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/careersite_aggregate_page_load_v1",
+        f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/careersite_content_load_record_v1",
         data=payload, headers=public_analytics_rpc_headers(), method="POST",
     )
     try:
         with request.urlopen(req, timeout=3) as response:
             if response.status not in (200, 204):
-                logging.warning("Aggregate page count returned HTTP %s", response.status)
+                logging.warning("Aggregate content count returned HTTP %s", response.status)
     except (error.HTTPError, error.URLError, TimeoutError, OSError) as exc:
-        # Only the class name: do not log a request URL, browser metadata or any token.
-        logging.warning("Aggregate page count could not be delivered: %s", type(exc).__name__)
+        logging.warning("Aggregate content count delivery failed: %s", type(exc).__name__)
 
 
-def record_page_load(page: str, article_slug: str = "") -> None:
-    """Count a navigation once per Streamlit session, not on each widget rerun.
+def record_page_load(
+    page: str, article_slug: str = "", *, source: str = "",
+    utm_source: str = "", referrer: str = "",
+) -> None:
+    """Count a route open once per Streamlit server session, not each widget rerun.
 
-    Article slugs help distinguish navigations but are stored ONLY in ephemeral
-    Streamlit server session state. Only the page label reaches Supabase.
+    A fresh Streamlit session or repeated external navigation can produce more
+    than one load for the same person; this is not unique-person measurement.
     """
     if page not in PUBLIC_PAGES:
         return
-    route = (page, str(article_slug)[:160] if page in {"thinking", "briefing"} else "")
+    import re
+    content_slug = (
+        str(article_slug).strip().lower()[:150]
+        if page in {"thinking", "briefing"} else ""
+    )
+    if content_slug and not re.fullmatch(r"[a-z0-9][a-z0-9-]*", content_slug):
+        content_slug = ""
+    route = (page, content_slug)
     state_key = "_aggregate_last_route_v1"
     if st.session_state.get(state_key) == route:
         return
     st.session_state[state_key] = route
+    channel = _channel(source, utm_source, referrer)
     try:
-        _POOL.submit(_submit_load, page)
+        _POOL.submit(_submit_load, page, content_slug, channel)
     except RuntimeError:
-        # Let a future rerun retry if the executor has shut down.
         st.session_state.pop(state_key, None)
-        logging.warning("Aggregate page count executor unavailable")
-
+        logging.warning("Aggregate content count executor unavailable")
 
 @st.cache_data(ttl=90, max_entries=16, show_spinner=False)
 def basic_page_load_report(window: str) -> dict:

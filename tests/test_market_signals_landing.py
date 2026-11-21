@@ -189,7 +189,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
         self.assertNotIn("Signature=",self.page)
         self.assertNotIn('id="ms-jobseeker-benefits"',self.page)
         self.assertNotIn('aria-labelledby="ms-decisions-title"',self.page)
-        self.assertIn("Explore the eight Observatory sections",self.page)
+        self.assertIn("Explore the nine Observatory sections",self.page)
         self.assertIn("See original sources, definitions and research limitations",self.page)
 
     def test_both_report_cards_have_equal_priority_and_copy_length(self):
@@ -210,9 +210,9 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_high_value_examples_are_exact_dated_executive_edition_scope(self):
         for phrase in (
-            "published on 17 November",
+            "17–18 November editions remain archived",
             "published observations",
-            "evidence series · 5 publishers",
+            "evidence series · 6 publishers",
             "executive decision perspectives",
             "49<span>%</span>",
             "85%",
@@ -220,7 +220,7 @@ class MarketSignalsLandingTests(unittest.TestCase):
             "+10.7",
             "+18.5",
             "October 2026",
-            "evidence series · 5 publishers",
+            "evidence series · 6 publishers",
         ):
             self.assertIn(phrase.lower(),self.page.lower())
         self.assertNotIn("AI jobs increased 45%",self.page)

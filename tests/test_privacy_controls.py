@@ -42,13 +42,17 @@ class PrivacyControlsTests(unittest.TestCase):
 
     def test_server_counter_is_separate_from_opt_in_browser_tracking(self):
         server = (ROOT / "src/site_aggregate_traffic.py").read_text()
-        self.assertIn("careersite_aggregate_page_load_v1", server)
+        self.assertIn("careersite_content_load_record_v1", server)
+        self.assertIn("careersite_aggregate_page_load_report_v1", server)
         self.assertIn("PUBLIC_PAGES", server)
         self.assertNotIn("user_agent", server)
         self.assertNotIn("request.headers", server)
         self.assertNotIn("session_id", server)
         self.assertNotIn("ip_address", server)
-        self.assertIn("record_page_load(PAGE", (ROOT / "main.py").read_text())
+        main = (ROOT / "main.py").read_text()
+        self.assertIn("record_page_load(", main)
+        self.assertIn("utm_source=str(st.query_params.get", main)
+        self.assertIn('PAGE in {"readers", "advisory-access"}', main)
 
     def test_basic_page_loads_appear_before_detailed_metric_cards(self):
         source = (ROOT / "src/page_public_portfolio_overview.py").read_text()
@@ -62,6 +66,19 @@ class PrivacyControlsTests(unittest.TestCase):
             page.index("render_basic_page_loads(str(window))"),
             page.index("st.html(portfolio_metric_grid(cards))"),
         )
+
+    def test_content_demand_without_individual_analytics_identifiers(self):
+        source = (ROOT / "src/site_content_demand.py").read_text()
+        recorder = (ROOT / "src/site_aggregate_traffic.py").read_text()
+        page = (ROOT / "src/page_public_portfolio_overview.py").read_text()
+        for value in ("careersite_content_load_report_v1", "top_content", "channels"):
+            self.assertIn(value, source)
+        for secret in ('"session_id":', '"user_agent":', '"ip_address":',
+                       '"referrer":', '"visitor_id":'):
+            self.assertNotIn(secret, recorder)
+        self.assertIn("render_content_demand(str(window))", page)
+        self.assertLess(page.index("render_content_demand(str(window))"),
+                        page.index("portfolio_metric_grid(cards)"))
 
     def test_lifetime_report_uses_retained_monthly_counts(self):
         portfolio = (ROOT / "src/page_public_portfolio_overview.py").read_text()

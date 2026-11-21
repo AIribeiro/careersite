@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "update:5a46d5b807272add1a5979902f7915b1e341bbc9",
+      "type": "Page updated",
+      "title": "Swedish AI & Data Market Review",
+      "description": "The Swedish AI & Data Market Review section has been updated. Explore its current content and experience.",
+      "date": "2026-11-21T13:21:47+01:00",
+      "href": "?page=advisory-market-signals",
+      "cta": "View the update"
+    },
+    {
       "key": "update:ce81a2b533b947433ae89f66a196a28b9a0094f7",
       "type": "Portfolio updated",
       "title": "Latest portfolio improvements",

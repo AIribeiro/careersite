@@ -200,6 +200,11 @@ def render_basic_page_loads(window: str) -> None:
  </div>
 </section>
 """)
+    if data.get("partial_period"):
+        st.caption(
+            "Partial reporting period: this aggregate counter only started on "
+            "20 November 2026. Earlier days in the selected period are not included."
+        )
     if privacy:
         st.caption(f"{privacy:,} Privacy-page loads are excluded from the portfolio-content figure.")
 

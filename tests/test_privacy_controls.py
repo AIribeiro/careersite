@@ -50,6 +50,19 @@ class PrivacyControlsTests(unittest.TestCase):
         self.assertNotIn("ip_address", server)
         self.assertIn("record_page_load(PAGE", (ROOT / "main.py").read_text())
 
+    def test_basic_page_loads_appear_before_detailed_metric_cards(self):
+        source = (ROOT / "src/page_public_portfolio_overview.py").read_text()
+        page = source.split("def render_public_portfolio_overview()", 1)[1]
+        self.assertEqual(page.count("render_basic_page_loads(str(window))"), 1)
+        self.assertLess(
+            page.index("render_basic_page_loads(str(window))"),
+            page.index("report = _selected_portfolio_report(str(window))"),
+        )
+        self.assertLess(
+            page.index("render_basic_page_loads(str(window))"),
+            page.index("st.html(portfolio_metric_grid(cards))"),
+        )
+
     def test_lifetime_report_uses_retained_monthly_counts(self):
         portfolio = (ROOT / "src/page_public_portfolio_overview.py").read_text()
         aggregate = (ROOT / "src/site_aggregate_traffic.py").read_text()

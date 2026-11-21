@@ -28,7 +28,7 @@ class PublicServicePagesTests(unittest.TestCase):
         self.assertIn("readers@jairribeiro.com", privacy_html)
         self.assertIn("Supabase", privacy_html)
         self.assertIn("Streamlit", privacy_html)
-        self.assertIn("20 November 2026", privacy_html)
+        self.assertIn("21 November 2026", privacy_html)
         self.assertIn("data-jair-privacy-settings", privacy_html)
         self.assertNotIn("jair.ribeiro@outlook", advisory_html + privacy_html)
 

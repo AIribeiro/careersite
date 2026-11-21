@@ -1,15 +1,15 @@
 name: Publish portfolio release feed
 
+# Every main-branch change is checked; only deployment-relevant files are
+# recorded. The feed's own bot commit is ignored by the detector.
 on:
   push:
     branches: [main]
-    paths:
-      - 'main.py'
-      - 'src/site_meta.py'
-      - 'src/page_certifications.py'
-      - 'src/page_*.py'
-      - 'scripts/sync_portfolio_releases.py'
-      - '.github/workflows/portfolio-release-feed.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: portfolio-release-feed-main
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -21,20 +21,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
           persist-credentials: true
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Detect new public pages and credential records
+      - name: Capture changed public pages, assets and credentials
         run: |
           python scripts/sync_portfolio_releases.py "${{ github.event.before }}" "${{ github.sha }}"
-      - name: Publish generated feed only if new releases exist
+      - name: Publish latest portfolio change when the feed changes
         run: |
           if ! git diff --quiet -- data/portfolio_release_feed.json; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add data/portfolio_release_feed.json
-            git commit -m "Update What's new feed for newly published portfolio items"
+            git commit -m "Refresh What's New after portfolio deployment"
+            git pull --rebase origin main
             git push origin HEAD:main
           fi

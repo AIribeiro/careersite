@@ -56,5 +56,57 @@ def impact_evidence() -> str:
 <p class="evidence-illustration"><strong>Illustrative request example:</strong> Before approving a new workspace, check its purpose, available headroom and who will support it over time.</p>
 </div></details></article>
 </div>
-<p class="muted" style="margin-top:18px">These are selected professional examples. Illustrative decision examples explain my approach, while the case descriptions reflect work delivered in enterprise settings. Results are presented at their actual stage of maturity.</p>
+<section class="additional-usecases" id="additional-ai-data-usecases" aria-labelledby="additional-usecases-title" data-analytics-section="additional-ai-data-usecases">
+<header class="additional-usecases-intro">
+<p class="eyebrow">A broader body of work</p>
+<h2 id="additional-usecases-title">The list goes well beyond four examples.</h2>
+<p>Across the years, the AI and analytics use cases I have worked with have been both numerous and diverse. Some I led directly; others I helped shape through business requirements, portfolio decisions, technical collaboration or adoption planning. These are more of the areas I have contributed to across industries and at different stages of maturity.</p>
+</header>
+<div class="additional-usecases-grid">
+<div class="additional-usecases-group">
+<h3>Automotive, service &amp; aftermarket</h3>
+<ul>
+<li>Warranty-claim trends and recurring-failure analysis</li>
+<li>Service and repair process analytics</li>
+<li>Dealer and service-network performance reporting</li>
+<li>Aftermarket parts demand and availability analysis</li>
+<li>Customer and fleet service insights</li>
+<li>Sales and commercial opportunity analytics</li>
+</ul>
+</div>
+<div class="additional-usecases-group">
+<h3>Manufacturing &amp; supply chain</h3>
+<ul>
+<li>Manufacturing quality and process-performance analytics</li>
+<li>Demand forecasting and supply planning</li>
+<li>Sales and operations planning (S&amp;OP) scenarios</li>
+<li>Inventory and replenishment analytics</li>
+<li>Logistics performance and delivery reliability</li>
+<li>Supply-chain risks and exception monitoring</li>
+</ul>
+</div>
+<div class="additional-usecases-group">
+<h3>Enterprise AI &amp; knowledge</h3>
+<ul>
+<li>Enterprise knowledge search and retrieval assistants</li>
+<li>Copilot use cases for commercial and support teams</li>
+<li>AI-assisted document analysis and summarization</li>
+<li>Multilingual business-content processing</li>
+<li>AI support for repetitive business workflows</li>
+<li>Agent-based process support and autonomy assessments</li>
+</ul>
+</div>
+<div class="additional-usecases-group">
+<h3>Data, insight &amp; decisions</h3>
+<ul>
+<li>Customer segmentation and marketing-performance analytics</li>
+<li>Executive KPI and business-performance dashboards</li>
+<li>Self-service analytics for business teams</li>
+<li>Data-quality assessment for operational reporting</li>
+<li>Workforce data ownership and stewardship</li>
+<li>AI-assisted insight discovery from enterprise data</li>
+</ul>
+</div>
+</div>
+</section>
 </div></section>'''

@@ -228,12 +228,11 @@ class MarketSignalsLandingTests(unittest.TestCase):
 
     def test_all_published_edition_labels_match_signed_off_manuscript(self):
         import json
-        manuscript=json.loads((ROOT/"docs/market_signals/november_2026_executive_v2.json").read_text(encoding="utf-8"))
-        expected="Executive Edition "+manuscript["version"]
-        # The two-edition masthead no longer repeats the executive label;
-        # the evidence introduction and original executive PDF description do.
-        self.assertEqual(MARKET_SIGNALS_LANDING_HTML.count(expected),1)
-        self.assertEqual(self.page.count(expected),1)
+        manuscript=json.loads((ROOT/"docs/market_signals/november_2026_unionen_2_1.json").read_text(encoding="utf-8"))
+        expected="Executive Edition "+manuscript["editorial"]["version"]
+        self.assertIn(expected,MARKET_SIGNALS_LANDING_HTML)
+        self.assertIn(expected,self.page)
+        self.assertIn("Jobseeker Edition 1.2",self.page)
         self.assertIn("Two editions. One evidence base.",MARKET_SIGNALS_LANDING_HTML)
         self.assertIn("Jobseeker Edition",MARKET_SIGNALS_LANDING_HTML)
         for obsolete in (

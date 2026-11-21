@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "update:a99d2a2fc1d9cd47053ba44455d6060dc1bba7fd",
+      "type": "Page updated",
+      "title": "Executive Advisory",
+      "description": "The Executive Advisory section has been updated. Explore its current content and experience.",
+      "date": "2026-11-21T16:38:00+01:00",
+      "href": "?page=advisory",
+      "cta": "View the update"
+    },
+    {
       "key": "update:5fee1d31915062647e5f2706cb07244cbd588e20",
       "type": "Portfolio updated",
       "title": "Latest portfolio improvements",

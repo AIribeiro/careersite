@@ -307,6 +307,11 @@ def render_public_portfolio_overview() -> None:
         reader_registration_totals.clear()
         st.rerun()
 
+    # Show the broad, consent-independent page-load count first, directly below
+    # reporting controls. It remains visible even if detailed reports fail.
+    from site_aggregate_traffic import render_basic_page_loads
+    render_basic_page_loads(str(window))
+
     try:
         # Broad windows use the fast canonical reader/page counter. Detailed
         # engagement and campaign reports remain in Explore content.
@@ -473,10 +478,8 @@ def render_public_portfolio_overview() -> None:
         card["period_label"] = REPORTING_WINDOW_LABELS.get(str(window), "Selected period")
     st.html(portfolio_metric_grid(cards))
 
-    # This independent daily counter includes visitors who declined optional
-    # statistics; it is intentionally not compared with opted-in view totals.
-    from site_aggregate_traffic import render_basic_page_loads, render_monthly_optin_trend
-    render_basic_page_loads(str(window))
+    # Retained historic content trend stays below the five detailed metric cards.
+    from site_aggregate_traffic import render_monthly_optin_trend
     render_monthly_optin_trend()
 
     # Registration is a distinct user lifecycle event—not another visit or

@@ -19,14 +19,13 @@ from market_unionen_workforce_update import (
 
 
 def verified_unionen_fixture():
-    original,old_editorial=verified_v2_fixture()
     doc=json.loads((ROOT/"docs/market_signals/november_2026_unionen_2_1.json").read_text(encoding="utf-8"))
-    assert len(original)==43,("Frozen 17 November source manifest",len(original))
+    assert len(doc["approved_points"])==53
     assert len(doc["unionen_points"])==10
     assert doc["edition_slug"]==NEW_SLUG
-    # Keep original official values, period and source population while reading
-    # the exact signed-off new editorial stored in Supabase.
-    return original+doc["unionen_points"],doc["editorial"]
+    # Full, exactly edition-bound 53-observation snapshot taken from the
+    # publication database, avoiding incomplete old synthetic fixtures.
+    return doc["approved_points"],doc["editorial"]
 
 
 class UnionenMarketReleaseTests(unittest.TestCase):

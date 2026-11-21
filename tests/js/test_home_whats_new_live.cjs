@@ -13,6 +13,7 @@ assert.ok(baselineLiteral, 'Injected script must declare the local release time'
 const localTime = Date.parse(JSON.parse(baselineLiteral[1]));
 assert.ok(Number.isFinite(localTime), 'Local release timestamp must be valid');
 const publishedAt = new Date(Math.max(localTime, Date.parse('2026-11-18T12:40:21Z')) + 3600000).toISOString();
+const revisedAt = new Date(Date.parse(publishedAt) + 30 * 60000).toISOString();
 const match = html.match(/<script>([\s\S]*?)<\/script>/);
 assert.ok(match, 'Injected live feed script must exist');
 const elements = {
@@ -51,7 +52,10 @@ globalThis.fetch = async (url, opts) => {
       title: 'AI Adoption Is Not One Problem: Four Leadership Responses',
       slug: 'ai-adoption-four-leadership-responses',
       kind: 'Executive Briefing', published_at: publishedAt,
-      subtitle: 'Four separate leadership decisions.'
+      updated_at: requests.length > 1 ? revisedAt : publishedAt,
+      subtitle: requests.length > 1
+        ? 'The updated decision framework and practical considerations.'
+        : 'Four separate leadership decisions.'
     }
   ];}};
 };
@@ -61,21 +65,24 @@ globalThis.setInterval = (callback, ms) => {intervalMs = ms; refreshInterval = c
 globalThis.AbortController = class {signal = {}; abort() {}};
 // Clock is fixed so future CMS issues can be tested against a published
 // November 17 market research edition, irrespective of CI wall-clock time.
-Date.now = () => Date.parse(publishedAt) + 3600000;
+Date.now = () => Date.parse(revisedAt) + 3600000;
 vm.runInThisContext(match[1]);
 setImmediate(async () => {
   try {
     assert.equal(requests.length, 1, 'Must fetch immediately on page load');
-    assert.equal(elements['[data-news-title]'].textContent, '',
-      'A live CMS update must not move an announcement currently visible to the reader');
+    assert.equal(elements['[data-news-title]'].textContent,
+      'AI Adoption Is Not One Problem: Four Leadership Responses',
+      'The latest publication should be visible immediately, even when the strip is onscreen');
+    assert.equal(elements['[data-news-meta]'].textContent.startsWith('Executive briefing · '), true);
     bounds.top = 1350;
     bounds.bottom = 1600;
     await refreshInterval();
     assert.match(requests[0].url, /status=eq\.published/);
-    assert.equal(elements['[data-news-meta]'].textContent.startsWith('Executive briefing · '), true);
+    assert.match(requests[0].url, /updated_at/);
+    assert.equal(elements['[data-news-meta]'].textContent.startsWith('Updated executive briefing · '), true);
     assert.equal(elements['[data-news-title]'].textContent,
       'AI Adoption Is Not One Problem: Four Leadership Responses');
-    assert.equal(elements['[data-news-summary]'].textContent, 'Four separate leadership decisions.');
+    assert.equal(elements['[data-news-summary]'].textContent, 'The updated decision framework and practical considerations.');
     assert.equal(elements['[data-news-link]'].href,
       '?page=briefing&article=ai-adoption-four-leadership-responses');
     assert.equal(elements['[data-news-link]'].textContent, 'Read the briefing →');
@@ -83,7 +90,7 @@ setImmediate(async () => {
     assert.equal(requests.length, 2, 'Should refresh only when the next scheduled check runs');
     assert.equal(intervalMs, 120000);
     assert.equal(typeof listeners.visibilitychange, 'function');
-    process.stdout.write('Executive Briefing automatic homepage refresh: passed\n');
+    process.stdout.write('Executive Briefing publication and revision homepage refresh: passed\n');
   } catch (err) {
     console.error(err);
     process.exitCode = 1;

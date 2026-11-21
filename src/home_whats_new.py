@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from html import escape
 import json
 from pathlib import Path
+from zoneinfo import ZoneInfo
 from urllib.parse import urlparse
 
 from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
@@ -228,7 +229,7 @@ NEWS_CSS = """<style>
 
 def home_whats_new() -> str:
     item = latest_local_release()
-    date = item.published_at.strftime("%d %b %Y").lstrip("0")
+    date = item.published_at.astimezone(ZoneInfo("Europe/Stockholm")).strftime("%d %b %Y").lstrip("0")
     return NEWS_CSS + (
         '<section class="home-news-strip" id="home-whats-new" '
         'aria-label="What’s new in the portfolio" data-analytics-section="home-whats-new">'
@@ -253,8 +254,8 @@ def inject_live_home_update() -> None:
     """Non-blocking public CMS metadata read on Home; never downloads article bodies.
 
     The static first frame works when Supabase is unavailable. Newly published
-    articles, Weekly AI editions and Executive Briefings override it by actual
-    publish time. Refreshing an old article does not make it "new" again.
+    and updated articles, Weekly AI editions and Executive Briefings override
+    it by the real public revision time; draft material is never promoted.
     """
     import streamlit.components.v1 as components
 
@@ -268,8 +269,9 @@ def inject_live_home_update() -> None:
   const endpoint = %s;
   const apiKey = %s;
   const localPublished = Date.parse(%s);
-  const query = "?select=title,slug,subtitle,excerpt,kind,published_at,created_at"
-    + "&status=eq.published&order=published_at.desc.nullslast,created_at.desc&limit=16";
+  let displayedAt = localPublished;
+  const query = "?select=title,slug,subtitle,excerpt,kind,published_at,updated_at,created_at"
+    + "&status=eq.published&order=updated_at.desc.nullslast,published_at.desc.nullslast&limit=24";
   const validSlug = /^[a-z0-9][a-z0-9-]*$/;
   let busy = false;
 
@@ -298,23 +300,24 @@ def inject_live_home_update() -> None:
       if (!res.ok) return;
       const rows = await res.json();
       if (!Array.isArray(rows)) return;
-      const candidates = rows.map(row => ({
-        row: row,
-        time: Date.parse(row.published_at || row.created_at || ""),
-      })).filter(item =>
+      const candidates = rows.map(row => {
+        const published = Date.parse(row.published_at || row.created_at || "");
+        const updated = Date.parse(row.updated_at || "");
+        return {
+          row: row,
+          time: Math.max(Number.isFinite(published) ? published : 0,
+                         Number.isFinite(updated) ? updated : 0),
+          revised: Number.isFinite(updated) && Number.isFinite(published)
+              && updated > published + 60000,
+        };
+      }).filter(item =>
         validSlug.test(item.row.slug || "") &&
         typeof item.row.title === "string" && item.row.title.trim() &&
         Number.isFinite(item.time) && item.time <= Date.now() + 60000
       ).sort((a, b) => b.time - a.time);
-      if (!candidates.length || candidates[0].time <= localPublished) return;
+      if (!candidates.length || candidates[0].time <= displayedAt) return;
       const root = doc.querySelector("#home-whats-new");
       if (!root) return;
-      // This live announcement must never push visible content around while
-      // a visitor is reading it. Keep the reliable published first frame and
-      // retry on the next refresh once the section has left the viewport.
-      const bounds = typeof root.getBoundingClientRect === "function"
-        ? root.getBoundingClientRect() : null;
-      if (bounds && bounds.bottom > 0 && bounds.top < window.parent.innerHeight) return;
       const latest = candidates[0].row;
       const kind = labelFor(latest);
       const meta = root.querySelector("[data-news-meta]");
@@ -325,7 +328,8 @@ def inject_live_home_update() -> None:
       const published = new Date(candidates[0].time).toLocaleDateString("en-GB", {
         day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Stockholm"
       });
-      meta.textContent = kind.label + " · " + published;
+      meta.textContent = (candidates[0].revised ? "Updated " + kind.label.toLowerCase() :
+                          kind.label) + " · " + published;
       title.textContent = latest.title;
       summary.textContent = latest.subtitle || latest.excerpt || "Newly published on the portfolio.";
       const params = new URLSearchParams({page: kind.page, article: latest.slug});
@@ -334,6 +338,7 @@ def inject_live_home_update() -> None:
       link.setAttribute("data-hq-content-slug", latest.slug);
       link.setAttribute("data-hq-content-type", kind.page === "briefing" ? "briefing" :
         kind.label === "Weekly AI" ? "weekly_ai" : "article");
+      displayedAt = candidates[0].time;
     } catch (_error) {
       // Keep the valid first frame; never hold up Home or show a broken feed.
     } finally {
@@ -344,7 +349,7 @@ def inject_live_home_update() -> None:
 
   refresh();
   const interval = setInterval(refresh, 120000);
-  // Returning to an open tab should reveal newly published briefings promptly.
+  // Returning to an open tab also checks revisions to published content.
   doc.addEventListener("visibilitychange", () => {
     if (doc.visibilityState === "visible") refresh();
   });

@@ -52,11 +52,11 @@ def render_content_demand(window: str) -> None:
     """Two understated, actionable lists; never misleading zero-engagement cards."""
     try:
         report = content_load_report(window)
-        count = _number(report, "measured_loads")
+        count = _number(report, "portfolio_loads")
         if count == 0:
             st.caption(
                 "Publication-level and tagged-source counts will appear when the "
-                "new server-side counter receives its first opens. Older page-only "
+                "new content counter receives its first portfolio or article opens. Older page-only "
                 "counts cannot be reconstructed at article level."
             )
             return
@@ -129,7 +129,7 @@ def render_content_demand(window: str) -> None:
 </style>
 <section class="pd-wrap" aria-label="Content demand and acquisition channels">
  <div class="pd-header"><strong>Which content is being opened, and where requests come from</strong>
- <small>{editorial} publication opens · {recorded} tagged-or-untagged loads in this counter</small></div>
+ <small>{editorial} publication opens · {recorded} tagged-or-untagged loads excluding Reader workspace in this counter</small></div>
  <div class="pd-cols">
   <div class="pd-panel"><h3>Most-opened publications</h3>{''.join(publication_items)}</div>
   <div class="pd-panel"><h3>Acquisition channels</h3>{''.join(channel_items)}</div>

@@ -465,57 +465,58 @@ MARKET_SIGNALS_LANDING_HTML = """
   </div>
 </div></section>
 
+
 <section class="ms-section ms-section--white ms-section--previews" id="ms-report-previews" aria-labelledby="ms-preview-title"><div class="container">
   <div class="ms-section-head">
-    <p class="ms-overline">Inside the reports / November 2026</p>
-    <h2 id="ms-preview-title">See the research before you open the full edition.</h2>
-    <p class="ms-section-intro">These are full-page captures of four pages from the November PDF publications, shown without cropped text or recreated graphics. Open a preview at its original resolution, or choose an edition to read the complete report.</p>
+    <p class="ms-overline">Inside the November research update / Actual PDF pages</p>
+    <h2 id="ms-preview-title">Read a few pages before choosing the full report.</h2>
+    <p class="ms-section-intro">Two complete pages from each 21 November edition, captured directly from the A4 PDFs. These are not reconstructed graphics or promotional mock-ups. Open a page in full resolution, or register to read and download the complete report.</p>
   </div>
   <div class="ms-preview-collection" aria-label="Original PDF page samples">
     <article class="ms-preview-row" aria-labelledby="ms-preview-executive-title">
       <div class="ms-preview-copy">
-        <span class="ms-label">01 / Executive Edition 2.0.2</span>
-        <h3 id="ms-preview-executive-title">The evidence behind better AI investment decisions.</h3>
-        <p>Two pages from the executive publication: why AI adoption cannot establish business return, and what the capability gap means for management decisions.</p>
-        <p class="ms-preview-source">Source pages 05 and 08 · 23-page A4 PDF · November 2026</p>
+        <span class="ms-label">01 / Executive Edition 2.1.0</span>
+        <h3 id="ms-preview-executive-title">AI investment and the decisions behind workforce change.</h3>
+        <p>Unionen's autumn workplace findings add a new perspective on employment and professional capabilities. The companion page examines why rising AI use does not by itself justify a business investment.</p>
+        <p class="ms-preview-source">Source pages 06 and 03 · 30-page A4 PDF · 21 November 2026</p>
         <a class="ms-preview-cta" href="?page=advisory-access&amp;view=market-signals&amp;perspective=executive" target="_self" data-hq-event="market_signals_pdf_preview_executive">Read the complete Executive Edition</a>
       </div>
       <figure class="ms-preview-page">
-        <a href="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@8a2e0c2adb4ce204029fb453830239d731bd4ef3/static/market-signals/previews/executive-ai-investment.png" target="_blank" rel="noopener noreferrer" aria-label="Open Executive Edition page 5 at full resolution">
-          <img src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@8a2e0c2adb4ce204029fb453830239d731bd4ef3/static/market-signals/previews/executive-ai-investment.png" width="1102" height="1558" loading="lazy" decoding="async" alt="Unaltered Executive Edition PDF page 5: AI adoption is not a business case for the next investment.">
+        <a href="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@e60b44bdb055d703960043b7b7c00f0408ef54fa/static/market-signals/previews/unionen-2026-11/executive-unionen-workforce.png" target="_blank" rel="noopener noreferrer" aria-label="Open Executive Edition page 6 at full resolution">
+          <img src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@e60b44bdb055d703960043b7b7c00f0408ef54fa/static/market-signals/previews/unionen-2026-11/executive-unionen-workforce.png" width="1102" height="1558" loading="lazy" decoding="async" alt="Unaltered Executive Edition PDF page 6: Unionen autumn workforce findings, business conditions and reported professional staffing changes.">
         </a>
-        <figcaption>Page 05 <span>AI investment and business priorities</span></figcaption>
+        <figcaption>Page 06 <span>Unionen: workforce and AI research</span></figcaption>
       </figure>
       <figure class="ms-preview-page">
-        <a href="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@8a2e0c2adb4ce204029fb453830239d731bd4ef3/static/market-signals/previews/executive-capability.png" target="_blank" rel="noopener noreferrer" aria-label="Open Executive Edition page 8 at full resolution">
-          <img src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@8a2e0c2adb4ce204029fb453830239d731bd4ef3/static/market-signals/previews/executive-capability.png" width="1102" height="1558" loading="lazy" decoding="async" alt="Unaltered Executive Edition PDF page 8: The capability gap is a management question before it is a technology question.">
+        <a href="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@e60b44bdb055d703960043b7b7c00f0408ef54fa/static/market-signals/previews/unionen-2026-11/executive-ai-investment.png" target="_blank" rel="noopener noreferrer" aria-label="Open Executive Edition page 3 at full resolution">
+          <img src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@e60b44bdb055d703960043b7b7c00f0408ef54fa/static/market-signals/previews/unionen-2026-11/executive-ai-investment.png" width="1102" height="1558" loading="lazy" decoding="async" alt="Unaltered Executive Edition PDF page 3: AI adoption is not a business case for the next investment.">
         </a>
-        <figcaption>Page 08 <span>Data and AI operating capabilities</span></figcaption>
+        <figcaption>Page 03 <span>Business value and investment priorities</span></figcaption>
       </figure>
     </article>
     <article class="ms-preview-row ms-preview-row--jobseeker" aria-labelledby="ms-preview-jobseeker-title">
       <div class="ms-preview-copy">
-        <span class="ms-label">02 / Jobseeker Edition 1.1</span>
-        <h3 id="ms-preview-jobseeker-title">Understand the market. Make a stronger career choice.</h3>
-        <p>One page interprets AI adoption and capability research; the other turns market evidence into a practical four-week plan. Both use the same approved November evidence.</p>
-        <p class="ms-preview-source">Source pages 04 and 11 · 21-page A4 PDF · November 2026</p>
+        <span class="ms-label">02 / Jobseeker Edition 1.2</span>
+        <h3 id="ms-preview-jobseeker-title">What AI changes at work—and how to respond in your career.</h3>
+        <p>See the newly added evidence on professional staffing and AI responsibilities, then the four-week plan that helps readers examine opportunities, present their experience and adapt their search.</p>
+        <p class="ms-preview-source">Source pages 05 and 12 · 25-page A4 PDF · 21 November 2026</p>
         <a class="ms-preview-cta" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_pdf_preview_jobseeker">Read the complete Jobseeker Edition</a>
       </div>
       <figure class="ms-preview-page">
-        <a href="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@8a2e0c2adb4ce204029fb453830239d731bd4ef3/static/market-signals/previews/jobseeker-adoption-capabilities.png" target="_blank" rel="noopener noreferrer" aria-label="Open Jobseeker Edition page 4 at full resolution">
-          <img src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@8a2e0c2adb4ce204029fb453830239d731bd4ef3/static/market-signals/previews/jobseeker-adoption-capabilities.png" width="1102" height="1558" loading="lazy" decoding="async" alt="Unaltered Jobseeker Edition PDF page 4: enterprise AI adoption, internal analytics capability and barriers to AI adoption.">
+        <a href="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@e60b44bdb055d703960043b7b7c00f0408ef54fa/static/market-signals/previews/unionen-2026-11/jobseeker-unionen-workforce.png" target="_blank" rel="noopener noreferrer" aria-label="Open Jobseeker Edition page 5 at full resolution">
+          <img src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@e60b44bdb055d703960043b7b7c00f0408ef54fa/static/market-signals/previews/unionen-2026-11/jobseeker-unionen-workforce.png" width="1102" height="1558" loading="lazy" decoding="async" alt="Unaltered Jobseeker Edition PDF page 5: Unionen workforce survey evidence and implications for professional careers.">
         </a>
-        <figcaption>Page 04 <span>AI adoption and professional capabilities</span></figcaption>
+        <figcaption>Page 05 <span>Professional work and AI</span></figcaption>
       </figure>
       <figure class="ms-preview-page">
-        <a href="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@8a2e0c2adb4ce204029fb453830239d731bd4ef3/static/market-signals/previews/jobseeker-four-week-plan.png" target="_blank" rel="noopener noreferrer" aria-label="Open Jobseeker Edition page 11 at full resolution">
-          <img src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@8a2e0c2adb4ce204029fb453830239d731bd4ef3/static/market-signals/previews/jobseeker-four-week-plan.png" width="1102" height="1558" loading="lazy" decoding="async" alt="Unaltered Jobseeker Edition PDF page 11: four-week career search plan, steps and evidence-based review.">
+        <a href="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@e60b44bdb055d703960043b7b7c00f0408ef54fa/static/market-signals/previews/unionen-2026-11/jobseeker-four-week-plan.png" target="_blank" rel="noopener noreferrer" aria-label="Open Jobseeker Edition page 12 at full resolution">
+          <img src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@e60b44bdb055d703960043b7b7c00f0408ef54fa/static/market-signals/previews/unionen-2026-11/jobseeker-four-week-plan.png" width="1102" height="1558" loading="lazy" decoding="async" alt="Unaltered Jobseeker Edition PDF page 12: four-week career search plan, steps and evidence-based review.">
         </a>
-        <figcaption>Page 11 <span>A practical four-week job-search plan</span></figcaption>
+        <figcaption>Page 12 <span>A practical four-week job-search plan</span></figcaption>
       </figure>
     </article>
   </div>
-  <p class="ms-preview-method">The page images are direct PDF renders. The reports were generated from the current publication code and the verified November evidence fixture; the live member downloads draw their observations from the signed-off Supabase edition. Figures, source periods and scope limits remain visible within the original pages.</p>
+  <p class="ms-preview-method">Uncropped page images from the release PDF generators and the version-controlled 53-observation source snapshot. The data include 43 retained observations plus 10 selected Unionen measures. Source periods, survey populations and research limitations are part of the publications. Earlier report editions remain archived.</p>
 </div></section>
 
 <section class="ms-section ms-section--white" id="ms-careers" aria-labelledby="ms-careers-title"><div class="container">

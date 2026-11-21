@@ -1,9 +1,11 @@
-"""Regression checks for source-locked Article video placement (no network needed)."""
+"""Regression checks for source-locked Article video placement (unittest discovery)."""
 from __future__ import annotations
 
 from hashlib import sha256
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import TestCase
+from unittest.mock import patch
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -15,7 +17,7 @@ def _hash(value: str) -> str:
 
 
 def _article(**changes):
-    base = dict(
+    values = dict(
         slug="enterprise-ai-explained-beyond-models-and-agents",
         kind="Article",
         status="published",
@@ -25,14 +27,14 @@ def _article(**changes):
         content_html="<p>Private main text (must not appear in video markup)</p>",
         published_at="2026-11-21T13:31:17.636324+00:00",
     )
-    base.update(changes)
-    return SimpleNamespace(**base)
+    values.update(changes)
+    return SimpleNamespace(**values)
 
 
 def _manifest(article, **changes):
     prefix = "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/"
     slug = article.slug
-    base = {
+    values = {
         "slug": slug,
         "state": "published_verified",
         "owner_approved": True,
@@ -42,64 +44,66 @@ def _manifest(article, **changes):
         "title_sha256": _hash(article.title),
         "subtitle_sha256": _hash(article.subtitle),
         "excerpt_sha256": _hash(article.excerpt),
-        "video": {"url": prefix+"portfolio-public-videos/thinking-articles/"+slug+"/episode/web-sha.mp4",
-                  "sha256": "a"*64, "bytes": 3383041, "mime": "video/mp4"},
-        "poster": {"url": prefix+"careersite-article-images/thinking-articles/"+slug+"/episode/poster-sha.png",
-                   "sha256": "b"*64, "mime": "image/png"},
+        "video": {
+            "url": prefix + "portfolio-public-videos/thinking-articles/" + slug + "/episode/web-sha.mp4",
+            "sha256": "a" * 64,
+            "bytes": 3383041,
+            "mime": "video/mp4",
+        },
+        "poster": {
+            "url": prefix + "careersite-article-images/thinking-articles/" + slug + "/episode/poster-sha.png",
+            "sha256": "b" * 64,
+            "mime": "image/png",
+        },
     }
-    base.update(changes)
-    return base
+    values.update(changes)
+    return values
 
 
-def test_active_manifest_renders_one_playable_16x9_player(monkeypatch):
-    article = _article()
-    monkeypatch.setattr(video, "_manifest", lambda slug: _manifest(article))
-    markup = video.render_article_video(article)
-    assert markup.count("<video ") == 1
-    assert 'controls playsinline preload="metadata"' in markup
-    assert 'width="1920" height="1080"' in markup
-    assert 'aspect-ratio:16/9' in markup
-    assert 'object-fit:contain' in markup
-    assert "Private main text" not in markup
+class ArticleReaderVideoTests(TestCase):
+    def test_active_manifest_renders_one_playable_16x9_player(self):
+        article = _article()
+        with patch.object(video, "_manifest", return_value=_manifest(article)):
+            markup = video.render_article_video(article)
+        self.assertEqual(markup.count("<video "), 1)
+        self.assertIn('controls playsinline preload="metadata"', markup)
+        self.assertIn('width="1920" height="1080"', markup)
+        self.assertIn('aspect-ratio:16/9', markup)
+        self.assertIn('object-fit:contain', markup)
+        self.assertNotIn("Private main text", markup)
 
+    def test_fail_closed_if_not_uploaded_or_not_verified(self):
+        article = _article()
+        for bad in ({"state": "awaiting_media_verification"}, {"media_verified": False},
+                    {"owner_approved": False}):
+            with self.subTest(bad=bad), patch.object(video, "_manifest", return_value=_manifest(article, **bad)):
+                self.assertEqual(video.render_article_video(article), "")
 
-def test_fail_closed_if_not_uploaded_or_not_verified(monkeypatch):
-    article = _article()
-    for bad in ({"state": "awaiting_media_verification"}, {"media_verified": False},
-                {"owner_approved": False}):
-        monkeypatch.setattr(video, "_manifest", lambda slug, bad=bad: _manifest(article, **bad))
-        assert video.render_article_video(article) == ""
+    def test_material_source_revision_invalidates_video(self):
+        article = _article()
+        with patch.object(video, "_manifest", return_value=_manifest(article)):
+            self.assertEqual(video.render_article_video(_article(content_html="<p>Later revised body</p>")), "")
+            self.assertEqual(video.render_article_video(_article(excerpt="Changed summary")), "")
+            self.assertEqual(video.render_article_video(_article(published_at="2026-11-22T13:31:17+00:00")), "")
 
+    def test_never_render_briefing_or_weekly(self):
+        article = _article()
+        with patch.object(video, "_manifest", return_value=_manifest(article)):
+            self.assertEqual(video.render_article_video(_article(kind="Executive Briefing")), "")
+            self.assertEqual(video.render_article_video(_article(kind="Weekly Brief")), "")
+            self.assertEqual(video.render_article_video(_article(status="draft")), "")
 
-def test_material_source_revision_invalidates_video(monkeypatch):
-    article = _article()
-    manifest = _manifest(article)
-    monkeypatch.setattr(video, "_manifest", lambda slug: manifest)
-    assert video.render_article_video(_article(content_html="<p>Later rewritten full article</p>")) == ""
-    assert video.render_article_video(_article(excerpt="Changed summary")) == ""
-    assert video.render_article_video(_article(published_at="2026-11-22T13:31:17+00:00")) == ""
+    def test_rejects_unapproved_media_host(self):
+        article = _article()
+        manifest = _manifest(article)
+        manifest["video"]["url"] = "https://example.invalid/file.mp4"
+        with patch.object(video, "_manifest", return_value=manifest):
+            self.assertEqual(video.render_article_video(article), "")
 
-
-def test_never_render_briefing_or_weekly(monkeypatch):
-    article = _article()
-    monkeypatch.setattr(video, "_manifest", lambda slug: _manifest(article))
-    assert video.render_article_video(_article(kind="Executive Briefing")) == ""
-    assert video.render_article_video(_article(kind="Weekly Brief")) == ""
-    assert video.render_article_video(_article(status="draft")) == ""
-
-
-def test_rejects_unapproved_media_host(monkeypatch):
-    article = _article()
-    manifest = _manifest(article)
-    manifest["video"]["url"] = "https://example.invalid/file.mp4"
-    monkeypatch.setattr(video, "_manifest", lambda slug: manifest)
-    assert video.render_article_video(article) == ""
-
-
-def test_public_preview_and_full_article_have_distinct_safe_hooks():
-    root = Path(__file__).resolve().parents[1] / "src"
-    preview = (root/"article_reader_preview.py").read_text(encoding="utf-8")
-    full = (root/"site_cms.py").read_text(encoding="utf-8")
-    assert preview.index("+ render_article_video(article)") < preview.index("+ reader_access_invitation(")
-    renderer = full[full.index("def render_cms_article("):]
-    assert renderer.index("{render_article_video(article)}") < renderer.index('{article.content_html}')
+    def test_public_preview_and_full_article_have_distinct_safe_hooks(self):
+        root = Path(__file__).resolve().parents[1] / "src"
+        preview = (root / "article_reader_preview.py").read_text(encoding="utf-8")
+        full = (root / "site_cms.py").read_text(encoding="utf-8")
+        self.assertLess(preview.index("+ render_article_video(article)"), preview.index("+ reader_access_invitation("))
+        renderer = full[full.index("def render_cms_article("):]
+        self.assertLess(renderer.index("{render_article_video(article)}"), renderer.index("{article.content_html}"))

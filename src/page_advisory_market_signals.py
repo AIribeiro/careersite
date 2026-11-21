@@ -373,6 +373,9 @@ html[data-jr-masked-mobile="true"] .site.ms-landing .ms-video-figure{max-width:2
 .site.ms-landing .ms-section--unionen .ms-button--outline:hover{color:#fff!important;background:#193449}
 @media(max-width:1080px){.site.ms-landing .ms-unionen-panel{grid-template-columns:repeat(2,minmax(0,1fr))}.site.ms-landing .ms-unionen-employment{grid-column:1/-1}}
 @media(max-width:660px){.site.ms-landing .ms-unionen-panel,.site.ms-landing .ms-unionen-perspectives{grid-template-columns:minmax(0,1fr)}.site.ms-landing .ms-unionen-employment{grid-column:auto}.site.ms-landing .ms-unionen-track{grid-template-columns:minmax(0,115px) minmax(0,1fr) 32px;gap:8px;font-size:11px}}
+.site.ms-landing .ms-film-archive{margin-top:15px;border-top:1px solid #435D6A;padding-top:12px;color:#D6E1E9;font-size:12px;line-height:1.6}
+.site.ms-landing .ms-film-archive summary{cursor:pointer;list-style-position:inside;color:#C7D9E4}
+.site.ms-landing .ms-film-archive a{color:#E5B998}
 </style>
 """
 
@@ -607,19 +610,22 @@ MARKET_SIGNALS_LANDING_HTML = """
 <section class="ms-section ms-section--video" id="ms-video" aria-labelledby="ms-video-title"><div class="container">
  <div class="ms-video-layout">
   <div class="ms-video-copy">
-   <p class="ms-overline">Optional video / November 2026</p>
-   <h2 id="ms-video-title">A short look at the market evidence.</h2>
-   <p>This 58-second briefing introduces figures on AI adoption, recruitment and consulting activity in Sweden. It is a starting point, not a substitute for the complete research.</p>
-   <p><strong>For business leaders:</strong> consider investment, workforce and capability decisions. <strong>Looking for work?</strong> The Jobseeker Edition helps you explore roles, show your skills and plan your search using the same evidence.</p>
-   <a class="ms-film-link" href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_external">Watch on HeyGen if the video is unavailable</a>
-   <p class="ms-film-meta">58 seconds · English narration and captions · Plays only when selected</p>
+   <p class="ms-overline">Video briefing / 21 November 2026</p>
+   <h2 id="ms-video-title">Business optimism, cautious hiring, and the work AI is changing.</h2>
+   <p>This new 96-second video explains the latest Unionen workforce findings and the decisions behind the Swedish AI &amp; Data Market Review. It shows why a stronger business outlook, AI adoption and actual professional recruitment need to be examined separately.</p>
+   <p><strong>For business leaders:</strong> compare hiring, skills, training and external expertise against the work that needs to change. <strong>For job seekers:</strong> follow real employer needs and the skills required within existing careers, not just AI job titles.</p>
+   <a class="ms-film-link" href="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_direct">Open the November research video directly</a>
+   <p class="ms-film-meta">1 minute 36 seconds · Narration by Jair Ribeiro (AI voice) · English captions · Playback on demand</p>
+   <details class="ms-film-archive"><summary>Previous 58-second Market Signals introduction</summary>
+     <p>The earlier November 2026 overview remains available as a historical introduction. <a href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer" data-hq-event="market_signals_video_archive">Watch the previous edition</a>.</p>
+   </details>
   </div>
   <figure class="ms-video-figure">
-   <video class="ms-video-player" controls playsinline webkit-playsinline preload="metadata" poster="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f2223462c7bd42f77ccfa73911d83/static/market-signals/market-review-poster.jpg" aria-label="Swedish AI and Data Market Review, 58-second research explainer">
-    <source src="https://cdn.jsdelivr.net/gh/AIribeiro/careersite@2093b70e912f2223462c7bd42f77ccfa73911d83/static/market-signals/market-review-november-2026.mp4" type="video/mp4">
-    <a href="https://app.heygen.com/share/55e1d1dff94641d2a3f6e915cef8fd3d" target="_blank" rel="noopener noreferrer">Watch the research video on HeyGen</a>.
+   <video class="ms-video-player" controls playsinline webkit-playsinline preload="metadata" poster="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/market-signals/unionen-2026-11/poster-7fdbd6cedc8a.jpg" aria-label="Swedish AI and Data Market Review, Unionen autumn 2026, 96-second research video">
+    <source src="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4" type="video/mp4">
+    <a href="https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/market-signals/unionen-2026-11/website-eafa2f511a32.mp4" target="_blank" rel="noopener noreferrer">Open the November research video</a>.
    </video>
-   <figcaption>58-second evidence overview</figcaption>
+   <figcaption>21 November 2026 · Unionen research update · Executive Edition 2.1.0 and Jobseeker Edition 1.2</figcaption>
   </figure>
  </div>
 </div></section>

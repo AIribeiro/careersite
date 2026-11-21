@@ -1272,6 +1272,91 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   .site .portfolio-next a.about-next-card{transition:none}
 }
 
+
+/* Speaking & Publications: keep all three real evidence records visible.
+   Publications and Recognition have three items, not a two-column orphan.
+   Equal media heights also prevent the tall magazine cover from making
+   adjacent cards appear empty on tablet. Do not crop the full magazine cover. */
+.site .presence-evidence-section{
+  padding-block:clamp(42px,5vw,66px);
+}
+.site .presence-evidence-section .head{margin-bottom:clamp(17px,2.5vw,26px)}
+.site .presence-evidence-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:stretch;
+  gap:clamp(12px,1.6vw,18px);
+}
+.site .presence-evidence-grid>.presence-card{
+  min-width:0;
+  min-height:0;
+  height:100%;
+}
+.site .presence-evidence-grid .presence-media,
+.site .presence-evidence-grid .presence-media.portrait-cover{
+  box-sizing:border-box;
+  height:clamp(185px,21vw,230px);
+  aspect-ratio:auto;
+}
+.site .presence-evidence-grid .presence-media.portrait-cover{
+  display:flex;
+  justify-content:center;
+  padding:8px;
+  background:#162c41;
+}
+.site .presence-evidence-grid .presence-media.portrait-cover img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+}
+.site .presence-evidence-grid .presence-body{
+  padding:clamp(16px,2vw,23px);
+}
+.site .presence-evidence-grid .presence-body h3{
+  margin:12px 0 8px;
+  font-size:clamp(21px,2.2vw,25px);
+}
+.site .presence-evidence-grid .presence-body p{
+  font-size:13px;
+  line-height:1.55;
+}
+/* At narrower tablet widths the third real item occupies the entire row.
+   A compact horizontal layout turns that space into useful content. */
+@media(min-width:701px) and (max-width:839px){
+  .site .presence-evidence-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .site .presence-evidence-grid>.presence-card:last-child{
+    grid-column:1/-1;
+    display:grid;
+    grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr);
+    align-items:stretch;
+  }
+  .site .presence-evidence-grid>.presence-card:last-child>.presence-media{
+    height:100%;
+    min-height:195px;
+    max-height:270px;
+    border-bottom:0;
+    border-right:1px solid var(--line);
+  }
+}
+@media(max-width:700px){
+  .site .presence-evidence-grid{
+    grid-template-columns:minmax(0,1fr);
+    gap:12px;
+  }
+  .site .presence-evidence-grid>.presence-card:last-child{
+    grid-column:auto;
+    display:flex;
+  }
+  .site .presence-evidence-grid .presence-media,
+  .site .presence-evidence-grid .presence-media.portrait-cover{
+    height:215px;
+  }
+  .site .presence-evidence-grid .presence-body{padding:18px}
+}
+
 /* End shared portfolio continuation footer. */
 
 /* Contact direct routes: avoid an orphan third card and unused grid cell.

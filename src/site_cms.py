@@ -1453,6 +1453,7 @@ def render_cms_article(article: CmsArticle) -> str:
             )
     from site_components import footer, nav, opportunity, journey_next
     from thinking_core import THINKING_CSS
+    from article_reader_video import render_article_video
 
     read_counts = _public_reads_or_none()
     read_metadata = article_read_metadata(article, read_counts)
@@ -1535,7 +1536,7 @@ def render_cms_article(article: CmsArticle) -> str:
             available = ()
         return insert_related_navigation(reader, article, available)
 
-    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{questions_styles}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="{briefing_back_href}" target="_self">{briefing_back_text}</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section><section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_safe_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
+    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{questions_styles}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="{briefing_back_href}" target="_self">{briefing_back_text}</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section>{render_article_video(article)}<section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_safe_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
 
 
 def select_auto_featured_article(

@@ -13,6 +13,7 @@ from briefing_reader_preview import PREVIEW_CSS, opening_paragraphs, next_editio
 from premium_article_editorial import public_intro_preview_paragraphs
 from site_components import footer, nav
 from reader_access_invitation import reader_access_invitation
+from article_reader_video import render_article_video
 from thinking_core import THINKING_CSS
 
 
@@ -78,6 +79,7 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         '<strong>Inside the complete article</strong>' + inside
         + '<p>Free registration gives you the complete article.</p>'
         '</aside></div>'
+        + render_article_video(article)
         + reader_access_invitation("article", destination,
             section="article-reader-free-access",
             register_event="article_unlock_register",

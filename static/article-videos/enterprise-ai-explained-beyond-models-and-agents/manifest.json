@@ -60,7 +60,7 @@
         "status": 206
       }
     ],
-    "transfer_endpoint_retired": false
+    "transfer_endpoint_retired": true
   },
   "player_heading": "Enterprise AI: Eight Capability Families Explained",
   "previous_release": {

@@ -181,7 +181,7 @@ def build_public_cv() -> bytes:
 
     section("Professional Summary", 3.25)
     body(
-        f"Across two Volvo Group roles in Poland and Sweden, led business-facing AI and analytics work spanning product development, use cases and adoption across {VOLVO_AI_INITIATIVES} initiatives, PoCs and projects. Led a working GenAI Customer Interview Analyzer prototype for transcription, translation and product feedback; the organization did not scale it. Supported Copilot and agent initiatives in {VOLVO_WORKFLOW_SCOPE}. In an explicit Director-level role at MSX International, established AI & Data CoE portfolio, governance and data foundations, including a {MSX_ROADMAP} maturity roadmap.",
+        f"Enterprise AI & Data leader with 20+ years in enterprise technology and 8+ years in AI, data and analytics leadership. Across two Volvo Group roles in Poland and Sweden, led business-facing AI product and adoption work spanning {VOLVO_AI_INITIATIVES} initiatives, PoCs and projects. In an explicit Director-level role at MSX International, consolidated 80+ AI opportunities and delivered CoE portfolio assessment, decision-rights and data-stewardship foundations. Connects senior business, Digital & IT and delivery teams around comparable investment choices, clear ownership and practical execution. Work includes a multilingual GenAI prototype, Copilot and agent initiatives across commercial operations.",
         size=8.2,
         line=4.15,
     )
@@ -206,8 +206,8 @@ def build_public_cv() -> bytes:
         MSX_PUBLIC_DATES,
         "Göteborg, Sweden",
         [
-            "Consolidated 80+ AI opportunities and developed Keep / Kill / Scale criteria, lifecycle stages and decision-rights materials to support portfolio review.",
-            f"Produced a seven-pillar AI and Data maturity assessment, stewardship foundations and a {MSX_ROADMAP} roadmap; these were delivered foundations, not a fully scaled CoE.",
+            "Consolidated 80+ AI opportunities and chose common Keep / Kill / Scale criteria, ownership requirements and lifecycle gates so business leaders could compare investment options and trade-offs.",
+            f"Delivered a seven-pillar AI & Data maturity assessment, data-stewardship foundations and a {MSX_ROADMAP} roadmap to guide ownership, readiness and next-stage priorities.",
         ],
         company_context=MSX_CONTEXT,
         mandate="Continue cross-functional enterprise AI leadership in an explicit Director role, establishing AI & Data CoE portfolio governance, data accountability and adoption foundations.",
@@ -219,10 +219,10 @@ def build_public_cv() -> bytes:
         VOLVO_CURRENT_DATES,
         "Göteborg, Sweden",
         [
-            "Led development of a working GenAI Customer Interview Analyzer prototype to transcribe, translate and summarize interviews for product teams; enterprise rollout did not follow.",
-            f"Led business-facing Microsoft 365 Copilot, agent and AI initiatives in {VOLVO_WORKFLOW_SCOPE} workflows, working with Digital & IT, legal and compliance stakeholders.",
-            "Designed practical AI learning for employees and supported adoption planning tied to business work; training volume was not treated as measured productivity.",
-            f"Across two Volvo AI roles, worked on {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects—not {VOLVO_AI_INITIATIVES} production deployments.",
+            "Led cross-functional development and testing of a working multilingual GenAI Customer Interview Analyzer, providing structured interview summaries and feedback for product-owner review.",
+            f"Led business requirements and stakeholder coordination for Microsoft 365 Copilot, agent and AI initiatives in {VOLVO_WORKFLOW_SCOPE} workflows with Digital & IT, legal and compliance teams.",
+            "Designed practical AI learning and adoption guidance linked to business workflows and responsible use, making employee capability relevant to everyday tasks.",
+            f"Across two Volvo AI roles, shaped business requirements and stakeholder work for {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects at varied stages.",
         ],
         mandate="Lead business-facing AI and analytics adoption across commercial operations, coordinating owners, Digital & IT and governance teams around practical use.",
     )

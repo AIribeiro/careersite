@@ -13,7 +13,7 @@ class HomeCaseOrderTests(unittest.TestCase):
         self.assertLess(home.index("{home_evidence()}"), home.index("{home_whats_new()}"))
         self.assertLess(evidence.index("Customer Interview Analyzer"),
                         evidence.index("80+ AI opportunities"))
-        self.assertIn("not scaled", evidence)
+        self.assertIn("did not proceed to a production rollout", evidence)
         self.assertNotIn("verified ROI", evidence.lower())
 
 

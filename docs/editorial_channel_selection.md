@@ -10,6 +10,18 @@ The **Executive AI Briefings** library is a distinct public editorial format:
 `https://jairribeiro-ai.streamlit.app/?page=briefings`
 (The URL supplied with `utm_source=chatgpt.com` is a referral-tagged example, **not** the canonical link to reuse in other channels.)
 
+## Executive voice and peer-level conversation — standing editorial rule
+
+**Owner direction, 22 November 2026. Applies to all first-party portfolio articles, Executive AI Briefings, LinkedIn newsletters/posts, social sharing, advisory explainers and new editorial copy.** Speak to experienced leaders as peers. Communicate substantive AI and Data leadership through useful choices, evidence, trade-offs, real operating mechanisms and genuine curiosity—not by announcing superior expertise, giving lectures or implying that readers have failed to grasp something obvious. Offer clear considered judgments as context-dependent perspectives, not universal prescriptions.
+
+- **Invite dialogue, do not instruct from above.** Prefer a grounded observation, an explainable example, a measured proposal and a real question readers can apply to their setting. Where appropriate use "my view", "one approach I find useful" or "I would want to understand", without mechanically hedging each sentence.
+- **Respect existing expertise.** Acknowledge reasonable alternatives, different operating conditions, established processes and experienced practitioners. No straw-man "most leaders don't understand" claims, scolding, invented consensus or inflated certainty.
+- **Keep decisions useful and accountable.** Naming an owner, evidence requirement, stop condition or consequence is still important; soften the delivery, not the reasoning or factual standard. Avoid turning every piece into a checklist, rulebook or universal framework.
+- **Show authentic leadership by the quality of thought.** Use supported first-person experience and ownership where relevant; avoid self-praise, made-up incidents or measurable outcomes. Keep cohesive, naturally developed paragraphs and a calm professional register.
+- **Before release, perform a peer-respect check.** Would a seasoned executive feel their experience was respected, learn something applicable and have room to disagree? Rewrite preachy, overconfident, simplistic or formulaic passages while preserving accuracy and the practical next step.
+
+This rule governs voice across channels; each channel's evidence, originality, confidentiality, rights and release safeguards still apply. The separate Content Humanizer voice standard may add finer guidance.
+
 ## Choose the medium *after* choosing the reader's problem
 
 | The reader needs… | Primary treatment | Selection test |

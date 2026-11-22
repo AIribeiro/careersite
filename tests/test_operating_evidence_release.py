@@ -51,7 +51,7 @@ def test_home_keeps_four_bounded_evidence_cards_and_no_new_section():
     assert home.count('class="card"') == 4
     assert home.count('id="leadership-in-practice"') == 1
     assert home.count("<details") == 0
-    assert "not scaled" in home
+    assert "working multilingual GenAI prototype" in home
     assert 'href="?page=impact#customer-interview-analyzer"' in home
 
 
@@ -81,15 +81,15 @@ def test_recruiter_evidence_has_auditable_maturity_and_anonymization():
     page = impact_evidence()
     assert "working GenAI prototype" in page
     assert "transcribed and translated" in page
-    assert "not rolled out at scale" in page
+    assert "did not proceed to a production rollout" in page
     assert "80+ AI opportunities" in page
     assert "100+ AI learning sessions" in page
-    assert "Power BI Premium capacity governance" in page
-    assert "Illustrative decision logic—not an actual disclosed employer decision" in page
-    assert "Illustrative request assessment—not an actual disclosed employer event" in page
-    assert "No production deployment" in page
-    assert "No specific approval, cancellation" in page
-    assert "Training reach is not equated" in page
+    assert "Power BI Premium capacity" in page
+    assert "<strong>My decision.</strong>" in page
+    assert "Illustrative request example:" in page
+    assert "The organization did not proceed to a production rollout" in page
+    assert "Funding and execution decisions remained with the respective business owners." in page
+    assert "longer-term behavior change would require separate measurement" in page
     for employer in ("Volvo Group", "Volvo Trucks", "MSX International", "Kimberly-Clark"):
         assert employer not in page
     for unverified in ("ROI of", "saved millions", "reduced costs by", "rolled out to all"):

@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "update:0fc94f239a6abedfbdbf6e432f74952a3c3daccc",
+      "type": "Portfolio updated",
+      "title": "Latest portfolio improvements",
+      "description": "Updates to the portfolio are available across its pages and services. Explore the current experience.",
+      "date": "2026-11-22T10:38:09+01:00",
+      "href": "?page=home",
+      "cta": "Explore the portfolio"
+    },
+    {
       "key": "update:0ce9b37a7e14066f0501a0435fb2c41ea2c1b3a4",
       "type": "Page updated",
       "title": "AI Leadership",

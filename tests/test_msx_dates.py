@@ -36,6 +36,6 @@ def test_volvo_operational_work_precedes_director_foundations() -> None:
     assert "MSX International" in impact
     assert "MSX_PUBLIC_DATES" in impact
     assert "explicit Director-level role at MSX International" in cv
-    assert "did not scale it" in cv
-    assert "was not rolled out at scale" in cases
-    assert "delivered foundations" in impact or "delivered foundations" in cases
+    assert "working multilingual GenAI Customer Interview Analyzer" in cv
+    assert "did not proceed to a production rollout" in cases
+    assert "portfolio decision criteria" in impact or "portfolio review" in cases

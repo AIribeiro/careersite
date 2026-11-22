@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "slug": "when-the-business-changes-who-updates-the-ai",
+  "revision": "v2",
+  "article_fingerprint": "c2e820d48de20e7e2ba9bcef290d686a5f1f7e56e846c593d0d80cb4b89c88d3",
+  "heading": "When the Business Changes, Who Updates the AI?",
+  "deck": "Keeping AI-supported decisions current when policies, definitions and everyday work change.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "f6b7a7951753ff21fc154517b2f87abf7ede3dea6bb38904366668cb2948bb5d",
+    "width": 1600,
+    "height": 960
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "caef13058f4e207a152ff54967788b5f13ef77cc55effbbbaf5f0a35debeb94a",
+    "width": 930,
+    "height": 1750
+  },
+  "pdf": {
+    "file": "infographic_A4.pdf",
+    "sha256": "9b08482e95a4fe3237afddd658f5ce14aebbfe03904a1ef5a79561296b39f7bb",
+    "pages": 1
+  }
+}

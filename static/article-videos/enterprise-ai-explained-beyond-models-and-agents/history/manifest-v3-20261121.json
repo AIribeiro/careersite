@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "slug": "enterprise-ai-explained-beyond-models-and-agents",
+  "episode_id": "enterprise_ai_explained_20261121_v1",
+  "version": "premium_light_redesign_v3",
+  "state": "published_verified",
+  "owner_approved": true,
+  "media_verified": true,
+  "source_sha256": "370e379fd5566ea1d61d725477c44f3b55142e769b76a7b9b2446a3935b6abd5",
+  "source_sha256_convention": "SHA256 canonical JSON (content_html, excerpt, kind, published_at::text, slug, subtitle, title) as recorded at Gate A; code additionally checks material field hashes",
+  "content_sha256": "829203a45f24bd563de796ec4da8a321b4ab4e00d5ff273164ae912473fb4023",
+  "title_sha256": "588c7697e11845aa4784c5960f65c94320a9150c0ed3d29393669d8be7999cf7",
+  "subtitle_sha256": "2057d63db1576d98f8b72d699f2378259c20c9372134e99bdcb72602d4e17ccc",
+  "excerpt_sha256": "dd1ea743525a720802528ea2d8ba51ef80a2f41bf13990c8e60607d4281a9a33",
+  "published_at": "2026-11-21T13:31:17.636324+00:00",
+  "script_sha256": "faae8be109a7997d72981aa6878d1d743e41b56f104600367cb66f5665bfaeb2",
+  "audio_sha256": "49ba1978e60183dc3b775c1eac1517d5f89588b1944cb44aff2f73acc0601d51",
+  "video_title": "Enterprise AI Explained — narrated by Jair Ribeiro",
+  "video": {
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_explained_20261121_v1/web-80f80916ff5f.mp4",
+    "sha256": "80f80916ff5f676c2193051e0f9f5ac1eaa8e7018f941bf9d55ed012f0fa95e8",
+    "bytes": 3383041,
+    "mime": "video/mp4",
+    "duration_seconds": 97.097007
+  },
+  "poster": {
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_explained_20261121_v1/poster-0f077b5f1f8e.png",
+    "sha256": "0f077b5f1f8ee7660aae91db120e01a4461b9127d9d38bbeab798efb29c737a6",
+    "bytes": 115329,
+    "mime": "image/png"
+  },
+  "release_note": "Approved V3 media uploaded, SHA-256 matched, anonymous HEAD/full GET/range 206 verified; pending website release tests and merge.",
+  "media_verification": {
+    "method": "hash-checked single-use Supabase Edge transfer",
+    "verified_at": "2026-11-21T19:25:20.381Z",
+    "original_bytes_video": 3383041,
+    "original_bytes_poster": 115329,
+    "head_video_status": 200,
+    "head_poster_status": 200,
+    "full_get_sha256_match": true,
+    "byte_ranges": [
+      {
+        "start": 0,
+        "end": 4095,
+        "status": 206
+      },
+      {
+        "start": 1691520,
+        "end": 1695615,
+        "status": 206
+      },
+      {
+        "start": 3378945,
+        "end": 3383040,
+        "status": 206
+      }
+    ],
+    "transfer_endpoint_retired": true
+  }
+}

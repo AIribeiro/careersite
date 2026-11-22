@@ -72,6 +72,16 @@ class ArticleReaderVideoTests(TestCase):
         self.assertIn('object-fit:contain', markup)
         self.assertNotIn("Private main text", markup)
 
+    def test_replacement_heading_uses_manifest_and_escapes_html(self):
+        article = _article()
+        heading = "Eight Capability Families <Explained>"
+        manifest = _manifest(article, player_heading=heading)
+        with patch.object(video, "_manifest", return_value=manifest):
+            markup = video.render_article_video(article)
+        self.assertIn("Eight Capability Families &lt;Explained&gt;", markup)
+        self.assertNotIn("<Explained>", markup)
+        self.assertIn('id="article-video-heading"', markup)
+
     def test_fail_closed_if_not_uploaded_or_not_verified(self):
         article = _article()
         for bad in ({"state": "awaiting_media_verification"}, {"media_verified": False},

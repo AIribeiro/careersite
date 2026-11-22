@@ -113,7 +113,7 @@ def render_article_video(article) -> str:
         + '<section class="article-video-feature" data-analytics-section="article-video-explainer">'
         + '<div class="article-video-container">'
         + '<p class="article-video-kicker">Watch the article explained</p>'
-        + '<h2 id="article-video-heading">From AI demonstration to dependable business work</h2>'
+        + '<h2 id="article-video-heading">' + escape(str(manifest.get("player_heading") or "From AI demonstration to dependable business work")) + '</h2>'
         + '<div class="article-video-frame"><video controls playsinline preload="metadata" '
           'width="1920" height="1080" aria-label="' + label + '" '
           'poster="' + poster_url + '">'

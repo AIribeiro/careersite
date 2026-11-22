@@ -12,7 +12,7 @@ class ImpactCaseConsistencyTests(unittest.TestCase):
         self.assertIn('id="customer-interview-analyzer"', case)
         self.assertIn("two hours", case)
         self.assertIn("transcribed and translated", case)
-        self.assertIn("not rolled out at scale", case)
+        self.assertIn("did not proceed to a production rollout", case)
         for employer in ("Volvo Group", "MSX International", "Kimberly-Clark"):
             self.assertNotIn(employer, case)
         self.assertLess(case.index('id="customer-interview-analyzer"'), case.index("80+ AI opportunities"))
@@ -29,7 +29,7 @@ class ImpactCaseConsistencyTests(unittest.TestCase):
                 self.assertIn(phrase, impact)
         self.assertIn('{impact_evidence()}', impact)
         self.assertIn('{portfolio_next_navigation("impact")}', impact)
-        self.assertIn("100+ AI learning sessions", impact)
+        self.assertIn("100+ practical AI learning sessions", impact)
         self.assertNotIn("100+ production deployments", impact)
 
 

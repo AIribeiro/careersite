@@ -116,7 +116,7 @@ class CareerFactConsistencyTests(unittest.TestCase):
         home_html = home()
         self.assertIn("Customer Interview Analyzer", home_html)
         self.assertNotIn("reducing cycle time and cost while increasing practical use", home_html)
-        self.assertIn("was not scaled", home_html)
+        self.assertIn("working multilingual GenAI prototype", home_html)
 
     def test_selected_credentials_exist_on_both_surfaces(self) -> None:
         from page_certifications import certifications

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "slug": "enterprise-ai-explained-beyond-models-and-agents",
+  "episode_id": "enterprise_ai_investment_20261123_v1",
+  "version": "investment_decision_premium_v3_20261123",
+  "state": "staged_awaiting_cms",
+  "owner_approved": true,
+  "media_verified": true,
+  "source_sha256": "e48d88d5e3a3882132b42029302d00a9233156327224eb707ac9779583168ab6",
+  "source_sha256_convention": "SHA256 UTF8 PostgreSQL jsonb_build_object with content_html,excerpt,kind,published_at,slug,subtitle,title",
+  "content_sha256": "cd92742ff9a9d1d0198f12e1b5e63a596cd58c67adaa7d9ddb1616c9874d72b6",
+  "title_sha256": "dc6d9b1d63f02bbc6899949148bafc5bb75bd4066094413f3a91425594e8a445",
+  "subtitle_sha256": "7d0690a2062d7e6be4144f1dc325d3c6a2ebd998c8623246d68600def15db6d9",
+  "excerpt_sha256": "01553b24e49bcfb0e694ee822c864d70f26d304dad597edb7089be2b588ef317",
+  "published_at": "2026-11-21T13:31:17.636324+00:00",
+  "script_sha256": "29e28d536ab290e594f24c13e943806cdad8bf887fcf2be3ded2ae6a570ab3ae",
+  "video_title": "What Should Enterprise AI Prove Before the Next Investment? · Jair Ribeiro",
+  "video": {
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_investment_20261123_v1/web-d15b86c15f32.mp4",
+    "sha256": "d15b86c15f32234c0830730ccf0fc6c57c0021c5325b53049f5bbed1e7f4a767",
+    "bytes": 2301450,
+    "mime": "video/mp4",
+    "duration_seconds": 107.30244897959183
+  },
+  "poster": {
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_investment_20261123_v1/poster-19cd2d06d507.png",
+    "sha256": "19cd2d06d507caca2f001ddea1758c21867debf80061c7436330ade19a7502d6",
+    "bytes": 72188,
+    "mime": "image/png"
+  },
+  "header": {
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_investment_20261123_v1/header-dc279160fb11.jpg",
+    "sha256": "dc279160fb11f52b518a2cfe0aa62e9d4db53e630ce16c0b907c76ff81a03801",
+    "bytes": 309914,
+    "mime": "image/jpeg"
+  },
+  "player_heading": "Before Enterprise AI Gets More Funding",
+  "release_note": "Owner-approved full replacement of published CMS article, cover and embedded web video on 23 Nov 2026. Article id, slug, original publication date and reader policy remain unchanged. Social video not published. Poster/media exact SHA-checked.",
+  "media_verification": {
+    "verified_at": "2026-11-23T11:17:47.772577+00:00",
+    "source": "GitHub Actions plus independent Supabase Edge full remote SHA, anonymous HEAD and 206 range",
+    "video_sha_match": true,
+    "poster_sha_match": true,
+    "header_sha_match": true
+  },
+  "previous_release": {
+    "episode_id": "enterprise_ai_eight_families_20261122_v2",
+    "video_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_eight_families_20261122_v2/web-5c54338a7210.mp4",
+    "video_sha256": "5c54338a7210ef29036a146b2b146bd25e1fd0915566bd1df46258091b5d393b",
+    "poster_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_eight_families_20261122_v2/poster-66a47b11e098.png",
+    "poster_sha256": "66a47b11e098c6ae3f9e7da368da5ab4e034553371499b59cb8b3e5170b1b77e",
+    "original_manifest_archived_at": "static/article-videos/enterprise-ai-explained-beyond-models-and-agents/archive/manifest-eight-families-20261122.json",
+    "immutable_objects_preserved": true
+  }
+}

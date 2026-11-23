@@ -643,6 +643,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       session_id: sessionId,
       entry_domain: entryContext.domain,
       entry_domain_evidence: entryContext.evidence,
+      referrer_host: referrerHost(),
       attribution_source: attribution.source,
       attribution_role: attribution.role,
       utm_source: attribution.utm_source,

@@ -116,7 +116,7 @@ setImmediate(async () => {
     assert.equal(elements['[data-news-link]'].attrs['data-hq-content-type'], 'market_signals');
     assert.equal(intervalMs, 120000);
     assert.equal(typeof listeners.visibilitychange, 'function');
-    process.stdout.write('Publication-only What's New guardrails and market release: passed\n');
+    process.stdout.write("Publication-only What's New guardrails and market release: passed\n");
   } catch (err) {
     console.error(err);
     process.exitCode = 1;

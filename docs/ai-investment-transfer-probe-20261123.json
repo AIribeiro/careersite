@@ -1,0 +1,11 @@
+{
+  "video": {
+    "error": "HTTP Error 403: Forbidden"
+  },
+  "header": {
+    "error": "HTTP Error 403: Forbidden"
+  },
+  "poster": {
+    "error": "HTTP Error 403: Forbidden"
+  }
+}

@@ -39,9 +39,24 @@ jobs:
           path.write_text(json.dumps(report,indent=2)+'\n')
           print(json.dumps(report,indent=2))
           PY
+      - name: Probe indirect media access through Supabase Edge
+        run: |
+          python - <<'PY'
+          import json,urllib.request
+          from pathlib import Path
+          endpoint='https://rnqweoxtynelfirffmlr.supabase.co/functions/v1/ai-investment-media-probe-20261123'
+          try:
+              req=urllib.request.Request(endpoint,headers={'User-Agent':'Mozilla/5.0'})
+              with urllib.request.urlopen(req,timeout=90) as r:
+                  outcome={'http_status':r.status,'response':r.read(3000).decode('utf-8','replace')}
+          except Exception as e: outcome={'error':str(e)[:250]}
+          path=Path('docs/ai-investment-edge-probe-20261123.json')
+          path.write_text(json.dumps(outcome,indent=2)+'\\n')
+          print(json.dumps(outcome,indent=2))
+          PY
       - name: Commit diagnostic only
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/ai-investment-transfer-probe-20261123.json
+          git add docs/ai-investment-transfer-probe-20261123.json docs/ai-investment-edge-probe-20261123.json
           if ! git diff --cached --quiet; then git commit -m 'Record media transfer preflight outcome [skip ci]'; git pull --rebase origin main; git push origin HEAD:main; fi

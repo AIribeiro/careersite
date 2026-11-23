@@ -50,7 +50,7 @@ globalThis.fetch = async (url, opts) => {
     const call = ++marketCalls;
     return {ok: true, async json() {
       return call > 2 ? {
-        type: 'Market review updated',
+        type: 'New market review',
         title: 'Swedish AI & Data Market Review',
         description: 'The latest Executive and Jobseeker Editions are available.',
         href: '?page=advisory-market-signals', date: marketAt
@@ -93,11 +93,14 @@ setImmediate(async () => {
     bounds.bottom = 1600;
     await refreshInterval();
     assert.match(requests[0].url, /status=eq\.published/);
-    assert.match(requests[0].url, /updated_at/);
-    assert.equal(elements['[data-news-meta]'].textContent.startsWith('Updated executive briefing · '), true);
+    assert.match(requests[0].url, /published_at=not.is.null/);
+    assert.doesNotMatch(requests[0].url, /updated_at/);
+    assert.equal(elements['[data-news-meta]'].textContent.startsWith('Executive briefing · '), true);
+    assert.equal(elements['[data-news-summary]'].textContent, 'Four separate leadership decisions.',
+      'Editing an already published briefing must not bump its What's New timestamp');
     assert.equal(elements['[data-news-title]'].textContent,
       'AI Adoption Is Not One Problem: Four Leadership Responses');
-    assert.equal(elements['[data-news-summary]'].textContent, 'The updated decision framework and practical considerations.');
+    // CMS updated_at is deliberately ignored until a new publication is made.
     assert.equal(elements['[data-news-link]'].href,
       '?page=briefing&article=ai-adoption-four-leadership-responses');
     assert.equal(elements['[data-news-link]'].textContent, 'Read the briefing →');
@@ -105,7 +108,7 @@ setImmediate(async () => {
     assert.equal(requests.length, 4, 'Should check both sources on the next refresh');
     await refreshInterval();
     assert.equal(requests.length, 6, 'Third refresh checks both sources');
-    assert.equal(elements['[data-news-meta]'].textContent.startsWith('Market review updated · '), true);
+    assert.equal(elements['[data-news-meta]'].textContent.startsWith('New market review · '), true);
     assert.equal(elements['[data-news-title]'].textContent, 'Swedish AI & Data Market Review');
     assert.equal(elements['[data-news-summary]'].textContent,
       'The latest Executive and Jobseeker Editions are available.');
@@ -113,7 +116,7 @@ setImmediate(async () => {
     assert.equal(elements['[data-news-link]'].attrs['data-hq-content-type'], 'market_signals');
     assert.equal(intervalMs, 120000);
     assert.equal(typeof listeners.visibilitychange, 'function');
-    process.stdout.write('Executive Briefing publication and revision homepage refresh: passed\n');
+    process.stdout.write('Publication-only What's New guardrails and market release: passed\n');
   } catch (err) {
     console.error(err);
     process.exitCode = 1;

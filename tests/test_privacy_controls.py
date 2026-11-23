@@ -180,12 +180,14 @@ vm.runInContext(SCRIPT,sandbox);
 assert.equal(events.filter(x=>x.event_name==='page_view').length,1);
 const view=events.find(x=>x.event_name==='page_view');
 for (const field of ['device_type','browser_family','os_family',
-                      'session_elapsed_ms','page_engaged_ms','scroll_depth']) {
+                      'session_elapsed_ms','page_engaged_ms','scroll_depth',
+                      'viewport_width','viewport_height','screen_width',
+                      'screen_height','timezone','referrer_host',
+                      'connection_type','orientation']) {
   assert.equal(Object.hasOwn(view,field),true,field+' must be available after consent');
 }
-for (const field of ['viewport_width','screen_width','hardware_concurrency',
-                      'device_memory_gb','timezone','referrer_host']) {
-  assert.equal(Object.hasOwn(view,field),false,field+' should not be collected');
+for (const field of ['hardware_concurrency','device_memory_gb']) {
+  assert.equal(Object.hasOwn(view,field),false,field+' must not be collected');
 }
 win.__jairAnalyticsSend('section_attention', {section_key:'hero',attention_ms:15000});
 assert.equal(events.at(-1).event_name,'section_attention');

@@ -45,7 +45,7 @@ class HomeWhatsNewTests(unittest.TestCase):
             (feed / "portfolio_release_feed.json").write_text(json.dumps({
                 "items": [{
                     "key": "page:new-public-page", "type": "New page",
-                    "title": "New Public Page", "description": "Newly published.",
+                    "title": "New Public Page", "description": "New public research and documented work available for readers and visitors to explore in the portfolio.",
                     "date": "2026-12-07T10:00:00+00:00",
                     "href": "?page=new-public-page", "cta": "Explore the page"
                 }]
@@ -107,19 +107,19 @@ class HomeWhatsNewTests(unittest.TestCase):
             capture_output=True, timeout=12, check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Executive Briefing publication and revision homepage refresh: passed", result.stdout)
+        self.assertIn("Publication-only What's New guardrails and market release: passed", result.stdout)
 
     def test_live_refresh_is_a_small_client_side_request(self) -> None:
         with patch("streamlit.components.v1.html") as html:
             news.inject_live_home_update()
         script = html.call_args.args[0]
         self.assertIn("status=eq.published", script)
-        self.assertIn("published_at.desc.nullslast", script)
-        self.assertIn("updated_at.desc.nullslast", script)
-        self.assertIn("row.updated_at", script)
+        self.assertIn("order=published_at.desc", script)
+        self.assertIn("published_at=not.is.null", script)
+        self.assertNotIn("row.updated_at", script)
         self.assertIn("portfolio_public_market_release_timestamp_v1", script)
         self.assertIn("Promise.allSettled", script)
-        self.assertIn("Market review updated", script)
+        self.assertIn("New market review", script)
         self.assertIn('status=eq.published', script)
         self.assertIn("kind === \"executive briefing\"", script)
         self.assertIn("kind === \"weekly brief\"", script)

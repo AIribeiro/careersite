@@ -1,1 +1,306 @@
-{"error":"browser report unavailable","unit_video_exit":"unavailable","unit_access_exit":"unavailable"}
+{
+  "unit_tests": {
+    "article_video_suite_exit": "unavailable",
+    "early_access_suite_exit": "unavailable"
+  },
+  "browser": [
+    {
+      "name": "streamlit-desktop",
+      "url": "https://jairribeiro-ai.streamlit.app/?page=thinking&article=enterprise-ai-explained-beyond-models-and-agents",
+      "http_status": 200,
+      "frames": [
+        {
+          "url": "https://jairribeiro-ai.streamlit.app/?page=thinking&article=enterprise-ai-explained-beyond-models-and-agents",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "https://qjmnz4vd2y07.statuspage.io/embed/frame",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "https://jairribeiro-ai.streamlit.app/~/+/?page=thinking&article=enterprise-ai-explained-beyond-models-and-agents",
+          "title_seen": true,
+          "title_content": 161,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": true,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        }
+      ]
+    },
+    {
+      "name": "streamlit-mobile",
+      "url": "https://jairribeiro-ai.streamlit.app/?page=thinking&article=enterprise-ai-explained-beyond-models-and-agents",
+      "http_status": 200,
+      "frames": [
+        {
+          "url": "https://jairribeiro-ai.streamlit.app/?page=thinking&article=enterprise-ai-explained-beyond-models-and-agents",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "https://qjmnz4vd2y07.statuspage.io/embed/frame?mobile=true",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "https://jairribeiro-ai.streamlit.app/~/+/?page=thinking&article=enterprise-ai-explained-beyond-models-and-agents",
+          "title_seen": true,
+          "title_content": 68,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": true,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        }
+      ]
+    },
+    {
+      "name": "branded-desktop",
+      "url": "https://jairribeiro.com/?page=thinking&article=enterprise-ai-explained-beyond-models-and-agents",
+      "http_status": 200,
+      "frames": [
+        {
+          "url": "https://jairribeiro.com/?page=thinking&article=enterprise-ai-explained-beyond-models-and-agents",
+          "error": "Locator.inner_text: Timeout 2200ms exceeded.\nCall log:\n  - waiting for locator(\"body\")\n"
+        },
+        {
+          "url": "https://jairribeiro-ai.streamlit.app/?article=enterprise-ai-explained-beyond-models-and-agents&embed=true&page=thinking",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "https://qjmnz4vd2y07.statuspage.io/embed/frame",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "https://jairribeiro-ai.streamlit.app/~/+/?article=enterprise-ai-explained-beyond-models-and-agents&embed=true&page=thinking",
+          "title_seen": true,
+          "title_content": 161,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": true,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        },
+        {
+          "url": "about:srcdoc",
+          "title_seen": false,
+          "title_content": -1,
+          "header_count": 0,
+          "header_loaded": false,
+          "new_video_count": 0,
+          "old_video_count": 0,
+          "premium_registration_seen": false,
+          "full_body_marker_seen": false,
+          "video_ancestor_visible": false,
+          "video_src": null
+        }
+      ]
+    }
+  ]
+}

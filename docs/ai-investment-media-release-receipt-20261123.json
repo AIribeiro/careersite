@@ -1,0 +1,51 @@
+{
+  "http_status": 200,
+  "response": {
+    "all_verified": true,
+    "assets": [
+      {
+        "asset": "video",
+        "bucket": "portfolio-public-videos",
+        "path": "thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_investment_20261123_v1/web-d15b86c15f32.mp4",
+        "expected_sha256": "d15b86c15f32234c0830730ccf0fc6c57c0021c5325b53049f5bbed1e7f4a767",
+        "bytes": 2301450,
+        "sha256_match": true,
+        "upload_status": 200,
+        "remote_sha256_match": true,
+        "remote_mime": "video/mp4",
+        "head_status": 200,
+        "range_status": 206,
+        "verified": true
+      },
+      {
+        "asset": "poster",
+        "bucket": "careersite-article-images",
+        "path": "thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_investment_20261123_v1/poster-19cd2d06d507.png",
+        "expected_sha256": "19cd2d06d507caca2f001ddea1758c21867debf80061c7436330ade19a7502d6",
+        "bytes": 72188,
+        "sha256_match": true,
+        "upload_status": 200,
+        "remote_sha256_match": true,
+        "remote_mime": "image/png",
+        "head_status": 200,
+        "range_status": 206,
+        "verified": true
+      },
+      {
+        "asset": "header",
+        "bucket": "careersite-article-images",
+        "path": "thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_investment_20261123_v1/header-dc279160fb11.jpg",
+        "expected_sha256": "dc279160fb11f52b518a2cfe0aa62e9d4db53e630ce16c0b907c76ff81a03801",
+        "bytes": 309914,
+        "sha256_match": true,
+        "upload_status": 200,
+        "remote_sha256_match": true,
+        "remote_mime": "image/jpeg",
+        "head_status": 200,
+        "range_status": 206,
+        "verified": true
+      }
+    ]
+  },
+  "observed_at": "2026-11-23T11:17:47.772577+00:00"
+}

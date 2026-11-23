@@ -1,4 +1,4 @@
 {
   "http_status": 200,
-  "response": "{\"status\":200,\"final_origin\":\"https://onedrive.live.com\",\"content_type\":\"text/html; charset=utf-8\",\"size\":429204,\"signature\":[13,10,60,33,68,79,67,84,89,80,69,32],\"suffix\":\"?download=1\"}"
+  "response": "{\"status\":200,\"mime\":\"text/html; charset=utf-8\",\"len\":427295,\"final_origin\":\"https://onedrive.live.com\",\"samples\":{\"downloadUrl\":{\"index\":-1,\"sample\":null},\"download.aspx\":{\"index\":-1,\"sample\":null},\"download?\":{\"index\":-1,\"sample\":null},\"mediaUrl\":{\"index\":-1,\"sample\":null},\"fileUrl\":{\"index\":-1,\"sample\":null},\"public.dm.files\":{\"index\":-1,\"sample\":null},\"api.onedrive.com\":{\"index\":-1,\"sample\":null},\"@microsoft.graph.downloadUrl\":{\"index\":-1,\"sample\":null},\"1drv.ms\":{\"index\":-1,\"sample\":null},\"authkey\":{\"index\":-1,\"sample\":null}},\"direct\":[]}"
 }\n

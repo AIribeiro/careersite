@@ -43,7 +43,9 @@
     "public_head_200": true,
     "byte_range_206": true,
     "verification_receipt": "docs/ai-investment-media-release-receipt-20261123.json",
-    "transfer_endpoint_retirement_required": true
+    "transfer_endpoint_retirement_required": false,
+    "transfer_endpoint_retired": true,
+    "transfer_endpoint_retired_at": "2026-11-23"
   },
   "previous_release": {
     "episode_id": "enterprise_ai_eight_families_20261122_v2",

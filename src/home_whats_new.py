@@ -15,7 +15,8 @@ from html import escape
 import json
 from pathlib import Path
 from zoneinfo import ZoneInfo
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
+import re
 
 from site_analytics import ANALYTICS_PUBLISHABLE_KEY, ANALYTICS_URL
 
@@ -84,11 +85,69 @@ def _timestamp(value: str) -> datetime | None:
     return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt.astimezone(timezone.utc)
 
 
+# The homepage banner is a publication surface, not a deployment changelog.
+# If a source cannot supply a real public destination, do not feature it.
+BLOCKED_ROUTES = {
+    "home", "admin", "analytics", "privacy", "advisory-access",
+    "advisory-market-demo",
+}
+ELIGIBLE_FEED_TYPES = {
+    "New page", "New service", "New resource", "Executive research",
+    "Certification", "Page update",
+}
+UNHELPFUL_COPY = (
+    "latest portfolio improvements",
+    "portfolio homepage",
+    "explore the portfolio",
+    "view the update",
+    "explore the update",
+    "updates to the portfolio are available",
+    "the portfolio homepage has been updated",
+    "discover the newly published portfolio page",
+    "the section has been updated",
+)
+
+
 def _safe_relative_href(value: str) -> str:
-    # All destinations must stay on this portfolio, never a CMS-provided URL.
-    if not value.startswith("?page=") or urlparse(value).netloc:
-        return "?page=home"
+    if not isinstance(value, str) or not value.startswith("?page="):
+        return ""
+    parsed = urlparse(value)
+    if parsed.scheme or parsed.netloc or parsed.path:
+        return ""
+    fields = parse_qs(parsed.query)
+    if set(fields) != {"page"} or len(fields["page"]) != 1:
+        return ""
+    route = fields["page"][0]
+    if (
+        not re.fullmatch(r"[a-z][a-z0-9-]{0,54}", route)
+        or route in BLOCKED_ROUTES
+        or route.endswith("-demo")
+        or (parsed.fragment and not re.fullmatch(r"[a-z0-9-]{1,70}", parsed.fragment))
+    ):
+        return ""
     return value
+
+
+def _eligible_release(row: dict) -> bool:
+    if row.get("promote_home") is False:
+        return False
+    key = str(row.get("key") or "")
+    category = str(row.get("type") or "")
+    if not key.startswith(("page:", "credential:", "editorial:")):
+        return False
+    if category not in ELIGIBLE_FEED_TYPES:
+        return False
+    title = str(row.get("title") or "").strip()
+    description = str(row.get("description") or "").strip()
+    cta = str(row.get("cta") or "").strip()
+    if (
+        len(title) < 8 or len(description) < (25 if category == "Certification" else 60)
+        or len(cta) < 6
+        or not _safe_relative_href(str(row.get("href") or ""))
+    ):
+        return False
+    lowered = (title + " " + description + " " + cta).lower()
+    return not any(phrase in lowered for phrase in UNHELPFUL_COPY)
 
 
 def _static_items() -> tuple[NewsItem, ...]:
@@ -116,17 +175,12 @@ def _static_items() -> tuple[NewsItem, ...]:
     except (OSError, ValueError, TypeError, AttributeError):
         published = []
     for row in published:
-        if not isinstance(row, dict):
+        if not isinstance(row, dict) or not _eligible_release(row):
             continue
-        description = str(row.get("description") or "").strip()
-        href = str(row.get("href") or "")
-        if (
-            row.get("promote_home") is False
-            or (str(row.get("key", "")).startswith("page:") and href in curated_hrefs)
-            or (str(row.get("key", "")).startswith("page:") and href.endswith("-demo"))
-            or description in {"", "Discover the newly published portfolio page."}
-        ):
+        href = _safe_relative_href(row["href"])
+        if str(row.get("key", "")).startswith("page:") and href in curated_hrefs:
             continue
+        description = str(row["description"]).strip()
         moment = _timestamp(row.get("date", ""))
         if moment is None or not all(isinstance(row.get(k), str) and row[k] for k in ("type", "title", "href")):
             continue

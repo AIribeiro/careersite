@@ -865,6 +865,43 @@ def render_analytics_dashboard() -> None:
         + (f" · reset baseline {reset_at}" if reset_at else "")
     )
 
+    # Recover the original comprehensive owner dashboard without confusing
+    # low-value automated telemetry with actual reading or conversion events.
+    # This event-level ledger is already returned by the live reporting RPC.
+    event_counts = {
+        str(row.get("event_name")): max(0, int(row.get("events") or 0))
+        for row in data.get("events", [])
+        if isinstance(row, dict) and row.get("event_name")
+    }
+    counted_events = sum(event_counts.values())
+    meaningful_events = {
+        "page_view", "article_view", "article_click", "article_card_click",
+        "cv_download", "cta_click", "email_click", "linkedin_click",
+        "navigation_click", "audio_start", "audio_complete",
+    }
+    meaningful_total = sum(event_counts.get(name, 0) for name in meaningful_events)
+    diagnostics_total = max(0, counted_events - meaningful_total)
+    action_total = sum(event_counts.get(name, 0) for name in (
+        "cta_click", "email_click", "linkedin_click", "article_click",
+        "article_card_click", "navigation_click",
+    ))
+    st.subheader("Recorded audience actions")
+    a1, a2, a3, a4, a5 = st.columns(5)
+    a1.metric("Page opens", event_counts.get("page_view", 0))
+    a2.metric("Article opens", event_counts.get("article_view", 0))
+    a3.metric("Clicks & navigation", action_total)
+    a4.metric("CV downloads", event_counts.get("cv_download", 0))
+    a5.metric("Audio starts / completes", (
+        f"{event_counts.get('audio_start', 0)} / "
+        f"{event_counts.get('audio_complete', 0)}"
+    ))
+    st.caption(
+        f"{meaningful_total:,} recorded audience/action events versus "
+        f"{diagnostics_total:,} diagnostic or background events. "
+        "Page and article opens can overlap in their reporting; the counts "
+        "are events, not people. Detailed counts cover consented sessions."
+    )
+
     if hiring:
         q1, q2, q3, q4, q5 = st.columns(5)
         q1.metric("Analysis-eligible", quality_sessions, f"{quality_recorded} recorded v5")

@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "update:d05a41298c63b9ca75b8a5ce0823c6eb900faa6f",
+      "type": "Portfolio updated",
+      "title": "Latest portfolio improvements",
+      "description": "Updates to the portfolio are available across its pages and services. Explore the current experience.",
+      "date": "2026-11-23T12:22:20+01:00",
+      "href": "?page=home",
+      "cta": "Explore the portfolio"
+    },
+    {
       "key": "update:f1252645cb48c471d34e6aede777e72145ff5013",
       "type": "Page updated",
       "title": "Thinking",

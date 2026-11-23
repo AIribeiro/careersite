@@ -307,9 +307,9 @@ def home_whats_new() -> str:
 def inject_live_home_update() -> None:
     """Non-blocking public CMS metadata read on Home; never downloads article bodies.
 
-    The static first frame works when Supabase is unavailable. Newly published
-    and updated articles, Weekly AI editions and Executive Briefings override
-    it by the real public revision time; draft material is never promoted.
+    The static first frame works when Supabase is unavailable. Only newly
+    published CMS content and published Market Review editions qualify.
+    Routine content edits and background data refreshes never become news.
     """
     import streamlit.components.v1 as components
 
@@ -329,8 +329,9 @@ def inject_live_home_update() -> None:
   const apiKey = %s;
   const localPublished = Date.parse(%s);
   let displayedAt = localPublished;
-  const query = "?select=title,slug,subtitle,excerpt,kind,published_at,updated_at,created_at"
-    + "&status=eq.published&order=updated_at.desc.nullslast,published_at.desc.nullslast&limit=24";
+  const query = "?select=title,slug,subtitle,excerpt,kind,published_at"
+    + "&status=eq.published&published_at=not.is.null"
+    + "&order=published_at.desc&limit=24";
   const validSlug = /^[a-z0-9][a-z0-9-]*$/;
   let busy = false;
 
@@ -347,17 +348,10 @@ def inject_live_home_update() -> None:
 
   function cmsItems(rows) {
     if (!Array.isArray(rows)) return [];
-    return rows.map(row => {
-      const published = Date.parse(row.published_at || row.created_at || "");
-      const updated = Date.parse(row.updated_at || "");
-      return {
-        source: "cms", row: row,
-        time: Math.max(Number.isFinite(published) ? published : 0,
-                       Number.isFinite(updated) ? updated : 0),
-        revised: Number.isFinite(updated) && Number.isFinite(published)
-            && updated > published + 60000,
-      };
-    }).filter(item =>
+    return rows.map(row => ({
+      source: "cms", row: row,
+      time: Date.parse(row.published_at || ""),
+    })).filter(item =>
       validSlug.test(item.row.slug || "") &&
       typeof item.row.title === "string" && item.row.title.trim() &&
       Number.isFinite(item.time) && item.time > 0 &&
@@ -370,10 +364,11 @@ def inject_live_home_update() -> None:
     // Do not follow an arbitrary destination or embed HTML from its response.
     if (!item || Array.isArray(item) || typeof item !== "object" ||
         item.href !== "?page=advisory-market-signals" ||
+        item.type !== "New market review" ||
         typeof item.title !== "string" || !item.title.trim()) return [];
     const time = Date.parse(item.date || "");
     if (!Number.isFinite(time) || time > Date.now() + 60000) return [];
-    return [{source: "market", row: item, time: time, revised: false}];
+    return [{source: "market", row: item, time: time}];
   }
 
   async function refresh() {
@@ -414,7 +409,7 @@ def inject_live_home_update() -> None:
         day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Stockholm"
       });
       if (latest.source === "market") {
-        meta.textContent = "Market review updated · " + published;
+        meta.textContent = "New market review · " + published;
         title.textContent = latest.row.title;
         summary.textContent = latest.row.description || "A new executive research edition is available.";
         link.href = "?page=advisory-market-signals";
@@ -423,8 +418,7 @@ def inject_live_home_update() -> None:
         link.setAttribute("data-hq-content-slug", "");
       } else {
         const kind = labelFor(latest.row);
-        meta.textContent = (latest.revised ? "Updated " + kind.label.toLowerCase() :
-                            kind.label) + " · " + published;
+        meta.textContent = kind.label + " · " + published;
         title.textContent = latest.row.title;
         summary.textContent = latest.row.subtitle || latest.row.excerpt ||
           "Newly published on the portfolio.";

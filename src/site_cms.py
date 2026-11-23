@@ -1132,6 +1132,17 @@ def cms_feature_image_meta(article: CmsArticle) -> tuple[str, str, int, int]:
         from thinking_weekly_brief import is_weekly_brief
         if is_weekly_brief(article) and not article.header_image_url:
             return header, "image/png", CMS_SOCIAL_SIZE[0], CMS_SOCIAL_SIZE[1]
+        if article.header_image_url:
+            extension = parse.urlsplit(header).path.lower()
+            if extension.endswith((".jpg", ".jpeg")):
+                # The 23 Nov 2026 owner-approved investment cover is a 1672×941
+                # JPEG, not the 1600×900 WebP produced by the CMS fallback.
+                if (article.slug == "enterprise-ai-explained-beyond-models-and-agents"
+                        and "/enterprise_ai_investment_20261123_v1/" in extension):
+                    return header, "image/jpeg", 1672, 941
+                return header, "image/jpeg", HEADER_IMAGE_SIZE[0], HEADER_IMAGE_SIZE[1]
+            if extension.endswith(".png"):
+                return header, "image/png", HEADER_IMAGE_SIZE[0], HEADER_IMAGE_SIZE[1]
         return header, "image/webp", HEADER_IMAGE_SIZE[0], HEADER_IMAGE_SIZE[1]
     return cms_social_image_url(article), "image/png", CMS_SOCIAL_SIZE[0], CMS_SOCIAL_SIZE[1]
 

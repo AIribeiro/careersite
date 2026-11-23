@@ -592,7 +592,7 @@ def privacy() -> str:
  <p class="service-eyebrow">Privacy / Reader trust</p>
  <h1>Privacy &amp; data.</h1>
  <p>A short explanation of what this website handles, why, and how to contact me. Registration does not sign you up for editorial emails.</p>
- <p class="privacy-effective">Last updated: 21 November 2026</p>
+ <p class="privacy-effective">Last updated: 23 November 2026</p>
 </div></section>
 <div class="container privacy-body">
  <nav class="privacy-toc" aria-label="Privacy notice sections">

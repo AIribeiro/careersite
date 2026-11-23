@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "slug": "which-ai-framework-helps-with-the-decision-you-have",
+  "article_fingerprint": "94e08c1c247aaaa36191d2ef05848ebdaf4f2c78f09e4b43257f5df5c1df3482",
+  "revision": "v1.20261123",
+  "heading": "Which AI framework helps with the decision you have?",
+  "deck": "Six established references. Three different places to start.",
+  "desktop": {
+    "file": "desktop.webp",
+    "sha256": "10034ab7fd884cfca08ff06d1f7294022fd93bb817173b29a86a04cde874f272",
+    "width": 1720,
+    "height": 2160,
+    "bytes": 160766
+  },
+  "pdf": {
+    "file": "infographic.pdf",
+    "sha256": "ecb17071af1b0761d8fde90aecf25d281f8a7ac65803403dd5e380fe9a712da4",
+    "pages": 1,
+    "bytes": 251172
+  },
+  "mobile": {
+    "file": "mobile.webp",
+    "sha256": "9ba0e7b130f6d06c1500126b5df9ce03e13520c033c398d51ca2ad961669c76a",
+    "width": 1000,
+    "height": 3160,
+    "bytes": 138532
+  },
+  "release_note": "Source-locked, internally reviewed; requires existing CMS artwork approval and repository commit before public release."
+}

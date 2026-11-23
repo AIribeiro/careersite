@@ -650,12 +650,20 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       utm_campaign: attribution.utm_campaign,
       utm_content: attribution.utm_content || null,
       browser_automation: Boolean(win.navigator && win.navigator.webdriver === true),
-      // Broad categories only; no exact screen size, device memory, core count,
-      // timezone or full user-agent fingerprint is transmitted.
+      // Optional technical diagnostics, collected only after affirmative
+      // statistics consent. No raw user agent, IP, hardware concurrency,
+      // device memory, advertising ID or form fields are transmitted.
       device_type: clientContext().device_type,
       browser_family: clientContext().browser_family,
       os_family: clientContext().os_family,
       language: clientContext().language,
+      timezone: clientContext().timezone,
+      viewport_width: clientContext().viewport_width,
+      viewport_height: clientContext().viewport_height,
+      screen_width: clientContext().screen_width,
+      screen_height: clientContext().screen_height,
+      connection_type: clientContext().connection_type,
+      orientation: clientContext().orientation,
       session_elapsed_ms: Math.round(elapsedMs),
       engaged_ms: Math.round(Math.min(86400000, Math.max(0, engagedMs))),
       page_engaged_ms: Math.round(pageEngagedMs),

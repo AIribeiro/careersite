@@ -18,8 +18,12 @@ class AnalyticsControlTests(unittest.TestCase):
         self.assertEqual(page_analytics.REPORTING_WINDOW_LABELS["today"], "Today")
         source = (ROOT / "src/page_analytics_v2.py").read_text(encoding="utf-8")
         self.assertIn(
-            "initialize_reporting_period(st.session_state, _fetch_dashboard)", source
+            "initialize_editorial_reporting_period(st.session_state)", source
         )
+        aggregate_overview = (ROOT / "src/page_public_portfolio_overview.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('st.session_state[WINDOW_KEY] = "this_week"', aggregate_overview)
         self.assertIn("on_change=remember_reporting_period", source)
         # The current reporting window selects the first period with data
         # (last hour, Today, then progressively longer) instead of a fixed 7d.

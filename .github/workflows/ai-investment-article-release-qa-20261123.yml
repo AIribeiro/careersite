@@ -60,6 +60,10 @@ jobs:
                     result["frames"].append({
                      "url":f.url[:140],
                      "title_seen":title in content,
+                     "body_excerpt":content[:1250],
+                     "body_length":len(content),
+                     "cover_css_in_markup":'article-early-cover' in f.content(),
+                     "video_css_in_markup":'article-video-feature' in f.content(),
                      "title_content":content.find(title),
                      "header_count":f.locator('img[src*="header-dc279160fb11"]').count(),
                      "header_loaded":f.evaluate('''() => Array.from(document.querySelectorAll('img[src*="header-dc279160fb11"]')).some(x=>x.complete&&x.naturalWidth>0)'''),

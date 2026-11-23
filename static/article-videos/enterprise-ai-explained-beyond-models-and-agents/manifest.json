@@ -1,74 +1,57 @@
 {
   "schema_version": 1,
   "slug": "enterprise-ai-explained-beyond-models-and-agents",
-  "episode_id": "enterprise_ai_eight_families_20261122_v2",
-  "version": "eight_capability_families_premium_v3_design_v2",
+  "episode_id": "enterprise_ai_investment_20261123_v1",
+  "version": "business_investment_decision_premium_v3",
   "state": "published_verified",
   "owner_approved": true,
   "media_verified": true,
-  "source_sha256": "370e379fd5566ea1d61d725477c44f3b55142e769b76a7b9b2446a3935b6abd5",
-  "source_sha256_convention": "SHA256 canonical JSON (content_html, excerpt, kind, published_at::text, slug, subtitle, title) as recorded at Gate A; code additionally checks material field hashes",
-  "content_sha256": "829203a45f24bd563de796ec4da8a321b4ab4e00d5ff273164ae912473fb4023",
-  "title_sha256": "588c7697e11845aa4784c5960f65c94320a9150c0ed3d29393669d8be7999cf7",
-  "subtitle_sha256": "2057d63db1576d98f8b72d699f2378259c20c9372134e99bdcb72602d4e17ccc",
-  "excerpt_sha256": "dd1ea743525a720802528ea2d8ba51ef80a2f41bf13990c8e60607d4281a9a33",
+  "source_sha256": "e48d88d5e3a3882132b42029302d00a9233156327224eb707ac9779583168ab6",
+  "source_sha256_convention": "SHA-256 UTF-8 PostgreSQL jsonb::text of content_html, excerpt, kind, published_at in UTC ISO, slug, subtitle, title",
+  "content_sha256": "cd92742ff9a9d1d0198f12e1b5e63a596cd58c67adaa7d9ddb1616c9874d72b6",
+  "title_sha256": "dc6d9b1d63f02bbc6899949148bafc5bb75bd4066094413f3a91425594e8a445",
+  "subtitle_sha256": "7d0690a2062d7e6be4144f1dc325d3c6a2ebd998c8623246d68600def15db6d9",
+  "excerpt_sha256": "01553b24e49bcfb0e694ee822c864d70f26d304dad597edb7089be2b588ef317",
   "published_at": "2026-11-21T13:31:17.636324+00:00",
-  "script_sha256": "6c1c87a5f31e5af3e44915b041a213e2252dc9d9e577a17735079da3fa99b9d8",
-  "audio_sha256": "9f60d9bdf08e53babc9eea079e4c2608c03ac1d972c7380904695affdcd123bd",
-  "video_title": "Enterprise AI Explained — The Eight Capability Families · Jair Ribeiro",
+  "script_sha256": "29e28d536ab290e594f24c13e943806cdad8bf887fcf2be3ded2ae6a570ab3ae",
+  "video_title": "What Should Enterprise AI Prove Before the Next Investment? — Jair Ribeiro",
+  "player_heading": "Before the next AI investment: What should the business prove?",
   "video": {
-    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_eight_families_20261122_v2/web-5c54338a7210.mp4",
-    "sha256": "5c54338a7210ef29036a146b2b146bd25e1fd0915566bd1df46258091b5d393b",
-    "bytes": 6893123,
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_investment_20261123_v1/web-d15b86c15f32.mp4",
+    "sha256": "d15b86c15f32234c0830730ccf0fc6c57c0021c5325b53049f5bbed1e7f4a767",
+    "bytes": 2301450,
     "mime": "video/mp4",
-    "duration_seconds": 173.423
+    "duration_seconds": 107.302
   },
   "poster": {
-    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_eight_families_20261122_v2/poster-66a47b11e098.png",
-    "sha256": "66a47b11e098c6ae3f9e7da368da5ab4e034553371499b59cb8b3e5170b1b77e",
-    "bytes": 74477,
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_investment_20261123_v1/poster-19cd2d06d507.png",
+    "sha256": "19cd2d06d507caca2f001ddea1758c21867debf80061c7436330ade19a7502d6",
+    "bytes": 72188,
     "mime": "image/png"
   },
-  "release_note": "Approved 22 Nov 2026: replaces the article's prior service-workflow film with eight-capability-families explanatory V2. Old V3 media and archived manifest retained. Live browser checks remain a separate gate.",
-  "media_verification": {
-    "method": "fixed SHA-checked GitHub blob chunk staging, single-use Supabase Edge reconstruction; independent immutable public delivery validation",
-    "verified_at": "2026-11-22T08:10:47.147Z",
-    "original_bytes_video": 6893123,
-    "original_bytes_poster": 74477,
-    "head_video_status": 200,
-    "head_poster_status": 200,
-    "full_get_video_sha256_match": true,
-    "full_get_poster_sha256_match": true,
-    "content_types": {
-      "video": "video/mp4",
-      "poster": "image/png"
-    },
-    "byte_ranges": [
-      {
-        "start": 0,
-        "end": 4095,
-        "status": 206
-      },
-      {
-        "start": 3444513,
-        "end": 3448608,
-        "status": 206
-      },
-      {
-        "start": 6889027,
-        "end": 6893122,
-        "status": 206
-      }
-    ],
-    "transfer_endpoint_retired": true
+  "header_image": {
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_investment_20261123_v1/header-dc279160fb11.jpg",
+    "sha256": "dc279160fb11f52b518a2cfe0aa62e9d4db53e630ce16c0b907c76ff81a03801",
+    "bytes": 309914,
+    "mime": "image/jpeg"
   },
-  "player_heading": "Enterprise AI: Eight Capability Families Explained",
+  "release_note": "Owner-authorized 23 Nov 2026 full CMS replacement of Enterprise AI Explained article with the revised AI investment decision editorial, header and narrated video. Source slug and original published_at preserved. Older eight-capability media and manifest archived for rollback.",
+  "media_verification": {
+    "method": "One-time SHA256/length-gated media transfer using authenticated file references and Supabase Edge; independently checked immutable public GET SHA-256, MIME, HEAD 200 and Range 206",
+    "verified_at": "2026-11-23T11:17:47.772577+00:00",
+    "sha256_verified": true,
+    "public_head_200": true,
+    "byte_range_206": true,
+    "verification_receipt": "docs/ai-investment-media-release-receipt-20261123.json",
+    "transfer_endpoint_retirement_required": true
+  },
   "previous_release": {
-    "episode_id": "enterprise_ai_explained_20261121_v1",
-    "video_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_explained_20261121_v1/web-80f80916ff5f.mp4",
-    "video_sha256": "80f80916ff5f676c2193051e0f9f5ac1eaa8e7018f941bf9d55ed012f0fa95e8",
-    "poster_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_explained_20261121_v1/poster-0f077b5f1f8e.png",
-    "poster_sha256": "0f077b5f1f8ee7660aae91db120e01a4461b9127d9d38bbeab798efb29c737a6",
+    "episode_id": "enterprise_ai_eight_families_20261122_v2",
+    "video_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_eight_families_20261122_v2/web-5c54338a7210.mp4",
+    "video_sha256": "5c54338a7210ef29036a146b2b146bd25e1fd0915566bd1df46258091b5d393b",
+    "poster_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/enterprise-ai-explained-beyond-models-and-agents/enterprise_ai_eight_families_20261122_v2/poster-66a47b11e098.png",
+    "poster_sha256": "66a47b11e098c6ae3f9e7da368da5ab4e034553371499b59cb8b3e5170b1b77e",
+    "manifest_archive_path": "static/article-videos/enterprise-ai-explained-beyond-models-and-agents/archive/manifest-eight-families-20261122.json",
     "immutable_objects_preserved": true
   }
 }

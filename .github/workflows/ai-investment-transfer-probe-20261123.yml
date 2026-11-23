@@ -1,0 +1,47 @@
+name: AI investment media transfer preflight
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/ai-investment-transfer-probe-20261123.yml
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check publicly approved temporary media transfer links
+        env:
+          VIDEO_URL: "https://1drv.ms/v/c/01986e4d6d9ffda8/IQBeDy6wm1IkSrlhB3C7lm1LAbJhG-80yvr95U43XLqze7A?download=1"
+          HEADER_URL: "https://1drv.ms/i/c/01986e4d6d9ffda8/IQDZeo90zHyySbER7U0AA2x2AQGde-gMrZ-Y_oK5lQwN0Zc?download=1"
+          POSTER_URL: "https://1drv.ms/i/c/01986e4d6d9ffda8/IQA-_mZSFSPPRI76rJgcgGeoATU0DreBFgIIsBFzRPGVPds?download=1"
+        run: |
+          python - <<'PY'
+          import os,hashlib,urllib.request,json
+          from pathlib import Path
+          targets=[
+            ('video','VIDEO_URL','d15b86c15f32234c0830730ccf0fc6c57c0021c5325b53049f5bbed1e7f4a767',2301450),
+            ('header','HEADER_URL','dc279160fb11f52b518a2cfe0aa62e9d4db53e630ce16c0b907c76ff81a03801',309914),
+            ('poster','POSTER_URL','19cd2d06d507caca2f001ddea1758c21867debf80061c7436330ade19a7502d6',72188)]
+          report={}
+          for name,env,sha,size in targets:
+            try:
+              req=urllib.request.Request(os.environ[env],headers={'User-Agent':'Mozilla/5.0'})
+              with urllib.request.urlopen(req,timeout=30) as r:
+                raw=r.read(10_000_000);ctype=r.headers.get('Content-Type','')
+                report[name]={'status':r.status,'mime':ctype,'size':len(raw),'sha256_match':hashlib.sha256(raw).hexdigest()==sha,'size_match':len(raw)==size,'first_bytes':raw[:12].hex()}
+            except Exception as e:
+              report[name]={'error':str(e)[:200]}
+          path=Path('docs/ai-investment-transfer-probe-20261123.json')
+          path.parent.mkdir(exist_ok=True)
+          path.write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report,indent=2))
+          PY
+      - name: Commit diagnostic only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/ai-investment-transfer-probe-20261123.json
+          if ! git diff --cached --quiet; then git commit -m 'Record media transfer preflight outcome [skip ci]'; git pull --rebase origin main; git push origin HEAD:main; fi

@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'src/site_analytics.py'
+      - 'src/page_analytics.py'
+      - 'tests/test_analytics_controls.py'
       - 'src/site_article_analytics.py'
       - 'src/site_behavior_telemetry_v2.py'
       - 'src/site_weekly_audio_telemetry.py'
@@ -21,6 +23,8 @@ on:
   pull_request:
     paths:
       - 'src/site_analytics.py'
+      - 'src/page_analytics.py'
+      - 'tests/test_analytics_controls.py'
       - 'src/site_article_analytics.py'
       - 'src/site_behavior_telemetry_v2.py'
       - 'src/site_weekly_audio_telemetry.py'
@@ -52,5 +56,6 @@ jobs:
       - name: Verify privacy choice, payload and registration
         run: |
           python -m unittest tests.test_privacy_controls -v
+          python -m unittest tests.test_analytics_controls -v
           python -m unittest tests.test_default_aggregate_analytics -v
           python -m unittest tests.test_analytics_browser tests.test_article_analytics tests.test_behavior_telemetry tests.test_entry_domain_analytics tests.test_weekly_ai_audio_analytics tests.test_public_runtime_fastpaths tests.test_public_services -v

@@ -127,7 +127,11 @@ def new_release_items(previous: str, current: str, issued_at: str) -> list[dict[
             "description": description[:320],
             "date": timestamp,
             "href": "?page=" + route,
-            "cta": "Explore the research" if route == "advisory-market-signals" else "Explore the service",
+            "cta": (
+                "Read the executive review" if route == "advisory-market-signals"
+                else "See speaking & publications" if route == "presence"
+                else "Explore the page"
+            ),
         })
 
     old_credentials = credential_rows(git_file(previous, "src/page_certifications.py"))
@@ -190,7 +194,10 @@ def declared_release_items(previous: str, current: str, issued_at: str) -> list[
         issued = issued.replace(tzinfo=timezone.utc)
     result = []
     for release_id, row in new.items():
-        if release_id in old or row.get("status") != "published":
+        if (
+            row.get("status") != "published"
+            or (release_id in old and old[release_id].get("status") == "published")
+        ):
             continue
         route = str(row.get("page") or "").strip()
         title = str(row.get("title") or "").strip()

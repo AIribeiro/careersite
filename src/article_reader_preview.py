@@ -57,10 +57,29 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         if heads else
         "<p>The full argument, supporting evidence and practical implications.</p>"
     )
+    header_url = str(getattr(article, "header_image_url", "") or "").strip()
+    header_alt = str(getattr(article, "header_image_alt", "") or article.title or "Article cover")
+    cover_picture = ""
+    if header_url.startswith("https://"):
+        cover_picture = (
+            '<section class="article-early-cover"><div class="container">'
+            '<img src="' + escape(header_url, quote=True)
+            + '" alt="' + escape(header_alt, quote=True)
+            + '" loading="eager" decoding="async"></div></section>'
+        )
+    cover_css = (
+        '<style>.article-early-preview .article-early-cover{background:#f7f5f0;padding:20px 0 0}'
+        '.article-early-preview .article-early-cover .container{max-width:1120px;margin:0 auto}'
+        '.article-early-preview .article-early-cover img{display:block;width:100%;height:auto;'
+        'object-fit:contain;border-radius:10px;box-shadow:0 8px 30px #10263b18}'
+        '@media(max-width:560px){.article-early-preview .article-early-cover{padding:12px 0 0}'
+        '.article-early-preview .article-early-cover .container{width:calc(100% - 28px)}'
+        '.article-early-preview .article-early-cover img{border-radius:5px}}</style>'
+    )
     destination = "?page=thinking&amp;article=" + escape(slug, quote=True) + "&amp;access=1"
 
     return (
-        THINKING_CSS + PREVIEW_CSS + nav("thinking")
+        THINKING_CSS + PREVIEW_CSS + cover_css + nav("thinking")
         + '<main class="briefing-preview article-early-preview">'
         '<section class="briefing-preview-hero" data-analytics-section="article-early-access-intro">'
         '<div class="container"><a class="briefing-preview-back" href="?page=thinking" target="_self">'
@@ -69,7 +88,8 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         f'<h1>{title}</h1><p class="briefing-preview-deck">{subtitle}</p>'
         f'<div class="briefing-preview-meta">{escape(str(read_metadata))} · By Jair Ribeiro</div>'
         '</div></section>'
-        '<section class="briefing-preview-body" data-analytics-section="article-executive-summary">'
+        + cover_picture
+        + '<section class="briefing-preview-body" data-analytics-section="article-executive-summary">' 
         '<div class="container"><div class="briefing-preview-grid">'
         '<article class="briefing-preview-copy"><div class="briefing-preview-decision">'
         '<span class="briefing-preview-small-head">Public executive summary</span>'

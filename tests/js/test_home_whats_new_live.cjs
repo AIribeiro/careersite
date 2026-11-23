@@ -97,7 +97,7 @@ setImmediate(async () => {
     assert.doesNotMatch(requests[0].url, /updated_at/);
     assert.equal(elements['[data-news-meta]'].textContent.startsWith('Executive briefing · '), true);
     assert.equal(elements['[data-news-summary]'].textContent, 'Four separate leadership decisions.',
-      'Editing an already published briefing must not bump its What's New timestamp');
+      "Editing an already published briefing must not bump its What's New timestamp");
     assert.equal(elements['[data-news-title]'].textContent,
       'AI Adoption Is Not One Problem: Four Leadership Responses');
     // CMS updated_at is deliberately ignored until a new publication is made.

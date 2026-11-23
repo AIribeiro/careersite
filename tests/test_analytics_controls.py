@@ -61,9 +61,16 @@ class AnalyticsControlTests(unittest.TestCase):
         for restored in ("device_type:", "browser_family:", "os_family:",
                          "session_elapsed_ms:", "engaged_ms:", "hover_ms:"):
             self.assertIn(restored, payload)
-        for excluded in ("timezone:", "viewport_width:", "screen_width:",
-                         "hardware_concurrency:", "device_memory_gb:"):
+        for restored in ("timezone:", "viewport_width:", "screen_width:",
+                         "viewport_height:", "screen_height:", "referrer_host:",
+                         "connection_type:", "orientation:"):
+            self.assertIn(restored, payload)
+        for excluded in ("hardware_concurrency:", "device_memory_gb:"):
             self.assertNotIn(excluded, payload)
+        for label in ("Recorded audience actions", "Page opens", "Article opens",
+                      "Clicks & navigation", "CV downloads",
+                      "Audio starts / completes"):
+            self.assertIn(label, dashboard)
 
         for label in (
             "Career site intelligence",

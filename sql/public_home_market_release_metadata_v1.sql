@@ -1,5 +1,6 @@
 -- Exposes only the timestamp and fixed public labels of the latest
 -- PUBLISHED Swedish AI & Data Market Review for the What's New banner.
+-- A routine data revision is not a new edition; only publication qualifies.
 -- No draft material, confidential evidence, client data or private reports.
 CREATE OR REPLACE FUNCTION public.portfolio_public_market_release_timestamp_v1()
 RETURNS jsonb
@@ -9,19 +10,10 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
   SELECT jsonb_build_object(
-    'type', 'Market review updated',
+    'type', 'New market review',
     'title', 'Swedish AI & Data Market Review',
     'description', 'The latest published Swedish AI & Data Market Review is available, including the Executive and Jobseeker Editions.',
-    'date', GREATEST(
-      e.published_at,
-      e.updated_at,
-      COALESCE((
-        SELECT max(p.updated_at)
-        FROM public.portfolio_market_signal_points AS p
-        WHERE p.is_published
-          AND p.code = ANY(e.evidence_codes)
-      ), e.published_at)
-    ),
+    'date', e.published_at,
     'href', '?page=advisory-market-signals',
     'cta', 'Read the latest review'
   )

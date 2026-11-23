@@ -536,3 +536,5 @@ if elapsed_ms >= 750:
         "build_ms=%d footer_ms=%d html_emit_ms=%d",
         PAGE, elapsed_ms, html_kib, *timings,
     )
+
+# investment-article-release-20261123: refresh deployed reader code after source-locked media replacement.

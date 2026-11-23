@@ -93,7 +93,7 @@ class PrivacyControlsTests(unittest.TestCase):
     def test_notice_is_concise_and_supports_changing_choice(self):
         notice = (ROOT / "src/page_public_services.py").read_text().split("def privacy() -> str:", 1)[1]
         self.assertIn("data-jair-privacy-settings", notice)
-        self.assertIn("Last updated: 21 November 2026", notice)
+        self.assertIn("Last updated: 23 November 2026", notice)
         self.assertIn("after 90 days", notice)
         self.assertIn("United States", notice)
         self.assertNotIn("answer records remain private", notice.lower())

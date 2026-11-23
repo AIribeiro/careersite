@@ -54,11 +54,48 @@ jobs:
           path.write_text(json.dumps(outcome,indent=2)+'\\n')
           print(json.dumps(outcome,indent=2))
           PY
+      - name: Browser test of approved OneDrive media
+        run: |
+          python -m pip install --quiet playwright==1.58.0
+          python -m playwright install chromium
+          python - <<'PY'
+          import re,json,hashlib
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+          inputs=[
+           ('video','https://1drv.ms/v/c/01986e4d6d9ffda8/IQBeDy6wm1IkSrlhB3C7lm1LAbJhG-80yvr95U43XLqze7A','d15b86c15f32234c0830730ccf0fc6c57c0021c5325b53049f5bbed1e7f4a767'),
+           ('header','https://1drv.ms/i/c/01986e4d6d9ffda8/IQDZeo90zHyySbER7U0AA2x2AQGde-gMrZ-Y_oK5lQwN0Zc','dc279160fb11f52b518a2cfe0aa62e9d4db53e630ce16c0b907c76ff81a03801')]
+          record={}
+          with sync_playwright() as p:
+           browser=p.chromium.launch(headless=True)
+           for name,url,sha in inputs:
+            page=browser.new_page(accept_downloads=True)
+            item={}
+            try:
+             page.goto(url,wait_until='domcontentloaded',timeout=45000)
+             page.wait_for_timeout(6500)
+             item['title']=page.title()[:180]
+             item['text']=page.locator('body').inner_text(timeout=5000)[:600]
+             item['buttons']=page.locator('button').all_inner_texts()[:40]
+             item['links']=page.locator('a').all_inner_texts()[:35]
+             try:
+              with page.expect_download(timeout=11000) as dl:
+               page.get_by_role('button',name=re.compile('download',re.I)).first.click(timeout=5500)
+              result=dl.value;path=result.path()
+              raw=Path(path).read_bytes();item['download_bytes']=len(raw);item['sha256_match']=hashlib.sha256(raw).hexdigest()==sha
+              item['download_name']=result.suggested_filename[:120]
+             except Exception as e: item['download_error']=str(e)[:200]
+            except Exception as e:item['error']=str(e)[:300]
+            record[name]=item;page.close()
+           browser.close()
+          f=Path('docs/ai-investment-browser-probe-20261123.json');f.write_text(json.dumps(record,indent=2)+'\\n')
+          print(json.dumps(record,indent=2))
+          PY
       - name: Commit diagnostic only
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/ai-investment-transfer-probe-20261123.json docs/ai-investment-edge-probe-20261123.json
+          git add docs/ai-investment-transfer-probe-20261123.json docs/ai-investment-edge-probe-20261123.json docs/ai-investment-browser-probe-20261123.json
           if ! git diff --cached --quiet; then git commit -m 'Record media transfer preflight outcome [skip ci]'; git pull --rebase origin main; git push origin HEAD:main; fi
 
 # Recheck edge video direct-download metadata

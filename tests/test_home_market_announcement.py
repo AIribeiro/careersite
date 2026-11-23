@@ -105,7 +105,7 @@ class ExecutiveHomeAnnouncementTests(unittest.TestCase):
             self.assertNotIn("Discover the newly published portfolio page.",entry["description"])
         market=next(e for e in entries if e["key"]=="page:advisory-market-signals")
         self.assertEqual(market["title"],"AI & Data Market Intelligence")
-        self.assertEqual(market["cta"],"Explore the research")
+        self.assertEqual(market["cta"],"Read the executive review")
 
 
 if __name__=="__main__":

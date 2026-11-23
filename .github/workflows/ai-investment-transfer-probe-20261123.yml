@@ -1,102 +1,43 @@
-name: AI investment media transfer preflight
+name: AI investment approved media one-time transfer
 on:
   push:
     branches: [main]
-    paths:
-      - .github/workflows/ai-investment-transfer-probe-20261123.yml
+    paths: ['.github/workflows/ai-investment-transfer-probe-20261123.yml']
 permissions:
   contents: write
 jobs:
-  probe:
+  transfer:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: Check publicly approved temporary media transfer links
-        env:
-          VIDEO_URL: "https://1drv.ms/v/c/01986e4d6d9ffda8/IQBeDy6wm1IkSrlhB3C7lm1LAbJhG-80yvr95U43XLqze7A?download=1"
-          HEADER_URL: "https://1drv.ms/i/c/01986e4d6d9ffda8/IQDZeo90zHyySbER7U0AA2x2AQGde-gMrZ-Y_oK5lQwN0Zc?download=1"
-          POSTER_URL: "https://1drv.ms/i/c/01986e4d6d9ffda8/IQA-_mZSFSPPRI76rJgcgGeoATU0DreBFgIIsBFzRPGVPds?download=1"
+      - name: Transfer exact approved MP4, poster and header through bounded Supabase Edge
         run: |
           python - <<'PY'
-          import os,hashlib,urllib.request,json
+          import urllib.request,urllib.error,json,datetime
           from pathlib import Path
-          targets=[
-            ('video','VIDEO_URL','d15b86c15f32234c0830730ccf0fc6c57c0021c5325b53049f5bbed1e7f4a767',2301450),
-            ('header','HEADER_URL','dc279160fb11f52b518a2cfe0aa62e9d4db53e630ce16c0b907c76ff81a03801',309914),
-            ('poster','POSTER_URL','19cd2d06d507caca2f001ddea1758c21867debf80061c7436330ade19a7502d6',72188)]
-          report={}
-          for name,env,sha,size in targets:
-            try:
-              req=urllib.request.Request(os.environ[env],headers={'User-Agent':'Mozilla/5.0'})
-              with urllib.request.urlopen(req,timeout=30) as r:
-                raw=r.read(10_000_000);ctype=r.headers.get('Content-Type','')
-                report[name]={'status':r.status,'mime':ctype,'size':len(raw),'sha256_match':hashlib.sha256(raw).hexdigest()==sha,'size_match':len(raw)==size,'first_bytes':raw[:12].hex()}
-            except Exception as e:
-              report[name]={'error':str(e)[:200]}
-          path=Path('docs/ai-investment-transfer-probe-20261123.json')
-          path.parent.mkdir(exist_ok=True)
-          path.write_text(json.dumps(report,indent=2)+'\n')
+          endpoint='https://rnqweoxtynelfirffmlr.supabase.co/functions/v1/ai-investment-media-once-20261123'
+          request=urllib.request.Request(endpoint,method='POST',headers={'Content-Type':'application/json'},data=b'{}')
+          try:
+            with urllib.request.urlopen(request,timeout=170) as response:
+              body=response.read(12000).decode('utf-8','replace')
+              report={'http_status':response.status,'response':json.loads(body)}
+          except urllib.error.HTTPError as e:
+            report={'http_status':e.code,'response_text':e.read(12000).decode('utf-8','replace')}
+          except Exception as e: report={'error':str(e)[:500]}
+          report['observed_at']=datetime.datetime.now(datetime.timezone.utc).isoformat()
+          path=Path('docs/ai-investment-media-release-receipt-20261123.json')
+          path.parent.mkdir(parents=True,exist_ok=True)
+          path.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
           print(json.dumps(report,indent=2))
           PY
-      - name: Probe indirect media access through Supabase Edge
-        run: |
-          python - <<'PY'
-          import json,urllib.request
-          from pathlib import Path
-          endpoint='https://rnqweoxtynelfirffmlr.supabase.co/functions/v1/ai-investment-media-probe-20261123'
-          try:
-              req=urllib.request.Request(endpoint,headers={'User-Agent':'Mozilla/5.0'})
-              with urllib.request.urlopen(req,timeout=90) as r:
-                  outcome={'http_status':r.status,'response':r.read(3000).decode('utf-8','replace')}
-          except Exception as e: outcome={'error':str(e)[:250]}
-          path=Path('docs/ai-investment-edge-probe-20261123.json')
-          path.write_text(json.dumps(outcome,indent=2)+'\\n')
-          print(json.dumps(outcome,indent=2))
-          PY
-      - name: Browser test of approved OneDrive media
-        if: false
-        run: |
-          python -m pip install --quiet playwright==1.58.0
-          python -m playwright install chromium
-          python - <<'PY'
-          import re,json,hashlib
-          from pathlib import Path
-          from playwright.sync_api import sync_playwright
-          inputs=[
-           ('video','https://1drv.ms/v/c/01986e4d6d9ffda8/IQBeDy6wm1IkSrlhB3C7lm1LAbJhG-80yvr95U43XLqze7A','d15b86c15f32234c0830730ccf0fc6c57c0021c5325b53049f5bbed1e7f4a767'),
-           ('header','https://1drv.ms/i/c/01986e4d6d9ffda8/IQDZeo90zHyySbER7U0AA2x2AQGde-gMrZ-Y_oK5lQwN0Zc','dc279160fb11f52b518a2cfe0aa62e9d4db53e630ce16c0b907c76ff81a03801')]
-          record={}
-          with sync_playwright() as p:
-           browser=p.chromium.launch(headless=True)
-           for name,url,sha in inputs:
-            page=browser.new_page(accept_downloads=True)
-            item={}
-            try:
-             page.goto(url,wait_until='domcontentloaded',timeout=45000)
-             page.wait_for_timeout(6500)
-             item['title']=page.title()[:180]
-             item['text']=page.locator('body').inner_text(timeout=5000)[:600]
-             item['buttons']=page.locator('button').all_inner_texts()[:40]
-             item['links']=page.locator('a').all_inner_texts()[:35]
-             try:
-              with page.expect_download(timeout=11000) as dl:
-               page.get_by_role('button',name=re.compile('download',re.I)).first.click(timeout=5500)
-              result=dl.value;path=result.path()
-              raw=Path(path).read_bytes();item['download_bytes']=len(raw);item['sha256_match']=hashlib.sha256(raw).hexdigest()==sha
-              item['download_name']=result.suggested_filename[:120]
-             except Exception as e: item['download_error']=str(e)[:200]
-            except Exception as e:item['error']=str(e)[:300]
-            record[name]=item;page.close()
-           browser.close()
-          f=Path('docs/ai-investment-browser-probe-20261123.json');f.write_text(json.dumps(record,indent=2)+'\\n')
-          print(json.dumps(record,indent=2))
-          PY
-      - name: Commit diagnostic only
+      - name: Commit exact upload verification receipt
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/ai-investment-transfer-probe-20261123.json docs/ai-investment-edge-probe-20261123.json docs/ai-investment-browser-probe-20261123.json
-          if ! git diff --cached --quiet; then git commit -m 'Record media transfer preflight outcome [skip ci]'; git pull --rebase origin main; git push origin HEAD:main; fi
-
-# Recheck edge video direct-download metadata
+          git add docs/ai-investment-media-release-receipt-20261123.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record verified Article media transfer result [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

@@ -1,0 +1,126 @@
+name: Verify AI investment article release (2026-11-23)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ai-investment-article-validation-20261123.yml'
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install existing reader runtime and browser
+        run: |
+          pip install -r requirements.txt
+          pip install playwright==1.58.0
+          python -m playwright install chromium
+      - name: Check source lock, cover metadata, anonymous preview and public website
+        env: {PYTHONPATH: src}
+        run: |
+          python - <<'PY'
+          import json,subprocess,time,traceback
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+          report={"source_lock":{},"anonymous_preview":{},"social_cover":{},"existing_tests":{},"browser":{}}
+          try:
+              from site_cms import CmsArticle,cms_feature_image_meta
+              from article_reader_preview import render_public_article_preview
+              from article_reader_video import render_article_video
+              stage=json.loads(Path("docs/article-replacements/enterprise-ai-investment-approved-20261123.json").read_text())
+              manifest=json.loads(Path("static/article-videos/enterprise-ai-explained-beyond-models-and-agents/manifest.json").read_text())
+              article=CmsArticle(
+                slug=stage["slug"],kind="Article",status="published",
+                title=stage["title"],subtitle=stage["subtitle"],excerpt=stage["excerpt"],
+                content_html=stage["content_html"],published_at="2026-11-21T13:31:17.636324+00:00",
+                header_image_url=manifest["header_image"]["url"],header_image_alt=stage["header_image_alt"])
+              player=render_article_video(article)
+              checks={
+                "player_renders":player.count("<video ")==1,
+                "approved_video_url":manifest["video"]["url"] in player,
+                "old_video_absent":"web-5c54338a7210.mp4" not in player,
+                "poster_url":manifest["poster"]["url"] in player,
+                "approved_published_at":manifest["published_at"]==article.published_at,
+              }
+              report["source_lock"]={"passed":all(checks.values()),"checks":checks}
+              preview=render_public_article_preview(article)
+              checkp={
+                "has_new_cover":article.header_image_url in preview,
+                "has_one_video":preview.count("<video ")==1,
+                "has_public_summary":"Public executive summary" in preview,
+                "has_registration":"Free registration gives you the complete article" in preview,
+                "no_complete_article_body":"The model bill is only part of the cost" not in preview,
+                "video_before_registration":preview.index("article-video-feature") < preview.index("article_unlock_register") if "article_unlock_register" in preview else preview.index("article-video-feature") < preview.index("article-reader-free-access"),
+              }
+              report["anonymous_preview"]={"passed":all(checkp.values()),"checks":checkp}
+              meta=cms_feature_image_meta(article)
+              report["social_cover"]={"passed":meta==(article.header_image_url,"image/jpeg",1672,941),"mime":meta[1],"width":meta[2],"height":meta[3]}
+          except Exception as exc:
+              report["source_lock"]["error"]=str(exc)[:600]
+              report["source_lock"]["traceback"]=traceback.format_exc()[-700:]
+          for name in ("test_article_early_access.py","test_article_reader_video.py"):
+              p=subprocess.run(["python","-m","unittest","discover","-s","tests","-p",name,"-v"],capture_output=True,text=True,timeout=120)
+              report["existing_tests"][name]={"passed":p.returncode==0,"output_tail":(p.stdout+p.stderr)[-1400:]}
+          url="https://jairribeiro-ai.streamlit.app/?page=thinking&article=enterprise-ai-explained-beyond-models-and-agents"
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True)
+              for width in (1440,390):
+                  label=str(width)
+                  page=browser.new_page(viewport={"width":width,"height":900},is_mobile=width<500,has_touch=width<500)
+                  result={"url":url,"browser":"Chromium","viewport":width,"verified":False}
+                  try:
+                      page.goto(url,wait_until="domcontentloaded",timeout=65000)
+                      for _ in range(32):
+                          texts=[]
+                          videos=[]
+                          covers=[]
+                          for frame in page.frames:
+                              try:
+                                  text=frame.locator("body").inner_text(timeout=750)
+                                  texts.append(text)
+                                  for v in frame.locator("video").all():
+                                      videos.append(v.get_attribute("poster") or "")
+                                  for im in frame.locator("img").all():
+                                      src=im.get_attribute("src") or ""
+                                      if "header-dc279160fb11.jpg" in src:covers.append(src)
+                              except Exception:
+                                  pass
+                          whole=" ".join(texts)
+                          result["title_present"]="What Should Enterprise AI Prove Before the Next Investment?" in whole
+                          result["video_present"]=any("poster-19cd2d06d507.png" in v for v in videos)
+                          result["cover_present"]=bool(covers)
+                          if result["title_present"] and result["video_present"] and result["cover_present"]:
+                              result["verified"]=True
+                              break
+                          page.wait_for_timeout(2800)
+                      result["final_url"]=page.url
+                      result["frame_count"]=len(page.frames)
+                      result["body_sample"]=whole[:500] if not result["verified"] else ""
+                  except Exception as e:
+                      result["error"]=str(e)[:500]
+                  report["browser"][label]=result
+                  page.close()
+              browser.close()
+          report["release_level"]="local_source_and_media_verified" if report["source_lock"].get("passed") and report["anonymous_preview"].get("passed") and report["social_cover"].get("passed") else "local_qa_incomplete"
+          report["live_browser_level"]="anonymous_browser_verified" if all(v.get("verified") for v in report["browser"].values()) else "browser_unverified"
+          target=Path("docs/ai-investment-article-qa-20261123.json")
+          target.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\\n")
+          print(json.dumps({k:v for k,v in report.items() if k!="existing_tests"},indent=2)[:8000])
+          PY
+      - name: Publish observed QA result, including any unresolved browser checks
+        if: always()
+        run: |
+          if [ -f docs/ai-investment-article-qa-20261123.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs/ai-investment-article-qa-20261123.json
+            if ! git diff --cached --quiet; then
+              git commit -m "Record actual AI investment Article reader and browser QA [skip ci]"
+              git pull --rebase origin main
+              git push origin HEAD:main
+            fi
+          fi

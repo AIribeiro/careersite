@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "slug": "which-ai-framework-helps-with-the-decision-you-have",
+  "status": "approved",
+  "approved_by_owner": true,
+  "revision": "v1-owner-approved-20261124",
+  "article_fingerprint": "94e08c1c247aaaa36191d2ef05848ebdaf4f2c78f09e4b43257f5df5c1df3482",
+  "infographic_release_fingerprint": "94e08c1c247aaaa36191d2ef05848ebdaf4f2c78f09e4b43257f5df5c1df3482",
+  "title": "Which AI Framework Helps With the Decision You Have?",
+  "duration_seconds": 102.083333,
+  "web": {
+    "file": "preview.mp4",
+    "sha256": "5ae85031a41b2a784e4e2ec8751d9cbb80b43d7f96a780ddf95b301371dc0fb3",
+    "size_bytes": 5894261,
+    "width": 1920,
+    "height": 1080,
+    "video_codec": "h264",
+    "audio_codec": "aac",
+    "caption_format": "burned_in_with_srt_vtt_source",
+    "git_binary_available": false,
+    "delivery": "supabase-public-storage",
+    "public_url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/executive-briefings/which-ai-framework-helps-with-the-decision-you-have/preview-v1-5ae85031.mp4"
+  },
+  "poster": {
+    "file": "poster.jpg",
+    "sha256": "1d6677cc7efcc692af08163bac3bcd002093781f4771a23b668690ef23a8c30f",
+    "size_bytes": 274090,
+    "delivery": "github-public-raw"
+  },
+  "linkedin": {
+    "file": "premium_linkedin_review.mp4",
+    "width": 1080,
+    "height": 1350,
+    "sha256": "40e760f15efeefea2406046b9a6f5c8d9f5be2df2e929d778784f71148b94d6d",
+    "status": "approved_master_not_posted",
+    "distribution": "manual_only"
+  },
+  "voice": {
+    "name": "Jair Ribeiro",
+    "voice_id": "244dad1f09ba4ca7980e30707c1e2b06",
+    "audio_sha256": "def156d1f1dff8b7046e258569106f2af6d38b05a8c36ad6343338adc1e8f55a",
+    "script_sha256_utf8_strip": "702c1f23dd1ea057d7a78cc5d7b2a6bb4dd675e7b191b6d64320bea184da6a29",
+    "contains_private_voice_master": false
+  },
+  "release_checks": {
+    "public_video_head_200": true,
+    "public_video_mime_video_mp4": true,
+    "remote_full_sha256_verified": true,
+    "range_start_206": true,
+    "range_middle_206": true,
+    "range_end_206": true,
+    "poster_200_sha256_verified": true,
+    "actual_safari_playback_verified": false,
+    "actual_desktop_playback_verified": false
+  },
+  "owner_release_authorized": "2026-11-24",
+  "note": "Owner approved premium 16:9 and 4:5 review editions and requested publication on 24 Nov 2026. The website video is immutable public Storage; poster is source-locked public GitHub JPEG. Publisher company references use stylized typeset identifiers, not claimed official logo art. Spoken domain pronunciation remains flagged for human review; web graphics and CTA use the correct domain. Video hosting verified independently; in-browser Safari and desktop playback remain unobserved."
+}

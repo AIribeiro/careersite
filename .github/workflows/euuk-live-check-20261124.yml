@@ -40,6 +40,7 @@ jobs:
                       if frame:break
                       page.wait_for_timeout(2500)
                   assert frame, f'Expected deployed player not found in live frames: {[f.url for f in page.frames]}'
+                  page.wait_for_timeout(9000)
                   v=frame.locator('.article-video-feature video')
                   assert v.count()==1
                   v.scroll_into_view_if_needed(timeout=10000)
@@ -48,7 +49,15 @@ jobs:
                   assert meta['sectionAfterSummary'] and meta['sectionBeforeRegistration'] and not meta['articleBodyPresent'],meta
                   assert abs(meta['clientWidth']/meta['clientHeight']-16/9)<0.05,meta
                   assert meta['scrollWidth']<=meta['viewportWidth']+2,meta
-                  playback=v.evaluate('''async v=>{v.muted=true;v.preload="auto";await Promise.race([v.play(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("play timeout")),15000))]);let a=v.currentTime;await new Promise(r=>setTimeout(r,850));let b=v.currentTime;v.pause();let target=v.duration*0.55;await Promise.race([new Promise((resolve,reject)=>{v.addEventListener("seeked",resolve,{once:true});v.currentTime=target}),new Promise((_,reject)=>setTimeout(()=>reject(new Error("seek timeout")),15000))]);return {duration:v.duration,progress:b-a,seekTime:v.currentTime,expectedSeek:target,readyState:v.readyState,error:v.error?.message||null}}''')
+                  print(json.dumps({'placement_verified':True,'viewport':[w,h],'frame':frame.url,'player':meta}),flush=True)
+                  for attempt in range(3):
+                      try:
+                          playback=v.evaluate('''async v=>{v.muted=true;v.preload="auto";await Promise.race([v.play(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("play timeout")),15000))]);let a=v.currentTime;await new Promise(r=>setTimeout(r,850));let b=v.currentTime;v.pause();let target=v.duration*0.55;await Promise.race([new Promise((resolve,reject)=>{v.addEventListener("seeked",resolve,{once:true});v.currentTime=target}),new Promise((_,reject)=>setTimeout(()=>reject(new Error("seek timeout")),15000))]);return {duration:v.duration,progress:b-a,seekTime:v.currentTime,expectedSeek:target,readyState:v.readyState,error:v.error?.message||null}}''')
+                          break
+                      except Exception as e:
+                          if attempt==2 or not any(x in str(e) for x in ['removed from the document','detached','Execution context was destroyed']): raise
+                          page.wait_for_timeout(5000)
+                          v=frame.locator('.article-video-feature video')
                   assert abs(playback['duration']-80.128934)<0.5 and playback['progress']>0.2 and abs(playback['seekTime']-playback['expectedSeek'])<0.5 and playback['error'] is None,playback
                   print(json.dumps({'verified':True,'viewport':[w,h],'frame':frame.url,'player':meta,'playback':playback}))
                   page.close()

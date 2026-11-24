@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "slug": "what-i-hope-the-eu-uk-digital-partnership-gets-right-for-enterprise-ai",
+  "episode_id": "20261124-v1",
+  "version": "premium_light_v3",
+  "state": "published_verified",
+  "owner_approved": true,
+  "media_verified": true,
+  "source_sha256": "a911206353561c644b4f9470f87deb2c28b86a52e767a68f19f3691f49f1341f",
+  "source_sha256_convention": "PostgreSQL JSONB serialization of approved source fields; site checks material field hashes",
+  "published_at": "2026-11-20T20:33:33.135888+00:00",
+  "content_sha256": "d06f82d9baf65b6ebbc8dfa174b28166fd4f12a98eb0e36fb57dac2bf4bfce3b",
+  "title_sha256": "f3dbdf09deda9d2ed4ca9599463442bc6882d22ddc684fb7397b8377f53f7494",
+  "subtitle_sha256": "7c80447a8a7a053a689b32c738e0eda5aa92b64c6152a7adc2e53ae34a49ad0b",
+  "excerpt_sha256": "f01742c5487add809d12281381088d8c0d4299d91057c1b8dff70ef067feebad",
+  "script_sha256": "8e0afd0b19963a3e9c918f642c5ba43b1092aae073642cf790d1158df4c85697",
+  "audio_sha256": "bd27c494bf426bbfcb2e8a29b7164c334f60ded58c3114439bf3f5c4d6a2cb92",
+  "video_title": "The EU–UK Digital Partnership: What Could Change for Enterprise AI?",
+  "player_heading": "What could the EU–UK Digital Partnership change for enterprise AI?",
+  "video": {
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/thinking-articles/what-i-hope-the-eu-uk-digital-partnership-gets-right-for-enterprise-ai/20261124-v1/web-355106a37a1c.mp4",
+    "sha256": "355106a37a1c864b4628baf4991650833a894c3f02d1b0977771679708220409",
+    "bytes": 2070583,
+    "mime": "video/mp4",
+    "duration_seconds": 80.12893424036281
+  },
+  "poster": {
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/what-i-hope-the-eu-uk-digital-partnership-gets-right-for-enterprise-ai/20261124-v1/poster-f4b45205c9b8.png",
+    "sha256": "f4b45205c9b856b041117f0fab1df04d39593119302dad7fa057ed8b536b31d8",
+    "bytes": 98071,
+    "mime": "image/png"
+  },
+  "media_verification": {
+    "method": "GitHub OIDC-authenticated, fixed-asset Supabase Edge transfer and public HTTP verification; run 45443610838 / job 138621246223",
+    "verified_at": "2026-11-24T17:00:31.5163827Z",
+    "head_video_status": 200,
+    "head_poster_status": 200,
+    "full_get_video_sha256_match": true,
+    "full_get_poster_sha256_match": true,
+    "byte_ranges": [
+      {
+        "start": 0,
+        "end": 4095,
+        "status": 206
+      },
+      {
+        "start": 1035291,
+        "end": 1039386,
+        "status": 206
+      },
+      {
+        "start": 2066487,
+        "end": 2070582,
+        "status": 206
+      }
+    ],
+    "transfer_endpoint_retired": true
+  },
+  "release_note": "Exact owner-approved website edition; LinkedIn master remains private. No change to article content or reader access."
+}

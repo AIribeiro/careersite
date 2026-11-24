@@ -1,0 +1,21 @@
+name: EUUK approved media transfer
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  transfer:
+    if: github.head_ref == 'release/euuk-media-transfer-20261124' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authorize fixed-file transfer and verify public media
+        shell: bash
+        run: |
+          set -euo pipefail
+          ticket="$(curl --silent --show-error --fail-with-body -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=euuk-media-release-20261124" | jq -er .value)"
+          echo "::add-mask::$ticket"
+          curl --silent --show-error --fail-with-body --max-time 120 -X POST -H "Authorization: Bearer $ticket" 'https://rnqweoxtynelfirffmlr.supabase.co/functions/v1/euuk-media-release-once-20261124' | tee receipt.json
+          jq -e '.verified == true and (.results | length == 2)' receipt.json

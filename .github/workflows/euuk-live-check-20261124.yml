@@ -1,0 +1,56 @@
+name: EUUK live reader verification
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  browser:
+    if: github.head_ref == 'release/euuk-live-check-20261124' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Install Playwright
+        run: python -m pip install playwright==1.56.0
+      - name: Check anonymous live reader in Chromium
+        shell: bash
+        run: |
+          python - <<'PY'
+          from playwright.sync_api import sync_playwright
+          import json, time
+          slug = 'what-i-hope-the-eu-uk-digital-partnership-gets-right-for-enterprise-ai'
+          url = 'https://jairribeiro.com/?page=thinking&article=' + slug
+          video_url = 'https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/thinking-articles/' + slug + '/20261124-v1/web-355106a37a1c.mp4'
+          poster_url = 'https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/' + slug + '/20261124-v1/poster-f4b45205c9b8.png'
+          with sync_playwright() as p:
+              browser = p.chromium.launch(channel='chrome',headless=True,args=['--autoplay-policy=no-user-gesture-required'])
+              for w,h in [(1440,1000),(390,844)]:
+                  page=browser.new_page(viewport={'width':w,'height':h},is_mobile=(w==390),device_scale_factor=1,has_touch=(w==390))
+                  page.goto(url,wait_until='domcontentloaded',timeout=30000)
+                  deadline=time.monotonic()+100
+                  frame=None
+                  while time.monotonic()<deadline:
+                      for f in page.frames:
+                          try:
+                              if f.locator('video').evaluate_all('(vs,url)=>vs.some(v=>v.currentSrc===url||v.src===url||v.querySelector("source")?.src===url)',video_url):
+                                  frame=f
+                                  break
+                          except Exception: pass
+                      if frame:break
+                      page.wait_for_timeout(2500)
+                  assert frame, f'Expected deployed player not found in live frames: {[f.url for f in page.frames]}'
+                  v=frame.locator('.article-video-feature video')
+                  assert v.count()==1
+                  v.scroll_into_view_if_needed(timeout=10000)
+                  meta=v.evaluate('''(v)=>({src:v.currentSrc||v.querySelector("source")?.src||v.src,poster:v.poster,controls:v.controls,playsinline:v.playsInline,clientWidth:v.getBoundingClientRect().width,clientHeight:v.getBoundingClientRect().height,viewportWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,sectionAfterSummary:!!document.querySelector(".briefing-preview-grid")&&!!(document.querySelector(".briefing-preview-grid").compareDocumentPosition(v)&Node.DOCUMENT_POSITION_FOLLOWING),sectionBeforeRegistration:!!document.querySelector('[data-analytics-section="article-reader-free-access"]')&&!!(v.compareDocumentPosition(document.querySelector('[data-analytics-section="article-reader-free-access"]'))&Node.DOCUMENT_POSITION_FOLLOWING),articleBodyPresent:!!document.querySelector(".article-body")})''')
+                  assert meta['src']==video_url and meta['poster']==poster_url and meta['controls'] and meta['playsinline'],meta
+                  assert meta['sectionAfterSummary'] and meta['sectionBeforeRegistration'] and not meta['articleBodyPresent'],meta
+                  assert abs(meta['clientWidth']/meta['clientHeight']-16/9)<0.05,meta
+                  assert meta['scrollWidth']<=meta['viewportWidth']+2,meta
+                  playback=v.evaluate('''async v=>{v.muted=true;v.preload="auto";await Promise.race([v.play(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("play timeout")),15000))]);let a=v.currentTime;await new Promise(r=>setTimeout(r,850));let b=v.currentTime;v.pause();let target=v.duration*0.55;await Promise.race([new Promise((resolve,reject)=>{v.addEventListener("seeked",resolve,{once:true});v.currentTime=target}),new Promise((_,reject)=>setTimeout(()=>reject(new Error("seek timeout")),15000))]);return {duration:v.duration,progress:b-a,seekTime:v.currentTime,expectedSeek:target,readyState:v.readyState,error:v.error?.message||null}}''')
+                  assert abs(playback['duration']-80.128934)<0.5 and playback['progress']>0.2 and abs(playback['seekTime']-playback['expectedSeek'])<0.5 and playback['error'] is None,playback
+                  print(json.dumps({'verified':True,'viewport':[w,h],'frame':frame.url,'player':meta,'playback':playback}))
+                  page.close()
+              browser.close()
+          PY

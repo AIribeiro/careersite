@@ -181,7 +181,7 @@ def build_public_cv() -> bytes:
 
     section("Professional Summary", 3.25)
     body(
-        f"Enterprise AI & Data leader with 20+ years in enterprise technology and 8+ years in AI, data and analytics leadership. Across two Volvo Group roles in Poland and Sweden, led business-facing AI product and adoption work spanning {VOLVO_AI_INITIATIVES} initiatives, PoCs and projects. In an explicit Director-level role at MSX International, consolidated 80+ AI opportunities and delivered CoE portfolio assessment, decision-rights and data-stewardship foundations. Connects senior business, Digital & IT and delivery teams around comparable investment choices, clear ownership and practical execution. Work includes a multilingual GenAI prototype, Copilot and agent initiatives across commercial operations.",
+        f"Enterprise AI & Data leader with 20+ years in enterprise technology and AI experience since IBM Watson in Poland in 2016. Across two Volvo roles, shaped {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects. As MSX AI & Data CoE Director, led portfolio assessment, opportunity development, governance and adoption foundations. Works directly with business, IT and engineering teams on strategy, requirements, testing, investment choices and practical delivery, leading across functions without relying on hierarchy.",
         size=8.2,
         line=4.15,
     )
@@ -206,11 +206,11 @@ def build_public_cv() -> bytes:
         MSX_PUBLIC_DATES,
         "Göteborg, Sweden",
         [
-            "Consolidated 80+ AI opportunities and chose common Keep / Kill / Scale criteria, ownership requirements and lifecycle gates so business leaders could compare investment options and trade-offs.",
-            f"Delivered a seven-pillar AI & Data maturity assessment, data-stewardship foundations and a {MSX_ROADMAP} roadmap to guide ownership, readiness and next-stage priorities.",
+            "Consolidated 80+ AI opportunities; led assessment, design, requirements and development of dozens of leadership-sponsored opportunities using value, feasibility, readiness and risk criteria.",
+            f"Delivered a seven-pillar assessment and {MSX_ROADMAP} roadmap, with governance checkpoints, decision roles, data stewardship and AI Champions foundations for distributed ownership.",
         ],
         company_context=MSX_CONTEXT,
-        mandate="Continue cross-functional enterprise AI leadership in an explicit Director role, establishing AI & Data CoE portfolio governance, data accountability and adoption foundations.",
+        mandate="Steer enterprise AI priorities across functions and Value Streams; set common governance and adoption expectations while business teams own delivery.",
     )
 
     role(
@@ -219,12 +219,12 @@ def build_public_cv() -> bytes:
         VOLVO_CURRENT_DATES,
         "Göteborg, Sweden",
         [
-            "Led cross-functional development and testing of a working multilingual GenAI Customer Interview Analyzer, providing structured interview summaries and feedback for product-owner review.",
+            "Led requirements, development and testing of GenAI prototypes with developers and IT, including a multilingual Customer Interview Analyzer for product-owner review.",
             f"Led business requirements and stakeholder coordination for Microsoft 365 Copilot, agent and AI initiatives in {VOLVO_WORKFLOW_SCOPE} workflows with Digital & IT, legal and compliance teams.",
-            "Designed practical AI learning and adoption guidance linked to business workflows and responsible use, making employee capability relevant to everyday tasks.",
+            "Owned technical and business-side responsibilities for Power BI Premium capacity serving more than 4,000 users.",
             f"Across two Volvo AI roles, shaped business requirements and stakeholder work for {VOLVO_AI_INITIATIVES} AI initiatives, PoCs and projects at varied stages.",
         ],
-        mandate="Lead business-facing AI and analytics adoption across commercial operations, coordinating owners, Digital & IT and governance teams around practical use.",
+        mandate="Lead business-facing AI and analytics in commercial operations, with strong exposure to connected-vehicle operations.",
     )
 
     role(
@@ -246,7 +246,7 @@ def build_public_cv() -> bytes:
         "Wroclaw, Poland",
         [
             "Led business requirements, product and stakeholder coordination in AI and ML CoE work, translating cross-regional business needs into AI use cases and delivery discussions.",
-            f"Delivered {VOLVO_AI_LEARNING_SESSIONS} AI learning sessions and supported enterprise practitioner communities, strengthening shared AI understanding across business and technical teams.",
+            f"Delivered {VOLVO_AI_LEARNING_SESSIONS} practical AI learning sessions at Volvo and drove adoption across international teams, building shared understanding and skills.",
         ],
         mandate="Connect enterprise AI demand, stakeholders and CoE specialists while building practical literacy and business engagement.",
     )
@@ -270,8 +270,8 @@ def build_public_cv() -> bytes:
         IBM_DATES,
         "Wroclaw, Poland",
         [
-            "Worked as an IBM Watson Solution Designer, providing technical advice to sales teams and supporting the development and positioning of cognitive and AI solutions.",
-            "Applied IBM Design Thinking to frame customer problems and shape technology-led solutions around user and business needs.",
+            "Built on AI experience begun with IBM Watson in Poland in 2016, advising sales teams and shaping cognitive and AI solutions.",
+            "Applied IBM Design Thinking to customer problems; enterprise IT and cloud experience spans Azure, AWS and Databricks.",
         ],
     )
 

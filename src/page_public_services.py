@@ -552,7 +552,7 @@ def advisory() -> str:
    <p class="service-eyebrow">The person behind the advice</p>
    <h2>Experience from inside the decisions, not outside the business.</h2>
    <p>I have worked across enterprise AI, analytics and data leadership, often in the uncomfortable space between an attractive idea and the realities of funding, governance, ownership and adoption.</p>
-   <p>I have built portfolio views to help leaders prioritise, challenged whether pilots were ready to scale, shaped governance and stewardship, and worked with business teams to make new capabilities useful in day-to-day operations.</p>
+   <p>I have led portfolio assessment and opportunity development, worked directly with technical teams on requirements and prototype testing, designed governance and decision responsibilities, and developed AI literacy and Champions foundations to help business teams take ownership.</p>
    <p>That experience shapes my approach: listen to the people accountable for the result, examine what the evidence supports, and make the next decision clearer. I don't offer a substitute for engineering delivery or legal advice.</p>
    <p class="advisory-signoff">Jair Ribeiro / Independent executive perspective</p>
    <p><a href="?page=impact" target="_self">Explore my leadership experience →</a> &nbsp; <a href="?page=thinking" target="_self">Read my perspectives →</a></p>

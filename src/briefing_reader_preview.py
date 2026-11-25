@@ -31,6 +31,10 @@ PREVIEW_CSS = r"""<style>
 .site .briefing-preview-body .container{max-width:1050px}
 .site .briefing-preview-grid {display:grid;grid-template-columns:minmax(0,1.35fr) minmax(240px,.65fr);gap:clamp(25px,5vw,70px);align-items:start}
 .site .briefing-preview-copy {max-width:745px}
+/* Keep the architecture player inside the standard editorial column. */
+.site .briefing-preview--inline-video .briefing-preview-copy{min-width:0}
+.site .briefing-preview--inline-video .briefing-preview-video,.site .briefing-preview--inline-video .briefing-preview-video-player{box-sizing:border-box;width:100%;max-width:100%;min-width:0}
+.site .briefing-preview--inline-video .briefing-preview-video-player video{max-width:100%}
 /* This illustrated edition reads as one editorial column; the media and prose
    fill the same responsive page width, and supporting topics follow below. */
 .site .briefing-preview--wide .briefing-preview-hero .container,.site .briefing-preview--wide .briefing-preview-body .container{width:min(1480px,calc(100% - clamp(32px,6vw,112px)));max-width:none}
@@ -245,9 +249,13 @@ def render_public_briefing_preview(article, read_metadata: str = "") -> str:
     video_html = render_briefing_video_preview(
         str(article.slug or ""), source_fingerprint=briefing_source_fingerprint(article)
     )
-    # Only editions with validated approved media use the full editorial width.
-    # Others retain their existing two-column public preview layout.
-    wide_class = " briefing-preview--wide" if video_html else ""
+    # AI Architecture retains its original editorial grid even with a video.
+    # Preserve the previously established wide layouts for other editions.
+    inline_video = bool(video_html) and str(article.slug or "") == "ai-architecture-what-executives-really-need-to-know"
+    wide_class = (
+        " briefing-preview--inline-video" if inline_video
+        else " briefing-preview--wide" if video_html else ""
+    )
     return (
         THINKING_CSS + PREVIEW_CSS + nav("thinking")
         + f'<main class="briefing-preview{wide_class}">'

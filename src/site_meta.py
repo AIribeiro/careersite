@@ -14,9 +14,9 @@ SOCIAL_IMAGE = "https://jairribeiro-ai.streamlit.app/app/static/jair-ribeiro-soc
 # public metadata. Individual publication pages retain their own SEO fields.
 HOME_TITLE = "Jair Ribeiro | Enterprise AI & Data Leadership"
 HOME_DESCRIPTION = (
-    "Jair Ribeiro's enterprise AI and Data experience: a working GenAI "
-    "customer interview prototype, portfolio decisions, governance "
-    "foundations and adoption work, with outcomes stated clearly."
+    "Enterprise AI and Data leadership: AI strategy, portfolio decisions, "
+    "technical delivery, governance and adoption, with AI experience "
+    "dating to IBM Watson in 2016."
 )
 HOME_KEYWORDS = (
     "Jair Ribeiro, Enterprise AI, AI Strategy, AI Governance, AI Adoption, "
@@ -26,13 +26,13 @@ HOME_KEYWORDS = (
 
 DESCRIPTIONS = {
     "home": HOME_DESCRIPTION,
-    "impact": "Selected enterprise AI cases: a GenAI customer interview prototype, AI portfolio priorities, workforce enablement and decision foundations, with clear outcomes.",
+    "impact": "Enterprise AI leadership in practice: GenAI prototypes, portfolio assessment, distributed governance, 100+ AI learning sessions and shared analytics capacity.",
     "thinking": "Articles by Jair Ribeiro on enterprise AI and data leadership, governance, adoption, portfolio decisions, operating models and business value.",
     "briefings": "Executive AI Briefings by Jair Ribeiro: plain-language explanations of AI capabilities, enterprise operating choices, ownership and business value.",
-    "about": "The professional story of Jair Ribeiro: from enterprise technology foundations into business-facing AI, Data and Analytics leadership across international organizations.",
+    "about": "Jair Ribeiro's career from enterprise IT and IBM Watson in 2016 to business-facing AI, Data and Analytics leadership across international teams.",
     "certifications": "Selected AI, data and leadership credentials covering agentic AI, Responsible AI, GenAI strategy, data platforms, product and technical foundations.",
     "presence": "Selected speaking, publications and externally documented contributions across enterprise AI, Data, responsible adoption and governance.",
-    "contact": "Contact Jair Ribeiro about AI, Data and Analytics mandates involving strategy, portfolio, governance, adoption and operating capability.",
+    "contact": "Contact Jair Ribeiro about enterprise AI and Data mandates involving strategy, portfolio decisions, cross-functional delivery, governance and adoption.",
     "advisory": "Executive AI and Data advisory with Jair Ribeiro: independent decision review, portfolio priorities, governance, adoption and operating-model choices.",
     "advisory-market-signals": "Swedish AI & Data Market Intelligence for Executive Decision-Making: sourced analysis of AI adoption, workforce demand, business conditions, sourcing, and regional evidence, with executive decision briefs.",
     "advisory-market-demo": "Public historical research sample of selected senior AI and Data advertisements from June–August 2026; not the current full Market Signals Advisory edition.",
@@ -41,7 +41,7 @@ DESCRIPTIONS = {
     "enterprise": "Enterprise AI & Data experience across strategy, portfolio, operating models, governance, adoption and technical judgment.",
     "transformation": "AI transformation and adoption experience connecting experimentation with capability building, workflow change, governance and scale-readiness.",
     "governance": "AI governance and operating-model experience across decision rights, lifecycle ownership, Responsible AI, data trust and scale-readiness.",
-    "ai-data-governance": "Enterprise AI governance through ownership, stage decisions, data stewardship and human oversight, separating delivered work from research and recommendations.",
+    "ai-data-governance": "Enterprise AI governance and operating-model design: central decision responsibilities, distributed business ownership, lifecycle checkpoints and data stewardship.",
     "consulting": "Business-driven AI and consulting experience connecting problem framing and executive dialogue with enterprise operating reality.",
 }
 

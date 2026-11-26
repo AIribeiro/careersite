@@ -43,15 +43,50 @@ class DefaultAggregateAnalyticsTests(unittest.TestCase):
         self.assertIn("17 portfolio opens", rendered)
         self.assertNotIn("Most-opened publications</h3>", rendered)
 
-    def test_overview_defaults_to_weekly_aggregate_and_preserves_manual_choice(self):
+    def test_overview_uses_dynamic_editorial_period_and_preserves_manual_choice(self):
         main = (ROOT / "src/page_public_portfolio_overview.py").read_text()
         overview = main.split("def render_public_portfolio_overview()", 1)[1]
-        self.assertIn('if not st.session_state.get(MANUAL_KEY):', overview)
-        self.assertIn('st.session_state[WINDOW_KEY] = "this_week"', overview)
+        self.assertIn("initialize_editorial_reporting_period(st.session_state)", overview)
+        self.assertNotIn('st.session_state[WINDOW_KEY] = "this_week"', overview)
+        self.assertLess(overview.index("initialize_editorial_reporting_period(st.session_state)"),
+                        overview.index('window = st.selectbox('))
+        self.assertIn("on_change=remember_reporting_period", overview)
         self.assertLess(overview.index("render_basic_page_loads(str(window))"),
                         overview.index("reader_registration_kpi(str(window), reader_counts)"))
         self.assertLess(overview.index("reader_registration_kpi(str(window), reader_counts)"),
                         overview.index("_selected_portfolio_report(str(window))"))
+
+    def test_dynamic_period_selects_first_verified_read_and_retains_manual_choice(self):
+        from analytics_reporting_period import (
+            WINDOW_KEY, MANUAL_KEY, PREFERENCE_KEY, initialize_reporting_period,
+            remember_reporting_period,
+        )
+        windows = ("last_hour", "today", "yesterday", "this_week", "this_month")
+        fetches = []
+        def fetch(window):
+            fetches.append(window)
+            return {"totals": {"recorded_views": 4 if window == "yesterday" else 0}}
+
+        state = {}
+        initialize_reporting_period(state, fetch, windows=windows)
+        self.assertEqual(state[WINDOW_KEY], "yesterday")
+        self.assertEqual(fetches, ["last_hour", "today", "yesterday"])
+        state[WINDOW_KEY] = "this_month"
+        remember_reporting_period(state)
+        self.assertTrue(state[MANUAL_KEY])
+        self.assertEqual(state[PREFERENCE_KEY], "this_month")
+        initialize_reporting_period(state, fetch, windows=windows)
+        self.assertEqual(state[WINDOW_KEY], "this_month")
+        self.assertEqual(fetches, ["last_hour", "today", "yesterday"])
+
+    def test_unknown_editorial_measurements_are_not_treated_as_zero(self):
+        from analytics_reporting_period import WINDOW_KEY, initialize_reporting_period
+        state = {}
+        initialize_reporting_period(
+            state, lambda _: {"totals": {"recorded_views": None}},
+            windows=("last_hour", "today", "this_week"),
+        )
+        self.assertEqual(state[WINDOW_KEY], "last_hour")
 
     def test_storage_dependent_tracking_stays_opt_in(self):
         source = (ROOT / "src/site_analytics.py").read_text()

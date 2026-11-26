@@ -84,7 +84,7 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         '<section class="briefing-preview-hero" data-analytics-section="article-early-access-intro">'
         '<div class="container"><a class="briefing-preview-back" href="?page=thinking" target="_self">'
         '← All Articles</a>'
-        '<span class="briefing-preview-index">Article · Premium Reader edition</span>'
+        '<span class="briefing-preview-index">Article · Free to read with an account</span>'
         f'<h1>{title}</h1><p class="briefing-preview-deck">{subtitle}</p>'
         f'<div class="briefing-preview-meta">{escape(str(read_metadata))} · By Jair Ribeiro</div>'
         '</div></section>'
@@ -92,12 +92,12 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         + '<section class="briefing-preview-body" data-analytics-section="article-executive-summary">' 
         '<div class="container"><div class="briefing-preview-grid">'
         '<article class="briefing-preview-copy"><div class="briefing-preview-decision">'
-        '<span class="briefing-preview-small-head">Public executive summary</span>'
+        '<span class="briefing-preview-small-head">Executive summary</span>'
         f'<h2>{escape(summary_heading)}</h2>'
         + body + '</div></article>'
         '<aside class="briefing-preview-aside">'
-        '<strong>Inside the complete article</strong>' + inside
-        + '<p>Free registration gives you the complete article.</p>'
+        '<strong>What you'll find in the full article</strong>' + inside
+        + '<p>Register for free to read the full article.</p>'
         '</aside></div>'
         + render_article_video(article)
         + reader_access_invitation("article", destination,

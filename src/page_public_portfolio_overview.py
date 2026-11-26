@@ -281,7 +281,7 @@ def render_public_portfolio_overview() -> None:
         "attention. Site sessions are deduplicated browser sessions, not unique "
         "people; repeat content views count."
     )
-    st.caption("Measurement changed on 20 November 2026: detailed reading, sessions and interaction analytics now require statistics consent, while basic server-side page-load totals cover all visits. Earlier periods used broader tracking, so comparisons across this change are not like-for-like.")
+    st.caption("Site and article views, reading behaviour, navigation, referrals and performance from first-party event tracking. Full event collection resumed on 26 November 2026; the 20–26 November interval has incomplete browser-event coverage.")
     # Restore dynamic period selection: first window with a verified
     # editorial read, widening from Last hour through This year as needed.
     # Explicit manual selections remain persistent, and can be cleared here.
@@ -317,25 +317,6 @@ def render_public_portfolio_overview() -> None:
         reader_registration_totals.clear()
         st.rerun()
 
-    # Show the broad, consent-independent page-load count first, directly below
-    # reporting controls. It remains visible even if detailed reports fail.
-    from site_aggregate_traffic import render_basic_page_loads
-    from site_content_demand import render_content_demand
-    render_basic_page_loads(str(window))
-    render_content_demand(str(window))
-
-    # Operational registrations are measured without browser analytics.
-    # Keep the card visible even when detailed session reporting fails.
-    from portfolio_reader_kpi import reader_registration_totals, reader_registration_kpi
-    try:
-        reader_counts = reader_registration_totals(str(window))
-    except (RuntimeError, ValueError, TimeoutError, TypeError):
-        reader_counts = None
-    st.html(reader_registration_kpi(str(window), reader_counts))
-
-    st.divider()
-    st.caption("Detailed engagement below covers opted-in sessions only. "
-               "Missing behavioral metrics are not evidence of zero interest.")
 
     try:
         # Broad windows use the fast canonical reader/page counter. Detailed
@@ -345,28 +326,6 @@ def render_public_portfolio_overview() -> None:
         st.warning("Portfolio reporting is temporarily unavailable.")
         st.caption(str(exc))
         return
-
-    # Do not display five misleading zero-view cards when only the
-    # consent-independent counter has observations. Zero opted-in reads
-    # are not evidence of zero readership.
-    quality_check = report.get("quality") or {}
-    consented_views = max(0, int(quality_check.get("site_views") or 0))
-    if consented_views == 0:
-        from site_aggregate_traffic import basic_page_load_report, render_monthly_optin_trend
-        try:
-            basic_counts = basic_page_load_report(str(window))
-            coarse_loads = max(0, int(basic_counts.get("all_page_loads") or 0))
-        except (RuntimeError, TypeError, ValueError, OverflowError):
-            coarse_loads = 0
-        if coarse_loads:
-            st.markdown(
-                "**Detailed engagement cannot be measured for this period.** "
-                "There are page loads, but no consented session analytics. "
-                "Reading time, unique sessions and conversion rates should "
-                "remain unavailable, not be reported as zero."
-            )
-            render_monthly_optin_trend()
-            return
 
     pages = portfolio_visit_rows(report, "page")
     historical_routes = [row for row in pages if row["Slug"] in RETIRED_ROUTES]
@@ -525,6 +484,24 @@ def render_public_portfolio_overview() -> None:
         card["period_label"] = REPORTING_WINDOW_LABELS.get(str(window), "Selected period")
     st.html(portfolio_metric_grid(cards))
 
+    # Operational reader memberships complement the behavioural reach figures.
+    from portfolio_reader_kpi import reader_registration_totals, reader_registration_kpi
+    try:
+        reader_counts = reader_registration_totals(str(window))
+    except (RuntimeError, ValueError, TimeoutError, TypeError):
+        reader_counts = None
+    st.html(reader_registration_kpi(str(window), reader_counts))
+
+    # Preserve a separate request-level cross-check, but never use this
+    # coarse aggregate as a replacement for visitor engagement or sessions.
+    with st.expander("Server page-load cross-check · separate from analytics", expanded=False):
+        from site_aggregate_traffic import render_basic_page_loads
+        from site_content_demand import render_content_demand
+        render_basic_page_loads(str(window))
+        render_content_demand(str(window))
+        st.caption("These independent request counts include repeated page loads and may "
+                   "include automated clients; they are not browser sessions or readers.")
+
     # Retained historic content trend stays below the five detailed metric cards.
     from site_aggregate_traffic import render_monthly_optin_trend
     render_monthly_optin_trend()
@@ -575,7 +552,7 @@ def render_public_portfolio_overview() -> None:
             "before comparing the three reading categories."
         )
     st.caption(
-        "All four card headlines are view counts compared with lifetime views "
+        "All five card headlines are view counts compared with lifetime views "
         "of the same content category. The first card counts canonical site-wide "
         "views without duplicate article-page events; its supporting metric "
         "counts distinct browser sessions. Its ranking covers ordinary portfolio "

@@ -68,7 +68,7 @@ class AgentDiscoveryTests(unittest.TestCase):
             self.assertNotIn("PRIVATE_EDITORIAL_BODY_NEVER_IN_AGENT_FEED", output)
             self.assertNotIn("PRIVATE_EDITORIAL_ASIDE", output)
             self.assertNotIn("PRIVATE_READER_ADDRESS@example.org", output)
-        self.assertIn("free registration", summary)
+        self.assertIn("Register for free or sign in", summary)
         self.assertEqual(json.loads(response)["count"], 1)
 
 

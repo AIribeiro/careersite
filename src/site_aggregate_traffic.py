@@ -3,7 +3,7 @@
 Counts route opens in daily aggregate buckets by page, public article slug and
 broad campaign channel. Does not transmit IP addresses, cookies, user agents,
 referrers, full URLs, account data or visitor/session identifiers. One count is
-a page load, never a verified visitor. Detailed behavior remains opt-in.
+a page load, never a verified visitor. Detailed browser behaviour is reported separately.
 """
 from __future__ import annotations
 
@@ -268,9 +268,9 @@ def render_monthly_optin_trend() -> None:
     """Optional compact visual, with retained counts rather than a raw data table."""
     with st.expander("Long-term readership · monthly history", expanded=False):
         st.caption(
-            "Monthly retained view counts, not unique people. Before 20 Nov 2026 the "
-            "tracking rules were broader; after that date detailed statistics require opt-in. "
-            "The series is therefore not directly comparable across the change."
+            "Monthly retained view counts, not unique people. Browser event collection was restricted "
+            "between 20 and 26 November 2026; it returned to broader tracking on 26 November. "
+            "That restricted interval is incomplete and must not be compared directly with other dates."
         )
         try:
             months, articles = monthly_content_rollup()

@@ -108,10 +108,10 @@ def _render_public_analytics() -> None:
         render_public_portfolio_overview()
         return
 
-    st.caption("Since 20 November 2026, detailed session and engagement statistics require opt-in. Separate basic server-side page-load counts do not; earlier detailed figures used broader collection, so compare periods with care.")
     st.title("Portfolio performance")
-    st.caption("Understand which content earns qualified attention and what visitors do next. "
-               "A recorded visit is not a person or a recruiter identification.")
+    st.caption("Full first-party browser activity tracking was restored on 26 November 2026. "
+               "The 20–26 November consent-gated interval is incomplete and cannot be retrospectively reconstructed. "
+               "A recorded session is not an identified person.")
     kind = st.segmented_control(
         "Portfolio focus", options=["page","article","weekly_ai","briefings"],
         default="page",

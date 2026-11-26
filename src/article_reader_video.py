@@ -44,13 +44,17 @@ def _approved_public_url(value: object, prefix: str, slug: str) -> bool:
     if not isinstance(value, str):
         return False
     parts = urlsplit(value)
-    return (
-        parts.scheme == "https"
-        and parts.netloc == _HOST
-        and not parts.query and not parts.fragment
-        and parts.path.startswith(prefix + slug + "/")
-        and ".." not in parts.path
-    )
+    if parts.scheme != "https" or parts.query or parts.fragment or ".." in parts.path:
+        return False
+    if parts.netloc == _HOST:
+        return parts.path.startswith(prefix + slug + "/")
+    # One fixed, approved immutable Pages release. Preserve the existing
+    # Supabase allowlist and reject arbitrary Pages paths and other articles.
+    if parts.netloc == "airibeiro.github.io" and slug == "how-to-build-an-ai-literate-organization":
+        base = "/careersite/public-media/thinking-articles/" + slug + "/20261125-fd1409953395/"
+        expected = "web-fd1409953395.mp4" if prefix == _VIDEO_PREFIX else "poster-a5d06a73832f.png"
+        return parts.path == base + expected
+    return False
 
 
 def _manifest(slug: str) -> dict | None:

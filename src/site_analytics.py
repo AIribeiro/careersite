@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-"""Opt-in first-party portfolio measurement for the public site.
+"""First-party portfolio event analytics for all public visits.
 
-Before a visitor accepts optional statistics, the collector does not store an
-analytics identifier or send activity events. After opt-in, it records visits, publication engagement, optional audio and
-UX measurements with coarse attribution.
-A temporary session ID lives in sessionStorage; no IP address, full user agent,
-exact device fingerprint or form contents are sent in event payloads.
+The tracker restores the pre-20-November event collection with the current
+richer telemetry: site and article views, session engagement, attribution,
+clicks, exposure, performance, audio and UX activity. A temporary session UUID
+lives in sessionStorage; never send passwords, form contents or auth tokens.
 """
 
 import json
@@ -107,74 +106,9 @@ ENTRY_DOMAIN_JS = r"""
 """
 
 
-CONSENT_GATE_JS = r"""
-  // Statistics are optional. No analytics data or browser identifiers before opt-in.
-  const preferenceKey = 'jair_statistics_choice_v1';
-  const privacyUrl = 'https://jairribeiro.com/?page=privacy';
-  const choice = () => {
-    try { return win.localStorage.getItem(preferenceKey); } catch (_) { return null; }
-  };
-  const clearOldAnalytics = () => {
-    try {
-      for (const key of Object.keys(win.sessionStorage)) {
-        if (key.startsWith('jair_hq_') || key.startsWith('jair_article_')) {
-          win.sessionStorage.removeItem(key);
-        }
-      }
-    } catch (_) {}
-  };
-  const boxId = 'jair-statistics-consent';
-  const showStatisticsChoice = () => {
-    if (!doc.body || doc.getElementById(boxId)) return;
-    const box = doc.createElement('aside');
-    box.id = boxId;
-    box.setAttribute('role', 'region');
-    box.setAttribute('aria-label', 'Website statistics choice');
-    box.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;max-width:590px;z-index:2147483000;padding:17px 19px;background:#fffdfa;color:#172d42;border:1px solid #c9bbaa;box-shadow:0 12px 36px rgba(10,24,40,.19);font:14px/1.5 Arial,sans-serif';
-    box.innerHTML = '<strong style="display:block;margin-bottom:5px">Optional website statistics</strong>' +
-      '<span>Basic page and publication counts operate without visitor IDs. With your permission, I can also measure reading time, scroll depth, link engagement, audio listening, broad device categories and site performance. Optional statistics use temporary session storage, never form contents or advertising trackers. Your choice does not affect access. <a href="' + privacyUrl + '" style="color:#174a71;text-decoration:underline">Privacy notice</a>.</span>' +
-      '<div style="display:flex;flex-wrap:wrap;gap:9px;margin-top:13px">' +
-      '<button type="button" data-stats-choice="no" style="cursor:pointer;background:#223a52;border:1px solid #223a52;color:#fff;padding:9px 13px;font-weight:bold;min-width:150px">Essential only</button>' +
-      '<button type="button" data-stats-choice="yes" style="cursor:pointer;background:#223a52;border:1px solid #223a52;color:#fff;padding:9px 13px;font-weight:bold;min-width:150px">Allow statistics</button></div>';
-    box.addEventListener('click', event => {
-      const button = event.target.closest('[data-stats-choice]');
-      if (!button) return;
-      try { win.localStorage.setItem(preferenceKey, button.dataset.statsChoice); }
-      catch (_) {
-        box.querySelector('span').textContent = 'Your browser could not save the preference. Optional statistics remain off.';
-        return;
-      }
-      if (button.dataset.statsChoice !== 'yes') clearOldAnalytics();
-      win.location.reload();
-    });
-    doc.body.appendChild(box);
-  };
-  if (!win.__jairStatisticsPreferenceBound) {
-    win.__jairStatisticsPreferenceBound = true;
-    doc.addEventListener('click', event => {
-      if (event.target.closest('[data-jair-privacy-settings]')) {
-        const box = doc.getElementById(boxId);
-        if (box) box.remove();
-        showStatisticsChoice();
-      }
-    });
-  }
-  if (choice() !== 'yes') {
-    win.__jairAnalyticsSend = () => Promise.resolve(false);
-    clearOldAnalytics();
-    if (choice() === null) {
-      if (doc.readyState === 'loading') {
-        doc.addEventListener('DOMContentLoaded', showStatisticsChoice, { once: true });
-      } else showStatisticsChoice();
-    }
-    return;
-  }
-  const oldChoiceBox = doc.getElementById(boxId);
-  if (oldChoiceBox) oldChoiceBox.remove();
-"""
 
 def inject_analytics(page: str, source: str = "streamlit") -> None:
-    """Inject the shared privacy-conscious analytics client into the browser."""
+    """Inject the shared first-party event collector into the browser."""
     if source not in {"streamlit", "lovable"}:
         raise ValueError(f"Unsupported analytics source: {source}")
 
@@ -189,7 +123,6 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   const page = {json.dumps(page)};
   const allowed = new Set({json.dumps(list(ALLOWED_EVENTS))});
   const lenses = new Set({json.dumps(list(LENS_PAGES))});
-{CONSENT_GATE_JS}
 {ENTRY_DOMAIN_JS}
 
   // A Streamlit route change keeps the parent document alive. An article
@@ -613,7 +546,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
   win.__jairAnalyticsEnsureFreshSession = ensureFreshSession;
 
   win.__jairAnalyticsSend = (eventName, extra = {{}}) => {{
-    if (choice() !== 'yes' || !allowed.has(eventName)) return Promise.resolve(false);
+    if (!allowed.has(eventName)) return Promise.resolve(false);
     if (ensureFreshSession()) {{
       // The document may stay mounted while the tab is idle. Reset its local
       // attribution as well as storage so background telemetry cannot reuse
@@ -651,9 +584,8 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       utm_campaign: attribution.utm_campaign,
       utm_content: attribution.utm_content || null,
       browser_automation: Boolean(win.navigator && win.navigator.webdriver === true),
-      // Optional technical diagnostics, collected only after affirmative
-      // statistics consent. No raw user agent, IP, hardware concurrency,
-      // device memory, advertising ID or form fields are transmitted.
+      // Device and performance context available to the browser. No IP,
+      // full user agent, password, authentication token or form values.
       device_type: clientContext().device_type,
       browser_family: clientContext().browser_family,
       os_family: clientContext().os_family,
@@ -665,6 +597,9 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       screen_height: clientContext().screen_height,
       connection_type: clientContext().connection_type,
       orientation: clientContext().orientation,
+      hardware_concurrency: clientContext().hardware_concurrency,
+      device_memory_gb: clientContext().device_memory_gb,
+      save_data: clientContext().save_data,
       session_elapsed_ms: Math.round(elapsedMs),
       engaged_ms: Math.round(Math.min(86400000, Math.max(0, engagedMs))),
       page_engaged_ms: Math.round(pageEngagedMs),
@@ -693,7 +628,7 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
       max_scroll_velocity: extra.max_scroll_velocity == null ? null : Math.max(0, Math.min(1000000, Number(extra.max_scroll_velocity) || 0)),
       max_reverse_scroll_velocity: extra.max_reverse_scroll_velocity == null ? null : Math.max(0, Math.min(1000000, Number(extra.max_reverse_scroll_velocity) || 0)),
       error_type: extra.error_type ? safeText(extra.error_type, 64) : null,
-      tracking_version: 7,
+      tracking_version: 8,
     }};
 
     // Most analytics callers are fire-and-forget. Audio listening needs to

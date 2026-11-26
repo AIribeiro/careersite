@@ -563,7 +563,8 @@ def inject_analytics(page: str, source: str = "streamlit") -> None:
         win.sessionStorage.setItem(attributionKey, JSON.stringify(attribution));
       }}
     }}
-    if (isExcludedTestTraffic()) return Promise.resolve(false);
+    // Record even explicitly tagged QA/browser-automation visits. The reporting
+    // layer may separate them from audience metrics without deleting raw evidence.
     updateEngagement();
     const context = win.__jairAnalyticsContext || {{ page: 'home', source: 'streamlit' }};
     const elapsedMs = Math.min(86400000, Math.max(0, Date.now() - startedAt));

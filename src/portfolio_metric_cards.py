@@ -1,7 +1,7 @@
-"""Aligned, responsive executive cards for portfolio readership summaries.
+"""Responsive executive cards that fit the actual reporting content.
 
-The same structure, number format and five-row ranking apply across all five
-measurement groups. All dynamic article titles are HTML-escaped.
+Cards with no ranking/chart remain compact; cards with data expand only as
+needed. Dynamic labels and article titles are HTML-escaped.
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ _CARD_STYLES = """
 .pv-grid {
   display:grid;
   grid-template-columns:repeat(var(--pv-grid-columns,5),minmax(0,1fr));
-  align-items:stretch;
+  align-items:start;
   gap:10px;
   margin:10px 0 8px;
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -24,21 +24,22 @@ _CARD_STYLES = """
   display:flex;
   flex-direction:column;
   min-width:0;
-  min-height:448px;
+  height:auto;
+  min-height:0;
   padding:15px 14px 13px;
   background:linear-gradient(162deg,#ffffff 0%,#fbfaf7 100%);
   border:1px solid #dddfe2;
   border-radius:13px;
   box-shadow:0 4px 15px rgba(14,31,50,.035);
 }
-.pv-card__header {min-height:58px;border-bottom:1px solid #e5e7e9}
+.pv-card__header {padding-bottom:10px;border-bottom:1px solid #e5e7e9}
 .pv-card__eyebrow {
   display:block;margin:0 0 5px;
   color:#a25d39;font-size:10px;font-weight:800;
   letter-spacing:.12em;text-transform:uppercase;
 }
 .pv-card__title {margin:0;font-size:17px;line-height:1.2;letter-spacing:-.025em;font-weight:720;color:#15243b}
-.pv-card__metric {min-height:128px;padding:12px 0 10px;border-bottom:1px solid #e5e7e9}
+.pv-card__metric {padding:12px 0 10px;border-bottom:1px solid #e5e7e9}
 .pv-card__metric-label {font-size:11px;font-weight:700;color:#687588;letter-spacing:.035em}
 .pv-card__value {
   display:block;margin-top:7px;font-size:clamp(30px,2.7vw,39px);
@@ -48,7 +49,7 @@ _CARD_STYLES = """
 .pv-card__lifetime {display:block;margin-top:8px;font-size:11px;line-height:1.4;color:#687588;overflow-wrap:break-word}
 .pv-card__activity {
   display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  min-height:66px;gap:9px;align-items:center;
+  padding:11px 0;gap:9px;align-items:start;
   border-bottom:1px solid #e5e7e9;
 }
 .pv-card__activity-block {min-width:0}
@@ -57,13 +58,13 @@ _CARD_STYLES = """
   letter-spacing:-.03em;font-weight:740;font-variant-numeric:tabular-nums;
 }
 .pv-card__activity-label {display:block;margin-top:3px;font-size:10px;line-height:1.35;color:#657286}
-.pv-card__ranking {display:flex;flex-direction:column;flex:1;min-width:0;padding-top:12px}
+.pv-card__ranking {display:flex;flex-direction:column;min-width:0;padding-top:12px}
 .pv-card__ranking-title {
-  min-height:30px;margin:0;font-weight:720;
+  margin:0 0 10px;font-weight:720;
   font-size:13px;line-height:1.35;color:#15243b;
 }
-.pv-card__list {display:grid;grid-template-rows:repeat(5,minmax(0,1fr));gap:5px;flex:1;padding:0;margin:0;list-style:none}
-.pv-card__item {min-width:0;min-height:31px;display:flex;flex-direction:column;justify-content:flex-start}
+.pv-card__list {display:grid;grid-auto-rows:max-content;gap:9px;padding:0;margin:0;list-style:none}
+.pv-card__item {min-width:0;display:flex;flex-direction:column;justify-content:flex-start}
 .pv-card__item-head {display:flex;min-width:0;gap:7px;justify-content:space-between;align-items:baseline}
 .pv-card__item-name {
   display:block;min-width:0;overflow:hidden;white-space:nowrap;
@@ -72,16 +73,15 @@ _CARD_STYLES = """
 .pv-card__item-count {flex:none;font-size:11px;font-weight:750;color:#273b54;font-variant-numeric:tabular-nums}
 .pv-card__bar {display:block;height:4px;overflow:hidden;background:#e9edf1;border-radius:10px;margin-top:4px}
 .pv-card__fill {display:block;height:100%;background:linear-gradient(90deg,#263f63,#447fa6);border-radius:10px}
-.pv-card__empty {grid-row:1 / span 5;align-self:start;padding-top:9px;font-size:12px;line-height:1.55;color:#657286}
-.pv-card__item--placeholder {visibility:hidden}
+.pv-card__empty {margin:10px 0 0;font-size:11px;line-height:1.45;color:#657286}
+.pv-card--compact .pv-card__activity {border-bottom:0;padding-bottom:0}
 @container(max-width:1150px) {
   .pv-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  .pv-card {min-height:440px}
   .pv-card__value {font-size:38px}
 }
 @container(max-width:580px) {
   .pv-grid {grid-template-columns:minmax(0,1fr)}
-  .pv-card {min-height:436px;padding:15px 14px}
+  .pv-card {padding:15px 14px}
   .pv-card__value {font-size:38px}
 }
 @media(prefers-reduced-motion:reduce) {.pv-card__fill {transition:none}}
@@ -140,9 +140,6 @@ def _ranked_items(rows: list[dict], *, available: bool) -> str:
             f'<span class="pv-card__bar" aria-hidden="true"><span class="pv-card__fill" style="width:{width:.1f}%"></span></span>'
             '</li>'
         )
-    # Identical five slots prevent short rankings from shrinking a card.
-    items.extend('<li class="pv-card__item pv-card__item--placeholder" aria-hidden="true"></li>'
-                 for _ in range(5 - len(top)))
     return "".join(items)
 
 
@@ -166,8 +163,22 @@ def _card(spec: dict, index: int) -> str:
     unit = escape(str(spec["item_unit"]))
     sessions_label = escape(str(spec.get("sessions_label", "recorded sessions")))
     rank_title = escape(str(spec["rank_title"]))
+    rows = spec.get("rows") or []
+    has_graphics = available and bool(rows)
+    compact_class = "" if has_graphics else " pv-card--compact"
+    ranking_markup = (
+        '<div class="pv-card__ranking">'
+        f'<h4 class="pv-card__ranking-title">{rank_title}</h4>'
+        f'<ol class="pv-card__list">{_ranked_items(rows, available=True)}</ol>'
+        '</div>'
+    ) if has_graphics else (
+        '<p class="pv-card__empty">'
+        + ("No recorded views in this reporting period."
+           if available else "Content classification is temporarily unavailable.")
+        + '</p>'
+    )
     return (
-        f'<section class="pv-card" aria-label="{title} analytics">'
+        f'<section class="pv-card{compact_class}" aria-label="{title} analytics">'
         '<header class="pv-card__header">'
         f'<span class="pv-card__eyebrow">{index:02d} / {category}</span>'
         f'<h3 class="pv-card__title">{title}</h3>'
@@ -183,16 +194,13 @@ def _card(spec: dict, index: int) -> str:
         f'<div class="pv-card__activity-block"><strong class="pv-card__activity-number">{items}</strong>'
         f'<span class="pv-card__activity-label">{unit}</span></div>'
         '</div>'
-        '<div class="pv-card__ranking">'
-        f'<h4 class="pv-card__ranking-title">{rank_title}</h4>'
-        f'<ol class="pv-card__list">{_ranked_items(spec["rows"], available=available)}</ol>'
-        '</div>'
+        f'{ranking_markup}'
         '</section>'
     )
 
 
 def portfolio_metric_grid(cards: list[dict]) -> str:
-    """Build four or five equal-structure cards; keep groups independent."""
+    """Build content-sized cards without placeholder rows or forced heights."""
     if len(cards) not in (4, 5):
         raise ValueError("The portfolio overview requires four or five metric groups.")
     return _CARD_STYLES + '<div class="pv-grid-wrap"><div class="pv-grid" style="--pv-grid-columns:' + str(len(cards)) + '" aria-label="Portfolio readership overview">' + (

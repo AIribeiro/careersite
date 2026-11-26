@@ -11,7 +11,7 @@ from html import escape
 
 READER_INVITATIONS = {
     "briefing": {
-        "headline": "Register free to read the full briefing.",
+        "headline": "Register for free to read the full briefing.",
         "intro": (
             "You have read the public preview. Create a free reader account "
             "to continue with the full decision analysis, evidence and "
@@ -23,12 +23,12 @@ READER_INVITATIONS = {
             "Access other Executive AI Briefings with the same account",
         ),
         "note": (
-            "Free registration · Email verification · No payment details · "
+            "Verify your email · No payment details · "
             "Editorial emails only if you opt in."
         ),
     },
     "article": {
-        "headline": "Register free to finish reading this article.",
+        "headline": "Register for free to read the full article.",
         "intro": (
             "The public executive summary is open to everyone. "
             "Create a free reader account to continue with the full argument, "
@@ -40,12 +40,12 @@ READER_INVITATIONS = {
             "Read the latest Weekly AI edition and revisit the library",
         ),
         "note": (
-            "Free registration · Email verification · No payment details · "
+            "Verify your email · No payment details · "
             "Editorial emails only if you opt in."
         ),
     },
     "weekly_ai": {
-        "headline": "Register free to read this week's complete Weekly AI.",
+        "headline": "Register for free to read the full Weekly AI edition.",
         "intro": (
             "Continue beyond the public summary to the full selection of "
             "developments, original sources and implications for business "
@@ -57,7 +57,7 @@ READER_INVITATIONS = {
             "Previous editions become public after the next release",
         ),
         "note": (
-            "Free registration · Email verification · No payment details · "
+            "Verify your email · No payment details · "
             "No automatic editorial email subscription."
         ),
     },
@@ -82,16 +82,16 @@ def reader_access_invitation(kind: str, target: str, *,
     return (
         f'<section class="briefing-unlock" data-analytics-section="{section}">'
         '<div class="briefing-unlock-inner"><div>'
-        '<p class="eyebrow">Continue reading · Free reader registration</p>'
+        '<p class="eyebrow">Continue reading for free</p>'
         '<h2>' + escape(copy["headline"]) + '</h2>'
         '<p>' + escape(copy["intro"]) + '</p></div>'
         '<ul class="briefing-unlock-benefits">' + bullets + '</ul>'
         '</div><div class="briefing-unlock-actions">'
         f'<a class="briefing-unlock-primary" href="{target}" target="_self" '
-        f'data-hq-event="{register_event}">Register free · Continue reading</a>'
+        f'data-hq-event="{register_event}">Register for free</a>'
         f'<a class="briefing-unlock-secondary" href="{target}&amp;signin=1" '
         f'target="_self" data-hq-event="{signin_event}">'
-        'Already have an account? Sign in</a>'
+        'Sign in to read the full version</a>'
         '</div><p class="briefing-unlock-note">' + escape(copy["note"]) + '</p>'
         '</section>'
     )

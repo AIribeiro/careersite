@@ -229,6 +229,11 @@ jobs:
           print('Static share pages and metadata-only crawlable discovery validated')
           PY
 
+      - name: Test article reader and premium access before media release
+        run: |
+          python -m unittest discover -s tests -p test_article_reader_video.py -v
+          python -m unittest discover -s tests -p test_article_early_access.py -v
+
       - name: Stage approved AI literacy video and poster
         run: python scripts/publish_ai_literacy_pages_media.py build
 
@@ -265,8 +270,6 @@ jobs:
         run: |
           git fetch origin main
           git merge --ff-only origin/main
-          python -m unittest discover -s tests -p test_article_reader_video.py -v
-          python -m unittest discover -s tests -p test_article_early_access.py -v
           python scripts/publish_ai_literacy_pages_media.py activate
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

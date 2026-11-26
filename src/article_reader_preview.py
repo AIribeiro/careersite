@@ -96,7 +96,7 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         f'<h2>{escape(summary_heading)}</h2>'
         + body + '</div></article>'
         '<aside class="briefing-preview-aside">'
-        '<strong>What you'll find in the full article</strong>' + inside
+        '<strong>Inside the full article</strong>' + inside
         + '<p>Register for free to read the full article.</p>'
         '</aside></div>'
         + render_article_video(article)

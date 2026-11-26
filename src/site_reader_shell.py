@@ -451,14 +451,14 @@ def reader_header(*, staging: bool = False) -> str:
             ("03", "Your collection", "Revisit saved briefings and downloadable infographics, where available."),
         )
     else:
-        headline = "Register free to read the complete editions."
+        headline = "Register for free to read the full articles and briefings."
         intro = (
             "The public previews are open. Create a free reader account to "
             "continue with complete Executive AI Briefings, current articles "
             "and the latest Weekly AI. One verified account opens the full "
             "analysis and available decision visuals. No payment is required."
         )
-        context = "PREMIUM READER LIBRARY · FREE REGISTRATION"
+        context = "READER LIBRARY · FREE TO JOIN"
         benefit_heading = "WHAT YOU CAN WORK WITH"
         benefits = (
             ("01", "Decision-focused briefings",
@@ -497,7 +497,7 @@ def reader_header(*, staging: bool = False) -> str:
            'leadership, governance and adoption experience.</p>' if not is_member else '')
         + '<div class="reader-hero-actions">'
         + '<a class="reader-hero-join" href="#reader-access" data-hq-event="reader_premium_hero_access">'
-        + ('Open my library' if is_member else 'Register free · Continue to the library')
+        + ('Open my library' if is_member else 'Register for free')
         + ' <span aria-hidden="true">→</span></a>'
         + f'<a class="reader-hero-link" href="{briefings}" target="_self" data-hq-event="reader_premium_hero_preview">'
         + 'Preview the Executive AI Briefings <span aria-hidden="true">→</span></a>'

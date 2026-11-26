@@ -127,6 +127,7 @@ def _fetch_hiring_intelligence(window: str) -> dict:
     return data if isinstance(data, dict) else {}
 
 
+@st.cache_data(ttl=50, max_entries=20, show_spinner=False)
 def _fetch_traffic_quality(window: str) -> dict:
     """Aggregate-only traffic classification; keeps raw identifiers server-side."""
     endpoint = f"{ANALYTICS_URL.rstrip('/')}/rest/v1/rpc/{TRAFFIC_QUALITY_RPC}"
@@ -899,7 +900,8 @@ def render_analytics_dashboard() -> None:
         f"{meaningful_total:,} recorded audience/action events versus "
         f"{diagnostics_total:,} diagnostic or background events. "
         "Page and article opens can overlap in their reporting; the counts "
-        "are events, not people. Detailed counts cover consented sessions."
+        "are events, not people. These action counts use the classified audience report; "
+        "raw ingestion counts appear separately below."
     )
 
     if hiring:
@@ -910,18 +912,22 @@ def render_analytics_dashboard() -> None:
         q4.metric("Evidence verified", quality_verified, _pct(quality_verified, quality_sessions))
         q5.metric("Hiring intent", quality_hiring_intent, _pct(quality_hiring_intent, quality_sessions))
         st.caption(
-            "Quality metrics use tracking v5 only"
+            "Legacy hiring-quality benchmark uses tracking v5 only"
             + (f" · since {quality_since}" if quality_since else "")
             + ". Analysis-eligible means a valid content view, excluding explicit tests and a conservative suspected-automation cohort. "
             "Sessions are browser-tab sessions, not unique people."
         )
 
     if traffic_audit:
-        st.subheader("Traffic integrity")
+        st.subheader("Traffic integrity · complete raw ingestion")
+        a1, a2, a3 = st.columns(3)
+        a1.metric("All recorded events", _count(traffic_audit.get("raw_events")))
+        a2.metric("All recorded view events", _count(traffic_audit.get("raw_content_views")))
+        a3.metric("Unclassified view events", _count(traffic_audit.get("unclassified_views")))
         t1, t2, t3, t4 = st.columns(4)
-        t1.metric("Recorded sessions", _count(traffic_audit.get("raw_sessions")))
-        t2.metric("Internal QA excluded", _count(traffic_audit.get("internal_qa_sessions")))
-        t3.metric("Suspected automation excluded", _count(traffic_audit.get("suspected_automation_sessions")))
+        t1.metric("All recorded sessions", _count(traffic_audit.get("raw_sessions")))
+        t2.metric("Tagged internal QA", _count(traffic_audit.get("internal_qa_sessions")))
+        t3.metric("Suspected automation", _count(traffic_audit.get("suspected_automation_sessions")))
         t4.metric("Unclassified sessions", _count(traffic_audit.get("unclassified_sessions")))
         st.caption(
             "Raw events are retained for diagnosis. Internal QA is explicitly tagged or matched to a "

@@ -122,7 +122,7 @@ def advisory_leadership() -> str:
    <p>See seven leadership dimensions, the gaps in reported evidence, two relevant executive dilemmas, three recommended actions and a downloadable decision record.</p>
   </div>
   <div class="sc-actions">
-   <a class="sc-btn" href="?page=advisory-access&amp;view=workshop" target="_self" data-hq-event="leadership_start_register">Register free · Start workshop</a>
+   <a class="sc-btn" href="?page=advisory-access&amp;view=workshop" target="_self" data-hq-event="leadership_start_register">Register for free · Start workshop</a>
    <a class="sc-btn alt" href="?page=advisory-access&amp;view=workshop&amp;signin=1" target="_self" data-hq-event="leadership_start_signin">Already registered? Sign in</a>
   </div>
   <div class="leadership-proofline" aria-label="Service conditions">
@@ -223,7 +223,7 @@ def advisory_leadership() -> str:
   <h3>One free Executive Advisory account.</h3>
   <p>Registration requires email verification and account access. No individual approval is needed for the self-service workshop. Optional personal pro-bono discussions are requested separately and selected individually.</p>
   <div class="sc-actions">
-   <a class="sc-btn" href="?page=advisory-access&amp;view=workshop" target="_self" data-hq-event="leadership_footer_register">Register free · Start workshop</a>
+   <a class="sc-btn" href="?page=advisory-access&amp;view=workshop" target="_self" data-hq-event="leadership_footer_register">Register for free · Start workshop</a>
    <a class="sc-btn light" href="?page=advisory-access&amp;view=workshop&amp;signin=1" target="_self" data-hq-event="leadership_footer_signin">Sign in to my workshop</a>
   </div>
   <p class="sc-micro">Already have a verified Advisory account? Sign in; you do not need to register again.</p>

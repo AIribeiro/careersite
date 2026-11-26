@@ -254,7 +254,7 @@ def request_access(token: str, uid: str, challenge: str, outcome: str) -> str:
 
 def _access_request_ui(token: str, uid: str) -> None:
     st.markdown("### Request individual access")
-    st.write("This complimentary decision service is reserved for selected Advisory clients. "
+    st.write("This free decision service is reserved for selected Advisory clients. "
              "Registration does not grant automatic access.")
     try:
         _,requested = _find_request(token,uid)
@@ -733,7 +733,7 @@ def advisory_rollout() -> str:
     return f'''{SERVICES_CSS}{SCORECARD_CSS}{nav("advisory")}
 <main class="scorecard-page">
 <section class="sc-hero"><div class="container">
- <div class="sc-kicker">Executive AI Advisory / Selective complimentary access</div>
+ <div class="sc-kicker">Executive AI Advisory / Free access by approval</div>
  <h1>Enterprise AI Rollout Readiness Advisor.</h1>
  <p class="sc-lead">Your pilot works. Is your organization actually ready to scale it?</p>
  <p>Complete a focused readiness assessment and receive a clear executive position: proceed in phases, expand conditionally, test further or pause. The recommendation identifies critical constraints and your three highest-priority next actions.</p>

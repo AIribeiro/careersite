@@ -369,7 +369,7 @@ def _advisory_login(auth_surface=None) -> None:
         requested_service = ""
     if requested_service == "workshop":
         st.html("""<section class="advisory-portal-intro advisory-workshop-intro">
-<h2>Register free to start your AI Leadership Workshop.</h2>
+<h2>Register for free to start your AI Leadership Workshop.</h2>
 <p>Verify your email to continue into the 21-question leadership assessment,
 work through two executive dilemmas and save a downloadable decision record.
 This self-service workshop needs no payment or separate approval.</p>
@@ -383,7 +383,7 @@ This self-service workshop needs no payment or separate approval.</p>
 </section>""")
     elif requested_service == "market-signals":
         st.html("""<section class="advisory-portal-intro">
-<h2>Register free to read the complete Swedish AI &amp; Data Market Reviews.</h2>
+<h2>Register for free to read the complete Swedish AI &amp; Data Market Reviews.</h2>
 <p>After email verification, choose the Executive or Jobseeker Edition, read the
 full research and download the relevant PDF and source references.
 The same account also opens five executive decision briefs.</p>
@@ -392,42 +392,42 @@ interview history or career forecasts.</p>
 </section>""")
     elif requested_service == "decision":
         st.html("""<section class="advisory-portal-intro">
-<h2>Register free to start your AI Investment Decision Advisor.</h2>
+<h2>Register for free to start your AI Investment Decision Advisor.</h2>
 <p>Verify your email to continue to the self-service assessment for one AI
 opportunity, review the decision recommendation and download your private
 executive brief. No payment or individual service approval is required.</p>
 </section>""")
     elif requested_service == "renewal":
         st.html("""<section class="advisory-portal-intro">
-<h2>Register free to use the AI Portfolio Renewal Advisor.</h2>
+<h2>Register for free to use the AI Portfolio Renewal Advisor.</h2>
 <p>Verify your email, then compare one existing AI initiative with a credible
 alternative and download your decision record. This self-service tool is
-complimentary and does not require separate approval.</p>
+free and does not require separate approval.</p>
 </section>""")
     elif requested_service == "rollout":
         st.html("""<section class="advisory-portal-intro">
-<h2>Register free to request Rollout Readiness Advisor access.</h2>
+<h2>Register for free to request Rollout Readiness Advisor access.</h2>
 <p>Create your account to submit a request for individual review. Access to
 the readiness assessment is granted only after approval; registration alone
 does not unlock this service or guarantee a meeting.</p>
 </section>""")
     elif requested_service == "scorecard":
         st.html("""<section class="advisory-portal-intro">
-<h2>Register free to request an AI Portfolio Scorecard review.</h2>
+<h2>Register for free to request an AI Portfolio Scorecard review.</h2>
 <p>Create your account to explain your portfolio decision and request access.
 Scorecard work is reserved for individually approved Advisory engagements;
-free registration does not automatically unlock it.</p>
+creating a free account does not automatically grant access.</p>
 </section>""")
     else:
         st.html("""<section class="advisory-portal-intro">
-<h2>Register free to submit an Advisory request.</h2>
+<h2>Register for free to request advice.</h2>
 <p>Have a specific enterprise AI or Data decision? Create a free account,
 describe your challenge and submit it for individual review.
 Personal discussions are selective; registration does not guarantee a meeting.</p>
 <p>Your verified account also gives access to the Executive AI Reader Library.</p>
 </section>""")
     returning = st.radio(
-        "Advisory account", ["Register free", "Sign in to advisory"],
+        "Advisory account", ["Register for free", "Sign in to advisory"],
         index=1 if st.query_params.get("signin") == "1" else 0,
         horizontal=True, key="advisory_auth_mode",
     ) == "Sign in to advisory"
@@ -620,7 +620,7 @@ def _advisory_account_settings(session: dict, user: dict, profile: dict) -> None
     section_heading(
         "ACCOUNT MANAGEMENT", "Profile and security",
         "Maintain your professional context, password and access to "
-        "the included Premium Reader Library."
+        "your included Reader Library."
     )
     profile_tab, security_tab = st.tabs(["Professional profile", "Security & sign-out"])
     with profile_tab:
@@ -681,7 +681,7 @@ def _advisory_account_settings(session: dict, user: dict, profile: dict) -> None
         )
     with security_tab:
         st.markdown("#### Password")
-        st.caption("Your Advisory and Premium Reader accounts share one Supabase Auth identity.")
+        st.caption("Use the same account for Advisory and your Reader Library.")
         with st.form("advisory_set_password", clear_on_submit=True):
             pwd = st.text_input(
                 "New password (12 characters minimum)", type="password", max_chars=128)
@@ -702,7 +702,7 @@ def _advisory_account_settings(session: dict, user: dict, profile: dict) -> None
         if st.button("Sign out of Advisory and Reader", key="advisory_signout"):
             _sign_out()
     st.divider()
-    if st.button("Open my Premium Reader Library", key="advisory_settings_library"):
+    if st.button("Open my Reader Library", key="advisory_settings_library"):
         _open_library()
     st.caption(f"Privacy requests: {PRIVACY_EMAIL} · Advisory support: {ADVISORY_EMAIL}")
 

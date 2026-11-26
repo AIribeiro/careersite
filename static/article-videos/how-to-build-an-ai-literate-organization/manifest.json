@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "slug": "how-to-build-an-ai-literate-organization",
+  "episode_id": "20261125-fd1409953395",
+  "version": "ai_literacy_premium_v3",
+  "state": "awaiting_media_verification",
+  "owner_approved": true,
+  "media_verified": false,
+  "content_sha256": "cb2dbb72775ee0c7fd9861c39cc29b4fbfec2d698698f51a3b2ec0ac2ddeb60a",
+  "title_sha256": "d077cf53597e7c4eb98b2b775eeb5ff0a607e6777ab7376309188ce18a454ea2",
+  "subtitle_sha256": "40b90d0acf371a6086e4a2ad027d68502a80a552206ab61404129e837eb34c97",
+  "excerpt_sha256": "194cf385fef93372dc5318319a7ba336992ccaab76e82d50e5c078177858a3b1",
+  "published_at": "2026-11-25T19:15:15.386694+00:00",
+  "script_sha256": "5aa54f474ab54afce924cb03470fa16386102a65a8b9056e09d914580094891f",
+  "video_title": "How to Build an AI-Literate Organization — Jair Ribeiro",
+  "player_heading": "How to lead an enterprise AI learning program",
+  "video": {
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/portfolio-public-videos/thinking-articles/how-to-build-an-ai-literate-organization/20261125-fd1409953395/web-fd1409953395.mp4",
+    "sha256": "fd1409953395b04fcdd1aaa72811057b37e43157e6cd60530ace4e8d4ae1bd97",
+    "bytes": 4447995,
+    "mime": "video/mp4",
+    "duration_seconds": 107.981
+  },
+  "poster": {
+    "url": "https://rnqweoxtynelfirffmlr.supabase.co/storage/v1/object/public/careersite-article-images/thinking-articles/how-to-build-an-ai-literate-organization/20261125-fd1409953395/poster-a5d06a73832f.png",
+    "sha256": "a5d06a73832f015c314ee95a326cedba38627d783675acb1d7d8a10fa87d3a76",
+    "bytes": 89783,
+    "mime": "image/png"
+  },
+  "release_note": "Owner-approved exact video and poster. Article body changed only for two owner-requested companion briefing cross-links after initial narration approval. Permanent upload and independent delivery checks outstanding; no player activation before verification."
+}

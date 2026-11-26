@@ -181,7 +181,7 @@ def inject_article_analytics(
   }};
 
   const send = (eventName, {{ slug = null, action = null, target = null }} = {{}}) => {{
-    if (isExcludedTestTraffic()) return;
+    // Preserve tagged test events in the raw event stream for diagnostics.
     updateArticleEngagement();
     const effectiveSlug = slug || (win.__jairArticleContext && win.__jairArticleContext.slug) || null;
     const articleMs = effectiveSlug && state.slug === effectiveSlug ? Math.round(state.engagedMs) : 0;

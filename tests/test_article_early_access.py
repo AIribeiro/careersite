@@ -169,10 +169,10 @@ class ArticleAccessTests(unittest.TestCase):
 
     def test_public_preview_does_not_promise_false_public_release_date(self):
         html = render_public_article_preview(self.latest, "12 November 2026 · 4 min")
-        self.assertIn("Public executive summary", html)
+        self.assertIn("Executive summary", html)
         self.assertIn("Business capacity belongs in the investment decision", html)
         self.assertIn("Leaders approving AI must test", html)
-        self.assertIn("Free registration gives you the complete article", html)
+        self.assertIn("Register for free to read the full article", html)
         self.assertNotIn("once a newer Article has been published", html)
         self.assertNotIn("seven days", html.lower())
         self.assertNotIn("Open to everyone from", html)
@@ -187,7 +187,7 @@ class ArticleAccessTests(unittest.TestCase):
             patch("page_reader_native._session", return_value=(None, None)),
         ):
             rendered = render_cms_article(self.latest)
-        self.assertIn("Public executive summary", rendered)
+        self.assertIn("Executive summary", rendered)
         self.assertNotIn("PRIVATE_SECTION_72619", rendered)
 
     def test_existing_reader_sees_full_latest_article(self):

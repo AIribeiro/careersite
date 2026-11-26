@@ -177,7 +177,7 @@ def advisory_investment() -> str:
  <b>One recommendation. The reasoning behind it.</b>
  <p>Invest / Experiment / Hold / Stop — supported by the evidence you provide, not an AI-generated confidence score.</p></div>
  <div class="sc-actions">
-  <a class="sc-btn" href="?page=advisory-access&amp;view=decision" target="_self" data-hq-event="investment_register">Register free · Start assessment</a>
+  <a class="sc-btn" href="?page=advisory-access&amp;view=decision" target="_self" data-hq-event="investment_register">Register for free · Start assessment</a>
   <a class="sc-btn alt" href="?page=advisory-access&amp;view=decision&amp;signin=1" target="_self" data-hq-event="investment_signin">Already registered? Sign in</a>
  </div>
  <p style="font-size:13px;margin-top:19px">Free for verified Executive Advisory accounts. No separate service approval or payment details. No confidential documents needed.</p>
@@ -204,13 +204,13 @@ def advisory_investment() -> str:
  </div></div></section>
 <section class="sc-wrap">
  <span class="sc-kicker">Access and confidentiality</span>
- <h2>Free registration. A private assessment.</h2>
+ <h2>Create a free account for your private assessment.</h2>
  <p>Approximately five minutes with guided selections and an optional short context note. Register or sign in using the same Executive Advisory account as the other services. Your assessments remain in your private workspace. This service does not require individual pro-bono approval.</p>
  <div class="investment-auth">
    <h3>Executive Advisory account</h3>
    <p>One verified account for your decision history, report downloads and available Advisory services. Registration is free and does not enroll you in editorial emails.</p>
    <div class="sc-actions">
-    <a class="sc-btn" href="?page=advisory-access&amp;view=decision" target="_self">Register free</a>
+    <a class="sc-btn" href="?page=advisory-access&amp;view=decision" target="_self">Register for free</a>
     <a class="sc-btn light" href="?page=advisory-access&amp;view=decision&amp;signin=1" target="_self">Sign in</a>
    </div>
  </div>

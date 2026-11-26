@@ -202,7 +202,7 @@ def native_header(page: str, *, navigation_locked: bool = False,
             ('', 'Your advisory account'),
         )
         included = (
-            '<a href="?page=readers" target="_self">Complete Premium Reader library included</a>'
+            '<a href="?page=readers" target="_self">Full Reader Library included</a>'
         )
         if service == "workshop":
             title = "Start your Leadership Workshop."

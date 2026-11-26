@@ -152,15 +152,15 @@ def llms_text(catalogue: dict) -> str:
         "This site presents Jair Ribeiro's professional perspectives. "
         "Editorial analysis is not a guarantee of company results or professional advice.",
         "The public content directory is refreshed from the published portfolio catalogue.",
-        "Premium Reader editions offer public summaries; full text and PDFs require "
-        "reader authentication in the website interface.",
+        "Public summaries are available to everyone. Register for free or sign in "
+        "on the website to read full editions and download available PDFs.",
         "",
         "## Start here",
         "",
         "- [Portfolio](" + PUBLIC_ORIGIN + "/): Professional profile and current writing.",
         "- [Thinking](" + PUBLIC_ORIGIN + "/?page=thinking): Essays, decisions and field observations.",
         "- [Executive AI Briefings](" + PUBLIC_ORIGIN + "/?page=briefings): Executive-level decision briefings.",
-        "- [Premium Reader library](" + PUBLIC_ORIGIN + "/?page=readers): Free registered access to complete editions.",
+        "- [Reader Library](" + PUBLIC_ORIGIN + "/?page=readers): Register for free or sign in to read full editions.",
         "- [Executive advisory](" + PUBLIC_ORIGIN + "/?page=advisory): Scope and inquiry route for senior AI and Data decisions.",
         "- [Privacy notice](" + PUBLIC_ORIGIN + "/?page=privacy): Reader data, website measurement and privacy requests.",
         "- [Agent catalogue](" + PUBLIC_ORIGIN + "/agent/catalog.json): All published metadata and access status in JSON.",
@@ -171,7 +171,7 @@ def llms_text(catalogue: dict) -> str:
     ]
     for item in catalogue.get("content", ())[:24]:
         label = item["title"].replace("[", "").replace("]", "")
-        state = "Premium Reader" if item["access"] == "premium" else "open"
+        state = "Free with an account" if item["access"] == "premium" else "open"
         lines.append(
             "- [" + label + "](" + item["markdown_url"] + "): "
             + item["type"].replace("_", " ").title()
@@ -228,8 +228,8 @@ def agents_text() -> str:
         "",
         "## Reader privacy and access",
         "",
-        "- Executive AI Briefings remain Premium Reader editions.",
-        "- The latest published Weekly AI edition is Premium; older issues are open.",
+        "- Register for free or sign in to read the full Executive AI Briefings.",
+        "- Read the latest Weekly AI edition with a free account; older issues are open.",
         "- Article access follows the seven-day and successor-publication policy.",
         "- Never attempt to bypass sign-in, retrieve unpublished drafts, enumerate "
         "readers, use owner routes, or fetch member downloads without permission.",
@@ -254,7 +254,7 @@ def markdown_summary(item: dict) -> str:
         "Published: " + (item["published"] or "Publication date unavailable"),
         "Series: " + item["type"].replace("_", " ").title(),
         "Topic: " + (item["topic"] or "Enterprise AI"),
-        "Access: " + ("Premium Reader — free registration" if item["access"] == "premium" else "Open access"),
+        "Access: " + ("Register for free or sign in" if item["access"] == "premium" else "Open access"),
         "Canonical: " + item["url"],
         "",
         "## Public executive summary",
@@ -266,7 +266,7 @@ def markdown_summary(item: dict) -> str:
         lines.extend([
             "## Full edition",
             "",
-            "The complete edition is available to registered readers through "
+            "Register for free or sign in to read the full edition through "
             "the canonical website link. Full text and downloadable assets "
             "are intentionally not provided by this endpoint.",
             "",

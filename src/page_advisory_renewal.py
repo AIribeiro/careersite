@@ -71,13 +71,13 @@ def advisory_renewal() -> str:
 @media(max-width:700px){{.site .renewal-public .rn-steps{{grid-template-columns:1fr}}}}
 </style>{nav("advisory")}
 <main class="site sc-page renewal-public">
-<section class="sc-hero"><span class="sc-kicker">COMPLIMENTARY EXECUTIVE DECISION SUPPORT</span>
+<section class="sc-hero"><span class="sc-kicker">FREE EXECUTIVE DECISION SUPPORT</span>
 <h1>AI Portfolio Renewal Advisor</h1>
 <p>Would you still fund this AI initiative today, knowing what you know now?</p>
 <p>An existing AI initiative can meet its milestones and still be the wrong next commitment.
 Compare what the business can gain from continuing against its strongest credible alternative.
 Past expenditure cannot justify the next allocation.</p>
-<div class="sc-actions"><a class="sc-btn" href="?page=advisory-access&amp;view=renewal" target="_self">Register free · Open advisor</a>
+<div class="sc-actions"><a class="sc-btn" href="?page=advisory-access&amp;view=renewal" target="_self">Register for free · Open advisor</a>
 <a class="sc-btn light" href="?page=advisory-access&amp;view=renewal&amp;signin=1" target="_self">Already registered? Sign in</a></div>
 </section>
 <section class="sc-section"><span class="sc-kicker">THE QUESTION TRADITIONAL PROJECT REVIEWS MISS</span>
@@ -113,7 +113,7 @@ informed by prospective appraisal, portfolio governance and AI risk-management p
 It does not audit your inputs, certify compliance or predict actual returns. The 10% default financial
 materiality band is adjustable management judgment, not an independently validated industry rule.
 Mandatory obligations and material unpriced value are handled as human decision gates, not numerical multipliers.</p></section>
-<section class="sc-section"><h2>Access is complimentary for registered Advisory members.</h2>
+<section class="sc-section"><h2>Register for free or sign in to use the advisor.</h2>
 <p>Registration lets you save private work and resume your decisions. No service purchase or individual
 admin approval is required. Sensitive assessment contents are not sent to an AI model.</p>
 <div class="sc-actions"><a class="sc-btn" href="?page=advisory-access&amp;view=renewal" target="_self">Open my private workspace</a>
@@ -605,7 +605,7 @@ def render_private_renewal(session: dict,user: dict) -> None:
             service_overview(
                 hero="Challenge the next investment, not the original approval.",
                 description="Compare one AI initiative already consuming resources against its strongest credible route to the same business outcome. Preserve learning while refusing to treat sunk cost as a business case.",
-                access="Complimentary for registered members",assessment_format="Two-pass / two-route challenge",
+                access="Free with an Advisory account",assessment_format="Two-pass / two-route challenge",
                 saved_count=len(records),
                 outputs=(("Recommendation","Renew, replace, test, stop or hold",
                           "Deterministic reasoning tied to prospective outcomes and mandatory conditions."),

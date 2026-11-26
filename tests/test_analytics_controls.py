@@ -23,7 +23,9 @@ class AnalyticsControlTests(unittest.TestCase):
         aggregate_overview = (ROOT / "src/page_public_portfolio_overview.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn('st.session_state[WINDOW_KEY] = "this_week"', aggregate_overview)
+        self.assertIn("initialize_editorial_reporting_period(st.session_state)", aggregate_overview)
+        self.assertNotIn('st.session_state[WINDOW_KEY] = "this_week"', aggregate_overview)
+        self.assertIn("Return to automatic reporting period", aggregate_overview)
         self.assertIn("on_change=remember_reporting_period", source)
         # The current reporting window selects the first period with data
         # (last hour, Today, then progressively longer) instead of a fixed 7d.

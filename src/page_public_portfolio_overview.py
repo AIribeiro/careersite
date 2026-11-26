@@ -327,6 +327,32 @@ def render_public_portfolio_overview() -> None:
         st.caption(str(exc))
         return
 
+    # Show the complete raw collection *before* the classified audience cards.
+    # An automated browser may generate many events; never relabel raw sessions
+    # as people or silently replace raw counts with quality-filtered totals.
+    from page_analytics import _fetch_traffic_quality
+    traffic_audit = _fetch_traffic_quality(str(window))
+    if traffic_audit:
+        raw_views = max(0, int(traffic_audit.get("raw_content_views") or 0))
+        raw_events = max(0, int(traffic_audit.get("raw_events") or 0))
+        raw_sessions = max(0, int(traffic_audit.get("raw_sessions") or 0))
+        qa_views = max(0, int(traffic_audit.get("internal_qa_views") or 0))
+        bot_views = max(0, int(traffic_audit.get("suspected_automation_views") or 0))
+        unclassified_views = max(0, int(traffic_audit.get("unclassified_views") or 0))
+        st.subheader("All recorded browser activity")
+        r1, r2, r3, r4 = st.columns(4)
+        r1.metric("Recorded view events", f"{raw_views:,}")
+        r2.metric("Recorded sessions", f"{raw_sessions:,}")
+        r3.metric("All raw events", f"{raw_events:,}")
+        r4.metric("Unclassified view events", f"{unclassified_views:,}")
+        st.caption(
+            f"Nothing omitted from raw event totals. View events include "
+            f"{qa_views:,} tagged internal-QA views and {bot_views:,} suspected "
+            "automation views. Unclassified does not guarantee human traffic. "
+            "The content cards below use a separately classified audience measure."
+        )
+        st.divider()
+
     pages = portfolio_visit_rows(report, "page")
     historical_routes = [row for row in pages if row["Slug"] in RETIRED_ROUTES]
     current_routes = [row for row in pages if row["Slug"] not in RETIRED_ROUTES]

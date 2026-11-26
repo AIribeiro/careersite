@@ -284,7 +284,12 @@ def render_public_portfolio_overview() -> None:
     st.caption("Measurement changed on 20 November 2026: detailed reading, sessions and interaction analytics now require statistics consent, while basic server-side page-load totals cover all visits. Earlier periods used broader tracking, so comparisons across this change are not like-for-like.")
     # Restore dynamic period selection: first window with a verified
     # editorial read, widening from Last hour through This year as needed.
-    # Explicit manual selections remain persistent.
+    # Explicit manual selections remain persistent, and can be cleared here.
+    from analytics_reporting_period import MANUAL_KEY, PREFERENCE_KEY
+    if st.session_state.get(MANUAL_KEY):
+        if st.button("Return to automatic reporting period", key="portfolio_auto_reporting_period"):
+            st.session_state[MANUAL_KEY] = False
+            st.session_state.pop(PREFERENCE_KEY, None)
     initialize_editorial_reporting_period(st.session_state)
     window = st.selectbox(
         "Reporting period",

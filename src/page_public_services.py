@@ -321,12 +321,12 @@ def advisory() -> str:
     invitation = ("Continue your advisory conversation." if member_signed_in
                   else "Submit a decision for pro-bono review.")
     cta = ("Open my advisory space →" if member_signed_in
-           else "Register free to submit a request →")
+           else "Register for free to request advice →")
     invitation_text = (
         "Your private conversation, requests and next steps are available in your "
-        "Advisory account. The Premium Reader library remains included."
+        "Advisory account. Your Reader Library is included."
         if member_signed_in
-        else "Register free to describe the AI or data decision you are facing. "
+        else "Register for free to describe the AI or data decision you are facing. "
         "I review requests individually and may offer a focused pro-bono discussion "
         "where a senior external perspective could help. There is no charge, "
         "but availability is limited and registration does not guarantee a session."
@@ -348,7 +348,7 @@ def advisory() -> str:
         if member_signed_in
         else
         '<a href="?page=advisory-access" target="_self" '
-        'data-hq-event="advisory_hero_register">Register free</a>'
+        'data-hq-event="advisory_hero_register">Register for free</a>'
         '<span class="advisory-hero-access-divider" aria-hidden="true"></span>'
         '<a href="?page=advisory-access&amp;signin=1" target="_self" '
         'data-hq-event="advisory_hero_signin">Sign in</a>'
@@ -412,20 +412,20 @@ def advisory() -> str:
    </article>\n''' if service_enabled("workshop", admin=is_admin) else ""
     renewal_card = f'''
    <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-renewal">
-     <div class="advisory-ready-card-head"><span class="advisory-ready-category">Existing investments · Complimentary self-service</span><span class="advisory-ready-number">05 / 06</span></div>
+     <div class="advisory-ready-card-head"><span class="advisory-ready-category">Existing investments · Free self-service</span><span class="advisory-ready-number">05 / 06</span></div>
      <h3>AI Portfolio Renewal Advisor</h3>
      <p class="advisory-ready-question">Would you still fund this AI initiative today?</p>
      <p class="advisory-ready-description">Challenge an existing commitment against a credible alternative. Compare future value, evidence, scarce capacity, switching costs and mandatory obligations. Record renew, replace, test, stop or hold.</p>
      <div class="advisory-ready-card-bottom">
       <p class="advisory-ready-detail"><span>What you receive</span><strong>Two-pass challenge · Saved scenarios · Executive decision report</strong></p>
-      <p class="advisory-ready-detail"><span>Access</span><strong>Complimentary with a verified Advisory account. No individual approval.</strong></p>
+      <p class="advisory-ready-detail"><span>Access</span><strong>Free with a verified Advisory account. No separate approval required.</strong></p>
       {public_service_cta("renewal", "?page=advisory-renewal", "Explore renewal advisor", "advisory_renewal_service", admin=is_admin)}
      </div>
    </article>
 ''' if service_enabled("renewal", admin=is_admin) else ""
     market_card = f'''
    <article class="advisory-ready-card advisory-ready-card--self" data-analytics-section="advisory-market-signals">
-     <div class="advisory-ready-card-head"><span class="advisory-ready-category">Verified market intelligence · Complimentary</span><span class="advisory-ready-number">06 / 06</span></div>
+     <div class="advisory-ready-card-head"><span class="advisory-ready-category">Verified market intelligence · Free access</span><span class="advisory-ready-number">06 / 06</span></div>
      <h3>AI &amp; Data Market Signals</h3>
      <p class="advisory-ready-question">Where is the AI &amp; Data market moving—and what should leaders decide next?</p>
      <p class="advisory-ready-description">Explore source-linked adoption, leadership demand, capabilities and consulting conditions. Challenge interpretations with counterevidence and export a premium executive decision brief.</p>

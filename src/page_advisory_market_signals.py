@@ -728,7 +728,7 @@ MARKET_SIGNALS_LANDING_HTML = """
     <div>
       <p class="ms-overline" style="color:#E9B88E">Research access</p>
       <h2 id="ms-cta-title">Choose your edition and start reading.</h2>
-      <p>Exploring your next professional move? Use the Jobseeker Edition to understand the evidence, examine career pathways and evaluate opportunities in your own field. The Executive Edition examines organisational decisions about investment, workforce and capability. Both are available with free registration and separate PDFs.</p>
+      <p>Exploring your next professional move? Use the Jobseeker Edition to understand the evidence, examine career pathways and evaluate opportunities in your own field. The Executive Edition examines organisational decisions about investment, workforce and capability. Register for free or sign in to read both editions and download their PDFs.</p>
       <div class="ms-actions">
         <a class="ms-button" href="?page=advisory-access&amp;view=market-signals&amp;perspective=jobseeker" target="_self" data-hq-event="market_signals_final_jobseeker">Jobseeker report · Free account</a>
         <a class="ms-button ms-button--outline" href="?page=advisory-access&amp;view=market-signals&amp;perspective=executive" target="_self" data-hq-event="market_signals_final_register">Executive report · Free account</a>

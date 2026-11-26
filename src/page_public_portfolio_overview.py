@@ -307,6 +307,8 @@ def render_public_portfolio_overview() -> None:
         _recent_content_report.clear()
         _fast_portfolio_overview.clear()
         _editorial_reporting_activity.clear()
+        from page_analytics import _fetch_traffic_quality
+        _fetch_traffic_quality.clear()
         from site_aggregate_traffic import basic_page_load_report, monthly_content_rollup
         basic_page_load_report.clear()
         monthly_content_rollup.clear()

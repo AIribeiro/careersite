@@ -371,7 +371,7 @@ def _consume_query_verification() -> None:
 
 def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> None:
     if requested_title and resource_kind == "weekly_ai":
-        st.markdown("### Register free or sign in to finish this Weekly AI edition")
+        st.markdown("### Register for free or sign in to read the full Weekly AI edition")
         st.write(
             "You have read the public summary. A free reader account lets you "
             "continue with **" + requested_title +
@@ -379,13 +379,13 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
             "Narration is available when published."
         )
     elif requested_title and resource_kind == "article":
-        st.markdown("### Register free or sign in to finish this article")
+        st.markdown("### Register for free or sign in to read the full article")
         st.write(
             "Continue beyond the public summary to read **" + requested_title +
             "** in full, including the evidence, references and practical implications."
         )
     elif requested_title:
-        st.markdown("### Register free or sign in to read the complete briefing")
+        st.markdown("### Register for free or sign in to read the full briefing")
         st.write(
             "Continue beyond the public preview of **" + requested_title +
             "** with the full decision analysis and original infographic, "
@@ -394,7 +394,7 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
     else:
         st.html("""<div class="reader-join-heading">
         <span class="reader-join-eyebrow">YOUR FREE READER ACCOUNT</span>
-        <h2>Register free to read the complete editions.</h2>
+        <h2>Register for free to read the full articles and briefings.</h2>
         <p>Go beyond the public previews: access Executive AI Briefings,
         current full articles and the latest Weekly AI. Revisit saved
         briefings and download available infographics.</p>
@@ -405,7 +405,7 @@ def _login(requested_title: str = "", *, resource_kind: str = "briefing") -> Non
     )
 
     returning = st.radio(
-        "Reader status", ["Register free", "I already have an account"],
+        "Reader status", ["Register for free", "I already have an account"],
         index=1 if str(st.query_params.get("signin", "")) == "1" else 0,
         horizontal=True, label_visibility="collapsed", key="reader_native_mode",
     ) == "I already have an account"
@@ -942,8 +942,8 @@ def _library(session: dict, user: dict) -> None:
     first = str(profile.get("first_name") or "").strip()
     welcome = ("Welcome back, " + first + "." if first else "Welcome to your reader library.")
     st.html(
-        '<section class="reader-member-welcome" aria-label="Premium Reader welcome">'
-        '<span class="reader-member-eyebrow">YOUR PREMIUM READER SPACE</span>'
+        '<section class="reader-member-welcome" aria-label="Reader welcome">'
+        '<span class="reader-member-eyebrow">YOUR READER LIBRARY</span>'
         '<h2>' + html_escape(welcome) + '</h2>'
         '<p>Independent perspectives on AI strategy, accountability and adoption, '
         'with complete editions, saved reading and original decision visuals '
@@ -1144,7 +1144,7 @@ def _library(session: dict, user: dict) -> None:
                     premium = weekly_ai_is_premium(item, published=weekly_issues)
                     st.caption(
                         edition_label(item) + " · " +
-                        ("CURRENT PREMIUM EDITION" if premium else "OPEN ARCHIVE")
+                        ("LATEST EDITION · SIGN IN TO READ" if premium else "OPEN ARCHIVE")
                     )
                     st.markdown("#### " + str(item.title))
                     st.write(str(item.excerpt or item.subtitle or ""))
@@ -1370,7 +1370,7 @@ def _library(session: dict, user: dict) -> None:
             '<div><span>READER IDENTITY</span><strong>' + email + '</strong>'
             '<small>Verified email</small></div>'
             '<div><span>MEMBER SINCE</span><strong>' + joined + '</strong>'
-            '<small>Free reader registration</small></div>'
+            '<small>Free account</small></div>'
             '<div><span>EDITORIAL EMAILS</span><strong>' + updates + '</strong>'
             '<small>Your preference, managed below</small></div></section>'
         )
@@ -1499,7 +1499,7 @@ def render_article_access_dialog(slug: str, title: str = "") -> None:
         _article_access_dialog(clean, title)
 
 
-@st.dialog("Weekly AI · Premium Reader edition", width="large",
+@st.dialog("Weekly AI · Read the full edition", width="large",
            on_dismiss=_dismiss_article_dialog)
 def _weekly_ai_access_dialog(slug: str, title: str) -> None:
     """Same free reader account, password and email verification as Briefings."""
@@ -1561,7 +1561,7 @@ def _renewal_worksheet_dialog(slug: str) -> None:
         )
     except (RuntimeError, ValueError, OSError):
         st.error("The Excel decision workbook could not be prepared.")
-    st.caption("Included with complimentary verified reader access. No subscription required.")
+    st.caption("Free with your verified reader account. No subscription required.")
 
 
 def render_renewal_worksheet_dialog(slug: str) -> None:

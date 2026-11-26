@@ -496,9 +496,8 @@ else:
         from home_whats_new import inject_live_home_update
         inject_live_home_update()
 
-    # Rich measurement is permitted only after optional statistics consent.
-    # Every independent collector checks that choice before accessing browser
-    # storage or observing the page; the shared sender checks on each event.
+    # Full first-party measurement is mounted on public pages. The same shared
+    # session tracks page, publication, engagement, audio and UX events.
     if CMS_ARTICLE_META is not None or ARTICLE_META is not None:
         inject_article_analytics(PAGE, CMS_ARTICLE_META or ARTICLE_META, source="streamlit")
         inject_share_guard()
@@ -508,9 +507,8 @@ else:
         inject_weekly_audio_telemetry()
 
 
-# Native Reader and Advisory forms previously never mounted the consent
-# interface or opted-in collector. Preserve one-time token safety by mounting
-# only after these routes finish their native authentication work.
+# Native Reader and Advisory workspaces mount the common first-party collector
+# after their one-time authentication tokens have been handled.
 if PAGE in {"readers", "advisory-access"} and not st.query_params.get("token_hash"):
     inject_analytics(PAGE, source="streamlit")
 

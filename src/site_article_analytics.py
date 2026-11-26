@@ -34,11 +34,6 @@ def inject_article_analytics(
 (() => {{
   const win = window.parent;
   const doc = win.document;
-  const statisticsAllowed = () => {{
-    try {{ return win.localStorage.getItem('jair_statistics_choice_v1') === 'yes'; }}
-    catch (_) {{ return false; }}
-  }};
-  if (!statisticsAllowed()) return;
   const endpoint = {json.dumps(endpoint)};
   const apiKey = {json.dumps(ANALYTICS_PUBLISHABLE_KEY)};
   const source = {json.dumps(source)};
@@ -186,17 +181,14 @@ def inject_article_analytics(
   }};
 
   const send = (eventName, {{ slug = null, action = null, target = null }} = {{}}) => {{
-    if (!statisticsAllowed() || isExcludedTestTraffic()) return;
+    if (isExcludedTestTraffic()) return;
     updateArticleEngagement();
     const effectiveSlug = slug || (win.__jairArticleContext && win.__jairArticleContext.slug) || null;
     const articleMs = effectiveSlug && state.slug === effectiveSlug ? Math.round(state.engagedMs) : 0;
     const sessionEngagedMs = Math.max(0, Number(win.sessionStorage.getItem(engagedKey) || 0));
     const payload = {{
-      // Only coarse device categories are needed for readership reporting.
-      ...(win.__jairAnalyticsClientContext ? ((c) => ({{
-        device_type: c.device_type, browser_family: c.browser_family,
-        os_family: c.os_family, language: c.language,
-      }}))(win.__jairAnalyticsClientContext()) : {{}}),
+      // Use available first-party device context for audience reporting.
+      ...(win.__jairAnalyticsClientContext ? win.__jairAnalyticsClientContext() : {{}}),
       event_name: eventName,
       page: String(page || 'thinking').slice(0, 64),
       lens: null,
@@ -217,7 +209,7 @@ def inject_article_analytics(
       article_slug: effectiveSlug ? String(effectiveSlug).slice(0, 160) : null,
       article_action: action ? String(action).slice(0, 32) : null,
       content_kind: win.__jairArticleContext ? 'article' : 'page',
-      tracking_version: 7,
+      tracking_version: 8,
       scroll_depth: win.__jairAnalyticsScrollDepth ? win.__jairAnalyticsScrollDepth() : null,
       article_engaged_ms: effectiveSlug ? Math.min(86400000, Math.max(0, articleMs)) : null,
     }};

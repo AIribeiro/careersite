@@ -36,7 +36,7 @@ def render_current_week_public_preview(article) -> str:
         '<div class="container">'
         '<a class="briefing-preview-back" href="?page=thinking#weekly-ai" target="_self">← Weekly AI</a>'
         '<span class="briefing-preview-index">Weekly AI · Week ' + str(week) + ' · ' + str(year)
-        + ' · Latest edition · Premium Reader</span>'
+        + ' · Latest edition · Free to read with an account</span>'
         + '<h1>' + title + '</h1>'
         + '<p class="briefing-preview-deck">' + subtitle + '</p>'
         + '</div></section>'

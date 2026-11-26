@@ -912,7 +912,7 @@ def render_analytics_dashboard() -> None:
         q4.metric("Evidence verified", quality_verified, _pct(quality_verified, quality_sessions))
         q5.metric("Hiring intent", quality_hiring_intent, _pct(quality_hiring_intent, quality_sessions))
         st.caption(
-            "Legacy hiring-quality benchmark uses tracking v5 only"
+            "Hiring-quality analysis uses tracking v5 and later"
             + (f" · since {quality_since}" if quality_since else "")
             + ". Analysis-eligible means a valid content view, excluding explicit tests and a conservative suspected-automation cohort. "
             "Sessions are browser-tab sessions, not unique people."

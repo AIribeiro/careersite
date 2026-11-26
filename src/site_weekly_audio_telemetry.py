@@ -15,11 +15,6 @@ def inject_weekly_audio_telemetry() -> None:
 (() => {
   const win = window.parent;
   const doc = win.document;
-  const statisticsAllowed = () => {
-    try { return win.localStorage.getItem('jair_statistics_choice_v1') === 'yes'; }
-    catch (_) { return false; }
-  };
-  if (!statisticsAllowed()) return;
   if (win.__jairWeeklyAudioTelemetryBound) return;
   win.__jairWeeklyAudioTelemetryBound = true;
 
@@ -49,7 +44,7 @@ def inject_weekly_audio_telemetry() -> None:
     try { win.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch (_) {}
   };
   const record = (slug, name, milestone, listenedMs) => {
-    if (!statisticsAllowed() || typeof win.__jairAnalyticsSend !== 'function') return Promise.resolve(false);
+    if (typeof win.__jairAnalyticsSend !== 'function') return Promise.resolve(false);
     return Promise.resolve(win.__jairAnalyticsSend(name, {
       element_key: milestone || null,
       element_placement: 'thinking:weekly-ai-audio',

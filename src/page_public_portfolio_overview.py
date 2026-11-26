@@ -282,11 +282,10 @@ def render_public_portfolio_overview() -> None:
         "people; repeat content views count."
     )
     st.caption("Measurement changed on 20 November 2026: detailed reading, sessions and interaction analytics now require statistics consent, while basic server-side page-load totals cover all visits. Earlier periods used broader tracking, so comparisons across this change are not like-for-like.")
-    # Aggregate traffic works without browser statistics consent.
-    # Respect explicit manual reporting-window choices.
-    from analytics_reporting_period import MANUAL_KEY, WINDOW_KEY
-    if not st.session_state.get(MANUAL_KEY):
-        st.session_state[WINDOW_KEY] = "this_week"
+    # Restore dynamic period selection: first window with a verified
+    # editorial read, widening from Last hour through This year as needed.
+    # Explicit manual selections remain persistent.
+    initialize_editorial_reporting_period(st.session_state)
     window = st.selectbox(
         "Reporting period",
         [name for name, _ in REPORTING_WINDOWS],
@@ -294,7 +293,7 @@ def render_public_portfolio_overview() -> None:
         key="careersite_analytics_reporting_window",
         on_change=remember_reporting_period,
         args=(st.session_state,),
-        help="This week is the default because aggregate page counts are available without optional statistics. Manual choices are preserved. Stockholm calendar time; weeks start Monday.",
+        help="Automatically selects the shortest period containing a verified Article, Weekly AI or Executive Briefing read, from Last hour through This year. Other page loads do not qualify. Manual selections, including All, stay selected. Stockholm calendar time; weeks start Monday.",
     )
     # Keep the manual refresh immediately beside the reporting controls,
     # before any potentially expensive report or visual is rendered.

@@ -239,7 +239,7 @@ footer{max-width:1090px;margin:auto;padding:18px 24px 45px;font-size:12px;color:
 footer a{margin-right:16px}
 @media(max-width:560px){.library-item{display:block}.library-item a{display:inline-block;margin-top:9px}}
 </style></head><body><nav><a href="/?page=briefings">JAIR RIBEIRO / EXECUTIVE AI BRIEFINGS</a></nav>
-<main><section><div class="kicker">Reader access · Complimentary</div><h1>""" + escape(title) + "</h1>" + message + body + """</section></main>
+<main><section><div class="kicker">Your free reader account</div><h1>""" + escape(title) + "</h1>" + message + body + """</section></main>
 <footer><a href="/?page=briefings">All briefings</a><a href="/?page=privacy">Privacy &amp; data</a><a href="/?page=contact">Contact</a></footer>
 </body></html>"""
     return _no_cache(HTMLResponse(doc))
@@ -320,7 +320,7 @@ def _library(request, profile: dict) -> Response:
             continue
         label = "Open PDF" if article_slug != slug else "Download your PDF"
         rows.append('<div class="library-item"><div><strong>' + escape(item.title) + '</strong>'
-                    '<span class="small">Executive briefing · Complimentary PDF</span></div>'
+                    '<span class="small">Executive briefing · Free PDF</span></div>'
                     '<a href="/~/+/readers/download/' + escape(article_slug, quote=True) +
                     '.pdf" target="_self">' + label + ' ↓</a></div>')
     user_first_name = str(profile.get("first_name") or "").strip()
@@ -541,8 +541,8 @@ text-transform:uppercase;color:#916346}
 min-height:46px;padding:12px 19px;background:#163b51;color:#fff!important;
 text-decoration:none!important;font:750 12px/1.4 Arial,sans-serif}
 @media(max-width:650px){.site .reader-resource-cta a{width:100%}}</style>
-<div><span>Complimentary executive resource</span><h3>Keep the decision framework at hand.</h3>
-<p>Access the A4 infographic PDF with one verified reader account. Online reading remains free.</p>
+<div><span>Free executive resource</span><h3>Keep the decision framework at hand.</h3>
+<p>Register for free or sign in to download the A4 infographic PDF. Online reading remains free.</p>
 </div><a data-hq-event="briefing_reader_pdf" href="/?page=briefing&amp;article=""" +
             escape(slug, quote=True) + """&amp;pdf=1" target="_self">Download PDF ↓</a></aside>""")
 

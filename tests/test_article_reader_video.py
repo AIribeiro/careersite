@@ -117,3 +117,18 @@ class ArticleReaderVideoTests(TestCase):
         self.assertLess(preview.index("+ render_article_video(article)"), preview.index("+ reader_access_invitation("))
         renderer = full[full.index("def render_cms_article("):]
         self.assertLess(renderer.index("{render_article_video(article)}"), renderer.index("{article.content_html}"))
+
+    def test_ai_leadership_pages_exact_paths_and_digests(self):
+        article = _article(slug="before-you-hire-your-next-ai-engineer-who-is-leading-your-enterprise-ai")
+        manifest = _manifest(article)
+        base = "https://airibeiro.github.io/careersite/public-media/thinking-articles/" + article.slug + "/20261127-10971877f74e/"
+        manifest["video"].update(url=base + "web-10971877f74e.mp4", sha256="10971877f74e3b2c2cba722ef260fb1b62e2c4ea3c2c568313e7ed03fbfac549", bytes=3942344)
+        manifest["poster"].update(url=base + "poster-24d721d86696.png", sha256="24d721d86696326b380cc11cb7e1d271089cba7b595cd8b65e4a1e522f33458b", bytes=77643)
+        with patch.object(video, "_manifest", return_value=manifest):
+            self.assertEqual(video.render_article_video(article).count("<video "), 1)
+            self.assertEqual(video.render_article_video(_article(slug=article.slug, excerpt="changed")), "")
+            manifest["video"]["sha256"] = "a" * 64
+            self.assertEqual(video.render_article_video(article), "")
+            manifest["video"]["sha256"] = "10971877f74e3b2c2cba722ef260fb1b62e2c4ea3c2c568313e7ed03fbfac549"
+            manifest["video"]["url"] = base + "wrong.mp4"
+            self.assertEqual(video.render_article_video(article), "")

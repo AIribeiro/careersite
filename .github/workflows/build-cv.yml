@@ -98,7 +98,7 @@ jobs:
           test -s /tmp/cv-render/page.png
           file /tmp/cv-render/page.png
 
-      - name: Build and validate recruitment-ready files
+      - name: Build and validate recruitment-ready PDF
         env:
           PYTHONPATH: src
         run: |
@@ -121,14 +121,16 @@ jobs:
               assert any(value in line for line in p), value
               assert value in text, value
           assert len(pdf.pages) >= 2
-          print('Validated recruitment formats:', len(p), 'paragraphs,', len(pdf.pages), 'PDF pages')
+          print('Validated recruitment PDF:', len(p), 'paragraphs,', len(pdf.pages), 'PDF pages')
           PY
 
       - name: Commit refreshed canonical and recruitment CVs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/Jair_Ribeiro_CV.pdf static/Jair_Ribeiro_CV_ATS.docx static/Jair_Ribeiro_CV_ATS.pdf
+          rm -f static/Jair_Ribeiro_CV_ATS.docx
+          git add static/Jair_Ribeiro_CV.pdf static/Jair_Ribeiro_CV_ATS.pdf
+          git add -u -- static/
           if ! git diff --cached --quiet; then
             git commit -m "build(cv): refresh executive and recruitment CV formats"
             # Portfolio edits may land while PDF validation is running.

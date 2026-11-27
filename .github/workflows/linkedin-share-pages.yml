@@ -5,6 +5,13 @@ on:
     branches: [main]
     paths:
       - "src/thinking_articles.py"
+      - "tests/test_article_early_access.py"
+      - "tests/test_article_reader_video.py"
+      - "src/page_thinking.py"
+      - "src/article_reader_video.py"
+      - "src/article_reader_preview.py"
+      - "src/site_cms.py"
+      - "src/thinking_core.py"
       - "src/thinking_social.py"
       - "src/site_shortlinks.py"
       - "src/weekly_ai_shortlink_registry.json"

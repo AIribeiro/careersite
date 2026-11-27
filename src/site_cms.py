@@ -1481,6 +1481,18 @@ def render_cms_article(article: CmsArticle) -> str:
     else:
         image = _cms_fallback_cover(article, "cms-article-image")
 
+    # Editorial reader headers use one visible title. Real editorial artwork
+    # takes precedence; text remains the accessible heading. Articles without
+    # artwork retain the ordinary readable text hero, not a duplicate fallback.
+    from article_access import is_editorial_article
+    editorial = is_editorial_article(article)
+    cover_first = editorial and bool(header_image_url)
+    if editorial and not cover_first:
+        image = ""
+    hero_class = "article-hero article-cover-first" if cover_first else "article-hero"
+    heading_class = ' class="article-heading-sr"' if cover_first else ""
+    deck_class = "standfirst article-heading-sr" if cover_first else "standfirst"
+
     tags = ""
     if article.show_tags_publicly and article.hashtags:
         tags = '<div class="themebar">' + ''.join(f'<span>{escape(tag)}</span>' for tag in article.hashtags) + '</div>'
@@ -1547,7 +1559,7 @@ def render_cms_article(article: CmsArticle) -> str:
             available = ()
         return insert_related_navigation(reader, article, available)
 
-    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{questions_styles}{nav("thinking")}<main><section class="article-hero"><div class="container"><a class="article-back" href="{briefing_back_href}" target="_self">{briefing_back_text}</a><div class="article-meta">{escape(article.kind_topic)}</div><h1>{escape(article.title)}</h1><p class="standfirst">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section>{render_article_video(article)}<section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_safe_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
+    return f'''{THINKING_CSS}{CMS_FALLBACK_CSS}{css}{questions_styles}{nav("thinking")}<main><section class="{hero_class}"><div class="container"><a class="article-back" href="{briefing_back_href}" target="_self">{briefing_back_text}</a><div class="article-meta">{escape(article.kind_topic)}</div><h1{heading_class}>{escape(article.title)}</h1><p class="{deck_class}">{escape(article.subtitle or article.excerpt)}</p><div class="article-date">{read_metadata}</div>{image}</div></section>{render_article_video(article)}<section class="section paper"><div class="container article-layout"><article class="article-body">{article.content_html}{tags}{source}{_safe_share_footer(article)}</article><aside class="article-aside">{aside}</aside></div></section>{journey_next("article")}{opportunity()}</main>{footer()}'''
 
 
 def select_auto_featured_article(

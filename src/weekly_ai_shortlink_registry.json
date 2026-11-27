@@ -123,6 +123,24 @@
         "Reuters",
         "Reuters"
       ]
+    },
+    {
+      "iso_year": 2026,
+      "iso_week": 48,
+      "slug": "weekly-ai-2026-11-27",
+      "distribution_mode": "friday_wrap",
+      "story_keys": [
+        "audi_connected_work_voice_ai",
+        "cisco_openai_shirudo",
+        "swiss_ncsc_agentic_attacks"
+      ],
+      "edition_title": "AI Is Moving Beyond Its Old Boundaries",
+      "cover_subtitle": "Friday perspective · one minute",
+      "publisher_names": [
+        "Audi",
+        "Cisco",
+        "Swiss NCSC"
+      ]
     }
   ]
 }

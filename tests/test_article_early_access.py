@@ -228,6 +228,49 @@ class ArticleAccessTests(unittest.TestCase):
         self.assertEqual(rendered, "PUBLIC_BRIEFING_SUMMARY")
         self.assertNotIn("PRIVATE_SECTION_72619", rendered)
 
+    def test_cover_first_header_shared_by_public_and_registered_readers(self):
+        self.latest.header_image_url = "https://example.com/approved-editorial-cover.png"
+        with (
+            patch("site_cms.fetch_published_articles", return_value=[self.previous, self.latest]),
+            patch("site_cms._public_reads_or_none", return_value={}),
+            patch("page_reader_native._session", return_value=(None, None)),
+        ):
+            public = render_cms_article(self.latest)
+        with (
+            patch("site_cms.fetch_published_articles", return_value=[self.previous, self.latest]),
+            patch("site_cms._public_reads_or_none", return_value={}),
+            patch("page_reader_native._session",
+                  return_value=({"access_token": "fake"}, {"id": "reader"})),
+        ):
+            member = render_cms_article(self.latest)
+        for html in (public, member):
+            self.assertEqual(html.count('<h1 class="article-heading-sr">Capacity and Decisions</h1>'), 1)
+            self.assertEqual(html.count('src="https://example.com/approved-editorial-cover.png"'), 1)
+            self.assertIn('article-cover-first', html)
+        self.assertNotIn("PRIVATE_SECTION_72619", public)
+        self.assertIn("PRIVATE_SECTION_72619", member)
+
+    def test_text_only_reader_has_visible_title_and_no_duplicate_cover(self):
+        with (
+            patch("site_cms.reader_header_image_src", return_value=""),
+            patch("site_cms.fetch_published_articles", return_value=[self.previous, self.latest]),
+            patch("site_cms._public_reads_or_none", return_value={}),
+            patch("page_reader_native._session", return_value=(None, None)),
+        ):
+            public = render_cms_article(self.latest)
+            full = render_cms_article(self.previous)
+        for html in (public, full):
+            self.assertIn("<h1>Capacity and Decisions</h1>", html)
+            self.assertNotIn('<h1 class="article-heading-sr">', html)
+            self.assertNotIn('<div class="cms-article-image">', html)
+            self.assertNotIn('<div class="cms-article-image cms-fallback-cover"', html)
+
+    def test_article_media_rules_constrain_intrinsic_width(self):
+        from thinking_core import THINKING_CSS
+        self.assertIn(".site .article-body figure img{width:100%", THINKING_CSS)
+        self.assertIn("max-width:100%!important;height:auto!important", THINKING_CSS)
+        self.assertIn(".site .article-layout > *{min-width:0}", THINKING_CSS)
+
     def test_reader_registration_origin_not_duplicated(self):
         from reader_membership import _register_profile
         user = {

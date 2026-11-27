@@ -580,7 +580,6 @@ async def _weekly_ai_evergreen_image(_request):
 
 async def _cv_download(request):
     variants = {
-        "ats-docx": ("Jair_Ribeiro_CV_ATS.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
         "ats-pdf": ("Jair_Ribeiro_CV_ATS.pdf", "application/pdf"),
     }
     selected = variants.get(request.path_params.get("variant"))

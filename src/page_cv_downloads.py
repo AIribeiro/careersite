@@ -10,7 +10,9 @@ def cv_downloads() -> str:
     def link(variant, filename, label, event, primary=False):
         if not (STATIC / filename).is_file():
             return '<p class="muted" role="status">This format is being refreshed. Please use the available PDF.</p>'
-        href = CV_URI if variant == "executive" else "/cv-download/" + variant
+        # Use the same app-relative static serving route as the working executive PDF.
+        # Root-relative custom ASGI routes may resolve to the Streamlit shell on Cloud.
+        href = CV_URI if variant == "executive" else f"app/static/{filename}"
         style = "btn primary" if primary else "btn dark"
         return f'<a class="{style}" href="{href}" download="{filename}" data-hq-event="{event}">{label} ↓</a>'
 

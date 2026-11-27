@@ -3,9 +3,9 @@
   "slug": "before-you-hire-your-next-ai-engineer-who-is-leading-your-enterprise-ai",
   "episode_id": "20261127-10971877f74e",
   "version": "ai_leadership_premium_v3",
-  "state": "awaiting_media_verification",
+  "state": "published_verified",
   "owner_approved": true,
-  "media_verified": false,
+  "media_verified": true,
   "content_sha256": "d859abb2c596467055c6d92e89218d4ecbf24807d38cd1d186fc1700bc57cf36",
   "title_sha256": "95f66c0c3e7a42169a977da3acab0961b1a7c47eac98ae274ef1fb559bc19a17",
   "subtitle_sha256": "e0a8fdbd42ffecf01968b32e659b771d4a759bec601e8a07e61d02ad68cfbcd1",
@@ -26,5 +26,24 @@
     "sha256": "24d721d86696326b380cc11cb7e1d271089cba7b595cd8b65e4a1e522f33458b",
     "bytes": 77643,
     "mime": "image/png"
-  }
+  },
+  "media_verification": {
+    "video": {
+      "url": "https://airibeiro.github.io/careersite/public-media/thinking-articles/before-you-hire-your-next-ai-engineer-who-is-leading-your-enterprise-ai/20261127-10971877f74e/web-10971877f74e.mp4",
+      "sha256": "10971877f74e3b2c2cba722ef260fb1b62e2c4ea3c2c568313e7ed03fbfac549",
+      "bytes": 3942344,
+      "head": 200,
+      "mime": "video/mp4",
+      "range_verified": true
+    },
+    "poster": {
+      "url": "https://airibeiro.github.io/careersite/public-media/thinking-articles/before-you-hire-your-next-ai-engineer-who-is-leading-your-enterprise-ai/20261127-10971877f74e/poster-24d721d86696.png",
+      "sha256": "24d721d86696326b380cc11cb7e1d271089cba7b595cd8b65e4a1e522f33458b",
+      "bytes": 77643,
+      "head": 200,
+      "mime": "image/png",
+      "range_verified": false
+    }
+  },
+  "release_note": "Owner-approved exact web master and poster; public GitHub Pages delivery independently checked for full SHA-256, MIME, length and video byte ranges. Article content and reader access unchanged."
 }

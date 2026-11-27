@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "src/site_cv.py"
+      - "src/site_cv_ats.py"
       - "src/career_facts.py"
       - "src/site_assets.py"
       - "requirements.txt"
@@ -29,12 +30,12 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: python -m pip install -r requirements.txt
+        run: python -m pip install -r requirements.txt python-docx==1.2.0
 
       - name: Install PDF validation tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq qpdf poppler-utils
+          sudo apt-get install -y -qq qpdf poppler-utils libreoffice-writer fonts-liberation
 
       - name: Generate canonical CV from reviewed source
         env:
@@ -97,13 +98,39 @@ jobs:
           test -s /tmp/cv-render/page.png
           file /tmp/cv-render/page.png
 
-      - name: Commit refreshed canonical PDF
+      - name: Build and validate recruitment-ready files
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m site_cv_ats
+          libreoffice -env:UserInstallation=file:///tmp/cv-lo --headless --convert-to pdf --outdir static static/Jair_Ribeiro_CV_ATS.docx
+          qpdf --check static/Jair_Ribeiro_CV_ATS.pdf
+          python - <<'PY'
+          from docx import Document
+          from pypdf import PdfReader
+          from pathlib import Path
+          doc = Document('static/Jair_Ribeiro_CV_ATS.docx')
+          p = [x.text for x in doc.paragraphs]
+          assert p.count('Work Experience') == 1
+          assert p.count('Education') == 1
+          assert p.count('Languages') == 1
+          assert not doc.tables
+          pdf = PdfReader('static/Jair_Ribeiro_CV_ATS.pdf', strict=True)
+          text = ' '.join(' '.join(page.extract_text().split()) for page in pdf.pages)
+          for value in ('MSX International', 'Volvo Group', 'Kimberly-Clark', 'IBM', 'Hewlett Packard Enterprise', 'Imprendo Consulting', 'CityLife', 'AXA Assicurazioni', 'PeopleLab', 'Selinus University', 'Swedish - Elementary (CEFR A2)'):
+              assert any(value in line for line in p), value
+              assert value in text, value
+          assert len(pdf.pages) >= 2
+          print('Validated recruitment formats:', len(p), 'paragraphs,', len(pdf.pages), 'PDF pages')
+          PY
+
+      - name: Commit refreshed canonical and recruitment CVs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/Jair_Ribeiro_CV.pdf
+          git add static/Jair_Ribeiro_CV.pdf static/Jair_Ribeiro_CV_ATS.docx static/Jair_Ribeiro_CV_ATS.pdf
           if ! git diff --cached --quiet; then
-            git commit -m "build(cv): refresh two-page canonical CV rev5"
+            git commit -m "build(cv): refresh executive and recruitment CV formats"
             # Portfolio edits may land while PDF validation is running.
             # Rebase the generated artifact onto the current branch before pushing.
             git pull --rebase origin main

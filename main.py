@@ -340,8 +340,12 @@ else:
         from page_presence import presence
         render_page = presence
     elif PAGE == "cv":
-        from page_cv_downloads import cv_downloads
-        render_page = cv_downloads
+        # Cloud can retain imported page modules across repository updates.
+        # Refresh this small download page so old links cannot survive a rerun.
+        import importlib
+        import page_cv_downloads
+        importlib.invalidate_caches()
+        render_page = importlib.reload(page_cv_downloads).cv_downloads
     elif PAGE == "contact":
         from page_contact import contact
         render_page = contact

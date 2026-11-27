@@ -1,0 +1,11 @@
+Welcome to Weekly A I, a one-minute briefing from my A I and Data Portfolio. This week, three developments help us understand what happens when artificial intelligence extends the boundaries of work and security.
+
+Audi announced a voice-based Microsoft 365 assistant for its vehicles, developed with Cerence A I and Microsoft. Employees may soon have another way to connect to their work, and employers need to consider how that access is managed.
+
+Cisco and OpenAI have launched Shirudo, an open-source effort to protect running Linux systems while teams prepare permanent security fixes. The idea is to give defenders more time without interrupting essential services.
+
+Meanwhile, Switzerland's National Cyber Security Centre confirmed its first cases of attacks involving A I agents against Swiss organisations. The warning is that defenders have less time to detect and respond.
+
+My takeaway is that the business case for A I needs to reflect the environment in which it operates. I'd want to understand not only what new capability we are buying, but also what it takes to manage access, recover services and respond when conditions change.
+
+The written edition links to all three original sources.

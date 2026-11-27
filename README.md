@@ -222,7 +222,7 @@ The visible CV identity is **Enterprise AI & Data Leader**, matching the website
 
 The CV is generated and validated in GitHub Actions, committed under `/static`, and served through Streamlit's app-relative `app/static/...` route. The published filename is `Jair_Ribeiro_CV.pdf`; do not re-create it in production. Production must not regenerate the PDF at runtime.
 
-The public CV download guide (`?page=cv`) offers the original executive PDF for direct human review and a recruitment-ready PDF for ATS imports. Home, About, Contact and the shared footer link to this guide. The recruitment PDF is generated from the same reviewed career content by `src/site_cv_ats.py` in the canonical CV workflow and committed to `static/`. The recruitment PDF download endpoint serves the committed bytes with the appropriate media type and filename. Never present a missing file as a working download. The formats reduce avoidable parsing ambiguity but do not guarantee a portal's required fields will auto-populate.
+The public CV download guide (`?page=cv`) offers the original executive PDF for direct human review and a recruitment-ready PDF for ATS imports. Home, About, Contact and the shared footer link to this guide. The recruitment PDF is generated from the same reviewed career content by `src/site_cv_ats.py` in the canonical CV workflow and committed to `static/`. Both public CV buttons use Streamlit’s app-relative `app/static/<filename>` route to serve repository-backed PDF bytes, not a root-relative custom route. Never present a missing file as a working download. The formats reduce avoidable parsing ambiguity but do not guarantee a portal's required fields will auto-populate.
 
 ## Visual and repository guardrails
 

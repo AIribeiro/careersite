@@ -50,7 +50,16 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
     if not sections:
         sections = ["The executive summary is temporarily unavailable for this article."]
 
-    body = "".join(f"<p>{escape(p)}</p>" for p in sections)
+    # A companion film follows the hero, including one substantive public
+    # summary paragraph. The remaining authorized opening stays below the film.
+    video_markup = render_article_video(article)
+    hero_summary = sections[0] if video_markup else ""
+    remaining = sections[1:] if video_markup else sections
+    body = "".join(f"<p>{escape(p)}</p>" for p in remaining)
+    lead = (
+        '<p class="article-video-public-lead">' + escape(hero_summary) + '</p>'
+        if hero_summary else ""
+    )
     heads = next_edition_sections(str(article.content_html or ""), limit=4)
     inside = (
         "<ul>" + "".join(f"<li>{escape(head)}</li>" for head in heads) + "</ul>"
@@ -73,13 +82,9 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
             + '" loading="eager" decoding="async"></div>'
         )
     cover_css = (
-        '<style>.article-early-preview .article-early-cover{background:#f7f5f0;padding:20px 0 0}'
-        '.article-early-preview .article-early-cover .container{max-width:1120px;margin:0 auto}'
-        '.article-early-preview .article-early-cover img{display:block;width:100%;height:auto;'
-        'object-fit:contain;border-radius:10px;box-shadow:0 8px 30px #10263b18}'
-        '@media(max-width:560px){.article-early-preview .article-early-cover{padding:12px 0 0}'
-        '.article-early-preview .article-early-cover .container{width:calc(100% - 28px)}'
-        '.article-early-preview .article-early-cover img{border-radius:5px}}</style>'
+        '<style>.site .article-early-preview .article-video-public-lead{'
+        'max-width:900px;margin:18px 0 0;color:#cbd5de;font:400 clamp(15px,1.6vw,18px)/1.6 Arial,sans-serif;'
+        'overflow-wrap:anywhere}</style>'
     )
     destination = "?page=thinking&amp;article=" + escape(slug, quote=True) + "&amp;access=1"
 
@@ -92,7 +97,8 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         '<span class="briefing-preview-index">Article · Free to read with an account</span>'
         f'<h1{heading_class}>{title}</h1><p class="{deck_class}">{subtitle}</p>'
         f'<div class="briefing-preview-meta">{escape(str(read_metadata))} · By Jair Ribeiro</div>'
-        + cover_picture + '</div></section>'
+        + cover_picture + lead + '</div></section>'
+        + video_markup
         + '<section class="briefing-preview-body" data-analytics-section="article-executive-summary">' 
         '<div class="container"><div class="briefing-preview-grid">'
         '<article class="briefing-preview-copy"><div class="briefing-preview-decision">'
@@ -103,7 +109,6 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         '<strong>Inside the full article</strong>' + inside
         + '<p>Register for free to read the full article.</p>'
         '</aside></div>'
-        + render_article_video(article)
         + reader_access_invitation("article", destination,
             section="article-reader-free-access",
             register_event="article_unlock_register",

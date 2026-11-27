@@ -578,6 +578,22 @@ async def _weekly_ai_evergreen_image(_request):
 
 
 
+async def _cv_download(request):
+    variants = {
+        "ats-docx": ("Jair_Ribeiro_CV_ATS.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+        "ats-pdf": ("Jair_Ribeiro_CV_ATS.pdf", "application/pdf"),
+    }
+    selected = variants.get(request.path_params.get("variant"))
+    if selected is None:
+        return PlainTextResponse("CV not found", status_code=404)
+    name, media_type = selected
+    path = ROOT / "static" / name
+    if not path.is_file():
+        return PlainTextResponse("CV format unavailable", status_code=404)
+    return FileResponse(path, media_type=media_type, filename=name,
+                        headers={"Cache-Control": "no-cache", "X-Content-Type-Options": "nosniff"})
+
+
 class _SocialMetadataMiddleware:
     """Serve LinkedIn and other preview crawlers real OG HTML at the root.
 
@@ -633,6 +649,7 @@ app = App(
     "main.py",
     middleware=[Middleware(_SocialMetadataMiddleware)],
     routes=[
+        Route("/cv-download/{variant}", _cv_download, methods=["GET", "HEAD"]),
         Route("/owner-auth/{action}", owner_auth_route, methods=["GET", "POST"]),
         Route("/member-auth/{action}", member_auth_route, methods=["POST"]),
         Route("/readers/download/{slug}.pdf", reader_download, methods=["GET"]),

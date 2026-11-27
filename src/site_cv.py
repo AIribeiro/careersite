@@ -57,7 +57,10 @@ class _CVPDF(FPDF):
         self.cell(0, 4, f"{self.page_no()} / 2", align="R")
 
 
-def build_public_cv() -> bytes:
+def build_public_cv(records: list | None = None) -> bytes:
+    def capture(kind, *values):
+        if records is not None:
+            records.append((kind, *values))
     pdf = _CVPDF(format="A4")
     pdf.set_auto_page_break(auto=False)
     pdf.set_margins(16, 13, 16)
@@ -70,6 +73,7 @@ def build_public_cv() -> bytes:
         pdf.line(16, 7.5, 194, 7.5)
 
     def section(title: str, before: float = 3.2) -> None:
+        capture('section', title)
         pdf.ln(before)
         pdf.set_font("DejaVu", "B", 8.15)
         pdf.set_text_color(*ACCENT)
@@ -87,6 +91,7 @@ def build_public_cv() -> bytes:
         color: tuple[int, int, int] = TEXT,
         bold: bool = False,
     ) -> None:
+        capture('body', text)
         pdf.set_x(16)
         pdf.set_font("DejaVu", "B" if bold else "", size)
         pdf.set_text_color(*color)
@@ -107,6 +112,7 @@ def build_public_cv() -> bytes:
         company_context: str | None = None,
         mandate: str | None = None,
     ) -> None:
+        capture('role', title, company, dates, location, bullets, company_context, mandate)
         pdf.set_x(16)
         pdf.set_font("DejaVu", "B", 8.9)
         pdf.set_text_color(*TEXT)
@@ -132,6 +138,7 @@ def build_public_cv() -> bytes:
         pdf.ln(1.05)
 
     def earlier(title: str, company: str, dates: str) -> None:
+        capture('earlier', title, company, dates)
         pdf.set_x(16)
         pdf.set_font("DejaVu", "", 7.65)
         pdf.set_text_color(*TEXT)

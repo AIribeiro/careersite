@@ -69,7 +69,7 @@ VISUAL_CSS = r'''<style>
 .motif-stop .start{left:2%;top:41%;width:15%}.motif-stop .trunk{left:17%;top:50%;width:28%}.motif-stop .branch-up{left:45%;top:50%;width:31%;transform:rotate(-30deg);color:#ffb25f}.motif-stop .branch-down{left:45%;top:50%;width:32%;transform:rotate(30deg)}.motif-stop .stopbox{right:3%;top:3%;width:19%;height:34%;color:#ffb25f}.motif-stop .stopbox:after{content:"×";position:absolute;inset:0;display:grid;place-items:center;font:300 8cqw/1 Arial;color:#ffb25f}.motif-stop .gobox{right:2%;bottom:1%;width:19%;height:34%}.motif-stop .gobox:after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font:700 6cqw/1 Arial;color:#fff}
 /* roi */
 .motif-roi .axis{left:2%;bottom:10%;width:88%;color:#87c5d8}.motif-roi .b1{left:20%;bottom:11%;width:13%;height:22%;background:#74efff}.motif-roi .b2{left:42%;bottom:11%;width:13%;height:42%;background:#74efff}.motif-roi .b3{left:65%;bottom:11%;width:14%;height:67%;background:#ffb25f}.motif-roi .arrow{left:16%;top:67%;width:67%;transform:rotate(-28deg);color:#f7fbff}.motif-roi .r1{right:0;top:0;width:58%;height:100%;opacity:.58}
-@media(min-width:701px){.article-hero h1,.article-hero .standfirst{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}}
+
 @media(max-width:700px){.article-cover{margin-top:20px}.featured-thinking .thinking-thumb,.decision-note .thinking-thumb{margin-bottom:18px}.cover-content{width:62%}.cover-motif{opacity:.92}}
 </style>'''
 
@@ -124,10 +124,9 @@ def _image(article_key: str, css_class: str) -> str:
 
 def _decorate_article(document: str, article_key: str) -> str:
     from site_components import journey_next
-    marker = '</div></section><section class="section paper">'
-    image = _image(article_key, "article-cover")
-    if marker in document:
-        document = document.replace(marker, image + marker, 1)
+
+    # Legacy text-only articles retain their readable headline. Generated
+    # title cards remain available in the catalogue, not duplicated here.
     document = document.replace('</main>', journey_next('article') + '</main>', 1)
     return VISUAL_CSS + document
 

@@ -57,15 +57,20 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
         if heads else
         "<p>The full argument, supporting evidence and practical implications.</p>"
     )
-    header_url = str(getattr(article, "header_image_url", "") or "").strip()
+    from site_cms import reader_header_image_src
+    header_url = reader_header_image_src(article)
+    cover_first = bool(header_url and (header_url.startswith("https://") or header_url.startswith("data:image/webp;base64,")))
+    hero_class = "briefing-preview-hero article-cover-first" if cover_first else "briefing-preview-hero"
+    heading_class = ' class="article-heading-sr"' if cover_first else ""
+    deck_class = "briefing-preview-deck article-heading-sr" if cover_first else "briefing-preview-deck"
     header_alt = str(getattr(article, "header_image_alt", "") or article.title or "Article cover")
     cover_picture = ""
-    if header_url.startswith("https://"):
+    if cover_first:
         cover_picture = (
-            '<section class="article-early-cover"><div class="container">'
+            '<div class="cms-article-image">'
             '<img src="' + escape(header_url, quote=True)
             + '" alt="' + escape(header_alt, quote=True)
-            + '" loading="eager" decoding="async"></div></section>'
+            + '" loading="eager" decoding="async"></div>'
         )
     cover_css = (
         '<style>.article-early-preview .article-early-cover{background:#f7f5f0;padding:20px 0 0}'
@@ -81,14 +86,13 @@ def render_public_article_preview(article, read_metadata: str = "") -> str:
     return (
         THINKING_CSS + PREVIEW_CSS + cover_css + nav("thinking")
         + '<main class="briefing-preview article-early-preview">'
-        '<section class="briefing-preview-hero" data-analytics-section="article-early-access-intro">'
+        f'<section class="{hero_class}" data-analytics-section="article-early-access-intro">'
         '<div class="container"><a class="briefing-preview-back" href="?page=thinking" target="_self">'
         '← All Articles</a>'
         '<span class="briefing-preview-index">Article · Free to read with an account</span>'
-        f'<h1>{title}</h1><p class="briefing-preview-deck">{subtitle}</p>'
+        f'<h1{heading_class}>{title}</h1><p class="{deck_class}">{subtitle}</p>'
         f'<div class="briefing-preview-meta">{escape(str(read_metadata))} · By Jair Ribeiro</div>'
-        '</div></section>'
-        + cover_picture
+        + cover_picture + '</div></section>'
         + '<section class="briefing-preview-body" data-analytics-section="article-executive-summary">' 
         '<div class="container"><div class="briefing-preview-grid">'
         '<article class="briefing-preview-copy"><div class="briefing-preview-decision">'

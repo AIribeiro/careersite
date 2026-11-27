@@ -1,7 +1,19 @@
 {
   "schema_version": 1,
-  "provenance": "User-supplied LinkedIn recommendations; role/relationship/dates as supplied, names and quotations preserved except punctuation normalization in a few transcriptions",
+  "provenance": "User-supplied LinkedIn and direct written recommendations; role/relationship/dates as supplied (receipt date for direct recommendations), names and quotations preserved except punctuation normalization in a few transcriptions.",
   "reviews": [
+    {
+      "name": "Marco Autorino",
+      "date": "2026-11-27",
+      "relationship": "Worked with Jair at MSX International as Chief People Officer",
+      "role": "Former CPO, MSX International | Managing Director, ContaminAction Business School",
+      "profile_url": "",
+      "group": "Enterprise AI & leadership",
+      "featured": true,
+      "quote": "I worked with Jair at MSX International, where I was CPO and he led the AI & Data Center of Excellence. I'm glad to recommend him for a senior consulting role.\n\nThe environment wasn't easy. He came in a role that was new for our Company at the time. Our stakeholders were spread across the world, and many worried that a central AI and data function would cost them power and autonomy. Jair handled this complexity and ambiguity very well. He listened, built trust and turned possible resistance into engagement.\n\nIn a short time he assessed our data and AI maturity and consulted leaders across regions and functions. He then designed a practical 2026–2027 roadmap, both for our internal use of data and AI and for the solutions we offer customers. He gave it structure through clear priorities, ownership and governance, and adapted it pragmatically as our needs changed.\n\nJair combines strategic clarity, political sensitivity and the ability to deliver in complex environments. I recommend him without reservation. Do not hesitate to reach out for further clarifications",
+      "source": "Direct written recommendation",
+      "date_basis": "received"
+    },
     {
       "name": "Anna Börjesson Sandberg",
       "date": "2026-01-12",
@@ -39,7 +51,7 @@
       "role": "Director of Digital, Innovation & Platforms | Enterprise growth, AI strategy, consumer ecosystems, digital transformation",
       "profile_url": "https://www.linkedin.com/in/james-edwards-7233b8152",
       "group": "Enterprise AI & leadership",
-      "featured": true,
+      "featured": false,
       "quote": "I would classify Jair as a rare world-class talent in the field of AI and a big assist for any organization.\n\nHe is an AI enthusiast who is able to get anyone excited about the topic. Most importantly he's incredibly good at bringing people along on the journey and explaining the benefits of what AI can bring to an organization and educating them.\n\nHe's very well versed in communication, a top-level presenter and also creative in the way they he can engage different people through channels."
     },
     {

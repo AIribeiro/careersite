@@ -121,7 +121,7 @@ def _languages_section() -> str:
 
 def about() -> str:
     family_gallery = _family_gallery()
-    cv = f'<a class="btn dark" href="{CV_URI}" download="{CV_DOWNLOAD_NAME}" data-hq-event="cv_download_about">Download full CV ↓</a>' if CV_URI else ""
+    cv = f'<a class="btn dark" href="?page=cv" target="_self" data-hq-event="cv_choices_about">Choose CV format →</a>' if CV_URI else ""
     return f'''{nav("about")}<main>
 <section class="pagehero"><div class="container">
 <p class="eyebrow">About</p>

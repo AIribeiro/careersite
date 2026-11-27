@@ -7,7 +7,7 @@ from about_next_navigation import portfolio_next_navigation
 
 
 def contact() -> str:
-    cv = f'<a href="{CV_URI}" download="{CV_DOWNLOAD_NAME}" data-hq-event="cv_download_contact">Download CV ↓</a>' if CV_URI else ""
+    cv = f'<a href="?page=cv" target="_self" data-hq-event="cv_choices_contact">CV downloads →</a>' if CV_URI else ""
     contact_uri = getattr(site_assets, "CONTACT_URI", site_assets.ABOUT_BW_URI)
     # Contact-specific semantic footer: one final contact block instead of a
     # duplicate sidebar and stacked links. The three actions remain a row.

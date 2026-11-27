@@ -1493,5 +1493,39 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   }
 }
 
+/* AI Leadership: three recent mandates, followed by two wider earlier mandates.
+   Fill every row without changing any other grid on the portfolio. */
+.site #career-experience .career-mandates-grid{
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:18px;
+}
+.site #career-experience .career-mandates-grid>.card{
+  grid-column:span 2;
+  min-width:0;
+}
+.site #career-experience .career-mandates-grid>.card:nth-child(n+4){
+  grid-column:span 3;
+}
+@media(max-width:980px){
+  .site #career-experience .career-mandates-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .site #career-experience .career-mandates-grid>.card:nth-child(n){
+    grid-column:auto;
+  }
+  .site #career-experience .career-mandates-grid>.card:last-child{
+    grid-column:1/-1;
+  }
+}
+@media(max-width:700px){
+  .site #career-experience .career-mandates-grid{
+    grid-template-columns:minmax(0,1fr);
+    gap:12px;
+  }
+  .site #career-experience .career-mandates-grid>.card:nth-child(n){
+    grid-column:auto;
+  }
+}
+
 </style>
 """

@@ -38,6 +38,8 @@ THINKING_CSS = r'''<style>
 /* Cover-first headers retain the semantic headline and deck for screen readers. */
 .site .article-heading-sr{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
 .site .article-hero.article-cover-first,.site .article-early-preview .briefing-preview-hero.article-cover-first{padding:clamp(24px,4vw,50px) 0 clamp(20px,3vw,36px)}
+.site .article-hero.article-cover-first .container,.site .article-early-preview .briefing-preview-hero.article-cover-first .container{width:min(1120px,calc(100% - 40px));max-width:none;margin-inline:auto}
+@media(max-width:560px){.site .article-hero.article-cover-first .container,.site .article-early-preview .briefing-preview-hero.article-cover-first .container{width:calc(100% - 28px)}}
 .site .article-cover-first .article-back{margin-bottom:16px}
 .site .article-cover-first .article-date,.site .article-cover-first .briefing-preview-meta{margin-top:12px}
 .site .article-cover-first .cms-article-image{margin:16px 0 0;min-width:0;max-width:100%}

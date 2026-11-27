@@ -114,7 +114,10 @@ class ArticleReaderVideoTests(TestCase):
         root = Path(__file__).resolve().parents[1] / "src"
         preview = (root / "article_reader_preview.py").read_text(encoding="utf-8")
         full = (root / "site_cms.py").read_text(encoding="utf-8")
-        self.assertLess(preview.index("+ render_article_video(article)"), preview.index("+ reader_access_invitation("))
+        self.assertLess(preview.index("+ cover_picture + lead"), preview.index("+ video_markup"))
+        self.assertLess(preview.index("+ video_markup"), preview.index("+ reader_access_invitation("))
+        self.assertIn("video_markup = render_article_video(article)", preview)
+        self.assertIn("hero_summary = sections[0] if video_markup", preview)
         renderer = full[full.index("def render_cms_article("):]
         self.assertLess(renderer.index("{render_article_video(article)}"), renderer.index("{article.content_html}"))
 

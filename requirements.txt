@@ -1,8 +1,0 @@
-streamlit==1.64.0
-fpdf2==2.8.8
-Pillow==12.3.0
-pypdf>=5.9,<7
-bleach==6.2.0
-# P0 2026-10-22: request a clean Streamlit Cloud dependency rebuild after manager provisioning stall; no package changes.
-reportlab==4.4.9
-# 2026-11-27: request Streamlit Cloud rebuild to refresh the About recommendation archive; no package changes.

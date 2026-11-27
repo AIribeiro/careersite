@@ -54,6 +54,10 @@ def _approved_public_url(value: object, prefix: str, slug: str) -> bool:
         base = "/careersite/public-media/thinking-articles/" + slug + "/20261125-fd1409953395/"
         expected = "web-fd1409953395.mp4" if prefix == _VIDEO_PREFIX else "poster-a5d06a73832f.png"
         return parts.path == base + expected
+    if parts.netloc == "airibeiro.github.io" and slug == "before-you-hire-your-next-ai-engineer-who-is-leading-your-enterprise-ai":
+        base = "/careersite/public-media/thinking-articles/" + slug + "/20261127-10971877f74e/"
+        expected = "web-10971877f74e.mp4" if prefix == _VIDEO_PREFIX else "poster-24d721d86696.png"
+        return parts.path == base + expected
     return False
 
 
@@ -109,6 +113,11 @@ def render_article_video(article) -> str:
         or not _approved_public_url(video.get("url"), _VIDEO_PREFIX, slug)
         or not _approved_public_url(poster.get("url"), _POSTER_PREFIX, slug)):
         return ""
+    if slug == "before-you-hire-your-next-ai-engineer-who-is-leading-your-enterprise-ai" and (urlsplit(video["url"]).netloc == "airibeiro.github.io" or urlsplit(poster["url"]).netloc == "airibeiro.github.io"):
+        if (video["sha256"] != "10971877f74e3b2c2cba722ef260fb1b62e2c4ea3c2c568313e7ed03fbfac549"
+            or poster["sha256"] != "24d721d86696326b380cc11cb7e1d271089cba7b595cd8b65e4a1e522f33458b"
+            or video["bytes"] != 3942344 or poster.get("bytes") != 77643):
+            return ""
     video_url = escape(video["url"], quote=True)
     poster_url = escape(poster["url"], quote=True)
     label = escape(str(manifest.get("video_title") or "Enterprise AI explained"), quote=True)

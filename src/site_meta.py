@@ -32,7 +32,7 @@ DESCRIPTIONS = {
     "about": "Jair Ribeiro's career from enterprise IT and IBM Watson in 2016 to business-facing AI, Data and Analytics leadership across international teams.",
     "certifications": "Selected AI, data and leadership credentials covering agentic AI, Responsible AI, GenAI strategy, data platforms, product and technical foundations.",
     "presence": "Selected speaking, publications and externally documented contributions across enterprise AI, Data, responsible adoption and governance.",
-    "cv": "Download Jair Ribeiro’s executive PDF or recruitment-ready Word and PDF CV for applicant tracking systems.",
+    "cv": "Download Jair Ribeiro’s executive PDF or recruitment-ready PDF CV for applicant tracking systems.",
     "contact": "Contact Jair Ribeiro about enterprise AI and Data mandates involving strategy, portfolio decisions, cross-functional delivery, governance and adoption.",
     "advisory": "Executive AI and Data advisory with Jair Ribeiro: independent decision review, portfolio priorities, governance, adoption and operating-model choices.",
     "advisory-market-signals": "Swedish AI & Data Market Intelligence for Executive Decision-Making: sourced analysis of AI adoption, workforce demand, business conditions, sourcing, and regional evidence, with executive decision briefs.",

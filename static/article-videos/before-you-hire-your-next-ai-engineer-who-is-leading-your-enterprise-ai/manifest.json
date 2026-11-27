@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "slug": "before-you-hire-your-next-ai-engineer-who-is-leading-your-enterprise-ai",
+  "episode_id": "20261127-10971877f74e",
+  "version": "ai_leadership_premium_v3",
+  "state": "awaiting_media_verification",
+  "owner_approved": true,
+  "media_verified": false,
+  "content_sha256": "d859abb2c596467055c6d92e89218d4ecbf24807d38cd1d186fc1700bc57cf36",
+  "title_sha256": "95f66c0c3e7a42169a977da3acab0961b1a7c47eac98ae274ef1fb559bc19a17",
+  "subtitle_sha256": "e0a8fdbd42ffecf01968b32e659b771d4a759bec601e8a07e61d02ad68cfbcd1",
+  "excerpt_sha256": "a1e1ff6d578973983c8b82f33d7246510d998c33ae8c23342960ed5ad76d680e",
+  "published_at": "2026-11-27T11:22:27.485762+00:00",
+  "script_sha256": "8c22b8ab4e38fc407b19073bf73457dc08ba691658210624ad9412127291e74e",
+  "video_title": "Before You Hire Your Next AI Engineer, Who Is Leading Your Enterprise AI?",
+  "player_heading": "You have AI capabilities. Do you have AI leadership?",
+  "video": {
+    "url": "https://airibeiro.github.io/careersite/public-media/thinking-articles/before-you-hire-your-next-ai-engineer-who-is-leading-your-enterprise-ai/20261127-10971877f74e/web-10971877f74e.mp4",
+    "sha256": "10971877f74e3b2c2cba722ef260fb1b62e2c4ea3c2c568313e7ed03fbfac549",
+    "bytes": 3942344,
+    "mime": "video/mp4",
+    "duration_seconds": 108.293
+  },
+  "poster": {
+    "url": "https://airibeiro.github.io/careersite/public-media/thinking-articles/before-you-hire-your-next-ai-engineer-who-is-leading-your-enterprise-ai/20261127-10971877f74e/poster-24d721d86696.png",
+    "sha256": "24d721d86696326b380cc11cb7e1d271089cba7b595cd8b65e4a1e522f33458b",
+    "bytes": 77643,
+    "mime": "image/png"
+  }
+}

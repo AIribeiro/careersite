@@ -1503,6 +1503,16 @@ html{scroll-behavior:smooth}body{margin:0}[data-testid="stAppViewContainer"]{bac
   grid-column:span 2;
   min-width:0;
 }
+.site #career-experience .career-mandate-location{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+  margin-top:5px;
+}
+.site #career-experience .career-mandates-grid>.card h3{
+  margin-top:16px;
+}
 .site #career-experience .career-mandates-grid>.card:nth-child(n+4){
   grid-column:span 3;
 }

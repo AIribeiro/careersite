@@ -1,6 +1,6 @@
 """Colleague and manager recommendations for the About page.
 
-The source is the supplied LinkedIn recommendation archive in data/. The public
+The source is the supplied recommendation archive in data/, including LinkedIn and direct written recommendations. The public
 page includes the full wording for each recommendation, but only the four most
 relevant recent recommendations are prominent; older endorsements remain easy
 to open. No network requests, client scripts or profile images.
@@ -149,10 +149,11 @@ def _archive_item(item: dict[str, object]) -> str:
 def recommendations_section() -> str:
     records = load_recommendations()
     lead_order = {
-        "Claes Sandros": 0,
-        "Anna Börjesson Sandberg": 1,
-        "Kumara Datta": 2,
-        "Jim Edwards": 3,
+        "Marco Autorino": 0,
+        "Claes Sandros": 1,
+        "Anna Börjesson Sandberg": 2,
+        "Kumara Datta": 3,
+        "Jim Edwards": 4,
     }
     featured = sorted(
         (item for item in records if item.get("featured")),
@@ -160,6 +161,7 @@ def recommendations_section() -> str:
     )
     remaining = [item for item in records if not item.get("featured")]
     groups = (
+        ("Enterprise AI & leadership", "AI strategy, enterprise leadership and digital change."),
         ("Community & leadership", "Volunteering, developing others, and cross-cultural work."),
         ("Enterprise technology & collaboration", "Earlier management, technical delivery, and cross-functional work."),
     )
@@ -195,7 +197,7 @@ def recommendations_section() -> str:
         f'<summary>Earlier professional and community recommendations <small>{len(remaining)} recommendations · Open archive</small></summary>'
         + "".join(archives) +
         '<p class="about-rec-note">Dates and working relationships reflect the recommendation '
-        'information supplied from LinkedIn. Role descriptions are reproduced from that record. '
+        'information supplied from LinkedIn or direct written recommendations. Dates for direct recommendations reflect receipt. '
         'A “Find on LinkedIn” link means the direct profile could not be confirmed.</p>'
         '</details></div></section>'
     )

@@ -234,8 +234,10 @@ jobs:
           python -m unittest discover -s tests -p test_article_reader_video.py -v
           python -m unittest discover -s tests -p test_article_early_access.py -v
 
-      - name: Stage approved AI literacy video and poster
-        run: python scripts/publish_ai_literacy_pages_media.py build
+      - name: Stage approved Article videos and posters
+        run: |
+          python scripts/publish_ai_literacy_pages_media.py build
+          python scripts/publish_ai_leadership_pages_media.py build
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
@@ -265,17 +267,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Verify public AI literacy media and activate exact source-locked player
+      - name: Verify public Article media and activate exact source-locked players
         if: github.ref == 'refs/heads/main'
         run: |
           git fetch origin main
           git merge --ff-only origin/main
           python scripts/publish_ai_literacy_pages_media.py activate
+          python scripts/publish_ai_leadership_pages_media.py activate
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add static/article-videos/how-to-build-an-ai-literate-organization/manifest.json
+          git add static/article-videos/before-you-hire-your-next-ai-engineer-who-is-leading-your-enterprise-ai/manifest.json
           if ! git diff --cached --quiet; then
-            git commit -m "Activate exact owner-approved AI literacy video after public media checks [skip ci]"
+            git commit -m "Activate exact owner-approved Article videos after public media checks [skip ci]"
             git push origin HEAD:main
           fi
       - name: Verify deployed homepage social metadata and image

@@ -2,6 +2,15 @@
   "schema_version": 1,
   "items": [
     {
+      "key": "page:welcome",
+      "type": "New page",
+      "title": "Welcome to my portfolio",
+      "description": "A personal introduction to Jair Ribeiro’s enterprise AI and Data leadership, published perspectives and executive advisory work.",
+      "date": "2026-11-28T14:52:05+01:00",
+      "href": "?page=welcome",
+      "cta": "Explore the page"
+    },
+    {
       "key": "page:presence",
       "type": "New page",
       "title": "Speaking & Publications",

@@ -142,3 +142,26 @@ window.addEventListener('load', () => {
     for placeholder, replacement in replacements.items():
         markup = markup.replace(placeholder, replacement)
     (output / "index.html").write_text(markup, encoding="utf-8")
+
+    # Dedicated public outreach entrypoint. A registrar redirect may drop the
+    # incoming query string; the fixed fallback still records outreach.
+    # Keep canonical SEO and the existing home bridge unchanged.
+    outreach_url = base + "/outreach/"
+    outreach_destination = BRANDED_SITE + "?source=outreach"
+    outreach = markup.replace(
+        f'property="og:url" content="{html.escape(url, quote=True)}"',
+        f'property="og:url" content="{html.escape(outreach_url, quote=True)}"',
+    ).replace(
+        "  const link = document.getElementById('open-portfolio');",
+        "  if (!destination.searchParams.has('source') && !destination.searchParams.has('src') && !destination.searchParams.has('utm_source')) {\n"
+        "    destination.searchParams.set('source', 'outreach');\n"
+        "  }\n"
+        "  const link = document.getElementById('open-portfolio');",
+    ).replace(
+        f'id="open-portfolio" href="{html.escape(BRANDED_SITE, quote=True)}"',
+        f'id="open-portfolio" href="{html.escape(outreach_destination, quote=True)}"',
+    )
+    outreach_dir = output / "outreach"
+    outreach_dir.mkdir(parents=True, exist_ok=True)
+    (outreach_dir / "index.html").write_text(outreach, encoding="utf-8")
+

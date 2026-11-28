@@ -6,7 +6,7 @@ from site_assets import HERO_URI, EMAIL, LINKEDIN
 from site_components import nav, footer
 
 _GUIDE = (
-    ("01", "Leadership experience", "AI leadership in practice", "Selected cases from Volvo Group, MSX International and other roles, covering AI product development, portfolio decisions and adoption.", "impact", "Explore AI leadership"),
+    ("01", "Leadership experience", "AI leadership in practice", "Selected cases covering AI product development, portfolio decisions and adoption across international organizations.", "impact", "Explore AI leadership"),
     ("02", "Governance & adoption", "Making AI work in organizations", "How business ownership, responsible use and practical controls support AI adoption in everyday work.", "ai-data-governance", "Explore governance"),
     ("03", "Articles & perspectives", "Perspectives on enterprise AI", "Original articles and Weekly AI on business decisions, emerging technology and what they mean for organizations.", "thinking", "Read articles & perspectives"),
     ("04", "Executive AI Briefings", "AI decisions for business leaders", "Clear explanations and practical decision guides on AI investment, architecture, governance and readiness.", "briefings", "Explore executive briefings"),

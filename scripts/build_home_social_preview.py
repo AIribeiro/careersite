@@ -147,12 +147,14 @@ window.addEventListener('load', () => {
     # and legacy URL without exposing the campaign name in the share URL.
     # Keep canonical SEO and the existing home bridge unchanged.
     outreach_url = base + "/getintouch/"
-    outreach_destination = BRANDED_SITE + "?source=outreach"
+    outreach_destination = BRANDED_SITE + "?page=welcome&source=outreach"
     outreach = markup.replace(
         f'property="og:url" content="{html.escape(url, quote=True)}"',
         f'property="og:url" content="{html.escape(outreach_url, quote=True)}"',
     ).replace(
         "  const link = document.getElementById('open-portfolio');",
+        "  destination.searchParams.set('page', 'welcome');\n"
+        "  destination.searchParams.delete('article');\n"
         "  if (!destination.searchParams.has('source') && !destination.searchParams.has('src') && !destination.searchParams.has('utm_source')) {\n"
         "    destination.searchParams.set('source', 'outreach');\n"
         "  }\n"

@@ -33,6 +33,7 @@ DESCRIPTIONS = {
     "certifications": "Selected AI, data and leadership credentials covering agentic AI, Responsible AI, GenAI strategy, data platforms, product and technical foundations.",
     "presence": "Selected speaking, publications and externally documented contributions across enterprise AI, Data, responsible adoption and governance.",
     "cv": "Download Jair Ribeiro’s executive PDF or recruitment-ready PDF CV for applicant tracking systems.",
+    "welcome": "A personal introduction to Jair Ribeiro’s enterprise AI and Data leadership, published perspectives and executive advisory work.",
     "contact": "Contact Jair Ribeiro about enterprise AI and Data mandates involving strategy, portfolio decisions, cross-functional delivery, governance and adoption.",
     "advisory": "Executive AI and Data advisory with Jair Ribeiro: independent decision review, portfolio priorities, governance, adoption and operating-model choices.",
     "advisory-market-signals": "Swedish AI & Data Market Intelligence for Executive Decision-Making: sourced analysis of AI adoption, workforce demand, business conditions, sourcing, and regional evidence, with executive decision briefs.",
@@ -145,7 +146,7 @@ def inject_metadata(page: str, title: str) -> None:
     // Clear home/article keywords on an unrelated internal page.
     doc.head.querySelector('meta[name="keywords"]')?.remove();
   }}
-  meta('meta[name="robots"]', 'name', 'robots', 'index,follow,max-image-preview:large');
+  meta('meta[name="robots"]', 'name', 'robots', page === 'welcome' ? 'noindex,follow' : 'index,follow,max-image-preview:large');
   meta('meta[property="og:title"]', 'property', 'og:title', title);
   meta('meta[property="og:description"]', 'property', 'og:description', description);
   meta('meta[property="og:type"]', 'property', 'og:type', 'profile');

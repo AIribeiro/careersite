@@ -20,7 +20,7 @@ from site_analytics_public import public_analytics_rpc_headers
 
 PUBLIC_PAGES = frozenset({
     "home", "impact", "thinking", "briefings", "briefing", "about",
-    "certifications", "presence", "contact", "advisory", "advisory-scorecard",
+    "certifications", "presence", "contact", "welcome", "advisory", "advisory-scorecard",
     "advisory-rollout", "advisory-decision", "advisory-leadership",
     "advisory-renewal", "advisory-market-signals", "advisory-market-demo",
     "advisory-access", "privacy", "ai-data-governance", "readers",

@@ -439,7 +439,7 @@ def inject_writing_footer(document: str, page: str, *, article_slug: str = "") -
     # Article reader pages (including ?page=thinking&article=...) retain
     # the editorial "From my writing" feature, not the catalogue navigation.
     has_closing_navigation = (
-        page in {"home", "about", "impact", "ai-data-governance", "contact", "analytics", "admin", "advisory-market-demo", "advisory-market-signals"}
+        page in {"home", "about", "impact", "ai-data-governance", "contact", "welcome", "analytics", "admin", "advisory-market-demo", "advisory-market-signals"}
         or (page == "thinking" and not article_slug)
     )
     if has_closing_navigation or 'data-analytics-section="site-writing-footer"' in document:

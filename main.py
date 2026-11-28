@@ -82,7 +82,7 @@ LEGACY_ADMIN_LINK = PAGE == "admin"
 if LEGACY_ADMIN_LINK:
     PAGE = "analytics"
 
-PUBLIC_VALID = {"cv", "home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "presence", "contact", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-decision", "advisory-leadership", "advisory-renewal", "advisory-market-signals", "advisory-market-demo", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
+PUBLIC_VALID = {"cv", "home", "impact", "thinking", "briefings", "briefing", "about", "certifications", "presence", "contact", "welcome", "advisory", "advisory-scorecard", "advisory-rollout", "advisory-decision", "advisory-leadership", "advisory-renewal", "advisory-market-signals", "advisory-market-demo", "advisory-access", "privacy", "enterprise", "transformation", "governance", "consulting", "ai-data-governance", "readers"}
 VALID = PUBLIC_VALID | {"analytics", "admin"}
 PAGE = PAGE if PAGE in VALID else "home"
 
@@ -128,6 +128,7 @@ TITLES = {
     "certifications": "AI, Data & Leadership Certifications | Jair Ribeiro",
     "presence": "Speaking & Publications | Jair Ribeiro",
     "contact": "Contact | Jair Ribeiro",
+    "welcome": "Welcome to my portfolio | Jair Ribeiro",
     "cv": "Download CV | Jair Ribeiro",
     "advisory": "Executive AI & Data Advisory | Jair Ribeiro",
     "advisory-access": "Executive Advisory Account | Jair Ribeiro",
@@ -346,6 +347,9 @@ else:
         import page_cv_downloads
         importlib.invalidate_caches()
         render_page = importlib.reload(page_cv_downloads).cv_downloads
+    elif PAGE == "welcome":
+        from page_welcome import welcome
+        render_page = welcome
     elif PAGE == "contact":
         from page_contact import contact
         render_page = contact

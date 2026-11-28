@@ -20,6 +20,8 @@ on:
       - "scripts/generate_weekly_ai_covers.py"
       - "scripts/build_linkedin_share_site.py"
       - "scripts/build_home_social_preview.py"
+      - "src/page_welcome.py"
+      - "tests/test_welcome_page.py"
       - "static/jair-ribeiro-social-preview.png"
       - "tests/test_home_social_preview.py"
       - "scripts/build_agent_discovery_static.py"
@@ -77,6 +79,9 @@ jobs:
       - name: Test homepage social preview metadata and image
         run: python -m unittest discover -s tests -p 'test_home_social_preview.py' -v
 
+      - name: Test dedicated welcome page
+        run: python -m unittest discover -s tests -p 'test_welcome_page.py' -v
+
       - name: Build static social share site
         run: python scripts/build_linkedin_share_site.py --output _share_site --share-base https://airibeiro.github.io/careersite
 
@@ -115,6 +120,11 @@ jobs:
           assert 'name="twitter:card" content="summary_large_image"' in home
           assert 'rel="icon"' in home
           assert 'source' in home and 'utm_campaign' in home
+          welcome = Path('_share_site/getintouch/index.html').read_text(encoding='utf-8')
+          assert welcome == Path('_share_site/outreach/index.html').read_text(encoding='utf-8')
+          assert "destination.searchParams.set('page', 'welcome')" in welcome
+          assert 'property="og:image"' in welcome
+          assert 'careersite/getintouch/' in welcome
           with Image.open('_share_site/social/jair-ribeiro-home.png') as home_image:
               assert home_image.format == 'PNG'
               assert home_image.size == (1200, 630)

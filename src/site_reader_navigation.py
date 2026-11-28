@@ -22,6 +22,7 @@ _ALLOWED_PAGES = frozenset({
     "about",
     "certifications",
     "contact",
+    "welcome",
     "advisory",
     "advisory-scorecard",
     "advisory-rollout",
@@ -66,7 +67,7 @@ _ALLOWED_QUERY = frozenset({
 _JS = r"""
 export default function(component) {
   const { setTriggerValue } = component;
-  const allowedPages = new Set(["home","impact","thinking","briefings","briefing","about","certifications","contact","advisory","advisory-scorecard","advisory-rollout","advisory-decision","advisory-leadership","advisory-renewal","advisory-market-signals","advisory-market-demo","advisory-access","privacy","enterprise","transformation","governance","consulting","ai-data-governance","readers","analytics"]);
+  const allowedPages = new Set(["home","impact","thinking","briefings","briefing","about","certifications","contact","welcome","advisory","advisory-scorecard","advisory-rollout","advisory-decision","advisory-leadership","advisory-renewal","advisory-market-signals","advisory-market-demo","advisory-access","privacy","enterprise","transformation","governance","consulting","ai-data-governance","readers","analytics"]);
   const allowedParams = new Set(["page","article","briefings_page","weekly_ai","access","pdf","worksheet","signin","download","utm_source","utm_medium","utm_campaign","utm_content","utm_term","source","role","go","view","request","workspace"]);
   const advisoryViews = new Set(["overview","requests","messages","scorecard","rollout","decision","renewal","workshop","market-signals","account"]);
   const brandedHosts = new Set(['jairribeiro.com', 'advisory.jairribeiro.com']);

@@ -38,13 +38,15 @@ class HomeSocialPreviewTests(unittest.TestCase):
                 self.assertEqual(favicon.size, (96, 96))
                 self.assertEqual(favicon.format, "PNG")
 
-    def test_outreach_bridge_has_server_metadata_and_attribution_fallback(self) -> None:
+    def test_getintouch_bridge_has_server_metadata_and_attribution_fallback(self) -> None:
         with TemporaryDirectory() as tmp:
             output = Path(tmp)
             write_home_share(output, "https://airibeiro.github.io/careersite")
-            document = (output / "outreach" / "index.html").read_text(encoding="utf-8")
+            document = (output / "getintouch" / "index.html").read_text(encoding="utf-8")
+            legacy = (output / "outreach" / "index.html").read_text(encoding="utf-8")
+            self.assertEqual(legacy, document)
             home = (output / "index.html").read_text(encoding="utf-8")
-            self.assertIn('property="og:url" content="https://airibeiro.github.io/careersite/outreach/"', document)
+            self.assertIn('property="og:url" content="https://airibeiro.github.io/careersite/getintouch/"', document)
             self.assertIn('property="og:image" content="https://airibeiro.github.io/careersite/social/jair-ribeiro-home.png"', document)
             self.assertIn('href="https://jairribeiro.com/?source=outreach"', document)
             self.assertIn("destination.searchParams.set('source', 'outreach')", document)

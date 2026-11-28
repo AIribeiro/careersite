@@ -143,10 +143,10 @@ window.addEventListener('load', () => {
         markup = markup.replace(placeholder, replacement)
     (output / "index.html").write_text(markup, encoding="utf-8")
 
-    # Dedicated public outreach entrypoint. A registrar redirect may drop the
-    # incoming query string; the fixed fallback still records outreach.
+    # Public contact entrypoint. Preserve the existing analytics attribution
+    # and legacy URL without exposing the campaign name in the share URL.
     # Keep canonical SEO and the existing home bridge unchanged.
-    outreach_url = base + "/outreach/"
+    outreach_url = base + "/getintouch/"
     outreach_destination = BRANDED_SITE + "?source=outreach"
     outreach = markup.replace(
         f'property="og:url" content="{html.escape(url, quote=True)}"',
@@ -161,7 +161,9 @@ window.addEventListener('load', () => {
         f'id="open-portfolio" href="{html.escape(BRANDED_SITE, quote=True)}"',
         f'id="open-portfolio" href="{html.escape(outreach_destination, quote=True)}"',
     )
-    outreach_dir = output / "outreach"
-    outreach_dir.mkdir(parents=True, exist_ok=True)
-    (outreach_dir / "index.html").write_text(outreach, encoding="utf-8")
+    for route in ("getintouch", "outreach"):
+        # The old route remains a compatibility alias with the new OG URL.
+        route_dir = output / route
+        route_dir.mkdir(parents=True, exist_ok=True)
+        (route_dir / "index.html").write_text(outreach, encoding="utf-8")
 
